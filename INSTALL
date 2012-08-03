@@ -1,0 +1,8 @@
+# Installation
+
+In a fresh directory:
+ - `hg clone https://maxinevm@lafo.ssw.uni-linz.ac.at/hg/graalvm-truffle-codegen`
+ - `hg clone http://r.cs.purdue/hg/fastr graal/fastr`
+ - `export MX_PATH=\`pwd\`/graal/fastr/mx `
+ - `./mx.sh eclipseinit`
+ - Import in eclipse existings projects into your fresh directory/workspace

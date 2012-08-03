@@ -1,0 +1,298 @@
+# The format of this file is described in the documentation for my.py.
+
+library@JDK_TOOLS@path=${JAVA_HOME}/lib/tools.jar
+library@JDK_TOOLS@optional=true
+
+library@JUNIT@path=lib/junit-4.8.jar
+library@JUNIT@urls=http://repo1.maven.org/maven2/junit/junit/4.8/junit-4.8.jar
+library@JUNIT@eclipse.container=org.eclipse.jdt.junit.JUNIT_CONTAINER/4
+
+library@CHECKSTYLE@path=lib/checkstyle-5.5-all.jar
+library@CHECKSTYLE@urls=jar:http://sourceforge.net/projects/checkstyle/files/checkstyle/5.5/checkstyle-5.5-bin.zip/download!/checkstyle-5.5/checkstyle-5.5-all.jar
+
+library@DACAPO@path=lib/dacapo-9.12-bach.jar
+library@DACAPO@urls=http://dfn.dl.sourceforge.net/project/dacapobench/9.12-bach/dacapo-9.12-bach.jar
+
+library@JACOCOAGENT@path=lib/jacocoagent.jar
+library@JACOCOAGENT@urls=http://lafo.ssw.uni-linz.ac.at/jacoco/jacocoagent.jar
+
+library@JACOCOREPORT@path=lib/jacocoreport.jar
+library@JACOCOREPORT@urls=http://lafo.ssw.uni-linz.ac.at/jacoco/jacocoreport.jar
+
+library@DACAPO_SCALA@path=lib/dacapo-scala-0.1.0.jar
+library@DACAPO_SCALA@urls=http://repo.scalabench.org/snapshots/org/scalabench/benchmarks/scala-benchmark-suite/0.1.0-SNAPSHOT/scala-benchmark-suite-0.1.0-20110908.085753-2.jar
+
+library@RHINO@path=lib/rhino.jar
+library@RHINO@urls=jar:http://ftp.mozilla.org/pub/mozilla.org/js/rhino1_7R3.zip!/rhino1_7R3/js.jar
+
+# graal.api
+project@com.oracle.graal.api@subDir=graal
+project@com.oracle.graal.api@sourceDirs=src
+project@com.oracle.graal.api@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.api@javaCompliance=1.7
+
+# graal.api.test
+project@com.oracle.graal.api.test@subDir=graal
+project@com.oracle.graal.api.test@sourceDirs=src
+project@com.oracle.graal.api.test@dependencies=JUNIT,com.oracle.graal.api
+project@com.oracle.graal.api.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.api.test@javaCompliance=1.7
+
+# graal.api.meta
+project@com.oracle.graal.api.meta@subDir=graal
+project@com.oracle.graal.api.meta@sourceDirs=src
+project@com.oracle.graal.api.meta@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.api.meta@javaCompliance=1.7
+
+# graal.api.code
+project@com.oracle.graal.api.code@subDir=graal
+project@com.oracle.graal.api.code@sourceDirs=src
+project@com.oracle.graal.api.code@dependencies=com.oracle.graal.api.meta
+project@com.oracle.graal.api.code@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.api.code@javaCompliance=1.7
+
+# graal.api.interpreter
+project@com.oracle.graal.api.interpreter@subDir=graal
+project@com.oracle.graal.api.interpreter@sourceDirs=src
+project@com.oracle.graal.api.interpreter@dependencies=com.oracle.graal.api.meta
+project@com.oracle.graal.api.interpreter@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.api.interpreter@javaCompliance=1.7
+
+# graal.hotspot
+project@com.oracle.graal.hotspot@subDir=graal
+project@com.oracle.graal.hotspot@sourceDirs=src
+project@com.oracle.graal.hotspot@dependencies=com.oracle.graal.snippets,com.oracle.graal.api.interpreter,com.oracle.graal.api
+project@com.oracle.graal.hotspot@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.hotspot@javaCompliance=1.7
+
+# graal.hotspot.server
+project@com.oracle.graal.hotspot.server@subDir=graal
+project@com.oracle.graal.hotspot.server@sourceDirs=src
+project@com.oracle.graal.hotspot.server@dependencies=com.oracle.graal.hotspot
+project@com.oracle.graal.hotspot.server@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.hotspot.server@javaCompliance=1.7
+
+# graal.graph
+project@com.oracle.graal.graph@subDir=graal
+project@com.oracle.graal.graph@sourceDirs=src
+project@com.oracle.graal.graph@dependencies=com.oracle.graal.debug
+project@com.oracle.graal.graph@javaCompliance=1.7
+
+# graal.graph.test
+project@com.oracle.graal.graph.test@subDir=graal
+project@com.oracle.graal.graph.test@sourceDirs=src
+project@com.oracle.graal.graph.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.graph.test@dependencies=JUNIT,com.oracle.graal.graph
+project@com.oracle.graal.graph.test@javaCompliance=1.7
+
+# graal.debug
+project@com.oracle.graal.debug@subDir=graal
+project@com.oracle.graal.debug@sourceDirs=src
+project@com.oracle.graal.debug@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.debug@javaCompliance=1.7
+
+# graal.lir
+project@com.oracle.graal.lir@subDir=graal
+project@com.oracle.graal.lir@sourceDirs=src
+project@com.oracle.graal.lir@dependencies=com.oracle.max.asm,com.oracle.graal.nodes
+project@com.oracle.graal.lir@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.lir@javaCompliance=1.7
+
+# graal.lir.amd64
+project@com.oracle.graal.lir.amd64@subDir=graal
+project@com.oracle.graal.lir.amd64@sourceDirs=src
+project@com.oracle.graal.lir.amd64@dependencies=com.oracle.graal.lir
+project@com.oracle.graal.lir.amd64@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.lir.amd64@javaCompliance=1.7
+
+# graal.alloc
+project@com.oracle.graal.alloc@subDir=graal
+project@com.oracle.graal.alloc@sourceDirs=src
+project@com.oracle.graal.alloc@dependencies=com.oracle.graal.lir
+project@com.oracle.graal.alloc@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.alloc@javaCompliance=1.7
+
+# graal.snippets
+project@com.oracle.graal.snippets@subDir=graal
+project@com.oracle.graal.snippets@sourceDirs=src
+project@com.oracle.graal.snippets@dependencies=com.oracle.graal.printer
+project@com.oracle.graal.snippets@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.snippets@javaCompliance=1.7
+
+# graal.snippets.test
+project@com.oracle.graal.snippets.test@subDir=graal
+project@com.oracle.graal.snippets.test@sourceDirs=src
+project@com.oracle.graal.snippets.test@dependencies=com.oracle.graal.snippets,com.oracle.graal.tests
+project@com.oracle.graal.snippets.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.snippets.test@javaCompliance=1.7
+project@com.oracle.graal.snippets.test@testHarness=unittest
+
+# graal.nodes
+project@com.oracle.graal.nodes@subDir=graal
+project@com.oracle.graal.nodes@sourceDirs=src,test
+project@com.oracle.graal.nodes@dependencies=com.oracle.max.criutils,com.oracle.graal.graph
+project@com.oracle.graal.nodes@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.nodes@javaCompliance=1.7
+
+# graal.interpreter
+project@com.oracle.graal.interpreter@subDir=graal
+project@com.oracle.graal.interpreter@sourceDirs=src
+project@com.oracle.graal.interpreter@dependencies=com.oracle.graal.hotspot
+project@com.oracle.graal.interpreter@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.interpreter@javaCompliance=1.7
+
+# graal.compiler
+project@com.oracle.graal.compiler@subDir=graal
+project@com.oracle.graal.compiler@sourceDirs=src
+project@com.oracle.graal.compiler@dependencies=com.oracle.graal.lir.amd64,com.oracle.graal.alloc
+project@com.oracle.graal.compiler@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.compiler@javaCompliance=1.7
+
+# graal.boot
+project@com.oracle.graal.boot@subDir=graal
+project@com.oracle.graal.boot@sourceDirs=src
+project@com.oracle.graal.boot@dependencies=com.oracle.graal.java,com.oracle.graal.api
+project@com.oracle.graal.boot@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.boot@javaCompliance=1.7
+
+# graal.boot.test
+project@com.oracle.graal.boot.test@subDir=graal
+project@com.oracle.graal.boot.test@sourceDirs=src
+project@com.oracle.graal.boot.test@dependencies=JUNIT,com.oracle.graal.boot
+project@com.oracle.graal.boot.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.boot.test@javaCompliance=1.7
+
+# graal.bytecode
+project@com.oracle.graal.bytecode@subDir=graal
+project@com.oracle.graal.bytecode@sourceDirs=src
+project@com.oracle.graal.bytecode@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.bytecode@javaCompliance=1.7
+
+# graal.java
+project@com.oracle.graal.java@subDir=graal
+project@com.oracle.graal.java@sourceDirs=src
+project@com.oracle.graal.java@dependencies=com.oracle.graal.compiler,com.oracle.graal.bytecode
+project@com.oracle.graal.java@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.java@javaCompliance=1.7
+
+# graal.printer
+project@com.oracle.graal.printer@subDir=graal
+project@com.oracle.graal.printer@sourceDirs=src
+project@com.oracle.graal.printer@dependencies=com.oracle.graal.java
+project@com.oracle.graal.printer@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.printer@javaCompliance=1.7
+
+# graal.test
+project@com.oracle.graal.tests@subDir=graal
+project@com.oracle.graal.tests@sourceDirs=src
+project@com.oracle.graal.tests@dependencies=JUNIT,com.oracle.graal.printer,com.oracle.graal.api
+project@com.oracle.graal.tests@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.tests@javaCompliance=1.7
+project@com.oracle.graal.tests@testHarness=unittest
+
+# graal.jtt
+project@com.oracle.graal.jtt@subDir=graal
+project@com.oracle.graal.jtt@sourceDirs=src
+project@com.oracle.graal.jtt@dependencies=JUNIT
+project@com.oracle.graal.jtt@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.jtt@javaCompliance=1.7
+project@com.oracle.graal.jtt@testHarness=jtt
+
+# graal.examples
+project@com.oracle.graal.examples@subDir=graal
+project@com.oracle.graal.examples@sourceDirs=src
+project@com.oracle.graal.examples@checkstyle=com.oracle.graal.graph
+project@com.oracle.graal.examples@javaCompliance=1.7
+
+# max.asm
+project@com.oracle.max.asm@subDir=graal
+project@com.oracle.max.asm@sourceDirs=src
+project@com.oracle.max.asm@dependencies=com.oracle.max.criutils
+project@com.oracle.max.asm@checkstyle=com.oracle.graal.graph
+project@com.oracle.max.asm@javaCompliance=1.7
+
+# max.cri
+project@com.oracle.max.cri@subDir=graal
+project@com.oracle.max.cri@sourceDirs=src
+project@com.oracle.max.cri@dependencies=com.oracle.graal.api.code
+project@com.oracle.max.cri@checkstyle=com.oracle.graal.graph
+project@com.oracle.max.cri@javaCompliance=1.7
+
+# max.criutils
+project@com.oracle.max.criutils@subDir=graal
+project@com.oracle.max.criutils@sourceDirs=src
+project@com.oracle.max.criutils@dependencies=com.oracle.max.cri
+project@com.oracle.max.criutils@checkstyle=com.oracle.graal.graph
+project@com.oracle.max.criutils@javaCompliance=1.7
+
+# truffle
+project@com.oracle.truffle@subDir=graal
+project@com.oracle.truffle@sourceDirs=src
+project@com.oracle.truffle@dependencies=JUNIT
+project@com.oracle.truffle@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle@javaCompliance=1.7
+
+# truffle.test
+project@com.oracle.truffle.test@subDir=graal
+project@com.oracle.truffle.test@sourceDirs=src
+project@com.oracle.truffle.test@dependencies=com.oracle.truffle,JUNIT
+project@com.oracle.truffle.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.test@javaCompliance=1.7
+
+# truffle.codegen
+project@com.oracle.truffle.codegen@subDir=graal
+project@com.oracle.truffle.codegen@sourceDirs=src
+project@com.oracle.truffle.codegen@dependencies=
+project@com.oracle.truffle.codegen@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.codegen@javaCompliance=1.7
+
+# truffle.codegen.test
+project@com.oracle.truffle.codegen.test@subDir=graal
+project@com.oracle.truffle.codegen.test@sourceDirs=src,src_gen
+project@com.oracle.truffle.codegen.test@dependencies=com.oracle.truffle,com.oracle.truffle.codegen,JUNIT
+project@com.oracle.truffle.codegen.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.codegen.test@javaCompliance=1.7
+project@com.oracle.truffle.codegen.test@annotationProcessors=com.oracle.truffle.codegen.processor
+
+# truffle.codegen.processor
+project@com.oracle.truffle.codegen.processor@subDir=graal
+project@com.oracle.truffle.codegen.processor@sourceDirs=src
+project@com.oracle.truffle.codegen.processor@dependencies=com.oracle.truffle.codegen
+project@com.oracle.truffle.codegen.processor@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.codegen.processor@javaCompliance=1.7
+project@com.oracle.truffle.codegen.processor@annotationProcessorClasses=com.oracle.truffle.codegen.processor.TruffleProcessor
+
+# truffle.codegen.processor.test
+project@com.oracle.truffle.codegen.processor.test@subDir=graal
+project@com.oracle.truffle.codegen.processor.test@sourceDirs=src
+project@com.oracle.truffle.codegen.processor.test@dependencies=com.oracle.truffle.codegen.processor,JUNIT
+project@com.oracle.truffle.codegen.processor.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.codegen.processor.test@javaCompliance=1.7
+
+# truffle.js
+project@com.oracle.truffle.js@subDir=graal
+project@com.oracle.truffle.js@sourceDirs=src
+project@com.oracle.truffle.js@dependencies=com.oracle.truffle,RHINO
+project@com.oracle.truffle.js@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.js@javaCompliance=1.7
+
+# truffle.js.test
+project@com.oracle.truffle.js.test@subDir=graal
+project@com.oracle.truffle.js.test@sourceDirs=src
+project@com.oracle.truffle.js.test@dependencies=com.oracle.truffle.js,JUNIT
+project@com.oracle.truffle.js.test@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.js.test@javaCompliance=1.7
+
+# truffle.compiler
+project@com.oracle.truffle.compiler@subDir=graal
+project@com.oracle.truffle.compiler@sourceDirs=src,test
+project@com.oracle.truffle.compiler@dependencies=com.oracle.truffle,com.oracle.truffle.js,com.oracle.graal.hotspot,JUNIT
+project@com.oracle.truffle.compiler@checkstyle=com.oracle.graal.graph
+project@com.oracle.truffle.compiler@javaCompliance=1.7
+
+# fastr
+project@fastr@subDir=graal
+project@fastr@sourceDirs=src,test
+project@fastr@dependencies=com.oracle.truffle
+project@fastr@checkstyle=com.oracle.graal.graph
+project@fastr@javaCompliance=1.7
