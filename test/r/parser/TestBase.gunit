@@ -1,0 +1,17 @@
+gunit R;
+
+<<
+pack <- function(f) {
+	# A great test
+	v = attr(terms(f), "term.labels")
+	# With a lot of features 
+ e = new.env() ; for(i in v)  assign(i, get(i, attr(f, ".Environment"), e))
+ attr(f, ".Environment") <- e ; ls(envir=e); f # except if
+}
+>> OK
+
+// Lexicals rules
+
+ID:
+	"...1" OK
+	..2 FAIL
