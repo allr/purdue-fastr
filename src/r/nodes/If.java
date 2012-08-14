@@ -35,4 +35,15 @@ public class If implements Node {
     public void setFalseCase(Node falseCase) {
         this.falseCase = falseCase;
     }
+
+    @Override
+    public void accept(Visitor v) {
+        v.visit(this);
+    }
+
+    public void visit_all(Visitor v) {
+        getCond().accept(v);
+        getTrueCase().accept(v);
+        getFalseCase().accept(v);
+    }
 }

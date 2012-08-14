@@ -20,6 +20,7 @@ tokens {
 
 @header {
 package r.parser;
+import r.data.*;
 import r.nodes.*;
 //Checkstyle: stop
 }
@@ -74,9 +75,8 @@ package r.parser;
 ** - Line break are tolerated in strings even without a '\' !!! (ugly)
 ** - EOF does'nt work with unbalanced structs
 ** - Improve the stack of balanced structures 
-**
-** - Must add NA values ... 
 *****************************************************/
+
 script returns [Node v]
     @init{ArrayList<Node> stmts = new ArrayList<Node>();}
 	@after{ $v = Factory.sequence(stmts);}
@@ -100,10 +100,10 @@ expr returns [Node v]
 	: a=assign { v = a; }
 	;	
 expr_wo_assign returns [Node v]
-	: while_expr
-	| if_expr
-	| for_expr
-	| repeat_expr
+	: w=while_expr { $v = w; }
+	| i=if_expr { $v = i; }
+	| f=for_expr { $v = f; }
+	| r=repeat_expr { $v = r; }
 	| function
 	| NEXT ((LPAR)=>LPAR n_ RPAR)? 
 	| BREAK ((LPAR)=>LPAR n_ RPAR)? 
@@ -111,7 +111,7 @@ expr_wo_assign returns [Node v]
 sequence returns [Node v]
     @init{ArrayList<Node> stmts = new ArrayList<Node>();}
     @after{ $v = Factory.sequence(stmts);}
-	: LBRACE n_ (e=expr_or_assign (n e=expr_or_assign)* n?)?  RBRACE  
+	: LBRACE n_ (e=expr_or_assign { stmts.add(e); } (n e=expr_or_assign { stmts.add(e); })* n?)?  RBRACE  
 	;
 assign returns [Node v]
 	: l=tilde_expr	
@@ -213,33 +213,41 @@ basic_expr returns [Node v]
 	(((FIELD|AT|LBRAKET|LBB|LPAR)=>subset=expr_subset[v] { $v = subset; })+ | (n_)=>)
 	;
 expr_subset [Node i] returns [Node v]
-    : (FIELD n_ name=id) { v = Factory.binary(BinaryOperator.FIELD, i, name); } 
-    | (AT n_ name=id)  { v = Factory.binary(BinaryOperator.AT, i, name); } 
+    : (FIELD n_ name=id) { v = Factory.fieldAccess(FieldOperator.FIELD, i, name.getText()); } 
+    | (AT n_ name=id)  { v = Factory.fieldAccess(FieldOperator.AT, i, name.getText()); } 
     | (LBRAKET subset=expr_list RBRAKET) { v = Factory.call(CallOperator.SUBSET, i, subset); }
     | (LBB subscript=expr_list RBRAKET RBRAKET) { v = Factory.call(CallOperator.SUBSCRIPT, i, subscript); }
     // Must use RBRAKET instead of RBB beacause of : a[b[1]]
     | (LPAR a=args RPAR)  { v = Factory.call(CallOperator.CALL, i, a); } 
     //| { v = i; }
     ;
-simple_expr returns [Node n]
-	: id
-	| b=bool { $n = b; }
+simple_expr returns [Node v]
+	: i=id { $v = Factory.readVariable(i.getText()); }
+	| b=bool { $v = b; }
 	| DD
-	| NULL
-	| NUMBER
+	| NULL { $v = Constant.getNull(); }
+	| num=number { $v = num; }
 	| id NS_GET n_ id
 	| id NS_GET_INT n_ id
-	| LPAR n_ expr_or_assign n_ RPAR
-	| sequence
-	| expr_wo_assign
+	| LPAR n_ ea = expr_or_assign n_ RPAR { $v = ea; }
+	| s = sequence { $v = s;}
+	| e = expr_wo_assign { $v = e; }
 	;
-id	returns [Node n]
-    : ID
-    | STRING
-    | VARIATIC;
+number returns [Node n]
+    : i=INTEGER { $n = Constant.createIntConstant($i.text); }
+    | d=DOUBLE { $n = Constant.createDoubleConstant($d.text); }
+    | c=COMPLEX { $n = Constant.createComplexConstant($i.text); }
+    ;
+id	returns [Token t]
+    : i=ID { $t = $i; }
+    | s=STRING { $t = $s; }
+    | v=VARIATIC { $t = $v; }
+    ;
 bool returns [Node v]
-    : TRUE {$v = Factory.createConstant(true); }
-    | FALSE {$v = Factory.createConstant(false); };
+    : TRUE {$v = Constant.createBoolConstant(1); }
+    | FALSE {$v = Constant.createBoolConstant(0); }
+    | NA {$v = Constant.createBoolConstant(RLogical.NA); }
+    ;
 or_operator returns [BinaryOperator v]
 	: OR          {$v = BinaryOperator.OR; }
  	| BITWISEOR   {$v = BinaryOperator.BITWISEOR; };
@@ -263,17 +271,17 @@ mult_operator returns [BinaryOperator v]
 power_operator returns [BinaryOperator v]
 	: CARRET {$v = BinaryOperator.POW; }
 	;
-expr_list returns [Map<Id, Node> v]
+expr_list returns [Map<Symbol, Node> v]
 	: (n_ expr_list_arg)? n_ (COMMA (n_ expr_list_arg)? n_)* 
 	;
 expr_list_arg
 	: expr 
 	| name=id n_ ASSIGN n_ v=expr 
 	;
-args returns [Map<Id, Node> v]
+args returns [Map<Symbol, Node> v]
     : (n_ arg_expr)? n_ (COMMA (n_ arg_expr)? n_)* 
 	;
-arg_expr returns [Map<Id, Node> v]
+arg_expr returns [Map<Symbol, Node> v]
 	: expr 
 	| name=id n_ ASSIGN n_ val=expr 
 	| name=id n_ ASSIGN 
@@ -368,6 +376,8 @@ FUNCTION
 NULL
 	: 'NULL';
 
+NA
+    : 'NA';
 TRUE
 	: 'TRUE';
 FALSE
@@ -394,10 +404,20 @@ WS  :   ( ' '
     ;
 NEWLINE 
 	: LINE_BREAK	{ if(incomplete_stack[incomplete_depth]>0) $channel=HIDDEN; };
-NUMBER
-    :   ('0'..'9')+ '.' ('0'..'9')* EXPONENT? ('i'|'L')?
-    |   '.'? ('0'..'9')+ EXPONENT? ('i'|'L')?
-    |	'0x' HEX_DIGIT+ 'L'?
+INTEGER
+    :   ('0'..'9')+ '.' ('0'..'9')* 'L' {setText(getText().substring(0, getText().length()-1));}
+    |   '.'? ('0'..'9')+ EXPONENT? 'L' {setText(getText().substring(0, getText().length()-1));}
+    |   '0x' HEX_DIGIT+ 'L' {setText(getText().substring(0, getText().length()-1));}
+    ;
+COMPLEX
+    :   ('0'..'9')+ '.' ('0'..'9')* EXPONENT? 'i'  {setText(getText().substring(0, getText().length()-1));}
+    |   '.'? ('0'..'9')+ EXPONENT? 'i' {setText(getText().substring(0, getText().length()-1));}
+    |   '0x' HEX_DIGIT 'i' {setText(getText().substring(0, getText().length()-1));}
+    ;
+DOUBLE
+    :   ('0'..'9')+ '.' ('0'..'9')* EXPONENT?
+    |   '.'? ('0'..'9')+ EXPONENT?
+    |	'0x' HEX_DIGIT
     ;
 DD	: '..' ('0'..'9')+
 	;  

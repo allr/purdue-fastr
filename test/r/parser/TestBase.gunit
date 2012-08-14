@@ -1,5 +1,8 @@
 gunit R;
 
+@header{package r.parser;}
+
+interactive:
 <<
 pack <- function(f) {
 	# A great test
@@ -13,5 +16,14 @@ pack <- function(f) {
 // Lexicals rules
 
 ID:
-	"...1" OK
-	..2 FAIL
+	"...1" FAIL // Should be ok to be consistant
+    "`..1`" FAIL // Should be ok
+    "`...1`" OK // Why it fails
+    "`test`" OK
+	"..2" FAIL
+    "plot" OK
+    "plot.default" OK
+    ".plot" OK
+
+DD:
+    "..2" OK

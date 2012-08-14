@@ -1,0 +1,15 @@
+package r.data;
+
+import r.data.internal.*;
+
+
+public interface RInt extends RNumber {
+    int NA = Integer.MIN_VALUE;
+    String TYPE_STRING = "integer";
+
+    public class RIntFactory {
+        public static RInt getArray(int... values) {
+            return new IntImpl(values);
+        }
+    }
+}

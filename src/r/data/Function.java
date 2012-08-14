@@ -20,7 +20,7 @@ public class Function {
         return new Closure(env);
     }
 
-    public class Closure {
+    public class Closure implements Node {
         final Frame frame;
 
         Closure(Frame frame) {
@@ -29,6 +29,12 @@ public class Function {
 
         Frame activate() {
             return null;
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            body.accept(v);
+            v.visit(this);
         }
     }
 }

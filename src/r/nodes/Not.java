@@ -2,7 +2,20 @@ package r.nodes;
 
 
 public class Not extends UnaryOperation {
+    public static final String OPERATOR = "+";
+
     Not(Node operand) {
         super(operand);
+    }
+
+    @Override
+    public void accept(Visitor v) {
+        super.accept(v);
+        v.visit(this);
+    }
+
+    @Override
+    public String getPrettyOperator() {
+        return Not.OPERATOR;
     }
 }

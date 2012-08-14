@@ -1,6 +1,6 @@
 package r.nodes;
 
-public class UnaryOperation implements Node {
+public abstract class UnaryOperation implements Node {
     Node operand;
 
     public UnaryOperation(Node op) {
@@ -14,4 +14,11 @@ public class UnaryOperation implements Node {
     public void setOperand(Node operand) {
         this.operand = operand;
     }
+
+    @Override
+    public void accept(Visitor v) {
+        getOperand().accept(v);
+    }
+
+    public abstract String getPrettyOperator();
 }

@@ -26,8 +26,5 @@ public enum BinaryOperator {
     BITWISEAND,
 
     WHILE,
-    IF,
-
-    FIELD,
-    AT
+    IF
 }

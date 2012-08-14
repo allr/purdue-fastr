@@ -1,7 +1,7 @@
 package r.nodes;
 
 
-public abstract class BinaryOperation {
+public abstract class BinaryOperation implements Node {
     Node left;
     Node right;
 
@@ -25,4 +25,11 @@ public abstract class BinaryOperation {
     public void setRight(Node right) {
         this.right = right;
     }
+
+    public void visit_all(Visitor v) {
+        getLeft().accept(v);
+        getRight().accept(v);
+    }
+
+    public abstract String getPrettyOperator();
 }

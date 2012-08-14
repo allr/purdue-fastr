@@ -3,21 +3,9 @@ package r.nodes;
 import java.util.*;
 
 public class Factory {
-    public static Constant createConstant(int... value) {
-        if (value.length == 1) {
-            return IntegerLiteral.getInteger();
-        }
-        throw new Error("Non scalar constants are not implemented.");
-    }
-    public static BooleanLiteral createConstant(boolean... value) {
-        if (value.length == 1) {
-            if (value[0]) {
-                return BooleanLiteral.trueSingleton();
-            } else {
-                return BooleanLiteral.falseSingleton();
-            }
-        }
-        throw new Error("Non scalar constants are not implemented.");
+
+    public static Node readVariable(String name) {
+        return new VariableAccess(Symbol.getSymbol(name));
     }
 
     public static Node unary(UnaryOperator op, Node operand) {
@@ -29,6 +17,14 @@ public class Factory {
             case REPEAT: return new Not(operand);
         }
         throw new Error("No node implemented for: '" + op + "' (" + operand + ")");
+    }
+
+    public static Node fieldAccess(FieldOperator op, Node value, String fieldName) {
+        switch (op) {
+            case AT: // Since I dunno what does AT, I put this case
+            case FIELD: return new FieldAccess(value, fieldName);
+        }
+        throw new Error("No node implemented for: '" + op + "' (" + value + ": " + fieldName + ")");
     }
 
     public static Node binary(BinaryOperator op, Node left, Node right) {
@@ -57,9 +53,6 @@ public class Factory {
             case ASSIGN: return new Add(left, right);
             case SUPER_ASSIGN: return new Add(left, right);
 
-            case FIELD: return new Add(left, right);
-            case AT: return new Add(left, right);
-
             case COLUMN: return new Add(left, right);
         }
 
@@ -68,7 +61,7 @@ public class Factory {
 
     public static Node ternary(TernaryOperator op, Node first, Node scnd, Node third) {
         switch (op) {
-            case IF: return new If(first, first, third);
+            case IF: return new If(first, scnd, third);
         }
         throw new Error("No node implemented for: '" + op + "' (" + first + ", " + scnd + ", " + third + ")");
     }
@@ -79,9 +72,10 @@ public class Factory {
         return new Sequence(exprs);
     }
 
-    public static Node call(CallOperator op, Node lhs, Map<Id, Node> args) {
+    public static Node call(CallOperator op, Node lhs, Map<Symbol, Node> args) {
         return null;
     }
+
     public static Node custom_operator(Object op, Node left, Node right) {
         return null;
 //        throw new Error("Custom operator not implemented: '" + op + "' (" + left + ", " + right + ")");
