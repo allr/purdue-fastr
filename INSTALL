@@ -1,11 +1,37 @@
 # Installation
 
-In a fresh directory (for instance `mkdir fastr ; cd fastr`):
+ -  Preparing your project:
+    Create a fresh directory (for instance `fastr`)
 
- - `hg clone https://maxinevm@lafo.ssw.uni-linz.ac.at/hg/graalvm-truffle-codegen truffle`
- - `hg clone http://r.cs.purdue/hg/fastr`
- - `export MX_PATH=../fastr/mx `
- - `cd truffle ; ./mx.sh ideinit`
-     + Eclipse: Switch to your new workspace, Import \ existing projects
+    ~~~~
+		mkdir fastr && cd fastr
+    ~~~~
+
+ -  Get sources:
+
+    ~~~~
+hg clone https://maxinevm@lafo.ssw.uni-linz.ac.at/hg/graalvm-truffle-codegen truffle
+hg clone http://r.cs.purdue/hg/fastr
+    ~~~~
+
+ -  Patch mx (until my changes are merged):
+
+    ~~~~
+wget http://www.cs.purdue.edu/homes/fmoranda/dist/mx-overlay.patch
+patch -d truffle -p1 < mx-overlay.path
+    ~~~~
+
+ -  Configure (Eclipse/Netbeans/IntelliJ)
+
+    ~~~~
+export MX_PATH=../fastr/mx
+cd truffle && ./mx.sh ideini
+    ~~~~
+
+     + Eclipse: Switch to your new workspace (your fresh new dir, remember `fastr`), Import \\ Existing projects \\ Select your fresh new dir
+     + IntelliJ: Shams, any ideas ?
+     + NetBeans: People are still using this ?
 
 # Run
+
+Todo ... another day
