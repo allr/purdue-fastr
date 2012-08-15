@@ -3,8 +3,8 @@ package r.nodes.tools;
 import java.io.*;
 import r.nodes.*;
 
-
 public class PrettyPrinter extends BasicVisitor {
+
     int level = 0;
     final PrintStream out;
     StringBuilder buff = new StringBuilder();
@@ -53,7 +53,7 @@ public class PrettyPrinter extends BasicVisitor {
     public void visit(Sequence n) {
         println("{");
         inc();
-        for (Node e: n.getExprs()) {
+        for (Node e : n.getExprs()) {
             e.accept(this);
             println("");
         }
@@ -76,21 +76,59 @@ public class PrettyPrinter extends BasicVisitor {
 
     @Override
     public void visit(BinaryOperation op) {
-        op.getLeft().accept(this);
+        Node left = op.getLHS();
+        Node right = op.getRHS();
+        // FIXME this is not the right place to do it but we need the parent otherwise
+        int precedence = op.getPrecedence();
+        if (left.getPrecedence() < precedence) {
+            print("(");
+            left.accept(this);
+            print(")");
+        } else {
+            left.accept(this);
+        }
         print(" ");
         print(op.getPrettyOperator());
         print(" ");
-        op.getRight().accept(this);
+        if (right.getPrecedence() < precedence) {
+            print("(");
+            right.accept(this);
+            print(")");
+        } else {
+            right.accept(this);
+        }
     }
 
     @Override
     public void visit(UnaryOperation op) {
         print(op.getPrettyOperator());
-        op.getOperand().accept(this);
+        op.getLHS().accept(this);
     }
 
     @Override
     public void visit(Constant n) {
         print(n.prettyValue());
+    }
+
+    @Override
+    public void visit(Repeat n) {
+        print("repeat ");
+        n.getBody().accept(this);
+    }
+
+    @Override
+    public void visit(While n) {
+        print("while(");
+        n.getCond().accept(this);
+        print(") ");
+        n.getBody().accept(this);
+    }
+
+    @Override
+    public void visit(SimpleAssignVariable n) {
+        print(n.getSymbol().pretty());
+        print(" <- ");
+        n.getExpr().accept(this);
+        println("");
     }
 }

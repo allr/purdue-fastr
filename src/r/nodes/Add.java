@@ -1,9 +1,8 @@
 package r.nodes;
 
-
-public class Add extends BinaryOperation implements Node {
-    public static final String OPERATOR = "+";
-
+@PrettyName("+")
+@Precedence(Operation.ADD_PRECEDENCE)
+public class Add extends BinaryOperation {
     public Add(Node l, Node r) {
         super(l, r);
     }
@@ -11,10 +10,5 @@ public class Add extends BinaryOperation implements Node {
     @Override
     public void accept(Visitor v) {
         v.visit(this);
-    }
-
-    @Override
-    public String getPrettyOperator() {
-        return Add.OPERATOR;
     }
 }

@@ -20,7 +20,7 @@ public class Function {
         return new Closure(env);
     }
 
-    public class Closure implements Node {
+    public class Closure implements RAny {
         final Frame frame;
 
         Closure(Frame frame) {
@@ -32,9 +32,13 @@ public class Function {
         }
 
         @Override
-        public void accept(Visitor v) {
-            body.accept(v);
-            v.visit(this);
+        public RAttributes getAttributes() {
+            return Null.getNull();
+        }
+
+        @Override
+        public String pretty() {
+            return null;
         }
     }
 }

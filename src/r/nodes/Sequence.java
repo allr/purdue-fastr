@@ -1,10 +1,12 @@
 package r.nodes;
 
+import java.util.*;
 
-public class Sequence implements Node {
+
+public class Sequence extends Node {
     Node[] exprs;
     Sequence(Node[] e) {
-        exprs = e; // FIXME or not ... do we need to duplicate this array
+        exprs = updateParent(e); // FIXME or not ... do we need to duplicate this array
     }
 
     @Override
@@ -16,9 +18,17 @@ public class Sequence implements Node {
         return exprs;
     }
 
+    @Override
     public void visit_all(Visitor v) {
         for (Node e: exprs) {
             e.accept(v);
         }
+    }
+
+    public static Node create(ArrayList<Node> exprs) {
+        return new Sequence(exprs.toArray(new Node[exprs.size()]));
+    }
+    public static Node create(Node[] exprs) {
+        return new Sequence(exprs);
     }
 }

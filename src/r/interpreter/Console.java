@@ -22,7 +22,6 @@ public class Console {
     static StringBuilder incomplete = new StringBuilder();
 
     public static void main(String[] args) {
-        System.err.println(Convert.double2string(Convert.string2double("NA")));
         boolean errorStmt = false;
         try {
             if (args.length > 0) {

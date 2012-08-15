@@ -1,8 +1,11 @@
-// $ANTLR 3.4 R.g 2012-08-13 18:02:30
+// $ANTLR 3.4 R.g 2012-08-14 18:20:23
 
 package r.parser;
 import r.data.*;
 import r.nodes.*;
+import r.nodes.Call.*;
+import r.nodes.UnaryOperation.*;
+import r.nodes.BinaryOperation.*;
 //Checkstyle: stop
 
 
@@ -138,7 +141,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "script"
-    // R.g:80:1: script returns [Node v] : n_ (s= statement )* ;
+    // R.g:83:1: script returns [Node v] : n_ (s= statement )* ;
     public final Node script() throws RecognitionException {
         Node v = null;
 
@@ -151,8 +154,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 1) ) { return v; }
 
-            // R.g:83:2: ( n_ (s= statement )* )
-            // R.g:83:4: n_ (s= statement )*
+            // R.g:86:2: ( n_ (s= statement )* )
+            // R.g:86:4: n_ (s= statement )*
             {
             pushFollow(FOLLOW_n__in_script156);
             n_();
@@ -160,7 +163,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:83:7: (s= statement )*
+            // R.g:86:7: (s= statement )*
             loop1:
             do {
                 int alt1=2;
@@ -173,7 +176,7 @@ public class RParser extends Parser {
 
                 switch (alt1) {
             	case 1 :
-            	    // R.g:83:8: s= statement
+            	    // R.g:86:8: s= statement
             	    {
             	    pushFollow(FOLLOW_statement_in_script161);
             	    s=statement();
@@ -194,7 +197,7 @@ public class RParser extends Parser {
 
             }
 
-            if ( state.backtracking==0 ) { v = Factory.sequence(stmts);}
+            if ( state.backtracking==0 ) { v = Sequence.create(stmts);}
         }
 
             catch(RecognitionException re){
@@ -213,7 +216,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "interactive"
-    // R.g:85:1: interactive returns [Node v] : n_ e= statement ;
+    // R.g:88:1: interactive returns [Node v] : n_ e= statement ;
     public final Node interactive() throws RecognitionException {
         Node v = null;
 
@@ -225,8 +228,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 2) ) { return v; }
 
-            // R.g:86:2: ( n_ e= statement )
-            // R.g:86:4: n_ e= statement
+            // R.g:89:2: ( n_ e= statement )
+            // R.g:89:4: n_ e= statement
             {
             pushFollow(FOLLOW_n__in_interactive179);
             n_();
@@ -262,7 +265,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "statement"
-    // R.g:88:1: statement returns [Node v] : (e= expr_or_assign n | '--EOF--' ( . )* EOF );
+    // R.g:91:1: statement returns [Node v] : (e= expr_or_assign n | '--EOF--' ( . )* EOF );
     public final Node statement() throws RecognitionException {
         Node v = null;
 
@@ -274,7 +277,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 3) ) { return v; }
 
-            // R.g:89:2: (e= expr_or_assign n | '--EOF--' ( . )* EOF )
+            // R.g:92:2: (e= expr_or_assign n | '--EOF--' ( . )* EOF )
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -294,7 +297,7 @@ public class RParser extends Parser {
             }
             switch (alt3) {
                 case 1 :
-                    // R.g:89:4: e= expr_or_assign n
+                    // R.g:92:4: e= expr_or_assign n
                     {
                     pushFollow(FOLLOW_expr_or_assign_in_statement201);
                     e=expr_or_assign();
@@ -313,11 +316,11 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:90:4: '--EOF--' ( . )* EOF
+                    // R.g:93:4: '--EOF--' ( . )* EOF
                     {
                     match(input,83,FOLLOW_83_in_statement210); if (state.failed) return v;
 
-                    // R.g:90:14: ( . )*
+                    // R.g:93:14: ( . )*
                     loop2:
                     do {
                         int alt2=2;
@@ -333,7 +336,7 @@ public class RParser extends Parser {
 
                         switch (alt2) {
                     	case 1 :
-                    	    // R.g:90:14: .
+                    	    // R.g:93:14: .
                     	    {
                     	    matchAny(input); if (state.failed) return v;
 
@@ -370,17 +373,17 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "n_"
-    // R.g:93:1: n_ : ( NEWLINE | COMMENT )* ;
+    // R.g:96:1: n_ : ( NEWLINE | COMMENT )* ;
     public final void n_() throws RecognitionException {
         int n__StartIndex = input.index();
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 4) ) { return ; }
 
-            // R.g:93:4: ( ( NEWLINE | COMMENT )* )
-            // R.g:93:6: ( NEWLINE | COMMENT )*
+            // R.g:96:4: ( ( NEWLINE | COMMENT )* )
+            // R.g:96:6: ( NEWLINE | COMMENT )*
             {
-            // R.g:93:6: ( NEWLINE | COMMENT )*
+            // R.g:96:6: ( NEWLINE | COMMENT )*
             loop4:
             do {
                 int alt4=2;
@@ -436,14 +439,14 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "n"
-    // R.g:94:1: n : ( ( NEWLINE | COMMENT )+ | EOF | SEMICOLUMN n_ );
+    // R.g:97:1: n : ( ( NEWLINE | COMMENT )+ | EOF | SEMICOLUMN n_ );
     public final void n() throws RecognitionException {
         int n_StartIndex = input.index();
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 5) ) { return ; }
 
-            // R.g:94:3: ( ( NEWLINE | COMMENT )+ | EOF | SEMICOLUMN n_ )
+            // R.g:97:3: ( ( NEWLINE | COMMENT )+ | EOF | SEMICOLUMN n_ )
             int alt6=3;
             switch ( input.LA(1) ) {
             case COMMENT:
@@ -473,9 +476,9 @@ public class RParser extends Parser {
 
             switch (alt6) {
                 case 1 :
-                    // R.g:94:5: ( NEWLINE | COMMENT )+
+                    // R.g:97:5: ( NEWLINE | COMMENT )+
                     {
-                    // R.g:94:5: ( NEWLINE | COMMENT )+
+                    // R.g:97:5: ( NEWLINE | COMMENT )+
                     int cnt5=0;
                     loop5:
                     do {
@@ -520,14 +523,14 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:94:28: EOF
+                    // R.g:97:28: EOF
                     {
                     match(input,EOF,FOLLOW_EOF_in_n250); if (state.failed) return ;
 
                     }
                     break;
                 case 3 :
-                    // R.g:94:34: SEMICOLUMN n_
+                    // R.g:97:34: SEMICOLUMN n_
                     {
                     match(input,SEMICOLUMN,FOLLOW_SEMICOLUMN_in_n254); if (state.failed) return ;
 
@@ -559,7 +562,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_or_assign"
-    // R.g:96:1: expr_or_assign returns [Node v] : a= alter_assign ;
+    // R.g:99:1: expr_or_assign returns [Node v] : a= alter_assign ;
     public final Node expr_or_assign() throws RecognitionException {
         Node v = null;
 
@@ -571,8 +574,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 6) ) { return v; }
 
-            // R.g:97:2: (a= alter_assign )
-            // R.g:97:4: a= alter_assign
+            // R.g:100:2: (a= alter_assign )
+            // R.g:100:4: a= alter_assign
             {
             pushFollow(FOLLOW_alter_assign_in_expr_or_assign271);
             a=alter_assign();
@@ -602,7 +605,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr"
-    // R.g:99:1: expr returns [Node v] : a= assign ;
+    // R.g:102:1: expr returns [Node v] : a= assign ;
     public final Node expr() throws RecognitionException {
         Node v = null;
 
@@ -614,8 +617,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 7) ) { return v; }
 
-            // R.g:100:2: (a= assign )
-            // R.g:100:4: a= assign
+            // R.g:103:2: (a= assign )
+            // R.g:103:4: a= assign
             {
             pushFollow(FOLLOW_assign_in_expr289);
             a=assign();
@@ -645,7 +648,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_wo_assign"
-    // R.g:102:1: expr_wo_assign returns [Node v] : (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr | function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? );
+    // R.g:105:1: expr_wo_assign returns [Node v] : (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr | function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? );
     public final Node expr_wo_assign() throws RecognitionException {
         Node v = null;
 
@@ -663,7 +666,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 8) ) { return v; }
 
-            // R.g:103:2: (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr | function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? )
+            // R.g:106:2: (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr | function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? )
             int alt9=7;
             switch ( input.LA(1) ) {
             case WHILE:
@@ -712,7 +715,7 @@ public class RParser extends Parser {
 
             switch (alt9) {
                 case 1 :
-                    // R.g:103:4: w= while_expr
+                    // R.g:106:4: w= while_expr
                     {
                     pushFollow(FOLLOW_while_expr_in_expr_wo_assign308);
                     w=while_expr();
@@ -725,7 +728,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:104:4: i= if_expr
+                    // R.g:107:4: i= if_expr
                     {
                     pushFollow(FOLLOW_if_expr_in_expr_wo_assign317);
                     i=if_expr();
@@ -738,7 +741,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:105:4: f= for_expr
+                    // R.g:108:4: f= for_expr
                     {
                     pushFollow(FOLLOW_for_expr_in_expr_wo_assign326);
                     f=for_expr();
@@ -751,7 +754,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:106:4: r= repeat_expr
+                    // R.g:109:4: r= repeat_expr
                     {
                     pushFollow(FOLLOW_repeat_expr_in_expr_wo_assign335);
                     r=repeat_expr();
@@ -764,7 +767,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:107:4: function
+                    // R.g:110:4: function
                     {
                     pushFollow(FOLLOW_function_in_expr_wo_assign342);
                     function();
@@ -775,16 +778,16 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:108:4: NEXT ( ( LPAR )=> LPAR n_ RPAR )?
+                    // R.g:111:4: NEXT ( ( LPAR )=> LPAR n_ RPAR )?
                     {
                     match(input,NEXT,FOLLOW_NEXT_in_expr_wo_assign347); if (state.failed) return v;
 
-                    // R.g:108:9: ( ( LPAR )=> LPAR n_ RPAR )?
+                    // R.g:111:9: ( ( LPAR )=> LPAR n_ RPAR )?
                     int alt7=2;
                     alt7 = dfa7.predict(input);
                     switch (alt7) {
                         case 1 :
-                            // R.g:108:10: ( LPAR )=> LPAR n_ RPAR
+                            // R.g:111:10: ( LPAR )=> LPAR n_ RPAR
                             {
                             match(input,LPAR,FOLLOW_LPAR_in_expr_wo_assign354); if (state.failed) return v;
 
@@ -805,16 +808,16 @@ public class RParser extends Parser {
                     }
                     break;
                 case 7 :
-                    // R.g:109:4: BREAK ( ( LPAR )=> LPAR n_ RPAR )?
+                    // R.g:112:4: BREAK ( ( LPAR )=> LPAR n_ RPAR )?
                     {
                     match(input,BREAK,FOLLOW_BREAK_in_expr_wo_assign366); if (state.failed) return v;
 
-                    // R.g:109:10: ( ( LPAR )=> LPAR n_ RPAR )?
+                    // R.g:112:10: ( ( LPAR )=> LPAR n_ RPAR )?
                     int alt8=2;
                     alt8 = dfa8.predict(input);
                     switch (alt8) {
                         case 1 :
-                            // R.g:109:11: ( LPAR )=> LPAR n_ RPAR
+                            // R.g:112:11: ( LPAR )=> LPAR n_ RPAR
                             {
                             match(input,LPAR,FOLLOW_LPAR_in_expr_wo_assign373); if (state.failed) return v;
 
@@ -854,7 +857,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "sequence"
-    // R.g:111:1: sequence returns [Node v] : LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE ;
+    // R.g:114:1: sequence returns [Node v] : LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE ;
     public final Node sequence() throws RecognitionException {
         Node v = null;
 
@@ -867,8 +870,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 9) ) { return v; }
 
-            // R.g:114:2: ( LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE )
-            // R.g:114:4: LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE
+            // R.g:117:2: ( LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE )
+            // R.g:117:4: LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE
             {
             match(input,LBRACE,FOLLOW_LBRACE_in_sequence410); if (state.failed) return v;
 
@@ -878,7 +881,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:114:14: (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )?
+            // R.g:117:14: (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )?
             int alt12=2;
             int LA12_0 = input.LA(1);
 
@@ -887,7 +890,7 @@ public class RParser extends Parser {
             }
             switch (alt12) {
                 case 1 :
-                    // R.g:114:15: e= expr_or_assign ( n e= expr_or_assign )* ( n )?
+                    // R.g:117:15: e= expr_or_assign ( n e= expr_or_assign )* ( n )?
                     {
                     pushFollow(FOLLOW_expr_or_assign_in_sequence417);
                     e=expr_or_assign();
@@ -897,14 +900,14 @@ public class RParser extends Parser {
 
                     if ( state.backtracking==0 ) { stmts.add(e); }
 
-                    // R.g:114:50: ( n e= expr_or_assign )*
+                    // R.g:117:50: ( n e= expr_or_assign )*
                     loop10:
                     do {
                         int alt10=2;
                         alt10 = dfa10.predict(input);
                         switch (alt10) {
                     	case 1 :
-                    	    // R.g:114:51: n e= expr_or_assign
+                    	    // R.g:117:51: n e= expr_or_assign
                     	    {
                     	    pushFollow(FOLLOW_n_in_sequence422);
                     	    n();
@@ -929,7 +932,7 @@ public class RParser extends Parser {
                     } while (true);
 
 
-                    // R.g:114:90: ( n )?
+                    // R.g:117:90: ( n )?
                     int alt11=2;
                     int LA11_0 = input.LA(1);
 
@@ -938,7 +941,7 @@ public class RParser extends Parser {
                     }
                     switch (alt11) {
                         case 1 :
-                            // R.g:114:90: n
+                            // R.g:117:90: n
                             {
                             pushFollow(FOLLOW_n_in_sequence432);
                             n();
@@ -962,7 +965,7 @@ public class RParser extends Parser {
 
             }
 
-            if ( state.backtracking==0 ) { v = Factory.sequence(stmts);}
+            if ( state.backtracking==0 ) { v = Sequence.create(stmts);}
         }
 
             catch(RecognitionException re){
@@ -981,7 +984,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "assign"
-    // R.g:116:1: assign returns [Node v] : l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) ;
+    // R.g:119:1: assign returns [Node v] : l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) ;
     public final Node assign() throws RecognitionException {
         Node v = null;
 
@@ -996,8 +999,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 10) ) { return v; }
 
-            // R.g:117:2: (l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) )
-            // R.g:117:4: l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |)
+            // R.g:120:2: (l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) )
+            // R.g:120:4: l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |)
             {
             pushFollow(FOLLOW_tilde_expr_in_assign456);
             l=tilde_expr();
@@ -1005,7 +1008,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:118:3: ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |)
+            // R.g:121:3: ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |)
             int alt13=5;
             switch ( input.LA(1) ) {
             case ARROW:
@@ -1078,7 +1081,7 @@ public class RParser extends Parser {
 
             switch (alt13) {
                 case 1 :
-                    // R.g:118:5: ARROW n_ r= expr
+                    // R.g:121:5: ARROW n_ r= expr
                     {
                     match(input,ARROW,FOLLOW_ARROW_in_assign463); if (state.failed) return v;
 
@@ -1094,12 +1097,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(l, r);}
 
                     }
                     break;
                 case 2 :
-                    // R.g:119:5: SUPER_ARROW n_ r= expr
+                    // R.g:122:5: SUPER_ARROW n_ r= expr
                     {
                     match(input,SUPER_ARROW,FOLLOW_SUPER_ARROW_in_assign477); if (state.failed) return v;
 
@@ -1115,12 +1118,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.createSuper(l, r);}
 
                     }
                     break;
                 case 3 :
-                    // R.g:120:5: a= RIGHT_ARROW n_ r= expr
+                    // R.g:123:5: a= RIGHT_ARROW n_ r= expr
                     {
                     a=(Token)match(input,RIGHT_ARROW,FOLLOW_RIGHT_ARROW_in_assign493); if (state.failed) return v;
 
@@ -1136,12 +1139,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.ASSIGN, r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(r, l);}
 
                     }
                     break;
                 case 4 :
-                    // R.g:121:5: a= SUPER_RIGHT_ARROW n_ r= expr
+                    // R.g:124:5: a= SUPER_RIGHT_ARROW n_ r= expr
                     {
                     a=(Token)match(input,SUPER_RIGHT_ARROW,FOLLOW_SUPER_RIGHT_ARROW_in_assign509); if (state.failed) return v;
 
@@ -1157,12 +1160,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.createSuper(r, l);}
 
                     }
                     break;
                 case 5 :
-                    // R.g:122:5: 
+                    // R.g:125:5: 
                     {
                     if ( state.backtracking==0 ) { v = l;}
 
@@ -1192,7 +1195,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "alter_assign"
-    // R.g:125:1: alter_assign returns [Node v] : l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) ;
+    // R.g:128:1: alter_assign returns [Node v] : l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) ;
     public final Node alter_assign() throws RecognitionException {
         Node v = null;
 
@@ -1207,8 +1210,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 11) ) { return v; }
 
-            // R.g:126:2: (l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) )
-            // R.g:126:4: l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |)
+            // R.g:129:2: (l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) )
+            // R.g:129:4: l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |)
             {
             pushFollow(FOLLOW_tilde_expr_in_alter_assign543);
             l=tilde_expr();
@@ -1216,7 +1219,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:127:3: ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |)
+            // R.g:130:3: ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |)
             int alt14=6;
             switch ( input.LA(1) ) {
             case ARROW:
@@ -1367,7 +1370,7 @@ public class RParser extends Parser {
 
             switch (alt14) {
                 case 1 :
-                    // R.g:127:5: ( ARROW )=> ARROW n_ r= expr_or_assign
+                    // R.g:130:5: ( ARROW )=> ARROW n_ r= expr_or_assign
                     {
                     match(input,ARROW,FOLLOW_ARROW_in_alter_assign554); if (state.failed) return v;
 
@@ -1383,12 +1386,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(l, r);}
 
                     }
                     break;
                 case 2 :
-                    // R.g:128:5: ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign
+                    // R.g:131:5: ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign
                     {
                     match(input,SUPER_ARROW,FOLLOW_SUPER_ARROW_in_alter_assign572); if (state.failed) return v;
 
@@ -1404,12 +1407,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, l, r);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.createSuper(l, r);}
 
                     }
                     break;
                 case 3 :
-                    // R.g:129:5: ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign
+                    // R.g:132:5: ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign
                     {
                     a=(Token)match(input,RIGHT_ARROW,FOLLOW_RIGHT_ARROW_in_alter_assign592); if (state.failed) return v;
 
@@ -1425,12 +1428,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = Factory.binary(BinaryOperator.ASSIGN, r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(r, l);}
 
                     }
                     break;
                 case 4 :
-                    // R.g:130:5: ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign
+                    // R.g:133:5: ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign
                     {
                     a=(Token)match(input,SUPER_RIGHT_ARROW,FOLLOW_SUPER_RIGHT_ARROW_in_alter_assign612); if (state.failed) return v;
 
@@ -1446,12 +1449,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, r, l);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.createSuper(r, l);}
 
                     }
                     break;
                 case 5 :
-                    // R.g:131:5: ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign
+                    // R.g:134:5: ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign
                     {
                     a=(Token)match(input,ASSIGN,FOLLOW_ASSIGN_in_alter_assign632); if (state.failed) return v;
 
@@ -1467,12 +1470,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.create(l, r);}
 
                     }
                     break;
                 case 6 :
-                    // R.g:132:5: 
+                    // R.g:135:5: 
                     {
                     if ( state.backtracking==0 ) { v = l;}
 
@@ -1502,7 +1505,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "if_expr"
-    // R.g:135:1: if_expr returns [Node v] : IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) ;
+    // R.g:138:1: if_expr returns [Node v] : IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) ;
     public final Node if_expr() throws RecognitionException {
         Node v = null;
 
@@ -1518,8 +1521,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 12) ) { return v; }
 
-            // R.g:136:2: ( IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) )
-            // R.g:137:2: IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |)
+            // R.g:139:2: ( IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) )
+            // R.g:140:2: IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |)
             {
             match(input,IF,FOLLOW_IF_in_if_expr665); if (state.failed) return v;
 
@@ -1563,7 +1566,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:138:2: ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |)
+            // R.g:141:2: ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |)
             int alt15=2;
             switch ( input.LA(1) ) {
             case COMMENT:
@@ -1657,10 +1660,10 @@ public class RParser extends Parser {
 
             switch (alt15) {
                 case 1 :
-                    // R.g:138:3: ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign )
+                    // R.g:141:3: ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign )
                     {
-                    // R.g:138:14: ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign )
-                    // R.g:138:58: n_ ELSE n_ f= expr_or_assign
+                    // R.g:141:14: ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign )
+                    // R.g:141:58: n_ ELSE n_ f= expr_or_assign
                     {
                     pushFollow(FOLLOW_n__in_if_expr711);
                     n_();
@@ -1682,7 +1685,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = Factory.ternary(TernaryOperator.IF, cond, t, f);}
+                    if ( state.backtracking==0 ) { v = If.create(cond, t, f);}
 
                     }
 
@@ -1690,9 +1693,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:139:7: 
+                    // R.g:142:7: 
                     {
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.IF, cond, t);}
+                    if ( state.backtracking==0 ) {v = If.create(cond, t);}
 
                     }
                     break;
@@ -1720,7 +1723,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "while_expr"
-    // R.g:142:1: while_expr returns [Node v] : WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
+    // R.g:145:1: while_expr returns [Node v] : WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
     public final Node while_expr() throws RecognitionException {
         Node v = null;
 
@@ -1734,8 +1737,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 13) ) { return v; }
 
-            // R.g:143:2: ( WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign )
-            // R.g:143:4: WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign
+            // R.g:146:2: ( WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign )
+            // R.g:146:4: WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign
             {
             match(input,WHILE,FOLLOW_WHILE_in_while_expr747); if (state.failed) return v;
 
@@ -1779,7 +1782,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.WHILE, c, body);}
+            if ( state.backtracking==0 ) { v = Loop.create(c, body); }
 
             }
 
@@ -1801,7 +1804,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "for_expr"
-    // R.g:145:1: for_expr returns [Node v] : FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
+    // R.g:148:1: for_expr returns [Node v] : FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
     public final Node for_expr() throws RecognitionException {
         Node v = null;
 
@@ -1815,8 +1818,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 14) ) { return v; }
 
-            // R.g:146:2: ( FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign )
-            // R.g:146:4: FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign
+            // R.g:149:2: ( FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign )
+            // R.g:149:4: FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign
             {
             match(input,FOR,FOLLOW_FOR_in_for_expr783); if (state.failed) return v;
 
@@ -1896,7 +1899,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "repeat_expr"
-    // R.g:148:1: repeat_expr returns [Node v] : REPEAT n_ body= expr_or_assign ;
+    // R.g:151:1: repeat_expr returns [Node v] : REPEAT n_ body= expr_or_assign ;
     public final Node repeat_expr() throws RecognitionException {
         Node v = null;
 
@@ -1908,8 +1911,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 15) ) { return v; }
 
-            // R.g:149:2: ( REPEAT n_ body= expr_or_assign )
-            // R.g:149:4: REPEAT n_ body= expr_or_assign
+            // R.g:152:2: ( REPEAT n_ body= expr_or_assign )
+            // R.g:152:4: REPEAT n_ body= expr_or_assign
             {
             match(input,REPEAT,FOLLOW_REPEAT_in_repeat_expr826); if (state.failed) return v;
 
@@ -1925,7 +1928,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            if ( state.backtracking==0 ) {v = Factory.unary(UnaryOperator.REPEAT, body);}
+            if ( state.backtracking==0 ) {v = Loop.create(body); }
 
             }
 
@@ -1947,7 +1950,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "function"
-    // R.g:151:1: function returns [Node v] : FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign ;
+    // R.g:154:1: function returns [Node v] : FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign ;
     public final Node function() throws RecognitionException {
         Node v = null;
 
@@ -1959,8 +1962,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 16) ) { return v; }
 
-            // R.g:152:2: ( FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign )
-            // R.g:152:4: FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign
+            // R.g:155:2: ( FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign )
+            // R.g:155:4: FUNCTION n_ LPAR n_ ( par_decl ( n_ COMMA n_ par_decl )* n_ )? RPAR n_ body= expr_or_assign
             {
             match(input,FUNCTION,FOLLOW_FUNCTION_in_function848); if (state.failed) return v;
 
@@ -1978,7 +1981,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:152:25: ( par_decl ( n_ COMMA n_ par_decl )* n_ )?
+            // R.g:155:25: ( par_decl ( n_ COMMA n_ par_decl )* n_ )?
             int alt17=2;
             int LA17_0 = input.LA(1);
 
@@ -1987,7 +1990,7 @@ public class RParser extends Parser {
             }
             switch (alt17) {
                 case 1 :
-                    // R.g:152:26: par_decl ( n_ COMMA n_ par_decl )* n_
+                    // R.g:155:26: par_decl ( n_ COMMA n_ par_decl )* n_
                     {
                     pushFollow(FOLLOW_par_decl_in_function858);
                     par_decl();
@@ -1995,14 +1998,14 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    // R.g:152:35: ( n_ COMMA n_ par_decl )*
+                    // R.g:155:35: ( n_ COMMA n_ par_decl )*
                     loop16:
                     do {
                         int alt16=2;
                         alt16 = dfa16.predict(input);
                         switch (alt16) {
                     	case 1 :
-                    	    // R.g:152:36: n_ COMMA n_ par_decl
+                    	    // R.g:155:36: n_ COMMA n_ par_decl
                     	    {
                     	    pushFollow(FOLLOW_n__in_function861);
                     	    n_();
@@ -2079,26 +2082,26 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "par_decl"
-    // R.g:154:1: par_decl : ( ID | ID n_ ASSIGN n_ expr | VARIATIC );
+    // R.g:157:1: par_decl : ( ID | ID n_ ASSIGN n_ expr | VARIATIC );
     public final void par_decl() throws RecognitionException {
         int par_decl_StartIndex = input.index();
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 17) ) { return ; }
 
-            // R.g:155:2: ( ID | ID n_ ASSIGN n_ expr | VARIATIC )
+            // R.g:158:2: ( ID | ID n_ ASSIGN n_ expr | VARIATIC )
             int alt18=3;
             alt18 = dfa18.predict(input);
             switch (alt18) {
                 case 1 :
-                    // R.g:155:4: ID
+                    // R.g:158:4: ID
                     {
                     match(input,ID,FOLLOW_ID_in_par_decl892); if (state.failed) return ;
 
                     }
                     break;
                 case 2 :
-                    // R.g:156:4: ID n_ ASSIGN n_ expr
+                    // R.g:159:4: ID n_ ASSIGN n_ expr
                     {
                     match(input,ID,FOLLOW_ID_in_par_decl898); if (state.failed) return ;
 
@@ -2125,7 +2128,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:157:4: VARIATIC
+                    // R.g:160:4: VARIATIC
                     {
                     match(input,VARIATIC,FOLLOW_VARIATIC_in_par_decl912); if (state.failed) return ;
 
@@ -2151,7 +2154,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "tilde_expr"
-    // R.g:159:1: tilde_expr returns [Node v] : l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |) ;
+    // R.g:162:1: tilde_expr returns [Node v] : l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |) ;
     public final Node tilde_expr() throws RecognitionException {
         Node v = null;
 
@@ -2165,8 +2168,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 18) ) { return v; }
 
-            // R.g:160:2: (l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |) )
-            // R.g:160:4: l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |)
+            // R.g:163:2: (l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |) )
+            // R.g:163:4: l= or_expr ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_or_expr_in_tilde_expr929);
             l=or_expr();
@@ -2174,7 +2177,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:161:2: ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |)
+            // R.g:164:2: ( ( ( TILDE )=> TILDE n_ r= tilde_expr ) |)
             int alt19=2;
             int LA19_0 = input.LA(1);
 
@@ -2209,10 +2212,10 @@ public class RParser extends Parser {
             }
             switch (alt19) {
                 case 1 :
-                    // R.g:161:4: ( ( TILDE )=> TILDE n_ r= tilde_expr )
+                    // R.g:164:4: ( ( TILDE )=> TILDE n_ r= tilde_expr )
                     {
-                    // R.g:161:4: ( ( TILDE )=> TILDE n_ r= tilde_expr )
-                    // R.g:161:5: ( TILDE )=> TILDE n_ r= tilde_expr
+                    // R.g:164:4: ( ( TILDE )=> TILDE n_ r= tilde_expr )
+                    // R.g:164:5: ( TILDE )=> TILDE n_ r= tilde_expr
                     {
                     match(input,TILDE,FOLLOW_TILDE_in_tilde_expr940); if (state.failed) return v;
 
@@ -2228,7 +2231,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.MODEL, l, r);}
+                    if ( state.backtracking==0 ) {v = BinaryOperation.create(BinaryOperator.MODEL, l, r);}
 
                     }
 
@@ -2236,7 +2239,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:162:4: 
+                    // R.g:165:4: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -2266,7 +2269,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_expr"
-    // R.g:164:1: or_expr returns [Node v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) ;
+    // R.g:167:1: or_expr returns [Node v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) ;
     public final Node or_expr() throws RecognitionException {
         Node v = null;
 
@@ -2282,8 +2285,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 19) ) { return v; }
 
-            // R.g:165:2: (l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) )
-            // R.g:165:4: l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
+            // R.g:168:2: (l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) )
+            // R.g:168:4: l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_and_expr_in_or_expr972);
             l=and_expr();
@@ -2291,7 +2294,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:166:2: ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
+            // R.g:169:2: ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
             int alt20=2;
             switch ( input.LA(1) ) {
             case OR:
@@ -2385,10 +2388,10 @@ public class RParser extends Parser {
 
             switch (alt20) {
                 case 1 :
-                    // R.g:166:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
+                    // R.g:169:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
                     {
-                    // R.g:166:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
-                    // R.g:166:4: ( or_operator )=>op= or_operator n_ r= tilde_expr
+                    // R.g:169:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
+                    // R.g:169:4: ( or_operator )=>op= or_operator n_ r= tilde_expr
                     {
                     pushFollow(FOLLOW_or_operator_in_or_expr983);
                     op=or_operator();
@@ -2408,7 +2411,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) {v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -2416,7 +2419,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:167:7: 
+                    // R.g:170:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -2446,7 +2449,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_expr"
-    // R.g:169:1: and_expr returns [Node v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) ;
+    // R.g:172:1: and_expr returns [Node v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) ;
     public final Node and_expr() throws RecognitionException {
         Node v = null;
 
@@ -2462,8 +2465,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 20) ) { return v; }
 
-            // R.g:170:2: (l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) )
-            // R.g:170:4: l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
+            // R.g:173:2: (l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) )
+            // R.g:173:4: l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_comp_expr_in_and_expr1019);
             l=comp_expr();
@@ -2471,7 +2474,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:171:5: ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
+            // R.g:174:5: ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
             int alt21=2;
             switch ( input.LA(1) ) {
             case AND:
@@ -2565,10 +2568,10 @@ public class RParser extends Parser {
 
             switch (alt21) {
                 case 1 :
-                    // R.g:171:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
+                    // R.g:174:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
                     {
-                    // R.g:171:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
-                    // R.g:171:7: ( and_operator )=>op= and_operator n_ r= tilde_expr
+                    // R.g:174:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
+                    // R.g:174:7: ( and_operator )=>op= and_operator n_ r= tilde_expr
                     {
                     pushFollow(FOLLOW_and_operator_in_and_expr1033);
                     op=and_operator();
@@ -2588,7 +2591,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) {v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -2596,7 +2599,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:172:7: 
+                    // R.g:175:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -2626,7 +2629,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_expr"
-    // R.g:174:1: comp_expr returns [Node v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) ;
+    // R.g:177:1: comp_expr returns [Node v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) ;
     public final Node comp_expr() throws RecognitionException {
         Node v = null;
 
@@ -2642,8 +2645,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 21) ) { return v; }
 
-            // R.g:175:2: (l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) )
-            // R.g:175:4: l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
+            // R.g:178:2: (l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) )
+            // R.g:178:4: l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_add_expr_in_comp_expr1068);
             l=add_expr();
@@ -2651,7 +2654,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:176:5: ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
+            // R.g:179:5: ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
             int alt22=2;
             switch ( input.LA(1) ) {
             case GT:
@@ -2821,10 +2824,10 @@ public class RParser extends Parser {
 
             switch (alt22) {
                 case 1 :
-                    // R.g:176:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
+                    // R.g:179:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
                     {
-                    // R.g:176:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
-                    // R.g:176:7: ( comp_operator )=>op= comp_operator n_ r= tilde_expr
+                    // R.g:179:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
+                    // R.g:179:7: ( comp_operator )=>op= comp_operator n_ r= tilde_expr
                     {
                     pushFollow(FOLLOW_comp_operator_in_comp_expr1083);
                     op=comp_operator();
@@ -2844,7 +2847,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) { v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -2852,7 +2855,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:177:7: 
+                    // R.g:180:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -2882,7 +2885,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_expr"
-    // R.g:179:1: add_expr returns [Node v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) ;
+    // R.g:182:1: add_expr returns [Node v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) ;
     public final Node add_expr() throws RecognitionException {
         Node v = null;
 
@@ -2898,8 +2901,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 22) ) { return v; }
 
-            // R.g:180:2: (l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) )
-            // R.g:180:4: l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
+            // R.g:183:2: (l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) )
+            // R.g:183:4: l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_mult_expr_in_add_expr1122);
             l=mult_expr();
@@ -2907,7 +2910,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:181:3: ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
+            // R.g:184:3: ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
             int alt23=2;
             switch ( input.LA(1) ) {
             case PLUS:
@@ -3001,10 +3004,10 @@ public class RParser extends Parser {
 
             switch (alt23) {
                 case 1 :
-                    // R.g:181:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
+                    // R.g:184:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
                     {
-                    // R.g:181:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
-                    // R.g:181:5: ( add_operator )=>op= add_operator n_ r= tilde_expr
+                    // R.g:184:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
+                    // R.g:184:5: ( add_operator )=>op= add_operator n_ r= tilde_expr
                     {
                     pushFollow(FOLLOW_add_operator_in_add_expr1134);
                     op=add_operator();
@@ -3024,7 +3027,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) { v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -3032,7 +3035,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:182:7: 
+                    // R.g:185:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -3062,7 +3065,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_expr"
-    // R.g:184:1: mult_expr returns [Node v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) ;
+    // R.g:187:1: mult_expr returns [Node v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) ;
     public final Node mult_expr() throws RecognitionException {
         Node v = null;
 
@@ -3078,8 +3081,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 23) ) { return v; }
 
-            // R.g:185:2: (l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) )
-            // R.g:185:4: l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
+            // R.g:188:2: (l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) )
+            // R.g:188:4: l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_operator_expr_in_mult_expr1169);
             l=operator_expr();
@@ -3087,7 +3090,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:186:2: ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
+            // R.g:189:2: ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
             int alt24=2;
             switch ( input.LA(1) ) {
             case MULT:
@@ -3200,10 +3203,10 @@ public class RParser extends Parser {
 
             switch (alt24) {
                 case 1 :
-                    // R.g:186:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
+                    // R.g:189:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
                     {
-                    // R.g:186:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
-                    // R.g:186:4: ( mult_operator )=>op= mult_operator n_ r= tilde_expr
+                    // R.g:189:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
+                    // R.g:189:4: ( mult_operator )=>op= mult_operator n_ r= tilde_expr
                     {
                     pushFollow(FOLLOW_mult_operator_in_mult_expr1180);
                     op=mult_operator();
@@ -3223,7 +3226,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) { v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -3231,7 +3234,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:187:7: 
+                    // R.g:190:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -3261,7 +3264,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "operator_expr"
-    // R.g:189:1: operator_expr returns [Node v] : l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) ;
+    // R.g:192:1: operator_expr returns [Node v] : l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) ;
     public final Node operator_expr() throws RecognitionException {
         Node v = null;
 
@@ -3276,8 +3279,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 24) ) { return v; }
 
-            // R.g:190:2: (l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) )
-            // R.g:190:4: l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
+            // R.g:193:2: (l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) )
+            // R.g:193:4: l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_column_expr_in_operator_expr1215);
             l=column_expr();
@@ -3285,7 +3288,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:191:2: ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
+            // R.g:194:2: ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
             int alt25=2;
             int LA25_0 = input.LA(1);
 
@@ -3320,10 +3323,10 @@ public class RParser extends Parser {
             }
             switch (alt25) {
                 case 1 :
-                    // R.g:191:3: ( ( OP )=>op= OP n_ r= tilde_expr )
+                    // R.g:194:3: ( ( OP )=>op= OP n_ r= tilde_expr )
                     {
-                    // R.g:191:3: ( ( OP )=>op= OP n_ r= tilde_expr )
-                    // R.g:191:4: ( OP )=>op= OP n_ r= tilde_expr
+                    // R.g:194:3: ( ( OP )=>op= OP n_ r= tilde_expr )
+                    // R.g:194:4: ( OP )=>op= OP n_ r= tilde_expr
                     {
                     op=(Token)match(input,OP,FOLLOW_OP_in_operator_expr1226); if (state.failed) return v;
 
@@ -3339,7 +3342,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.custom_operator(op, l, r);}
+                    if ( state.backtracking==0 ) { v = null ; /*BinaryOperation.create(op, l, r); */ }
 
                     }
 
@@ -3347,7 +3350,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:192:7: 
+                    // R.g:195:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -3377,7 +3380,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "column_expr"
-    // R.g:194:1: column_expr returns [Node v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) ;
+    // R.g:197:1: column_expr returns [Node v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) ;
     public final Node column_expr() throws RecognitionException {
         Node v = null;
 
@@ -3392,8 +3395,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 25) ) { return v; }
 
-            // R.g:195:2: (l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) )
-            // R.g:195:4: l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
+            // R.g:198:2: (l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) )
+            // R.g:198:4: l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
             {
             pushFollow(FOLLOW_power_expr_in_column_expr1261);
             l=power_expr();
@@ -3401,7 +3404,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:196:2: ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
+            // R.g:199:2: ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
             int alt26=2;
             int LA26_0 = input.LA(1);
 
@@ -3436,10 +3439,10 @@ public class RParser extends Parser {
             }
             switch (alt26) {
                 case 1 :
-                    // R.g:196:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
+                    // R.g:199:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
                     {
-                    // R.g:196:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
-                    // R.g:196:4: ( COLUMN )=>op= COLUMN n_ r= tilde_expr
+                    // R.g:199:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
+                    // R.g:199:4: ( COLUMN )=>op= COLUMN n_ r= tilde_expr
                     {
                     op=(Token)match(input,COLUMN,FOLLOW_COLUMN_in_column_expr1272); if (state.failed) return v;
 
@@ -3455,7 +3458,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(BinaryOperator.COLUMN, l, r);}
+                    if ( state.backtracking==0 ) { v = BinaryOperation.create(BinaryOperator.COLUMN, l, r);}
 
                     }
 
@@ -3463,7 +3466,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:197:7: 
+                    // R.g:200:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -3493,7 +3496,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "power_expr"
-    // R.g:199:1: power_expr returns [Node v] : l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
+    // R.g:202:1: power_expr returns [Node v] : l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
     public final Node power_expr() throws RecognitionException {
         Node v = null;
 
@@ -3509,8 +3512,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 26) ) { return v; }
 
-            // R.g:200:2: (l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) )
-            // R.g:200:4: l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
+            // R.g:203:2: (l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) )
+            // R.g:203:4: l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
             {
             pushFollow(FOLLOW_unary_expression_in_power_expr1307);
             l=unary_expression();
@@ -3518,7 +3521,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:201:5: ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
+            // R.g:204:5: ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
             int alt27=2;
             int LA27_0 = input.LA(1);
 
@@ -3553,10 +3556,10 @@ public class RParser extends Parser {
             }
             switch (alt27) {
                 case 1 :
-                    // R.g:201:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
+                    // R.g:204:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
                     {
-                    // R.g:201:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
-                    // R.g:201:7: ( power_operator )=>op= power_operator n_ r= power_expr
+                    // R.g:204:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
+                    // R.g:204:7: ( power_operator )=>op= power_operator n_ r= power_expr
                     {
                     pushFollow(FOLLOW_power_operator_in_power_expr1321);
                     op=power_operator();
@@ -3576,7 +3579,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.binary(op, l, r);}
+                    if ( state.backtracking==0 ) { v = BinaryOperation.create(op, l, r);}
 
                     }
 
@@ -3584,7 +3587,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:202:7: 
+                    // R.g:205:7: 
                     {
                     if ( state.backtracking==0 ) {v =l;}
 
@@ -3614,7 +3617,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "unary_expression"
-    // R.g:204:1: unary_expression returns [Node v] : ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr );
+    // R.g:207:1: unary_expression returns [Node v] : ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr );
     public final Node unary_expression() throws RecognitionException {
         Node v = null;
 
@@ -3628,7 +3631,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 27) ) { return v; }
 
-            // R.g:205:2: ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr )
+            // R.g:208:2: ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr )
             int alt28=5;
             switch ( input.LA(1) ) {
             case NOT:
@@ -3686,7 +3689,7 @@ public class RParser extends Parser {
 
             switch (alt28) {
                 case 1 :
-                    // R.g:205:4: NOT n_ l= unary_expression
+                    // R.g:208:4: NOT n_ l= unary_expression
                     {
                     match(input,NOT,FOLLOW_NOT_in_unary_expression1357); if (state.failed) return v;
 
@@ -3702,12 +3705,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.unary(UnaryOperator.NOT, l);}
+                    if ( state.backtracking==0 ) {v = UnaryOperation.create(UnaryOperator.NOT, l);}
 
                     }
                     break;
                 case 2 :
-                    // R.g:206:4: PLUS n_ l= unary_expression
+                    // R.g:209:4: PLUS n_ l= unary_expression
                     {
                     match(input,PLUS,FOLLOW_PLUS_in_unary_expression1370); if (state.failed) return v;
 
@@ -3723,12 +3726,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.unary(UnaryOperator.PLUS, l);}
+                    if ( state.backtracking==0 ) {v = UnaryOperation.create(UnaryOperator.PLUS, l);}
 
                     }
                     break;
                 case 3 :
-                    // R.g:207:4: MINUS n_ l= unary_expression
+                    // R.g:210:4: MINUS n_ l= unary_expression
                     {
                     match(input,MINUS,FOLLOW_MINUS_in_unary_expression1383); if (state.failed) return v;
 
@@ -3744,12 +3747,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.unary(UnaryOperator.MINUS, l);}
+                    if ( state.backtracking==0 ) {v = UnaryOperation.create(UnaryOperator.MINUS, l);}
 
                     }
                     break;
                 case 4 :
-                    // R.g:208:4: TILDE n_ l= unary_expression
+                    // R.g:211:4: TILDE n_ l= unary_expression
                     {
                     match(input,TILDE,FOLLOW_TILDE_in_unary_expression1396); if (state.failed) return v;
 
@@ -3765,12 +3768,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = Factory.unary(UnaryOperator.MODEL, l);}
+                    if ( state.backtracking==0 ) {v = UnaryOperation.create(UnaryOperator.MODEL, l);}
 
                     }
                     break;
                 case 5 :
-                    // R.g:209:4: b= basic_expr
+                    // R.g:212:4: b= basic_expr
                     {
                     pushFollow(FOLLOW_basic_expr_in_unary_expression1411);
                     b=basic_expr();
@@ -3802,7 +3805,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "basic_expr"
-    // R.g:211:1: basic_expr returns [Node v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
+    // R.g:214:1: basic_expr returns [Node v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
     public final Node basic_expr() throws RecognitionException {
         Node v = null;
 
@@ -3816,8 +3819,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 28) ) { return v; }
 
-            // R.g:212:2: (lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) )
-            // R.g:212:4: lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
+            // R.g:215:2: (lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) )
+            // R.g:215:4: lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
             {
             pushFollow(FOLLOW_simple_expr_in_basic_expr1429);
             lhs=simple_expr();
@@ -3827,7 +3830,7 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) { v = lhs; }
 
-            // R.g:213:2: ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
+            // R.g:216:2: ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
             int alt30=2;
             int LA30_0 = input.LA(1);
 
@@ -4027,9 +4030,9 @@ public class RParser extends Parser {
             }
             switch (alt30) {
                 case 1 :
-                    // R.g:213:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
+                    // R.g:216:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
                     {
-                    // R.g:213:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
+                    // R.g:216:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
                     int cnt29=0;
                     loop29:
                     do {
@@ -4095,7 +4098,7 @@ public class RParser extends Parser {
 
                         switch (alt29) {
                     	case 1 :
-                    	    // R.g:213:4: ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v]
+                    	    // R.g:216:4: ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v]
                     	    {
                     	    pushFollow(FOLLOW_expr_subset_in_basic_expr1450);
                     	    subset=expr_subset(v);
@@ -4122,7 +4125,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:213:76: ( n_ )=>
+                    // R.g:216:76: ( n_ )=>
                     {
                     }
                     break;
@@ -4150,7 +4153,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_subset"
-    // R.g:215:1: expr_subset[Node i] returns [Node v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= expr_list RBRAKET ) | ( LBB subscript= expr_list RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
+    // R.g:218:1: expr_subset[Node i] returns [Node v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= expr_list RBRAKET ) | ( LBB subscript= expr_list RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
     public final Node expr_subset(Node i) throws RecognitionException {
         Node v = null;
 
@@ -4168,7 +4171,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 29) ) { return v; }
 
-            // R.g:216:5: ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= expr_list RBRAKET ) | ( LBB subscript= expr_list RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) )
+            // R.g:219:5: ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= expr_list RBRAKET ) | ( LBB subscript= expr_list RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) )
             int alt31=5;
             switch ( input.LA(1) ) {
             case FIELD:
@@ -4207,10 +4210,10 @@ public class RParser extends Parser {
 
             switch (alt31) {
                 case 1 :
-                    // R.g:216:7: ( FIELD n_ name= id )
+                    // R.g:219:7: ( FIELD n_ name= id )
                     {
-                    // R.g:216:7: ( FIELD n_ name= id )
-                    // R.g:216:8: FIELD n_ name= id
+                    // R.g:219:7: ( FIELD n_ name= id )
+                    // R.g:219:8: FIELD n_ name= id
                     {
                     match(input,FIELD,FOLLOW_FIELD_in_expr_subset1483); if (state.failed) return v;
 
@@ -4229,15 +4232,15 @@ public class RParser extends Parser {
                     }
 
 
-                    if ( state.backtracking==0 ) { v = Factory.fieldAccess(FieldOperator.FIELD, i, name.getText()); }
+                    if ( state.backtracking==0 ) { v = FieldAccess.create(FieldOperator.FIELD, i, name.getText()); }
 
                     }
                     break;
                 case 2 :
-                    // R.g:217:7: ( AT n_ name= id )
+                    // R.g:220:7: ( AT n_ name= id )
                     {
-                    // R.g:217:7: ( AT n_ name= id )
-                    // R.g:217:8: AT n_ name= id
+                    // R.g:220:7: ( AT n_ name= id )
+                    // R.g:220:8: AT n_ name= id
                     {
                     match(input,AT,FOLLOW_AT_in_expr_subset1502); if (state.failed) return v;
 
@@ -4256,15 +4259,15 @@ public class RParser extends Parser {
                     }
 
 
-                    if ( state.backtracking==0 ) { v = Factory.fieldAccess(FieldOperator.AT, i, name.getText()); }
+                    if ( state.backtracking==0 ) { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); }
 
                     }
                     break;
                 case 3 :
-                    // R.g:218:7: ( LBRAKET subset= expr_list RBRAKET )
+                    // R.g:221:7: ( LBRAKET subset= expr_list RBRAKET )
                     {
-                    // R.g:218:7: ( LBRAKET subset= expr_list RBRAKET )
-                    // R.g:218:8: LBRAKET subset= expr_list RBRAKET
+                    // R.g:221:7: ( LBRAKET subset= expr_list RBRAKET )
+                    // R.g:221:8: LBRAKET subset= expr_list RBRAKET
                     {
                     match(input,LBRAKET,FOLLOW_LBRAKET_in_expr_subset1522); if (state.failed) return v;
 
@@ -4279,15 +4282,15 @@ public class RParser extends Parser {
                     }
 
 
-                    if ( state.backtracking==0 ) { v = Factory.call(CallOperator.SUBSET, i, subset); }
+                    if ( state.backtracking==0 ) { v = Call.create(CallOperator.SUBSET, i, subset); }
 
                     }
                     break;
                 case 4 :
-                    // R.g:219:7: ( LBB subscript= expr_list RBRAKET RBRAKET )
+                    // R.g:222:7: ( LBB subscript= expr_list RBRAKET RBRAKET )
                     {
-                    // R.g:219:7: ( LBB subscript= expr_list RBRAKET RBRAKET )
-                    // R.g:219:8: LBB subscript= expr_list RBRAKET RBRAKET
+                    // R.g:222:7: ( LBB subscript= expr_list RBRAKET RBRAKET )
+                    // R.g:222:8: LBB subscript= expr_list RBRAKET RBRAKET
                     {
                     match(input,LBB,FOLLOW_LBB_in_expr_subset1540); if (state.failed) return v;
 
@@ -4304,15 +4307,15 @@ public class RParser extends Parser {
                     }
 
 
-                    if ( state.backtracking==0 ) { v = Factory.call(CallOperator.SUBSCRIPT, i, subscript); }
+                    if ( state.backtracking==0 ) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); }
 
                     }
                     break;
                 case 5 :
-                    // R.g:221:7: ( LPAR a= args RPAR )
+                    // R.g:224:7: ( LPAR a= args RPAR )
                     {
-                    // R.g:221:7: ( LPAR a= args RPAR )
-                    // R.g:221:8: LPAR a= args RPAR
+                    // R.g:224:7: ( LPAR a= args RPAR )
+                    // R.g:224:8: LPAR a= args RPAR
                     {
                     match(input,LPAR,FOLLOW_LPAR_in_expr_subset1565); if (state.failed) return v;
 
@@ -4327,7 +4330,7 @@ public class RParser extends Parser {
                     }
 
 
-                    if ( state.backtracking==0 ) { v = Factory.call(CallOperator.CALL, i, a); }
+                    if ( state.backtracking==0 ) { v = Call.create(i, a); }
 
                     }
                     break;
@@ -4351,7 +4354,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "simple_expr"
-    // R.g:224:1: simple_expr returns [Node v] : (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
+    // R.g:227:1: simple_expr returns [Node v] : (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
     public final Node simple_expr() throws RecognitionException {
         Node v = null;
 
@@ -4373,7 +4376,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 30) ) { return v; }
 
-            // R.g:225:2: (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign )
+            // R.g:228:2: (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign )
             int alt32=10;
             switch ( input.LA(1) ) {
             case ID:
@@ -4630,7 +4633,7 @@ public class RParser extends Parser {
 
             switch (alt32) {
                 case 1 :
-                    // R.g:225:4: i= id
+                    // R.g:228:4: i= id
                     {
                     pushFollow(FOLLOW_id_in_simple_expr1600);
                     i=id();
@@ -4638,12 +4641,12 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = Factory.readVariable(i.getText()); }
+                    if ( state.backtracking==0 ) { v = VariableAccess.create(i.getText()); }
 
                     }
                     break;
                 case 2 :
-                    // R.g:226:4: b= bool
+                    // R.g:229:4: b= bool
                     {
                     pushFollow(FOLLOW_bool_in_simple_expr1609);
                     b=bool();
@@ -4656,14 +4659,14 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:227:4: DD
+                    // R.g:230:4: DD
                     {
                     match(input,DD,FOLLOW_DD_in_simple_expr1616); if (state.failed) return v;
 
                     }
                     break;
                 case 4 :
-                    // R.g:228:4: NULL
+                    // R.g:231:4: NULL
                     {
                     match(input,NULL,FOLLOW_NULL_in_simple_expr1621); if (state.failed) return v;
 
@@ -4672,7 +4675,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:229:4: num= number
+                    // R.g:232:4: num= number
                     {
                     pushFollow(FOLLOW_number_in_simple_expr1630);
                     num=number();
@@ -4685,7 +4688,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:230:4: id NS_GET n_ id
+                    // R.g:233:4: id NS_GET n_ id
                     {
                     pushFollow(FOLLOW_id_in_simple_expr1637);
                     id();
@@ -4710,7 +4713,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 7 :
-                    // R.g:231:4: id NS_GET_INT n_ id
+                    // R.g:234:4: id NS_GET_INT n_ id
                     {
                     pushFollow(FOLLOW_id_in_simple_expr1648);
                     id();
@@ -4735,7 +4738,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 8 :
-                    // R.g:232:4: LPAR n_ ea= expr_or_assign n_ RPAR
+                    // R.g:235:4: LPAR n_ ea= expr_or_assign n_ RPAR
                     {
                     match(input,LPAR,FOLLOW_LPAR_in_simple_expr1659); if (state.failed) return v;
 
@@ -4764,7 +4767,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 9 :
-                    // R.g:233:4: s= sequence
+                    // R.g:236:4: s= sequence
                     {
                     pushFollow(FOLLOW_sequence_in_simple_expr1682);
                     s=sequence();
@@ -4777,7 +4780,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 10 :
-                    // R.g:234:4: e= expr_wo_assign
+                    // R.g:237:4: e= expr_wo_assign
                     {
                     pushFollow(FOLLOW_expr_wo_assign_in_simple_expr1693);
                     e=expr_wo_assign();
@@ -4809,7 +4812,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "number"
-    // R.g:236:1: number returns [Node n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
+    // R.g:239:1: number returns [Node n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
     public final Node number() throws RecognitionException {
         Node n = null;
 
@@ -4822,7 +4825,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 31) ) { return n; }
 
-            // R.g:237:5: (i= INTEGER |d= DOUBLE |c= COMPLEX )
+            // R.g:240:5: (i= INTEGER |d= DOUBLE |c= COMPLEX )
             int alt33=3;
             switch ( input.LA(1) ) {
             case INTEGER:
@@ -4851,7 +4854,7 @@ public class RParser extends Parser {
 
             switch (alt33) {
                 case 1 :
-                    // R.g:237:7: i= INTEGER
+                    // R.g:240:7: i= INTEGER
                     {
                     i=(Token)match(input,INTEGER,FOLLOW_INTEGER_in_number1714); if (state.failed) return n;
 
@@ -4860,7 +4863,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:238:7: d= DOUBLE
+                    // R.g:241:7: d= DOUBLE
                     {
                     d=(Token)match(input,DOUBLE,FOLLOW_DOUBLE_in_number1726); if (state.failed) return n;
 
@@ -4869,7 +4872,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:239:7: c= COMPLEX
+                    // R.g:242:7: c= COMPLEX
                     {
                     c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1738); if (state.failed) return n;
 
@@ -4897,7 +4900,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "id"
-    // R.g:241:1: id returns [Token t] : (i= ID |s= STRING |v= VARIATIC );
+    // R.g:244:1: id returns [Token t] : (i= ID |s= STRING |v= VARIATIC );
     public final Token id() throws RecognitionException {
         Token t = null;
 
@@ -4910,7 +4913,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 32) ) { return t; }
 
-            // R.g:242:5: (i= ID |s= STRING |v= VARIATIC )
+            // R.g:245:5: (i= ID |s= STRING |v= VARIATIC )
             int alt34=3;
             switch ( input.LA(1) ) {
             case ID:
@@ -4939,7 +4942,7 @@ public class RParser extends Parser {
 
             switch (alt34) {
                 case 1 :
-                    // R.g:242:7: i= ID
+                    // R.g:245:7: i= ID
                     {
                     i=(Token)match(input,ID,FOLLOW_ID_in_id1762); if (state.failed) return t;
 
@@ -4948,7 +4951,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:243:7: s= STRING
+                    // R.g:246:7: s= STRING
                     {
                     s=(Token)match(input,STRING,FOLLOW_STRING_in_id1774); if (state.failed) return t;
 
@@ -4957,7 +4960,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:244:7: v= VARIATIC
+                    // R.g:247:7: v= VARIATIC
                     {
                     v=(Token)match(input,VARIATIC,FOLLOW_VARIATIC_in_id1786); if (state.failed) return t;
 
@@ -4985,7 +4988,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "bool"
-    // R.g:246:1: bool returns [Node v] : ( TRUE | FALSE | NA );
+    // R.g:249:1: bool returns [Node v] : ( TRUE | FALSE | NA );
     public final Node bool() throws RecognitionException {
         Node v = null;
 
@@ -4994,7 +4997,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 33) ) { return v; }
 
-            // R.g:247:5: ( TRUE | FALSE | NA )
+            // R.g:250:5: ( TRUE | FALSE | NA )
             int alt35=3;
             switch ( input.LA(1) ) {
             case TRUE:
@@ -5023,7 +5026,7 @@ public class RParser extends Parser {
 
             switch (alt35) {
                 case 1 :
-                    // R.g:247:7: TRUE
+                    // R.g:250:7: TRUE
                     {
                     match(input,TRUE,FOLLOW_TRUE_in_bool1808); if (state.failed) return v;
 
@@ -5032,7 +5035,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:248:7: FALSE
+                    // R.g:251:7: FALSE
                     {
                     match(input,FALSE,FOLLOW_FALSE_in_bool1818); if (state.failed) return v;
 
@@ -5041,7 +5044,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:249:7: NA
+                    // R.g:252:7: NA
                     {
                     match(input,NA,FOLLOW_NA_in_bool1828); if (state.failed) return v;
 
@@ -5069,7 +5072,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_operator"
-    // R.g:251:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
+    // R.g:254:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
     public final BinaryOperator or_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5078,7 +5081,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 34) ) { return v; }
 
-            // R.g:252:2: ( OR | BITWISEOR )
+            // R.g:255:2: ( OR | BITWISEOR )
             int alt36=2;
             int LA36_0 = input.LA(1);
 
@@ -5098,7 +5101,7 @@ public class RParser extends Parser {
             }
             switch (alt36) {
                 case 1 :
-                    // R.g:252:4: OR
+                    // R.g:255:4: OR
                     {
                     match(input,OR,FOLLOW_OR_in_or_operator1847); if (state.failed) return v;
 
@@ -5107,7 +5110,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:253:5: BITWISEOR
+                    // R.g:256:5: BITWISEOR
                     {
                     match(input,BITWISEOR,FOLLOW_BITWISEOR_in_or_operator1864); if (state.failed) return v;
 
@@ -5135,7 +5138,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_operator"
-    // R.g:254:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
+    // R.g:257:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
     public final BinaryOperator and_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5144,7 +5147,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 35) ) { return v; }
 
-            // R.g:255:2: ( AND | BITWISEAND )
+            // R.g:258:2: ( AND | BITWISEAND )
             int alt37=2;
             int LA37_0 = input.LA(1);
 
@@ -5164,7 +5167,7 @@ public class RParser extends Parser {
             }
             switch (alt37) {
                 case 1 :
-                    // R.g:255:4: AND
+                    // R.g:258:4: AND
                     {
                     match(input,AND,FOLLOW_AND_in_and_operator1880); if (state.failed) return v;
 
@@ -5173,7 +5176,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:256:4: BITWISEAND
+                    // R.g:259:4: BITWISEAND
                     {
                     match(input,BITWISEAND,FOLLOW_BITWISEAND_in_and_operator1896); if (state.failed) return v;
 
@@ -5201,7 +5204,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_operator"
-    // R.g:257:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
+    // R.g:260:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
     public final BinaryOperator comp_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5210,7 +5213,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 36) ) { return v; }
 
-            // R.g:258:2: ( GT | GE | LT | LE | EQ | NE )
+            // R.g:261:2: ( GT | GE | LT | LE | EQ | NE )
             int alt38=6;
             switch ( input.LA(1) ) {
             case GT:
@@ -5254,7 +5257,7 @@ public class RParser extends Parser {
 
             switch (alt38) {
                 case 1 :
-                    // R.g:258:4: GT
+                    // R.g:261:4: GT
                     {
                     match(input,GT,FOLLOW_GT_in_comp_operator1912); if (state.failed) return v;
 
@@ -5263,7 +5266,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:259:4: GE
+                    // R.g:262:4: GE
                     {
                     match(input,GE,FOLLOW_GE_in_comp_operator1919); if (state.failed) return v;
 
@@ -5272,7 +5275,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:260:4: LT
+                    // R.g:263:4: LT
                     {
                     match(input,LT,FOLLOW_LT_in_comp_operator1926); if (state.failed) return v;
 
@@ -5281,7 +5284,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:261:4: LE
+                    // R.g:264:4: LE
                     {
                     match(input,LE,FOLLOW_LE_in_comp_operator1933); if (state.failed) return v;
 
@@ -5290,7 +5293,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:262:4: EQ
+                    // R.g:265:4: EQ
                     {
                     match(input,EQ,FOLLOW_EQ_in_comp_operator1940); if (state.failed) return v;
 
@@ -5299,7 +5302,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:263:4: NE
+                    // R.g:266:4: NE
                     {
                     match(input,NE,FOLLOW_NE_in_comp_operator1947); if (state.failed) return v;
 
@@ -5327,7 +5330,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_operator"
-    // R.g:264:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
+    // R.g:267:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
     public final BinaryOperator add_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5336,7 +5339,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 37) ) { return v; }
 
-            // R.g:265:2: ( PLUS | MINUS )
+            // R.g:268:2: ( PLUS | MINUS )
             int alt39=2;
             int LA39_0 = input.LA(1);
 
@@ -5356,7 +5359,7 @@ public class RParser extends Parser {
             }
             switch (alt39) {
                 case 1 :
-                    // R.g:265:4: PLUS
+                    // R.g:268:4: PLUS
                     {
                     match(input,PLUS,FOLLOW_PLUS_in_add_operator1961); if (state.failed) return v;
 
@@ -5365,7 +5368,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:266:4: MINUS
+                    // R.g:269:4: MINUS
                     {
                     match(input,MINUS,FOLLOW_MINUS_in_add_operator1968); if (state.failed) return v;
 
@@ -5393,7 +5396,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_operator"
-    // R.g:267:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV | MOD );
+    // R.g:270:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV | MOD );
     public final BinaryOperator mult_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5402,7 +5405,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 38) ) { return v; }
 
-            // R.g:268:2: ( MULT | DIV | MOD )
+            // R.g:271:2: ( MULT | DIV | MOD )
             int alt40=3;
             switch ( input.LA(1) ) {
             case MULT:
@@ -5431,7 +5434,7 @@ public class RParser extends Parser {
 
             switch (alt40) {
                 case 1 :
-                    // R.g:268:4: MULT
+                    // R.g:271:4: MULT
                     {
                     match(input,MULT,FOLLOW_MULT_in_mult_operator1983); if (state.failed) return v;
 
@@ -5440,7 +5443,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:269:4: DIV
+                    // R.g:272:4: DIV
                     {
                     match(input,DIV,FOLLOW_DIV_in_mult_operator1990); if (state.failed) return v;
 
@@ -5449,7 +5452,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:270:4: MOD
+                    // R.g:273:4: MOD
                     {
                     match(input,MOD,FOLLOW_MOD_in_mult_operator1998); if (state.failed) return v;
 
@@ -5477,7 +5480,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "power_operator"
-    // R.g:271:1: power_operator returns [BinaryOperator v] : CARRET ;
+    // R.g:274:1: power_operator returns [BinaryOperator v] : CARRET ;
     public final BinaryOperator power_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5486,8 +5489,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 39) ) { return v; }
 
-            // R.g:272:2: ( CARRET )
-            // R.g:272:4: CARRET
+            // R.g:275:2: ( CARRET )
+            // R.g:275:4: CARRET
             {
             match(input,CARRET,FOLLOW_CARRET_in_power_operator2013); if (state.failed) return v;
 
@@ -5513,7 +5516,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_list"
-    // R.g:274:1: expr_list returns [Map<Symbol, Node> v] : ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )* ;
+    // R.g:277:1: expr_list returns [Map<Symbol, Node> v] : ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )* ;
     public final Map<Symbol, Node> expr_list() throws RecognitionException {
         Map<Symbol, Node> v = null;
 
@@ -5522,15 +5525,15 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 40) ) { return v; }
 
-            // R.g:275:2: ( ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )* )
-            // R.g:275:4: ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )*
+            // R.g:278:2: ( ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )* )
+            // R.g:278:4: ( n_ expr_list_arg )? n_ ( COMMA ( n_ expr_list_arg )? n_ )*
             {
-            // R.g:275:4: ( n_ expr_list_arg )?
+            // R.g:278:4: ( n_ expr_list_arg )?
             int alt41=2;
             alt41 = dfa41.predict(input);
             switch (alt41) {
                 case 1 :
-                    // R.g:275:5: n_ expr_list_arg
+                    // R.g:278:5: n_ expr_list_arg
                     {
                     pushFollow(FOLLOW_n__in_expr_list2030);
                     n_();
@@ -5556,7 +5559,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:275:27: ( COMMA ( n_ expr_list_arg )? n_ )*
+            // R.g:278:27: ( COMMA ( n_ expr_list_arg )? n_ )*
             loop43:
             do {
                 int alt43=2;
@@ -5569,16 +5572,16 @@ public class RParser extends Parser {
 
                 switch (alt43) {
             	case 1 :
-            	    // R.g:275:28: COMMA ( n_ expr_list_arg )? n_
+            	    // R.g:278:28: COMMA ( n_ expr_list_arg )? n_
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_expr_list2039); if (state.failed) return v;
 
-            	    // R.g:275:34: ( n_ expr_list_arg )?
+            	    // R.g:278:34: ( n_ expr_list_arg )?
             	    int alt42=2;
             	    alt42 = dfa42.predict(input);
             	    switch (alt42) {
             	        case 1 :
-            	            // R.g:275:35: n_ expr_list_arg
+            	            // R.g:278:35: n_ expr_list_arg
             	            {
             	            pushFollow(FOLLOW_n__in_expr_list2042);
             	            n_();
@@ -5633,7 +5636,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_list_arg"
-    // R.g:277:1: expr_list_arg : ( expr |name= id n_ ASSIGN n_ v= expr );
+    // R.g:280:1: expr_list_arg : ( expr |name= id n_ ASSIGN n_ v= expr );
     public final void expr_list_arg() throws RecognitionException {
         int expr_list_arg_StartIndex = input.index();
 
@@ -5645,12 +5648,12 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 41) ) { return ; }
 
-            // R.g:278:2: ( expr |name= id n_ ASSIGN n_ v= expr )
+            // R.g:281:2: ( expr |name= id n_ ASSIGN n_ v= expr )
             int alt44=2;
             alt44 = dfa44.predict(input);
             switch (alt44) {
                 case 1 :
-                    // R.g:278:4: expr
+                    // R.g:281:4: expr
                     {
                     pushFollow(FOLLOW_expr_in_expr_list_arg2061);
                     expr();
@@ -5661,7 +5664,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:279:4: name= id n_ ASSIGN n_ v= expr
+                    // R.g:282:4: name= id n_ ASSIGN n_ v= expr
                     {
                     pushFollow(FOLLOW_id_in_expr_list_arg2069);
                     name=id();
@@ -5711,7 +5714,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "args"
-    // R.g:281:1: args returns [Map<Symbol, Node> v] : ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )* ;
+    // R.g:284:1: args returns [Map<Symbol, Node> v] : ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )* ;
     public final Map<Symbol, Node> args() throws RecognitionException {
         Map<Symbol, Node> v = null;
 
@@ -5720,15 +5723,15 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 42) ) { return v; }
 
-            // R.g:282:5: ( ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )* )
-            // R.g:282:7: ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )*
+            // R.g:285:5: ( ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )* )
+            // R.g:285:7: ( n_ arg_expr )? n_ ( COMMA ( n_ arg_expr )? n_ )*
             {
-            // R.g:282:7: ( n_ arg_expr )?
+            // R.g:285:7: ( n_ arg_expr )?
             int alt45=2;
             alt45 = dfa45.predict(input);
             switch (alt45) {
                 case 1 :
-                    // R.g:282:8: n_ arg_expr
+                    // R.g:285:8: n_ arg_expr
                     {
                     pushFollow(FOLLOW_n__in_args2098);
                     n_();
@@ -5754,7 +5757,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:282:25: ( COMMA ( n_ arg_expr )? n_ )*
+            // R.g:285:25: ( COMMA ( n_ arg_expr )? n_ )*
             loop47:
             do {
                 int alt47=2;
@@ -5767,16 +5770,16 @@ public class RParser extends Parser {
 
                 switch (alt47) {
             	case 1 :
-            	    // R.g:282:26: COMMA ( n_ arg_expr )? n_
+            	    // R.g:285:26: COMMA ( n_ arg_expr )? n_
             	    {
             	    match(input,COMMA,FOLLOW_COMMA_in_args2107); if (state.failed) return v;
 
-            	    // R.g:282:32: ( n_ arg_expr )?
+            	    // R.g:285:32: ( n_ arg_expr )?
             	    int alt46=2;
             	    alt46 = dfa46.predict(input);
             	    switch (alt46) {
             	        case 1 :
-            	            // R.g:282:33: n_ arg_expr
+            	            // R.g:285:33: n_ arg_expr
             	            {
             	            pushFollow(FOLLOW_n__in_args2110);
             	            n_();
@@ -5831,7 +5834,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "arg_expr"
-    // R.g:284:1: arg_expr returns [Map<Symbol, Node> v] : ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
+    // R.g:287:1: arg_expr returns [Map<Symbol, Node> v] : ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
     public final Map<Symbol, Node> arg_expr() throws RecognitionException {
         Map<Symbol, Node> v = null;
 
@@ -5845,12 +5848,12 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 43) ) { return v; }
 
-            // R.g:285:2: ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
+            // R.g:288:2: ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
             int alt48=5;
             alt48 = dfa48.predict(input);
             switch (alt48) {
                 case 1 :
-                    // R.g:285:4: expr
+                    // R.g:288:4: expr
                     {
                     pushFollow(FOLLOW_expr_in_arg_expr2133);
                     expr();
@@ -5861,7 +5864,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:286:4: name= id n_ ASSIGN n_ val= expr
+                    // R.g:289:4: name= id n_ ASSIGN n_ val= expr
                     {
                     pushFollow(FOLLOW_id_in_arg_expr2141);
                     name=id();
@@ -5892,7 +5895,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:287:4: name= id n_ ASSIGN
+                    // R.g:290:4: name= id n_ ASSIGN
                     {
                     pushFollow(FOLLOW_id_in_arg_expr2159);
                     name=id();
@@ -5911,7 +5914,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:288:4: NULL n_ ASSIGN n_ val= expr
+                    // R.g:291:4: NULL n_ ASSIGN n_ val= expr
                     {
                     match(input,NULL,FOLLOW_NULL_in_arg_expr2169); if (state.failed) return v;
 
@@ -5938,7 +5941,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:289:4: NULL n_ ASSIGN
+                    // R.g:292:4: NULL n_ ASSIGN
                     {
                     match(input,NULL,FOLLOW_NULL_in_arg_expr2185); if (state.failed) return v;
 
@@ -5971,8 +5974,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred1_R
     public final void synpred1_R_fragment() throws RecognitionException {
-        // R.g:108:10: ( LPAR )
-        // R.g:108:11: LPAR
+        // R.g:111:10: ( LPAR )
+        // R.g:111:11: LPAR
         {
         match(input,LPAR,FOLLOW_LPAR_in_synpred1_R351); if (state.failed) return ;
 
@@ -5983,8 +5986,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred2_R
     public final void synpred2_R_fragment() throws RecognitionException {
-        // R.g:109:11: ( LPAR )
-        // R.g:109:12: LPAR
+        // R.g:112:11: ( LPAR )
+        // R.g:112:12: LPAR
         {
         match(input,LPAR,FOLLOW_LPAR_in_synpred2_R370); if (state.failed) return ;
 
@@ -5995,8 +5998,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred3_R
     public final void synpred3_R_fragment() throws RecognitionException {
-        // R.g:127:5: ( ARROW )
-        // R.g:127:6: ARROW
+        // R.g:130:5: ( ARROW )
+        // R.g:130:6: ARROW
         {
         match(input,ARROW,FOLLOW_ARROW_in_synpred3_R551); if (state.failed) return ;
 
@@ -6007,8 +6010,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred4_R
     public final void synpred4_R_fragment() throws RecognitionException {
-        // R.g:128:5: ( SUPER_ARROW )
-        // R.g:128:6: SUPER_ARROW
+        // R.g:131:5: ( SUPER_ARROW )
+        // R.g:131:6: SUPER_ARROW
         {
         match(input,SUPER_ARROW,FOLLOW_SUPER_ARROW_in_synpred4_R569); if (state.failed) return ;
 
@@ -6019,8 +6022,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred5_R
     public final void synpred5_R_fragment() throws RecognitionException {
-        // R.g:129:5: ( RIGHT_ARROW )
-        // R.g:129:6: RIGHT_ARROW
+        // R.g:132:5: ( RIGHT_ARROW )
+        // R.g:132:6: RIGHT_ARROW
         {
         match(input,RIGHT_ARROW,FOLLOW_RIGHT_ARROW_in_synpred5_R587); if (state.failed) return ;
 
@@ -6031,8 +6034,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred6_R
     public final void synpred6_R_fragment() throws RecognitionException {
-        // R.g:130:5: ( SUPER_RIGHT_ARROW )
-        // R.g:130:6: SUPER_RIGHT_ARROW
+        // R.g:133:5: ( SUPER_RIGHT_ARROW )
+        // R.g:133:6: SUPER_RIGHT_ARROW
         {
         match(input,SUPER_RIGHT_ARROW,FOLLOW_SUPER_RIGHT_ARROW_in_synpred6_R607); if (state.failed) return ;
 
@@ -6043,8 +6046,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred7_R
     public final void synpred7_R_fragment() throws RecognitionException {
-        // R.g:131:5: ( ASSIGN )
-        // R.g:131:6: ASSIGN
+        // R.g:134:5: ( ASSIGN )
+        // R.g:134:6: ASSIGN
         {
         match(input,ASSIGN,FOLLOW_ASSIGN_in_synpred7_R627); if (state.failed) return ;
 
@@ -6055,8 +6058,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred8_R
     public final void synpred8_R_fragment() throws RecognitionException {
-        // R.g:138:3: ( n_ ELSE )
-        // R.g:138:4: n_ ELSE
+        // R.g:141:3: ( n_ ELSE )
+        // R.g:141:4: n_ ELSE
         {
         pushFollow(FOLLOW_n__in_synpred8_R690);
         n_();
@@ -6073,8 +6076,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred9_R
     public final void synpred9_R_fragment() throws RecognitionException {
-        // R.g:161:5: ( TILDE )
-        // R.g:161:6: TILDE
+        // R.g:164:5: ( TILDE )
+        // R.g:164:6: TILDE
         {
         match(input,TILDE,FOLLOW_TILDE_in_synpred9_R937); if (state.failed) return ;
 
@@ -6085,8 +6088,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred10_R
     public final void synpred10_R_fragment() throws RecognitionException {
-        // R.g:166:4: ( or_operator )
-        // R.g:166:5: or_operator
+        // R.g:169:4: ( or_operator )
+        // R.g:169:5: or_operator
         {
         pushFollow(FOLLOW_or_operator_in_synpred10_R978);
         or_operator();
@@ -6101,8 +6104,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred11_R
     public final void synpred11_R_fragment() throws RecognitionException {
-        // R.g:171:7: ( and_operator )
-        // R.g:171:8: and_operator
+        // R.g:174:7: ( and_operator )
+        // R.g:174:8: and_operator
         {
         pushFollow(FOLLOW_and_operator_in_synpred11_R1028);
         and_operator();
@@ -6117,8 +6120,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred12_R
     public final void synpred12_R_fragment() throws RecognitionException {
-        // R.g:176:7: ( comp_operator )
-        // R.g:176:8: comp_operator
+        // R.g:179:7: ( comp_operator )
+        // R.g:179:8: comp_operator
         {
         pushFollow(FOLLOW_comp_operator_in_synpred12_R1078);
         comp_operator();
@@ -6133,8 +6136,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred13_R
     public final void synpred13_R_fragment() throws RecognitionException {
-        // R.g:181:5: ( add_operator )
-        // R.g:181:6: add_operator
+        // R.g:184:5: ( add_operator )
+        // R.g:184:6: add_operator
         {
         pushFollow(FOLLOW_add_operator_in_synpred13_R1129);
         add_operator();
@@ -6149,8 +6152,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred14_R
     public final void synpred14_R_fragment() throws RecognitionException {
-        // R.g:186:4: ( mult_operator )
-        // R.g:186:5: mult_operator
+        // R.g:189:4: ( mult_operator )
+        // R.g:189:5: mult_operator
         {
         pushFollow(FOLLOW_mult_operator_in_synpred14_R1175);
         mult_operator();
@@ -6165,8 +6168,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred15_R
     public final void synpred15_R_fragment() throws RecognitionException {
-        // R.g:191:4: ( OP )
-        // R.g:191:5: OP
+        // R.g:194:4: ( OP )
+        // R.g:194:5: OP
         {
         match(input,OP,FOLLOW_OP_in_synpred15_R1221); if (state.failed) return ;
 
@@ -6177,8 +6180,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred16_R
     public final void synpred16_R_fragment() throws RecognitionException {
-        // R.g:196:4: ( COLUMN )
-        // R.g:196:5: COLUMN
+        // R.g:199:4: ( COLUMN )
+        // R.g:199:5: COLUMN
         {
         match(input,COLUMN,FOLLOW_COLUMN_in_synpred16_R1267); if (state.failed) return ;
 
@@ -6189,8 +6192,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred17_R
     public final void synpred17_R_fragment() throws RecognitionException {
-        // R.g:201:7: ( power_operator )
-        // R.g:201:8: power_operator
+        // R.g:204:7: ( power_operator )
+        // R.g:204:8: power_operator
         {
         pushFollow(FOLLOW_power_operator_in_synpred17_R1316);
         power_operator();
@@ -6205,7 +6208,7 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred18_R
     public final void synpred18_R_fragment() throws RecognitionException {
-        // R.g:213:4: ( FIELD | AT | LBRAKET | LBB | LPAR )
+        // R.g:216:4: ( FIELD | AT | LBRAKET | LBB | LPAR )
         // R.g:
         {
         if ( input.LA(1)==AT||input.LA(1)==FIELD||input.LA(1)==LBB||input.LA(1)==LBRAKET||input.LA(1)==LPAR ) {
@@ -6227,8 +6230,8 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred19_R
     public final void synpred19_R_fragment() throws RecognitionException {
-        // R.g:213:76: ( n_ )
-        // R.g:213:77: n_
+        // R.g:216:76: ( n_ )
+        // R.g:216:77: n_
         {
         pushFollow(FOLLOW_n__in_synpred19_R1460);
         n_();
@@ -6586,7 +6589,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "108:9: ( ( LPAR )=> LPAR n_ RPAR )?";
+            return "111:9: ( ( LPAR )=> LPAR n_ RPAR )?";
         }
         @Override
         public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
@@ -6702,7 +6705,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "109:10: ( ( LPAR )=> LPAR n_ RPAR )?";
+            return "112:10: ( ( LPAR )=> LPAR n_ RPAR )?";
         }
         @Override
         public int specialStateTransition(int s, IntStream _input) throws NoViableAltException {
@@ -6819,7 +6822,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "()* loopback of 114:50: ( n e= expr_or_assign )*";
+            return "()* loopback of 117:50: ( n e= expr_or_assign )*";
         }
     }
     static final String DFA16_eotS =
@@ -6872,7 +6875,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "()* loopback of 152:35: ( n_ COMMA n_ par_decl )*";
+            return "()* loopback of 155:35: ( n_ COMMA n_ par_decl )*";
         }
     }
     static final String DFA18_eotS =
@@ -6927,7 +6930,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "154:1: par_decl : ( ID | ID n_ ASSIGN n_ expr | VARIATIC );";
+            return "157:1: par_decl : ( ID | ID n_ ASSIGN n_ expr | VARIATIC );";
         }
     }
     static final String DFA41_eotS =
@@ -6986,7 +6989,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "275:4: ( n_ expr_list_arg )?";
+            return "278:4: ( n_ expr_list_arg )?";
         }
     }
     static final String DFA42_eotS =
@@ -7045,7 +7048,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "275:34: ( n_ expr_list_arg )?";
+            return "278:34: ( n_ expr_list_arg )?";
         }
     }
     static final String DFA44_eotS =
@@ -7113,7 +7116,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "277:1: expr_list_arg : ( expr |name= id n_ ASSIGN n_ v= expr );";
+            return "280:1: expr_list_arg : ( expr |name= id n_ ASSIGN n_ v= expr );";
         }
     }
     static final String DFA45_eotS =
@@ -7174,7 +7177,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "282:7: ( n_ arg_expr )?";
+            return "285:7: ( n_ arg_expr )?";
         }
     }
     static final String DFA46_eotS =
@@ -7235,7 +7238,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "282:32: ( n_ arg_expr )?";
+            return "285:32: ( n_ arg_expr )?";
         }
     }
     static final String DFA48_eotS =
@@ -7331,7 +7334,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "284:1: arg_expr returns [Map<Symbol, Node> v] : ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
+            return "287:1: arg_expr returns [Map<Symbol, Node> v] : ( expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
         }
     }
  

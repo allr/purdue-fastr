@@ -22,6 +22,9 @@ tokens {
 package r.parser;
 import r.data.*;
 import r.nodes.*;
+import r.nodes.Call.*;
+import r.nodes.UnaryOperation.*;
+import r.nodes.BinaryOperation.*;
 //Checkstyle: stop
 }
 @lexer::header {
@@ -79,7 +82,7 @@ package r.parser;
 
 script returns [Node v]
     @init{ArrayList<Node> stmts = new ArrayList<Node>();}
-	@after{ $v = Factory.sequence(stmts);}
+	@after{ $v = Sequence.create(stmts);}
 	: n_ (s=statement {stmts.add(s);})*
 	;
 interactive returns [Node v]
@@ -110,43 +113,43 @@ expr_wo_assign returns [Node v]
 	;
 sequence returns [Node v]
     @init{ArrayList<Node> stmts = new ArrayList<Node>();}
-    @after{ $v = Factory.sequence(stmts);}
+    @after{ $v = Sequence.create(stmts);}
 	: LBRACE n_ (e=expr_or_assign { stmts.add(e); } (n e=expr_or_assign { stmts.add(e); })* n?)?  RBRACE  
 	;
 assign returns [Node v]
 	: l=tilde_expr	
-		( ARROW n_ r=expr {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
-		| SUPER_ARROW n_ r=expr {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, l, r);}
-		| a=RIGHT_ARROW n_ r=expr {v = Factory.binary(BinaryOperator.ASSIGN, r, l);}
-		| a=SUPER_RIGHT_ARROW n_ r=expr {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, r, l);}
-		| { v = l;}
+		( ARROW n_ r=expr { $v = AssignVariable.create(l, r);}
+		| SUPER_ARROW n_ r=expr { $v = AssignVariable.createSuper(l, r);}
+		| a=RIGHT_ARROW n_ r=expr { $v = AssignVariable.create(r, l);}
+		| a=SUPER_RIGHT_ARROW n_ r=expr { $v = AssignVariable.createSuper(r, l);}
+		| { $v = l;}
 		)
 	;
 alter_assign returns [Node v]
 	: l=tilde_expr	
-		( (ARROW)=>ARROW n_ r=expr_or_assign {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
-		| (SUPER_ARROW)=>SUPER_ARROW n_ r=expr_or_assign {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, l, r);}
-		| (RIGHT_ARROW)=>a=RIGHT_ARROW n_ r=expr_or_assign { v = Factory.binary(BinaryOperator.ASSIGN, r, l);}
-		| (SUPER_RIGHT_ARROW)=>a=SUPER_RIGHT_ARROW n_ r=expr_or_assign {v = Factory.binary(BinaryOperator.SUPER_ASSIGN, r, l);}
-		| (ASSIGN)=>a=ASSIGN n_ r=expr_or_assign {v = Factory.binary(BinaryOperator.ASSIGN, l, r);}
+		( (ARROW)=>ARROW n_ r=expr_or_assign { $v = AssignVariable.create(l, r);}
+		| (SUPER_ARROW)=>SUPER_ARROW n_ r=expr_or_assign {v = AssignVariable.createSuper(l, r);}
+		| (RIGHT_ARROW)=>a=RIGHT_ARROW n_ r=expr_or_assign { v = AssignVariable.create(r, l);}
+		| (SUPER_RIGHT_ARROW)=>a=SUPER_RIGHT_ARROW n_ r=expr_or_assign {v = AssignVariable.createSuper(r, l);}
+		| (ASSIGN)=>a=ASSIGN n_ r=expr_or_assign {v = AssignVariable.create(l, r);}
 		| { v = l;}
 		)
 	;
 if_expr returns [Node v]
 	:
 	IF n_ LPAR n_ cond=expr_or_assign n_ RPAR n_ t=expr_or_assign
-	((n_ ELSE)=>(options {greedy=false; backtrack = true;}: n_ ELSE n_ f=expr_or_assign { v = Factory.ternary(TernaryOperator.IF, cond, t, f);})
-    | {v = Factory.binary(BinaryOperator.IF, cond, t);}
+	((n_ ELSE)=>(options {greedy=false; backtrack = true;}: n_ ELSE n_ f=expr_or_assign { v = If.create(cond, t, f);})
+    | {v = If.create(cond, t);}
 	)
 	;
 while_expr returns [Node v]
-	: WHILE n_ LPAR n_ c=expr_or_assign n_ RPAR n_ body=expr_or_assign {v = Factory.binary(BinaryOperator.WHILE, c, body);}
+	: WHILE n_ LPAR n_ c=expr_or_assign n_ RPAR n_ body=expr_or_assign { $v = Loop.create(c, body); }
 	;
 for_expr returns [Node v]
 	: FOR n_ LPAR n_ ID n_ IN n_ in=expr_or_assign n_ RPAR n_ body=expr_or_assign 
 	;
 repeat_expr returns [Node v]
-	: REPEAT n_ body=expr_or_assign {v = Factory.unary(UnaryOperator.REPEAT, body);}
+	: REPEAT n_ body=expr_or_assign {v = Loop.create(body); }
 	;
 function returns [Node v]
 	: FUNCTION n_ LPAR  n_ (par_decl (n_ COMMA n_ par_decl)* n_)? RPAR n_ body=expr_or_assign 
@@ -158,54 +161,54 @@ par_decl
 	;
 tilde_expr returns [Node v]
 	: l=or_expr 
-	( ((TILDE)=>TILDE n_ r=tilde_expr {$v = Factory.binary(BinaryOperator.MODEL, l, r);} )
+	( ((TILDE)=>TILDE n_ r=tilde_expr {$v = BinaryOperation.create(BinaryOperator.MODEL, l, r);} )
 	| {$v=l;})
 	;
 or_expr returns [Node v]
 	: l=and_expr
-	(((or_operator)=>op=or_operator n_ r=tilde_expr {$v = Factory.binary(op, l, r);} )
+	(((or_operator)=>op=or_operator n_ r=tilde_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})	
 	;
 and_expr returns [Node v]
 	: l=comp_expr
-    (((and_operator)=>op=and_operator n_ r=tilde_expr {$v = Factory.binary(op, l, r);} )
+    (((and_operator)=>op=and_operator n_ r=tilde_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 comp_expr returns [Node v]
 	: l=add_expr 
-    (((comp_operator)=>op=comp_operator n_ r=tilde_expr {$v = Factory.binary(op, l, r);} )
+    (((comp_operator)=>op=comp_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
     	;
 add_expr returns [Node v]
 	: l=mult_expr
-	 (((add_operator)=>op=add_operator n_ r=tilde_expr {$v = Factory.binary(op, l, r);} )
+	 (((add_operator)=>op=add_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 mult_expr returns [Node v]
 	: l=operator_expr
-	(((mult_operator)=>op=mult_operator n_ r=tilde_expr {$v = Factory.binary(op, l, r);} )
+	(((mult_operator)=>op=mult_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 operator_expr returns [Node v]
 	: l=column_expr
-	(((OP)=>op=OP n_ r=tilde_expr {$v = Factory.custom_operator(op, l, r);} )
+	(((OP)=>op=OP n_ r=tilde_expr { $v = null ; /*BinaryOperation.create(op, l, r); */ } )
     | {$v=l;})
 	;
 column_expr returns [Node v]
 	: l=power_expr
-	(((COLUMN)=>op=COLUMN n_ r=tilde_expr {$v = Factory.binary(BinaryOperator.COLUMN, l, r);} )
+	(((COLUMN)=>op=COLUMN n_ r=tilde_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, l, r);} )
     | {$v=l;})
 	;
 power_expr returns [Node v]
 	: l=unary_expression
-    (((power_operator)=>op=power_operator n_ r=power_expr {$v = Factory.binary(op, l, r);} )
+    (((power_operator)=>op=power_operator n_ r=power_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
     ;
 unary_expression returns [Node v]
-	: NOT n_ l=unary_expression {$v = Factory.unary(UnaryOperator.NOT, l);}
-	| PLUS n_ l=unary_expression {$v = Factory.unary(UnaryOperator.PLUS, l);}
-	| MINUS n_ l=unary_expression {$v = Factory.unary(UnaryOperator.MINUS, l);}
-	| TILDE n_ l=unary_expression {$v = Factory.unary(UnaryOperator.MODEL, l);}
+	: NOT n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.NOT, l);}
+	| PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
+	| MINUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MINUS, l);}
+	| TILDE n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MODEL, l);}
 	| b=basic_expr { $v=b; }
 	;
 basic_expr returns [Node v]
@@ -213,16 +216,16 @@ basic_expr returns [Node v]
 	(((FIELD|AT|LBRAKET|LBB|LPAR)=>subset=expr_subset[v] { $v = subset; })+ | (n_)=>)
 	;
 expr_subset [Node i] returns [Node v]
-    : (FIELD n_ name=id) { v = Factory.fieldAccess(FieldOperator.FIELD, i, name.getText()); } 
-    | (AT n_ name=id)  { v = Factory.fieldAccess(FieldOperator.AT, i, name.getText()); } 
-    | (LBRAKET subset=expr_list RBRAKET) { v = Factory.call(CallOperator.SUBSET, i, subset); }
-    | (LBB subscript=expr_list RBRAKET RBRAKET) { v = Factory.call(CallOperator.SUBSCRIPT, i, subscript); }
+    : (FIELD n_ name=id) { v = FieldAccess.create(FieldOperator.FIELD, i, name.getText()); } 
+    | (AT n_ name=id)  { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); } 
+    | (LBRAKET subset=expr_list RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); }
+    | (LBB subscript=expr_list RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); }
     // Must use RBRAKET instead of RBB beacause of : a[b[1]]
-    | (LPAR a=args RPAR)  { v = Factory.call(CallOperator.CALL, i, a); } 
+    | (LPAR a=args RPAR)  { v = Call.create(i, a); } 
     //| { v = i; }
     ;
 simple_expr returns [Node v]
-	: i=id { $v = Factory.readVariable(i.getText()); }
+	: i=id { $v = VariableAccess.create(i.getText()); }
 	| b=bool { $v = b; }
 	| DD
 	| NULL { $v = Constant.getNull(); }

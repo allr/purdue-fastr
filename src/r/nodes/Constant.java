@@ -3,8 +3,8 @@ package r.nodes;
 import r.*;
 import r.data.*;
 
-
-public class Constant implements Node {
+@Precedence(Precedence.MAX)
+public class Constant extends Node {
     RAny value;
 
     Constant(RAny val) {
@@ -77,4 +77,7 @@ public class Constant implements Node {
     public static Node getNull() {
         return new Constant(Null.getNull());
     }
+
+    @Override
+    public void visit_all(Visitor v) { }
 }
