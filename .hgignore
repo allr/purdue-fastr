@@ -1,0 +1,9 @@
+\.checkstyle$
+\.classpath
+\.project
+\.settings/
+\.metadata/
+\.class$
+~$
+bin/
+^local/

@@ -2,11 +2,10 @@
 # This is only an overlay, you'll need the true mx/projects file
 
 # fastr
-project@fastr@subDir=graal
+project@fastr@subDir=..
 project@fastr@sourceDirs=src,test
 project@fastr@dependencies=com.oracle.truffle,ANTLR
 project@fastr@javaCompliance=1.7
-
 
 # AntLR
 library@ANTLR@path=lib/antlr-runtime-3.4.jar
