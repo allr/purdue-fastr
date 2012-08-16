@@ -1,8 +1,9 @@
-package r.data;
+package r.data.internal;
 
 import java.util.*;
 
 import r.*;
+import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
 
@@ -11,7 +12,7 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     public final String[] specialAttributes = new String[]{"name", "class"};
 
     RAny[] specialSlots = new RAny[specialAttributes.length];
-    Map<Symbol, RAny> content;
+    Map<RSymbol, RAny> content;
 
     public RArray subset(RString keys) {
         Utils.nyi();

@@ -1,6 +1,7 @@
 package r.nodes;
 
 import r.*;
+import r.data.*;
 
 public abstract class AssignVariable extends Node {
     Node rhs;
@@ -30,7 +31,7 @@ public abstract class AssignVariable extends Node {
         return null;
     }
 
-    public static Node writeVariable(Symbol name, Node rhs) {
+    public static Node writeVariable(RSymbol name, Node rhs) {
         return new SimpleAssignVariable(name, rhs);
     }
 }

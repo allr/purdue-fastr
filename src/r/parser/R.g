@@ -20,6 +20,8 @@ tokens {
 
 @header {
 package r.parser;
+
+import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.Call.*;
@@ -107,7 +109,7 @@ expr_wo_assign returns [Node v]
 	| i=if_expr { $v = i; }
 	| f=for_expr { $v = f; }
 	| r=repeat_expr { $v = r; }
-	| function
+	| fun=function { $v = fun; }
 	| NEXT ((LPAR)=>LPAR n_ RPAR)? 
 	| BREAK ((LPAR)=>LPAR n_ RPAR)? 
 	;
@@ -152,12 +154,20 @@ repeat_expr returns [Node v]
 	: REPEAT n_ body=expr_or_assign {v = Loop.create(body); }
 	;
 function returns [Node v]
-	: FUNCTION n_ LPAR  n_ (par_decl (n_ COMMA n_ par_decl)* n_)? RPAR n_ body=expr_or_assign 
+@init { ArgumentList l = new ArgumentList.Default(); }
+	: FUNCTION n_ LPAR  n_ (par_decl[l] (n_ COMMA n_ par_decl[l])* n_)? RPAR n_ body=expr_or_assign { $v = Function.create(l, body); } 
 	;
-par_decl
-	: ID 
-	| ID n_ ASSIGN n_ expr 
-	| VARIATIC 
+par_decl [ArgumentList l]
+	: i=ID { $l.add($i.text, null); } 
+	| i=ID n_ ASSIGN n_ e=expr { $l.add($i.text, e); }
+	| v=VARIATIC { $l.add($v.text, null); } // FIXME This is not quite good, since `...` is a special token
+	                                 // For this reason let's call RSymbol.xxxx(...)
+	// This 3 cases were not handled ... and everything was working fine
+	// I add them for completeness, however note that the function create
+	// with such a signature will always fail if they try to access them !
+ 	| VARIATIC n_ ASSIGN n_ expr
+ 	| DD
+ 	| DD n_ ASSIGN n_ expr
 	;
 tilde_expr returns [Node v]
 	: l=or_expr 
@@ -218,9 +228,9 @@ basic_expr returns [Node v]
 expr_subset [Node i] returns [Node v]
     : (FIELD n_ name=id) { v = FieldAccess.create(FieldOperator.FIELD, i, name.getText()); } 
     | (AT n_ name=id)  { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); } 
-    | (LBRAKET subset=expr_list RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); }
-    | (LBB subscript=expr_list RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); }
-    // Must use RBRAKET instead of RBB beacause of : a[b[1]]
+    | (LBRAKET subset=args RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); }
+    | (LBB subscript=args RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); }
+    // Must use RBRAKET in`stead of RBB beacause of : a[b[1]]
     | (LPAR a=args RPAR)  { v = Call.create(i, a); } 
     //| { v = i; }
     ;
@@ -274,22 +284,16 @@ mult_operator returns [BinaryOperator v]
 power_operator returns [BinaryOperator v]
 	: CARRET {$v = BinaryOperator.POW; }
 	;
-expr_list returns [Map<Symbol, Node> v]
-	: (n_ expr_list_arg)? n_ (COMMA (n_ expr_list_arg)? n_)* 
+args returns [ArgumentList v]
+@init { $v = new ArgumentList.Default(); }
+    : (n_ arg_expr[v])? n_ (COMMA ( { $v.add((Node)null); } | n_ arg_expr[v]) n_)* 
 	;
-expr_list_arg
-	: expr 
-	| name=id n_ ASSIGN n_ v=expr 
-	;
-args returns [Map<Symbol, Node> v]
-    : (n_ arg_expr)? n_ (COMMA (n_ arg_expr)? n_)* 
-	;
-arg_expr returns [Map<Symbol, Node> v]
-	: expr 
-	| name=id n_ ASSIGN n_ val=expr 
-	| name=id n_ ASSIGN 
-	| NULL n_ ASSIGN n_ val=expr 
-	| NULL n_ ASSIGN 
+arg_expr [ArgumentList l]
+	: e=expr { $l.add(e); }
+	| name=id n_ ASSIGN n_ val=expr { $l.add(name.getText(), val); }
+	| name=id n_ ASSIGN  { $l.add(name.getText(), null); }
+	| NULL n_ ASSIGN n_ val=expr { Utils.nyi(); }
+	| NULL n_ ASSIGN { Utils.nyi(); }
 	;
 ///////////////////////////////////////////////////////////////////////////////
 /// Lexer

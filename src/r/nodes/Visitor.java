@@ -17,5 +17,6 @@ public interface Visitor {
 
     void visit(SimpleAssignVariable assign);
 
+    void visit(Function function);
     void visit(FunctionCall functionCall);
 }

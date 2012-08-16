@@ -1,11 +1,17 @@
 package r.nodes;
 
+import r.data.*;
+
 
 public class VariableAccess extends Node {
-    Symbol name;
+    RSymbol name;
 
-    public VariableAccess(Symbol symbol) {
+    public VariableAccess(RSymbol symbol) {
        name = symbol;
+    }
+
+    public RSymbol getName() {
+        return name;
     }
 
     @Override
@@ -17,6 +23,6 @@ public class VariableAccess extends Node {
     public void visit_all(Visitor v) { }
 
     public static Node create(String name) {
-        return new VariableAccess(Symbol.getSymbol(name));
+        return new VariableAccess(RSymbol.getSymbol(name));
     }
 }

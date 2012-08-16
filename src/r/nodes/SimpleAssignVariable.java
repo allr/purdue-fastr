@@ -1,14 +1,16 @@
 package r.nodes;
 
-public class SimpleAssignVariable extends AssignVariable {
-    Symbol variable;
+import r.data.*;
 
-    public SimpleAssignVariable(Symbol var, Node rhs) {
+public class SimpleAssignVariable extends AssignVariable {
+    RSymbol variable;
+
+    public SimpleAssignVariable(RSymbol var, Node rhs) {
         super(rhs);
         variable = var;
     }
 
-    public Symbol getSymbol() {
+    public RSymbol getSymbol() {
         return variable;
     }
 

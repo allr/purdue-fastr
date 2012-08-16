@@ -1,27 +1,44 @@
 package r.nodes;
 
-import java.util.*;
-
+import r.data.*;
+import r.nodes.ArgumentList.Entry;
 
 public abstract class Call extends Node {
-    public static Node create(Node call, Map<Symbol, Node> args) {
-        if (call instanceof Constant) {
-            Constant ccall = (Constant) call;
-            if (ccall.value instanceof Symbol) {
-                create(call, args);
-            }
-            throw new Error(ccall.value.pretty() + " can't be use as a function name");
+
+    ArgumentList args;
+
+    public Call(ArgumentList alist) {
+        args = alist;
+    }
+
+    @Override
+    public void visit_all(Visitor v) {
+        for (Entry e : args) {
+            e.getValue().accept(v);
+        }
+    }
+
+    public ArgumentList getArgs() {
+        return args;
+    }
+
+    public static Node create(Node call, ArgumentList args) {
+        if (call instanceof VariableAccess) {
+            VariableAccess ccall = (VariableAccess) call;
+            return create(ccall.getName(), args);
         }
         return null;
     }
-    public static Node create(Symbol funName, Map<Symbol, Node> args) {
+
+    public static Node create(RSymbol funName, ArgumentList args) {
+        return new FunctionCall(funName, args);
+    }
+
+    public static Node create(CallOperator op, Node lhs, ArgumentList args) {
         return null;
     }
-    public static Node create(CallOperator op, Node lhs, Map<Symbol, Node> args) {
-        return null;
-    }
+
     public enum CallOperator {
-        SUBSET,
-        SUBSCRIPT
+        SUBSET, SUBSCRIPT
     }
 }

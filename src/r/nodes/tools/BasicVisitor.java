@@ -44,4 +44,7 @@ public class BasicVisitor implements Visitor {
     public void visit(Call n) { visit((Node) n); }
     @Override
     public void visit(FunctionCall n) { visit((Call) n); }
+
+    @Override
+    public void visit(Function n) { visit((Node) n); }
 }

@@ -1,7 +1,6 @@
 # Installation
 
- -  Preparing your project:
-    Create a fresh directory (for instance `fastr`)
+ -  Preparing your project, i.e., create a fresh directory (for instance `fastr`)
 
     ~~~~
 		mkdir fastr && cd fastr
@@ -11,20 +10,19 @@
 
     ~~~~
 hg clone https://maxinevm@lafo.ssw.uni-linz.ac.at/hg/graalvm-truffle-codegen truffle
-hg clone http://r.cs.purdue/hg/fastr
+hg clone http://r.cs.purdue.edu/hg/fastr
     ~~~~
 
  -  Patch mx (until my changes are merged):
 
     ~~~~
-wget http://www.cs.purdue.edu/homes/fmoranda/dist/mx-overlay.patch
-patch -d truffle -p1 < mx-overlay.path
+wget http://www.cs.purdue.edu/homes/fmoranda/dist/mx-overlay.patch -O- | patch -d truffle -p1
     ~~~~
 
  -  Configure (Eclipse/Netbeans/IntelliJ)
 
     ~~~~
-export MX_PATH=../fastr/mx
+export MX_PROJECTS_OVERLAY=../fastr/mx
 cd truffle && ./mx.sh ideini
     ~~~~
 

@@ -1,6 +1,8 @@
 package r.nodes.tools;
 
 import java.io.*;
+
+import r.data.*;
 import r.nodes.*;
 
 public class PrettyPrinter extends BasicVisitor {
@@ -45,20 +47,33 @@ public class PrettyPrinter extends BasicVisitor {
 
     @Override
     public void visit(Node n) {
-        println("## TODO: " + n);
+        print("##(TODO: " + n + ")##");
         System.err.println("TODO: " + n);
     }
 
     @Override
     public void visit(Sequence n) {
-        println("{");
-        inc();
-        for (Node e : n.getExprs()) {
-            e.accept(this);
-            println("");
+        Node[] exprs = n.getExprs();
+        switch (exprs.length) {
+            case 0:
+                print("{}");
+                break;
+            case 1:
+                print("{ ");
+                exprs[0].accept(this);
+                print(" }");
+
+                break;
+            default:
+                println("{");
+                inc();
+                for (Node e : exprs) {
+                    e.accept(this);
+                    println("");
+                }
+                dec();
+                print("}");
         }
-        dec();
-        print("}");
     }
 
     @Override
@@ -129,6 +144,45 @@ public class PrettyPrinter extends BasicVisitor {
         print(n.getSymbol().pretty());
         print(" <- ");
         n.getExpr().accept(this);
-        println("");
+    }
+
+    @Override
+    public void visit(FunctionCall n) {
+        print(n.getName().pretty() + "(");
+        print(n.getArgs());
+        print(")");
+    }
+
+
+    @Override
+    public void visit(Function n) {
+        print("function(");
+        print(n.getSignature());
+        print(") ");
+        n.visit_all(this);
+    }
+
+    private void print(ArgumentList alist) {
+        boolean f = true;
+        for (ArgumentList.Entry arg : alist) {
+            if (!f) {
+                print(", ");
+            } else {
+                f = false;
+            }
+            print(arg);
+        }
+    }
+
+    private void print(ArgumentList.Entry arg) {
+        RSymbol n = arg.getName();
+        Node v = arg.getValue();
+        if (n != null) {
+            print(n.pretty());
+            print("=");
+        }
+        if (v != null) {
+            v.accept(this);
+        }
     }
 }
