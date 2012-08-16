@@ -2,7 +2,7 @@ package r.nodes;
 
 import r.data.*;
 
-
+@Precedence(Precedence.MAX)
 public class VariableAccess extends Node {
     RSymbol name;
 

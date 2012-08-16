@@ -149,20 +149,24 @@ public class PrettyPrinter extends BasicVisitor {
     @Override
     public void visit(FunctionCall n) {
         print(n.getName().pretty() + "(");
-        print(n.getArgs());
+        print(n.getArgs(), true);
         print(")");
     }
-
 
     @Override
     public void visit(Function n) {
         print("function(");
-        print(n.getSignature());
+        print(n.getSignature(), false);
         print(") ");
         n.visit_all(this);
     }
 
-    private void print(ArgumentList alist) {
+    @Override
+    public void visit(VariableAccess n) {
+        print(n.getName().pretty());
+    }
+
+    private void print(ArgumentList alist, boolean isCall) {
         boolean f = true;
         for (ArgumentList.Entry arg : alist) {
             if (!f) {
@@ -170,16 +174,18 @@ public class PrettyPrinter extends BasicVisitor {
             } else {
                 f = false;
             }
-            print(arg);
+            print(arg, isCall);
         }
     }
 
-    private void print(ArgumentList.Entry arg) {
+    private void print(ArgumentList.Entry arg, boolean isCall) {
         RSymbol n = arg.getName();
         Node v = arg.getValue();
         if (n != null) {
             print(n.pretty());
-            print("=");
+            if (isCall || v != null) {
+                print("=");
+            }
         }
         if (v != null) {
             v.accept(this);
