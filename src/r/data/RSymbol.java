@@ -2,6 +2,7 @@ package r.data;
 
 import java.util.*;
 
+import r.*;
 import r.data.internal.*;
 
 public final class RSymbol extends BaseObject implements RAny {
@@ -34,5 +35,17 @@ public final class RSymbol extends BaseObject implements RAny {
             }
             return sym;
         }
+    }
+
+    @Override
+    public RLogical asLogical() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt() {
+        Utils.nyi();
+        return null;
     }
 }

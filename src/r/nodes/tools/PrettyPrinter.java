@@ -8,7 +8,7 @@ import r.nodes.*;
 
 public class PrettyPrinter extends BasicVisitor {
 
-    public static final boolean PARENTHESIS = Boolean.parseBoolean(Utils.getProperty("RPrettyPrint.surroundpar", "false"));
+    public static final boolean PARENTHESIS = Utils.getProperty("RPrettyPrint.surroundpar", false);
 
     int level = 0;
     final PrintStream out;

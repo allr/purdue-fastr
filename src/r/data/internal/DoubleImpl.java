@@ -4,6 +4,7 @@ import r.*;
 import r.data.*;
 
 public class DoubleImpl extends ArrayImpl implements RDouble {
+
     double[] content;
 
     public DoubleImpl(double[] values) {
@@ -11,12 +12,28 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
+    @Override
+    public int size() {
+        return content.length;
+    }
+
     public Object get(int i) {
-        return content[i - 1];
+        return content[i];
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
+        return set(i, ((Double) val).doubleValue()); // FIXME better conversion
+    }
+
+    @Override
+    public RArray set(int i, double val) {
+        content[i] = val;
+        return this;
     }
 
     public double getDouble(int i) {
-        return content[i - 1];
+        return content[i];
     }
 
     @Override
@@ -42,6 +59,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
     }
 
     class IntView implements RInt {
+
         @Override
         public RInt asInt() {
             return this;
@@ -50,6 +68,20 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         @Override
         public Object get(int i) {
             return ((Double) DoubleImpl.this.get(i)).doubleValue();
+        }
+
+        @Override
+        public RArray set(int i, Object val) {
+            return set(i, ((Integer) val).intValue()); // FIXME better conversion
+        }
+
+        @Override
+        public RArray set(int i, int val) {
+            return materialize().set(i, val);
+        }
+
+        public int size() {
+            return DoubleImpl.this.size();
         }
 
         @Override
@@ -83,5 +115,16 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
             return materialize().pretty(); // FIXME what a stupid impl ...
         }
 
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+    }
+
+    @Override
+    public RLogical asLogical() {
+        Utils.nyi();
+        return null;
     }
 }

@@ -12,6 +12,17 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     RAny[] specialSlots = new RAny[specialAttributes.length];
     Map<RSymbol, RAny> content;
 
+    @Override
+    public int size() {
+        int size = content.size();
+        for (RAny obj : specialSlots) {
+            if (obj != null) {
+                    size++;
+            }
+        }
+        return size;
+    }
+
     public RArray subset(RString keys) {
         Utils.nyi();
         return null;
@@ -20,6 +31,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     public RArray materialize() {
         // TODO maybe it's time to create a LIST
         return this;
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
+        Utils.nyi();
+        return null;
     }
 
     @Override
@@ -51,6 +68,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
 
     @Override
     public RInt asInt() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical() {
         Utils.nyi();
         return null;
     }

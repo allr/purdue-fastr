@@ -3,21 +3,48 @@ package r.data.internal;
 import r.*;
 import r.data.*;
 
-
 public class LogicalImpl extends ArrayImpl implements RLogical {
+
     int[] content;
+
+    public LogicalImpl(int size) {
+        content = new int[size];
+    }
 
     public LogicalImpl(int[] values) {
         content = new int[values.length];
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
-    public Object get(int i) {
-        return content[i - 1];
+    @Override
+    public int size() {
+        return content.length;
     }
 
-    public int getInt(int i) {
-        return content[i - 1];
+    @Override
+    public Object get(int i) {
+        return content[i];
+    }
+
+    @Override
+    public int getLogical(int i) {
+        return content[i];
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
+        return set(i, ((Integer) val).intValue()); // FIXME better conversion
+    }
+
+    @Override
+    public RLogical set(int i, int val) {
+        content[i] = val;
+        return this;
+    }
+
+    @Override
+    public RLogical asLogical() {
+        return this;
     }
 
     @Override
@@ -43,6 +70,7 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     }
 
     class IntView implements RInt {
+
         @Override
         public Object get(int i) {
             return LogicalImpl.this.get(i);
@@ -66,6 +94,10 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
             return null;
         }
 
+        public int size() {
+            return LogicalImpl.this.size();
+        }
+
         @Override
         public RInt asInt() {
             return this;
@@ -86,6 +118,20 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         public String pretty() {
             return materialize().pretty();
         }
+
+        @Override
+        public RArray set(int i, Object val) {
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return LogicalImpl.this;
+        }
+
+        @Override
+        public RArray set(int i, int val) {
+            return null;
+        }
     }
 }
-

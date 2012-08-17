@@ -9,13 +9,19 @@ import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
 
+/*
+ * FIXME Is it the right package for Console ? Should maybe be in 'r' or 'r.tools'
+ */
 public class Console {
 
-    public static final boolean DEBUG_GUI = Boolean.parseBoolean(Utils.getProperty("RConsole.debug.gui", "true"));
-    public static final boolean QUIET = Boolean.parseBoolean(Utils.getProperty("RConsole.quiet", "false"));
+    public static final boolean DEBUG = Utils.getProperty("RConsole.debug", false);
+    public static final boolean DEBUG_GUI = Utils.getProperty("RConsole.debug.gui", true);
 
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
+
+    static REval evaluator;
+    static PrintStream out;
 
     static RLexer lexer;
     static RParser parser;
@@ -30,20 +36,25 @@ public class Console {
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
             }
 
+            evaluator = new REval();
+            out = System.out;
             lexer = new RLexer();
             parser = new RParser(null);
+
             do {
-                print(incomplete.length() == 0 ? prompt : promptMore);
+                out.print(incomplete.length() == 0 ? prompt : promptMore);
+                out.flush();
                 errorStmt = !parse_statement();
                 if (!errorStmt) {
                     parser.reset();
-                    if (DEBUG_GUI) {
-                        TreeViewer.showTree(tree);
+                    if (DEBUG) {
+                        if (DEBUG_GUI) {
+                            TreeViewer.showTree(tree);
+                        } else {
+                            new PrettyPrinter(System.err).print(tree);
+                        }
                     }
-                    if (!QUIET) {
-                        new PrettyPrinter(System.out).print(tree);
-                    }
-                    // Evaluate
+                    out.println(evaluator.eval(tree).pretty());
                 }
             } while (true);
         } catch (IOException e) {
@@ -78,14 +89,4 @@ public class Console {
         tree = result;
         return true;
     }
-
-    static void print(String text) {
-        print(text, System.out);
-    }
-
-    static void print(String text, PrintStream out) {
-        out.print(text);
-        out.flush();
-    }
-
 }

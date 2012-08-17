@@ -1,7 +1,10 @@
 package r.nodes;
 
-import r.*;
+import com.oracle.truffle.runtime.*;
+
+import r.Convert;
 import r.data.*;
+import r.interpreter.*;
 
 @Precedence(Precedence.MAX)
 public class Constant extends Node {
@@ -12,8 +15,21 @@ public class Constant extends Node {
         value = val;
     }
 
+    @Override
+    public RAny execute(RContext global, Frame frame) {
+        return value;
+    }
+
     public String prettyValue() {
         return value.pretty();
+    }
+
+    public static Node getNull() {
+        return new Constant(RNull.getNull());
+    }
+
+    @Override
+    public void visit_all(Visitor v) {
     }
 
     @Override
@@ -80,14 +96,6 @@ public class Constant extends Node {
             return new Constant(RLogical.RLogicalFactory.getArray(values));
         }
         throw new Error("Non scalar constants are not implemented.");
-    }
-
-    public static Node getNull() {
-        return new Constant(Null.getNull());
-    }
-
-    @Override
-    public void visit_all(Visitor v) {
     }
 
     @Override

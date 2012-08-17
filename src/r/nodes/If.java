@@ -1,6 +1,13 @@
 package r.nodes;
 
+import r.*;
+import r.data.*;
+import r.interpreter.*;
+
+import com.oracle.truffle.runtime.*;
+
 public class If extends Node {
+
     Node cond;
     Node trueCase;
     Node falseCase;
@@ -9,6 +16,25 @@ public class If extends Node {
         setCond(cond);
         setTrueCase(truecase);
         setFalseCase(falsecase);
+    }
+
+    @Override
+    public RAny execute(RContext global, Frame frame) {
+        RLogical op = getCond().execute(global, frame).asLogical(); // FIXME asLogical is too expensive, we've to go for
+// a asLogicalOne
+        int ifVal = op.getLogical(0);
+        if (ifVal == RLogical.TRUE) {
+                return getTrueCase().execute(global, frame);
+        } else if (ifVal == RLogical.FALSE) {
+                Node fcase = getFalseCase();
+                if (fcase == null) {
+                    return RNull.getNull();
+                } else {
+                    return fcase.execute(global, frame);
+                }
+        }
+        Utils.nyi();
+        return RNull.getNull(); // For TypeChecker
     }
 
     public Node getCond() {

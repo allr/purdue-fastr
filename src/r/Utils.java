@@ -20,4 +20,8 @@ public final class Utils {
     public static String getProperty(String key, String dfltValue) {
         return System.getProperty(key, dfltValue);
     }
+
+    public static boolean getProperty(String key, boolean dfltValue) {
+        return Boolean.parseBoolean(getProperty(key, dfltValue ? "true" : "false"));
+    }
 }

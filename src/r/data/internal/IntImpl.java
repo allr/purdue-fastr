@@ -4,6 +4,7 @@ import r.*;
 import r.data.*;
 
 public class IntImpl extends ArrayImpl implements RInt {
+
     int[] content;
 
     public IntImpl(int[] values) {
@@ -11,12 +12,28 @@ public class IntImpl extends ArrayImpl implements RInt {
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
+    @Override
+    public int size() {
+        return content.length;
+    }
+
     public Object get(int i) {
-        return content[i - 1];
+        return content[i];
     }
 
     public int getInt(int i) {
-        return content[i - 1];
+        return content[i];
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
+        return set(i, ((Integer) val).intValue()); // FIXME better conversion
+    }
+
+    @Override
+    public RArray set(int i, int val) {
+        content[i] = val;
+        return this;
     }
 
     @Override
@@ -39,5 +56,11 @@ public class IntImpl extends ArrayImpl implements RInt {
             str.append(Convert.int2string(content[i]));
         }
         return str.toString();
+    }
+
+    @Override
+    public RLogical asLogical() {
+        Utils.nyi();
+        return null;
     }
 }

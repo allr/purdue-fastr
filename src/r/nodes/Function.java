@@ -1,6 +1,10 @@
 package r.nodes;
 
+import java.io.*;
+
+import r.*;
 import r.data.*;
+import r.nodes.tools.*;
 
 public class Function extends Node {
 
@@ -53,11 +57,25 @@ public class Function extends Node {
 
         @Override
         public RAttributes getAttributes() {
-            return Null.getNull();
+            return RNull.getNull();
         }
 
         @Override
         public String pretty() {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            new PrettyPrinter(new PrintStream(os)).print(Function.this);
+            return os.toString();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RInt asInt() {
+            Utils.nyi();
             return null;
         }
     }

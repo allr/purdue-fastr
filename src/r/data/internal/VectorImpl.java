@@ -4,11 +4,23 @@ import r.*;
 import r.data.*;
 
 public class VectorImpl extends ArrayImpl implements RVector {
+
     RAny[] content;
 
     @Override
+    public int size() {
+        return content.length;
+    }
+
+    @Override
     public Object get(int i) {
-        return content[i - 1];
+        return content[i];
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
+        content[i] = (RAny) val; //FIXME a better conversion
+        return this;
     }
 
     public String pretty() {
@@ -29,6 +41,12 @@ public class VectorImpl extends ArrayImpl implements RVector {
 
     @Override
     public RInt asInt() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical() {
         Utils.nyi();
         return null;
     }

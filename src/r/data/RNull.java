@@ -3,10 +3,10 @@ package r.data;
 import r.*;
 
 
-public final class Null implements RAny, RAttributes {
-    private static Null instance = new Null();
+public final class RNull implements RAny, RAttributes {
+    private static RNull instance = new RNull();
 
-    private Null() { }
+    private RNull() { }
 
     @Override
     public RAttributes getAttributes() {
@@ -20,6 +20,11 @@ public final class Null implements RAny, RAttributes {
 
     @Override
     public Object get(int i) {
+        return this;
+    }
+
+    @Override
+    public RArray set(int i, Object val) {
         return this;
     }
 
@@ -44,12 +49,24 @@ public final class Null implements RAny, RAttributes {
         return null;
     }
 
+
+    @Override
+    public RLogical asLogical() {
+        Utils.nyi();
+        return null;
+    }
+
     @Override
     public RArray materialize() {
         return this;
     }
 
-    public static Null getNull() {
+    public static RNull getNull() {
         return instance;
+    }
+
+    @Override
+    public int size() {
+        return 0;
     }
 }
