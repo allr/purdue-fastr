@@ -169,42 +169,41 @@ par_decl [ArgumentList l]
  	| DD
  	| DD n_ ASSIGN n_ expr
 	;
-tilde_expr returns [Node v]
+tilde_expr returns [Node v] // FIXME
 	: l=or_expr 
-	( ((TILDE)=>TILDE n_ r=tilde_expr {$v = BinaryOperation.create(BinaryOperator.MODEL, l, r);} )
+	( ((TILDE)=>TILDE n_ r=tilde_expr {$v = BinaryOperation.create(BinaryOperator.ADD, l, r);} )
 	| {$v=l;})
 	;
-or_expr returns [Node v]
+or_expr returns [Node v] // FIXME
 	: l=and_expr
 	(((or_operator)=>op=or_operator n_ r=or_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})	
 	;
-and_expr returns [Node v]
+and_expr returns [Node v] // FIXME
 	: l=comp_expr
     (((and_operator)=>op=and_operator n_ r=and_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
-comp_expr returns [Node v]
+comp_expr returns [Node v] // FIXME
 	: l=add_expr 
     (((comp_operator)=>op=comp_operator n_ r=comp_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
-    	;
+    ;
 add_expr returns [Node v]
-	: l=mult_expr
-	 (((add_operator)=>op=add_operator n_ r=add_expr { $v = BinaryOperation.create(op, l, r);} )
-    | {$v=l;})
+	: l=mult_expr { $v = $l.v ;}
+	 (((add_operator)=>op=add_operator n_ r=mult_expr { $v = BinaryOperation.create(op, $add_expr.v, $r.v);} ))*
 	;
+
 mult_expr returns [Node v]
-	: l=operator_expr
-	(((mult_operator)=>op=mult_operator n_ r=mult_expr { $v = BinaryOperation.create(op, l, r);} )
-    | {$v=l;})
+	: l=operator_expr{ $v = $l.v ;}
+	(((mult_operator)=>op=mult_operator n_ r=operator_expr { $v = BinaryOperation.create(op, $mult_expr.v, $r.v);} ))*
 	;
-operator_expr returns [Node v]
+operator_expr returns [Node v] // FIXME
 	: l=column_expr
 	(((OP)=>op=OP n_ r=operator_expr { $v = null ; /*BinaryOperation.create(op, l, r); */ } )
     | {$v=l;})
 	;
-column_expr returns [Node v]
+column_expr returns [Node v] // FIXME
 	: l=power_expr
 	(((COLUMN)=>op=COLUMN n_ r=column_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, l, r);} )
     | {$v=l;})
@@ -214,7 +213,7 @@ power_expr returns [Node v]
     (((power_operator)=>op=power_operator n_ r=power_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
     ;
-unary_expression returns [Node v]
+unary_expression returns [Node v] // Does !~ work ? ..if yes I'm not sure to understand 
 	: NOT n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.NOT, l);}
 	| PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
 	| MINUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MINUS, l);}

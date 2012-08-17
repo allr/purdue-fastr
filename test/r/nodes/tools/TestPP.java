@@ -40,9 +40,11 @@ public class TestPP {
     @Test
     public void testBoolean() throws RecognitionException {
         assertPP("TRUE\n");
-        assertPP("!TRUE\n");
         assertPP("FALSE\n");
+        assertPP("!TRUE\n");
         assertPP("!FALSE\n");
+        assertPP("!!TRUE\n");
+        assertPP("!!FALSE\n");
     }
 
 
@@ -59,5 +61,10 @@ public class TestPP {
     @Test
     public void testOperatorPrecedence3() throws RecognitionException {
         assertPP("(1+2)*(3+4)", "(1.0 + 2.0) * (3.0 + 4.0)\n");
+    }
+    @Test
+    public void testOperatorAssociativity1()  throws RecognitionException {
+        assertPP("1.0 * 2.0 * 3.0 + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
+        //assertPP("1.0 * (2.0 * 3.0) + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
     }
 }

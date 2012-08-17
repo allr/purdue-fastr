@@ -2,10 +2,13 @@ package r.nodes.tools;
 
 import java.io.*;
 
+import r.*;
 import r.data.*;
 import r.nodes.*;
 
 public class PrettyPrinter extends BasicVisitor {
+
+    public static final boolean PARENTHESIS = Boolean.parseBoolean(Utils.getProperty("RPrettyPrint.surroundpar", "false"));
 
     int level = 0;
     final PrintStream out;
@@ -93,9 +96,12 @@ public class PrettyPrinter extends BasicVisitor {
     public void visit(BinaryOperation op) {
         Node left = op.getLHS();
         Node right = op.getRHS();
+        if (PARENTHESIS) {
+            print("(");
+        }
         // FIXME this is not the right place to do it but we need the parent otherwise
         int precedence = op.getPrecedence();
-        if (left.getPrecedence() < precedence) {
+        if (left.getPrecedence() < precedence && !PARENTHESIS) { // FIXME should be <= if right associative
             print("(");
             left.accept(this);
             print(")");
@@ -105,19 +111,28 @@ public class PrettyPrinter extends BasicVisitor {
         print(" ");
         print(op.getPrettyOperator());
         print(" ");
-        if (right.getPrecedence() < precedence) {
+        if (right.getPrecedence() < precedence && !PARENTHESIS) { // FIXME should be <= if left associative
             print("(");
             right.accept(this);
             print(")");
         } else {
             right.accept(this);
+        }
+        if (PARENTHESIS) {
+            print(")");
         }
     }
 
     @Override
     public void visit(UnaryOperation op) {
+        if (PARENTHESIS) {
+            print("(");
+        }
         print(op.getPrettyOperator());
         op.getLHS().accept(this);
+        if (PARENTHESIS) {
+            print(")");
+        }
     }
 
     @Override
