@@ -176,37 +176,37 @@ tilde_expr returns [Node v]
 	;
 or_expr returns [Node v]
 	: l=and_expr
-	(((or_operator)=>op=or_operator n_ r=tilde_expr {$v = BinaryOperation.create(op, l, r);} )
+	(((or_operator)=>op=or_operator n_ r=or_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})	
 	;
 and_expr returns [Node v]
 	: l=comp_expr
-    (((and_operator)=>op=and_operator n_ r=tilde_expr {$v = BinaryOperation.create(op, l, r);} )
+    (((and_operator)=>op=and_operator n_ r=and_expr {$v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 comp_expr returns [Node v]
 	: l=add_expr 
-    (((comp_operator)=>op=comp_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
+    (((comp_operator)=>op=comp_operator n_ r=comp_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
     	;
 add_expr returns [Node v]
 	: l=mult_expr
-	 (((add_operator)=>op=add_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
+	 (((add_operator)=>op=add_operator n_ r=add_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 mult_expr returns [Node v]
 	: l=operator_expr
-	(((mult_operator)=>op=mult_operator n_ r=tilde_expr { $v = BinaryOperation.create(op, l, r);} )
+	(((mult_operator)=>op=mult_operator n_ r=mult_expr { $v = BinaryOperation.create(op, l, r);} )
     | {$v=l;})
 	;
 operator_expr returns [Node v]
 	: l=column_expr
-	(((OP)=>op=OP n_ r=tilde_expr { $v = null ; /*BinaryOperation.create(op, l, r); */ } )
+	(((OP)=>op=OP n_ r=operator_expr { $v = null ; /*BinaryOperation.create(op, l, r); */ } )
     | {$v=l;})
 	;
 column_expr returns [Node v]
 	: l=power_expr
-	(((COLUMN)=>op=COLUMN n_ r=tilde_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, l, r);} )
+	(((COLUMN)=>op=COLUMN n_ r=column_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, l, r);} )
     | {$v=l;})
 	;
 power_expr returns [Node v]
@@ -235,7 +235,7 @@ expr_subset [Node i] returns [Node v]
     //| { v = i; }
     ;
 simple_expr returns [Node v]
-	: i=id { $v = VariableAccess.create(i.getText()); }
+	: i=id { $v = AccessVariable.create(i.getText()); }
 	| b=bool { $v = b; }
 	| DD
 	| NULL { $v = Constant.getNull(); }
@@ -249,7 +249,7 @@ simple_expr returns [Node v]
 number returns [Node n]
     : i=INTEGER { $n = Constant.createIntConstant($i.text); }
     | d=DOUBLE { $n = Constant.createDoubleConstant($d.text); }
-    | c=COMPLEX { $n = Constant.createComplexConstant($i.text); }
+    | c=COMPLEX { $n = Constant.createComplexConstant($c.text); }
     ;
 id	returns [Token t]
     : i=ID { $t = $i; }

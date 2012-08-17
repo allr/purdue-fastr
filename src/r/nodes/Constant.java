@@ -5,6 +5,7 @@ import r.data.*;
 
 @Precedence(Precedence.MAX)
 public class Constant extends Node {
+
     RAny value;
 
     Constant(RAny val) {
@@ -27,12 +28,14 @@ public class Constant extends Node {
         }
         return createDoubleConstant(val);
     }
+
     public static Constant createDoubleConstant(double... values) {
         if (values.length == 1) {
             return new Constant(RDouble.RDoubleFactory.getArray(values));
         }
         throw new Error("Non scalar constants are not implemented.");
     }
+
     public static Constant createComplexConstant(String... values) {
         double[] val = new double[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -40,13 +43,15 @@ public class Constant extends Node {
         }
         return createComplexConstant(val);
     }
+
     public static Constant createComplexConstant(double... values) {
         if (values.length == 1) {
-//            return new Constant(RComplex.RDoubleFactory.getArray(values));
+// return new Constant(RComplex.RDoubleFactory.getArray(values));
             // Punt since I don't whant to create a class constant
         }
         throw new Error("Non scalar constants are not implemented.");
     }
+
     public static Constant createIntConstant(String... values) {
         int[] val = new int[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -54,12 +59,14 @@ public class Constant extends Node {
         }
         return createIntConstant(val);
     }
+
     public static Constant createIntConstant(int... values) {
         if (values.length == 1) {
             return new Constant(RInt.RIntFactory.getArray(values));
         }
         throw new Error("Non scalar constants are not implemented.");
     }
+
     public static Constant createBoolConstant(String... values) {
         int[] val = new int[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -67,6 +74,7 @@ public class Constant extends Node {
         }
         return createBoolConstant(values);
     }
+
     public static Constant createBoolConstant(int... values) {
         if (values.length == 1) {
             return new Constant(RLogical.RLogicalFactory.getArray(values));
@@ -79,5 +87,11 @@ public class Constant extends Node {
     }
 
     @Override
-    public void visit_all(Visitor v) { }
+    public void visit_all(Visitor v) {
+    }
+
+    @Override
+    public String toString() {
+        return value.pretty();
+    }
 }

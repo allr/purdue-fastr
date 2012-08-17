@@ -3,10 +3,10 @@ package r.nodes;
 import r.data.*;
 
 @Precedence(Precedence.MAX)
-public class VariableAccess extends Node {
+public class SimpleAccessVariable extends AccessVariable {
     RSymbol name;
 
-    public VariableAccess(RSymbol symbol) {
+    public SimpleAccessVariable(RSymbol symbol) {
        name = symbol;
     }
 
@@ -22,7 +22,8 @@ public class VariableAccess extends Node {
     @Override
     public void visit_all(Visitor v) { }
 
-    public static Node create(String name) {
-        return new VariableAccess(RSymbol.getSymbol(name));
+    @Override
+    public String toString() {
+        return name.pretty();
     }
 }

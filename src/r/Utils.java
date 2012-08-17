@@ -16,4 +16,8 @@ public final class Utils {
     public static <T> T cast(Object obj, Class<T> clazz) {
         return clazz.cast(obj);
      }
+
+    public static String getProperty(String key, String dfltValue) {
+        return System.getProperty(key, dfltValue);
+    }
 }

@@ -23,8 +23,8 @@ public abstract class Call extends Node {
     }
 
     public static Node create(Node call, ArgumentList args) {
-        if (call instanceof VariableAccess) {
-            VariableAccess ccall = (VariableAccess) call;
+        if (call instanceof SimpleAccessVariable) {
+            SimpleAccessVariable ccall = (SimpleAccessVariable) call;
             return create(ccall.getName(), args);
         }
         return null;

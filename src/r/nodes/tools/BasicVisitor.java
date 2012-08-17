@@ -33,7 +33,7 @@ public class BasicVisitor implements Visitor {
     public void visit(Constant c) { visit((Node) c); }
 
     @Override
-    public void visit(VariableAccess n) { visit((Node) n); }
+    public void visit(SimpleAccessVariable n) { visit((Node) n); }
 
     @Override
     public void visit(FieldAccess n) { visit((Node) n); }

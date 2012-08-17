@@ -12,7 +12,7 @@ public interface Visitor {
     void visit(Not n);
 
     void visit(Constant constant);
-    void visit(VariableAccess readVariable);
+    void visit(SimpleAccessVariable readVariable);
     void visit(FieldAccess fieldAccess);
 
     void visit(SimpleAssignVariable assign);

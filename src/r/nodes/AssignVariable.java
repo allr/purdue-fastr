@@ -4,7 +4,9 @@ import r.*;
 import r.data.*;
 
 public abstract class AssignVariable extends Node {
+
     Node rhs;
+
     AssignVariable(Node expr) {
         rhs = updateParent(expr);
     }
@@ -19,8 +21,8 @@ public abstract class AssignVariable extends Node {
     }
 
     public static Node create(Node lhs, Node rhs) {
-        if (lhs instanceof VariableAccess) {
-            return writeVariable(((VariableAccess) lhs).name, rhs);
+        if (lhs instanceof SimpleAccessVariable) {
+            return writeVariable(((SimpleAccessVariable) lhs).name, rhs);
         }
         Utils.nyi();
         return null;

@@ -10,7 +10,6 @@ public class Not extends UnaryOperation {
 
     @Override
     public void accept(Visitor v) {
-        super.accept(v);
         v.visit(this);
     }
 

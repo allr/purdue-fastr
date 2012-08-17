@@ -4,11 +4,9 @@ import java.util.*;
 
 import r.*;
 import r.data.*;
-import r.data.internal.*;
-import r.nodes.*;
-
 
 public class AttributesImpl extends BaseObject implements RAttributes {
+
     public final String[] specialAttributes = new String[]{"name", "class"};
 
     RAny[] specialSlots = new RAny[specialAttributes.length];

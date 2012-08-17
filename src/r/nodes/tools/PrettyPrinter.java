@@ -162,7 +162,7 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     @Override
-    public void visit(VariableAccess n) {
+    public void visit(SimpleAccessVariable n) {
         print(n.getName().pretty());
     }
 

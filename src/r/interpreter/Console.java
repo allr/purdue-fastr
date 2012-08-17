@@ -5,16 +5,18 @@ import java.io.*;
 import org.antlr.runtime.*;
 
 import r.*;
-import r.data.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
 
-
 public class Console {
-    static boolean quiet = false;
-    static String prompt = "> ";
-    static String promptMore = "+ ";
+
+    public static final boolean DEBUG_GUI = Boolean.parseBoolean(Utils.getProperty("RConsole.debug.gui", "true"));
+    public static final boolean QUIET = Boolean.parseBoolean(Utils.getProperty("RConsole.quiet", "false"));
+
+    public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
+    public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
+
     static RLexer lexer;
     static RParser parser;
     static Node tree;
@@ -27,6 +29,7 @@ public class Console {
             if (args.length > 0) {
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
             }
+
             lexer = new RLexer();
             parser = new RParser(null);
             do {
@@ -34,13 +37,17 @@ public class Console {
                 errorStmt = !parse_statement();
                 if (!errorStmt) {
                     parser.reset();
-                    if (!quiet) {
+                    if (DEBUG_GUI) {
+                        TreeViewer.showTree(tree);
+                    }
+                    if (!QUIET) {
                         new PrettyPrinter(System.out).print(tree);
                     }
-                    // System.out.println(tree.toStringTree()); // TODO fancy formatter
+                    // Evaluate
                 }
-            }while(true);
-        } catch (IOException e) { }
+            } while (true);
+        } catch (IOException e) {
+        }
     }
 
     static boolean parse_statement() throws IOException {
@@ -75,6 +82,7 @@ public class Console {
     static void print(String text) {
         print(text, System.out);
     }
+
     static void print(String text, PrintStream out) {
         out.print(text);
         out.flush();

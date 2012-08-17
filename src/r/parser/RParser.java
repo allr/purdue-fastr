@@ -1,4 +1,4 @@
-// $ANTLR 3.4 R.g 2012-08-15 18:33:09
+// $ANTLR 3.4 R.g 2012-08-16 19:35:33
 
 package r.parser;
 
@@ -2350,7 +2350,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_expr"
-    // R.g:177:1: or_expr returns [Node v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) ;
+    // R.g:177:1: or_expr returns [Node v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= or_expr ) |) ;
     public final Node or_expr() throws RecognitionException {
         Node v = null;
 
@@ -2366,8 +2366,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 19) ) { return v; }
 
-            // R.g:178:2: (l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |) )
-            // R.g:178:4: l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
+            // R.g:178:2: (l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= or_expr ) |) )
+            // R.g:178:4: l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= or_expr ) |)
             {
             pushFollow(FOLLOW_and_expr_in_or_expr1075);
             l=and_expr();
@@ -2375,7 +2375,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:179:2: ( ( ( or_operator )=>op= or_operator n_ r= tilde_expr ) |)
+            // R.g:179:2: ( ( ( or_operator )=>op= or_operator n_ r= or_expr ) |)
             int alt20=2;
             switch ( input.LA(1) ) {
             case OR:
@@ -2469,10 +2469,10 @@ public class RParser extends Parser {
 
             switch (alt20) {
                 case 1 :
-                    // R.g:179:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
+                    // R.g:179:3: ( ( or_operator )=>op= or_operator n_ r= or_expr )
                     {
-                    // R.g:179:3: ( ( or_operator )=>op= or_operator n_ r= tilde_expr )
-                    // R.g:179:4: ( or_operator )=>op= or_operator n_ r= tilde_expr
+                    // R.g:179:3: ( ( or_operator )=>op= or_operator n_ r= or_expr )
+                    // R.g:179:4: ( or_operator )=>op= or_operator n_ r= or_expr
                     {
                     pushFollow(FOLLOW_or_operator_in_or_expr1086);
                     op=or_operator();
@@ -2486,8 +2486,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_or_expr1092);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_or_expr_in_or_expr1092);
+                    r=or_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -2530,7 +2530,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_expr"
-    // R.g:182:1: and_expr returns [Node v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) ;
+    // R.g:182:1: and_expr returns [Node v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= and_expr ) |) ;
     public final Node and_expr() throws RecognitionException {
         Node v = null;
 
@@ -2546,8 +2546,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 20) ) { return v; }
 
-            // R.g:183:2: (l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |) )
-            // R.g:183:4: l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
+            // R.g:183:2: (l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= and_expr ) |) )
+            // R.g:183:4: l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= and_expr ) |)
             {
             pushFollow(FOLLOW_comp_expr_in_and_expr1122);
             l=comp_expr();
@@ -2555,7 +2555,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:184:5: ( ( ( and_operator )=>op= and_operator n_ r= tilde_expr ) |)
+            // R.g:184:5: ( ( ( and_operator )=>op= and_operator n_ r= and_expr ) |)
             int alt21=2;
             switch ( input.LA(1) ) {
             case AND:
@@ -2649,10 +2649,10 @@ public class RParser extends Parser {
 
             switch (alt21) {
                 case 1 :
-                    // R.g:184:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
+                    // R.g:184:6: ( ( and_operator )=>op= and_operator n_ r= and_expr )
                     {
-                    // R.g:184:6: ( ( and_operator )=>op= and_operator n_ r= tilde_expr )
-                    // R.g:184:7: ( and_operator )=>op= and_operator n_ r= tilde_expr
+                    // R.g:184:6: ( ( and_operator )=>op= and_operator n_ r= and_expr )
+                    // R.g:184:7: ( and_operator )=>op= and_operator n_ r= and_expr
                     {
                     pushFollow(FOLLOW_and_operator_in_and_expr1136);
                     op=and_operator();
@@ -2666,8 +2666,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_and_expr1142);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_and_expr_in_and_expr1142);
+                    r=and_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -2710,7 +2710,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_expr"
-    // R.g:187:1: comp_expr returns [Node v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) ;
+    // R.g:187:1: comp_expr returns [Node v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= comp_expr ) |) ;
     public final Node comp_expr() throws RecognitionException {
         Node v = null;
 
@@ -2726,8 +2726,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 21) ) { return v; }
 
-            // R.g:188:2: (l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |) )
-            // R.g:188:4: l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
+            // R.g:188:2: (l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= comp_expr ) |) )
+            // R.g:188:4: l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= comp_expr ) |)
             {
             pushFollow(FOLLOW_add_expr_in_comp_expr1171);
             l=add_expr();
@@ -2735,7 +2735,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:189:5: ( ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr ) |)
+            // R.g:189:5: ( ( ( comp_operator )=>op= comp_operator n_ r= comp_expr ) |)
             int alt22=2;
             switch ( input.LA(1) ) {
             case GT:
@@ -2905,10 +2905,10 @@ public class RParser extends Parser {
 
             switch (alt22) {
                 case 1 :
-                    // R.g:189:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
+                    // R.g:189:6: ( ( comp_operator )=>op= comp_operator n_ r= comp_expr )
                     {
-                    // R.g:189:6: ( ( comp_operator )=>op= comp_operator n_ r= tilde_expr )
-                    // R.g:189:7: ( comp_operator )=>op= comp_operator n_ r= tilde_expr
+                    // R.g:189:6: ( ( comp_operator )=>op= comp_operator n_ r= comp_expr )
+                    // R.g:189:7: ( comp_operator )=>op= comp_operator n_ r= comp_expr
                     {
                     pushFollow(FOLLOW_comp_operator_in_comp_expr1186);
                     op=comp_operator();
@@ -2922,8 +2922,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_comp_expr1192);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_comp_expr_in_comp_expr1192);
+                    r=comp_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -2966,7 +2966,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_expr"
-    // R.g:192:1: add_expr returns [Node v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) ;
+    // R.g:192:1: add_expr returns [Node v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= add_expr ) |) ;
     public final Node add_expr() throws RecognitionException {
         Node v = null;
 
@@ -2982,8 +2982,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 22) ) { return v; }
 
-            // R.g:193:2: (l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |) )
-            // R.g:193:4: l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
+            // R.g:193:2: (l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= add_expr ) |) )
+            // R.g:193:4: l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= add_expr ) |)
             {
             pushFollow(FOLLOW_mult_expr_in_add_expr1225);
             l=mult_expr();
@@ -2991,7 +2991,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:194:3: ( ( ( add_operator )=>op= add_operator n_ r= tilde_expr ) |)
+            // R.g:194:3: ( ( ( add_operator )=>op= add_operator n_ r= add_expr ) |)
             int alt23=2;
             switch ( input.LA(1) ) {
             case PLUS:
@@ -3085,10 +3085,10 @@ public class RParser extends Parser {
 
             switch (alt23) {
                 case 1 :
-                    // R.g:194:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
+                    // R.g:194:4: ( ( add_operator )=>op= add_operator n_ r= add_expr )
                     {
-                    // R.g:194:4: ( ( add_operator )=>op= add_operator n_ r= tilde_expr )
-                    // R.g:194:5: ( add_operator )=>op= add_operator n_ r= tilde_expr
+                    // R.g:194:4: ( ( add_operator )=>op= add_operator n_ r= add_expr )
+                    // R.g:194:5: ( add_operator )=>op= add_operator n_ r= add_expr
                     {
                     pushFollow(FOLLOW_add_operator_in_add_expr1237);
                     op=add_operator();
@@ -3102,8 +3102,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_add_expr1243);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_add_expr_in_add_expr1243);
+                    r=add_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -3146,7 +3146,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_expr"
-    // R.g:197:1: mult_expr returns [Node v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) ;
+    // R.g:197:1: mult_expr returns [Node v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= mult_expr ) |) ;
     public final Node mult_expr() throws RecognitionException {
         Node v = null;
 
@@ -3162,8 +3162,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 23) ) { return v; }
 
-            // R.g:198:2: (l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |) )
-            // R.g:198:4: l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
+            // R.g:198:2: (l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= mult_expr ) |) )
+            // R.g:198:4: l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= mult_expr ) |)
             {
             pushFollow(FOLLOW_operator_expr_in_mult_expr1272);
             l=operator_expr();
@@ -3171,7 +3171,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:199:2: ( ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr ) |)
+            // R.g:199:2: ( ( ( mult_operator )=>op= mult_operator n_ r= mult_expr ) |)
             int alt24=2;
             switch ( input.LA(1) ) {
             case MULT:
@@ -3284,10 +3284,10 @@ public class RParser extends Parser {
 
             switch (alt24) {
                 case 1 :
-                    // R.g:199:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
+                    // R.g:199:3: ( ( mult_operator )=>op= mult_operator n_ r= mult_expr )
                     {
-                    // R.g:199:3: ( ( mult_operator )=>op= mult_operator n_ r= tilde_expr )
-                    // R.g:199:4: ( mult_operator )=>op= mult_operator n_ r= tilde_expr
+                    // R.g:199:3: ( ( mult_operator )=>op= mult_operator n_ r= mult_expr )
+                    // R.g:199:4: ( mult_operator )=>op= mult_operator n_ r= mult_expr
                     {
                     pushFollow(FOLLOW_mult_operator_in_mult_expr1283);
                     op=mult_operator();
@@ -3301,8 +3301,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_mult_expr1289);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_mult_expr_in_mult_expr1289);
+                    r=mult_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -3345,7 +3345,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "operator_expr"
-    // R.g:202:1: operator_expr returns [Node v] : l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) ;
+    // R.g:202:1: operator_expr returns [Node v] : l= column_expr ( ( ( OP )=>op= OP n_ r= operator_expr ) |) ;
     public final Node operator_expr() throws RecognitionException {
         Node v = null;
 
@@ -3360,8 +3360,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 24) ) { return v; }
 
-            // R.g:203:2: (l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |) )
-            // R.g:203:4: l= column_expr ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
+            // R.g:203:2: (l= column_expr ( ( ( OP )=>op= OP n_ r= operator_expr ) |) )
+            // R.g:203:4: l= column_expr ( ( ( OP )=>op= OP n_ r= operator_expr ) |)
             {
             pushFollow(FOLLOW_column_expr_in_operator_expr1318);
             l=column_expr();
@@ -3369,7 +3369,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:204:2: ( ( ( OP )=>op= OP n_ r= tilde_expr ) |)
+            // R.g:204:2: ( ( ( OP )=>op= OP n_ r= operator_expr ) |)
             int alt25=2;
             int LA25_0 = input.LA(1);
 
@@ -3404,10 +3404,10 @@ public class RParser extends Parser {
             }
             switch (alt25) {
                 case 1 :
-                    // R.g:204:3: ( ( OP )=>op= OP n_ r= tilde_expr )
+                    // R.g:204:3: ( ( OP )=>op= OP n_ r= operator_expr )
                     {
-                    // R.g:204:3: ( ( OP )=>op= OP n_ r= tilde_expr )
-                    // R.g:204:4: ( OP )=>op= OP n_ r= tilde_expr
+                    // R.g:204:3: ( ( OP )=>op= OP n_ r= operator_expr )
+                    // R.g:204:4: ( OP )=>op= OP n_ r= operator_expr
                     {
                     op=(Token)match(input,OP,FOLLOW_OP_in_operator_expr1329); if (state.failed) return v;
 
@@ -3417,8 +3417,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_operator_expr1335);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_operator_expr_in_operator_expr1335);
+                    r=operator_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -3461,7 +3461,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "column_expr"
-    // R.g:207:1: column_expr returns [Node v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) ;
+    // R.g:207:1: column_expr returns [Node v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= column_expr ) |) ;
     public final Node column_expr() throws RecognitionException {
         Node v = null;
 
@@ -3476,8 +3476,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 25) ) { return v; }
 
-            // R.g:208:2: (l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |) )
-            // R.g:208:4: l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
+            // R.g:208:2: (l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= column_expr ) |) )
+            // R.g:208:4: l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= column_expr ) |)
             {
             pushFollow(FOLLOW_power_expr_in_column_expr1364);
             l=power_expr();
@@ -3485,7 +3485,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:209:2: ( ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr ) |)
+            // R.g:209:2: ( ( ( COLUMN )=>op= COLUMN n_ r= column_expr ) |)
             int alt26=2;
             int LA26_0 = input.LA(1);
 
@@ -3520,10 +3520,10 @@ public class RParser extends Parser {
             }
             switch (alt26) {
                 case 1 :
-                    // R.g:209:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
+                    // R.g:209:3: ( ( COLUMN )=>op= COLUMN n_ r= column_expr )
                     {
-                    // R.g:209:3: ( ( COLUMN )=>op= COLUMN n_ r= tilde_expr )
-                    // R.g:209:4: ( COLUMN )=>op= COLUMN n_ r= tilde_expr
+                    // R.g:209:3: ( ( COLUMN )=>op= COLUMN n_ r= column_expr )
+                    // R.g:209:4: ( COLUMN )=>op= COLUMN n_ r= column_expr
                     {
                     op=(Token)match(input,COLUMN,FOLLOW_COLUMN_in_column_expr1375); if (state.failed) return v;
 
@@ -3533,8 +3533,8 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_tilde_expr_in_column_expr1381);
-                    r=tilde_expr();
+                    pushFollow(FOLLOW_column_expr_in_column_expr1381);
+                    r=column_expr();
 
                     state._fsp--;
                     if (state.failed) return v;
@@ -4722,7 +4722,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = VariableAccess.create(i.getText()); }
+                    if ( state.backtracking==0 ) { v = AccessVariable.create(i.getText()); }
 
                     }
                     break;
@@ -4957,7 +4957,7 @@ public class RParser extends Parser {
                     {
                     c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1841); if (state.failed) return n;
 
-                    if ( state.backtracking==0 ) { n = Constant.createComplexConstant((i!=null?i.getText():null)); }
+                    if ( state.backtracking==0 ) { n = Constant.createComplexConstant((c!=null?c.getText():null)); }
 
                     }
                     break;
@@ -7197,31 +7197,31 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_and_expr_in_or_expr1075 = new BitSet(new long[]{0x2000000000000202L});
     public static final BitSet FOLLOW_or_operator_in_or_expr1086 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_or_expr1088 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_or_expr1092 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_or_expr_in_or_expr1092 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_comp_expr_in_and_expr1122 = new BitSet(new long[]{0x0000000000000112L});
     public static final BitSet FOLLOW_and_operator_in_and_expr1136 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_and_expr1138 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_and_expr1142 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_and_expr_in_and_expr1142 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_add_expr_in_comp_expr1171 = new BitSet(new long[]{0x0008240060400002L});
     public static final BitSet FOLLOW_comp_operator_in_comp_expr1186 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_comp_expr1188 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_comp_expr1192 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_comp_expr_in_comp_expr1192 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_mult_expr_in_add_expr1225 = new BitSet(new long[]{0x8000400000000002L});
     public static final BitSet FOLLOW_add_operator_in_add_expr1237 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_add_expr1239 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_add_expr1243 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_add_expr_in_add_expr1243 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_operator_expr_in_mult_expr1272 = new BitSet(new long[]{0x0003000000080002L});
     public static final BitSet FOLLOW_mult_operator_in_mult_expr1283 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_mult_expr1285 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_mult_expr1289 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_mult_expr_in_mult_expr1289 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_column_expr_in_operator_expr1318 = new BitSet(new long[]{0x0800000000000002L});
     public static final BitSet FOLLOW_OP_in_operator_expr1329 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_operator_expr1331 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_operator_expr1335 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_operator_expr_in_operator_expr1335 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_power_expr_in_column_expr1364 = new BitSet(new long[]{0x0000000000004002L});
     public static final BitSet FOLLOW_COLUMN_in_column_expr1375 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_column_expr1377 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
-    public static final BitSet FOLLOW_tilde_expr_in_column_expr1381 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_column_expr_in_column_expr1381 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_unary_expression_in_power_expr1410 = new BitSet(new long[]{0x0000000000002002L});
     public static final BitSet FOLLOW_power_operator_in_power_expr1424 = new BitSet(new long[]{0x8274512A1A170800L,0x0000000000030C84L});
     public static final BitSet FOLLOW_n__in_power_expr1426 = new BitSet(new long[]{0x8264512A1A160800L,0x0000000000030C84L});
