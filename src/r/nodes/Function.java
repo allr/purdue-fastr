@@ -1,7 +1,5 @@
 package r.nodes;
 
-import java.io.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.tools.*;
@@ -62,9 +60,9 @@ public class Function extends Node {
 
         @Override
         public String pretty() {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            new PrettyPrinter(new PrintStream(os)).print(Function.this);
-            return os.toString();
+            PrettyPrinter pp = PrettyPrinter.getStringPrettyPrinter();
+            pp.print(Function.this);
+            return pp.toString();
         }
 
         @Override

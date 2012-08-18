@@ -16,7 +16,7 @@ public class Not extends UnaryOperation {
     }
 
     @Override
-    public RAny execute(RContext global, Frame frame) {
+    public RAny execute(REvaluator global, Frame frame) {
         RAny op = getLHS().execute(global, frame);
 
         return doNot(op.asLogical());
@@ -30,7 +30,7 @@ public class Not extends UnaryOperation {
         return result;
     }
 
-    private static final int doNotOne(int value) {
+    private static int doNotOne(int value) {
         switch (value) {
             case RLogical.FALSE:
                 return RLogical.TRUE;

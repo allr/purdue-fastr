@@ -16,7 +16,7 @@ public class Constant extends Node {
     }
 
     @Override
-    public RAny execute(RContext global, Frame frame) {
+    public RAny execute(REvaluator global, Frame frame) {
         return value;
     }
 

@@ -21,7 +21,26 @@ public class PrettyPrinter extends BasicVisitor {
     public void print(Node n) {
         level = 0;
         n.accept(this);
+        flush();
+    }
+
+    public void println(Node n) {
+        level = 0;
+        n.accept(this);
         println("");
+    }
+
+    public static PrettyPrinter getStringPrettyPrinter() {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        return new PrettyPrinter(new PrintStream(os)) {
+
+            @Override
+            public String toString() {
+                String str = os.toString();
+                os.reset();
+                return str;
+            }
+        };
     }
 
     private void inc() {
@@ -46,6 +65,12 @@ public class PrettyPrinter extends BasicVisitor {
         buff.append(arg);
         out.println(buff);
         buff.setLength(0);
+    }
+
+    private void flush() {
+            out.print(buff);
+            out.flush();
+            buff.setLength(0);
     }
 
     @Override

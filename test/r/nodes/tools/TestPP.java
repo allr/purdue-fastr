@@ -1,7 +1,5 @@
 package r.nodes.tools;
 
-import java.io.*;
-
 import junit.framework.*;
 
 import org.antlr.runtime.*;
@@ -14,6 +12,7 @@ public class TestPP {
 
     static RLexer lexer = new RLexer();
     static RParser parser = new RParser(null);
+    static PrettyPrinter pp = PrettyPrinter.getStringPrettyPrinter();
 
     private static Node parse(String input) throws RecognitionException {
         parser.reset();
@@ -27,9 +26,8 @@ public class TestPP {
     }
 
     private static void assertPP(String input, String expected) throws RecognitionException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        new PrettyPrinter(new PrintStream(os)).print(parse(input));
-        Assert.assertEquals(expected, os.toString());
+        pp.print(parse(input));
+        Assert.assertEquals(expected, pp.toString());
     }
 
     @Test(expected = RecognitionException.class)
@@ -47,7 +45,6 @@ public class TestPP {
         assertPP("!!FALSE\n");
     }
 
-
     @Test
     public void testOperatorPrecedence1() throws RecognitionException {
         assertPP("1L + 2L * 3L + 4L\n");
@@ -62,9 +59,10 @@ public class TestPP {
     public void testOperatorPrecedence3() throws RecognitionException {
         assertPP("(1+2)*(3+4)", "(1.0 + 2.0) * (3.0 + 4.0)\n");
     }
+
     @Test
-    public void testOperatorAssociativity1()  throws RecognitionException {
+    public void testOperatorAssociativity1() throws RecognitionException {
         assertPP("1.0 * 2.0 * 3.0 + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
-        //assertPP("1.0 * (2.0 * 3.0) + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
+        // assertPP("1.0 * (2.0 * 3.0) + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
     }
 }

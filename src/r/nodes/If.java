@@ -1,7 +1,7 @@
 package r.nodes;
 
-import r.*;
 import r.data.*;
+import r.errors.*;
 import r.interpreter.*;
 
 import com.oracle.truffle.runtime.*;
@@ -19,22 +19,28 @@ public class If extends Node {
     }
 
     @Override
-    public RAny execute(RContext global, Frame frame) {
+    public RAny execute(REvaluator global, Frame frame) {
         RLogical op = getCond().execute(global, frame).asLogical(); // FIXME asLogical is too expensive, we've to go for
 // a asLogicalOne
+        int size = op.size();
+        if (size != 1) {
+            if (size == 0) {
+                throw RError.getNulLength(this);
+            }
+            global.warning(this, RError.LENGTH_GT_1);
+        }
         int ifVal = op.getLogical(0);
         if (ifVal == RLogical.TRUE) {
-                return getTrueCase().execute(global, frame);
+            return getTrueCase().execute(global, frame);
         } else if (ifVal == RLogical.FALSE) {
-                Node fcase = getFalseCase();
-                if (fcase == null) {
-                    return RNull.getNull();
-                } else {
-                    return fcase.execute(global, frame);
-                }
+            Node fcase = getFalseCase();
+            if (fcase == null) {
+                return RNull.getNull();
+            } else {
+                return fcase.execute(global, frame);
+            }
         }
-        Utils.nyi();
-        return RNull.getNull(); // For TypeChecker
+        throw RError.getUnexpectedNA(this);
     }
 
     public Node getCond() {

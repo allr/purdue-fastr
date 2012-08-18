@@ -15,12 +15,12 @@ import r.parser.*;
 public class Console {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug", false);
-    public static final boolean DEBUG_GUI = Utils.getProperty("RConsole.debug.gui", true);
+    public static final boolean DEBUG_GUI = Utils.getProperty("RConsole.debug.gui", false);
 
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
 
-    static REval evaluator;
+    static REvaluator evaluator;
     static PrintStream out;
 
     static RLexer lexer;
@@ -36,7 +36,7 @@ public class Console {
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
             }
 
-            evaluator = new REval();
+            evaluator = new REvaluator();
             out = System.out;
             lexer = new RLexer();
             parser = new RParser(null);

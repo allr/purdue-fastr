@@ -42,7 +42,7 @@ public abstract class Node {
     }
 
     // FIXME should be abstract ... but I'm to lazy
-    public RAny execute(RContext global, Frame frame) {
+    public RAny execute(REvaluator global, Frame frame) {
         return RNull.getNull();
     }
 }
