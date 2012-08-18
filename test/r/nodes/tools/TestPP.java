@@ -37,32 +37,32 @@ public class TestPP {
 
     @Test
     public void testBoolean() throws RecognitionException {
-        assertPP("TRUE\n");
-        assertPP("FALSE\n");
-        assertPP("!TRUE\n");
-        assertPP("!FALSE\n");
-        assertPP("!!TRUE\n");
-        assertPP("!!FALSE\n");
+        assertPP("TRUE");
+        assertPP("FALSE");
+        assertPP("!TRUE");
+        assertPP("!FALSE");
+        assertPP("!!TRUE");
+        assertPP("!!FALSE");
     }
 
     @Test
     public void testOperatorPrecedence1() throws RecognitionException {
-        assertPP("1L + 2L * 3L + 4L\n");
+        assertPP("1L + 2L * 3L + 4L");
     }
 
     @Test
     public void testOperatorPrecedence2() throws RecognitionException {
-        assertPP("1L + 2L * 3L * 4L * 5L + 6L\n");
+        assertPP("1L + 2L * 3L * 4L * 5L + 6L");
     }
 
     @Test
     public void testOperatorPrecedence3() throws RecognitionException {
-        assertPP("(1+2)*(3+4)", "(1.0 + 2.0) * (3.0 + 4.0)\n");
+        assertPP("(1+2)*(3+4)", "(1.0 + 2.0) * (3.0 + 4.0)");
     }
 
     @Test
     public void testOperatorAssociativity1() throws RecognitionException {
-        assertPP("1.0 * 2.0 * 3.0 + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
+        assertPP("1.0 * 2.0 * 3.0 + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0");
         // assertPP("1.0 * (2.0 * 3.0) + 2.0 * 3.0 * 4.0 + 3.0 * 4.0 * 5.0\n");
     }
 }

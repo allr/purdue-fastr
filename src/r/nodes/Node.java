@@ -41,7 +41,7 @@ public abstract class Node {
         return child;
     }
 
-    // FIXME should be abstract ... but I'm to lazy
+    // FIXME should be abstract ... but I'm too lazy
     public RAny execute(RContext global, Frame frame) {
         return RNull.getNull();
     }
