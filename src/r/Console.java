@@ -1,10 +1,9 @@
-package r.interpreter;
+package r;
 
 import java.io.*;
 
 import org.antlr.runtime.*;
 
-import r.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
@@ -20,7 +19,7 @@ public class Console {
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
 
-    static REvaluator evaluator;
+    static RContext context;
     static PrintStream out;
 
     static RLexer lexer;
@@ -36,7 +35,7 @@ public class Console {
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
             }
 
-            evaluator = new REvaluator();
+            context = new RContext();
             out = System.out;
             lexer = new RLexer();
             parser = new RParser(null);
@@ -54,7 +53,7 @@ public class Console {
                             new PrettyPrinter(System.err).print(tree);
                         }
                     }
-                    out.println(evaluator.eval(tree).pretty());
+                    out.println(context.eval(tree).pretty());
                 }
             } while (true);
         } catch (IOException e) {

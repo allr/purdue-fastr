@@ -2,9 +2,9 @@ package r.nodes;
 
 import com.oracle.truffle.runtime.*;
 
+import r.*;
 import r.Convert;
 import r.data.*;
-import r.interpreter.*;
 
 @Precedence(Precedence.MAX)
 public class Constant extends Node {
@@ -16,7 +16,7 @@ public class Constant extends Node {
     }
 
     @Override
-    public RAny execute(REvaluator global, Frame frame) {
+    public RAny execute(RContext global, Frame frame) {
         return value;
     }
 

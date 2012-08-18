@@ -1,8 +1,8 @@
 package r.nodes;
 
+import r.*;
 import r.data.*;
 import r.errors.*;
-import r.interpreter.*;
 
 import com.oracle.truffle.runtime.*;
 
@@ -19,7 +19,7 @@ public class If extends Node {
     }
 
     @Override
-    public RAny execute(REvaluator global, Frame frame) {
+    public RAny execute(RContext global, Frame frame) {
         RLogical op = getCond().execute(global, frame).asLogical(); // FIXME asLogical is too expensive, we've to go for
 // a asLogicalOne
         int size = op.size();

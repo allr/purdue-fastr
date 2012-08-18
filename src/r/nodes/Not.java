@@ -1,8 +1,8 @@
 package r.nodes;
 
+import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
-import r.interpreter.*;
 
 import com.oracle.truffle.runtime.*;
 
@@ -16,7 +16,7 @@ public class Not extends UnaryOperation {
     }
 
     @Override
-    public RAny execute(REvaluator global, Frame frame) {
+    public RAny execute(RContext global, Frame frame) {
         RAny op = getLHS().execute(global, frame);
 
         return doNot(op.asLogical());

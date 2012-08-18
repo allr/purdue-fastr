@@ -63,8 +63,8 @@ public class PrettyPrinter extends BasicVisitor {
             out.append('\t');
         }
         buff.append(arg);
-        out.println(buff);
-        buff.setLength(0);
+        buff.append('\n');
+        flush();
     }
 
     private void flush() {

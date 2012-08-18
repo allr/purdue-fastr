@@ -1,18 +1,17 @@
-package r.interpreter;
+package r;
 
-import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-public class REvaluator {
+public class RContext {
 
     ManageError errorManager;
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
-    REvaluator global;
+    RContext global;
 
-    REvaluator() {
+    RContext() {
         init();
     }
 

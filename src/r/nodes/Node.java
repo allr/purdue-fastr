@@ -2,8 +2,8 @@ package r.nodes;
 
 import com.oracle.truffle.runtime.*;
 
+import r.*;
 import r.data.*;
-import r.interpreter.*;
 
 public abstract class Node {
 
@@ -42,7 +42,7 @@ public abstract class Node {
     }
 
     // FIXME should be abstract ... but I'm to lazy
-    public RAny execute(REvaluator global, Frame frame) {
+    public RAny execute(RContext global, Frame frame) {
         return RNull.getNull();
     }
 }
