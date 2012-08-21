@@ -23,7 +23,7 @@ wget http://www.cs.purdue.edu/homes/fmoranda/dist/mx-overlay.patch -O- | patch -
 
     ~~~~
 export MX_PROJECTS_OVERLAY=../fastr/mx
-cd truffle && ./mx.sh ideini
+cd truffle && ./mx.sh ideinit
     ~~~~
 
      + Eclipse: Switch to your new workspace (your fresh new dir, remember `fastr`), Import \\ Existing projects \\ Select your fresh new dir

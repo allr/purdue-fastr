@@ -1,13 +1,18 @@
 package r;
 
+import com.oracle.truffle.compiler.*;
+import com.oracle.truffle.debug.*;
+import com.oracle.truffle.runtime.*;
+
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-public class RContext {
+public class RContext implements Context {
+
+    public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
     ManageError errorManager;
-    public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
     RContext global;
 
@@ -17,7 +22,7 @@ public class RContext {
 
     public RAny eval(Node expr) {
         try {
-            return expr.execute(global, null);
+            return expr.execute(global, topLevel());
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
@@ -27,7 +32,7 @@ public class RContext {
         }
         return RNull.getNull(); // this is not quite correct, since R doesn't print anything here
         // Solutions: Maybe a black hole type could be used here
-        //          : Set a flag in the context to say nothing to print
+        // : Set a flag in the context to say nothing to print
         // ... dunno ...
     }
 
@@ -37,6 +42,10 @@ public class RContext {
 
     public void close() {
 
+    }
+
+    public Frame topLevel() {
+        return null;
     }
 
     public void warning(Node expr, String msg) {
@@ -61,5 +70,23 @@ public class RContext {
         if (errorManager != null) {
             errorManager.error(err);
         }
+    }
+
+    @Override
+    public TruffleCompiler getCompiler() {
+        return null;
+    }
+
+    @Override
+    public DebugInfoProvider getDebugInfoProvider() {
+        return null;
+    }
+
+    @Override
+    public void enter() {
+    }
+
+    @Override
+    public void leave() {
     }
 }

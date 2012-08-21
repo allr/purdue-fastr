@@ -81,7 +81,7 @@ public class RFrame {
         private RAny[] values = new RAny[capacity];
 
         RAny getByPos(int pos) {
-            assert pos < size;
+            assert Utils.check(pos < size);
             return values[pos];
         }
 
