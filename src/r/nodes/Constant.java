@@ -9,7 +9,7 @@ import r.data.*;
 @Precedence(Precedence.MAX)
 public class Constant extends ASTNode {
 
-    RAny value;
+    final RAny value;
 
     Constant(RAny val) {
         value = val;
@@ -17,11 +17,11 @@ public class Constant extends ASTNode {
 
     @Override
     public RAny execute(RContext global, Frame frame) {
-        return value;
+        return getValue();
     }
 
     public String prettyValue() {
-        return value.pretty();
+        return getValue().pretty();
     }
 
     public static ASTNode getNull() {
@@ -100,6 +100,10 @@ public class Constant extends ASTNode {
 
     @Override
     public String toString() {
-        return value.pretty();
+        return getValue().pretty();
+    }
+
+    public RAny getValue() {
+        return value;
     }
 }

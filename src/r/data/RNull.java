@@ -1,15 +1,15 @@
 package r.data;
 
-import com.oracle.truffle.*;
-
 import r.*;
 import r.nodes.*;
-
+import r.nodes.truffle.*;
 
 public final class RNull implements RAny, RAttributes {
+
     private static RNull instance = new RNull();
 
-    private RNull() { }
+    private RNull() {
+    }
 
     @Override
     public RAttributes getAttributes() {
@@ -18,7 +18,7 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public String pretty() {
-       return "NULL";
+        return "NULL";
     }
 
     @Override
@@ -52,7 +52,6 @@ public final class RNull implements RAny, RAttributes {
         return null;
     }
 
-
     @Override
     public RLogical asLogical() {
         Utils.nyi();
@@ -74,7 +73,7 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
-    public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
+    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromNull(this);
     }
 }

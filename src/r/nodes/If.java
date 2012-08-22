@@ -1,14 +1,5 @@
 package r.nodes;
 
-import r.*;
-import r.data.*;
-import r.errors.*;
-import r.nodes.internal.*;
-
-import com.oracle.truffle.*;
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
-
 public class If extends ASTNode {
 
     ASTNode cond;
@@ -19,28 +10,6 @@ public class If extends ASTNode {
         setCond(cond);
         setTrueCase(truecase);
         setFalseCase(falsecase);
-    }
-
-    @Override
-    public RAny execute(RContext global, Frame frame) {
-        int ifVal;
-        Node someNode = null; // FIXME this convert has no chances to work, it's just to test
-        // getCond()
-        try {
-            ifVal = someNode.executeInt(global, frame);
-        } catch (UnexpectedResultException e) {
-// someNode => getCond()
-            someNode.replace(ConvertToLogicalOne.createNode(someNode, e.getResult()), "Inserted boolean conversion");
-            return execute(global, frame); // Recall self ! to avoid try/catch
-        }
-
-        if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
-            return getTrueCase().execute(global, frame);
-        } else if (ifVal == RLogical.FALSE) {
-            ASTNode fcase = getFalseCase();
-            return fcase.execute(global, frame);
-        }
-        throw RError.getUnexpectedNA(this);
     }
 
     public ASTNode getCond() {
@@ -80,7 +49,7 @@ public class If extends ASTNode {
     }
 
     public static If create(ASTNode cond, ASTNode trueBranch) {
-        return create(cond, trueBranch, Constant.getNull());
+        return create(cond, trueBranch, null);
     }
 
     public static If create(ASTNode cond, ASTNode trueBranch, ASTNode falseBranch) {

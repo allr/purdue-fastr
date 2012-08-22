@@ -14,7 +14,7 @@ public class TestPP {
     static RParser parser = new RParser(null);
     static PrettyPrinter pp = PrettyPrinter.getStringPrettyPrinter();
 
-    private static ASTNode parse(String input) throws RecognitionException {
+    public static ASTNode parse(String input) throws RecognitionException {
         parser.reset();
         lexer.setCharStream(new ANTLRStringStream(input));
         parser.setTokenStream(new CommonTokenStream(lexer));

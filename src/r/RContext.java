@@ -7,6 +7,7 @@ import com.oracle.truffle.runtime.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.tools.*;
 
 public class RContext implements Context {
 
@@ -15,6 +16,7 @@ public class RContext implements Context {
     ManageError errorManager;
 
     RContext global;
+    Truffleize truffleize;
 
     RContext() {
         init();
@@ -22,7 +24,7 @@ public class RContext implements Context {
 
     public RAny eval(ASTNode expr) {
         try {
-            return expr.execute(global, topLevel());
+            return (RAny) truffleize.createTree(expr).execute(global, topLevel());
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
@@ -38,13 +40,14 @@ public class RContext implements Context {
 
     private void init() {
         errorManager = new ManageError(System.err);
+        truffleize = new Truffleize();
     }
 
     public void close() {
 
     }
 
-    public Frame topLevel() {
+    public RFrame topLevel() {
         return null;
     }
 

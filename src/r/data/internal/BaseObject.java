@@ -1,9 +1,8 @@
 package r.data.internal;
 
-import com.oracle.truffle.*;
-
 import r.data.*;
 import r.nodes.*;
+import r.nodes.truffle.*;
 
 public class BaseObject {
 
@@ -13,7 +12,7 @@ public class BaseObject {
         return attributes;
     }
 
-    public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
+    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromGeneric((RAny) this); // This cast is stupid and will be fixed soon
     }
 }

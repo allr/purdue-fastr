@@ -1,10 +1,9 @@
 package r.nodes;
 
-import com.oracle.truffle.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.tools.*;
+import r.nodes.truffle.*;
 
 public class Function extends ASTNode {
 
@@ -80,7 +79,7 @@ public class Function extends ASTNode {
         }
 
         @Override
-        public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
+        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
             Utils.nyi(); // Do we have to bind on the view node or on the implementation
             return null;
         }

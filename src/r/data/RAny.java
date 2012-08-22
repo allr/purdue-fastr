@@ -1,17 +1,17 @@
 package r.data;
 
 import r.nodes.*;
-
-import com.oracle.truffle.*;
-
+import r.nodes.truffle.*;
 
 public interface RAny {
+
     RAttributes getAttributes();
 
     String pretty();
 
     RLogical asLogical();
+
     RInt asInt();
 
-    <T extends Node> T callNodeFactoty(OperationFactory<T> factory);
+    <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 }

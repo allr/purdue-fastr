@@ -1,10 +1,9 @@
 package r.nodes;
 
-import com.oracle.truffle.*;
-
 import r.data.*;
+import r.nodes.truffle.*;
 
-public abstract class OperationFactory<T extends Node> {
+public abstract class OperationFactory<T extends RNode> {
 
     public abstract T fromGeneric(RAny obj);
 
@@ -12,11 +11,11 @@ public abstract class OperationFactory<T extends Node> {
         return fromGeneric(obj);
     }
 
-    public T fromLogical(RInt obj) {
+    public T fromLogical(RLogical obj) {
         return fromGeneric(obj);
     }
 
-    public T fromDouble(RInt obj) {
+    public T fromDouble(RDouble obj) {
         return fromGeneric(obj);
     }
 

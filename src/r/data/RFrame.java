@@ -4,7 +4,11 @@ import r.*;
 
 import com.oracle.truffle.runtime.*;
 
-public class RFrame {
+public class RFrame extends Frame {
+
+    public RFrame(int numLocals) { // TODO
+        super(numLocals);
+    }
 
     public static final int PARENT_SLOT = 0;
     public static final int NAME_SLOT = 1;
@@ -30,7 +34,7 @@ public class RFrame {
         while (current != null) {
             RAny v = getLocalByName(f, name);
             if (v != null) {
-               return v;
+                return v;
             }
             current = getParent(f);
         }
@@ -74,6 +78,7 @@ public class RFrame {
     }
 
     private static class RFrameExtension {
+
         private int size = 0;
         private int capacity = 10;
 
