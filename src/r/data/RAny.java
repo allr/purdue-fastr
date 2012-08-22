@@ -13,5 +13,5 @@ public interface RAny {
     RLogical asLogical();
     RInt asInt();
 
-    <T extends Node> T callNodeFactoty(OperationFactory factory);
+    <T extends Node> T callNodeFactoty(OperationFactory<T> factory);
 }

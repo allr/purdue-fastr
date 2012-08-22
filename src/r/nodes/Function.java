@@ -80,7 +80,7 @@ public class Function extends ASTNode {
         }
 
         @Override
-        public Node callNodeFactoty(OperationFactory factory) {
+        public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
             Utils.nyi(); // Do we have to bind on the view node or on the implementation
             return null;
         }

@@ -13,7 +13,7 @@ public class BaseObject {
         return attributes;
     }
 
-    public Node callNodeFactoty(OperationFactory factory) {
+    public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
         return factory.fromGeneric((RAny) this); // This cast is stupid and will be fixed soon
     }
 }

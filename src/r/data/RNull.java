@@ -1,6 +1,9 @@
 package r.data;
 
+import com.oracle.truffle.*;
+
 import r.*;
+import r.nodes.*;
 
 
 public final class RNull implements RAny, RAttributes {
@@ -68,5 +71,10 @@ public final class RNull implements RAny, RAttributes {
     @Override
     public int size() {
         return 0;
+    }
+
+    @Override
+    public <T extends Node> T callNodeFactoty(OperationFactory<T> factory) {
+        return factory.fromNull(this);
     }
 }

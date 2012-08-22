@@ -19,4 +19,8 @@ public abstract class OperationFactory<T extends Node> {
     public T fromDouble(RInt obj) {
         return fromGeneric(obj);
     }
+
+    public T fromNull(RNull obj) {
+        return fromGeneric(obj);
+    }
 }
