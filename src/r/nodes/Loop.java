@@ -1,17 +1,17 @@
 package r.nodes;
 
-public abstract class Loop extends Node {
-    Node body;
+public abstract class Loop extends ASTNode {
+    ASTNode body;
 
-    public Loop(Node body) {
+    public Loop(ASTNode body) {
         setBody(body);
     }
 
-    public Node getBody() {
+    public ASTNode getBody() {
         return body;
     }
 
-    public void setBody(Node expr) {
+    public void setBody(ASTNode expr) {
         this.body = updateParent(expr);
     }
 
@@ -20,11 +20,11 @@ public abstract class Loop extends Node {
         getBody().accept(v);
     }
 
-    public static While create(Node cond, Node expr) {
+    public static While create(ASTNode cond, ASTNode expr) {
         return new While(cond, expr);
     }
 
-    public static Repeat create(Node expr) {
+    public static Repeat create(ASTNode expr) {
         return new Repeat(expr);
     }
 }

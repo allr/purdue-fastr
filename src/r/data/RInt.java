@@ -7,6 +7,7 @@ public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
 
+    int getInt(int i);
     RArray set(int i, int val);
 
     public class RIntFactory {

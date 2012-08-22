@@ -1,18 +1,18 @@
 package r.nodes;
 
 public abstract class BinaryOperation extends Operation {
-    Node rhs;
+    ASTNode rhs;
 
-    public BinaryOperation(Node left, Node right) {
+    public BinaryOperation(ASTNode left, ASTNode right) {
         super(left);
         setRHS(right);
     }
 
-    public Node getRHS() {
+    public ASTNode getRHS() {
         return rhs;
     }
 
-    public void setRHS(Node right) {
+    public void setRHS(ASTNode right) {
         this.rhs = updateParent(right);
     }
 
@@ -22,7 +22,7 @@ public abstract class BinaryOperation extends Operation {
         getRHS().accept(v);
     }
 
-    public static Node create(BinaryOperator op, Node left, Node right) {
+    public static ASTNode create(BinaryOperator op, ASTNode left, ASTNode right) {
         switch (op) {
             case ADD: return new Add(left, right);
             case SUB: return new Add(left, right);
@@ -46,7 +46,7 @@ public abstract class BinaryOperation extends Operation {
         throw new Error("No node implemented for: '" + op + "' (" + left + ", " + right + ")");
     }
 
-    public static Node create(String op, Node left, Node right) {
+    public static ASTNode create(String op, ASTNode left, ASTNode right) {
         return null;
 //        throw new Error("Custom operator not implemented: '" + op + "' (" + left + ", " + right + ")");
     }

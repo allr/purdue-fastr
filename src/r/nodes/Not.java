@@ -11,7 +11,7 @@ public class Not extends UnaryOperation {
 
     public static final String OPERATOR = "!";
 
-    Not(Node operand) {
+    Not(ASTNode operand) {
         super(operand);
     }
 

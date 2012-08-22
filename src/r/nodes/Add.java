@@ -3,7 +3,7 @@ package r.nodes;
 @PrettyName("+")
 @Precedence(Operation.ADD_PRECEDENCE)
 public class Add extends BinaryOperation {
-    public Add(Node l, Node r) {
+    public Add(ASTNode l, ASTNode r) {
         super(l, r);
     }
 

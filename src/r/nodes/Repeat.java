@@ -2,7 +2,7 @@ package r.nodes;
 
 
 public class Repeat extends Loop {
-    public Repeat(Node body) {
+    public Repeat(ASTNode body) {
         super(body);
     }
 

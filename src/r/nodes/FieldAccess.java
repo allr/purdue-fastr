@@ -1,11 +1,11 @@
 package r.nodes;
 
 
-public class FieldAccess extends Node {
-    Node lhs;
+public class FieldAccess extends ASTNode {
+    ASTNode lhs;
     String name;
 
-    public FieldAccess(Node value, String fieldName) {
+    public FieldAccess(ASTNode value, String fieldName) {
         lhs = updateParent(value);
         name = fieldName;
     }
@@ -20,7 +20,7 @@ public class FieldAccess extends Node {
         lhs.accept(v);
     }
 
-    public static Node create(FieldOperator op, Node value, String fieldName) {
+    public static ASTNode create(FieldOperator op, ASTNode value, String fieldName) {
         switch (op) {
             case AT: // Since I dunno what does AT, I put this case
             case FIELD: return new FieldAccess(value, fieldName);

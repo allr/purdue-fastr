@@ -8,17 +8,17 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
 
     Entry first();
 
-    void add(Node value);
+    void add(ASTNode value);
 
-    void add(String name, Node value);
+    void add(String name, ASTNode value);
 
-    void add(RSymbol name, Node value);
+    void add(RSymbol name, ASTNode value);
 
     interface Entry {
 
         RSymbol getName();
 
-        Node getValue();
+        ASTNode getValue();
     }
 
     class Default extends ArrayList<Entry> implements ArgumentList {
@@ -26,17 +26,17 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
         private static final long serialVersionUID = 1L;
 
         @Override
-        public void add(Node e) {
+        public void add(ASTNode e) {
             add(new DefaultEntry(null, e));
         }
 
         @Override
-        public void add(RSymbol name, Node value) {
+        public void add(RSymbol name, ASTNode value) {
             add(new DefaultEntry(name, value));
         }
 
         @Override
-        public void add(String name, Node value) {
+        public void add(String name, ASTNode value) {
             add(RSymbol.getSymbol(name), value);
         }
 
@@ -48,9 +48,9 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
         private static final class DefaultEntry implements Entry {
 
             RSymbol name;
-            Node value;
+            ASTNode value;
 
-            private DefaultEntry(RSymbol n, Node v) {
+            private DefaultEntry(RSymbol n, ASTNode v) {
                 name = n;
                 value = v;
             }
@@ -61,7 +61,7 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
             }
 
             @Override
-            public Node getValue() {
+            public ASTNode getValue() {
                 return value;
             }
 

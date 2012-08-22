@@ -1,5 +1,5 @@
 package r.nodes;
 
 public interface NodeVisitor {
-    boolean visit(Node node);
+    boolean visit(ASTNode node);
 }

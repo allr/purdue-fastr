@@ -1,19 +1,19 @@
 package r.nodes;
 
-public abstract class Operation extends Node {
+public abstract class Operation extends ASTNode {
     public static final int ADD_PRECEDENCE = 1;
     public static final int MULT_PRECEDENCE = ADD_PRECEDENCE + 1;
-    Node lhs;
+    ASTNode lhs;
 
-    public Operation(Node left) {
+    public Operation(ASTNode left) {
         setLHS(left);
     }
 
-    public Node getLHS() {
+    public ASTNode getLHS() {
         return lhs;
     }
 
-    public void setLHS(Node left) {
+    public void setLHS(ASTNode left) {
         this.lhs = updateParent(left);
     }
 

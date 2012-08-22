@@ -18,13 +18,13 @@ public class PrettyPrinter extends BasicVisitor {
         out = stream;
     }
 
-    public void print(Node n) {
+    public void print(ASTNode n) {
         level = 0;
         n.accept(this);
         flush();
     }
 
-    public void println(Node n) {
+    public void println(ASTNode n) {
         level = 0;
         n.accept(this);
         println("");
@@ -74,14 +74,14 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     @Override
-    public void visit(Node n) {
+    public void visit(ASTNode n) {
         print("##(TODO: " + n + ")##");
         System.err.println("TODO: " + n);
     }
 
     @Override
     public void visit(Sequence n) {
-        Node[] exprs = n.getExprs();
+        ASTNode[] exprs = n.getExprs();
         switch (exprs.length) {
             case 0:
                 print("{}");
@@ -95,7 +95,7 @@ public class PrettyPrinter extends BasicVisitor {
             default:
                 println("{");
                 inc();
-                for (Node e : exprs) {
+                for (ASTNode e : exprs) {
                     e.accept(this);
                     println("");
                 }
@@ -110,7 +110,7 @@ public class PrettyPrinter extends BasicVisitor {
         n.getCond().accept(this);
         print(") ");
         n.getTrueCase().accept(this);
-        Node f = n.getFalseCase();
+        ASTNode f = n.getFalseCase();
         if (f != null) {
             print(" else ");
             f.accept(this);
@@ -119,8 +119,8 @@ public class PrettyPrinter extends BasicVisitor {
 
     @Override
     public void visit(BinaryOperation op) {
-        Node left = op.getLHS();
-        Node right = op.getRHS();
+        ASTNode left = op.getLHS();
+        ASTNode right = op.getRHS();
         if (PARENTHESIS) {
             print("(");
         }
@@ -220,7 +220,7 @@ public class PrettyPrinter extends BasicVisitor {
 
     private void print(ArgumentList.Entry arg, boolean isCall) {
         RSymbol n = arg.getName();
-        Node v = arg.getValue();
+        ASTNode v = arg.getValue();
         if (n != null) {
             print(n.pretty());
             if (isCall || v != null) {

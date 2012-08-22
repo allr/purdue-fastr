@@ -10,7 +10,7 @@ public abstract class RError extends RuntimeException {
 
     public static final String NA_UNEXP = "missing value where TRUE/FALSE needed";
 
-    public static RError getNulLength(Node expr) {
+    public static RError getNulLength(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
@@ -22,7 +22,7 @@ public abstract class RError extends RuntimeException {
         };
     }
 
-    public static RError getUnexpectedNA(Node expr) {
+    public static RError getUnexpectedNA(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
@@ -35,14 +35,14 @@ public abstract class RError extends RuntimeException {
     }
 
     static class RErrorInExpr extends RError {
-        private Node errorNode;
+        private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
 
-        public RErrorInExpr(Node node) {
+        public RErrorInExpr(ASTNode node) {
             errorNode = node;
         }
 
-        public Node getErrorNode() {
+        public ASTNode getErrorNode() {
             return errorNode;
         }
     }

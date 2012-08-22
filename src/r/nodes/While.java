@@ -2,17 +2,17 @@ package r.nodes;
 
 
 public class While extends Loop {
-    Node cond;
-    While(Node cond, Node expr) {
+    ASTNode cond;
+    While(ASTNode cond, ASTNode expr) {
         super(expr);
         setCond(cond);
     }
 
-    public Node getCond() {
+    public ASTNode getCond() {
         return cond;
     }
 
-    public void setCond(Node cond) {
+    public void setCond(ASTNode cond) {
         this.cond = updateParent(cond);
     }
 

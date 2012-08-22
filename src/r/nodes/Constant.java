@@ -7,7 +7,7 @@ import r.Convert;
 import r.data.*;
 
 @Precedence(Precedence.MAX)
-public class Constant extends Node {
+public class Constant extends ASTNode {
 
     RAny value;
 
@@ -24,7 +24,7 @@ public class Constant extends Node {
         return value.pretty();
     }
 
-    public static Node getNull() {
+    public static ASTNode getNull() {
         return new Constant(RNull.getNull());
     }
 

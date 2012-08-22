@@ -19,7 +19,7 @@ public class TreeViewer extends JTree {
 
     private static TreeViewer treeViewer;
 
-    public static void showTree(Node root) {
+    public static void showTree(ASTNode root) {
         if (treeViewer == null) {
             treeViewer = new TreeViewer("Basic Tree viewer (using reflection)", root);
         } else {
@@ -27,7 +27,7 @@ public class TreeViewer extends JTree {
         }
     }
 
-    Node root;
+    ASTNode root;
     JFrame frame;
 
     private static Field[] getFieldsFor(Class clazz) {
@@ -36,10 +36,10 @@ public class TreeViewer extends JTree {
         }
         Class current = clazz;
         ArrayList<Field> fields = new ArrayList<>();
-        while (current != Node.class) {
+        while (current != ASTNode.class) {
             Field[] f = current.getDeclaredFields();
             for (int i = 0; i < f.length; i++) {
-                if (Node.class.isAssignableFrom(f[i].getType())) {
+                if (ASTNode.class.isAssignableFrom(f[i].getType())) {
                     f[i].setAccessible(true);
                     fields.add(f[i]);
                 }
@@ -51,14 +51,14 @@ public class TreeViewer extends JTree {
         return res;
     }
 
-    void setRoot(Node newRoot) {
+    void setRoot(ASTNode newRoot) {
         root = newRoot;
         setModel(newModel());
         treeDidChange();
         frame.setVisible(true);
     }
 
-    public TreeViewer(String title, Node node) {
+    public TreeViewer(String title, ASTNode node) {
         super();
 
         frame = new JFrame(title);
@@ -83,7 +83,7 @@ public class TreeViewer extends JTree {
     public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         StringBuffer res = new StringBuffer();
         if (hasFocus) {
-            Node parent = ((Node) value).getParent();
+            ASTNode parent = ((ASTNode) value).getParent();
             if (parent != null) {
                 for (Field f : getFieldsFor(parent.getClass())) {
                     try {

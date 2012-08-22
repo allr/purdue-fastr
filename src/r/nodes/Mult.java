@@ -3,7 +3,7 @@ package r.nodes;
 @PrettyName("*")
 @Precedence(Operation.MULT_PRECEDENCE)
 public class Mult extends BinaryOperation {
-    public Mult(Node l, Node r) {
+    public Mult(ASTNode l, ASTNode r) {
         super(l, r);
     }
 

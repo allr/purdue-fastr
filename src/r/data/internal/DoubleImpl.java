@@ -86,12 +86,12 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
         @Override
         public RArray subset(RAny keys) {
-            return materialize();
+            return materialize().subset(keys);
         }
 
         @Override
         public RArray subset(RInt index) {
-            return materialize();
+            return materialize().subset(index);
         }
 
         @Override
@@ -119,6 +119,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         public RLogical asLogical() {
             Utils.nyi();
             return null;
+        }
+
+        @Override
+        public int getInt(int i) {
+            return Convert.double2int(i);
         }
     }
 

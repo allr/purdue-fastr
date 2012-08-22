@@ -133,5 +133,10 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         public RArray set(int i, int val) {
             return null;
         }
+
+        @Override
+        public int getInt(int i) {
+            return getLogical(i);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package r.nodes;
 
 public abstract class UnaryOperation extends Operation {
-    public UnaryOperation(Node op) {
+    public UnaryOperation(ASTNode op) {
         super(op);
     }
 
@@ -10,7 +10,7 @@ public abstract class UnaryOperation extends Operation {
         getLHS().accept(v);
     }
 
-    public static Node create(UnaryOperator op, Node operand) {
+    public static ASTNode create(UnaryOperator op, ASTNode operand) {
         switch (op) {
             case PLUS: return new Not(operand);
             case MINUS: return new Not(operand);

@@ -57,4 +57,11 @@ public class Convert {
         // FIXME use R rules
         return Integer.parseInt(v);
     }
+
+    public static int double2int(double d) {
+        if (d == RDouble.NA) { // TODO isNA method
+            return RInt.NA;
+        }
+        return (int) d;
+    }
 }

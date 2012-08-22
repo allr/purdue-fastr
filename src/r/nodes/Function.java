@@ -4,12 +4,12 @@ import r.*;
 import r.data.*;
 import r.nodes.tools.*;
 
-public class Function extends Node {
+public class Function extends ASTNode {
 
     final ArgumentList signature;
-    final Node body;
+    final ASTNode body;
 
-    Function(ArgumentList alist, Node body) {
+    Function(ArgumentList alist, ASTNode body) {
         this.signature = alist;
         this.body = updateParent(body);
     }
@@ -22,7 +22,7 @@ public class Function extends Node {
         return signature;
     }
 
-    public Node getBody() {
+    public ASTNode getBody() {
         return body;
     }
 
@@ -78,7 +78,7 @@ public class Function extends Node {
         }
     }
 
-    public static Node create(ArgumentList alist, Node body) {
+    public static ASTNode create(ArgumentList alist, ASTNode body) {
         return new Function(alist, body);
     }
 }

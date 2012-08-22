@@ -24,7 +24,7 @@ public class Console {
 
     static RLexer lexer;
     static RParser parser;
-    static Node tree;
+    static ASTNode tree;
     static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     static StringBuilder incomplete = new StringBuilder();
 
@@ -68,7 +68,7 @@ public class Console {
         incomplete.append(line);
         lexer.setCharStream(new ANTLRStringStream(incomplete.toString()));
         parser.setTokenStream(new CommonTokenStream(lexer));
-        Node result;
+        ASTNode result;
         try {
             result = parser.interactive();
         } catch (RecognitionException e) {

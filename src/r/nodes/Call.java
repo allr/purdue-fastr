@@ -3,7 +3,7 @@ package r.nodes;
 import r.data.*;
 import r.nodes.ArgumentList.Entry;
 
-public abstract class Call extends Node {
+public abstract class Call extends ASTNode {
 
     ArgumentList args;
 
@@ -22,7 +22,7 @@ public abstract class Call extends Node {
         return args;
     }
 
-    public static Node create(Node call, ArgumentList args) {
+    public static ASTNode create(ASTNode call, ArgumentList args) {
         if (call instanceof SimpleAccessVariable) {
             SimpleAccessVariable ccall = (SimpleAccessVariable) call;
             return create(ccall.getName(), args);
@@ -30,11 +30,11 @@ public abstract class Call extends Node {
         return null;
     }
 
-    public static Node create(RSymbol funName, ArgumentList args) {
+    public static ASTNode create(RSymbol funName, ArgumentList args) {
         return new FunctionCall(funName, args);
     }
 
-    public static Node create(CallOperator op, Node lhs, ArgumentList args) {
+    public static ASTNode create(CallOperator op, ASTNode lhs, ArgumentList args) {
         return null;
     }
 

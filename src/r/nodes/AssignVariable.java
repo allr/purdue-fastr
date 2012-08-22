@@ -3,11 +3,11 @@ package r.nodes;
 import r.*;
 import r.data.*;
 
-public abstract class AssignVariable extends Node {
+public abstract class AssignVariable extends ASTNode {
 
-    Node rhs;
+    ASTNode rhs;
 
-    AssignVariable(Node expr) {
+    AssignVariable(ASTNode expr) {
         rhs = updateParent(expr);
     }
 
@@ -16,11 +16,11 @@ public abstract class AssignVariable extends Node {
         getExpr().accept(v);
     }
 
-    public Node getExpr() {
+    public ASTNode getExpr() {
         return rhs;
     }
 
-    public static Node create(Node lhs, Node rhs) {
+    public static ASTNode create(ASTNode lhs, ASTNode rhs) {
         if (lhs instanceof SimpleAccessVariable) {
             return writeVariable(((SimpleAccessVariable) lhs).name, rhs);
         }
@@ -28,12 +28,12 @@ public abstract class AssignVariable extends Node {
         return null;
     }
 
-    public static Node createSuper(Node lhs, Node rhs) {
+    public static ASTNode createSuper(ASTNode lhs, ASTNode rhs) {
         Utils.nyi();
         return null;
     }
 
-    public static Node writeVariable(RSymbol name, Node rhs) {
+    public static ASTNode writeVariable(RSymbol name, ASTNode rhs) {
         return new SimpleAssignVariable(name, rhs);
     }
 }

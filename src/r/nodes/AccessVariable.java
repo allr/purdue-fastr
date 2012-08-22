@@ -2,9 +2,9 @@ package r.nodes;
 
 import r.data.*;
 
-public abstract class AccessVariable extends Node {
+public abstract class AccessVariable extends ASTNode {
 
-    public static Node create(String name) {
+    public static ASTNode create(String name) {
         return new SimpleAccessVariable(RSymbol.getSymbol(name));
     }
 }

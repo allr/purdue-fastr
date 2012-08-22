@@ -20,7 +20,7 @@ public class RContext implements Context {
         init();
     }
 
-    public RAny eval(Node expr) {
+    public RAny eval(ASTNode expr) {
         try {
             return expr.execute(global, topLevel());
         } catch (RError e) {
@@ -48,7 +48,7 @@ public class RContext implements Context {
         return null;
     }
 
-    public void warning(Node expr, String msg) {
+    public void warning(ASTNode expr, String msg) {
         if (errorManager != null) {
             errorManager.warning(expr, msg);
         }
@@ -60,7 +60,7 @@ public class RContext implements Context {
         }
     }
 
-    public void error(Node expr, String msg) {
+    public void error(ASTNode expr, String msg) {
         if (errorManager != null) {
             errorManager.error(expr, msg);
         }

@@ -6,13 +6,13 @@ import r.errors.*;
 
 import com.oracle.truffle.runtime.*;
 
-public class If extends Node {
+public class If extends ASTNode {
 
-    Node cond;
-    Node trueCase;
-    Node falseCase;
+    ASTNode cond;
+    ASTNode trueCase;
+    ASTNode falseCase;
 
-    If(Node cond, Node truecase, Node falsecase) {
+    If(ASTNode cond, ASTNode truecase, ASTNode falsecase) {
         setCond(cond);
         setTrueCase(truecase);
         setFalseCase(falsecase);
@@ -33,7 +33,7 @@ public class If extends Node {
         if (ifVal == RLogical.TRUE) {
             return getTrueCase().execute(global, frame);
         } else if (ifVal == RLogical.FALSE) {
-            Node fcase = getFalseCase();
+            ASTNode fcase = getFalseCase();
             if (fcase == null) {
                 return RNull.getNull();
             } else {
@@ -43,27 +43,27 @@ public class If extends Node {
         throw RError.getUnexpectedNA(this);
     }
 
-    public Node getCond() {
+    public ASTNode getCond() {
         return cond;
     }
 
-    public Node getTrueCase() {
+    public ASTNode getTrueCase() {
         return trueCase;
     }
 
-    public Node getFalseCase() {
+    public ASTNode getFalseCase() {
         return falseCase;
     }
 
-    public void setCond(Node cond) {
+    public void setCond(ASTNode cond) {
         this.cond = updateParent(cond);
     }
 
-    public void setTrueCase(Node trueCase) {
+    public void setTrueCase(ASTNode trueCase) {
         this.trueCase = updateParent(trueCase);
     }
 
-    public void setFalseCase(Node falseCase) {
+    public void setFalseCase(ASTNode falseCase) {
         this.falseCase = updateParent(falseCase);
     }
 
@@ -79,11 +79,11 @@ public class If extends Node {
         getFalseCase().accept(v);
     }
 
-    public static If create(Node cond, Node trueBranch) {
+    public static If create(ASTNode cond, ASTNode trueBranch) {
         return create(cond, trueBranch, null);
     }
 
-    public static If create(Node cond, Node trueBranch, Node falseBranch) {
+    public static If create(ASTNode cond, ASTNode trueBranch, ASTNode falseBranch) {
         return new If(cond, trueBranch, falseBranch);
     }
 }

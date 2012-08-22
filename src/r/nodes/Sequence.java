@@ -3,9 +3,9 @@ package r.nodes;
 import java.util.*;
 
 
-public class Sequence extends Node {
-    Node[] exprs;
-    Sequence(Node[] e) {
+public class Sequence extends ASTNode {
+    ASTNode[] exprs;
+    Sequence(ASTNode[] e) {
         exprs = updateParent(e); // FIXME or not ... do we need to duplicate this array
     }
 
@@ -14,21 +14,21 @@ public class Sequence extends Node {
         v.visit(this);
     }
 
-    public Node[] getExprs() {
+    public ASTNode[] getExprs() {
         return exprs;
     }
 
     @Override
     public void visit_all(Visitor v) {
-        for (Node e: exprs) {
+        for (ASTNode e: exprs) {
             e.accept(v);
         }
     }
 
-    public static Node create(ArrayList<Node> exprs) {
-        return new Sequence(exprs.toArray(new Node[exprs.size()]));
+    public static ASTNode create(ArrayList<ASTNode> exprs) {
+        return new Sequence(exprs.toArray(new ASTNode[exprs.size()]));
     }
-    public static Node create(Node[] exprs) {
+    public static ASTNode create(ASTNode[] exprs) {
         return new Sequence(exprs);
     }
 }

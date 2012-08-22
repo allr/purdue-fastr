@@ -25,7 +25,7 @@ public class ManageError {
         out = errorStream;
     }
 
-    public void warning(Node expr, String msg) {
+    public void warning(ASTNode expr, String msg) {
         displayMessage(ManageError.WARNING, expr, msg);
     }
 
@@ -33,7 +33,7 @@ public class ManageError {
         displayMessage(ManageError.WARNING, (err instanceof RError.RErrorInExpr) ? ((RError.RErrorInExpr) err).getErrorNode() : null, err.getMessage());
     }
 
-    public void error(Node expr, String msg) {
+    public void error(ASTNode expr, String msg) {
         displayMessage(ManageError.ERROR, expr, msg);
     }
 
@@ -41,7 +41,7 @@ public class ManageError {
         displayMessage(ManageError.ERROR, (err instanceof RError.RErrorInExpr) ? ((RError.RErrorInExpr) err).getErrorNode() : null, err.getMessage());
     }
 
-    private void displayMessage(String prefix, Node cause, String msg) {
+    private void displayMessage(String prefix, ASTNode cause, String msg) {
         StringBuilder str = new StringBuilder(prefix);
         if (cause != null) {
             nodePP.print(cause);

@@ -5,9 +5,9 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.data.*;
 
-public abstract class Node {
+public abstract class ASTNode {
 
-    Node parent;
+    ASTNode parent;
 
     public abstract void accept(Visitor v);
 
@@ -19,22 +19,22 @@ public abstract class Node {
         return prec == null ? Precedence.MIN : prec.value();
     }
 
-    public Node getParent() {
+    public ASTNode getParent() {
         return parent;
     }
 
-    public void setParent(Node node) {
+    public void setParent(ASTNode node) {
         parent = node;
     }
 
-    protected <T extends Node> T[] updateParent(T[] children) {
+    protected <T extends ASTNode> T[] updateParent(T[] children) {
         for (T node : children) {
             updateParent(node);
         }
         return children;
     }
 
-    protected <T extends Node> T updateParent(T child) {
+    protected <T extends ASTNode> T updateParent(T child) {
         if (child != null) {
             child.setParent(this);
         }
