@@ -1,5 +1,7 @@
 package r.nodes;
 
+import com.oracle.truffle.*;
+
 import r.*;
 import r.data.*;
 import r.nodes.tools.*;
@@ -74,6 +76,12 @@ public class Function extends ASTNode {
         @Override
         public RInt asInt() {
             Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public Node callNodeFactoty(OperationFactory factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
             return null;
         }
     }

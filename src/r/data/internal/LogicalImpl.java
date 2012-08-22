@@ -1,7 +1,10 @@
 package r.data.internal;
 
+import com.oracle.truffle.*;
+
 import r.*;
 import r.data.*;
+import r.nodes.*;
 
 public class LogicalImpl extends ArrayImpl implements RLogical {
 
@@ -137,6 +140,12 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         @Override
         public int getInt(int i) {
             return getLogical(i);
+        }
+
+        @Override
+        public Node callNodeFactoty(OperationFactory factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
+            return null;
         }
     }
 }

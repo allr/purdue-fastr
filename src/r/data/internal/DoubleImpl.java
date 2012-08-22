@@ -1,7 +1,10 @@
 package r.data.internal;
 
+import com.oracle.truffle.*;
+
 import r.*;
 import r.data.*;
+import r.nodes.*;
 
 public class DoubleImpl extends ArrayImpl implements RDouble {
 
@@ -124,6 +127,12 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         @Override
         public int getInt(int i) {
             return Convert.double2int(i);
+        }
+
+        @Override
+        public Node callNodeFactoty(OperationFactory factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
+            return null;
         }
     }
 

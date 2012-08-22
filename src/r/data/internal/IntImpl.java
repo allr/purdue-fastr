@@ -1,7 +1,10 @@
 package r.data.internal;
 
+import com.oracle.truffle.*;
+
 import r.*;
 import r.data.*;
+import r.nodes.*;
 
 public class IntImpl extends ArrayImpl implements RInt {
 
@@ -62,5 +65,10 @@ public class IntImpl extends ArrayImpl implements RInt {
     public RLogical asLogical() {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public Node callNodeFactoty(OperationFactory factory) {
+        return factory.fromInt(this);
     }
 }

@@ -3,7 +3,10 @@ package r.nodes;
 import r.*;
 import r.data.*;
 import r.errors.*;
+import r.nodes.internal.*;
 
+import com.oracle.truffle.*;
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
 public class If extends ASTNode {
@@ -20,25 +23,22 @@ public class If extends ASTNode {
 
     @Override
     public RAny execute(RContext global, Frame frame) {
-        RLogical op = getCond().execute(global, frame).asLogical(); // FIXME asLogical is too expensive, we've to go for
-// a asLogicalOne
-        int size = op.size();
-        if (size != 1) {
-            if (size == 0) {
-                throw RError.getNulLength(this);
-            }
-            global.warning(this, RError.LENGTH_GT_1);
+        int ifVal;
+        Node someNode = null; // FIXME this convert has no chances to work, it's just to test
+        // getCond()
+        try {
+            ifVal = someNode.executeInt(global, frame);
+        } catch (UnexpectedResultException e) {
+// someNode => getCond()
+            someNode.replace(ConvertToLogicalOne.createNode(someNode, e.getResult()), "Inserted boolean conversion");
+            return execute(global, frame); // Recall self ! to avoid try/catch
         }
-        int ifVal = op.getLogical(0);
-        if (ifVal == RLogical.TRUE) {
+
+        if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
             return getTrueCase().execute(global, frame);
         } else if (ifVal == RLogical.FALSE) {
             ASTNode fcase = getFalseCase();
-            if (fcase == null) {
-                return RNull.getNull();
-            } else {
-                return fcase.execute(global, frame);
-            }
+            return fcase.execute(global, frame);
         }
         throw RError.getUnexpectedNA(this);
     }
@@ -80,7 +80,7 @@ public class If extends ASTNode {
     }
 
     public static If create(ASTNode cond, ASTNode trueBranch) {
-        return create(cond, trueBranch, null);
+        return create(cond, trueBranch, Constant.getNull());
     }
 
     public static If create(ASTNode cond, ASTNode trueBranch, ASTNode falseBranch) {
