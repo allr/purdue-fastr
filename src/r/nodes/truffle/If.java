@@ -35,7 +35,8 @@ public class If extends BaseRNode {
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
-            return getTrueBranch().execute(global, frame);
+            Object v = getTrueBranch().execute(global, frame);
+            return v;
         } else if (ifVal == RLogical.FALSE) {
             return getFalseBranch().execute(global, frame);
         }

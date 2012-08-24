@@ -1,4 +1,4 @@
-// $ANTLR 3.4 R.g 2012-08-17 10:02:20
+// $ANTLR 3.4 R.g 2012-08-23 10:15:04
 
 package r.parser;
 
@@ -143,7 +143,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "script"
-    // R.g:85:1: script returns [Node v] : n_ (s= statement )* ;
+    // R.g:85:1: script returns [ASTNode v] : n_ (s= statement )* ;
     public final ASTNode script() throws RecognitionException {
         ASTNode v = null;
 
@@ -218,7 +218,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "interactive"
-    // R.g:90:1: interactive returns [Node v] : n_ e= statement ;
+    // R.g:90:1: interactive returns [ASTNode v] : n_ e= statement ;
     public final ASTNode interactive() throws RecognitionException {
         ASTNode v = null;
 
@@ -267,7 +267,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "statement"
-    // R.g:93:1: statement returns [Node v] : (e= expr_or_assign n | '--EOF--' ( . )* EOF );
+    // R.g:93:1: statement returns [ASTNode v] : (e= expr_or_assign n | '--EOF--' ( . )* EOF );
     public final ASTNode statement() throws RecognitionException {
         ASTNode v = null;
 
@@ -564,7 +564,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_or_assign"
-    // R.g:101:1: expr_or_assign returns [Node v] : a= alter_assign ;
+    // R.g:101:1: expr_or_assign returns [ASTNode v] : a= alter_assign ;
     public final ASTNode expr_or_assign() throws RecognitionException {
         ASTNode v = null;
 
@@ -607,7 +607,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr"
-    // R.g:104:1: expr returns [Node v] : a= assign ;
+    // R.g:104:1: expr returns [ASTNode v] : a= assign ;
     public final ASTNode expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -650,7 +650,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_wo_assign"
-    // R.g:107:1: expr_wo_assign returns [Node v] : (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr |fun= function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? );
+    // R.g:107:1: expr_wo_assign returns [ASTNode v] : (w= while_expr |i= if_expr |f= for_expr |r= repeat_expr |fun= function | NEXT ( ( LPAR )=> LPAR n_ RPAR )? | BREAK ( ( LPAR )=> LPAR n_ RPAR )? );
     public final ASTNode expr_wo_assign() throws RecognitionException {
         ASTNode v = null;
 
@@ -863,7 +863,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "sequence"
-    // R.g:116:1: sequence returns [Node v] : LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE ;
+    // R.g:116:1: sequence returns [ASTNode v] : LBRACE n_ (e= expr_or_assign ( n e= expr_or_assign )* ( n )? )? RBRACE ;
     public final ASTNode sequence() throws RecognitionException {
         ASTNode v = null;
 
@@ -990,7 +990,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "assign"
-    // R.g:121:1: assign returns [Node v] : l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) ;
+    // R.g:121:1: assign returns [ASTNode v] : l= tilde_expr ( ARROW n_ r= expr | SUPER_ARROW n_ r= expr |a= RIGHT_ARROW n_ r= expr |a= SUPER_RIGHT_ARROW n_ r= expr |) ;
     public final ASTNode assign() throws RecognitionException {
         ASTNode v = null;
 
@@ -1103,7 +1103,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.create(l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(false, l, r);}
 
                     }
                     break;
@@ -1124,7 +1124,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.createSuper(l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(true, l, r);}
 
                     }
                     break;
@@ -1145,7 +1145,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.create(r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(false, r, l);}
 
                     }
                     break;
@@ -1166,7 +1166,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.createSuper(r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(true, r, l);}
 
                     }
                     break;
@@ -1201,7 +1201,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "alter_assign"
-    // R.g:130:1: alter_assign returns [Node v] : l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) ;
+    // R.g:130:1: alter_assign returns [ASTNode v] : l= tilde_expr ( ( ARROW )=> ARROW n_ r= expr_or_assign | ( SUPER_ARROW )=> SUPER_ARROW n_ r= expr_or_assign | ( RIGHT_ARROW )=>a= RIGHT_ARROW n_ r= expr_or_assign | ( SUPER_RIGHT_ARROW )=>a= SUPER_RIGHT_ARROW n_ r= expr_or_assign | ( ASSIGN )=>a= ASSIGN n_ r= expr_or_assign |) ;
     public final ASTNode alter_assign() throws RecognitionException {
         ASTNode v = null;
 
@@ -1392,7 +1392,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.create(l, r);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(false, l, r);}
 
                     }
                     break;
@@ -1413,7 +1413,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = AssignVariable.createSuper(l, r);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.create(true, l, r);}
 
                     }
                     break;
@@ -1434,7 +1434,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) { v = AssignVariable.create(r, l);}
+                    if ( state.backtracking==0 ) { v = AssignVariable.create(false, r, l);}
 
                     }
                     break;
@@ -1455,7 +1455,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = AssignVariable.createSuper(r, l);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.create(true, r, l);}
 
                     }
                     break;
@@ -1476,7 +1476,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
 
-                    if ( state.backtracking==0 ) {v = AssignVariable.create(l, r);}
+                    if ( state.backtracking==0 ) {v = AssignVariable.create(false, l, r);}
 
                     }
                     break;
@@ -1511,7 +1511,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "if_expr"
-    // R.g:140:1: if_expr returns [Node v] : IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) ;
+    // R.g:140:1: if_expr returns [ASTNode v] : IF n_ LPAR n_ cond= expr_or_assign n_ RPAR n_ t= expr_or_assign ( ( n_ ELSE )=> ( options {greedy=false; backtrack=true; } : n_ ELSE n_ f= expr_or_assign ) |) ;
     public final ASTNode if_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -1729,7 +1729,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "while_expr"
-    // R.g:147:1: while_expr returns [Node v] : WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
+    // R.g:147:1: while_expr returns [ASTNode v] : WHILE n_ LPAR n_ c= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
     public final ASTNode while_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -1810,7 +1810,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "for_expr"
-    // R.g:150:1: for_expr returns [Node v] : FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
+    // R.g:150:1: for_expr returns [ASTNode v] : FOR n_ LPAR n_ ID n_ IN n_ in= expr_or_assign n_ RPAR n_ body= expr_or_assign ;
     public final ASTNode for_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -1905,7 +1905,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "repeat_expr"
-    // R.g:153:1: repeat_expr returns [Node v] : REPEAT n_ body= expr_or_assign ;
+    // R.g:153:1: repeat_expr returns [ASTNode v] : REPEAT n_ body= expr_or_assign ;
     public final ASTNode repeat_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -1956,7 +1956,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "function"
-    // R.g:156:1: function returns [Node v] : FUNCTION n_ LPAR n_ ( par_decl[l] ( n_ COMMA n_ par_decl[l] )* n_ )? RPAR n_ body= expr_or_assign ;
+    // R.g:156:1: function returns [ASTNode v] : FUNCTION n_ LPAR n_ ( par_decl[l] ( n_ COMMA n_ par_decl[l] )* n_ )? RPAR n_ body= expr_or_assign ;
     public final ASTNode function() throws RecognitionException {
         ASTNode v = null;
 
@@ -2235,7 +2235,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "tilde_expr"
-    // R.g:172:1: tilde_expr returns [Node v] : l= or_expr ( ( ( TILDE )=> TILDE n_ r= or_expr ) )* ;
+    // R.g:172:1: tilde_expr returns [ASTNode v] : l= or_expr ( ( ( TILDE )=> TILDE n_ r= or_expr ) )* ;
     public final ASTNode tilde_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2332,7 +2332,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_expr"
-    // R.g:176:1: or_expr returns [Node v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= and_expr ) )* ;
+    // R.g:176:1: or_expr returns [ASTNode v] : l= and_expr ( ( ( or_operator )=>op= or_operator n_ r= and_expr ) )* ;
     public final ASTNode or_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2444,7 +2444,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_expr"
-    // R.g:180:1: and_expr returns [Node v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= comp_expr ) )* ;
+    // R.g:180:1: and_expr returns [ASTNode v] : l= comp_expr ( ( ( and_operator )=>op= and_operator n_ r= comp_expr ) )* ;
     public final ASTNode and_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2556,7 +2556,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_expr"
-    // R.g:184:1: comp_expr returns [Node v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= add_expr ) )* ;
+    // R.g:184:1: comp_expr returns [ASTNode v] : l= add_expr ( ( ( comp_operator )=>op= comp_operator n_ r= add_expr ) )* ;
     public final ASTNode comp_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2716,7 +2716,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_expr"
-    // R.g:188:1: add_expr returns [Node v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= mult_expr ) )* ;
+    // R.g:188:1: add_expr returns [ASTNode v] : l= mult_expr ( ( ( add_operator )=>op= add_operator n_ r= mult_expr ) )* ;
     public final ASTNode add_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2828,7 +2828,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_expr"
-    // R.g:192:1: mult_expr returns [Node v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= operator_expr ) )* ;
+    // R.g:192:1: mult_expr returns [ASTNode v] : l= operator_expr ( ( ( mult_operator )=>op= mult_operator n_ r= operator_expr ) )* ;
     public final ASTNode mult_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -2955,7 +2955,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "operator_expr"
-    // R.g:196:1: operator_expr returns [Node v] : l= column_expr ( ( ( OP )=>op= OP n_ r= column_expr ) )* ;
+    // R.g:196:1: operator_expr returns [ASTNode v] : l= column_expr ( ( ( OP )=>op= OP n_ r= column_expr ) )* ;
     public final ASTNode operator_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3053,7 +3053,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "column_expr"
-    // R.g:200:1: column_expr returns [Node v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= power_expr ) )* ;
+    // R.g:200:1: column_expr returns [ASTNode v] : l= power_expr ( ( ( COLUMN )=>op= COLUMN n_ r= power_expr ) )* ;
     public final ASTNode column_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3151,7 +3151,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "power_expr"
-    // R.g:204:1: power_expr returns [Node v] : l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
+    // R.g:204:1: power_expr returns [ASTNode v] : l= unary_expression ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
     public final ASTNode power_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3272,7 +3272,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "unary_expression"
-    // R.g:209:1: unary_expression returns [Node v] : ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr );
+    // R.g:209:1: unary_expression returns [ASTNode v] : ( NOT n_ l= unary_expression | PLUS n_ l= unary_expression | MINUS n_ l= unary_expression | TILDE n_ l= unary_expression |b= basic_expr );
     public final ASTNode unary_expression() throws RecognitionException {
         ASTNode v = null;
 
@@ -3460,7 +3460,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "basic_expr"
-    // R.g:216:1: basic_expr returns [Node v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
+    // R.g:216:1: basic_expr returns [ASTNode v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
     public final ASTNode basic_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3808,7 +3808,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_subset"
-    // R.g:220:1: expr_subset[Node i] returns [Node v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
+    // R.g:220:1: expr_subset[ASTNode i] returns [ASTNode v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
     public final ASTNode expr_subset(ASTNode i) throws RecognitionException {
         ASTNode v = null;
 
@@ -4009,7 +4009,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "simple_expr"
-    // R.g:229:1: simple_expr returns [Node v] : (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
+    // R.g:229:1: simple_expr returns [ASTNode v] : (i= id |b= bool | DD | NULL |num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
     public final ASTNode simple_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -4467,7 +4467,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "number"
-    // R.g:241:1: number returns [Node n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
+    // R.g:241:1: number returns [ASTNode n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
     public final ASTNode number() throws RecognitionException {
         ASTNode n = null;
 
@@ -4643,7 +4643,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "bool"
-    // R.g:251:1: bool returns [Node v] : ( TRUE | FALSE | NA );
+    // R.g:251:1: bool returns [ASTNode v] : ( TRUE | FALSE | NA );
     public final ASTNode bool() throws RecognitionException {
         ASTNode v = null;
 
@@ -5244,7 +5244,7 @@ public class RParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // R.g:281:63: n_ arg_expr[v]
+            	            // R.g:281:66: n_ arg_expr[v]
             	            {
             	            pushFollow(FOLLOW_n__in_args2124);
             	            n_();

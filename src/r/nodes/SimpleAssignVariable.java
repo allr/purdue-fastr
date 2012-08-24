@@ -5,8 +5,8 @@ import r.data.*;
 public class SimpleAssignVariable extends AssignVariable {
     RSymbol variable;
 
-    public SimpleAssignVariable(RSymbol var, ASTNode rhs) {
-        super(rhs);
+    public SimpleAssignVariable(boolean isSuper, RSymbol var, ASTNode rhs) {
+        super(isSuper, rhs);
         variable = var;
     }
 

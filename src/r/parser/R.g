@@ -82,15 +82,15 @@ package r.parser;
 ** - Improve the stack of balanced structures 
 *****************************************************/
 
-script returns [Node v]
-    @init{ArrayList<Node> stmts = new ArrayList<Node>();}
+script returns [ASTNode v]
+    @init{ArrayList<ASTNode> stmts = new ArrayList<ASTNode>();}
 	@after{ $v = Sequence.create(stmts);}
 	: n_ (s=statement {stmts.add(s);})*
 	;
-interactive returns [Node v]
+interactive returns [ASTNode v]
 	: n_ e=statement {$v = e;}
 	;
-statement returns [Node v]
+statement returns [ASTNode v]
 	: e=expr_or_assign n {$v = e;}
 	| '--EOF--' .* EOF
 	;
@@ -98,13 +98,13 @@ statement returns [Node v]
 n_	: (NEWLINE | COMMENT)*;
 n	: (NEWLINE | COMMENT)+ | EOF | SEMICOLUMN n_;
 
-expr_or_assign returns [Node v]
+expr_or_assign returns [ASTNode v]
 	: a=alter_assign { v = a; }
 	;
-expr returns [Node v]
+expr returns [ASTNode v]
 	: a=assign { v = a; }
 	;	
-expr_wo_assign returns [Node v]
+expr_wo_assign returns [ASTNode v]
 	: w=while_expr { $v = w; }
 	| i=if_expr { $v = i; }
 	| f=for_expr { $v = f; }
@@ -113,47 +113,47 @@ expr_wo_assign returns [Node v]
 	| NEXT ((LPAR)=>LPAR n_ RPAR)? 
 	| BREAK ((LPAR)=>LPAR n_ RPAR)? 
 	;
-sequence returns [Node v]
-    @init{ArrayList<Node> stmts = new ArrayList<Node>();}
+sequence returns [ASTNode v]
+    @init{ArrayList<ASTNode> stmts = new ArrayList<ASTNode>();}
     @after{ $v = Sequence.create(stmts);}
 	: LBRACE n_ (e=expr_or_assign { stmts.add(e); } (n e=expr_or_assign { stmts.add(e); })* n?)?  RBRACE  
 	;
-assign returns [Node v]
+assign returns [ASTNode v]
 	: l=tilde_expr	
-		( ARROW n_ r=expr { $v = AssignVariable.create(l, r);}
-		| SUPER_ARROW n_ r=expr { $v = AssignVariable.createSuper(l, r);}
-		| a=RIGHT_ARROW n_ r=expr { $v = AssignVariable.create(r, l);}
-		| a=SUPER_RIGHT_ARROW n_ r=expr { $v = AssignVariable.createSuper(r, l);}
+		( ARROW n_ r=expr { $v = AssignVariable.create(false, l, r);}
+		| SUPER_ARROW n_ r=expr { $v = AssignVariable.create(true, l, r);}
+		| a=RIGHT_ARROW n_ r=expr { $v = AssignVariable.create(false, r, l);}
+		| a=SUPER_RIGHT_ARROW n_ r=expr { $v = AssignVariable.create(true, r, l);}
 		| { $v = l;}
 		)
 	;
-alter_assign returns [Node v]
+alter_assign returns [ASTNode v]
 	: l=tilde_expr	
-		( (ARROW)=>ARROW n_ r=expr_or_assign { $v = AssignVariable.create(l, r);}
-		| (SUPER_ARROW)=>SUPER_ARROW n_ r=expr_or_assign {v = AssignVariable.createSuper(l, r);}
-		| (RIGHT_ARROW)=>a=RIGHT_ARROW n_ r=expr_or_assign { v = AssignVariable.create(r, l);}
-		| (SUPER_RIGHT_ARROW)=>a=SUPER_RIGHT_ARROW n_ r=expr_or_assign {v = AssignVariable.createSuper(r, l);}
-		| (ASSIGN)=>a=ASSIGN n_ r=expr_or_assign {v = AssignVariable.create(l, r);}
+		( (ARROW)=>ARROW n_ r=expr_or_assign { $v = AssignVariable.create(false, l, r);}
+		| (SUPER_ARROW)=>SUPER_ARROW n_ r=expr_or_assign {v = AssignVariable.create(true, l, r);}
+		| (RIGHT_ARROW)=>a=RIGHT_ARROW n_ r=expr_or_assign { v = AssignVariable.create(false, r, l);}
+		| (SUPER_RIGHT_ARROW)=>a=SUPER_RIGHT_ARROW n_ r=expr_or_assign {v = AssignVariable.create(true, r, l);}
+		| (ASSIGN)=>a=ASSIGN n_ r=expr_or_assign {v = AssignVariable.create(false, l, r);}
 		| { v = l;}
 		)
 	;
-if_expr returns [Node v]
+if_expr returns [ASTNode v]
 	:
 	IF n_ LPAR n_ cond=expr_or_assign n_ RPAR n_ t=expr_or_assign
 	((n_ ELSE)=>(options {greedy=false; backtrack = true;}: n_ ELSE n_ f=expr_or_assign { v = If.create(cond, t, f);})
     | {v = If.create(cond, t);}
 	)
 	;
-while_expr returns [Node v]
+while_expr returns [ASTNode v]
 	: WHILE n_ LPAR n_ c=expr_or_assign n_ RPAR n_ body=expr_or_assign { $v = Loop.create(c, body); }
 	;
-for_expr returns [Node v]
+for_expr returns [ASTNode v]
 	: FOR n_ LPAR n_ ID n_ IN n_ in=expr_or_assign n_ RPAR n_ body=expr_or_assign 
 	;
-repeat_expr returns [Node v]
+repeat_expr returns [ASTNode v]
 	: REPEAT n_ body=expr_or_assign {v = Loop.create(body); }
 	;
-function returns [Node v]
+function returns [ASTNode v]
 @init { ArgumentList l = new ArgumentList.Default(); }
 	: FUNCTION n_ LPAR  n_ (par_decl[l] (n_ COMMA n_ par_decl[l])* n_)? RPAR n_ body=expr_or_assign { $v = Function.create(l, body); } 
 	;
@@ -169,55 +169,55 @@ par_decl [ArgumentList l]
  	| DD
  	| DD n_ ASSIGN n_ expr
 	;
-tilde_expr returns [Node v]
+tilde_expr returns [ASTNode v]
 	: l=or_expr { $v = $l.v ;}
 	( ((TILDE)=>TILDE n_ r=or_expr {$v = BinaryOperation.create(BinaryOperator.ADD, $tilde_expr.v, $r.v);} ))*
 	;
-or_expr returns [Node v]
+or_expr returns [ASTNode v]
 	: l=and_expr { $v = $l.v ;}
 	(((or_operator)=>op=or_operator n_ r=and_expr {$v = BinaryOperation.create(op, $or_expr.v, $r.v);} ))*
 	;
-and_expr returns [Node v]
+and_expr returns [ASTNode v]
 	: l=comp_expr { $v = $l.v ;}
     (((and_operator)=>op=and_operator n_ r=comp_expr {$v = BinaryOperation.create(op, $and_expr.v, $r.v);} ))*
 	;
-comp_expr returns [Node v]
+comp_expr returns [ASTNode v]
 	: l=add_expr { $v = $l.v ;}
     (((comp_operator)=>op=comp_operator n_ r=add_expr { $v = BinaryOperation.create(op, $comp_expr.v, $r.v);} ))*
     ;
-add_expr returns [Node v]
+add_expr returns [ASTNode v]
 	: l=mult_expr { $v = $l.v ;}
 	 (((add_operator)=>op=add_operator n_ r=mult_expr { $v = BinaryOperation.create(op, $add_expr.v, $r.v);} ))*
 	;
-mult_expr returns [Node v]
+mult_expr returns [ASTNode v]
 	: l=operator_expr { $v = $l.v ;}
 	(((mult_operator)=>op=mult_operator n_ r=operator_expr { $v = BinaryOperation.create(op, $mult_expr.v, $r.v);} ))*
 	;
-operator_expr returns [Node v]
+operator_expr returns [ASTNode v]
 	: l=column_expr { $v = $l.v ;}
 	(((OP)=>op=OP n_ r=column_expr { $v = null; } ))*  /* FIXME BinaryOperation.create(op, $operator_expr.v, $r.v); */ 
 	;
-column_expr returns [Node v] // FIXME
+column_expr returns [ASTNode v] // FIXME
 	: l=power_expr { $v = $l.v ;}
 	(((COLUMN)=>op=COLUMN n_ r=power_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, $column_expr.v, $r.v);} ))*
 	;
-power_expr returns [Node v]
+power_expr returns [ASTNode v]
 	: l=unary_expression {$v=$l.v;}
     (((power_operator)=>op=power_operator n_ r=power_expr { $v = BinaryOperation.create(op, $l.v, $r.v);} )
     |)
     ;
-unary_expression returns [Node v] // Does !~ work ? ..if yes I'm not sure to understand 
+unary_expression returns [ASTNode v] // Does !~ work ? ..if yes I'm not sure to understand 
 	: NOT n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.NOT, l);}
 	| PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
 	| MINUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MINUS, l);}
 	| TILDE n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MODEL, l);}
 	| b=basic_expr { $v=b; }
 	;
-basic_expr returns [Node v]
+basic_expr returns [ASTNode v]
 	: lhs=simple_expr { $v = lhs; }
 	(((FIELD|AT|LBRAKET|LBB|LPAR)=>subset=expr_subset[v] { $v = subset; })+ | (n_)=>)
 	;
-expr_subset [Node i] returns [Node v]
+expr_subset [ASTNode i] returns [ASTNode v]
     : (FIELD n_ name=id) { v = FieldAccess.create(FieldOperator.FIELD, i, name.getText()); } 
     | (AT n_ name=id)  { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); } 
     | (LBRAKET subset=args RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); }
@@ -226,7 +226,7 @@ expr_subset [Node i] returns [Node v]
     | (LPAR a=args RPAR)  { v = Call.create(i, a); } 
     //| { v = i; }
     ;
-simple_expr returns [Node v]
+simple_expr returns [ASTNode v]
 	: i=id { $v = AccessVariable.create(i.getText()); }
 	| b=bool { $v = b; }
 	| DD
@@ -238,7 +238,7 @@ simple_expr returns [Node v]
 	| s = sequence { $v = s;}
 	| e = expr_wo_assign { $v = e; }
 	;
-number returns [Node n]
+number returns [ASTNode n]
     : i=INTEGER { $n = Constant.createIntConstant($i.text); }
     | d=DOUBLE { $n = Constant.createDoubleConstant($d.text); }
     | c=COMPLEX { $n = Constant.createComplexConstant($c.text); }
@@ -248,7 +248,7 @@ id	returns [Token t]
     | s=STRING { $t = $s; }
     | v=VARIATIC { $t = $v; }
     ;
-bool returns [Node v]
+bool returns [ASTNode v]
     : TRUE {$v = Constant.createBoolConstant(1); }
     | FALSE {$v = Constant.createBoolConstant(0); }
     | NA {$v = Constant.createBoolConstant(RLogical.NA); }
@@ -278,7 +278,7 @@ power_operator returns [BinaryOperator v]
 	;
 args returns [ArgumentList v]
 @init { $v = new ArgumentList.Default(); }
-    : (n_ arg_expr[v])? n_ (COMMA ( { $v.add((Node)null); } | n_ arg_expr[v]) n_)* 
+    : (n_ arg_expr[v])? n_ (COMMA ( { $v.add((ASTNode)null); } | n_ arg_expr[v]) n_)* 
 	;
 arg_expr [ArgumentList l]
 	: e=expr { $l.add(e); }

@@ -8,6 +8,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
+import r.nodes.truffle.*;
 
 public class RContext implements Context {
 
@@ -15,7 +16,6 @@ public class RContext implements Context {
 
     ManageError errorManager;
 
-    RContext global;
     Truffleize truffleize;
 
     RContext() {
@@ -24,13 +24,15 @@ public class RContext implements Context {
 
     public RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createTree(expr).execute(global, topLevel());
+            return (RAny) truffleize.createTree(expr).execute(this, topLevel());
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
             } else {
                 error(e);
             }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
         return RNull.getNull(); // this is not quite correct, since R doesn't print anything here
         // Solutions: Maybe a black hole type could be used here
@@ -45,6 +47,10 @@ public class RContext implements Context {
 
     public void close() {
 
+    }
+
+    public RNode createNode(ASTNode expr) {
+        return truffleize.createTree(expr);
     }
 
     public RFrame topLevel() {

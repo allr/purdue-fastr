@@ -1,12 +1,13 @@
 package r.nodes.tools;
 
+import r.*;
 import r.nodes.*;
 import r.nodes.If;
-import r.nodes.truffle.*;
 import r.nodes.Constant;
-
+import r.nodes.truffle.*;
 
 public class Truffleize implements Visitor {
+
     RNode result;
 
     public RNode createTree(ASTNode ast) {
@@ -14,10 +15,14 @@ public class Truffleize implements Visitor {
         return result;
     }
 
+    public RNode createLazyTree(ASTNode ast) {
+        return new LazyBuildNode(ast);
+    }
+
     @Override
     public void visit(If iff) {
         ASTNode fbranch = iff.getFalseCase();
-        result = new r.nodes.truffle.If(iff, createTree(iff.getCond()), createTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createTree(fbranch));
+        result = new r.nodes.truffle.If(iff, createLazyTree(iff.getCond()), createLazyTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createLazyTree(fbranch));
     }
 
     @Override
@@ -59,6 +64,10 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(SimpleAssignVariable assign) {
+        if (assign.isSuper()) {
+            Utils.nyi();
+        }
+        result = new r.nodes.truffle.AssignVariable(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
     }
 
     @Override

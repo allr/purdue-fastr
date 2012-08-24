@@ -5,9 +5,11 @@ import r.data.*;
 
 public abstract class AssignVariable extends ASTNode {
 
+    final boolean isSuper;
     ASTNode rhs;
 
-    AssignVariable(ASTNode expr) {
+    AssignVariable(boolean isSuper, ASTNode expr) {
+        this.isSuper = isSuper;
         rhs = updateParent(expr);
     }
 
@@ -20,20 +22,19 @@ public abstract class AssignVariable extends ASTNode {
         return rhs;
     }
 
-    public static ASTNode create(ASTNode lhs, ASTNode rhs) {
+    public boolean isSuper() {
+        return isSuper;
+    }
+
+    public static ASTNode create(boolean isSuper, ASTNode lhs, ASTNode rhs) {
         if (lhs instanceof SimpleAccessVariable) {
-            return writeVariable(((SimpleAccessVariable) lhs).name, rhs);
+            return writeVariable(isSuper, ((SimpleAccessVariable) lhs).name, rhs);
         }
         Utils.nyi();
         return null;
     }
 
-    public static ASTNode createSuper(ASTNode lhs, ASTNode rhs) {
-        Utils.nyi();
-        return null;
-    }
-
-    public static ASTNode writeVariable(RSymbol name, ASTNode rhs) {
-        return new SimpleAssignVariable(name, rhs);
+    public static ASTNode writeVariable(boolean isSuper, RSymbol name, ASTNode rhs) {
+        return new SimpleAssignVariable(isSuper, name, rhs);
     }
 }
