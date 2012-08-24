@@ -1,16 +1,34 @@
 package r.data;
 
-public class RFrameDescriptor {
+public final class RFrameDescriptor {
 
     final RSymbol[] writeSet;
+    final int writeSetBlossom;
     final ReadSetEntry[] readSet;
+    final int readSetBlossom;
+    // TODO signature and other stuff
 
-    RFrameDescriptor(RSymbol[] ws, ReadSetEntry[] rs) {
+    private RFrameDescriptor(RSymbol[] ws, int wsBlossom, ReadSetEntry[] rs, int rsBlossom) {
         writeSet = ws;
+        writeSetBlossom = wsBlossom;
         readSet = rs;
+        readSetBlossom = rsBlossom;
     }
 
-    // TODO signature and other stuff
+    public static RFrameDescriptor createFrameDescriptor(RSymbol[] ws, ReadSetEntry[] rs) {
+        int wsBlossom = 0;
+        int rsBlossom = 0;
+
+        for (RSymbol sym : ws) {
+            wsBlossom |= sym.id();
+        }
+        for (ReadSetEntry rse : rs) {
+            rsBlossom |= rse.symbol.id();
+        }
+
+        return new RFrameDescriptor(ws, wsBlossom, rs, rsBlossom);
+    }
+
 
     static class ReadSetEntry {
 
@@ -26,24 +44,32 @@ public class RFrameDescriptor {
     }
 
     public int positionInWriteSet(RSymbol sym) {
-        RSymbol[] ws = writeSet;
-        int len = ws.length;
-        for (int i = 0; i < len; i++) {
-            if (ws[i] == sym) {
-                return i;
+        if (isIn(sym.id(), writeSetBlossom)) {
+            RSymbol[] ws = writeSet;
+            int len = ws.length;
+            for (int i = 0; i < len; i++) {
+                if (ws[i] == sym) {
+                    return i;
+                }
             }
         }
         return -1;
     }
 
     public ReadSetEntry getReadSetEntry(RSymbol sym) {
-        ReadSetEntry[] rs = readSet;
-        int len = rs.length;
-        for (int i = 0; i < len; i++) {
-            if (rs[i].symbol == sym) {
-                return rs[i];
+        if (isIn(sym.id(), readSetBlossom)) {
+            ReadSetEntry[] rs = readSet;
+            int len = rs.length;
+            for (int i = 0; i < len; i++) {
+                if (rs[i].symbol == sym) {
+                    return rs[i];
+                }
             }
         }
         return null;
+    }
+
+    static boolean isIn(int id, int blossom) { // TODO maybe move to Utils ?
+        return (id & blossom) == id;
     }
 }

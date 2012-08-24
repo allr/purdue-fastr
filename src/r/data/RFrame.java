@@ -22,8 +22,8 @@ public final class RFrame extends Frame {
 
     public RFrame(int numLocals, RFrame parent, RFrameDescriptor fdesc) {
         /*
-         * NOTE: We differ from the nomal one since you cannot screw up the special fields NOTE: primitives are NOT used
-         * for primitives but for dirty check + linking
+         * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
+         * used for primitives but for dirty check + linking
          */
         super(numLocals + RESERVED_SLOTS, parent);
         locals[FRAME_DESCRIPTOR] = fdesc;
@@ -32,18 +32,89 @@ public final class RFrame extends Frame {
     public RAny read(RSymbol sym) {
         int pos = getPositionInWS(sym);
         RFrameDescriptor.ReadSetEntry rse;
+        RAny val;
         if (pos >= 0) {
             return readViaWriteSet(pos, sym);
         } else if ((rse = getRSEntry(sym)) != null) {
-            return getParent().readViaReadSet(rse.frameHops - 1, rse.framePos, sym, this);
+            val = getParent().readViaReadSet(rse.frameHops - 1, rse.framePos, sym, this);
+            if (val == null) {
+                val = readFromTopLevel(sym);
+            }
         } else {
-            return readFromExtension(sym, null);
+            val = readFromExtension(sym, null);
+            if (val == null) {
+                val = readFromTopLevel(sym);
+            }
+        }
+        return val;
+    }
+
+    public void write(RSymbol sym, RAny value) {
+        int pos = getPositionInWS(sym);
+        if (pos >= 0) {
+            writeAt(pos, value);
+        } else {
+            writeInExtension(sym, value);
         }
     }
 
     public RAny readViaReadSet(int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0); // It was present in the writeSet
-        return getParent().readViaReadSet(hops - 1, pos, symbol, this);
+        RAny val = getParent().readViaReadSet(hops - 1, pos, symbol, this);
+        if (val == null) {
+            val = readFromTopLevel(symbol);
+        }
+        return val;
+    }
+
+    public RAny readViaWriteSet(int pos, RSymbol symbol) {
+        Object val;
+
+        val = locals[pos];
+        if (val != null) {
+            return Utils.cast(val);
+        }
+        ReadSetEntry rse = getRSEFromCache(pos, symbol);
+        RFrame f = getParent();
+        val = f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
+        if (val == null) {
+            val = readFromTopLevel(symbol);
+        }
+        return Utils.cast(val);
+    }
+
+    public RAny readFromTopLevel(RSymbol sym, int version) {
+        if (sym.getVersion() != version) {
+            RAny val = readFromExtension(sym, null);
+            if (val != null) {
+                return val;
+            }
+        }
+        return sym.getValue();
+    }
+
+    public void writeAt(int pos, RAny value) {
+        // Put an assertion or not ?
+        locals[pos] = value;
+    }
+
+    public void writeInExtension(RSymbol sym, RAny value) {
+        RFrameExtension ext = getExtensionSlot();
+        if (ext == null) {
+            ext = installExtension();
+            ext.put(this, sym, value); // The extension is brand new, we can use the first slot safely
+        } else {
+            int pos = ext.getPosition(sym);
+            if (pos >= 0) {
+                ext.writeAt(pos, value);
+            } else {
+                ext.put(this, sym, value);
+            }
+        }
+    }
+
+    private static RAny readFromTopLevel(RSymbol sym) {
+        return sym.value;
     }
 
     private RAny readViaReadSet(int hops, int pos, RSymbol symbol, RFrame first) {
@@ -79,18 +150,6 @@ public final class RFrame extends Frame {
         }
     }
 
-    public RAny readViaWriteSet(int pos, RSymbol symbol) {
-        Object val;
-
-        val = locals[pos];
-        if (val != null) {
-            return Utils.cast(val);
-        }
-        ReadSetEntry rse = getRSEFromCache(pos, symbol);
-        RFrame f = getParent();
-        return f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
-    }
-
     private RAny readFromExtension(RSymbol sym, RFrame stopFrame) {
         if (this == stopFrame) {
             return null;
@@ -113,7 +172,7 @@ public final class RFrame extends Frame {
         return getFrameDescriptor().positionInWriteSet(sym);
     }
 
-    private ReadSetEntry getRSEntry(RSymbol sym) { // TODO
+    private ReadSetEntry getRSEntry(RSymbol sym) {
         return getFrameDescriptor().getReadSetEntry(sym);
     }
 
@@ -129,41 +188,88 @@ public final class RFrame extends Frame {
         return Utils.cast(getObject(FRAME_DESCRIPTOR));
     }
 
+    private RFrameExtension installExtension() {
+        RFrameExtension ext = new RFrameExtension();
+        setObject(EXTENSION_SLOT, ext);
+        return ext;
+    }
+
+    private void markDirty(int pos) {
+        primitiveLocals[pos] |= ~DIRTY_MASK;
+    }
+
+    private static void markDirty(RFrame enclosing, RSymbol sym) {
+        RFrame current = enclosing;
+        while (current != null) {
+            int pos;
+            if ((pos = current.getPositionInWS(sym)) >= 0) {
+                current.markDirty(pos);
+                return;
+            }
+            current = enclosing.getParent();
+        }
+        sym.markDirty();
+    }
+
     private static class RFrameExtension {
 
-        // TODO better implementation
-
-        private int size = 0;
+        private int used = 0;
         private int capacity = 10;
+        // NOTE: we need a third counter for the last value use for storing the lastUsed value in case of removal
 
+        private int blossom; // This comes from Alex B. (?)
+        // Does it make any sense ?
+
+        // TODO Merge this two arrays, and use unsafe casts
         private RSymbol[] names = new RSymbol[capacity];
         private RAny[] values = new RAny[capacity];
 
-        RAny get(int pos) {
-            assert Utils.check(pos < size);
-            return values[pos];
+        private RAny get(RSymbol name) {
+            int pos = getPosition(name);
+            if (pos >= 0) {
+                return values[pos];
+            }
+            return null;
         }
 
-        RSymbol getNameAt(int pos) {
-            return names[pos];
-        }
-
-        int getPosition(RSymbol name) {
-            for (int i = 0; i < size; i++) {
-                if (names[i] == name) {
-                    return i;
+        private int getPosition(RSymbol name) {
+            if (RFrameDescriptor.isIn(name.id(), blossom)) {
+                RSymbol[] n = names;
+                for (int i = 0; i < used; i++) {
+                    if (n[i] == name) {
+                        return i;
+                    }
                 }
             }
             return -1;
         }
 
-        RAny get(RSymbol name) {
-            for (int i = 0; i < size; i++) {
-                if (names[i] == name) {
-                    return values[i];
-                }
+        private void put(RFrame enclosing, RSymbol sym, RAny val) {
+            int pos = used;
+            if (pos == capacity) {
+                expand(capacity * 2);
             }
-            return null;
+            used++;
+            names[pos] = sym;
+            values[pos] = val;
+
+            markDirty(enclosing, sym);
+            blossom |= sym.id();
+        }
+
+        private void writeAt(int pos, RAny value) { // TODO or not TODO assert that the good name is still here
+            assert Utils.check(pos < used);
+            values[pos] = value;
+        }
+
+        private void expand(int newCap) {
+            assert Utils.check(newCap > capacity);
+            RSymbol[] newNames = new RSymbol[newCap];
+            RAny[] newValues = new RAny[newCap];
+            System.arraycopy(names, 0, newNames, 0, used);
+            System.arraycopy(values, 0, newValues, 0, used);
+            names = newNames;
+            values = newValues;
         }
     }
 }
