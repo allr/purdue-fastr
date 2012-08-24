@@ -7,10 +7,14 @@ import r.data.internal.*;
 
 public final class RSymbol extends BaseObject implements RAny {
     final String name;
-    private static final SymbolTable symbolTable = new SymbolTable();
+    // The next to fields are for the topLevel
+    RAny value;
+    int version;
 
-    private RSymbol(String id) {
-        name = id;
+    private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
+
+    private RSymbol(String identifier) {
+        name = identifier;
     }
 
     public static RSymbol getSymbol(String name) {
@@ -21,6 +25,10 @@ public final class RSymbol extends BaseObject implements RAny {
     public String pretty() {
         // TODO put `` when needed
         return name;
+    }
+
+    public int id() { // TODO add a field for global numbering and use it !
+        return hashCode();
     }
 
     private static class SymbolTable {
@@ -47,5 +55,13 @@ public final class RSymbol extends BaseObject implements RAny {
     public RInt asInt() {
         Utils.nyi();
         return null;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public RAny getValue() {
+        return value;
     }
 }
