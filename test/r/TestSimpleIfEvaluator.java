@@ -3,27 +3,7 @@ package r;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-import r.data.*;
-import r.nodes.*;
-import r.nodes.tools.*;
-
-public class TestSimpleIfEvaluator {
-
-    static Truffleize truffleize = new Truffleize();
-    static RContext global = new RContext();
-
-    static String evalString(String input) throws RecognitionException {
-        return eval(input).pretty();
-    }
-
-    static void assertEval(String input, String expected) throws RecognitionException {
-        Assert.assertEquals(evalString(input), expected);
-    }
-
-    static RAny eval(String input) throws RecognitionException {
-        ASTNode astNode = TestPP.parse(input);
-        return global.eval(astNode);
-    }
+public class TestSimpleIfEvaluator extends TestBase {
 
 //    @Test
 //    public void testIf1() throws RecognitionException {
@@ -42,10 +22,11 @@ public class TestSimpleIfEvaluator {
         assertEval("if(FALSE) 1 else 2", "2.0");
     }
 
-    @Test
+  /*
+   * @Test
     public void testIfNot1() throws RecognitionException {
         assertEval("if(!FALSE) 1 else 2", "1.0");
         assertEval("if(!TRUE) 1 else 2", "2.0");
     }
-
+   */
 }
