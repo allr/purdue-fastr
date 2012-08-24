@@ -203,7 +203,7 @@ public class PrettyPrinter extends BasicVisitor {
 
     @Override
     public void visit(SimpleAccessVariable n) {
-        print(n.getName().pretty());
+        print(n.getSymbol().pretty());
     }
 
     private void print(ArgumentList alist, boolean isCall) {

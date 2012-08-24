@@ -1,6 +1,7 @@
 package r.nodes.tools;
 
 import r.*;
+import r.data.*;
 import r.nodes.*;
 import r.nodes.If;
 import r.nodes.Constant;
@@ -10,12 +11,23 @@ public class Truffleize implements Visitor {
 
     RNode result;
 
+    public RNode createRootTree(final ASTNode ast) {
+        return new BaseRNode(ast) {
+            final RNode node = updateParent(createTree(ast));
+            @Override
+            public Object execute(RContext context, RFrame frame) {
+                return node.execute(context, frame);
+            }
+        };
+    }
+
     public RNode createTree(ASTNode ast) {
         ast.accept(this);
         return result;
     }
 
-    public RNode createLazyTree(ASTNode ast) {
+    @SuppressWarnings("static-method")
+    private RNode createLazyTree(ASTNode ast) {
         return new LazyBuildNode(ast);
     }
 
@@ -56,6 +68,7 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(SimpleAccessVariable readVariable) {
+        result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, readVariable.getSymbol());
     }
 
     @Override
@@ -67,7 +80,7 @@ public class Truffleize implements Visitor {
         if (assign.isSuper()) {
             Utils.nyi();
         }
-        result = new r.nodes.truffle.AssignVariable(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+        result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
     }
 
     @Override

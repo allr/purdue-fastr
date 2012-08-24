@@ -25,7 +25,7 @@ public abstract class Call extends ASTNode {
     public static ASTNode create(ASTNode call, ArgumentList args) {
         if (call instanceof SimpleAccessVariable) {
             SimpleAccessVariable ccall = (SimpleAccessVariable) call;
-            return create(ccall.getName(), args);
+            return create(ccall.getSymbol(), args);
         }
         return null;
     }

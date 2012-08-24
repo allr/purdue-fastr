@@ -24,15 +24,13 @@ public class RContext implements Context {
 
     public RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createTree(expr).execute(this, topLevel());
+            return (RAny) truffleize.createRootTree(expr).execute(this, topLevel());
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
             } else {
                 error(e);
             }
-        } catch (RuntimeException e) {
-            e.printStackTrace();
         }
         return RNull.getNull(); // this is not quite correct, since R doesn't print anything here
         // Solutions: Maybe a black hole type could be used here

@@ -113,6 +113,10 @@ public final class RFrame extends Frame {
         }
     }
 
+    public static void writeInTopLevel(RSymbol sym, RAny value) {
+        sym.setValue(value);
+    }
+
     private static RAny readFromTopLevel(RSymbol sym) {
         return sym.value;
     }
@@ -150,7 +154,7 @@ public final class RFrame extends Frame {
         }
     }
 
-    private RAny readFromExtension(RSymbol sym, RFrame stopFrame) {
+    public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public beacause of ReadVariable
         if (this == stopFrame) {
             return null;
         }
@@ -168,11 +172,11 @@ public final class RFrame extends Frame {
         return (primitiveLocals[pos] & DIRTY_MASK) != 0;
     }
 
-    private int getPositionInWS(RSymbol sym) {
+    public int getPositionInWS(RSymbol sym) {
         return getFrameDescriptor().positionInWriteSet(sym);
     }
 
-    private ReadSetEntry getRSEntry(RSymbol sym) {
+    public ReadSetEntry getRSEntry(RSymbol sym) {
         return getFrameDescriptor().getReadSetEntry(sym);
     }
 

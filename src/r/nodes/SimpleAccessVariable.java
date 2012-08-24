@@ -4,14 +4,14 @@ import r.data.*;
 
 @Precedence(Precedence.MAX)
 public class SimpleAccessVariable extends AccessVariable {
-    RSymbol name;
+    RSymbol symbol;
 
-    public SimpleAccessVariable(RSymbol symbol) {
-       name = symbol;
+    public SimpleAccessVariable(RSymbol sym) {
+       symbol = sym;
     }
 
-    public RSymbol getName() {
-        return name;
+    public RSymbol getSymbol() {
+        return symbol;
     }
 
     @Override
@@ -24,6 +24,6 @@ public class SimpleAccessVariable extends AccessVariable {
 
     @Override
     public String toString() {
-        return name.pretty();
+        return symbol.pretty();
     }
 }

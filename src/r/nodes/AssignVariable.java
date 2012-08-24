@@ -2,6 +2,7 @@ package r.nodes;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 
 public abstract class AssignVariable extends ASTNode {
 
@@ -28,7 +29,9 @@ public abstract class AssignVariable extends ASTNode {
 
     public static ASTNode create(boolean isSuper, ASTNode lhs, ASTNode rhs) {
         if (lhs instanceof SimpleAccessVariable) {
-            return writeVariable(isSuper, ((SimpleAccessVariable) lhs).name, rhs);
+            return writeVariable(isSuper, ((SimpleAccessVariable) lhs).symbol, rhs);
+        } else if (lhs instanceof Constant) {
+            throw RError.getUnknownVariable(rhs); // TODO it's own exception
         }
         Utils.nyi();
         return null;

@@ -1,14 +1,16 @@
 package r;
 
+import r.errors.*;
+
 public final class Utils {
 
     public static void nyi() {
-        throw new RuntimeException("Not yet implemented ...");
+        throw RError.getNYI();
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object obj) {
-        return (T) cast(obj);
+        return (T) obj;
     }
 
     /**

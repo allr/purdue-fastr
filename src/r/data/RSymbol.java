@@ -63,15 +63,20 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
-    public int getVersion() {
-        return version;
-    }
-
     public RAny getValue() {
         return value;
     }
 
-    public void markDirty() {
+    void setValue(RAny val) {
+        value = val;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    void markDirty() {
         version++;
     }
+
 }

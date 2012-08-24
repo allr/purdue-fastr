@@ -30,7 +30,7 @@ public final class RFrameDescriptor {
     }
 
 
-    static class ReadSetEntry {
+    public static final class ReadSetEntry {
 
         ReadSetEntry(RSymbol sym, int hops, int pos) {
             symbol = sym;
