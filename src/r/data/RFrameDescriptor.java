@@ -3,30 +3,30 @@ package r.data;
 public final class RFrameDescriptor {
 
     final RSymbol[] writeSet;
-    final int writeSetBlossom;
+    final int writeSetBloom;
     final ReadSetEntry[] readSet;
-    final int readSetBlossom;
+    final int readSetBloom;
     // TODO signature and other stuff
 
-    private RFrameDescriptor(RSymbol[] ws, int wsBlossom, ReadSetEntry[] rs, int rsBlossom) {
+    private RFrameDescriptor(RSymbol[] ws, int wsBloom, ReadSetEntry[] rs, int rsBloom) {
         writeSet = ws;
-        writeSetBlossom = wsBlossom;
+        writeSetBloom = wsBloom;
         readSet = rs;
-        readSetBlossom = rsBlossom;
+        readSetBloom = rsBloom;
     }
 
     public static RFrameDescriptor createFrameDescriptor(RSymbol[] ws, ReadSetEntry[] rs) {
-        int wsBlossom = 0;
-        int rsBlossom = 0;
+        int wsBloom = 0;
+        int rsBloom = 0;
 
         for (RSymbol sym : ws) {
-            wsBlossom |= sym.id();
+            wsBloom |= sym.hash();
         }
         for (ReadSetEntry rse : rs) {
-            rsBlossom |= rse.symbol.id();
+            rsBloom |= rse.symbol.hash();
         }
 
-        return new RFrameDescriptor(ws, wsBlossom, rs, rsBlossom);
+        return new RFrameDescriptor(ws, wsBloom, rs, rsBloom);
     }
 
 
@@ -44,7 +44,7 @@ public final class RFrameDescriptor {
     }
 
     public int positionInWriteSet(RSymbol sym) {
-        if (isIn(sym.id(), writeSetBlossom)) {
+        if (isIn(sym.hash(), writeSetBloom)) {
             RSymbol[] ws = writeSet;
             int len = ws.length;
             for (int i = 0; i < len; i++) {
@@ -57,7 +57,7 @@ public final class RFrameDescriptor {
     }
 
     public ReadSetEntry getReadSetEntry(RSymbol sym) {
-        if (isIn(sym.id(), readSetBlossom)) {
+        if (isIn(sym.hash(), readSetBloom)) {
             ReadSetEntry[] rs = readSet;
             int len = rs.length;
             for (int i = 0; i < len; i++) {
@@ -69,7 +69,7 @@ public final class RFrameDescriptor {
         return null;
     }
 
-    static boolean isIn(int id, int blossom) { // TODO maybe move to Utils ?
-        return (id & blossom) == id;
+    static boolean isIn(int id, int bloomfilter) { // TODO maybe move to Utils ?
+        return (id & bloomfilter) == id;
     }
 }

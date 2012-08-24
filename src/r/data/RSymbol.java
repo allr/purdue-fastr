@@ -29,7 +29,11 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     public int id() { // TODO add a field for global numbering and use it !
-        return hashCode();
+        return hashCode(); // id = currentId++;
+    }
+
+    public int hash() { // TODO add a field for filtering!
+        return hashCode(); // hash = 1 << (currentHash = currentHash + 1 % Integer.size);
     }
 
     private static class SymbolTable {

@@ -217,8 +217,8 @@ public final class RFrame extends Frame {
         private int capacity = 10;
         // NOTE: we need a third counter for the last value use for storing the lastUsed value in case of removal
 
-        private int blossom; // This comes from Alex B. (?)
-        // Does it make any sense ?
+        private int bloom; // This bloom filter comes from Alex B. (renjin)
+        // Does it make any sense ? for this dynamic structures
 
         // TODO Merge this two arrays, and use unsafe casts
         private RSymbol[] names = new RSymbol[capacity];
@@ -233,7 +233,7 @@ public final class RFrame extends Frame {
         }
 
         private int getPosition(RSymbol name) {
-            if (RFrameDescriptor.isIn(name.id(), blossom)) {
+            if (RFrameDescriptor.isIn(name.hash(), boom)) {
                 RSymbol[] n = names;
                 for (int i = 0; i < used; i++) {
                     if (n[i] == name) {
@@ -254,7 +254,7 @@ public final class RFrame extends Frame {
             values[pos] = val;
 
             markDirty(enclosing, sym);
-            blossom |= sym.id();
+            bloom |= sym.id();
         }
 
         private void writeAt(int pos, RAny value) { // TODO or not TODO assert that the good name is still here
