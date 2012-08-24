@@ -233,7 +233,7 @@ public final class RFrame extends Frame {
         }
 
         private int getPosition(RSymbol name) {
-            if (RFrameDescriptor.isIn(name.hash(), boom)) {
+            if (RFrameDescriptor.isIn(name.hash(), bloom)) {
                 RSymbol[] n = names;
                 for (int i = 0; i < used; i++) {
                     if (n[i] == name) {
