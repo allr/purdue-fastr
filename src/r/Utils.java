@@ -38,4 +38,12 @@ public final class Utils {
         assert assertion : reason;
         return true;
     }
+
+    public static final boolean DEBUG = true;
+
+    public static void debug(String msg) {
+        if (DEBUG) {
+            System.err.println(msg);
+        }
+    }
 }

@@ -20,18 +20,42 @@ public class If extends BaseR {
         setFalseBranch(falseBranch);
     }
 
-
+    // The condition is treated as follows:
+    //   - no special node for a 1-value logical argument
+    //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
+    //   - a generic conversion node that can convert anything
     @Override
     public Object execute(RContext global, RFrame frame) {
         int ifVal;
-        RNode node = getCond();
+        RNode condNode = getCond();
 
         try {
-            ifVal = node.executeLogical(global, frame);
+            Utils.debug("executing condition in If");
+            ifVal = condNode.executeLogicalOne(global, frame);
+            Utils.debug("condition in if got expected result");
         } catch (UnexpectedResultException e) {
-//            TruffleSnippetDefinitions.deoptimize();
-            setCond(ConvertToLogicalOne.createNode(node, e.getResult()));
-            return execute(global, frame); // Recall self ! to avoid try/catch
+            // FIXME: this copies semantics from ConvertToLogical, perhaps could do better by replacing nodes in cast calls rather than in execute calls
+            Utils.debug("Condition in if got unexpected result.");
+            RAny result = (RAny)e.getResult();
+            ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(condNode, result);
+            try {
+                Utils.debug("Executing cast on new condition node in if.");
+                ifVal = castNode.cast(result, global);
+                Utils.debug("New condition node in if succeeded casting.");
+            } catch (UnexpectedResultException ee) {
+                castNode = ConvertToLogicalOne.createGenericNode(result);
+
+                try {
+                    Utils.debug("New condition node in if failed casting, doing a cast on the generic node.");
+                    ifVal = castNode.cast(result, global);
+                } catch (UnexpectedResultException eee) {
+                    Utils.check(false, "Generic convertToLogical failed");
+                    ifVal = -1;
+                }
+            }
+            Utils.debug("replacing node in if");
+            replaceChild(condNode, castNode);
+            Utils.check( getCond() == castNode, "replaceChild failed" );
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?

@@ -29,14 +29,8 @@ public abstract class RNode extends Node {
         return ValueConversion.expectDouble(execute(context, frame));
     }
 
-    public int executeLogical(RContext context, RFrame frame) throws UnexpectedResultException {
-        Object res = execute(context, frame);
-        if (res instanceof RLogical) { // FIXME call this nice value converter api // FIXME Check branch order
-            return ((RLogical) res).getLogical(0);
-        } else if (res instanceof Integer) {
-            return ((Integer) res).intValue();
-        }
-        throw new UnexpectedResultException(res);
+    public int executeLogicalOne(RContext context, RFrame frame) throws UnexpectedResultException {
+        return RValueConversion.expectLogicalOne((RAny) execute(context, frame));
     }
 
     public Object executeVoid(RContext context, RFrame frame) {
