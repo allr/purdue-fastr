@@ -6,7 +6,7 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-public abstract class WriteVariable extends BaseRNode {
+public abstract class WriteVariable extends BaseR {
 
     // TODO: All BaseRNode are useless EXCEPT for uninitialized version (since truffle keep track of the original)
     final RSymbol symbol;

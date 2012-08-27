@@ -3,11 +3,11 @@ package r.nodes.truffle;
 import r.nodes.*;
 
 
-public abstract class BaseRNode extends RNode {
+public abstract class BaseR extends RNode {
     ASTNode ast;
 
 
-    public BaseRNode(ASTNode orig) {
+    public BaseR(ASTNode orig) {
         ast = orig;
     }
 

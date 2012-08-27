@@ -8,7 +8,7 @@ import r.errors.*;
 import r.nodes.*;
 
 
-public class If extends BaseRNode {
+public class If extends BaseR {
     RNode cond;
     RNode trueBranch;
     RNode falseBranch;

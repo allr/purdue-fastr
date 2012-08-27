@@ -4,9 +4,9 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-public class LazyBuildNode extends BaseRNode {
+public class LazyBuild extends BaseR {
 
-    public LazyBuildNode(ASTNode orig) {
+    public LazyBuild(ASTNode orig) {
         super(orig);
         assert Utils.check(orig != null);
     }

@@ -6,7 +6,7 @@ import r.data.RFrameDescriptor.ReadSetEntry;
 import r.errors.*;
 import r.nodes.*;
 
-public abstract class ReadVariable extends BaseRNode {
+public abstract class ReadVariable extends BaseR {
 
     final RSymbol symbol;
 

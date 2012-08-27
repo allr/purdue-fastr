@@ -12,7 +12,7 @@ public class Truffleize implements Visitor {
     RNode result;
 
     public RNode createRootTree(final ASTNode ast) {
-        return new BaseRNode(ast) {
+        return new BaseR(ast) {
             final RNode node = updateParent(createTree(ast));
             @Override
             public Object execute(RContext context, RFrame frame) {
@@ -28,7 +28,7 @@ public class Truffleize implements Visitor {
 
     @SuppressWarnings("static-method")
     private RNode createLazyTree(ASTNode ast) {
-        return new LazyBuildNode(ast);
+        return new LazyBuild(ast);
     }
 
     @Override

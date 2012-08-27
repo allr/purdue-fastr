@@ -5,7 +5,7 @@ import r.data.*;
 import r.nodes.*;
 
 
-public class Constant extends BaseRNode {
+public class Constant extends BaseR {
     final RAny value;
 
     public Constant(ASTNode ast, RAny val) {
