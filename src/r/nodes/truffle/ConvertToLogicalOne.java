@@ -2,12 +2,10 @@ package r.nodes.truffle;
 
 import r.*;
 import r.data.*;
-import r.data.RLogical.*;
 import r.errors.*;
 import r.nodes.*;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
 
 public abstract class ConvertToLogicalOne extends RNode {
 
@@ -96,14 +94,21 @@ public abstract class ConvertToLogicalOne extends RNode {
                         throw new UnexpectedResultException(input);
                     }
                     RInt intArray = ((RInt) value);
+                    int intValue;
                     if (intArray.size() == 1) {
-                        return intArray.getInt(0);
-                    }
-                    if (intArray.size() > 1) {
+                        intValue = intArray.getInt(0);
+                    } else if (intArray.size() > 1) {
                         context.warning(getAST(), RError.LENGTH_GT_1);
-                        return intArray.getInt(0);
+                        intValue = intArray.getInt(0);
+                    } else {
+                        throw RError.getNulLength(null);
                     }
-                    throw RError.getNulLength(null);
+
+                    if (intValue == RLogical.TRUE || intValue == RLogical.NA) {
+                        return intValue;
+                    } else {
+                        return RLogical.FALSE;
+                    }
                 }
             };
         }

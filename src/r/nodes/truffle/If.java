@@ -36,7 +36,7 @@ public class If extends BaseR {
         } catch (UnexpectedResultException e) {
             // FIXME: this copies semantics from ConvertToLogical, perhaps could do better by replacing nodes in cast calls rather than in execute calls
             Utils.debug("Condition in if got unexpected result.");
-            RAny result = (RAny)e.getResult();
+            RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(condNode, result);
             try {
                 Utils.debug("Executing cast on new condition node in if.");
@@ -55,7 +55,7 @@ public class If extends BaseR {
             }
             Utils.debug("replacing node in if");
             replaceChild(condNode, castNode);
-            Utils.check( getCond() == castNode, "replaceChild failed" );
+            Utils.check(getCond() == castNode, "replaceChild failed");
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
