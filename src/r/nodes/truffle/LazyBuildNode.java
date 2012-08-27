@@ -14,7 +14,7 @@ public class LazyBuildNode extends BaseRNode {
     @Override
     public Object execute(RContext context, RFrame frame) {
         RNode node = context.createNode(getAST());
-        replace(node, null);
+        replace(node, "expandLazyBuildNode");
         return node.execute(context, frame);
     }
 

@@ -33,4 +33,9 @@ public final class Utils {
         assert assertion;
         return true;
     }
+
+    public static boolean check(final boolean assertion, final String reason) {
+        assert assertion : reason;
+        return true;
+    }
 }

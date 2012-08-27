@@ -37,7 +37,7 @@ public abstract class ConvertToLogicalOne extends RNode {
         try {
             return RLogicalFactory.getArray(executeLogical(context, frame));
         } catch (UnexpectedResultException e) {
-            return replace(factory.fromGeneric((RAny) input.execute(context, frame)), null).execute(context, frame);
+            return replace(factory.fromGeneric((RAny) input.execute(context, frame)), "installConvertToLogicalOneFromGenericNode").execute(context, frame);
         }
     }
 
@@ -64,13 +64,13 @@ public abstract class ConvertToLogicalOne extends RNode {
                     if (!(val instanceof RLogical)) {
                         throw new UnexpectedResultException(input);
                     }
-                    RLogical intArray = ((RLogical) val);
-                    if (intArray.size() == 1) {
-                        return intArray.getLogical(0);
+                    RLogical logicalArray = ((RLogical) val);
+                    if (logicalArray.size() == 1) {
+                        return logicalArray.getLogical(0);
                     }
-                    if (intArray.size() > 1) {
+                    if (logicalArray.size() > 1) {
                         context.warning(getAST(), RError.LENGTH_GT_1);
-                        return intArray.getLogical(0);
+                        return logicalArray.getLogical(0);
                     }
                     throw RError.getNulLength(null);
                 }
@@ -107,12 +107,12 @@ public abstract class ConvertToLogicalOne extends RNode {
                 @Override
                 public int executeLogical(RContext context, RFrame frame) {
                     RAny val = (RAny) input.execute(context, frame);
-                    RLogical logVal = val.asLogical();
-                    if (logVal.size() == 1) { // FIXME try to call perform check
-                        return logVal.getLogical(0);
+                    RLogical logicalArray = val.asLogical();
+                    if (logicalArray.size() == 1) { // FIXME try to call perform check
+                        return logicalArray.getLogical(0);
                     }
-                    if (logVal.size() > 1) {
-                        return logVal.getLogical(0);
+                    if (logicalArray.size() > 1) {
+                        return logicalArray.getLogical(0);
                     }
                     throw RError.getNulLength(null);
                 }

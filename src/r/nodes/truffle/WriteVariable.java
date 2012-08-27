@@ -32,18 +32,23 @@ public abstract class WriteVariable extends BaseRNode {
             @Override
             public Object execute(RContext context, RFrame frame) {
                 WriteVariable node;
+                String reason;
+
                 if (frame == null) {
                     node = getWriteTopLevel(getAST(), symbol, expr);
+                    reason = "installWriteTopLevelNode";
                 } else {
                     int pos = frame.getPositionInWS(symbol);
                     if (pos >= 0) {
                         node = getWriteLocal(getAST(), symbol, pos, expr);
+                        reason = "installWriteLocalNode";
                     } else {
-                        node = getWriteExtension(getAST(), symbol, expr); // TODO this should be removed or at least
-// asserted false !
+                        node = getWriteExtension(getAST(), symbol, expr); // TODO this should be removed or at least asserted false !
+                        reason = "installWriteExtensionNode (!!! REMOVE when write sets are implemented)";
+                        Utils.check(false, "TODO: implement wset and remove this condition");
                     }
                 }
-                return replace(node, null).execute(context, frame);
+                return replace(node, reason).execute(context, frame);
             }
         };
     }
