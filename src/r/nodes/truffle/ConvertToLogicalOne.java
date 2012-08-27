@@ -42,7 +42,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                 intVal = node.cast(res, context);
             } catch (UnexpectedResultException ee) {
                 Utils.check(false, "generic ConvertToLogical failed");
-                intVal = -1; // make eclipse happy
+                intVal = -1; // not reached
             }
         }
         return intVal;
