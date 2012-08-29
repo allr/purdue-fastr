@@ -36,7 +36,7 @@ public abstract class ConvertToLogicalOne extends RNode {
             return cast(condValue, context);
         } catch (UnexpectedResultException e) {
             Utils.debug("2nd level cast failed, replacing by generic");
-            ConvertToLogicalOne castNode = replace(createGenericNode(condValue), "installGenericConvertToLogical from cast node");
+            ConvertToLogicalOne castNode = replace(createGenericNode(), "installGenericConvertToLogical from cast node");
             return castNode.executeLogicalOne(context, frame, condValue);
         }
     }
@@ -47,8 +47,8 @@ public abstract class ConvertToLogicalOne extends RNode {
         return node;
     }
 
-    public static ConvertToLogicalOne createGenericNode(RAny value) {
-        return factory.fromGeneric(value);
+    public static ConvertToLogicalOne createGenericNode() {
+        return factory.fromGeneric();
     }
 
     public abstract int cast(RAny value, RContext context) throws UnexpectedResultException;
@@ -56,7 +56,7 @@ public abstract class ConvertToLogicalOne extends RNode {
     static OperationFactory<ConvertToLogicalOne> factory = new OperationFactory<ConvertToLogicalOne>() {
 
         @Override
-        public ConvertToLogicalOne fromLogical(RLogical obj) {
+        public ConvertToLogicalOne fromLogical() {
             return new ConvertToLogicalOne() {
 
                 @Override
@@ -79,7 +79,7 @@ public abstract class ConvertToLogicalOne extends RNode {
         }
 
         @Override
-        public ConvertToLogicalOne fromInt(RInt obj) {
+        public ConvertToLogicalOne fromInt() {
             return new ConvertToLogicalOne() {
 
                 @Override
@@ -109,7 +109,7 @@ public abstract class ConvertToLogicalOne extends RNode {
         }
 
         @Override
-        public ConvertToLogicalOne fromGeneric(RAny obj) {
+        public ConvertToLogicalOne fromGeneric() {
             return new ConvertToLogicalOne() {
 
                 @Override

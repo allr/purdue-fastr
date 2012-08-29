@@ -1,25 +1,24 @@
 package r.nodes;
 
-import r.data.*;
 import r.nodes.truffle.*;
 
 public abstract class OperationFactory<T extends RNode> {
 
-    public abstract T fromGeneric(RAny obj); // FIXME argument never needed
+    public abstract T fromGeneric();
 
-    public T fromInt(RInt obj) {
-        return fromGeneric(obj);
+    public T fromInt() {
+        return fromGeneric();
     }
 
-    public T fromLogical(RLogical obj) {
-        return fromGeneric(obj);
+    public T fromLogical() {
+        return fromGeneric();
     }
 
-    public T fromDouble(RDouble obj) {
-        return fromGeneric(obj);
+    public T fromDouble() {
+        return fromGeneric();
     }
 
-    public T fromNull(RNull obj) {
-        return fromGeneric(obj);
+    public T fromNull() {
+        return fromGeneric();
     }
 }

@@ -74,6 +74,6 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-        return factory.fromNull(this);
+        return factory.fromNull();
     }
 }

@@ -13,6 +13,6 @@ public class BaseObject {
     }
 
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-        return factory.fromGeneric((RAny) this); // This cast is stupid and will be fixed soon
+        return factory.fromGeneric(); // This cast is stupid and will be fixed soon
     }
 }

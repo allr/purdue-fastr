@@ -68,6 +68,6 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-        return factory.fromInt(this);
+        return factory.fromInt();
     }
 }
