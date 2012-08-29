@@ -71,6 +71,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         return str.toString();
     }
 
+    @Override
+    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+        return factory.fromLogical(this);
+    }
+
     class IntView implements RInt {
 
         @Override

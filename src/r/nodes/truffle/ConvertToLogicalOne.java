@@ -26,32 +26,23 @@ public abstract class ConvertToLogicalOne extends RNode {
 
     // This is used for intermediate cast nodes - those assuming an array of logicals or ints
     @Override
-    public int executeLogicalOne(RContext context, RFrame frame) throws UnexpectedResultException {
-        RAny res = (RAny) input.execute(context, frame);
-        int intVal;
-
-        try {
-            Utils.debug("Executing 2nd level cast in executeLogicalOne of ConvertToLogicalOne.");
-            intVal = cast(res, context);
-            Utils.debug("2nd level cast succeeded.");
-        } catch (UnexpectedResultException e) {
-            // fall-back to generic case
-            ConvertToLogicalOne node = replace(createGenericNode(res), "installGenericConvertToLogical from cast node");
-            try {
-                Utils.debug("2nd level cast failed, casting using a generic node");
-                intVal = node.cast(res, context);
-            } catch (UnexpectedResultException ee) {
-                Utils.check(false, "generic ConvertToLogical failed");
-                intVal = -1; // not reached
-            }
-        }
-        return intVal;
+    public int executeLogicalOne(RContext context, RFrame frame) {
+        return executeLogicalOne(context, frame, (RAny) input.execute(context, frame));
     }
 
-    public abstract int cast(RAny value, RContext context) throws UnexpectedResultException;
+    public int executeLogicalOne(RContext context, RFrame frame, RAny condValue) {
+        try {
+            Utils.debug("executing 2nd level cast");
+            return cast(condValue, context);
+        } catch (UnexpectedResultException e) {
+            Utils.debug("2nd level cast failed, replacing by generic");
+            ConvertToLogicalOne castNode = replace(createGenericNode(condValue), "installGenericConvertToLogical from cast node");
+            return castNode.executeLogicalOne(context, frame, condValue);
+        }
+    }
 
-    public static ConvertToLogicalOne createNode(RNode expr, Object obj) {
-        ConvertToLogicalOne node = ((RAny) obj).callNodeFactory(factory);
+    public static ConvertToLogicalOne createNode(RNode expr, RAny value) {
+        ConvertToLogicalOne node = value.callNodeFactory(factory);
         node.setInput(expr);
         return node;
     }
@@ -59,6 +50,8 @@ public abstract class ConvertToLogicalOne extends RNode {
     public static ConvertToLogicalOne createGenericNode(RAny value) {
         return factory.fromGeneric(value);
     }
+
+    public abstract int cast(RAny value, RContext context) throws UnexpectedResultException;
 
     static OperationFactory<ConvertToLogicalOne> factory = new OperationFactory<ConvertToLogicalOne>() {
 
@@ -68,6 +61,7 @@ public abstract class ConvertToLogicalOne extends RNode {
 
                 @Override
                 public int cast(RAny value, RContext context) throws UnexpectedResultException {
+                    Utils.debug("casting logical to one logical");
                     if (!(value instanceof RLogical)) {
                         throw new UnexpectedResultException(input);
                     }
@@ -90,6 +84,7 @@ public abstract class ConvertToLogicalOne extends RNode {
 
                 @Override
                 public int cast(RAny value, RContext context) throws UnexpectedResultException {
+                    Utils.debug("casting integer to one logical");
                     if (!(value instanceof RInt)) {
                         throw new UnexpectedResultException(input);
                     }
@@ -119,6 +114,7 @@ public abstract class ConvertToLogicalOne extends RNode {
 
                 @Override
                 public int cast(RAny value, RContext context) {
+                    Utils.debug("casting generic to one logical");
                     RLogical logicalArray = value.asLogical();
                     if (logicalArray.size() == 1) { // FIXME try to call perform check
                         return logicalArray.getLogical(0);
@@ -131,10 +127,8 @@ public abstract class ConvertToLogicalOne extends RNode {
                 }
 
                 @Override
-                public int executeLogicalOne(RContext context, RFrame frame) throws UnexpectedResultException {
-                    RAny res = (RAny) input.execute(context, frame);
-                    Utils.debug("Casting within executeLogicalOne of the generic cast node.");
-                    return cast(res, context);
+                public int executeLogicalOne(RContext context, RFrame frame, RAny condValue) {
+                    return cast(condValue, context);
                 }
             };
         }
