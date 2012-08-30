@@ -10,9 +10,19 @@ public class Function extends ASTNode {
     final ArgumentList signature;
     final ASTNode body;
 
+    RFunction rfunction; // FIXME: is it ok this is not final?
+
     Function(ArgumentList alist, ASTNode body) {
         this.signature = alist;
         this.body = updateParent(body);
+    }
+
+    public RFunction getR() {
+        return rfunction;
+    }
+
+    public void setR(RFunction rfunction) {
+        this.rfunction = rfunction;
     }
 
     Closure getClosure(RFrame env) {

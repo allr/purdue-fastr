@@ -4,7 +4,7 @@ import r.data.*;
 
 public class FunctionCall extends Call {
 
-    RSymbol name;
+    RSymbol name; // FIXME: LHS of a call does not need to be a symbol, it can be a lambda expression
 
     public FunctionCall(RSymbol funName, ArgumentList args) {
         super(args);

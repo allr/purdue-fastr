@@ -1,7 +1,8 @@
 package r.data;
 
 import r.*;
-import r.data.RFrameDescriptor.ReadSetEntry;
+import r.data.RFunction.ReadSetEntry;
+import r.data.internal.*;
 
 import com.oracle.truffle.runtime.*;
 
@@ -20,18 +21,18 @@ public final class RFrame extends Frame {
     public static final long POS_BITS = 16;
     public static final long HOPS_MASK = ((1 << HOPS_BITS) - 1) << POS_BITS;
 
-    public RFrame(int numLocals, RFrame parent, RFrameDescriptor fdesc) {
+    public RFrame(RFrame parent, RFunction fdesc) {
         /*
          * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
          * used for primitives but for dirty check + linking
          */
-        super(numLocals + RESERVED_SLOTS, parent);
+        super(fdesc.nlocals() + RESERVED_SLOTS, parent);
         locals[FRAME_DESCRIPTOR] = fdesc;
     }
 
     public RAny read(RSymbol sym) {
         int pos = getPositionInWS(sym);
-        RFrameDescriptor.ReadSetEntry rse;
+        RFunction.ReadSetEntry rse;
         RAny val;
         if (pos >= 0) {
             return readViaWriteSet(pos, sym);
@@ -184,12 +185,12 @@ public final class RFrame extends Frame {
         return Utils.cast(getObject(PARENT_SLOT));
     }
 
-    private RFrameDescriptor getFrameDescriptor() {
+    private RFunction getFrameDescriptor() {
         return Utils.cast(getObject(FRAME_DESCRIPTOR));
     }
 
     private RFrameExtension getExtensionSlot() {
-        return Utils.cast(getObject(FRAME_DESCRIPTOR));
+        return Utils.cast(getObject(EXTENSION_SLOT));
     }
 
     private RFrameExtension installExtension() {
@@ -237,7 +238,7 @@ public final class RFrame extends Frame {
         }
 
         private int getPosition(RSymbol name) {
-            if (RFrameDescriptor.isIn(name.hash(), bloom)) {
+            if (FunctionImpl.isIn(name.hash(), bloom)) {
                 RSymbol[] n = names;
                 for (int i = 0; i < used; i++) {
                     if (n[i] == name) {

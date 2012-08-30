@@ -2,6 +2,7 @@ package r.nodes.truffle;
 
 import r.*;
 import r.data.*;
+import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
 import r.nodes.*;
 
@@ -20,16 +21,15 @@ public abstract class ConvertToLogicalOne extends RNode {
 
     @Override
     public RAny execute(RContext context, RFrame frame) {
-        Utils.check(false, "ConvertToLogicalOne.execute should not be called");
-        return null;
+        return RLogicalFactory.getArray(executeLogicalOne(context, frame));
     }
 
-    // This is used for intermediate cast nodes - those assuming an array of logicals or ints
     @Override
     public int executeLogicalOne(RContext context, RFrame frame) {
         return executeLogicalOne(context, frame, (RAny) input.execute(context, frame));
     }
 
+    // The execute methods are use by intermediate cast nodes - those assuming an array of logicals or ints
     public int executeLogicalOne(RContext context, RFrame frame, RAny condValue) {
         try {
             Utils.debug("executing 2nd level cast");

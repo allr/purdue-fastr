@@ -25,6 +25,24 @@ public class Sequence extends ASTNode {
         }
     }
 
+    @Override
+    public String toString() {
+
+        if (exprs.length==0) {
+            return "";
+        }
+        StringBuilder str = new StringBuilder();
+        boolean first = true;
+        for (ASTNode e: exprs) {
+            if (!first) {
+                str.append("; ");
+            }
+            first = false;
+            str.append(e.toString());
+        }
+        return str.toString();
+    }
+
     public static ASTNode create(ArrayList<ASTNode> exprs) {
         return new Sequence(exprs.toArray(new ASTNode[exprs.size()]));
     }
