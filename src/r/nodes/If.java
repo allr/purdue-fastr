@@ -45,7 +45,10 @@ public class If extends ASTNode {
     public void visit_all(Visitor v) {
         getCond().accept(v);
         getTrueCase().accept(v);
-        getFalseCase().accept(v);
+        ASTNode fcase = getFalseCase();
+        if (fcase != null) {
+            fcase.accept(v);
+        }
     }
 
     public static If create(ASTNode cond, ASTNode trueBranch) {

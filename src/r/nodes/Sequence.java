@@ -27,8 +27,7 @@ public class Sequence extends ASTNode {
 
     @Override
     public String toString() {
-
-        if (exprs.length==0) {
+        if (exprs.length == 0) {
             return "";
         }
         StringBuilder str = new StringBuilder();

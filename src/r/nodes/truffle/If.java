@@ -13,6 +13,8 @@ public class If extends BaseR {
     RNode trueBranch;
     RNode falseBranch;
 
+    private static final boolean DEBUG_IF = false;
+
     public If(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
         super(ast);
         setCond(cond);
@@ -30,11 +32,11 @@ public class If extends BaseR {
         RNode condNode = getCond();
 
         try {
-            Utils.debug("executing condition");
+            if (DEBUG_IF) Utils.debug("executing condition");
             ifVal = condNode.executeLogicalOne(context, frame);
-            Utils.debug("condition got expected result");
+            if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (UnexpectedResultException e) {
-            Utils.debug("condition got unexpected result, inserting 2nd level cast node");
+            if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(condNode, result);
             replaceChild(condNode, castNode);

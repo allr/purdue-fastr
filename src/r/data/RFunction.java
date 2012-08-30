@@ -1,10 +1,10 @@
 package r.data;
 
-import r.data.internal.*;
 import r.nodes.truffle.*;
 
 public interface RFunction extends RAny {
-    RArgumentList args();
+    RSymbol[] argNames();
+    RNode[] argExprs();
     RFunction parent();
     RNode body();
     int nlocals();

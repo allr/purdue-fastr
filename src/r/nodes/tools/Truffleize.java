@@ -95,7 +95,10 @@ public class Truffleize implements Visitor {
         result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
     }
 
-    private RArgumentList convertArgumentList(ArgumentList alist) {
+    private RSymbol[] convertedNames;
+    private RNode[] convertedExpressions;
+
+    private void convertArgumentList(ArgumentList alist) {
         int args = alist.size();
         RSymbol[] names = new RSymbol[args];
         RNode[] expressions = new RNode[args];
@@ -109,7 +112,8 @@ public class Truffleize implements Visitor {
             i++;
         }
         Utils.check(i == args);
-        return new RArgumentList(names, expressions);
+        convertedNames = names;
+        convertedExpressions = expressions;
     }
 
     static class FindAccesses implements Visitor {
@@ -124,7 +128,7 @@ public class Truffleize implements Visitor {
 
         public void run(Function func) {
             func.visit_all(this); // does a function body
-              // FIXME: should visit_all also visit the default expressions by itself?
+              // FIXME: should visit_all visit the default expressions on its own?
             ArgumentList al = func.getSignature();
             for (ArgumentList.Entry e : al) {
                 ASTNode val = e.getValue();
@@ -187,6 +191,7 @@ public class Truffleize implements Visitor {
         @Override
         public void visit(SimpleAssignVariable assign) {
             written.add(assign.getSymbol());
+            assign.visit_all(this); // visit the rhs expression
         }
 
         @Override
@@ -202,7 +207,6 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(Function function) {
-        RArgumentList ralist = convertArgumentList(function.getSignature());
 
         // find lexically enclosing function
         RFunction encf = null;
@@ -214,6 +218,7 @@ public class Truffleize implements Visitor {
             }
             n = n.getParent();
         }
+        Utils.debug("enclosing function is "+encf);
 
         // find variables accessed
         HashSet<RSymbol> read = new HashSet<>();
@@ -222,18 +227,20 @@ public class Truffleize implements Visitor {
         FindAccesses fa = new FindAccesses(read, written);
         fa.run(function);
 
-        RFunction rfunction = FunctionImpl.create(ralist, null, encf, written, read);
-        r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(function, rfunction, createLazyTree(function.getBody()));
-        ((FunctionImpl) rfunction).setCode(functionNode);
+        convertArgumentList(function.getSignature());
+        RFunction rfunction = FunctionImpl.create(convertedNames, null, encf, written, read);
+        function.setR(rfunction);
+        r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(function, rfunction, convertedNames, convertedExpressions, createLazyTree(function.getBody()));
+        ((FunctionImpl) rfunction).setFunctionNode(functionNode);
         result = functionNode;
     }
 
     @Override
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
-        RArgumentList ralist = convertArgumentList(functionCall.getArgs());
+        convertArgumentList(functionCall.getArgs());
         RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName());
-        result = new r.nodes.truffle.FunctionCall(functionCall, ralist, fexp);
+        result = new r.nodes.truffle.FunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
     }
 
 }

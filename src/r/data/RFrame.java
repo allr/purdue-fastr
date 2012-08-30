@@ -71,15 +71,19 @@ public final class RFrame extends Frame {
     public RAny readViaWriteSet(int pos, RSymbol symbol) {
         Object val;
 
-        val = locals[pos];
+        val = locals[pos + RESERVED_SLOTS];
         if (val != null) {
             return Utils.cast(val);
         }
         ReadSetEntry rse = getRSEFromCache(pos, symbol);
-        RFrame f = getParent();
-        val = f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
-        if (val == null) {
+        if (rse == null) {
             val = readFromTopLevel(symbol);
+        } else {
+            RFrame f = getParent();
+            val = f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
+            if (val == null) {
+                val = readFromTopLevel(symbol);
+            }
         }
         return Utils.cast(val);
     }
@@ -96,7 +100,7 @@ public final class RFrame extends Frame {
 
     public void writeAt(int pos, RAny value) {
         // Put an assertion or not ?
-        locals[pos] = value;
+        locals[pos + RESERVED_SLOTS] = value;
     }
 
     public void writeInExtension(RSymbol sym, RAny value) {
@@ -145,17 +149,19 @@ public final class RFrame extends Frame {
     }
 
     private ReadSetEntry getRSEFromCache(int pos, RSymbol sym) {
-        long cache = primitiveLocals[pos] & ~DIRTY_MASK;
+        long cache = primitiveLocals[pos + RESERVED_SLOTS] & ~DIRTY_MASK;
         if (cache == 0) {
             ReadSetEntry rse = getFrameDescriptor().getReadSetEntry(sym);
-            primitiveLocals[pos] |= (rse.frameHops << POS_BITS) | rse.framePos;
+            if (rse != null) { // variable is top-level or constructed by reflection and read by reflection
+                primitiveLocals[pos + RESERVED_SLOTS] |= (rse.frameHops << POS_BITS) | rse.framePos;
+            }
             return rse;
         } else {
             return new ReadSetEntry(null, (int) (cache & HOPS_MASK) >> POS_BITS, (int) (pos & ~HOPS_MASK));
         }
     }
 
-    public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public beacause of ReadVariable
+    public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public because of ReadVariable
         if (this == stopFrame) {
             return null;
         }

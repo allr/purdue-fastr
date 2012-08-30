@@ -18,4 +18,13 @@ public class SimpleAssignVariable extends AssignVariable {
     public void accept(Visitor v) {
         v.visit(this);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(variable.pretty());
+        str.append("<-");
+        str.append(rhs.toString());
+        return str.toString();
+    }
 }

@@ -2,33 +2,42 @@ package r.data.internal;
 
 import java.util.*;
 
+import r.*;
 import r.data.*;
 import r.nodes.truffle.*;
 
-public class FunctionImpl extends BaseObject implements RFunction {
-    final RArgumentList args;
-    Function code; // AST Function node that holds the function body
+// FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
 
+public class FunctionImpl extends BaseObject implements RFunction {
+    Function fnode; // AST Function node that holds the function body
     final RFunction parent;
     final RSymbol[] writeSet;
     final int writeSetBloom;
     final ReadSetEntry[] readSet;
     final int readSetBloom;
 
+    private static final boolean DEBUG_CALLS = false;
+
         // note: the locallyWritten and locallyRead hash sets are modified input parameters
-    public static RFunction create(RArgumentList args, Function code, RFunction parent, HashSet<RSymbol> locallyWritten, HashSet<RSymbol> locallyRead) {
+    public static RFunction create(RSymbol[] argNames, Function fnode, RFunction parent, HashSet<RSymbol> locallyWritten, HashSet<RSymbol> locallyRead) {
+
+        // note: we cannot read fnode.argNames() here as it is not yet initialized
         HashSet<RSymbol> rs = locallyRead;
         HashSet<RSymbol> ws = locallyWritten;
 
+        // build write set
+        for (RSymbol s : argNames) {
+            ws.remove(s); // arguments have to be first in the list and in fixed order
+            rs.remove(s); // arguments do not read-set entries because they are always defined
+        }
+        RSymbol[] writeSet = new RSymbol[ws.size() + argNames.length];
+        int i = 0;
+        for (; i < argNames.length; i++) {
+            writeSet[i] = argNames[i];
+        }
         for (RSymbol s : ws) {
-            rs.remove(s);
+            writeSet[i++] = s;
         }
-        for (int i = 0; i < args.length(); i++) {
-            RSymbol s = args.name(i);
-            ws.add(s);
-            rs.remove(s);
-        }
-        RSymbol[] writeSet = ws.toArray(new RSymbol[0]);
 
         // build read set
         ReadSetEntry[] readSet;
@@ -62,17 +71,60 @@ public class FunctionImpl extends BaseObject implements RFunction {
             readSetBloom |= rse.symbol.hash();
         }
 
-        return new FunctionImpl(args, code, parent, writeSet, writeSetBloom, readSet, readSetBloom);
+        return new FunctionImpl(fnode, parent, writeSet, writeSetBloom, readSet, readSetBloom);
     }
 
-    FunctionImpl(RArgumentList args, Function code, RFunction parent, RSymbol[] writeSet, int writeSetBloom, ReadSetEntry[] readSet, int readSetBloom) {
-        this.args = args;
-        this.code = code;
+    FunctionImpl(Function fnode, RFunction parent, RSymbol[] writeSet, int writeSetBloom, ReadSetEntry[] readSet, int readSetBloom) {
+        this.fnode = fnode;
         this.parent = parent;
         this.writeSet = writeSet;
         this.readSet = readSet;
         this.readSetBloom = readSetBloom;
         this.writeSetBloom = writeSetBloom;
+
+        if (DEBUG_CALLS) {
+            Utils.debug("creating function with");
+            Utils.debug("write set (" + writeSet.length + ") is: " + printWriteSet(writeSet));
+            Utils.debug("read set (" + readSet.length + ") is: " + printReadSet(readSet));
+        }
+    }
+
+    private static String printWriteSet(RSymbol[] writeSet) {
+        StringBuilder str = new StringBuilder();
+        boolean first = true;
+        int i = 0;
+        for (RSymbol s : writeSet) {
+            if (first) {
+                first = false;
+            } else {
+                str.append(", ");
+            }
+            str.append(s.pretty());
+            str.append(":");
+            str.append(i);
+            i++;
+        }
+        return str.toString();
+    }
+
+    private static String printReadSet(ReadSetEntry[] readSet) {
+        StringBuilder str = new StringBuilder();
+        boolean first = true;
+        for (ReadSetEntry e : readSet) {
+            if (first) {
+                first = false;
+            } else {
+                str.append(", ");
+            }
+            str.append(e.symbol.pretty());
+            str.append(":");
+            str.append("(");
+            str.append(e.frameHops);
+            str.append(",");
+            str.append(e.framePos);
+            str.append(")");
+        }
+        return str.toString();
     }
 
     public int nlocals() {
@@ -108,7 +160,7 @@ public class FunctionImpl extends BaseObject implements RFunction {
 
     public ReadSetEntry getReadSetEntry(RSymbol sym) {
         int i = positionInReadSet(sym);
-        return (i==-1) ? null : readSet[i];
+        return (i == -1) ? null : readSet[i];
     }
 
     public static boolean isIn(int id, int bloomfilter) { // TODO maybe move to Utils ?
@@ -120,19 +172,22 @@ public class FunctionImpl extends BaseObject implements RFunction {
         // FIXME: real R remembers the expression string for this
         StringBuilder str = new StringBuilder();
         str.append("function (");
-        for (int i = 0; i < args.length(); i++) {
+        RSymbol[] anames = fnode.argNames();
+        RNode[] aexprs = fnode.argExprs();
+
+        for (int i = 0; i < anames.length; i++) {
             if (i >= 1) {
                 str.append(",");
             }
-            str.append(args.name(i).pretty());
-            RNode exp = args.expression(i);
+            str.append(anames[i].pretty());
+            RNode exp = aexprs[i];
             if (exp != null) {
                 str.append("=");
-                str.append(args.expression(i).getAST().toString());
+                str.append(exp.getAST().toString());
             }
         }
         str.append(") {");
-        str.append(code.body().getAST().toString());
+        str.append(fnode.body().getAST().toString());
         str.append("}");
         return str.toString();
     }
@@ -150,17 +205,22 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     @Override
-    public RArgumentList args() {
-        return args;
+    public RSymbol[] argNames() {
+        return fnode.argNames();
+    }
+
+    @Override
+    public RNode[] argExprs() {
+        return fnode.argExprs();
     }
 
     @Override
     public RNode body() {
-        return code.body();
+        return fnode.body();
     }
 
-    public void setCode(Function code) {
-        this.code = code;
+    public void setFunctionNode(Function code) {
+        this.fnode = code;
     }
 
     @Override
