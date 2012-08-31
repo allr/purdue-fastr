@@ -2,11 +2,12 @@ package r.data;
 
 import r.nodes.truffle.*;
 
-public interface RFunction extends RAny {
+public interface RFunction {
     RSymbol[] argNames();
     RNode[] argExprs();
     RFunction parent();
     RNode body();
+    Function node();
     int nlocals();
     // FIXME: will also need methods to modify a function
 

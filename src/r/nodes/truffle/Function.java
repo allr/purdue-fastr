@@ -2,8 +2,8 @@ package r.nodes.truffle;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.nodes.*;
-
 
 public class Function extends BaseR {
 
@@ -22,7 +22,7 @@ public class Function extends BaseR {
 
     @Override
     public Object execute(RContext context, RFrame frame) {
-        return function; // NOTE: do not execute the function, this just returns a function object
+        return new ClosureImpl(function, frame);
     }
 
     public RNode body() {

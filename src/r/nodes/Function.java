@@ -1,8 +1,6 @@
 package r.nodes;
 
-import r.*;
 import r.data.*;
-import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 public class Function extends ASTNode {
@@ -25,10 +23,6 @@ public class Function extends ASTNode {
         this.rfunction = rfunction;
     }
 
-    Closure getClosure(RFrame env) {
-        return new Closure(env);
-    }
-
     public ArgumentList getSignature() {
         return signature;
     }
@@ -47,55 +41,32 @@ public class Function extends ASTNode {
         body.accept(v);
     }
 
-    public class Closure implements RClosure {
-
-        // Note that closure in R are normal object thus with attributes
-        // This class does not extends base objects thus does not have attributes
-        // I'm not sure anyway it make sense to have this attributes ...
-        // NB: timeR use them ... but it was MY design choice
-        final RFrame frame;
-
-        Closure(RFrame frame) {
-            this.frame = frame;
-        }
-
-        @Override
-        public RFrame activate() {
-            return null;
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return RNull.getNull();
-        }
-
-        @Override
-        public String pretty() {
-            PrettyPrinter pp = PrettyPrinter.getStringPrettyPrinter();
-            pp.print(Function.this);
-            return pp.toString();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RInt asInt() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-            Utils.nyi(); // Do we have to bind on the view node or on the implementation
-            return null;
-        }
-    }
-
     public static ASTNode create(ArgumentList alist, ASTNode body) {
         return new Function(alist, body);
+    }
+
+    @Override
+    public String toString() {
+        // FIXME: real R remembers the expression string for this
+        StringBuilder str = new StringBuilder();
+        str.append("function (");
+        boolean first = true;
+        for (ArgumentList.Entry a : signature) {
+            if (first) {
+                first = false;
+            } else {
+                str.append(", ");
+            }
+            str.append(a.getName().pretty());
+            ASTNode exp = a.getValue();
+            if (exp != null) {
+                str.append("=");
+                str.append(exp.toString());
+            }
+        }
+        str.append(") {");
+        str.append(body.toString());
+        str.append("}");
+        return str.toString();
     }
 }

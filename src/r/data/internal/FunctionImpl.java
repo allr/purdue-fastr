@@ -7,9 +7,8 @@ import r.data.*;
 import r.nodes.truffle.*;
 
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
-
 public class FunctionImpl extends BaseObject implements RFunction {
-    Function fnode; // AST Function node that holds the function body
+    Function fnode;
     final RFunction parent;
     final RSymbol[] writeSet;
     final int writeSetBloom;
@@ -168,43 +167,6 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     @Override
-    public String pretty() {
-        // FIXME: real R remembers the expression string for this
-        StringBuilder str = new StringBuilder();
-        str.append("function (");
-        RSymbol[] anames = fnode.argNames();
-        RNode[] aexprs = fnode.argExprs();
-
-        for (int i = 0; i < anames.length; i++) {
-            if (i >= 1) {
-                str.append(",");
-            }
-            str.append(anames[i].pretty());
-            RNode exp = aexprs[i];
-            if (exp != null) {
-                str.append("=");
-                str.append(exp.getAST().toString());
-            }
-        }
-        str.append(") {");
-        str.append(fnode.body().getAST().toString());
-        str.append("}");
-        return str.toString();
-    }
-
-    @Override
-    public RLogical asLogical() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public RInt asInt() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public RSymbol[] argNames() {
         return fnode.argNames();
     }
@@ -219,8 +181,13 @@ public class FunctionImpl extends BaseObject implements RFunction {
         return fnode.body();
     }
 
-    public void setFunctionNode(Function code) {
-        this.fnode = code;
+    @Override
+    public Function node() {
+        return fnode;
+    }
+
+    public void setFunctionNode(Function fnode) {
+        this.fnode = fnode;
     }
 
     @Override

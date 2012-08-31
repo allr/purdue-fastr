@@ -9,7 +9,7 @@ import com.oracle.truffle.runtime.*;
 public final class RFrame extends Frame {
 
     public static final int PARENT_SLOT = 0;
-    public static final int FRAME_DESCRIPTOR = 1;
+    public static final int FUNCTION_SLOT = 1;
     public static final int EXTENSION_SLOT = 2;
 
     /**
@@ -21,13 +21,14 @@ public final class RFrame extends Frame {
     public static final long POS_BITS = 16;
     public static final long HOPS_MASK = ((1 << HOPS_BITS) - 1) << POS_BITS;
 
-    public RFrame(RFrame parent, RFunction fdesc) {
+    // parent is the enclosing environment, not previous frame on call stack
+    public RFrame(RFrame parent, RFunction function) {
         /*
          * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
          * used for primitives but for dirty check + linking
          */
-        super(fdesc.nlocals() + RESERVED_SLOTS, parent);
-        locals[FRAME_DESCRIPTOR] = fdesc;
+        super(function.nlocals() + RESERVED_SLOTS, parent);
+        locals[FUNCTION_SLOT] = function;
     }
 
     public RAny read(RSymbol sym) {
@@ -104,7 +105,7 @@ public final class RFrame extends Frame {
     }
 
     public void writeInExtension(RSymbol sym, RAny value) {
-        RFrameExtension ext = getExtensionSlot();
+        RFrameExtension ext = getExtension();
         if (ext == null) {
             ext = installExtension();
             ext.put(this, sym, value); // The extension is brand new, we can use the first slot safely
@@ -135,7 +136,7 @@ public final class RFrame extends Frame {
                     return Utils.cast(val);
                 }
             }
-            val = locals[pos];
+            val = locals[pos + RESERVED_SLOTS];
             if (val != null) {
                 return Utils.cast(val);
             }
@@ -151,7 +152,7 @@ public final class RFrame extends Frame {
     private ReadSetEntry getRSEFromCache(int pos, RSymbol sym) {
         long cache = primitiveLocals[pos + RESERVED_SLOTS] & ~DIRTY_MASK;
         if (cache == 0) {
-            ReadSetEntry rse = getFrameDescriptor().getReadSetEntry(sym);
+            ReadSetEntry rse = getFunction().getReadSetEntry(sym);
             if (rse != null) { // variable is top-level or constructed by reflection and read by reflection
                 primitiveLocals[pos + RESERVED_SLOTS] |= (rse.frameHops << POS_BITS) | rse.framePos;
             }
@@ -165,7 +166,7 @@ public final class RFrame extends Frame {
         if (this == stopFrame) {
             return null;
         }
-        RFrameExtension ext = getExtensionSlot();
+        RFrameExtension ext = getExtension();
         if (ext != null) {
             RAny val = ext.get(sym);
             if (val != null) {
@@ -180,22 +181,22 @@ public final class RFrame extends Frame {
     }
 
     public int getPositionInWS(RSymbol sym) {
-        return getFrameDescriptor().positionInWriteSet(sym);
+        return getFunction().positionInWriteSet(sym);
     }
 
     public ReadSetEntry getRSEntry(RSymbol sym) {
-        return getFrameDescriptor().getReadSetEntry(sym);
+        return getFunction().getReadSetEntry(sym);
     }
 
-    private RFrame getParent() {
+    public RFrame getParent() {
         return Utils.cast(getObject(PARENT_SLOT));
     }
 
-    private RFunction getFrameDescriptor() {
-        return Utils.cast(getObject(FRAME_DESCRIPTOR));
+    public RFunction getFunction() {
+        return Utils.cast(getObject(FUNCTION_SLOT));
     }
 
-    private RFrameExtension getExtensionSlot() {
+    private RFrameExtension getExtension() {
         return Utils.cast(getObject(EXTENSION_SLOT));
     }
 

@@ -150,8 +150,8 @@ public class Truffleize implements Visitor {
         }
 
         @Override
-        public void visit(While wh1le) {
-            wh1le.visit_all(this);
+        public void visit(While w) {
+            w.visit_all(this);
         }
 
         @Override
@@ -218,7 +218,6 @@ public class Truffleize implements Visitor {
             }
             n = n.getParent();
         }
-        Utils.debug("enclosing function is "+encf);
 
         // find variables accessed
         HashSet<RSymbol> read = new HashSet<>();
