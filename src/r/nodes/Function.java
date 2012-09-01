@@ -71,11 +71,8 @@ public class Function extends ASTNode {
                 str.append(exp.toString());
             }
         }
-        str.append(") {");
-        PrettyPrinter.getStringPrettyPrinter().print(body);
-        str.append(pp.)
-        str.append(body.toString());
-        str.append("}");
+        str.append(") ");
+        str.append(PrettyPrinter.prettyPrint(body));
         return str.toString();
     }
 

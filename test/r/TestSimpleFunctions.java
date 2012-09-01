@@ -8,7 +8,7 @@ public class TestSimpleFunctions extends TestBase {
     @Test
     public void testDefinitions() throws RecognitionException {
         // FIXME: the formatting, white-spaces are not exactly like in GNU R
-        assertEval("x<-function(){1}", "function () {1.0}");
+        assertEval("x<-function(){1}", "function () { 1.0 }");
         assertEval("{ x<-function(){1} ; x() }", "1.0");
         assertEval("{ x<-function(z){z} ; x(TRUE) }", "TRUE");
         assertEval("{ x<-1 ; f<-function(){x} ; x<-2 ; f() }", "2.0");
