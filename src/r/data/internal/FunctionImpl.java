@@ -1,15 +1,21 @@
 package r.data.internal;
 
-import java.util.*;
-
 import r.*;
 import r.data.*;
+import r.nodes.Function;
 import r.nodes.truffle.*;
 
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
 public class FunctionImpl extends BaseObject implements RFunction {
-    Function fnode;
-    final RFunction parent;
+
+    final RFunction enclosing;
+
+    final Function source;
+
+    final RSymbol[] paramNames;
+    final RNode[] paramValues;
+    final RNode body;
+
     final RSymbol[] writeSet;
     final int writeSetBloom;
     final ReadSetEntry[] readSet;
@@ -17,69 +23,26 @@ public class FunctionImpl extends BaseObject implements RFunction {
 
     private static final boolean DEBUG_CALLS = false;
 
-        // note: the locallyWritten and locallyRead hash sets are modified input parameters
-    public static RFunction create(RSymbol[] argNames, Function fnode, RFunction parent, HashSet<RSymbol> locallyWritten, HashSet<RSymbol> locallyRead) {
-
-        // note: we cannot read fnode.argNames() here as it is not yet initialized
-        HashSet<RSymbol> rs = locallyRead;
-        HashSet<RSymbol> ws = locallyWritten;
-
-        // build write set
-        for (RSymbol s : argNames) {
-            ws.remove(s); // arguments have to be first in the list and in fixed order
-            rs.remove(s); // arguments do not read-set entries because they are always defined
-        }
-        RSymbol[] writeSet = new RSymbol[ws.size() + argNames.length];
-        int i = 0;
-        for (; i < argNames.length; i++) {
-            writeSet[i] = argNames[i];
-        }
-        for (RSymbol s : ws) {
-            writeSet[i++] = s;
-        }
-
-        // build read set
-        ReadSetEntry[] readSet;
-        if (parent == null || rs.isEmpty()) {
-            readSet = new ReadSetEntry[0]; // FIXME: could save allocation and use null
-        } else {
-            ArrayList<ReadSetEntry> rsl = new ArrayList<>();
-            for (RSymbol s : rs) {
-                RFunction p = parent;
-                int hops = 1;
-                while (p != null) {
-                    int pos = p.positionInWriteSet(s);
-                    if (pos >= 0) {
-                        rsl.add(new ReadSetEntry(s, hops, pos)); // FIXME: why not remember the RFunction reference instead of hops?
-                        break;
-                    }
-                    p = p.parent();
-                    hops++;
-                }
-            }
-            readSet = rsl.toArray(new ReadSetEntry[0]); // FIXME: rewrite this to get rid of allocation/copying
-        }
-
-        // calculate bloom hashes
-        int writeSetBloom = 0;
-        int readSetBloom = 0;
-        for (RSymbol sym : writeSet) {
-            writeSetBloom |= sym.hash();
-        }
-        for (ReadSetEntry rse : readSet) {
-            readSetBloom |= rse.symbol.hash();
-        }
-
-        return new FunctionImpl(fnode, parent, writeSet, writeSetBloom, readSet, readSetBloom);
-    }
-
-    FunctionImpl(Function fnode, RFunction parent, RSymbol[] writeSet, int writeSetBloom, ReadSetEntry[] readSet, int readSetBloom) {
-        this.fnode = fnode;
-        this.parent = parent;
+    public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosing, RSymbol[] writeSet, ReadSetEntry[] readSet) {
+        this.source = source;
+        this.paramNames = paramNames;
+        this.paramValues = paramValues;
+        this.body = body;
+        this.enclosing = enclosing;
         this.writeSet = writeSet;
         this.readSet = readSet;
-        this.readSetBloom = readSetBloom;
-        this.writeSetBloom = writeSetBloom;
+
+        // calculate blossom masks
+        int wsBlossom = 0;
+        int rsBlossom = 0;
+        for (RSymbol sym : writeSet) {
+            wsBlossom |= sym.hash();
+        }
+        for (ReadSetEntry rse : readSet) {
+            rsBlossom |= rse.symbol.hash();
+        }
+        this.readSetBloom = rsBlossom;
+        this.writeSetBloom = wsBlossom;
 
         if (DEBUG_CALLS) {
             Utils.debug("creating function with");
@@ -168,30 +131,31 @@ public class FunctionImpl extends BaseObject implements RFunction {
 
     @Override
     public RSymbol[] argNames() {
-        return fnode.argNames();
+        return paramNames;
     }
 
     @Override
     public RNode[] argExprs() {
-        return fnode.argExprs();
+        return paramValues;
     }
 
     @Override
     public RNode body() {
-        return fnode.body();
+        return body;
     }
 
     @Override
-    public Function node() {
-        return fnode;
-    }
-
-    public void setFunctionNode(Function fnode) {
-        this.fnode = fnode;
+    public RFunction enclosing() {
+        return enclosing;
     }
 
     @Override
-    public RFunction parent() {
-        return parent;
+    public Function getSource() {
+        return source;
+    }
+
+    @Override
+    public RClosure createClosure(RFrame frame) {
+        return new ClosureImpl(this, frame);
     }
 }

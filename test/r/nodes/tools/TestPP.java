@@ -12,7 +12,6 @@ public class TestPP {
 
     static RLexer lexer = new RLexer();
     static RParser parser = new RParser(null);
-    static PrettyPrinter pp = PrettyPrinter.getStringPrettyPrinter();
 
     public static ASTNode parse(String input) throws RecognitionException {
         parser.reset();
@@ -26,8 +25,7 @@ public class TestPP {
     }
 
     private static void assertPP(String input, String expected) throws RecognitionException {
-        pp.print(parse(input));
-        Assert.assertEquals(expected, pp.toString());
+        Assert.assertEquals(expected, PrettyPrinter.prettyPrint(parse(input)));
     }
 
     @Test(expected = RecognitionException.class)

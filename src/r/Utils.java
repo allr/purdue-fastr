@@ -5,7 +5,11 @@ import r.errors.*;
 public final class Utils {
 
     public static void nyi() {
-        throw RError.getNYI();
+        throw RError.getNYI(null);
+    }
+
+    public static void nyi(String reason) {
+        throw RError.getNYI(reason);
     }
 
     @SuppressWarnings("unchecked")

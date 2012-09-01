@@ -17,7 +17,7 @@ public class TestBase {
     }
 
     static void assertEval(String input, String expected) throws RecognitionException {
-        Assert.assertEquals(evalString(input), expected);
+        Assert.assertEquals(expected, evalString(input));
     }
 
     static RAny eval(String input) throws RecognitionException {

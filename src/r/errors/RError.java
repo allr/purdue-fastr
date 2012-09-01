@@ -11,13 +11,13 @@ public abstract class RError extends RuntimeException {
     public static final String UNKNOW_VARIABLE = "object not found";
     public static final String UNUSED_ARGUMENT = "unused argument(s)";
 
-    public static RError getNYI() {
+    public static RError getNYI(final String msg) {
         return new RError() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getMessage() {
-                return "Not yet implemented ...";
+                return msg == null ? "Not yet implemented ..." : msg;
             }
         };
     }

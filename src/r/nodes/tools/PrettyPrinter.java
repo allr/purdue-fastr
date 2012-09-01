@@ -13,9 +13,16 @@ public class PrettyPrinter extends BasicVisitor {
     int level = 0;
     final PrintStream out;
     StringBuilder buff = new StringBuilder();
+    private static PrettyPrinter pp = getStringPrettyPrinter();
+
 
     public PrettyPrinter(PrintStream stream) {
         out = stream;
+    }
+
+    public static String prettyPrint(ASTNode n) {
+        pp.print(n);
+        return pp.toString();
     }
 
     public void print(ASTNode n) {
@@ -30,7 +37,7 @@ public class PrettyPrinter extends BasicVisitor {
         println("");
     }
 
-    public static PrettyPrinter getStringPrettyPrinter() {
+    private static PrettyPrinter getStringPrettyPrinter() {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         return new PrettyPrinter(new PrintStream(os)) {
 

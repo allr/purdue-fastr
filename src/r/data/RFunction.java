@@ -1,13 +1,18 @@
 package r.data;
 
+import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
 public interface RFunction {
+    RFunction enclosing();
+
     RSymbol[] argNames();
     RNode[] argExprs();
-    RFunction parent();
     RNode body();
-    Function node();
+    RClosure createClosure(RFrame frame);
+
+    ASTNode getSource();
+
     int nlocals();
     // FIXME: will also need methods to modify a function
 

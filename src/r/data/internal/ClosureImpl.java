@@ -2,7 +2,6 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.nodes.truffle.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 
@@ -18,7 +17,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     public String pretty() {
         Utils.check(function != null);
         StringBuilder str = new StringBuilder();
-        str.append(function.node().getAST().toString());
+        str.append(function.getSource().toString());
         if (environment != null) {
             str.append(" <ENVIRONMENT " + environment + ">");
         }

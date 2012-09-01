@@ -1,10 +1,7 @@
 package r.nodes.tools;
 
-import java.util.*;
-
 import r.*;
 import r.data.*;
-import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.Constant;
 import r.nodes.Function;
@@ -19,7 +16,9 @@ public class Truffleize implements Visitor {
 
     public RNode createRootTree(final ASTNode ast) {
         return new BaseR(ast) {
-            final RNode node = updateParent(createTree(ast));
+
+            final RNode node = updateParent(createLazyTree(ast));
+
             @Override
             public Object execute(RContext context, RFrame frame) {
                 return node.execute(context, frame);
@@ -98,7 +97,7 @@ public class Truffleize implements Visitor {
     private RSymbol[] convertedNames;
     private RNode[] convertedExpressions;
 
-    private void convertArgumentList(ArgumentList alist) {
+    private void splitArgumentList(ArgumentList alist) {
         int args = alist.size();
         RSymbol[] names = new RSymbol[args];
         RNode[] expressions = new RNode[args];
@@ -111,135 +110,46 @@ public class Truffleize implements Visitor {
             }
             i++;
         }
-        Utils.check(i == args);
+        assert Utils.check(i == args);
         convertedNames = names;
         convertedExpressions = expressions;
     }
 
-    static class FindAccesses implements Visitor {
-
-        HashSet<RSymbol> read;
-        HashSet<RSymbol> written;
-
-        public FindAccesses(HashSet<RSymbol> read, HashSet<RSymbol> written) {
-            this.read = read;
-            this.written = written;
-        }
-
-        public void run(Function func) {
-            func.visit_all(this); // does a function body
-              // FIXME: should visit_all visit the default expressions on its own?
-            ArgumentList al = func.getSignature();
-            for (ArgumentList.Entry e : al) {
-                ASTNode val = e.getValue();
-                if (val != null) {
-                    val.visit_all(this);
-                }
-                // note: formal arguments are added to write set elsewhere
-            }
-        }
-
-        @Override
-        public void visit(If iff) {
-            iff.visit_all(this);
-        }
-
-        @Override
-        public void visit(Repeat repeat) {
-            repeat.visit_all(this);
-        }
-
-        @Override
-        public void visit(While w) {
-            w.visit_all(this);
-        }
-
-        @Override
-        public void visit(Sequence sequence) {
-            sequence.visit_all(this);
-        }
-
-        @Override
-        public void visit(Mult mult) {
-            mult.visit_all(this);
-        }
-
-        @Override
-        public void visit(Add add) {
-            add.visit_all(this);
-        }
-
-        @Override
-        public void visit(Not n) {
-            n.visit_all(this);
-        }
-
-        @Override
-        public void visit(Constant constant) {
-        }
-
-        @Override
-        public void visit(SimpleAccessVariable readVariable) {
-            read.add(readVariable.getSymbol());
-        }
-
-        @Override
-        public void visit(FieldAccess fieldAccess) {
-            fieldAccess.visit_all(this);
-        }
-
-        @Override
-        public void visit(SimpleAssignVariable assign) {
-            written.add(assign.getSymbol());
-            assign.visit_all(this); // visit the rhs expression
-        }
-
-        @Override
-        public void visit(Function function) {
-        }
-
-        @Override
-        public void visit(FunctionCall functionCall) {
-            read.add(functionCall.getName());
-            functionCall.visit_all(this);  // visit default value expressions if any
-        }
-    }
-
     @Override
     public void visit(Function function) {
+        assert Utils.check(function.getRFunction() == null); // TODO the ast.Function must create the RFunction !
 
-        // find lexically enclosing function
-        RFunction encf = null;
-        ASTNode n = function.getParent();
-        while (n != null) {
-            if (n instanceof Function) {
-                encf = ((Function) n).getR();
-                break;
-            }
-            n = n.getParent();
-        }
+        // find lexically enclosing function if exists
+        Function astEnc = findParent(function, Function.class);
+        RFunction encf = astEnc == null ? null : astEnc.getRFunction();
 
-        // find variables accessed
-        HashSet<RSymbol> read = new HashSet<>();
-        HashSet<RSymbol> written = new HashSet<>();
+        splitArgumentList(function.getSignature()); // the name is not really accurate since, these are parameters
 
-        FindAccesses fa = new FindAccesses(read, written);
-        fa.run(function);
+        RFunction impl = function.createImpl(convertedNames, convertedExpressions, createRootTree(function.getBody()), encf);
+        r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
 
-        convertArgumentList(function.getSignature());
-        RFunction rfunction = FunctionImpl.create(convertedNames, null, encf, written, read);
-        function.setR(rfunction);
-        r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(function, rfunction, convertedNames, convertedExpressions, createLazyTree(function.getBody()));
-        ((FunctionImpl) rfunction).setFunctionNode(functionNode);
         result = functionNode;
     }
 
     @Override
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
-        convertArgumentList(functionCall.getArgs());
-        RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName());
+        // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
+        splitArgumentList(functionCall.getArgs());
+        RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
         result = new r.nodes.truffle.FunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends ASTNode> T findParent(ASTNode node, Class<T> clazz) {
+        ASTNode n = node.getParent();
+        while (n != null) {
+            if (clazz.isInstance(n)) {
+                return (T) n;
+            }
+            n = n.getParent();
+        }
+        return null;
     }
 
 }

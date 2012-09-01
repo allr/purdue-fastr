@@ -8,14 +8,12 @@ import r.nodes.tools.*;
 public class ManageError {
 
     private PrintStream out;
-    private PrettyPrinter nodePP;
 
     public static final String WARNING = "Warning";
     public static final String ERROR = "Error";
 
     public ManageError(PrintStream errorStream) {
         setOutputStream(errorStream);
-        nodePP = PrettyPrinter.getStringPrettyPrinter();
     }
 
     public void setOutputStream(PrintStream errorStream) {
@@ -41,11 +39,10 @@ public class ManageError {
         displayMessage(ManageError.ERROR, (err instanceof RError.RErrorInExpr) ? ((RError.RErrorInExpr) err).getErrorNode() : null, err.getMessage());
     }
 
-    private void displayMessage(String prefix, ASTNode cause, String msg) {
+    private static void displayMessage(String prefix, ASTNode cause, String msg) {
         StringBuilder str = new StringBuilder(prefix);
         if (cause != null) {
-            nodePP.print(cause);
-            str.append(" in ").append(nodePP.toString());
+            str.append(" in ").append(PrettyPrinter.prettyPrint(cause));
         }
         str.append(": ");
         str.append(msg);
