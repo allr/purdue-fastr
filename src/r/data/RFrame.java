@@ -162,6 +162,14 @@ public final class RFrame extends Frame {
         }
     }
 
+    public void localExtra(int pos, long value) {
+        primitiveLocals[pos + RESERVED_SLOTS] = value;
+    }
+
+    public long localExtra(int pos) {
+        return primitiveLocals[pos + RESERVED_SLOTS];
+    }
+
     public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public because of ReadVariable
         if (this == stopFrame) {
             return null;

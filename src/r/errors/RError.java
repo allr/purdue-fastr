@@ -6,9 +6,10 @@ public abstract class RError extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
     public static final String LENGTH_GT_1 = "the condition has length > 1 and only the first element will be used";
-    public static final String LENGHT_0 = "argument is of length zero";
+    public static final String LENGTH_0 = "argument is of length zero";
     public static final String NA_UNEXP = "missing value where TRUE/FALSE needed";
     public static final String UNKNOW_VARIABLE = "object not found";
+    public static final String UNUSED_ARGUMENT = "unused argument(s)";
 
     public static RError getNYI() {
         return new RError() {
@@ -27,7 +28,7 @@ public abstract class RError extends RuntimeException {
 
             @Override
             public String getMessage() {
-                return LENGHT_0;
+                return LENGTH_0;
             }
         };
     }
