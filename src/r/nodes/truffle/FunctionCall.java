@@ -53,7 +53,7 @@ public class FunctionCall extends BaseR {
                 }
                 if (!matched) {
                     // FIXME: fix error reporting
-                    throw new RuntimeException("Error in " + getAST() + " : unused argument(s) (" + tag.pretty() + ")");
+                    context.warning(getAST(), "unused argument(s) (" + tag.pretty() + ")"); // FIXME move this string in RError
                 }
             }
         }
@@ -95,7 +95,8 @@ public class FunctionCall extends BaseR {
                 fframe.writeAt(j, (RAny) defExp.execute(context, fframe)); // FIXME: premature forcing of a promise
                 if (DEBUG_MATCHING) Utils.debug("supplied formal " + fargs[j].pretty() + " with default value");
             } else {
-                throw new RuntimeException("Error in " + getAST() + " : '" + fargs[j].pretty() + "' is missing");
+                // throw new RuntimeException("Error in " + getAST() + " : '" + fargs[j].pretty() + "' is missing");
+                // This is not an error ! This error will be reported iff some code try to access it. (Which sucks a bit but is the behaviour)
             }
         }
         RNode code = func.body();
