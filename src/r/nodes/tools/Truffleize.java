@@ -106,7 +106,7 @@ public class Truffleize implements Visitor {
             names[i] = e.getName();
             ASTNode exp = e.getValue();
             if (exp != null) {
-                expressions[i] = createTree(exp);
+                expressions[i] = createRootTree(exp);
             }
             i++;
         }
