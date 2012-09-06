@@ -23,7 +23,16 @@ public class FunctionCall extends BaseR {
     public Object execute(RContext context, RFrame frame) {
         RClosure tgt = (RClosure) closureExpr.execute(context, frame);
         RFunction func = tgt.function();
-        RFrame fframe = new RFrame(tgt.environment(), func);
+
+        RFrame fframe = matchParams(context, func, tgt.environment());
+
+        RNode code = func.body();
+        Object res = code.execute(context, fframe);
+        return res;
+    }
+
+    private RFrame matchParams(RContext context, RFunction func, RFrame parentFrame) {
+        RFrame fframe = new RFrame(parentFrame, func);
 
         // FIXME: now only eager evaluation (no promises)
         // FIXME: now no support for "..."
@@ -46,7 +55,8 @@ public class FunctionCall extends BaseR {
                     RSymbol ftag = fargs[j];
                     if (tag == ftag) {
                         fframe.localExtra(j, i); // remember the index of supplied argument that matches
-                        if (DEBUG_MATCHING) Utils.debug("matched formal at index " + j + " by tag " + tag.pretty() + " to supplied argument at index " + i);
+                        if (DEBUG_MATCHING)
+                            Utils.debug("matched formal at index " + j + " by tag " + tag.pretty() + " to supplied argument at index " + i);
                         matched = true;
                         break;
                     }
@@ -63,19 +73,20 @@ public class FunctionCall extends BaseR {
         for (int i = 0; i < names.length; i++) {
             RSymbol tag = names[i];
             if (tag == null) {
-              for (;;) {
-                  if (j == fargs.length) {
-                      // FIXME: fix error reporting
-                      throw new RuntimeException("Error in " + getAST() + " : unused argument(s) (" + expressions[i].getAST() + ")");
-                  }
-                  if (fframe.localExtra(j) == -1) {
-                      fframe.localExtra(j, i); // remember the index of supplied argument that matches
-                      if (DEBUG_MATCHING) Utils.debug("matched formal at index " + j + " by position at formal index " + i);
-                      j++;
-                      break;
-                  }
-                  j++;
-              }
+                for (;;) {
+                    if (j == fargs.length) {
+                        // FIXME: fix error reporting
+                        throw new RuntimeException("Error in " + getAST() + " : unused argument(s) (" + expressions[i].getAST() + ")");
+                    }
+                    if (fframe.localExtra(j) == -1) {
+                        fframe.localExtra(j, i); // remember the index of supplied argument that matches
+                        if (DEBUG_MATCHING)
+                            Utils.debug("matched formal at index " + j + " by position at formal index " + i);
+                        j++;
+                        break;
+                    }
+                    j++;
+                }
             }
         }
         // providing values for the arguments
@@ -84,23 +95,30 @@ public class FunctionCall extends BaseR {
             if (i != -1) {
                 RNode argExp = expressions[i];
                 if (argExp != null) {
-                  fframe.writeAt(j, (RAny) argExp.execute(context, frame)); // FIXME: premature forcing of a promise
-                  if (DEBUG_MATCHING) Utils.debug("supplied formal " + fargs[j].pretty() + " with provided value from supplied index " + i);
-                  continue;
+                    fframe.writeAt(j, (RAny) argExp.execute(context, parentFrame)); // FIXME: premature forcing of a promise
+                    if (DEBUG_MATCHING)
+                        Utils.debug("supplied formal " + fargs[j].pretty() + " with provided value from supplied index " + i);
+                    continue;
                 }
-             // note that an argument may be matched, but still have a null expression
+                // note that an argument may be matched, but still have a null expression
             }
             RNode defExp = fdefs[j];
             if (defExp != null) {
                 fframe.writeAt(j, (RAny) defExp.execute(context, fframe)); // FIXME: premature forcing of a promise
-                if (DEBUG_MATCHING) Utils.debug("supplied formal " + fargs[j].pretty() + " with default value");
+                if (DEBUG_MATCHING)
+                    Utils.debug("supplied `      " + fargs[j].pretty() + " with default value");
             } else {
                 // throw new RuntimeException("Error in " + getAST() + " : '" + fargs[j].pretty() + "' is missing");
                 // This is not an error ! This error will be reported iff some code try to access it. (Which sucks a bit but is the behaviour)
             }
         }
-        RNode code = func.body();
-        Object res = code.execute(context, fframe);
-        return res;
+
+        return fframe;
+    }
+
+    private void displaceArgs(RContext context, int[] positions, RNode[] exprs, RFrame frame) {
+        for (int i = 0; i < positions.length; i++) {
+            frame.writeAt(i, (RAny) exprs[i].execute(context, frame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+        }
     }
 }
