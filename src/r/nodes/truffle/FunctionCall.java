@@ -76,7 +76,7 @@ public class FunctionCall extends BaseR {
                 for (;;) {
                     if (j == fargs.length) {
                         // FIXME: fix error reporting
-                        throw new RuntimeException("Error in " + getAST() + " : unused argument(s) (" + expressions[i].getAST() + ")");
+                        context.warning(getAST(), "unused argument(s) (" + expressions[i].getAST() + ")");
                     }
                     if (fframe.localExtra(j) == -1) {
                         fframe.localExtra(j, i); // remember the index of supplied argument that matches
