@@ -29,6 +29,11 @@ public class TestSimpleFunctions extends TestBase {
         assertEval("{ f<-function(a,b,c=2,d) {c} ; f(d=8,1,2,c=1) }", "1.0");
         assertEval("{ f<-function(a,b,c=2,d) {c} ; f(d=8,c=1,2,3) }", "1.0");
         assertEval("{ f<-function(a=10,b,c=20,d=20) {c} ; f(4,3,5,1) }", "5.0");
+
+        assertEval("{ x<-1 ; z<-TRUE ; f<-function(y=x,a=z,b) { if (z) {y} else {z}} ; f(b=2) }", "1.0");
+        assertEval("{ x<-1 ; z<-TRUE ; f<-function(y=x,a=z,b) { if (z) {y} else {z}} ; f(2) }", "2.0");
+        assertEval("{ x<-1 ; f<-function(x=x) { x } ; f(x=x) }", "1.0");
+        assertEval("{ f<-function(z, x=if (z) 2 else 3) {x} ; f(FALSE) }", "3.0");
     }
 
 }
