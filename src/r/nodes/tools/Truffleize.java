@@ -137,7 +137,7 @@ public class Truffleize implements Visitor {
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs());
         RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
-        result = new r.nodes.truffle.FunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+        result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
     }
 
     @SuppressWarnings("unchecked")

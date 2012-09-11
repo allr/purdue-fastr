@@ -4,12 +4,48 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-public class FunctionCall extends BaseR {
+public abstract class FunctionCall extends BaseR {
+
     final RNode closureExpr;
     final RSymbol[] argsNames; // arguments of the call (not of the function), in order
     final RNode[] argsValues;
 
-    public FunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+    public static FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return getGenericFunctionCall(ast, closureExpr, argNames, argExprs);
+    }
+
+    public static FunctionCall getGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+        };
+    }
+
+//    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+//        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+//
+//            RClosure lastCall;
+//
+//        };
+//    }
+
+    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            @Override
+            public Object execute(RContext context, RFrame frame) {
+                RClosure tgt = (RClosure) closureExpr.execute(context, frame);
+                RFunction func = tgt.function();
+                RFrame fframe = new RFrame(tgt.environment(), func);
+
+                displaceArgs(context, frame, fframe, argsValues, func.argExprs());
+
+                RNode code = func.body();
+                Object res = code.execute(context, fframe);
+                return res;
+            }
+        };
+    }
+
+    private FunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast);
         this.closureExpr = updateParent(closureExpr);
         this.argsNames = argNames;
@@ -100,8 +136,7 @@ public class FunctionCall extends BaseR {
      * @param positions Where arguments need to be displaced (-1 means ``...'')
      * @param args Arguments provided to this calls
      * @param names Names of extra arguments (...).
-     * @param fdefs Defaults values for unprovided parameters.
-     * futureparam 3dotsposition where ... as to be put
+     * @param fdefs Defaults values for unprovided parameters. futureparam 3dotsposition where ... as to be put
      */
     private static void displaceArgs(RContext context, RFrame parentFrame, RFrame frame, int[] positions, RNode[] args, RSymbol[] names, RNode[] fdefs) {
         int i;
@@ -135,6 +170,19 @@ public class FunctionCall extends BaseR {
             RNode v = fdefs[positions[i]];
             if (v != null) { // TODO insert special value for missing
                 frame.writeAt(positions[i], (RAny) fdefs[positions[i]].execute(context, frame));
+            }
+        }
+    }
+
+    private static void displaceArgs(RContext context, RFrame parentFrame, RFrame frame, RNode[] args, RNode[] fdefs) {
+        int i = 0;
+        for (; i < args.length; i++) {
+            frame.writeAt(i, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+        }
+        for (; i < fdefs.length; i++) {
+            RNode v = fdefs[i];
+            if (v != null) { // TODO insert special value for missing
+                frame.writeAt(i, (RAny) fdefs[i].execute(context, frame));
             }
         }
     }
