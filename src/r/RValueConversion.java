@@ -15,4 +15,13 @@ public class RValueConversion {
         }
         throw new UnexpectedResultException(value);
     }
+    public static RArray expectArrayOne(RAny value) throws UnexpectedResultException {
+        if (value instanceof RArray) {
+            RArray array = (RArray) value;
+            if (array.size() == 1) {
+                return array;
+            }
+        }
+        throw new UnexpectedResultException(value);
+    }
 }

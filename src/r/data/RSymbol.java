@@ -63,6 +63,12 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
+    @Override
+    public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
+
     public RAny getValue() {
         return value;
     }

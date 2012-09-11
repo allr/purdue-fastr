@@ -13,5 +13,7 @@ public interface RAny {
 
     RInt asInt();
 
+    RDouble asDouble();
+
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 }

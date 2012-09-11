@@ -131,7 +131,7 @@ public class Function extends ASTNode {
         }
         return rsl.toArray(new ReadSetEntry[0]); // FIXME: rewrite this to get rid of allocation/copying
     }
-    class FindAccesses implements Visitor {
+    class FindAccesses extends BasicVisitor implements Visitor {
 
         Set<RSymbol> read;
         Set<RSymbol> written;
@@ -170,6 +170,16 @@ public class Function extends ASTNode {
         @Override
         public void visit(Sequence sequence) {
             sequence.visit_all(this);
+        }
+
+        @Override
+        public void visit(EQ eq) {
+            eq.visit_all(this);
+        }
+
+        @Override
+        public void visit(LE le) {
+            le.visit_all(this);
         }
 
         @Override

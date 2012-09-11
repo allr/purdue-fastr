@@ -43,6 +43,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         return new IntView();
     }
 
+    @Override
+    public RDouble asDouble() {
+        return this;
+    }
+
     public String pretty() {
         if (content.length == 0) {
             return RDouble.TYPE_STRING + "(0)";
@@ -121,6 +126,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         public RLogical asLogical() {
             Utils.nyi();
             return null;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return DoubleImpl.this;
         }
 
         @Override

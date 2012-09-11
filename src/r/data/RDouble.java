@@ -7,6 +7,7 @@ public interface RDouble extends RNumber {
     double NA = Double.longBitsToDouble(0x7ff00000000007a2L);
 
     RArray set(int i, double val);
+    double getDouble(int i);
 
     public class RDoubleFactory {
         public static RDouble getArray(double... values) {

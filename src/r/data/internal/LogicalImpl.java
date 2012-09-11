@@ -54,6 +54,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         return new IntView();
     }
 
+    @Override
+    public RDouble asDouble() {
+        return new DoubleView();
+    }
+
     public String pretty() {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";
@@ -111,6 +116,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         }
 
         @Override
+        public RDouble asDouble() {
+            return LogicalImpl.this.asDouble();
+        }
+
+        @Override
         public RArray materialize() {
             Utils.nyi();
             return null;
@@ -144,6 +154,90 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         @Override
         public int getInt(int i) {
             return getLogical(i);
+        }
+
+        @Override
+        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
+            return null;
+        }
+    }
+
+    class DoubleView implements RDouble {
+
+        @Override
+        public Object get(int i) {
+            int l = LogicalImpl.this.getLogical(i);
+            return  l == RLogical.NA ? RDouble.NA : l;
+        }
+
+        @Override
+        public RArray subset(RAny keys) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RString names) {
+            Utils.nyi();
+            return null;
+        }
+
+        public int size() {
+            return LogicalImpl.this.size();
+        }
+
+        @Override
+        public RInt asInt() {
+            return LogicalImpl.this.asInt();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return this;
+        }
+
+        @Override
+        public RArray materialize() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return LogicalImpl.this.getAttributes();
+        }
+
+        @Override
+        public String pretty() {
+            return materialize().pretty();
+        }
+
+        @Override
+        public RArray set(int i, Object val) {
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return LogicalImpl.this;
+        }
+
+        @Override
+        public RArray set(int i, double val) {
+            return null;
+        }
+
+        @Override
+        public double getDouble(int i) {
+            int l = LogicalImpl.this.getLogical(i);
+            return l == RLogical.NA ? RDouble.NA : (double) l;
         }
 
         @Override

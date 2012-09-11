@@ -41,6 +41,16 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(EQ op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
+    public void visit(LE op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
     public void visit(Add op) {
         visit((BinaryOperation) op);
     }

@@ -6,6 +6,8 @@ public interface Visitor {
     void visit(While wh1le);
     void visit(Sequence sequence);
 
+    void visit(EQ eq);
+    void visit(LE le);
     void visit(Mult mult);
     void visit(Add add);
 

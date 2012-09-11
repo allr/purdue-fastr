@@ -7,6 +7,8 @@ public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
 
+    RInt BOXED_NA = RIntFactory.getArray(NA);
+
     int getInt(int i);
     RArray set(int i, int val);
 
