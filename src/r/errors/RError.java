@@ -68,4 +68,16 @@ public abstract class RError extends RuntimeException {
             }
         };
     }
+
+    public static RError getGenericError(ASTNode source, final String msg) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return msg;
+            }
+        };
+    }
 }

@@ -11,36 +11,60 @@ public abstract class FunctionCall extends BaseR {
     final RNode[] argsValues;
 
     public static FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-        return getGenericFunctionCall(ast, closureExpr, argNames, argExprs);
+        for (int i = 0; i < argNames.length; i++) { // FIXME this test is kind of inefficient, part of this job can be done by splitArguments
+            if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are defaults args
+                return getCachedGenericFunctionCall(ast, closureExpr, argNames, argExprs);
+            }
+        }
+        return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
     }
 
+    // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
     public static FunctionCall getGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
         return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            @Override
+            protected RFrame matchParams(RContext context, RFunction func, RFrame parentFrame) {
+                RFrame fframe = new RFrame(parentFrame, func);
+                RSymbol[] names = new RSymbol[argsValues.length];
+
+                int[] positions = computePositions(context, func, names);
+                displaceArgs(context, parentFrame, fframe, positions, argsValues, names, func.paramValues());
+                return fframe;
+            }
         };
     }
 
-//    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-//        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
-//
-//            RClosure lastCall;
-//
-//        };
-//    }
+    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            RFunction lastCall;
+            RSymbol[] names;
+            int[] positions;
+
+            @Override
+            protected RFrame matchParams(RContext context, RFunction func, RFrame parentFrame) {
+                RFrame fframe = new RFrame(parentFrame, func);
+                if (func != lastCall) {
+                    lastCall = func;
+                    names = new RSymbol[argsValues.length];
+                    positions = computePositions(context, func, names);
+                }
+                displaceArgs(context, parentFrame, fframe, positions, argsValues, names, func.paramValues());
+                return fframe;
+
+            }
+        };
+    }
 
     public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
         return new FunctionCall(ast, closureExpr, argNames, argExprs) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
-                RClosure tgt = (RClosure) closureExpr.execute(context, frame);
-                RFunction func = tgt.function();
-                RFrame fframe = new RFrame(tgt.environment(), func);
-
-                displaceArgs(context, frame, fframe, argsValues, func.paramValues());
-
-                RNode code = func.body();
-                Object res = code.execute(context, fframe);
-                return res;
+            protected RFrame matchParams(RContext context, RFunction func, RFrame parentFrame) {
+                RFrame fframe = new RFrame(parentFrame, func);
+                displaceArgs(context, parentFrame, fframe, argsValues, func.paramValues());
+                return fframe;
             }
         };
     }
@@ -64,16 +88,9 @@ public abstract class FunctionCall extends BaseR {
         return res;
     }
 
-    private RFrame matchParams(RContext context, RFunction func, RFrame parentFrame) {
-        RFrame fframe = new RFrame(parentFrame, func);
-        RSymbol[] names = new RSymbol[argsValues.length];
+    protected abstract RFrame matchParams(RContext context, RFunction func, RFrame parentFrame);
 
-        int[] positions = computePositions(context, func, names);
-        displaceArgs(context, parentFrame, fframe, positions, argsValues, names, func.paramValues());
-        return fframe;
-    }
-
-    private int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
+    protected int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
         RSymbol[] defaultsNames = func.paramNames();
 
         int nbArgs = argsValues.length;
@@ -99,12 +116,12 @@ public abstract class FunctionCall extends BaseR {
         int nextParam = 0;
         for (int i = 0; i < nbArgs; i++) {
             if (names[i] == null) {
-                while (used[nextParam]) {
+                while (nextParam < nbFormals && used[nextParam]) {
                     nextParam++;
-                    if (nextParam == nbFormals) {
-                        // TODO either error or ``...''
-                        context.error(getAST(), "unused argument(s) (" + argsValues[i].getAST() + ")");
-                    }
+                }
+                if (nextParam == nbFormals) {
+                    // TODO either error or ``...''
+                    context.error(getAST(), "unused argument(s) (" + argsValues[i].getAST() + ")");
                 }
                 if (argsValues[i] != null) {
                     names[i] = defaultsNames[nextParam]; // This is for now useless but needed for ``...''

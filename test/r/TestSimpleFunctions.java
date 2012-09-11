@@ -2,6 +2,9 @@ package r;
 
 import org.antlr.runtime.*;
 import org.junit.*;
+import org.junit.rules.*;
+
+import r.data.*;
 
 public class TestSimpleFunctions extends TestBase {
 
@@ -34,6 +37,20 @@ public class TestSimpleFunctions extends TestBase {
         assertEval("{ x<-1 ; z<-TRUE ; f<-function(y=x,a=z,b) { if (z) {y} else {z}} ; f(2) }", "2.0");
         assertEval("{ x<-1 ; f<-function(x=x) { x } ; f(x=x) }", "1.0");
         assertEval("{ f<-function(z, x=if (z) 2 else 3) {x} ; f(FALSE) }", "3.0");
+
+        assertEval("{f<-function(a,b,c=2,d) {c} ; g <- function() f(d=8,c=1,2,3) ; g() ; g() }", "1.0");
     }
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void testUnused1() throws RecognitionException {
+        Assert.assertEquals(RNull.getNull().pretty(), evalString("{ x<-function(){1} ; x(y=1) }"));
+    }
+
+    @Test
+    public void testUnused2() throws RecognitionException {
+        Assert.assertEquals(RNull.getNull().pretty(), evalString("{ x<-function(){1} ; x(1) }"));
+    }
 }

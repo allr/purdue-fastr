@@ -33,10 +33,12 @@ public class ManageError {
 
     public void error(ASTNode expr, String msg) {
         displayMessage(ManageError.ERROR, expr, msg);
+        throw RError.getGenericError(expr, msg);
     }
 
     public void error(RError err) {
         displayMessage(ManageError.ERROR, (err instanceof RError.RErrorInExpr) ? ((RError.RErrorInExpr) err).getErrorNode() : null, err.getMessage());
+        throw err;
     }
 
     private static void displayMessage(String prefix, ASTNode cause, String msg) {
