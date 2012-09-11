@@ -42,6 +42,7 @@ public abstract class ASTNode {
     }
 
     // FIXME should be abstract ... but I'm too lazy
+    @SuppressWarnings("unused")
     public RAny execute(RContext global, Frame frame) {
         return RNull.getNull();
     }

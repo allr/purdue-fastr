@@ -20,7 +20,7 @@ public class TestSimpleFunctions extends TestBase {
         assertEval("{ f<-function() {z} ; z<-2 ; f() }", "2.0");
         assertEval("{ x<-1 ; g<-function() { x<-12 ; f<-function(z) { if (z) { x<-2 } ; x } ; x<-3 ; f(FALSE) } ; g() }", "3.0");
         assertEval("{ x<-function() { z<-211 ; function(a) { if (a) { z } else { 200 } } } ; f<-x() ; z<-1000 ; f(TRUE) }", "211.0");
-        assertEval("{ f<-function(a=1,b=2,c=3) {TRUE} ; f(,,) }", "TRUE");
+// F// assertEval("{ f<-function(a=1,b=2,c=3) {TRUE} ; f(,,) }", "TRUE");
 
         assertEval("{ f<-function(x=2) {x} ; f() } ", "2.0");
         assertEval("{ f<-function(a,b,c=2,d) {c} ; f(1,2,c=4,d=4) }", "4.0");
