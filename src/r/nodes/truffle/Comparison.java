@@ -98,7 +98,6 @@ public class Comparison extends BaseR {
 
         public VectorScalarComparison(ASTNode ast) {
             super(ast);
-            // TODO Auto-generated constructor stub
         }
 
         @Override
@@ -109,7 +108,6 @@ public class Comparison extends BaseR {
         }
 
         public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
-            // this version assumes comparison of a numeric (int, double) vector against a scalar
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -179,9 +177,36 @@ public class Comparison extends BaseR {
 
             } catch (UnexpectedResultException e) {
                 if (DEBUG_CMP) Utils.debug("comparison - 2nd level comparison failed (not int,double scalar and vector)");
+                GenericComparison vs = new GenericComparison(ast);
+                replace(vs, "genericComparison");
+                return vs.execute(context, frame, lexpr, rexpr);
+            }
+        }
+    }
+
+    class GenericComparison extends BaseR {
+
+        public GenericComparison(ASTNode ast) {
+            super(ast);
+        }
+
+        @Override
+        public Object execute(RContext context, RFrame frame) {
+            RAny lexpr = (RAny) left.execute(context, frame);
+            RAny rexpr = (RAny) right.execute(context, frame);
+            return execute(context, frame, lexpr, rexpr);
+        }
+
+        public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
+            if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
+            if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
+                RDouble ldbl = lexpr.asDouble();
+                RDouble rdbl = rexpr.asDouble();
+                // TODO: finish this!
             }
             return null;
         }
+
     }
 
     // FIXME: check that calls to cmp are inlined, otherwise we might have to do that manually
@@ -259,7 +284,6 @@ public class Comparison extends BaseR {
             }
             return r;
         }
-
     }
 
     public static final class Equal extends ValueComparison {
