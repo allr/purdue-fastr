@@ -8,7 +8,7 @@ public class FunctionCall extends BaseR {
 
     RNode closureExpr;
     final RSymbol[] names; // arguments of the call (not of the function), in order
-    RNode[] expressions;
+    final RNode[] expressions;
 
     private static final boolean DEBUG_MATCHING = false;
 
@@ -68,13 +68,18 @@ public class FunctionCall extends BaseR {
                         context.error(getAST(), "unused argument(s) (" + expressions[i].getAST() + ")");
                     }
                 }
-                names[i] = defaultsNames[nextParam]; // This is for now useless but needed for ``...''
-                positions[i] = nextParam;
-                used[nextParam] = true;
+                if (arguments[i] != null) {
+                    names[i] = defaultsNames[nextParam]; // This is for now useless but needed for ``...''
+                    positions[i] = nextParam;
+                    used[nextParam] = true;
+                } else {
+                    nextParam++;
+                }
             }
         }
 
-        for (int i = nextParam, j = nbArgs; j < nbFormals; i++) {
+        for (int i = 0, j = nbArgs; j < nbFormals; i++) {
+// for (int i = nextParam, j = nbArgs; j < nbFormals; i++) { // use this one once previous if will have an else
             if (!used[i]) {
                 positions[j++] = i;
             }
@@ -196,8 +201,17 @@ public class FunctionCall extends BaseR {
         for (i = 0; i < argsGiven; i++) {
             int p = positions[i];
             if (p >= 0) {
-                frame.writeAt(p, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
-                // FIXME and it's even worst since it's not the good frame at all !
+                RNode v = args[i];
+                if (v != null) {
+                    frame.writeAt(p, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                    // FIXME and it's even worst since it's not the good frame at all !
+                } else {
+                    v = fdefs[positions[i]];
+                    if (v != null) { // TODO insert special value for missing
+                        frame.writeAt(positions[i], (RAny) fdefs[positions[i]].execute(context, frame));
+                    }
+
+                }
             } else {
                 // TODO add to ``...''
                 // Note that names[i] contains a key if needed
