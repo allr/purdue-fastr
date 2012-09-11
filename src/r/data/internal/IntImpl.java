@@ -14,6 +14,10 @@ public class IntImpl extends ArrayImpl implements RInt {
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
+    public IntImpl(int size) {
+        content = new int[size];
+    }
+
     @Override
     public int size() {
         return content.length;

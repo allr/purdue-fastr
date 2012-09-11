@@ -23,7 +23,7 @@ public class Not extends UnaryOperation {
     }
 
     public RLogical doNot(RLogical value) {
-        RLogical result = RLogicalFactory.getEmptyArray(value.size());
+        RLogical result = RLogicalFactory.getUninitializedArray(value.size());
         for (int i = 0; i < result.size(); i++) {
             result.set(i, doNotOne(value.getLogical(i)));
         }

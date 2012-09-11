@@ -8,6 +8,7 @@ public interface RInt extends RNumber {
     String TYPE_STRING = "integer";
 
     RInt BOXED_NA = RIntFactory.getArray(NA);
+    RInt EMPTY = RIntFactory.getUninitializedArray(0);
 
     int getInt(int i);
     RArray set(int i, int val);
@@ -15,6 +16,9 @@ public interface RInt extends RNumber {
     public class RIntFactory {
         public static RInt getArray(int... values) {
             return new IntImpl(values);
+        }
+        public static RInt getUninitializedArray(int size) {
+            return new IntImpl(size);
         }
     }
 

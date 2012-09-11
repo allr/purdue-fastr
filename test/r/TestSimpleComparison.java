@@ -11,5 +11,10 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{1L<=1}", "TRUE");
         assertEval("{1<=0L}", "FALSE");
         assertEval("{x<-2; f<-function(z=x) { if (z<=x) {z} else {x} } ; f(1.4)}", "1.4");
+        assertEval("{1==NULL}", "logical(0)");
+        assertEval("{1L==1}", "TRUE");
+        assertEval("{TRUE==1}", "TRUE");
+        assertEval("{TRUE==FALSE}", "FALSE");
+        assertEval("{FALSE<=TRUE}", "TRUE");
     }
 }

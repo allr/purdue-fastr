@@ -48,20 +48,17 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public RInt asInt() {
-        Utils.nyi();
-        return null;
+        return RInt.EMPTY;
     }
 
     @Override
     public RLogical asLogical() {
-        Utils.nyi();
-        return null;
+        return RLogical.EMPTY;
     }
 
     @Override
     public RDouble asDouble() {
-        Utils.nyi();
-        return null;
+        return RDouble.EMPTY;
     }
 
     @Override

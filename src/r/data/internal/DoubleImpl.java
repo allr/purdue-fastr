@@ -14,6 +14,10 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
+    public DoubleImpl(int size) {
+        content = new double[size];
+    }
+
     @Override
     public int size() {
         return content.length;

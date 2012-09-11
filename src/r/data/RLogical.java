@@ -11,6 +11,7 @@ public interface RLogical extends RArray {
     RLogical BOXED_TRUE = RLogicalFactory.getArray(TRUE);
     RLogical BOXED_FALSE = RLogicalFactory.getArray(FALSE);
     RLogical BOXED_NA = RLogicalFactory.getArray(NA);
+    RLogical EMPTY = RLogicalFactory.getUninitializedArray(0);
 
     int getLogical(int il);
     RLogical set(int i, int val);
@@ -20,12 +21,12 @@ public interface RLogical extends RArray {
             return new LogicalImpl(values);
         }
 
-        public static RLogical getEmptyArray(int size) {
+        public static RLogical getUninitializedArray(int size) {
             return new LogicalImpl(size);
         }
 
         public static RLogical getNAArray(int size) {
-            RLogical l = getEmptyArray(size);
+            RLogical l = getUninitializedArray(size);
             for(int i = 0; i < size ; i++) {
                 l.set(size, NA);
             }
