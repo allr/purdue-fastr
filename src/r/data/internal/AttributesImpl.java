@@ -77,4 +77,10 @@ public class AttributesImpl extends BaseObject implements RAttributes {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
 }

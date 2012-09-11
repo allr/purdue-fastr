@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 
 @RunWith(Suite.class)
-@SuiteClasses({TestSimpleAssignment.class, TestSimpleFunctions.class, TestSimpleIfEvaluator.class})
+@SuiteClasses({TestSimpleAssignment.class, TestSimpleFunctions.class, TestSimpleIfEvaluator.class, TestSimpleComparison.class})
 public class BaseTests {
 
 }

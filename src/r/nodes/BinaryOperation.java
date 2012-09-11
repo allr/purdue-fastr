@@ -36,11 +36,11 @@ public abstract class BinaryOperation extends Operation {
             case BITWISEOR: return new Add(left, right);
             case BITWISEAND: return new Add(left, right);
 
-            case EQ: return new Add(left, right);
+            case EQ: return new EQ(left, right);
             case GE: return new Add(left, right);
             case GT: return new Add(left, right);
             case NE: return new Add(left, right);
-            case LE: return new Add(left, right);
+            case LE: return new LE(left, right);
             case LT: return new Add(left, right);
         }
         throw new Error("No node implemented for: '" + op + "' (" + left + ", " + right + ")");

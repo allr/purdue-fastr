@@ -37,6 +37,11 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public RDouble asDouble() {
+        return null;
+    }
+
+    @Override
     public RFrame environment() {
         return environment;
     }

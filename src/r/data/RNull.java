@@ -59,6 +59,12 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RArray materialize() {
         return this;
     }

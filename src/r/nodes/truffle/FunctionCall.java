@@ -36,7 +36,7 @@ public abstract class FunctionCall extends BaseR {
                 RFunction func = tgt.function();
                 RFrame fframe = new RFrame(tgt.environment(), func);
 
-                displaceArgs(context, frame, fframe, argsValues, func.argExprs());
+                displaceArgs(context, frame, fframe, argsValues, func.paramValues());
 
                 RNode code = func.body();
                 Object res = code.execute(context, fframe);
@@ -69,12 +69,12 @@ public abstract class FunctionCall extends BaseR {
         RSymbol[] names = new RSymbol[argsValues.length];
 
         int[] positions = computePositions(context, func, names);
-        displaceArgs(context, parentFrame, fframe, positions, argsValues, names, func.argExprs());
+        displaceArgs(context, parentFrame, fframe, positions, argsValues, names, func.paramValues());
         return fframe;
     }
 
     private int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
-        RSymbol[] defaultsNames = func.argNames();
+        RSymbol[] defaultsNames = func.paramNames();
 
         int nbArgs = argsValues.length;
         int nbFormals = defaultsNames.length;

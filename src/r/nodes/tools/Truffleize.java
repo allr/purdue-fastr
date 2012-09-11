@@ -3,6 +3,7 @@ package r.nodes.tools;
 import r.*;
 import r.data.*;
 import r.nodes.*;
+import r.nodes.BinaryOperation.BinaryOperator;
 import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;
@@ -152,4 +153,13 @@ public class Truffleize implements Visitor {
         return null;
     }
 
+    @Override
+    public void visit(EQ eq) {
+        result = new r.nodes.truffle.Comparison(eq, createTree(eq.getLHS()), createTree(eq.getRHS()), BinaryOperator.EQ);
+    }
+
+    @Override
+    public void visit(LE le) {
+        result = new r.nodes.truffle.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), BinaryOperator.LE);
+    }
 }

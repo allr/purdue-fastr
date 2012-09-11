@@ -50,4 +50,10 @@ public class VectorImpl extends ArrayImpl implements RVector {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
 }

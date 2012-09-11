@@ -130,12 +130,12 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     @Override
-    public RSymbol[] argNames() {
+    public RSymbol[] paramNames() {
         return paramNames;
     }
 
     @Override
-    public RNode[] argExprs() {
+    public RNode[] paramValues() {
         return paramValues;
     }
 

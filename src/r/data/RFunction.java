@@ -6,8 +6,8 @@ import r.nodes.truffle.*;
 public interface RFunction {
     RFunction enclosing();
 
-    RSymbol[] argNames();
-    RNode[] argExprs();
+    RSymbol[] paramNames();
+    RNode[] paramValues();
     RNode body();
     RClosure createClosure(RFrame frame);
 
