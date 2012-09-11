@@ -193,8 +193,15 @@ public abstract class FunctionCall extends BaseR {
 
     private static void displaceArgs(RContext context, RFrame parentFrame, RFrame frame, RNode[] args, RNode[] fdefs) {
         int i = 0;
+        int max = fdefs.length;
+
         for (; i < args.length; i++) {
-            frame.writeAt(i, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+            if (i < max) {
+                frame.writeAt(i, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+            } else {
+                // TODO either error or ``...''
+                context.error(args[i].getAST(), "unused argument(s)");
+            }
         }
         for (; i < fdefs.length; i++) {
             RNode v = fdefs[i];
