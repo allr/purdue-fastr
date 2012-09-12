@@ -18,6 +18,13 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         System.arraycopy(values, 0, content, 0, values.length);
     }
 
+    public LogicalImpl(RLogical l) {
+        content = new int[l.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = l.getLogical(i);
+        }
+    }
+
     @Override
     public int size() {
         return content.length;

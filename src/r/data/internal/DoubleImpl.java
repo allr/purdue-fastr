@@ -18,6 +18,13 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         content = new double[size];
     }
 
+    public DoubleImpl(RDouble d) {
+        content = new double[d.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = d.getDouble(i);
+        }
+    }
+
     @Override
     public int size() {
         return content.length;

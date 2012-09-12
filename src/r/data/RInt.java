@@ -20,6 +20,9 @@ public interface RInt extends RNumber {
         public static RInt getUninitializedArray(int size) {
             return new IntImpl(size);
         }
+        public static RInt copy(RInt i) {
+            return new IntImpl(i);
+        }
     }
 
 }

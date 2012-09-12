@@ -18,6 +18,13 @@ public class IntImpl extends ArrayImpl implements RInt {
         content = new int[size];
     }
 
+    public IntImpl(RInt v) {
+        content = new int[v.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = v.getInt(i);
+        }
+    }
+
     @Override
     public int size() {
         return content.length;

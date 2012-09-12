@@ -19,6 +19,9 @@ public interface RDouble extends RNumber {
         public static RDouble getUninitializedArray(int size) {
             return new DoubleImpl(size);
         }
+        public static RDouble copy(RDouble d) {
+            return new DoubleImpl(d);
+        }
     }
 
 }

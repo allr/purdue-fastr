@@ -58,7 +58,12 @@ public class TestSimpleFunctions extends TestBase {
     public void testRecursion() throws RecognitionException {
         assertEval("{ f<-function(i) { if(i==1) { 1 } else { j<-i-1 ; f(j) } } ; f(10) }", "1.0");
         assertEval("{ f<-function(i) { if(i==1) { 1 } else { f(i-1) } } ; f(10) }", "1.0");
-        assertEval("{ f<-function(i) { if(i<=1) 1 else i*f(i-1) } ; f(10) }", "3628800.0");
-        assertEval("{ f<-function(i) { if(i<=1L) 1L else i*f(i-1L) } ; f(10L) }", "3628800L");
+        assertEval("{ f<-function(i) { if(i<=1) 1 else i*f(i-1) } ; f(10) }", "3628800.0"); // factorial
+        assertEval("{ f<-function(i) { if(i<=1L) 1L else i*f(i-1L) } ; f(10L) }", "3628800L"); // factorial
+            // 100 times calculate factorial of 120
+            // the GNU R outputs 6.689503e+198
+        assertEval("{ f<-function(i) { if(i<=1) 1 else i*f(i-1) } ; g<-function(n, f, a) { if (n==1) { f(a) } else { f(a) ; g(n-1, f, a) } } ; g(100,f,120) }", "6.689502913449124E198");
+        assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { f(i-1) + f(i-2) } } ; f(10) }", "55.0"); // Fibonacci numbers
+        assertEval("{ f<-function(i) { if (i==1L) { 1L } else if (i==2L) { 1L } else { f(i-1L) + f(i-2L) } } ; f(10L) }", "55L");
     }
 }

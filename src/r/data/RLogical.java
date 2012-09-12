@@ -32,5 +32,9 @@ public interface RLogical extends RArray {
             }
             return l;
         }
+
+        public static RLogical copy(RLogical l) {
+            return new LogicalImpl(l);
+        }
     }
 }

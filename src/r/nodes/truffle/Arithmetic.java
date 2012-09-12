@@ -100,8 +100,41 @@ public class Arithmetic extends BaseR {
             }
         } catch (UnexpectedResultException e) {
             if (DEBUG_AR) Utils.debug("arithmetic - optimistic arithmetic failed, values are not scalars");
+            GenericArithmetic ga = new GenericArithmetic(ast);
+            replace(ga, "genericArithmetic");
+            return ga.execute(context, frame, lexpr, rexpr);
         }
-        return null;
+    }
+
+    class GenericArithmetic extends BaseR {
+        public GenericArithmetic(ASTNode ast) {
+            super(ast);
+        }
+
+        @Override
+        public Object execute(RContext context, RFrame frame) {
+            RAny lexpr = (RAny) left.execute(context, frame);
+            RAny rexpr = (RAny) right.execute(context, frame);
+            return execute(context, frame, lexpr, rexpr);
+        }
+
+        public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
+            if (DEBUG_AR) Utils.debug("arithmetic - generic case");
+            if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
+                RDouble ldbl = lexpr.asDouble();
+                RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                Utils.debug("Returning double view");
+                return new DoubleView(ldbl, rdbl, context);
+            }
+            if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) {
+                RInt lint = lexpr.asInt();
+                RInt rint = rexpr.asInt();
+                return new IntView(lint, rint, context);
+            }
+            Utils.nyi("unsupported case for binary arithmetic operation");
+            return null;
+        }
+
     }
 
     public abstract static class ValueArithmetic {
@@ -114,11 +147,6 @@ public class Arithmetic extends BaseR {
         public double op(int a, double b) {
             return op((double) a, b);
         }
-
-//        public RInt op(RInt a, RInt b, RContext context);
-//        public RDouble op(RDouble a, RDouble b, RContext context);
-//        public RDouble op(RDouble a, double b);
-//        public RDouble op(double a, RDouble b);
     }
 
     public static final class Add extends ValueArithmetic {
@@ -178,4 +206,276 @@ public class Arithmetic extends BaseR {
     protected static Add ADD = new Add();
     protected static Sub SUB = new Sub();
     protected static Mult MULT = new Mult();
+
+    class DoubleView implements RDouble {
+        final RDouble a;
+        final RDouble b;
+        final RContext context;
+        final int na;
+        final int nb;
+        final int n;
+
+        public DoubleView(RDouble a, RDouble b, RContext context) {
+            this.a = a;
+            this.b = b;
+            this.context = context;
+            na = a.size();
+            nb = b.size();
+
+            if (na > nb) {
+                n = na;
+                if ((n / nb) * nb != n) {
+                    context.warning(Arithmetic.this.ast, RError.LENGTH_NOT_MULTI);
+                }
+            } else {
+                n = nb;
+                if ((n / na) * na != n) {
+                    context.warning(Arithmetic.this.ast, RError.LENGTH_NOT_MULTI);
+                }
+            }
+        }
+
+        protected RDouble force() {
+            return RDouble.RDoubleFactory.copy(this);
+        }
+
+        @Override
+        public Object get(int i) {
+            return getDouble(i);
+        }
+
+        @Override
+        public RArray subset(RAny keys) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RString names) {
+            Utils.nyi();
+            return null;
+        }
+
+        public int size() {
+            return n;
+        }
+
+        @Override
+        public RInt asInt() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return this;
+        }
+
+        @Override
+        public RArray materialize() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public String pretty() {
+            return force().pretty();
+        }
+
+        @Override
+        public RArray set(int i, Object val) {
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray set(int i, double val) {
+            return null;
+        }
+
+        @Override
+        public double getDouble(int i) {
+            int ai;
+            int bi;
+            if (i >= na) {
+                ai = i % na;
+                bi = i;
+            } else if (i >= nb) {
+                bi = i % nb;
+                ai = i;
+            } else {
+                ai = i;
+                bi = i;
+            }
+            double adbl = a.getDouble(ai);
+            double bdbl = b.getDouble(bi);
+            if (adbl == RDouble.NA || bdbl == RDouble.NA) {
+                return RDouble.NA;
+            } else {
+                return Arithmetic.this.arit.op(adbl, bdbl);
+            }
+         }
+
+        @Override
+        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
+            return null;
+        }
+    }
+
+    class IntView implements RInt {
+        final RInt a;
+        final RInt b;
+        final RContext context;
+        final int na;
+        final int nb;
+        final int n;
+        boolean overflown = false;
+
+        public IntView(RInt a, RInt b, RContext context) {
+            this.a = a;
+            this.b = b;
+            this.context = context;
+            na = a.size();
+            nb = b.size();
+
+            if (na > nb) {
+                n = na;
+                if ((n / nb) * nb != n) {
+                    context.warning(Arithmetic.this.ast, RError.LENGTH_NOT_MULTI);
+                }
+            } else {
+                n = nb;
+                if ((n / na) * na != n) {
+                    context.warning(Arithmetic.this.ast, RError.LENGTH_NOT_MULTI);
+                }
+            }
+        }
+
+        protected RInt force() {
+            return RInt.RIntFactory.copy(this);
+        }
+
+        @Override
+        public Object get(int i) {
+            return getInt(i);
+        }
+
+        @Override
+        public RArray subset(RAny keys) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray subset(RString names) {
+            Utils.nyi();
+            return null;
+        }
+
+        public int size() {
+            return n;
+        }
+
+        @Override
+        public RInt asInt() {
+            return this;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray materialize() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public String pretty() {
+            return force().pretty();
+        }
+
+        @Override
+        public RArray set(int i, Object val) {
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RArray set(int i, int val) {
+            return null;
+        }
+
+        @Override
+        public int getInt(int i) {
+            int ai;
+            int bi;
+            if (i >= na) {
+                ai = i % na;
+                bi = i;
+            } else if (i >= nb) {
+                bi = i % nb;
+                ai = i;
+            } else {
+                ai = i;
+                bi = i;
+            }
+            int aint = a.getInt(ai);
+            int bint = b.getInt(bi);
+            if (aint == RInt.NA || bint == RInt.NA) {
+                return RInt.NA;
+            } else {
+                int res = Arithmetic.this.arit.op(aint, bint);
+                if (res == RInt.NA && !overflown) {
+                    overflown = true;
+                    context.warning(ast, RError.INTEGER_OVERFLOW);
+                }
+                return res;
+            }
+         }
+
+        @Override
+        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+            Utils.nyi(); // Do we have to bind on the view node or on the implementation
+            return null;
+        }
+    }
 }
