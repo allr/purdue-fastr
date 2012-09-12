@@ -29,7 +29,7 @@ public class Comparison extends BaseR {
             case EQ: this.cmp = EQ; break;
             case LE: this.cmp = LE; break;
             default:
-                throw new RuntimeException("not implemented operation");
+                throw new RuntimeException("not implemented comparison operation");
         }
     }
 

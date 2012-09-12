@@ -11,6 +11,7 @@ public abstract class RError extends RuntimeException {
     public static final String UNKNOW_VARIABLE = "object not found";
     public static final String UNUSED_ARGUMENT = "unused argument(s)";
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
+    public static final String INTEGER_OVERFLOW = "NAs produced by integer overflow";
 
     public static RError getNYI(final String msg) {
         return new RError() {

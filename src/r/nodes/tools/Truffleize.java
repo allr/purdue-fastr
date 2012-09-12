@@ -62,14 +62,6 @@ public class Truffleize implements Visitor {
     }
 
     @Override
-    public void visit(Mult mult) {
-    }
-
-    @Override
-    public void visit(Add add) {
-    }
-
-    @Override
     public void visit(Not n) {
     }
 
@@ -161,5 +153,15 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(LE le) {
         result = new r.nodes.truffle.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), BinaryOperator.LE);
+    }
+
+    @Override
+    public void visit(Add add) {
+        result = new r.nodes.truffle.Arithmetic(add, createTree(add.getLHS()), createTree(add.getRHS()), BinaryOperator.ADD);
+    }
+
+    @Override
+    public void visit(Mult mult) {
+        result = new r.nodes.truffle.Arithmetic(mult, createTree(mult.getLHS()), createTree(mult.getRHS()), BinaryOperator.MULT);
     }
 }

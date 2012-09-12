@@ -7,6 +7,7 @@ public interface RDouble extends RNumber {
     double NA = Double.longBitsToDouble(0x7ff00000000007a2L);
 
     RDouble EMPTY = RDoubleFactory.getUninitializedArray(0);
+    RDouble BOXED_NA = RDoubleFactory.getArray(NA);
 
     RArray set(int i, double val);
     double getDouble(int i);
