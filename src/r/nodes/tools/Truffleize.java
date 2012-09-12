@@ -164,4 +164,9 @@ public class Truffleize implements Visitor {
     public void visit(Mult mult) {
         result = new r.nodes.truffle.Arithmetic(mult, createTree(mult.getLHS()), createTree(mult.getRHS()), BinaryOperator.MULT);
     }
+
+    @Override
+    public void visit(Sub sub) {
+        result = new r.nodes.truffle.Arithmetic(sub, createTree(sub.getLHS()), createTree(sub.getRHS()), BinaryOperator.SUB);
+    }
 }

@@ -4,6 +4,7 @@ public abstract class Operation extends ASTNode {
     public static final int EQ_PRECEDENCE = 1;
     public static final int COMPARE_PRECEDENCE = EQ_PRECEDENCE + 1;
     public static final int ADD_PRECEDENCE = COMPARE_PRECEDENCE + 1;
+    public static final int SUB_PRECEDENCE = ADD_PRECEDENCE;
     public static final int MULT_PRECEDENCE = ADD_PRECEDENCE + 1;
     ASTNode lhs;
 

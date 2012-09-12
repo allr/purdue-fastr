@@ -10,6 +10,7 @@ public interface Visitor {
     void visit(LE le);
     void visit(Mult mult);
     void visit(Add add);
+    void visit(Sub sub);
 
     void visit(Not n);
 
