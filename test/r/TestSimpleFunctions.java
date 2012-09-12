@@ -53,4 +53,12 @@ public class TestSimpleFunctions extends TestBase {
     public void testUnused2() throws RecognitionException {
         Assert.assertEquals(RNull.getNull().pretty(), evalString("{ x<-function(){1} ; x(1) }"));
     }
+
+    @Test
+    public void testRecursion() throws RecognitionException {
+        assertEval("{ f<-function(i) { if(i==1) { 1 } else { j<-i-1 ; f(j) } } ; f(10) }", "1.0");
+        assertEval("{ f<-function(i) { if(i==1) { 1 } else { f(i-1) } } ; f(10) }", "1.0");
+        assertEval("{ f<-function(i) { if(i<=1) 1 else i*f(i-1) } ; f(10) }", "3628800.0");
+        assertEval("{ f<-function(i) { if(i<=1L) 1L else i*f(i-1L) } ; f(10L) }", "3628800L");
+    }
 }
