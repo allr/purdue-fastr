@@ -16,7 +16,7 @@ public class Arithmetic extends BaseR {
     final ValueArithmetic arit;
     final BinaryOperator op;
 
-    private static final boolean DEBUG_AR = true;
+    private static final boolean DEBUG_AR = false;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, BinaryOperator op) {
         super(ast);
