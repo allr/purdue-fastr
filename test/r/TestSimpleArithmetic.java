@@ -34,5 +34,9 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{x<-c(1,2);y<-c(3,4,5,6);x*y}", "3.0, 8.0, 5.0, 12.0");
         assertEval("{x<-c(1,2);z<-c();x==z}", "logical(0)");
         assertEval("{x<-1+NA; c(1,2,3,4)+c(x,10)}", "NA, 12.0, NA, 14.0");
+        assertEval("{c(1L,2L,3L)+TRUE}", "2L, 3L, 4L");
+        assertEval("{c(1L,2L,3L)*c(10L)}", "10L, 20L, 30L");
+        assertEval("{c(1L,2L,3L)*c(10,11,12)}", "10.0, 22.0, 36.0");
+        assertEval("{c(1L,2L,3L,4L)-c(TRUE,FALSE)}", "0L, 2L, 2L, 4L");
     }
 }

@@ -30,23 +30,68 @@ public class DummyBuiltin extends BaseR {
     public Object execute(RContext context, RFrame frame) {
 
         if (call == C) {
-            // only support double vectors
-            RDouble res = RDouble.RDoubleFactory.getUninitializedArray(argExprs.length);
-            for(int i = 0; i < argExprs.length; i++) {
-                RAny value = (RAny) argExprs[i].execute(context, frame);
-                if (value instanceof RDouble) {
-                    RDouble dvalue = (RDouble)value;
-                    if (dvalue.size()==1) {
+            // only supports a vector of integers, doubles, or logical
+            if (argExprs.length == 0) {
+                return RNull.getNull();
+            }
+            RAny[] values = new RAny[ argExprs.length];
+            boolean hasDouble = false;
+            boolean hasLogical = false;
+            boolean hasInt = false;
+            for (int i = 0; i < argExprs.length; i++) {
+                RAny v = (RAny) argExprs[i].execute(context, frame);
+                values[i] = v;
+                if (v instanceof RDouble) {
+                    hasDouble = true;
+                } else if (v instanceof RLogical) {
+                    hasLogical = true;
+                } else if (v instanceof RInt) {
+                    hasInt = true;
+                } else {
+                    Utils.nyi("unsupported vector element");
+                }
+            }
+            if (hasDouble && hasLogical || hasDouble && hasInt || hasLogical && hasInt) {
+                Utils.nyi("only homogeneous vectors are supported");
+            }
+            if (hasDouble) {
+                RDouble res = RDouble.RDoubleFactory.getUninitializedArray(values.length);
+                for (int i = 0; i < values.length; i++) {
+                    RDouble dvalue = (RDouble) values[i];
+                    if (dvalue.size() == 1) {
                         res.set(i, dvalue.getDouble(0));
                         continue;
                     }
+                    Utils.nyi("only atomic elements are supported");
                 }
-                Utils.nyi("unsupported arguments to C");
+                return res;
             }
-            return res;
-
+            if (hasInt) {
+                RInt res = RInt.RIntFactory.getUninitializedArray(values.length);
+                for (int i = 0; i < values.length; i++) {
+                    RInt ivalue = (RInt) values[i];
+                    if (ivalue.size() == 1) {
+                        res.set(i, ivalue.getInt(0));
+                        continue;
+                    }
+                    Utils.nyi("only atomic elements are supported");
+                }
+                return res;
+            }
+            if (hasLogical) {
+                RLogical res = RLogical.RLogicalFactory.getUninitializedArray(values.length);
+                for (int i = 0; i < values.length; i++) {
+                    RLogical lvalue = (RLogical) values[i];
+                    if (lvalue.size() == 1) {
+                        res.set(i, lvalue.getLogical(0));
+                        continue;
+                    }
+                    Utils.nyi("only atomic elements are supported");
+                }
+                return res;
+            }
         }
-        Utils.nyi("unsupported dummy builtin");
+        Utils.nyi("unsupported dummy builtin " + call.pretty());
         return null;
     }
 
