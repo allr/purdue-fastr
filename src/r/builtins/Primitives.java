@@ -4,6 +4,7 @@ import java.util.*;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.FunctionCall;
 import r.nodes.truffle.*;
 
@@ -12,16 +13,28 @@ public class Primitives {
     private static Map<RSymbol, PrimitiveEntry> map;
     static {
         map = new HashMap<>();
-        add(":", 2, new Sequence.SequenceFactory());
+        add(":", 2, Sequence.FACTORY);
     }
 
-    public static RNode getNode(FunctionCall call, RFunction enclosing, RSymbol[] names, RNode[] exprs) {
+    public static CallFactory getCallFactory(FunctionCall call, RFunction enclosing) {
         RSymbol name = call.getName();
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
         if (pe == null) {
             return null;
         }
-        return pe.create(call, names, exprs);
+        return new CallFactory() {
+
+            @Override
+            public RNode create(FunctionCall fcall, RSymbol[] names, RNode[] exprs) {
+                int count = pe.getArgsCount();
+
+                if (!(count >= 0 && count == exprs.length) || !(count < 0 && (count - 1) < exprs.length)) {
+                    throw RError.getGenericError(fcall, "Wrong number of arguments for call to BuiltIn");
+                }
+
+                return pe.factory.create(fcall, names, exprs);
+            }
+        };
     }
 
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {

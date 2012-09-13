@@ -2,106 +2,87 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
-import r.errors.*;
-import r.nodes.FunctionCall;
+import r.nodes.*;
 import r.nodes.truffle.*;
 
-public abstract class BuiltIn {
+public abstract class BuiltIn extends AbstractCall {
 
-    @SuppressWarnings("unused")
-    public RAny fire(RContext context, RFrame frame, RAny[] args) {
-        throw RError.getNYI("No generic case for " + args.length + " arguments");
-    }
-
-    @SuppressWarnings("unused")
-    public RAny fire(RContext context, RFrame frame) {
-        throw RError.getNYI("No special case for 0 args");
-    }
-
-    @SuppressWarnings("unused")
-    public RAny fire(RContext context, RFrame frame, RAny arg) {
-        throw RError.getNYI("No special case for 1 args");
-    }
-
-    @SuppressWarnings("unused")
-    public RAny fire(RContext context, RFrame frame, RAny arg0, RAny arg1) {
-        throw RError.getNYI("No special case for 2 args");
+    public BuiltIn(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+        super(orig, argNames, argExprs);
     }
 
     abstract static class BuiltIn0 extends BuiltIn {
 
+        public BuiltIn0(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+            super(orig, argNames, argExprs);
+        }
+
         @Override
-        public final RAny fire(RContext context, RFrame frame, RAny[] params) {
-            return fire(context, frame);
+        public Object execute(RContext context, RFrame frame) {
+            return doBuiltIn(context, frame);
+        }
+
+        public abstract RAny doBuiltIn(RContext context, RFrame frame);
+
+        @Override
+        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+            // TODO or not runtime test, since it's not the entry point
+            return doBuiltIn(context, frame);
         }
     }
 
     abstract static class BuiltIn1 extends BuiltIn {
 
+        public BuiltIn1(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+            super(orig, argNames, argExprs);
+        }
+
         @Override
-        public final RAny fire(RContext context, RFrame frame, RAny[] params) {
-            return fire(context, frame, params[0]);
+        public Object execute(RContext context, RFrame frame) {
+            return doBuiltIn(context, frame, (RAny) argsValues[0].execute(context, frame));
+        }
+
+        public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg);
+
+        @Override
+        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+            // TODO or not runtime test, since it's not the entry point
+            return doBuiltIn(context, frame, params[0]);
         }
     }
 
     abstract static class BuiltIn2 extends BuiltIn {
 
+        public BuiltIn2(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+            super(orig, argNames, argExprs);
+        }
+
         @Override
-        public final RAny fire(RContext context, RFrame frame, RAny[] params) {
-            return fire(context, frame, params[0], params[1]);
+        public Object execute(RContext context, RFrame frame) {
+            return doBuiltIn(context, frame, (RAny) argsValues[0].execute(context, frame), (RAny) argsValues[1].execute(context, frame));
+        }
+
+        public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1);
+
+        @Override
+        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+            return doBuiltIn(context, frame, params[0], params[1]);
         }
     }
 
-    abstract static class BuiltInFactory implements CallFactory {
-        public RNode create(final FunctionCall call, final RSymbol[] names, final RNode[] exprs) {
-            final BuiltIn body = createBuiltIn(call, names, exprs);
+    @Override
+    public Object execute(RContext context, RFrame frame) {
+        return doBuiltIn(context, frame, evalArgs(context, frame));
+    }
 
-            switch (exprs.length) {
-                case 0:
-                    return new BaseR(call) {
+    public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny[] params);
 
-                        @Override
-                        public Object execute(RContext context, RFrame frame) {
-                            return body.fire(context, frame);
-                        }
-                    };
-                case 1:
-                    return new BaseR(call) {
-
-                        @Override
-                        public Object execute(RContext context, RFrame frame) {
-                            return body.fire(context, frame, (RAny) exprs[0].execute(context, frame));
-                        }
-                    };
-                case 2:
-                    return new BaseR(call) {
-
-                        @Override
-                        public Object execute(RContext context, RFrame frame) {
-                            return body.fire(context, frame, (RAny) exprs[0].execute(context, frame), (RAny) exprs[1].execute(context, frame));
-                        }
-                    };
-                default:
-                    return new BaseR(call) {
-
-                        @Override
-                        public Object execute(RContext context, RFrame frame) {
-                            return body.fire(context, frame, evalArgs(context, frame));
-                        }
-
-                        private RAny[] evalArgs(RContext context, RFrame frame) {
-                            int len = exprs.length;
-                            RAny[] args = new RAny[len];
-                            for (int i = 0; i < len; i++) {
-                                args[i] = (RAny) exprs[i].execute(context, frame);
-                            }
-                            return args;
-                        }
-
-                    };
-            }
+    private RAny[] evalArgs(RContext context, RFrame frame) {
+        int len = argsValues.length;
+        RAny[] args = new RAny[len];
+        for (int i = 0; i < len; i++) {
+            args[i] = (RAny) argsValues[i].execute(context, frame);
         }
-
-        protected abstract BuiltIn createBuiltIn(final FunctionCall call, final RSymbol[] names, final RNode[] exprs);
+        return args;
     }
 }

@@ -135,16 +135,17 @@ public class Truffleize implements Visitor {
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs());
 
-        result = Primitives.getNode(functionCall, getEnclosing(functionCall), convertedNames, convertedExpressions);
-        // FIXME: remove this!! just a temporary hack to get some builtins
-        if (result == null) {
+        CallFactory factory = Primitives.getCallFactory(functionCall, getEnclosing(functionCall));
+        if (factory == null) {
             if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
+                // FIXME: remove this!! just a temporary hack to get some builtins
                 result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
+                return;
             } else {
-                RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
-                result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+                factory = r.nodes.truffle.FunctionCall.FACTORY;
             }
         }
+        result = factory.create(functionCall, convertedNames, convertedExpressions);
     }
 
     @SuppressWarnings("unchecked")

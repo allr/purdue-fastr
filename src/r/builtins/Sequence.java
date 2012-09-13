@@ -2,7 +2,6 @@ package r.builtins;
 
 import r.*;
 import r.builtins.BuiltIn.BuiltIn2;
-import r.builtins.BuiltIn.BuiltInFactory;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.FunctionCall;
@@ -28,12 +27,12 @@ public class Sequence {
         return data;
     }
 
-    static class SequenceFactory extends BuiltInFactory {
+    public static final CallFactory FACTORY = new CallFactory() {
         @Override
-        protected BuiltIn createBuiltIn(final FunctionCall call, final RSymbol[] names, final RNode[] exprs) {
-            return new BuiltIn2() {
+        public RNode create(FunctionCall call, RSymbol[] names, RNode[] exprs) {
+            return new BuiltIn2(call, names, exprs) {
                 @Override
-                public RAny fire(RContext context, RFrame frame, RAny arg0, RAny arg1) {
+                public RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1) {
                     boolean l = arg0 instanceof RDouble;
                     boolean r = arg1 instanceof RDouble;
 
@@ -65,5 +64,5 @@ public class Sequence {
                 }
             };
         }
-    }
+    };
 }
