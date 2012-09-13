@@ -23,6 +23,9 @@ public interface RInt extends RNumber {
         public static RInt copy(RInt i) {
             return new IntImpl(i);
         }
+        public static RInt getForArray(int[] values) {  // re-uses values!
+            return new IntImpl(values, false);
+        }
     }
 
 }

@@ -26,7 +26,5 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{x<-c(1L,2L,3L,4L);y<-c(2.5+NA,2.5);x<=y}", "NA, TRUE, NA, FALSE");
         assertEval("{x<-c(1L,2L,3L,4L);y<-c(TRUE,FALSE);x<=y}", "TRUE, FALSE, FALSE, FALSE");
         assertEval("{x<-c(1L,2L,3L,4L);y<-1.5;x<=y}", "TRUE, FALSE, FALSE, FALSE");
-
-
     }
 }
