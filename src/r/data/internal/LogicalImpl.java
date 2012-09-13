@@ -63,7 +63,7 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
 
     @Override
     public RDouble asDouble() {
-        return new DoubleView();
+        return new RLogical.RDoubleView(this);
     }
 
     public String pretty() {
@@ -86,53 +86,5 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromLogical();
-    }
-
-    class DoubleView extends View implements RDouble {
-
-        @Override
-        public Object get(int i) {
-            return getDouble(i);
-        }
-
-        public int size() {
-            return LogicalImpl.this.size();
-        }
-
-        @Override
-        public RInt asInt() {
-            return LogicalImpl.this.asInt();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RArray materialize() {
-            return RDouble.RDoubleFactory.copy(this);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return LogicalImpl.this.getAttributes();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return LogicalImpl.this;
-        }
-
-        @Override
-        public RArray set(int i, double val) {
-            return materialize().set(i, val);
-        }
-
-        @Override
-        public double getDouble(int i) {
-            int l = LogicalImpl.this.getLogical(i);
-            return Convert.logical2double(l);
-        }
     }
 }

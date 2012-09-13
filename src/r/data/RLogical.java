@@ -1,5 +1,6 @@
 package r.data;
 
+import r.*;
 import r.data.internal.*;
 
 
@@ -27,7 +28,7 @@ public interface RLogical extends RArray {
 
         public static RLogical getNAArray(int size) {
             RLogical l = getUninitializedArray(size);
-            for(int i = 0; i < size ; i++) {
+            for (int i = 0; i < size; i++) {
                 l.set(i, NA);
             }
             return l;
@@ -37,4 +38,57 @@ public interface RLogical extends RArray {
             return new LogicalImpl(l);
         }
     }
+
+    public static class RDoubleView extends View implements RDouble {
+
+        final RLogical l;
+        public RDoubleView(RLogical l) {
+            this.l = l;
+        }
+        @Override
+        public Object get(int i) {
+            return getDouble(i);
+        }
+
+        public int size() {
+            return l.size();
+        }
+
+        @Override
+        public RInt asInt() {
+            return l.asInt();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return this;
+        }
+
+        @Override
+        public RArray materialize() {
+            return RDouble.RDoubleFactory.copy(this);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public RArray set(int i, double val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public double getDouble(int i) {
+            int ll = l.getLogical(i);
+            return Convert.logical2double(ll);
+        }
+    }
+
 }

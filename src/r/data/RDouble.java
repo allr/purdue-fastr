@@ -1,5 +1,6 @@
 package r.data;
 
+import r.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
@@ -27,6 +28,59 @@ public interface RDouble extends RNumber {
         }
         public static RDouble copy(RDouble d) {
             return new DoubleImpl(d);
+        }
+    }
+
+    public static class RIntView extends View implements RInt {
+
+        RDouble rdbl;
+
+        public RIntView(RDouble rdbl) {
+            this.rdbl = rdbl;
+        }
+
+        @Override
+        public RInt asInt() {
+            return this;
+        }
+
+        @Override
+        public Object get(int i) {
+            return getInt(i);
+        }
+
+        @Override
+        public RArray set(int i, int val) {
+            return materialize().set(i, val);
+        }
+
+        public int size() {
+            return rdbl.size();
+        }
+
+        @Override
+        public RInt materialize() {
+            return RInt.RIntFactory.copy(this);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rdbl.getAttributes();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rdbl.asLogical();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rdbl;
+        }
+
+        @Override
+        public int getInt(int i) {
+            return Convert.double2int(rdbl.getDouble(i));
         }
     }
 

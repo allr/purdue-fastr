@@ -49,7 +49,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RInt asInt() {
-        return new IntView();
+        return new RDouble.RIntView(this);
     }
 
     @Override
@@ -72,53 +72,6 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
             str.append(Convert.double2string(content[i]));
         }
         return str.toString();
-    }
-
-    class IntView extends View implements RInt {
-
-        @Override
-        public RInt asInt() {
-            return this;
-        }
-
-        @Override
-        public Object get(int i) {
-            return getInt(i);
-        }
-
-        @Override
-        public RArray set(int i, int val) {
-            return materialize().set(i, val);
-        }
-
-        public int size() {
-            return DoubleImpl.this.size();
-        }
-
-        @Override
-        public RInt materialize() {
-            return RInt.RIntFactory.copy(this);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return DoubleImpl.this.getAttributes();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return DoubleImpl.this.asLogical();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return DoubleImpl.this;
-        }
-
-        @Override
-        public int getInt(int i) {
-            return Convert.double2int(DoubleImpl.this.getDouble(i));
-        }
     }
 
     @Override

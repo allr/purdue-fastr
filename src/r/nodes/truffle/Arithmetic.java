@@ -346,8 +346,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RDouble asDouble() {
-            Utils.nyi();
-            return null;
+            return new RInt.RDoubleView(this);
         }
 
         @Override

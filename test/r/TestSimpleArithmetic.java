@@ -38,5 +38,6 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{c(1L,2L,3L)*c(10L)}", "10L, 20L, 30L");
         assertEval("{c(1L,2L,3L)*c(10,11,12)}", "10.0, 22.0, 36.0");
         assertEval("{c(1L,2L,3L,4L)-c(TRUE,FALSE)}", "0L, 2L, 2L, 4L");
+        assertEval("{ia<-c(1L,2L);ib<-c(3L,4L);d<-c(5,6);ia+ib+d}", "9.0, 12.0");
     }
 }

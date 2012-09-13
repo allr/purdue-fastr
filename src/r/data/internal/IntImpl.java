@@ -87,59 +87,11 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RDouble asDouble() {
-        return new DoubleView();
+        return new RInt.RDoubleView(this);
     }
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromInt();
-    }
-
-    class DoubleView extends View implements RDouble {
-
-        @Override
-        public Object get(int i) {
-            return getDouble(i);
-        }
-
-        public int size() {
-            return IntImpl.this.size();
-        }
-
-        @Override
-        public RInt asInt() {
-            return IntImpl.this;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RArray materialize() {
-            return RDouble.RDoubleFactory.copy(this);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return IntImpl.this.getAttributes();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return IntImpl.this.asLogical();
-        }
-
-        @Override
-        public RArray set(int i, double val) {
-            return materialize().set(i, val);
-        }
-
-        @Override
-        public double getDouble(int i) {
-            int v = IntImpl.this.getInt(i);
-            return Convert.int2double(v);
-        }
     }
 }
