@@ -137,13 +137,13 @@ public class Truffleize implements Visitor {
 
         result = Primitives.getNode(functionCall, getEnclosing(functionCall), convertedNames, convertedExpressions);
         // FIXME: remove this!! just a temporary hack to get some builtins
-				if (result == null) {
-					if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
-						result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
-					}
-        } else {
-            RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
-            result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+        if (result == null) {
+            if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
+                result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
+            } else {
+                RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
+                result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+            }
         }
     }
 
