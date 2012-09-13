@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.BinaryOperation.BinaryOperator;
@@ -206,7 +207,7 @@ public class Arithmetic extends BaseR {
     protected static Sub SUB = new Sub();
     protected static Mult MULT = new Mult();
 
-    class DoubleView implements RDouble {
+    class DoubleView extends View implements RDouble {
         final RDouble a;
         final RDouble b;
         final RContext context;
@@ -234,31 +235,14 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        protected RDouble force() {
+        @Override
+        public RArray materialize() {
             return RDouble.RDoubleFactory.copy(this);
         }
 
         @Override
         public Object get(int i) {
             return getDouble(i);
-        }
-
-        @Override
-        public RArray subset(RAny keys) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RInt index) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RString names) {
-            Utils.nyi();
-            return null;
         }
 
         public int size() {
@@ -277,24 +261,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RArray materialize() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
         public RAttributes getAttributes() {
             Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public String pretty() {
-            return force().pretty();
-        }
-
-        @Override
-        public RArray set(int i, Object val) {
             return null;
         }
 
@@ -306,7 +274,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RArray set(int i, double val) {
-            return null;
+            return materialize().set(i, val);
         }
 
         @Override
@@ -331,15 +299,9 @@ public class Arithmetic extends BaseR {
                 return Arithmetic.this.arit.op(adbl, bdbl);
             }
          }
-
-        @Override
-        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-            Utils.nyi(); // Do we have to bind on the view node or on the implementation
-            return null;
-        }
     }
 
-    class IntView implements RInt {
+    class IntView extends View implements RInt {
         final RInt a;
         final RInt b;
         final RContext context;
@@ -368,31 +330,9 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        protected RInt force() {
-            return RInt.RIntFactory.copy(this);
-        }
-
         @Override
         public Object get(int i) {
             return getInt(i);
-        }
-
-        @Override
-        public RArray subset(RAny keys) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RInt index) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RString names) {
-            Utils.nyi();
-            return null;
         }
 
         public int size() {
@@ -406,29 +346,17 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RDouble asDouble() {
-            Utils.nyi();
-            return null;
+            return new RInt.RDoubleView(this);
         }
 
         @Override
         public RArray materialize() {
-            Utils.nyi();
-            return null;
+            return RInt.RIntFactory.copy(this);
         }
 
         @Override
         public RAttributes getAttributes() {
             Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public String pretty() {
-            return force().pretty();
-        }
-
-        @Override
-        public RArray set(int i, Object val) {
             return null;
         }
 
@@ -440,7 +368,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RArray set(int i, int val) {
-            return null;
+            return materialize().set(i, val);
         }
 
         @Override
@@ -469,12 +397,6 @@ public class Arithmetic extends BaseR {
                 }
                 return res;
             }
-         }
-
-        @Override
-        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-            Utils.nyi(); // Do we have to bind on the view node or on the implementation
-            return null;
         }
     }
 }

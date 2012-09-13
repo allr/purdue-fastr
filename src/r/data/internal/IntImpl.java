@@ -9,9 +9,17 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     int[] content;
 
-    public IntImpl(int[] values) {
-        content = new int[values.length];
-        System.arraycopy(values, 0, content, 0, values.length);
+    public IntImpl(int[] values, boolean doCopy) {
+        if (doCopy) {
+            content = new int[values.length];
+            System.arraycopy(values, 0, content, 0, values.length);
+        } else {
+            content = values;
+        }
+    }
+
+    public IntImpl(int [] values) {
+        this(values, true);
     }
 
     public IntImpl(int size) {
@@ -79,96 +87,11 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RDouble asDouble() {
-        return new DoubleView();
+        return new RInt.RDoubleView(this);
     }
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromInt();
-    }
-
-    class DoubleView implements RDouble {
-
-        @Override
-        public Object get(int i) {
-            int v = IntImpl.this.getInt(i);
-            return  v == RInt.NA ? RDouble.NA : v;
-        }
-
-        @Override
-        public RArray subset(RAny keys) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RInt index) {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray subset(RString names) {
-            Utils.nyi();
-            return null;
-        }
-
-        public int size() {
-            return IntImpl.this.size();
-        }
-
-        @Override
-        public RInt asInt() {
-            return IntImpl.this;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RArray materialize() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return IntImpl.this.getAttributes();
-        }
-
-        @Override
-        public String pretty() {
-            return materialize().pretty();
-        }
-
-        @Override
-        public RArray set(int i, Object val) {
-            return null;
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray set(int i, double val) {
-            return null;
-        }
-
-        @Override
-        public double getDouble(int i) {
-            int v = IntImpl.this.getInt(i);
-            return v == RInt.NA ? RDouble.NA : (double) v;
-        }
-
-        @Override
-        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-            Utils.nyi(); // Do we have to bind on the view node or on the implementation
-            return null;
-        }
     }
 }

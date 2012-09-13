@@ -21,7 +21,7 @@ public class Convert {
         return Double.toString(d);
     }
 
-    public static int string2lgl(String b) {
+    public static int string2logical(String b) {
         if (b.equals("TRUE") || b.equals("T")) {
             return 1;
         } else if (b.equals("FALSE") || b.equals("F")) {
@@ -63,5 +63,13 @@ public class Convert {
             return RInt.NA;
         }
         return (int) d;
+    }
+
+    public static double logical2double(int l) {
+        return  l == RLogical.NA ? RDouble.NA : l;
+    }
+
+    public static double int2double(int i) {
+        return  i == RInt.NA ? RDouble.NA : i;
     }
 }

@@ -2,8 +2,6 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
 
 public class DoubleImpl extends ArrayImpl implements RDouble {
 
@@ -51,7 +49,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RInt asInt() {
-        return new IntView();
+        return new RDouble.RIntView(this);
     }
 
     @Override
@@ -74,86 +72,6 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
             str.append(Convert.double2string(content[i]));
         }
         return str.toString();
-    }
-
-    class IntView implements RInt {
-
-        @Override
-        public RInt asInt() {
-            return this;
-        }
-
-        @Override
-        public Object get(int i) {
-            return ((Double) DoubleImpl.this.get(i)).doubleValue();
-        }
-
-        @Override
-        public RArray set(int i, Object val) {
-            return set(i, ((Integer) val).intValue()); // FIXME better conversion
-        }
-
-        @Override
-        public RArray set(int i, int val) {
-            return materialize().set(i, val);
-        }
-
-        public int size() {
-            return DoubleImpl.this.size();
-        }
-
-        @Override
-        public RArray subset(RAny keys) {
-            return materialize().subset(keys);
-        }
-
-        @Override
-        public RArray subset(RInt index) {
-            return materialize().subset(index);
-        }
-
-        @Override
-        public RArray subset(RString names) {
-            return materialize();
-        }
-
-        @Override
-        public RInt materialize() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return DoubleImpl.this.getAttributes();
-        }
-
-        @Override
-        public String pretty() {
-            return materialize().pretty(); // FIXME what a stupid impl ...
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return DoubleImpl.this;
-        }
-
-        @Override
-        public int getInt(int i) {
-            return Convert.double2int(i);
-        }
-
-        @Override
-        public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-            Utils.nyi(); // Do we have to bind on the view node or on the implementation
-            return null;
-        }
     }
 
     @Override

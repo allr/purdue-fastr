@@ -86,7 +86,7 @@ public class Constant extends ASTNode {
     public static Constant createBoolConstant(String... values) {
         int[] val = new int[values.length];
         for (int i = 0; i < values.length; i++) {
-            val[i] = Convert.string2lgl(values[i]);
+            val[i] = Convert.string2logical(values[i]);
         }
         return createBoolConstant(values);
     }
