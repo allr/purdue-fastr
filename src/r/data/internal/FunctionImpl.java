@@ -93,7 +93,7 @@ public class FunctionImpl extends BaseObject implements RFunction {
         return writeSet.length;
     }
 
-    public int positionInWriteSet(RSymbol sym) {
+    public int positionInLocalWriteSet(RSymbol sym) {
         if (isIn(sym.hash(), writeSetBloom)) {
             RSymbol[] ws = writeSet;
             int len = ws.length;
@@ -107,7 +107,7 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     // a version without allocation
-    public int positionInReadSet(RSymbol sym) {
+    public int positionInLocalReadSet(RSymbol sym) {
         if (isIn(sym.hash(), readSetBloom)) {
             ReadSetEntry[] rs = readSet;
             int len = rs.length;
@@ -120,8 +120,8 @@ public class FunctionImpl extends BaseObject implements RFunction {
         return -1;
     }
 
-    public ReadSetEntry getReadSetEntry(RSymbol sym) {
-        int i = positionInReadSet(sym);
+    public ReadSetEntry getLocalReadSetEntry(RSymbol sym) {
+        int i = positionInLocalReadSet(sym);
         return (i == -1) ? null : readSet[i];
     }
 
@@ -157,5 +157,16 @@ public class FunctionImpl extends BaseObject implements RFunction {
     @Override
     public RClosure createClosure(RFrame frame) {
         return new ClosureImpl(this, frame);
+    }
+
+    @Override
+    public boolean isInWriteSet(RSymbol sym) {
+        if (positionInLocalWriteSet(sym) != -1) {
+            return true;
+        }
+        if (enclosing == null) {
+            return false;
+        }
+        return enclosing.isInWriteSet(sym);
     }
 }

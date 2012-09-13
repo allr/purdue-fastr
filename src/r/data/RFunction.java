@@ -29,7 +29,8 @@ public interface RFunction {
         public final int framePos;
     }
 
-    int positionInWriteSet(RSymbol sym);
-    int positionInReadSet(RSymbol sym);
-    ReadSetEntry getReadSetEntry(RSymbol sym);
+    int positionInLocalWriteSet(RSymbol sym);
+    int positionInLocalReadSet(RSymbol sym);
+    ReadSetEntry getLocalReadSetEntry(RSymbol sym);
+    boolean isInWriteSet(RSymbol sym);
 }

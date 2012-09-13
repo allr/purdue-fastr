@@ -152,7 +152,7 @@ public final class RFrame extends Frame {
     private ReadSetEntry getRSEFromCache(int pos, RSymbol sym) {
         long cache = primitiveLocals[pos + RESERVED_SLOTS] & ~DIRTY_MASK;
         if (cache == 0) {
-            ReadSetEntry rse = getFunction().getReadSetEntry(sym);
+            ReadSetEntry rse = getFunction().getLocalReadSetEntry(sym);
             if (rse != null) { // variable is top-level or constructed by reflection and read by reflection
                 primitiveLocals[pos + RESERVED_SLOTS] |= (rse.frameHops << POS_BITS) | rse.framePos;
             }
@@ -189,11 +189,11 @@ public final class RFrame extends Frame {
     }
 
     public int getPositionInWS(RSymbol sym) {
-        return getFunction().positionInWriteSet(sym);
+        return getFunction().positionInLocalWriteSet(sym);
     }
 
     public ReadSetEntry getRSEntry(RSymbol sym) {
-        return getFunction().getReadSetEntry(sym);
+        return getFunction().getLocalReadSetEntry(sym);
     }
 
     public RFrame getParent() {

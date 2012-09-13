@@ -119,7 +119,7 @@ public class Function extends ASTNode {
             RFunction p = parent;
             int hops = 1;
             while (p != null) {
-                int pos = p.positionInWriteSet(s);
+                int pos = p.positionInLocalWriteSet(s);
                 if (pos >= 0) {
                     rsl.add(new ReadSetEntry(s, hops, pos)); // FIXME: why not remember the RFunction reference instead of hops?
                     // FIXME: answer: The RFunction Reference will need and extra indirection to be tested (RFrame => RFunction)

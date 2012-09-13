@@ -1,6 +1,7 @@
 package r.nodes.tools;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.BinaryOperation.BinaryOperator;
@@ -112,9 +113,7 @@ public class Truffleize implements Visitor {
     public void visit(Function function) {
         assert Utils.check(function.getRFunction() == null); // TODO the ast.Function must create the RFunction !
 
-        // find lexically enclosing function if exists
-        Function astEnc = findParent(function, Function.class);
-        RFunction encf = astEnc == null ? null : astEnc.getRFunction();
+        RFunction encf = getEnclosing(function);
 
         splitArgumentList(function.getSignature()); // the name is not really accurate since, these are parameters
 
@@ -124,15 +123,24 @@ public class Truffleize implements Visitor {
         result = functionNode;
     }
 
+    private static RFunction getEnclosing(ASTNode node) {
+        // find lexically enclosing function if exists
+        Function astEnc = findParent(node, Function.class);
+        return astEnc == null ? null : astEnc.getRFunction();
+    }
+
     @Override
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs());
 
+        result = Primitives.getNode(functionCall, getEnclosing(functionCall), convertedNames, convertedExpressions);
         // FIXME: remove this!! just a temporary hack to get some builtins
-        if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
-            result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
+				if (result == null) {
+					if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
+						result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
+					}
         } else {
             RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
             result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
