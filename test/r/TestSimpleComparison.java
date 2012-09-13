@@ -17,4 +17,11 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{TRUE==FALSE}", "FALSE");
         assertEval("{FALSE<=TRUE}", "TRUE");
     }
+
+    @Test
+    public void testVectors() throws RecognitionException {
+        assertEval("{x<-c(1,2,3,4);y<-c(10,2);x<=y}", "TRUE, TRUE, TRUE, FALSE");
+        assertEval("{x<-c(1,2,3,4);y<-2.5;x<=y}", "TRUE, TRUE, FALSE, FALSE");
+        assertEval("{x<-c(1,2,3,4);y<-c(2.5+NA,2.5);x<=y}", "NA, TRUE, NA, FALSE");
+    }
 }

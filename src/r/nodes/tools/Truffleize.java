@@ -129,8 +129,14 @@ public class Truffleize implements Visitor {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs());
-        RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
-        result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+
+        // FIXME: remove this!! just a temporary hack to get some builtins
+        if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
+            result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
+        } else {
+            RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(functionCall, functionCall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
+            result = r.nodes.truffle.FunctionCall.getFunctionCall(functionCall, fexp, convertedNames, convertedExpressions);
+        }
     }
 
     @SuppressWarnings("unchecked")

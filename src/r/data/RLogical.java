@@ -28,7 +28,7 @@ public interface RLogical extends RArray {
         public static RLogical getNAArray(int size) {
             RLogical l = getUninitializedArray(size);
             for(int i = 0; i < size ; i++) {
-                l.set(size, NA);
+                l.set(i, NA);
             }
             return l;
         }

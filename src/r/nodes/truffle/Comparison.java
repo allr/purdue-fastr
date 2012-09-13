@@ -46,12 +46,12 @@ public class Comparison extends BaseR {
               //        we might try to improve performance by splitting the code below into different truffle nodes
             if (larr instanceof RDouble) { // note: could make this shorter if we didn't care about Java-level boxing
                 double ldbl = ((RDouble) larr).getDouble(0);
-                if (ldbl == RDouble.NA) {
+                if (RDouble.RDoubleUtils.isNA(ldbl)) {
                     return RLogical.BOXED_NA;
                 }
                 if (rarr instanceof RDouble) {
                     double rdbl = ((RDouble) rarr).getDouble(0);
-                    if (rdbl == RDouble.NA) {
+                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.BOXED_NA;
                     }
                     return cmp.cmp(ldbl, rdbl) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
@@ -77,7 +77,7 @@ public class Comparison extends BaseR {
                     return cmp.cmp(lint, rint) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
                 } else if (rarr instanceof RDouble) {
                     double rdbl = ((RDouble) rarr).getDouble(0);
-                    if (rdbl == RDouble.NA) {
+                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.BOXED_NA;
                     }
                     return cmp.cmp(lint, rdbl) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
@@ -234,13 +234,13 @@ public class Comparison extends BaseR {
 
         public RLogical cmp(RDouble a, double b) {
             int n = a.size();
-            if (b == RDouble.NA) {
+            if (RDouble.RDoubleUtils.isNA(b)) {
                 return RLogicalFactory.getNAArray(n);
             }
             RLogical r = RLogicalFactory.getUninitializedArray(n);
             for (int i = 0; i < n; i++) {
                 double adbl = a.getDouble(i);
-                if (adbl == RDouble.NA) {
+                if (RDouble.RDoubleUtils.isNA(adbl)) {
                     r.set(i, RLogical.NA);
                 } else {
                     r.set(i, cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE);
@@ -250,13 +250,13 @@ public class Comparison extends BaseR {
         }
         public RLogical cmp(double a, RDouble b) {
             int n = b.size();
-            if (a == RDouble.NA) {
+            if (RDouble.RDoubleUtils.isNA(a)) {
                 return RLogicalFactory.getNAArray(n);
             }
             RLogical r = RLogicalFactory.getUninitializedArray(n);
             for (int i = 0; i < n; i++) {
                 double bdbl = b.getDouble(i);
-                if (bdbl == RDouble.NA) {
+                if (RDouble.RDoubleUtils.isNA(bdbl)) {
                     r.set(i, RLogical.NA);
                 } else {
                     r.set(i, cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE);
@@ -320,7 +320,7 @@ public class Comparison extends BaseR {
                     bi = 0;
                 }
 
-                if (adbl == RDouble.NA || bdbl == RDouble.NA) {
+                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
                     r.set(i, RLogical.NA);
                 } else {
                     r.set(i, cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE);

@@ -59,7 +59,7 @@ public class Convert {
     }
 
     public static int double2int(double d) {
-        if (d == RDouble.NA) { // TODO isNA method
+        if (RDouble.RDoubleUtils.isNA(d)) {
             return RInt.NA;
         }
         return (int) d;

@@ -1,6 +1,5 @@
 package r.data;
 
-import r.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 

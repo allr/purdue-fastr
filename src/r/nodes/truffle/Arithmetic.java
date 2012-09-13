@@ -48,12 +48,12 @@ public class Arithmetic extends BaseR {
               //        we might try to improve performance by splitting the code below into different truffle nodes
             if (larr instanceof RDouble) { // note: could make this shorter if we didn't care about Java-level boxing
                 double ldbl = ((RDouble) larr).getDouble(0);
-                if (ldbl == RDouble.NA) {
+                if (RDouble.RDoubleUtils.isNA(ldbl)) {
                     return RDouble.BOXED_NA;
                 }
                 if (rarr instanceof RDouble) {
                     double rdbl = ((RDouble) rarr).getDouble(0);
-                    if (rdbl == RDouble.NA) {
+                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RDouble.BOXED_NA;
                     }
                     return RDouble.RDoubleFactory.getArray(arit.op(ldbl, rdbl)); // FIXME: can we get rid of R-level boxing?
@@ -88,7 +88,7 @@ public class Arithmetic extends BaseR {
                         return RDouble.BOXED_NA;
                     }
                     double rdbl = ((RDouble) rarr).getDouble(0);
-                    if (rdbl == RDouble.NA) {
+                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RDouble.BOXED_NA;
                     }
                     return RDouble.RDoubleFactory.getArray(arit.op(lint, rdbl));
@@ -123,7 +123,6 @@ public class Arithmetic extends BaseR {
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                Utils.debug("Returning double view");
                 return new DoubleView(ldbl, rdbl, context);
             }
             if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) {
@@ -326,7 +325,7 @@ public class Arithmetic extends BaseR {
             }
             double adbl = a.getDouble(ai);
             double bdbl = b.getDouble(bi);
-            if (adbl == RDouble.NA || bdbl == RDouble.NA) {
+            if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
                 return RDouble.NA;
             } else {
                 return Arithmetic.this.arit.op(adbl, bdbl);
