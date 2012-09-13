@@ -137,13 +137,7 @@ public class Truffleize implements Visitor {
 
         CallFactory factory = Primitives.getCallFactory(functionCall, getEnclosing(functionCall));
         if (factory == null) {
-            if (r.nodes.truffle.DummyBuiltin.handles(functionCall.getName())) {
-                // FIXME: remove this!! just a temporary hack to get some builtins
-                result = new r.nodes.truffle.DummyBuiltin(functionCall, functionCall.getName(), convertedNames, convertedExpressions);
-                return;
-            } else {
-                factory = r.nodes.truffle.FunctionCall.FACTORY;
-            }
+            factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
         result = factory.create(functionCall, convertedNames, convertedExpressions);
     }

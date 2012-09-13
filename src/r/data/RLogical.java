@@ -2,8 +2,8 @@ package r.data;
 
 import r.data.internal.*;
 
-
 public interface RLogical extends RArray {
+
     String TYPE_STRING = "logical";
     int TRUE = 1;
     int FALSE = 0;
@@ -14,26 +14,28 @@ public interface RLogical extends RArray {
     RLogical EMPTY = RLogicalFactory.getUninitializedArray(0);
 
     int getLogical(int il);
+
     RLogical set(int i, int val);
 
     public class RLogicalFactory {
-        public static RLogical getArray(int... values) {
+
+        public static LogicalImpl getArray(int... values) {
             return new LogicalImpl(values);
         }
 
-        public static RLogical getUninitializedArray(int size) {
+        public static LogicalImpl getUninitializedArray(int size) {
             return new LogicalImpl(size);
         }
 
-        public static RLogical getNAArray(int size) {
-            RLogical l = getUninitializedArray(size);
-            for(int i = 0; i < size ; i++) {
+        public static LogicalImpl getNAArray(int size) {
+            LogicalImpl l = getUninitializedArray(size);
+            for (int i = 0; i < size; i++) {
                 l.set(i, NA);
             }
             return l;
         }
 
-        public static RLogical copy(RLogical l) {
+        public static LogicalImpl copy(RLogical l) {
             return new LogicalImpl(l);
         }
     }

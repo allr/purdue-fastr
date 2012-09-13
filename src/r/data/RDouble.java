@@ -19,13 +19,13 @@ public interface RDouble extends RNumber {
         }
     }
     public class RDoubleFactory {
-        public static RDouble getArray(double... values) {
+        public static DoubleImpl getArray(double... values) {
             return new DoubleImpl(values);
         }
-        public static RDouble getUninitializedArray(int size) {
+        public static DoubleImpl getUninitializedArray(int size) {
             return new DoubleImpl(size);
         }
-        public static RDouble copy(RDouble d) {
+        public static DoubleImpl copy(RDouble d) {
             return new DoubleImpl(d);
         }
     }

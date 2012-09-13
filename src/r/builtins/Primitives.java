@@ -6,6 +6,7 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.FunctionCall;
+import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 public class Primitives {
@@ -14,9 +15,10 @@ public class Primitives {
     static {
         map = new HashMap<>();
         add(":", 2, Sequence.FACTORY);
+        add("c", -1, Combine.FACTORY);
     }
 
-    public static CallFactory getCallFactory(FunctionCall call, RFunction enclosing) {
+    public static CallFactory getCallFactory(final FunctionCall call, final RFunction enclosing) {
         RSymbol name = call.getName();
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
         if (pe == null) {
@@ -28,8 +30,8 @@ public class Primitives {
             public RNode create(FunctionCall fcall, RSymbol[] names, RNode[] exprs) {
                 int count = pe.getArgsCount();
 
-                if (!(count >= 0 && count == exprs.length) || !(count < 0 && (count - 1) < exprs.length)) {
-                    throw RError.getGenericError(fcall, "Wrong number of arguments for call to BuiltIn");
+                if (!(count >= 0 ? count == exprs.length : exprs.length >= (-count - 1))) {
+                    throw RError.getGenericError(fcall, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
                 }
 
                 return pe.factory.create(fcall, names, exprs);

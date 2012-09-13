@@ -14,13 +14,13 @@ public interface RInt extends RNumber {
     RArray set(int i, int val);
 
     public class RIntFactory {
-        public static RInt getArray(int... values) {
+        public static IntImpl getArray(int... values) {
             return new IntImpl(values);
         }
-        public static RInt getUninitializedArray(int size) {
+        public static IntImpl getUninitializedArray(int size) {
             return new IntImpl(size);
         }
-        public static RInt copy(RInt i) {
+        public static IntImpl copy(RInt i) {
             return new IntImpl(i);
         }
     }
