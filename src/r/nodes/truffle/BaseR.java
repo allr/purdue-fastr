@@ -4,7 +4,7 @@ import r.nodes.*;
 
 
 public abstract class BaseR extends RNode {
-    ASTNode ast;
+    protected final ASTNode ast;
 
 
     public BaseR(ASTNode orig) {

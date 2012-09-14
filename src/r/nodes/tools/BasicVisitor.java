@@ -65,6 +65,11 @@ public class BasicVisitor implements Visitor {
         visit((BinaryOperation) op);
     }
 
+    @Override
+    public void visit(Colon col) {
+        visit((BinaryOperation) col);
+    }
+
     public void visit(UnaryOperation op) {
         visit((ASTNode) op);
     }

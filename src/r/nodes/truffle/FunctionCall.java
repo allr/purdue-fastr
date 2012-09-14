@@ -9,7 +9,6 @@ public abstract class FunctionCall extends AbstractCall {
 
     final RNode closureExpr;
 
-
     private FunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);
         this.closureExpr = updateParent(closureExpr);
@@ -18,10 +17,11 @@ public abstract class FunctionCall extends AbstractCall {
     public static CallFactory FACTORY = new CallFactory() {
 
         @Override
-        public RNode create(r.nodes.FunctionCall call, RSymbol[] names, RNode[] exprs) {
-            RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(call, call.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
+            RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(call, fcall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
 
-            return getFunctionCall(call, fexp, names, exprs);
+            return getFunctionCall(fcall, fexp, names, exprs);
         }
 
         public FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {

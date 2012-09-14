@@ -12,6 +12,9 @@ public abstract class RError extends RuntimeException {
     public static final String UNUSED_ARGUMENT = "unused argument(s)";
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
     public static final String INTEGER_OVERFLOW = "NAs produced by integer overflow";
+    public static final String NA_OR_NAN = "NA/NaN argument";
+
+    public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -31,6 +34,17 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return LENGTH_0;
+            }
+        };
+    }
+    public static RError getNAorNaN(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return NA_OR_NAN;
             }
         };
     }

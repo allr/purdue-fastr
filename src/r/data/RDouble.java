@@ -18,6 +18,12 @@ public interface RDouble extends RNumber {
         public static boolean isNA(double d) {
             return Double.doubleToRawLongBits(d) == NA_LONGBITS;
         }
+        public static boolean fitsRInt(double d) {
+            return d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE;
+        }
+        public static boolean isNAorNaN(double d) {
+            return Double.isNaN(d);
+        }
     }
     public class RDoubleFactory {
         public static DoubleImpl getArray(double... values) {
@@ -28,6 +34,9 @@ public interface RDouble extends RNumber {
         }
         public static DoubleImpl copy(RDouble d) {
             return new DoubleImpl(d);
+        }
+        public static RDouble getForArray(double[] values) {  // re-uses values!
+            return new DoubleImpl(values, false);
         }
     }
 

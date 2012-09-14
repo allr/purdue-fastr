@@ -1,7 +1,6 @@
 package r.nodes.tools;
 
 import r.*;
-import r.builtins.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.BinaryOperation.BinaryOperator;
@@ -135,7 +134,7 @@ public class Truffleize implements Visitor {
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs());
 
-        CallFactory factory = Primitives.getCallFactory(functionCall, getEnclosing(functionCall));
+        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(functionCall.getName(), getEnclosing(functionCall));
         if (factory == null) {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
@@ -177,5 +176,11 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(Sub sub) {
         result = new r.nodes.truffle.Arithmetic(sub, createTree(sub.getLHS()), createTree(sub.getRHS()), BinaryOperator.SUB);
+    }
+
+    @Override
+    public void visit(Colon col) {
+        // FIXME: this does not allow overriding when as operator, but maybe this should not be allowed anyway
+        result = r.builtins.Colon.FACTORY.create(col, createTree(col.getLHS()), createTree(col.getRHS()));
     }
 }

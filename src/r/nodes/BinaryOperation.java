@@ -1,5 +1,8 @@
 package r.nodes;
 
+import r.builtins.*;
+import r.data.*;
+
 public abstract class BinaryOperation extends Operation {
     ASTNode rhs;
 
@@ -42,6 +45,8 @@ public abstract class BinaryOperation extends Operation {
             case NE: return new Add(left, right);
             case LE: return new LE(left, right);
             case LT: return new Add(left, right);
+
+            case COLUMN : return new Colon(left, right);
         }
         throw new Error("No node implemented for: '" + op + "' (" + left + ", " + right + ")");
     }

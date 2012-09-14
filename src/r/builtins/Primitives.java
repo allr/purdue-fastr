@@ -5,7 +5,7 @@ import java.util.*;
 import r.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.FunctionCall;
+import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
@@ -14,12 +14,12 @@ public class Primitives {
     private static Map<RSymbol, PrimitiveEntry> map;
     static {
         map = new HashMap<>();
-        add(":", 2, Sequence.FACTORY);
+        add(":", 2, Colon.FACTORY);
         add("c", -1, Combine.FACTORY);
     }
 
-    public static CallFactory getCallFactory(final FunctionCall call, final RFunction enclosing) {
-        RSymbol name = call.getName();
+
+    public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
         if (pe == null) {
             return null;
@@ -27,14 +27,14 @@ public class Primitives {
         return new CallFactory() {
 
             @Override
-            public RNode create(FunctionCall fcall, RSymbol[] names, RNode[] exprs) {
+            public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
                 int count = pe.getArgsCount();
 
                 if (!(count >= 0 ? count == exprs.length : exprs.length >= (-count - 1))) {
-                    throw RError.getGenericError(fcall, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
+                    throw RError.getGenericError(call, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
                 }
 
-                return pe.factory.create(fcall, names, exprs);
+                return pe.factory.create(call, names, exprs);
             }
         };
     }

@@ -11,6 +11,7 @@ public interface Visitor {
     void visit(Mult mult);
     void visit(Add add);
     void visit(Sub sub);
+    void visit(Colon col);
 
     void visit(Not n);
 

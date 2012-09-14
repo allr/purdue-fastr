@@ -3,7 +3,7 @@ package r.builtins;
 import r.*;
 import r.data.*;
 import r.data.internal.*;
-import r.nodes.FunctionCall;
+import r.nodes.*;
 import r.nodes.truffle.*;
 
 public class Combine {
@@ -20,7 +20,7 @@ public class Combine {
 
         // only supports a vector of integers, doubles, or logical
         @Override
-        public RNode create(FunctionCall call, RSymbol[] names, RNode[] exprs) {
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             if (exprs.length == 0) {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 

@@ -18,7 +18,7 @@ public class IntImpl extends ArrayImpl implements RInt {
         }
     }
 
-    public IntImpl(int [] values) {
+    public IntImpl(int[] values) {
         this(values, true);
     }
 

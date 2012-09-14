@@ -7,9 +7,16 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
     double[] content;
 
+    public DoubleImpl(double[] values, boolean doCopy) {
+        if (doCopy) {
+            content = new double[values.length];
+            System.arraycopy(values, 0, content, 0, values.length);
+        } else {
+            content = values;
+        }
+    }
     public DoubleImpl(double[] values) {
-        content = new double[values.length];
-        System.arraycopy(values, 0, content, 0, values.length);
+        this(values, true);
     }
 
     public DoubleImpl(int size) {
