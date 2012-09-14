@@ -94,4 +94,75 @@ public class IntImpl extends ArrayImpl implements RInt {
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromInt();
     }
+
+    public static class RIntSequence extends View implements RInt {
+        // note: the sequence can go from large values to smaller values
+        final int from;
+        final int to;
+        final int step;
+
+        final int size;
+
+        public RIntSequence(int from, int to, int step) {
+            this.from = from;
+            this.to = to;
+            this.step = step;
+
+            int absstep = (step > 0) ? step : -step;
+            if (from <= to) {
+                size = (to - from + 1) / absstep;
+            } else {
+                size = (from - to + 1) / absstep;
+            }
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public Object get(int i) {
+            return getInt(i);
+         }
+
+        @Override
+        public RArray materialize() {
+            return RIntFactory.copy(this);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RInt asInt() {
+            return this;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return new RInt.RDoubleView(this);
+        }
+
+        @Override
+        public int getInt(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+            return from + i * step;
+        }
+
+        @Override
+        public RArray set(int i, int val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+    }
 }

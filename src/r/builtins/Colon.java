@@ -11,7 +11,7 @@ public class Colon {
 
     // a simple version that eagerly creates the vector
     // FIXME: create a more efficient version with a view
-    public static RAny create(int left, int right) {
+    public static RAny createEager(int left, int right) {
         if (left <= right) {
             int len = right - left + 1;
             int[] data = new int[len];
@@ -29,6 +29,11 @@ public class Colon {
             }
             return RInt.RIntFactory.getForArray(data);
         }
+    }
+
+    public static RAny create(int left, int right) {
+        int step = (left <= right) ? 1 : -1;
+        return RInt.RIntFactory.forSequence(left, right, step);
     }
 
     public static RAny create(double left, double right) {

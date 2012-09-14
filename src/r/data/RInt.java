@@ -27,6 +27,9 @@ public interface RInt extends RNumber {
         public static RInt getForArray(int[] values) {  // re-uses values!
             return new IntImpl(values, false);
         }
+        public static RInt forSequence(int from, int to, int step) {
+            return new IntImpl.RIntSequence(from, to, step);
+        }
     }
 
     public static class RDoubleView extends View implements RDouble {
