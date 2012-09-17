@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 
 public abstract class ReadVector extends BaseR {
@@ -32,6 +33,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // when the index has only one argument, which is an integer
+    //   for more complicated and corner cases rewrites itself
     public static class SimpleSelection extends ReadVector {
         public SimpleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
@@ -95,6 +97,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // when the index has only one argument, which is a double
+    //   for more complicated and corner cases rewrites itself
     public static class SimpleDoubleSelection extends ReadVector {
         public SimpleDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
@@ -154,6 +157,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // any case when the index has only one argument (a scalar)
+    //   rewrite itself when index is not a single scalar
     public static class GenericSubscript extends ReadVector {
         public GenericSubscript(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
@@ -186,20 +190,22 @@ public abstract class ReadVector extends BaseR {
                     i = ((RInt) irarr).getInt(0);
                 } else if (index instanceof RLogical) {
                     i = ((RLogical) irarr).getLogical(0);
-                    if (i == RLogical.TRUE) {
-                        return vector;
-                    }
-                    if (i == RLogical.FALSE) {
-                        if (vrarr instanceof RDouble) { // FIXME: to reduce verbosity could make "empty" a method, but this may be faster
-                            return RDouble.EMPTY;
+                    if (subset) {
+                        if (i == RLogical.TRUE) {
+                            return vector;
                         }
-                        if (vrarr instanceof RInt) {
-                            return RInt.EMPTY;
+                        if (i == RLogical.FALSE) {
+                            if (vrarr instanceof RDouble) { // FIXME: to reduce verbosity could make "empty" a method, but this may be faster
+                                return RDouble.EMPTY;
+                            }
+                            if (vrarr instanceof RInt) {
+                                return RInt.EMPTY;
+                            }
+                            if (vrarr instanceof RLogical) {
+                                return RLogical.EMPTY;
+                            }
+                            Utils.nyi("unsupported vector type");
                         }
-                        if (vrarr instanceof RLogical) {
-                            return RLogical.EMPTY;
-                        }
-                        Utils.nyi("unsupported vector type");
                     }
                 }
 
@@ -209,41 +215,72 @@ public abstract class ReadVector extends BaseR {
                     }
                 }
 
+                if (size == 0) {
+                    return RNull.getNull();
+                }
+                if (!subset) {
+                    if (i == 0) {
+                        throw RError.getSelectLessThanOne(ast);
+                    }
+                    if (i > 0 || i == RInt.NA) { // means also i > size
+                        throw RError.getSubscriptBounds(ast);
+                    }
+                    // i < 0
+                    if (size > 2) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                    if (size == 1) {
+                        throw RError.getSelectLessThanOne(ast);
+                    }
+                    // size == 2
+                    if (i != 1 && i != 2) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                }
                 if (vrarr instanceof RDouble) { // FIXME: could reduce verbosity through refactoring the number factories?
+                    if (i == RInt.NA) {
+                        return RDouble.RDoubleFactory.getNAArray(size);
+                    }
                     if (i < 0) {
+                        if (-i > size) {
+                            return vector;
+                        }
                         return RDouble.RDoubleFactory.exclude(-i - 1, (RDouble) vrarr);
                     }
                     if (i == 0) {
                         return RDouble.EMPTY;
                     }
-                    if (i == RInt.NA) {
-                        return RDouble.RDoubleFactory.getNAArray(size);
-                    }
                     // i > size
                     return RDouble.BOXED_NA;
                 }
                 if (vrarr instanceof RInt) {
+                    if (i == RInt.NA) {
+                        return RInt.RIntFactory.getNAArray(size);
+                    }
                     if (i < 0) {
+                        if (-i > size) {
+                            return vector;
+                        }
                         return RInt.RIntFactory.exclude(-i - 1, (RInt) vrarr);
                     }
                     if (i == 0) {
                         return RInt.EMPTY;
                     }
-                    if (i == RInt.NA) {
-                        return RInt.RIntFactory.getNAArray(size);
-                    }
                     // i > size
                     return RInt.BOXED_NA;
                 }
                 if (vrarr instanceof RLogical) {
+                    if (i == RInt.NA) {
+                        return RLogical.RLogicalFactory.getNAArray(size);
+                    }
                     if (i < 0) {
+                        if (-i > size) {
+                            return vector;
+                        }
                         return RLogical.RLogicalFactory.exclude(-i - 1, (RLogical) vrarr);
                     }
                     if (i == 0) {
                         return RLogical.EMPTY;
-                    }
-                    if (i == RInt.NA) {
-                        return RLogical.RLogicalFactory.getNAArray(size);
                     }
                     // i > size
                     return RLogical.BOXED_NA;
@@ -253,7 +290,7 @@ public abstract class ReadVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - GenericSubscript failed: " + f);
-                Utils.nyi("nontrivial vector subscript" + e);
+                Utils.nyi("nontrivial vector subscript" + e); // FIXME: will finish this
                 return null;
             }
         }

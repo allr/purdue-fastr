@@ -13,6 +13,9 @@ public abstract class RError extends RuntimeException {
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
     public static final String INTEGER_OVERFLOW = "NAs produced by integer overflow";
     public static final String NA_OR_NAN = "NA/NaN argument";
+    public static final String SUBSCRIPT_BOUNDS = "subscript out of bounds";
+    public static final String SELECT_LESS_1 = "attempt to select less than one element";
+    public static final String SELECT_MORE_1 = "attempt to select more than one element";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -57,6 +60,42 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return NA_UNEXP;
+            }
+        };
+    }
+
+    public static RError getSubscriptBounds(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return SUBSCRIPT_BOUNDS;
+            }
+        };
+    }
+
+    public static RError getSelectLessThanOne(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return SELECT_LESS_1;
+            }
+        };
+    }
+
+    public static RError getSelectMoreThanOne(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return SELECT_MORE_1;
             }
         };
     }

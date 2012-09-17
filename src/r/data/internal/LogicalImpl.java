@@ -2,7 +2,6 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.data.RInt.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 

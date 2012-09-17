@@ -15,5 +15,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-1:3; x[FALSE] }", "integer(0)");
         assertEval("{ x<-1:3; x[TRUE] }", "1L, 2L, 3L");
         assertEval("{ x<-c(TRUE,TRUE,FALSE); x[0-2] }", "TRUE, FALSE");
+        assertEval("{ x<-c(1,2);x[[-1]] }", "2.0");
+        assertEval("{ x<-c(1,2);x[0-3] }", "1.0, 2.0");
+        assertEval("{ x<-10; x[0-1] }", "numeric(0)");
+        assertEval("{ x<-10; x[NA] }", "NA");
     }
 }
