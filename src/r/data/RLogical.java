@@ -1,7 +1,6 @@
 package r.data;
 
 import r.*;
-import r.data.RInt.*;
 import r.data.internal.*;
 
 public interface RLogical extends RArray { // FIXME: should extend Number instead?
@@ -41,22 +40,19 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public static RLogical getForArray(int[] values) {  // re-uses values!
             return new LogicalImpl(values, false);
         }
+        public static RLogical exclude(int excludeIndex, RLogical orig) {
+            return new RLogicalExclusion(excludeIndex, orig);
+        }
     }
 
-    public static class RDoubleView extends View implements RDouble {
+    public static class RDoubleView extends View.RDoubleView implements RDouble {
 
         final RLogical l;
         public RDoubleView(RLogical l) {
             this.l = l;
         }
-        @Override
-        public Object get(int i) {
-            return getDouble(i);
-        }
 
-        public RAny boxedGet(int i) {
-            return RDoubleFactory.getScalar(getDouble(i));
-        }
+        @Override
         public int size() {
             return l.size();
         }
@@ -64,16 +60,6 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public RInt asInt() {
             return l.asInt();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RArray materialize() {
-            return RDouble.RDoubleFactory.copy(this);
         }
 
         @Override
@@ -87,15 +73,72 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public RArray set(int i, double val) {
-            return materialize().set(i, val);
-        }
-
-        @Override
         public double getDouble(int i) {
             int ll = l.getLogical(i);
             return Convert.logical2double(ll);
         }
     }
 
+    public static class RIntView extends View.RIntView implements RInt {
+
+        final RLogical l;
+        public RIntView(RLogical l) {
+            this.l = l;
+        }
+
+        @Override
+        public int size() {
+            return l.size();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return l.asDouble();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public int getInt(int i) {
+            return l.getLogical(i);
+        }
+    }
+
+    public static class RLogicalExclusion extends View.RLogicalView implements RLogical {
+
+        final RLogical orig;
+        final int excludeIndex;
+        final int size;
+
+        public RLogicalExclusion(int excludeIndex, RLogical orig) {
+            this.orig = orig;
+            this.excludeIndex = excludeIndex;
+            this.size = orig.size() - 1;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int getLogical(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getLogical(i);
+            } else {
+                return orig.getLogical(i + 1);
+            }
+        }
+    }
 }

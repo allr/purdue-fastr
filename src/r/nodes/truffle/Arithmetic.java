@@ -4,7 +4,6 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
-import r.data.RInt.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -206,7 +205,7 @@ public class Arithmetic extends BaseR {
     protected static Sub SUB = new Sub();
     protected static Mult MULT = new Mult();
 
-    class DoubleView extends View implements RDouble {
+    class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;
         final RDouble b;
         final RContext context;
@@ -235,50 +234,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RArray materialize() {
-            return RDouble.RDoubleFactory.copy(this);
-        }
-
-        @Override
-        public Object get(int i) {
-            return getDouble(i);
-        }
-
-        @Override
-        public RAny boxedGet(int i) {
-            return RDoubleFactory.getScalar(getDouble(i));
-        }
-
         public int size() {
             return n;
-        }
-
-        @Override
-        public RInt asInt() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray set(int i, double val) {
-            return materialize().set(i, val);
         }
 
         @Override
@@ -305,7 +262,7 @@ public class Arithmetic extends BaseR {
          }
     }
 
-    class IntView extends View implements RInt {
+    class IntView extends View.RIntView implements RInt {
         final RInt a;
         final RInt b;
         final RContext context;
@@ -335,49 +292,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public Object get(int i) {
-            return getInt(i);
-        }
-
-        @Override
-        public RAny boxedGet(int i) {
-            return RIntFactory.getScalar(getInt(i));
-        }
-
         public int size() {
             return n;
-        }
-
-        @Override
-        public RInt asInt() {
-            return this;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return new RInt.RDoubleView(this);
-        }
-
-        @Override
-        public RArray materialize() {
-            return RInt.RIntFactory.copy(this);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RArray set(int i, int val) {
-            return materialize().set(i, val);
         }
 
         @Override

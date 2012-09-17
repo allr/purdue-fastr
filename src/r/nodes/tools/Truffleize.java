@@ -144,8 +144,12 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(AccessVector a) {
         splitArgumentList(a.getArgs());
-        if (convertedExpressions.length == 1 && (!(a.getArgs().first().getValue() instanceof Colon))) {
-            result = new ReadVector.SimpleSubscript(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+        if (convertedExpressions.length == 1) {
+            if (a.getArgs().first().getValue() instanceof Colon) {
+              result = null; // TODO: finish this
+            } else {
+              result = new ReadVector.SimpleSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package r.data;
 
 import r.*;
-import r.data.RInt.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
@@ -36,15 +35,25 @@ public interface RDouble extends RNumber {
         public static DoubleImpl getUninitializedArray(int size) {
             return new DoubleImpl(size);
         }
+        public static DoubleImpl getNAArray(int size) {
+            DoubleImpl d = getUninitializedArray(size);
+            for (int i = 0; i < size; i++) {
+                d.set(i, NA);
+            }
+            return d;
+        }
         public static DoubleImpl copy(RDouble d) {
             return new DoubleImpl(d);
         }
         public static RDouble getForArray(double[] values) {  // re-uses values!
             return new DoubleImpl(values, false);
         }
+        public static RDouble exclude(int excludeIndex, RDouble orig) {
+            return new RDoubleExclusion(excludeIndex, orig);
+        }
     }
 
-    public static class RIntView extends View implements RInt {
+    public static class RIntView extends View.RIntView implements RInt {
 
         RDouble rdbl;
 
@@ -53,31 +62,8 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public RInt asInt() {
-            return this;
-        }
-
-        @Override
-        public Object get(int i) {
-            return getInt(i);
-        }
-
-        public RAny boxedGet(int i) {
-            return RIntFactory.getScalar(getInt(i));
-        }
-
-        @Override
-        public RArray set(int i, int val) {
-            return materialize().set(i, val);
-        }
-
         public int size() {
             return rdbl.size();
-        }
-
-        @Override
-        public RInt materialize() {
-            return RInt.RIntFactory.copy(this);
         }
 
         @Override
@@ -101,4 +87,33 @@ public interface RDouble extends RNumber {
         }
     }
 
+    public static class RDoubleExclusion extends View.RDoubleView implements RDouble {
+
+        final RDouble orig;
+        final int excludeIndex;
+        final int size;
+
+        public RDoubleExclusion(int excludeIndex, RDouble orig) {
+            this.orig = orig;
+            this.excludeIndex = excludeIndex;
+            this.size = orig.size() - 1;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public double getDouble(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getDouble(i);
+            } else {
+                return orig.getDouble(i + 1);
+            }
+        }
+    }
 }

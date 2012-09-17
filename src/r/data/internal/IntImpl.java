@@ -2,7 +2,6 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.data.RDouble.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -173,6 +172,5 @@ public class IntImpl extends ArrayImpl implements RInt {
         public RAttributes getAttributes() {
             return null;
         }
-
     }
 }

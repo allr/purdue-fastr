@@ -1,7 +1,6 @@
 package r.data;
 
 import r.*;
-import r.data.RDouble.*;
 import r.data.internal.*;
 
 
@@ -25,6 +24,13 @@ public interface RInt extends RNumber {
         public static IntImpl getUninitializedArray(int size) {
             return new IntImpl(size);
         }
+        public static IntImpl getNAArray(int size) {
+            IntImpl v = getUninitializedArray(size);
+            for (int i = 0; i < size; i++) {
+                v.set(i, NA);
+            }
+            return v;
+        }
         public static IntImpl copy(RInt i) {
             return new IntImpl(i);
         }
@@ -34,23 +40,16 @@ public interface RInt extends RNumber {
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);
         }
+        public static RInt exclude(int excludeIndex, RInt orig) {
+            return new RIntExclusion(excludeIndex, orig);
+        }
     }
 
-    public static class RDoubleView extends View implements RDouble {
+    public static class RDoubleView extends View.RDoubleView implements RDouble {
 
         final RInt rint;
         public RDoubleView(RInt rint) {
             this.rint = rint;
-        }
-
-        @Override
-        public Object get(int i) {
-            return getDouble(i);
-        }
-
-        @Override
-        public RAny boxedGet(int i) {
-            return RDoubleFactory.getScalar(getDouble(i));
         }
 
         public int size() {
@@ -60,16 +59,6 @@ public interface RInt extends RNumber {
         @Override
         public RInt asInt() {
             return rint;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return this;
-        }
-
-        @Override
-        public RArray materialize() {
-            return RDouble.RDoubleFactory.copy(this);
         }
 
         @Override
@@ -83,15 +72,39 @@ public interface RInt extends RNumber {
         }
 
         @Override
-        public RArray set(int i, double val) {
-            return materialize().set(i, val);
-        }
-
-        @Override
         public double getDouble(int i) {
             int v = rint.getInt(i);
             return Convert.int2double(v);
         }
     }
 
+    public static class RIntExclusion extends View.RIntView implements RInt {
+
+        final RInt orig;
+        final int excludeIndex;
+        final int size;
+
+        public RIntExclusion(int excludeIndex, RInt orig) {
+            this.orig = orig;
+            this.excludeIndex = excludeIndex;
+            this.size = orig.size() - 1;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int getInt(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getInt(i);
+            } else {
+                return orig.getInt(i + 1);
+            }
+        }
+    }
 }
