@@ -141,6 +141,14 @@ public class Truffleize implements Visitor {
         result = factory.create(functionCall, convertedNames, convertedExpressions);
     }
 
+    @Override
+    public void visit(AccessVector a) {
+        splitArgumentList(a.getArgs());
+        if (convertedExpressions.length == 1 && (!(a.getArgs().first().getValue() instanceof Colon))) {
+            result = new ReadVector.SimpleSubscript(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private static <T extends ASTNode> T findParent(ASTNode node, Class<T> clazz) {
         ASTNode n = node.getParent();

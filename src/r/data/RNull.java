@@ -22,6 +22,11 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public Object get(int i) {
+        return this; // FIXME: should return null ?
+    }
+
+    @Override
+    public RAny boxedGet(int i) {
         return this;
     }
 

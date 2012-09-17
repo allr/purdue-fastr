@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.RInt.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -15,7 +16,6 @@ public class Arithmetic extends BaseR {
     RNode left;
     RNode right;
     final ValueArithmetic arit;
-    final BinaryOperator op;
 
     private static final boolean DEBUG_AR = false;
 
@@ -23,7 +23,6 @@ public class Arithmetic extends BaseR {
         super(ast);
         this.left = updateParent(left);
         this.right = updateParent(right);
-        this.op = op;
 
         switch(op) {
             case ADD: this.arit = ADD; break;
@@ -245,6 +244,11 @@ public class Arithmetic extends BaseR {
             return getDouble(i);
         }
 
+        @Override
+        public RAny boxedGet(int i) {
+            return RDoubleFactory.getScalar(getDouble(i));
+        }
+
         public int size() {
             return n;
         }
@@ -333,6 +337,11 @@ public class Arithmetic extends BaseR {
         @Override
         public Object get(int i) {
             return getInt(i);
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RIntFactory.getScalar(getInt(i));
         }
 
         public int size() {

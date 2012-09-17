@@ -1,9 +1,10 @@
 package r.data;
 
 import r.*;
+import r.data.RInt.*;
 import r.data.internal.*;
 
-public interface RLogical extends RArray {
+public interface RLogical extends RArray { // FIXME: should extend Number instead?
 
     String TYPE_STRING = "logical";
     int TRUE = 1;
@@ -18,15 +19,15 @@ public interface RLogical extends RArray {
     RLogical set(int i, int val);
 
     public class RLogicalFactory {
-
+        public static LogicalImpl getScalar(int value) {
+            return new LogicalImpl(new int[]{value}, false);
+        }
         public static LogicalImpl getArray(int... values) {
             return new LogicalImpl(values);
         }
-
         public static LogicalImpl getUninitializedArray(int size) {
             return new LogicalImpl(size);
         }
-
         public static LogicalImpl getNAArray(int size) {
             LogicalImpl l = getUninitializedArray(size);
             for (int i = 0; i < size; i++) {
@@ -34,9 +35,11 @@ public interface RLogical extends RArray {
             }
             return l;
         }
-
         public static LogicalImpl copy(RLogical l) {
             return new LogicalImpl(l);
+        }
+        public static RLogical getForArray(int[] values) {  // re-uses values!
+            return new LogicalImpl(values, false);
         }
     }
 
@@ -51,6 +54,9 @@ public interface RLogical extends RArray {
             return getDouble(i);
         }
 
+        public RAny boxedGet(int i) {
+            return RDoubleFactory.getScalar(getDouble(i));
+        }
         public int size() {
             return l.size();
         }

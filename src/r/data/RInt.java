@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.data.RDouble.*;
 import r.data.internal.*;
 
 
@@ -15,6 +16,9 @@ public interface RInt extends RNumber {
     RArray set(int i, int val);
 
     public class RIntFactory {
+        public static IntImpl getScalar(int value) {
+            return new IntImpl(new int[]{value}, false);
+        }
         public static IntImpl getArray(int... values) {
             return new IntImpl(values);
         }
@@ -42,6 +46,11 @@ public interface RInt extends RNumber {
         @Override
         public Object get(int i) {
             return getDouble(i);
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RDoubleFactory.getScalar(getDouble(i));
         }
 
         public int size() {

@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
+import r.data.RInt.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -13,9 +14,17 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         content = new int[size];
     }
 
+    public LogicalImpl(int[] values, boolean doCopy) {
+        if (doCopy) {
+            content = new int[values.length];
+            System.arraycopy(values, 0, content, 0, values.length);
+        } else {
+            content = values;
+        }
+    }
+
     public LogicalImpl(int[] values) {
-        content = new int[values.length];
-        System.arraycopy(values, 0, content, 0, values.length);
+        this(values, true);
     }
 
     public LogicalImpl(RLogical l) {
@@ -38,6 +47,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     @Override
     public int getLogical(int i) {
         return content[i];
+    }
+
+    @Override
+    public RAny boxedGet(int i) {
+        return RLogicalFactory.getScalar(getLogical(i));
     }
 
     @Override

@@ -39,6 +39,10 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         return content[i];
     }
 
+    public RAny boxedGet(int i) {
+        return RDoubleFactory.getScalar(getDouble(i));
+    }
+
     @Override
     public RArray set(int i, Object val) {
         return set(i, ((Double) val).doubleValue()); // FIXME better conversion

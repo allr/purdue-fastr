@@ -23,4 +23,5 @@ public interface Visitor {
 
     void visit(Function function);
     void visit(FunctionCall functionCall);
+    void visit(AccessVector accessVector);
 }

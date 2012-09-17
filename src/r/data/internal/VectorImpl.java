@@ -14,6 +14,11 @@ public class VectorImpl extends ArrayImpl implements RVector {
 
     @Override
     public Object get(int i) {
+        return content[i];  // FIXME: should remove the R box ?
+    }
+
+    @Override
+    public RAny boxedGet(int i) {
         return content[i];
     }
 

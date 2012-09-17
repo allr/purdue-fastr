@@ -37,7 +37,7 @@ public class BasicVisitor implements Visitor {
 
     public void visit(BinaryOperation op) {
         op.visit_all(this);
-        visit((ASTNode) op);
+        visit((ASTNode) op); // FIXME: why? isn't this in op.visit_all already?
     }
 
     @Override
@@ -109,7 +109,13 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(AccessVector a) {
+        a.visit_all(this);
+    }
+
+    @Override
     public void visit(Function n) {
         visit((ASTNode) n);
     }
+
 }

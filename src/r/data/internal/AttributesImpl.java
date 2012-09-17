@@ -61,6 +61,11 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
+    public RAny boxedGet(int i) {
+        return (RAny) get(i);
+    }
+
+    @Override
     public String pretty() {
         Utils.nyi();
         return null;

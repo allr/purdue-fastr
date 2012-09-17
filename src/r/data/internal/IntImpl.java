@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
+import r.data.RDouble.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -44,6 +45,10 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     public int getInt(int i) {
         return content[i];
+    }
+
+    public RAny boxedGet(int i) {
+        return RIntFactory.getScalar(getInt(i));
     }
 
     @Override
@@ -153,6 +158,11 @@ public class IntImpl extends ArrayImpl implements RInt {
             Utils.check(i >= 0, "bounds check");
             return from + i * step;
         }
+
+        public RAny boxedGet(int i) {
+            return RIntFactory.getScalar(getInt(i));
+        }
+
 
         @Override
         public RArray set(int i, int val) {

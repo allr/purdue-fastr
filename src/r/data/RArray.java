@@ -5,6 +5,7 @@ public interface RArray extends RAny {
     int size();
 
     Object get(int i);
+    RAny boxedGet(int i);
     RArray set(int i, Object val);
 
     RArray subset(RAny keys);
