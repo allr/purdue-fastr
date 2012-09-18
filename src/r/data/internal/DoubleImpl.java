@@ -35,10 +35,12 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         return content.length;
     }
 
+    @Override
     public Object get(int i) {
         return content[i];
     }
 
+    @Override
     public RAny boxedGet(int i) {
         return RDoubleFactory.getScalar(getDouble(i));
     }
@@ -54,6 +56,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         return this;
     }
 
+    @Override
     public double getDouble(int i) {
         return content[i];
     }
@@ -68,6 +71,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         return this;
     }
 
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RDouble.TYPE_STRING + "(0)";
@@ -89,5 +93,10 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
     public RLogical asLogical() {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public RArray subset(RInt index) {
+        return RDouble.RDoubleFactory.subset(this, index);
     }
 }

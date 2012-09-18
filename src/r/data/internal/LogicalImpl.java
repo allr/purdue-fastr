@@ -79,6 +79,7 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
         return new RLogical.RDoubleView(this);
     }
 
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";
@@ -99,5 +100,10 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromLogical();
+    }
+
+    @Override
+    public RArray subset(RInt index) {
+        return RLogical.RLogicalFactory.subset(this, index);
     }
 }

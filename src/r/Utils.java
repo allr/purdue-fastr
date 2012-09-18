@@ -1,5 +1,6 @@
 package r;
 
+import r.data.*;
 import r.errors.*;
 
 public final class Utils {
@@ -48,6 +49,32 @@ public final class Utils {
     public static void debug(String msg) {
         if (DEBUG) {
             System.err.println(msg);
+        }
+    }
+
+    public static RArray createArray(RAny type, int size) {  // FIXME: !!! should find better design to get rid of these
+        if (type instanceof RInt) {
+            return RInt.RIntFactory.getUninitializedArray(size);
+        }
+        if (type instanceof RDouble) {
+            return RDouble.RDoubleFactory.getUninitializedArray(size);
+        }
+        if (type instanceof RLogical) {
+            return RLogical.RLogicalFactory.getUninitializedArray(size);
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
+    public static void setNA(RArray arr, int index) { // FIXME: !!! should find better design to get rid of these
+        if (arr instanceof RInt) {
+            arr.set(index, RInt.NA);
+        } else if (arr instanceof RDouble) {
+            arr.set(index, RDouble.NA);
+        } else if (arr instanceof RLogical) {
+            arr.set(index, RLogical.NA);
+        } else {
+            Utils.nyi("unsupported array type");
         }
     }
 }

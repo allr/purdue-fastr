@@ -51,6 +51,9 @@ public interface RDouble extends RNumber {
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             return new RDoubleExclusion(excludeIndex, orig);
         }
+        public static RDouble subset(RDouble value, RInt index) {
+            return new RDoubleSubset(value, index);
+        }
     }
 
     public static class RIntView extends View.RIntView implements RInt {
@@ -113,6 +116,36 @@ public interface RDouble extends RNumber {
                 return orig.getDouble(i);
             } else {
                 return orig.getDouble(i + 1);
+            }
+        }
+    }
+
+    // indexes must all be positive
+    //   but can be out of bounds ==> NA's are returned in that case
+    public static class RDoubleSubset extends View.RDoubleView implements RDouble {
+
+        final RDouble value;
+        final RInt index;
+        final int size;
+
+        public RDoubleSubset(RDouble value, RInt index) {
+            this.value = value;
+            this.index = index;
+            this.size = index.size();
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public double getDouble(int i) {
+            int j = index.getInt(i) - 1;
+            if (j > size) {
+                return RDouble.NA;
+            } else {
+                return value.getDouble(j);
             }
         }
     }

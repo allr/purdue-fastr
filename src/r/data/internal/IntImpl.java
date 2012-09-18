@@ -38,14 +38,17 @@ public class IntImpl extends ArrayImpl implements RInt {
         return content.length;
     }
 
+    @Override
     public Object get(int i) {
         return content[i];
     }
 
+    @Override
     public int getInt(int i) {
         return content[i];
     }
 
+    @Override
     public RAny boxedGet(int i) {
         return RIntFactory.getScalar(getInt(i));
     }
@@ -66,6 +69,7 @@ public class IntImpl extends ArrayImpl implements RInt {
         return this;
     }
 
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RInt.TYPE_STRING + "(0)";
@@ -99,7 +103,12 @@ public class IntImpl extends ArrayImpl implements RInt {
         return factory.fromInt();
     }
 
-    public static class RIntSequence extends View implements RInt {
+    @Override
+    public RArray subset(RInt index) {
+        return RInt.RIntFactory.subset(this, index);
+    }
+
+    public static class RIntSequence extends View.RIntView implements RInt {
         // note: the sequence can go from large values to smaller values
         final int from;
         final int to;
@@ -126,51 +135,34 @@ public class IntImpl extends ArrayImpl implements RInt {
         }
 
         @Override
-        public Object get(int i) {
-            return getInt(i);
-         }
-
-        @Override
-        public RArray materialize() {
-            return RIntFactory.copy(this);
-        }
-
-        @Override
-        public RLogical asLogical() {
-            Utils.nyi();
-            return null;
-        }
-
-        @Override
-        public RInt asInt() {
-            return this;
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return new RInt.RDoubleView(this);
-        }
-
-        @Override
         public int getInt(int i) {
             Utils.check(i < size, "bounds check");
             Utils.check(i >= 0, "bounds check");
             return from + i * step;
         }
 
-        public RAny boxedGet(int i) {
-            return RIntFactory.getScalar(getInt(i));
+        public boolean isPositive() {
+            return from > 0 && to > 0;
         }
 
-
-        @Override
-        public RArray set(int i, int val) {
-            return materialize().set(i, val);
+        public int from() {
+            return from;
         }
 
-        @Override
-        public RAttributes getAttributes() {
-            return null;
+        public int to() {
+            return to;
+        }
+
+        public int step() {
+            return step;
+        }
+
+        public int min() {
+            return (from < to) ? from : to;
+        }
+
+        public int max() {
+            return (to > from) ? to : from;
         }
     }
 }

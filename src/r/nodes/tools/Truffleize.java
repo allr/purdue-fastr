@@ -146,9 +146,9 @@ public class Truffleize implements Visitor {
         splitArgumentList(a.getArgs());
         if (convertedExpressions.length == 1) {
             if (a.getArgs().first().getValue() instanceof Colon) {
-              result = null; // TODO: finish this
+              result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             } else {
-              result = new ReadVector.SimpleSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+              result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             }
         }
     }

@@ -80,6 +80,11 @@ public abstract class View implements RArray {
         public RAttributes getAttributes() {
             return null;
         }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RInt.RIntFactory.subset(this, index);
+        }
     }
 
     public abstract static class RDoubleView extends View implements RDouble {
@@ -123,6 +128,11 @@ public abstract class View implements RArray {
         public RArray set(int i, double val) {
             return materialize().set(i, val);
         }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RDouble.RDoubleFactory.subset(this, index);
+        }
     }
 
     public abstract static class RLogicalView extends View implements RLogical {
@@ -164,6 +174,11 @@ public abstract class View implements RArray {
         @Override
         public RAttributes getAttributes() {
             return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RLogical.RLogicalFactory.subset(this, index);
         }
     }
 }

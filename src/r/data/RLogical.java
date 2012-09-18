@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.data.RDouble.*;
 import r.data.internal.*;
 
 public interface RLogical extends RArray { // FIXME: should extend Number instead?
@@ -42,6 +43,9 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             return new RLogicalExclusion(excludeIndex, orig);
+        }
+        public static RLogical subset(RLogical value, RInt index) {
+            return new RLogicalSubset(value, index);
         }
     }
 
@@ -138,6 +142,36 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
                 return orig.getLogical(i);
             } else {
                 return orig.getLogical(i + 1);
+            }
+        }
+    }
+
+    // indexes must all be positive
+    //   but can be out of bounds ==> NA's are returned in that case
+    public static class RLogicalSubset extends View.RLogicalView implements RLogical {
+
+        final RLogical value;
+        final RInt index;
+        final int size;
+
+        public RLogicalSubset(RLogical value, RInt index) {
+            this.value = value;
+            this.index = index;
+            this.size = index.size();
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int getLogical(int i) {
+            int j = index.getInt(i) - 1;
+            if (j > size) {
+                return RLogical.NA;
+            } else {
+                return value.getLogical(j);
             }
         }
     }

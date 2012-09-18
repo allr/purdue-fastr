@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.data.RDouble.*;
 import r.data.internal.*;
 
 
@@ -42,6 +43,9 @@ public interface RInt extends RNumber {
         }
         public static RInt exclude(int excludeIndex, RInt orig) {
             return new RIntExclusion(excludeIndex, orig);
+        }
+        public static RInt subset(RInt value, RInt index) {
+            return new RIntSubset(value, index);
         }
     }
 
@@ -104,6 +108,36 @@ public interface RInt extends RNumber {
                 return orig.getInt(i);
             } else {
                 return orig.getInt(i + 1);
+            }
+        }
+    }
+
+    // indexes must all be positive
+    //   but can be out of bounds ==> NA's are returned in that case
+    public static class RIntSubset extends View.RIntView implements RInt {
+
+        final RInt value;
+        final RInt index;
+        final int size;
+
+        public RIntSubset(RInt value, RInt index) {
+            this.value = value;
+            this.index = index;
+            this.size = index.size();
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int getInt(int i) {
+            int j = index.getInt(i) - 1;
+            if (j > size) {
+                return RInt.NA;
+            } else {
+                return value.getInt(j);
             }
         }
     }
