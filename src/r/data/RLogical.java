@@ -151,27 +151,29 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     public static class RLogicalSubset extends View.RLogicalView implements RLogical {
 
         final RLogical value;
+        final int vsize;
         final RInt index;
-        final int size;
+        final int isize;
 
         public RLogicalSubset(RLogical value, RInt index) {
             this.value = value;
             this.index = index;
-            this.size = index.size();
+            this.isize = index.size();
+            this.vsize = value.size();
         }
 
         @Override
         public int size() {
-            return size;
+            return isize;
         }
 
         @Override
         public int getLogical(int i) {
-            int j = index.getInt(i) - 1;
-            if (j > size) {
+            int j = index.getInt(i);
+            if (j > vsize) {
                 return RLogical.NA;
             } else {
-                return value.getLogical(j);
+                return value.getLogical(j - 1);
             }
         }
     }

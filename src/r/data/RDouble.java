@@ -125,27 +125,29 @@ public interface RDouble extends RNumber {
     public static class RDoubleSubset extends View.RDoubleView implements RDouble {
 
         final RDouble value;
+        final int vsize;
         final RInt index;
-        final int size;
+        final int isize;
 
         public RDoubleSubset(RDouble value, RInt index) {
             this.value = value;
             this.index = index;
-            this.size = index.size();
+            this.isize = index.size();
+            this.vsize = value.size();
         }
 
         @Override
         public int size() {
-            return size;
+            return isize;
         }
 
         @Override
         public double getDouble(int i) {
-            int j = index.getInt(i) - 1;
-            if (j > size) {
+            int j = index.getInt(i);
+            if (j > vsize) {
                 return RDouble.NA;
             } else {
-                return value.getDouble(j);
+                return value.getDouble(j - 1);
             }
         }
     }

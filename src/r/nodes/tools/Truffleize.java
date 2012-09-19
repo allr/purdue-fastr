@@ -145,7 +145,7 @@ public class Truffleize implements Visitor {
     public void visit(AccessVector a) {
         splitArgumentList(a.getArgs());
         if (convertedExpressions.length == 1) {
-            if (a.getArgs().first().getValue() instanceof Colon) {
+            if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             } else {
               result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());

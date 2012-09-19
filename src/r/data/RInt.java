@@ -117,27 +117,29 @@ public interface RInt extends RNumber {
     public static class RIntSubset extends View.RIntView implements RInt {
 
         final RInt value;
+        final int vsize;
         final RInt index;
-        final int size;
+        final int isize;
 
         public RIntSubset(RInt value, RInt index) {
             this.value = value;
             this.index = index;
-            this.size = index.size();
+            this.isize = index.size();
+            this.vsize = value.size();
         }
 
         @Override
         public int size() {
-            return size;
+            return isize;
         }
 
         @Override
         public int getInt(int i) {
-            int j = index.getInt(i) - 1;
-            if (j > size) {
+            int j = index.getInt(i);
+            if (j > vsize) {
                 return RInt.NA;
             } else {
-                return value.getInt(j);
+                return value.getInt(j - 1);
             }
         }
     }
