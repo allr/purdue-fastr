@@ -6,6 +6,7 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
+// FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
 
 public abstract class UpdateVector extends BaseR {
 
@@ -14,7 +15,7 @@ public abstract class UpdateVector extends BaseR {
     RNode rhs;
     final boolean subset;
 
-    private static final boolean DEBUG_UP = true;
+    private static final boolean DEBUG_UP = false;
 
     UpdateVector(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -140,7 +141,7 @@ public abstract class UpdateVector extends BaseR {
                             return RDouble.RDoubleFactory.getForArray(content);
                         }
                     };
-                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt>");
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble>");
                 }
                 if (valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
@@ -163,7 +164,7 @@ public abstract class UpdateVector extends BaseR {
                             return RDouble.RDoubleFactory.getForArray(content);
                         }
                     };
-                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt>");
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RDouble,RInt>");
                 }
                 if (valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
@@ -186,7 +187,7 @@ public abstract class UpdateVector extends BaseR {
                             return RDouble.RDoubleFactory.getForArray(content);
                         }
                     };
-                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt>");
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RDouble,RLogical>");
                 }
                 return null;
             }
@@ -212,7 +213,7 @@ public abstract class UpdateVector extends BaseR {
                             return RLogical.RLogicalFactory.getForArray(content);
                         }
                     };
-                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt>");
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
                 }
             }
             Utils.nyi();
@@ -273,7 +274,7 @@ public abstract class UpdateVector extends BaseR {
 
                 } catch (UnexpectedResultException e) {
                     Failure f = (Failure) e.getResult();
-                    if (DEBUG_UP) Utils.debug("update - SimpleScalarNumericSelection"+dbg+" failed: " + f);
+                    if (DEBUG_UP) Utils.debug("update - SimpleScalarNumericSelection" + dbg + " failed: " + f);
                     Utils.nyi("unsupported update");
                     return null;
                 }

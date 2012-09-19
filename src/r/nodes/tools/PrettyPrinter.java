@@ -194,6 +194,21 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     @Override
+    public void visit(AccessVector n) {
+        print(n.getVector());
+        print(n.isSubset() ? "[" : "[[");
+        print(n.getArgs(), true);
+        print(n.isSubset() ? "]" : "]]");
+    }
+
+    @Override
+    public void visit(UpdateVector n) {
+        print(n.getVector());
+        print(" <- ");
+        print(n.getRHS());
+    }
+
+    @Override
     public void visit(FunctionCall n) {
         print(n.getName().pretty() + "(");
         print(n.getArgs(), true);

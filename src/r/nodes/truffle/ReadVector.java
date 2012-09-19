@@ -26,7 +26,7 @@ public abstract class ReadVector extends BaseR {
     RNode[] indexes;
     final boolean subset;
 
-    private static final boolean DEBUG_SEL = true;
+    private static final boolean DEBUG_SEL = false;
 
     ReadVector(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
         super(ast);

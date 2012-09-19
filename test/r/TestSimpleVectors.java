@@ -6,7 +6,7 @@ import org.junit.*;
 public class TestSimpleVectors extends TestBase {
 
     @Test
-    public void testSubscript() throws RecognitionException {
+    public void testScalarIndex() throws RecognitionException {
         assertEval("{ x<-1:10; x[3] }", "3L");
         assertEval("{ x<-1:10; x[3L] }", "3L");
         assertEval("{ x<-c(1,2,3); x[3] }", "3.0");
@@ -22,7 +22,7 @@ public class TestSimpleVectors extends TestBase {
     }
 
     @Test
-    public void testSubset() throws RecognitionException {
+    public void testVectorIndex() throws RecognitionException {
         assertEval("{ x<-1:5 ; x[3:4] }", "3L, 4L");
         assertEval("{ x<-1:5 ; x[4:3] }", "4L, 3L");
         assertEval("{ x<-c(1,2,3,4,5) ; x[4:3] }", "4.0, 3.0");
@@ -43,5 +43,13 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(1) ; f(TRUE) ; f(c(3,2))  }", "3L, 2L");
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(1)  ; f(3:4) }", "3L, 4L");
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(c(TRUE,FALSE))  ; f(3:4) }", "3L, 4L");
+    }
+
+    @Test
+    public void testScalarUpdate() throws RecognitionException {
+        assertEval("{ x<-1:3; x[1]<-100L; x }", "100L, 2L, 3L");
+        assertEval("{ x<-c(1,2,3); x[2L]<-100L; x }", "1.0, 100.0, 3.0");
+        assertEval("{ x<-c(1,2,3); x[2L]<-100; x }", "1.0, 100.0, 3.0");
+        assertEval("{ x<-c(1,2,3); x[2]<-FALSE; x }", "1.0, 0.0, 3.0");
     }
 }
