@@ -9,6 +9,7 @@ import r.nodes.Function;
 import r.nodes.FunctionCall;
 import r.nodes.If;
 import r.nodes.Sequence;
+import r.nodes.UpdateVector;
 import r.nodes.truffle.*;
 
 public class Truffleize implements Visitor {
@@ -150,6 +151,15 @@ public class Truffleize implements Visitor {
             } else {
               result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             }
+        }
+    }
+
+    @Override
+    public void visit(UpdateVector u) {
+        AccessVector a = u.getVector();
+        splitArgumentList(a.getArgs());
+        if (convertedExpressions.length == 1) {
+            result = new r.nodes.truffle.UpdateVector.SimpleScalarNumericSelection(u, createTree(a.getVector()), convertedExpressions, createTree(u.getRHS()), a.isSubset());
         }
     }
 

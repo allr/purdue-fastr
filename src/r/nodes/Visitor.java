@@ -20,6 +20,7 @@ public interface Visitor {
     void visit(FieldAccess fieldAccess);
 
     void visit(SimpleAssignVariable assign);
+    void visit(UpdateVector update);
 
     void visit(Function function);
     void visit(FunctionCall functionCall);

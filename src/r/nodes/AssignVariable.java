@@ -30,6 +30,8 @@ public abstract class AssignVariable extends ASTNode {
     public static ASTNode create(boolean isSuper, ASTNode lhs, ASTNode rhs) {
         if (lhs instanceof SimpleAccessVariable) {
             return writeVariable(isSuper, ((SimpleAccessVariable) lhs).symbol, rhs);
+        } else if (lhs instanceof AccessVector) {
+            return writeVector((AccessVector) lhs, rhs);
         } else if (lhs instanceof Constant) {
             throw RError.getUnknownVariable(rhs); // TODO it's own exception
         }
@@ -39,5 +41,9 @@ public abstract class AssignVariable extends ASTNode {
 
     public static ASTNode writeVariable(boolean isSuper, RSymbol name, ASTNode rhs) {
         return new SimpleAssignVariable(isSuper, name, rhs);
+    }
+
+    public static ASTNode writeVector(AccessVector lhs, ASTNode rhs) {
+        return new UpdateVector(lhs, rhs);
     }
 }

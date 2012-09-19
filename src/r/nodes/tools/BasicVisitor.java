@@ -99,6 +99,11 @@ public class BasicVisitor implements Visitor {
         visit((ASTNode) n);
     }
 
+    @Override
+    public void visit(UpdateVector u) {
+        visit((ASTNode) u);
+    }
+
     public void visit(Call n) {
         visit((ASTNode) n);
     }

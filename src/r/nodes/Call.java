@@ -35,7 +35,7 @@ public abstract class Call extends ASTNode {
     }
 
     public static ASTNode create(CallOperator op, ASTNode lhs, ArgumentList args) {
-        return new AccessVector( lhs, args, op == CallOperator.SUBSET);
+        return new AccessVector(lhs, args, op == CallOperator.SUBSET);
     }
 
     public enum CallOperator {
