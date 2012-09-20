@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 
 // FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
@@ -247,72 +248,87 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
+        public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) {
+            RArray typedBase;
+            RArray typedValue;
+            if (base instanceof RDouble || value instanceof RDouble) {
+                typedBase = base.asDouble();
+                typedValue = value.asDouble();
+            } else if (base instanceof RInt || value instanceof RInt) {
+                typedBase = base.asInt();
+                typedValue = value.asInt();
+            } else if (base instanceof RLogical || value instanceof RLogical) {
+                typedBase = base.asLogical();
+                typedValue = value.asLogical();
+            } else {
+                Utils.nyi("unsupported vector types");
+                return null;
+            }
+            int bsize = base.size();
+            if (pos > 0) {
+                if (pos <= bsize) {
+                    int zpos = pos - 1;
+                    RArray res = Utils.createArray(typedBase, bsize);
+                    int i = 0;
+                    for (; i < zpos; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    res.set(i++, typedValue.get(0));
+                    for (; i < bsize; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    return res;
+                } else {
+                    int zpos = pos - 1;
+                    int nsize = zpos + 1;
+                    RArray res = Utils.createArray(typedBase, nsize);
+                    int i = 0;
+                    for (; i < bsize; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    for (; i < zpos; i++) {
+                        Utils.setNA(res, i);
+                    }
+                    res.set(i, typedValue.get(0));
+                    return res;
+                }
+            } else { // pos < 0
+                if (pos == RInt.NA) {
+                    return base;
+                }
+                if (!subset) {
+                    if (bsize <= 1) {
+                        throw RError.getSelectLessThanOne(ast);
+                    }
+                    if (bsize > 2) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                    // bsize == 2
+                    if (pos != -1 && pos != -2) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                }
+                int keep = -pos - 1;
+                RArray res = Utils.createArray(typedBase, bsize);
+                int i = 0;
+                Object v = typedValue.get(0);
+                for (; i < keep; i++) {
+                    res.set(i, v);
+                }
+                res.set(i, typedBase.get(i));
+                i++;
+                for (; i < bsize; i++) {
+                    res.set(i, v);
+                }
+                return res;
+            }
+        }
+
         public Specialized createGeneric() {
             ValueCopy cpy = new ValueCopy() {
                 @Override
-                RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-
-                    RArray typedBase;
-                    RArray typedValue;
-                    if (base instanceof RDouble || value instanceof RDouble) {
-                        typedBase = base.asDouble();
-                        typedValue = value.asDouble();
-                    } else if (base instanceof RInt || value instanceof RInt) {
-                        typedBase = base.asInt();
-                        typedValue = value.asInt();
-                    } else if (base instanceof RLogical || value instanceof RLogical) {
-                        typedBase = base.asLogical();
-                        typedValue = value.asLogical();
-                    } else {
-                        Utils.nyi("unsupported vector types");
-                        return null;
-                    }
-                    int bsize = base.size();
-                    if (pos > 0) {
-                        if (pos <= bsize) {
-                            int zpos = pos - 1;
-                            RArray res = Utils.createArray(typedBase, bsize);
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                res.set(i, typedBase.get(i));
-                            }
-                            res.set(i++, typedValue.get(0));
-                            for (; i < bsize; i++) {
-                                res.set(i, typedBase.get(i));
-                            }
-                            return res;
-                        } else {
-                            int zpos = pos - 1;
-                            int nsize = zpos + 1;
-                            RArray res = Utils.createArray(typedBase, nsize);
-                            int i = 0;
-                            for (; i < bsize; i++) {
-                                res.set(i, typedBase.get(i));
-                            }
-                            for (; i < zpos; i++) {
-                                Utils.setNA(res, i);
-                            }
-                            res.set(i, typedValue.get(0));
-                            return res;
-                        }
-                    } else { // pos < 0
-                        if (pos == RInt.NA) {
-                            return base;
-                        }
-                        int keep = -pos - 1;
-                        RArray res = Utils.createArray(typedBase, bsize);
-                        int i = 0;
-                        Object v = typedValue.get(0);
-                        for (; i < keep; i++) {
-                            res.set(i, v);
-                        }
-                        res.set(i, typedBase.get(i));
-                        i++;
-                        for (; i < bsize; i++) {
-                            res.set(i, v);
-                        }
-                        return res;
-                    }
+                RAny copy(RArray base, int pos, RAny value) {
+                    return genericUpdate(base, pos, value, subset, ast);
                 }
             };
             return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<Generic>");
@@ -377,11 +393,88 @@ public abstract class UpdateVector extends BaseR {
                             return sn.execute(context, frame, base, index, value);
 
                         default:
-                            //TODO: rewrite to generic selection
+                            GenericScalarSelection gs = new GenericScalarSelection(ast, lhs, indexes, rhs, subset);
+                            replace(gs, "install GenericScalarSelection from ScalarNumericSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
+                            return gs.execute(context, frame, base, index, value);
                     }
-                    Utils.nyi("unsupported update");
-                    return null;
                 }
+            }
+        }
+    }
+
+    public static class GenericScalarSelection extends UpdateVector {
+
+        public GenericScalarSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, lhs, indexes, rhs, subset);
+        }
+
+        @Override
+        public Object execute(RContext context, RFrame frame) {
+            RAny index = (RAny) indexes[0].execute(context, frame);
+            RAny base = (RAny) lhs.execute(context, frame);
+            RAny value = (RAny) rhs.execute(context, frame);
+            return execute(context, frame, base, index, value);
+        }
+
+        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing GenericScalarSelection");
+            try {
+                if (!(base instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                }
+                RArray abase = (RArray) base;
+                if (!(value instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                }
+                RArray avalue = (RArray) value;
+                int vsize = avalue.size();
+                if (vsize != 1) {
+                    throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_VALUE);
+                }
+                if (!(index instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX);
+                }
+                RArray aindex = (RArray) index;
+                int isize = aindex.size();
+
+                if (isize == 0) {
+                    throw RError.getReplacementZero(ast);
+                }
+                if (isize > 1) {
+                    if (subset) {
+                        context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                    } else {
+                        throw RError.getMoreElementsSupplied(ast);
+                    }
+                }
+                if (index instanceof RInt) {
+                    return ScalarNumericSelection.genericUpdate(abase, ((RInt) index).getInt(0), avalue, subset, ast);
+                } else if (index instanceof RDouble) {
+                    return ScalarNumericSelection.genericUpdate(abase, Convert.double2int(((RDouble) index).getDouble(0)), avalue, subset, ast);
+                } else if (index instanceof RLogical) {
+                    int l = ((RLogical) index).getLogical(0);
+                    if (l == RLogical.FALSE) {
+                        if (!subset) {
+                            throw RError.getSelectLessThanOne(ast);
+                        }
+                        return abase;
+                    }
+                    if (l == RLogical.NA) {
+                        if (!subset) {
+                            throw RError.getSelectMoreThanOne(ast);
+                        }
+                        return abase;
+                    }
+                    return ScalarNumericSelection.genericUpdate(abase, RLogical.TRUE, avalue, subset, ast);
+                }
+                Utils.nyi("unsupported type in vector update");
+                return null;
+            } catch (UnexpectedResultException e) {
+                Failure f = (Failure) e.getResult();
+                if (DEBUG_UP) Utils.debug("update - GenericScalarSelection failed: " + f);
+                Utils.nyi("unsupported update");
+                return null;
             }
         }
     }
