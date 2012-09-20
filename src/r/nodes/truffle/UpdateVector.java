@@ -15,7 +15,7 @@ public abstract class UpdateVector extends BaseR {
     RNode rhs;
     final boolean subset;
 
-    private static final boolean DEBUG_UP = false;
+    private static final boolean DEBUG_UP = true;
 
     UpdateVector(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -29,18 +29,20 @@ public abstract class UpdateVector extends BaseR {
         NOT_ARRAY_BASE,
         NOT_ONE_ELEMENT_INDEX,
         NOT_NUMERIC_INDEX,
+        NOT_ARRAY_INDEX,
         INDEX_OUT_OF_BOUNDS,
         NOT_ONE_ELEMENT_VALUE,
         NOT_ARRAY_VALUE,
         UNEXPECTED_TYPE
     }
 
-    // for a numeric (int, double) scalar index and common case
-    //   specializes itself for types of index,value
-    //   only handles simple cases (no type conversion of base, no extension of base)
-    public static class SimpleScalarNumericSelection extends UpdateVector {
+    // for a numeric (int, double) scalar index
+    //   first installs an uninitialized node
+    //   this node rewrites itself to type-specialized nodes for simple assignment, or to a generic node
+    //   the specialized nodes can rewrite themselves to the generic node
+    public static class ScalarNumericSelection extends UpdateVector {
 
-        public SimpleScalarNumericSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+        public ScalarNumericSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, lhs, indexes, rhs, subset);
         }
 
@@ -53,15 +55,17 @@ public abstract class UpdateVector extends BaseR {
         }
 
         public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
-            if (DEBUG_UP) Utils.debug("update - executing SimpleScalarNumericSelection (uninitialized)");
-            Specialized sn = createSpecialized(base, value);
+            if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
+            Specialized sn = createSimple(base, value);
             if (sn != null) {
-                replace(sn, "specialize SimpleScalarNumericSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with SimpleScalarNumericSelection.Specialized");
+                replace(sn, "specialize ScalarNumericSelection");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Simple");
                 return sn.execute(context, frame, base, index, value);
             } else {
-                Utils.nyi("unsupported vector update");
-                return null;
+                sn = createGeneric();
+                replace(sn, "specialize ScalarNumericSelection");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
+                return sn.execute(context, frame, base, index, value);
             }
         }
 
@@ -69,7 +73,7 @@ public abstract class UpdateVector extends BaseR {
             abstract RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException;
         }
 
-        public Specialized createSpecialized(RAny baseTemplate, RAny valueTemplate) {
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
             if (baseTemplate instanceof RInt) {
                 if (valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
@@ -80,9 +84,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RInt ibase = (RInt) base;
                             int bsize = ibase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos - 1;
                             int[] content = new int[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = ibase.getInt(i);
                             }
                             content[i++] = ((RInt) value).getInt(0);
@@ -103,9 +111,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RInt ibase = (RInt) base;
                             int bsize = ibase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos - 1;
                             int[] content = new int[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = ibase.getInt(i);
                             }
                             content[i++] = ((RLogical) value).getLogical(0);
@@ -129,9 +141,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos -1;
                             double[] content = new double[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = dbase.getDouble(i);
                             }
                             content[i++] = ((RDouble) value).getDouble(0);
@@ -152,9 +168,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos - 1;
                             double[] content = new double[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = dbase.getDouble(i);
                             }
                             content[i++] = Convert.int2double(((RInt) value).getInt(0));
@@ -175,9 +195,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos -1;
                             double[] content = new double[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = dbase.getDouble(i);
                             }
                             content[i++] = Convert.logical2double(((RLogical) value).getLogical(0));
@@ -201,9 +225,13 @@ public abstract class UpdateVector extends BaseR {
                             }
                             RLogical lbase = (RLogical) base;
                             int bsize = lbase.size();
+                            if (pos < 1 || pos > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int zpos = pos - 1;
                             int[] content = new int[bsize];
                             int i = 0;
-                            for (; i < pos; i++) {
+                            for (; i < zpos; i++) {
                                 content[i] = lbase.getLogical(i);
                             }
                             content[i++] = ((RLogical) value).getLogical(0);
@@ -216,12 +244,83 @@ public abstract class UpdateVector extends BaseR {
                     return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
                 }
             }
-            Utils.nyi();
             return null;
         }
 
+        public Specialized createGeneric() {
+            ValueCopy cpy = new ValueCopy() {
+                @Override
+                RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
+
+                    RArray typedBase;
+                    RArray typedValue;
+                    if (base instanceof RDouble || value instanceof RDouble) {
+                        typedBase = base.asDouble();
+                        typedValue = value.asDouble();
+                    } else if (base instanceof RInt || value instanceof RInt) {
+                        typedBase = base.asInt();
+                        typedValue = value.asInt();
+                    } else if (base instanceof RLogical || value instanceof RLogical) {
+                        typedBase = base.asLogical();
+                        typedValue = value.asLogical();
+                    } else {
+                        Utils.nyi("unsupported vector types");
+                        return null;
+                    }
+                    int bsize = base.size();
+                    if (pos > 0) {
+                        if (pos <= bsize) {
+                            int zpos = pos - 1;
+                            RArray res = Utils.createArray(typedBase, bsize);
+                            int i = 0;
+                            for (; i < zpos; i++) {
+                                res.set(i, typedBase.get(i));
+                            }
+                            res.set(i++, typedValue.get(0));
+                            for (; i < bsize; i++) {
+                                res.set(i, typedBase.get(i));
+                            }
+                            return res;
+                        } else {
+                            int zpos = pos - 1;
+                            int nsize = zpos + 1;
+                            RArray res = Utils.createArray(typedBase, nsize);
+                            int i = 0;
+                            for (; i < bsize; i++) {
+                                res.set(i, typedBase.get(i));
+                            }
+                            for (; i < zpos; i++) {
+                                Utils.setNA(res, i);
+                            }
+                            res.set(i, typedValue.get(0));
+                            return res;
+                        }
+                    } else { // pos < 0
+                        if (pos == RInt.NA) {
+                            return base;
+                        }
+                        int keep = -pos - 1;
+                        RArray res = Utils.createArray(typedBase, bsize);
+                        int i = 0;
+                        Object v = typedValue.get(0);
+                        for (; i < keep; i++) {
+                            res.set(i, v);
+                        }
+                        res.set(i, typedBase.get(i));
+                        i++;
+                        for (; i < bsize; i++) {
+                            res.set(i, v);
+                        }
+                        return res;
+                    }
+                }
+            };
+            return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<Generic>");
+        }
+
+
         // specialized for type combinations (base vector, value written)
-        class Specialized extends SimpleScalarNumericSelection {
+        class Specialized extends ScalarNumericSelection {
             final ValueCopy copy;
             final String dbg;
 
@@ -233,7 +332,7 @@ public abstract class UpdateVector extends BaseR {
 
             @Override
             public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
-                if (DEBUG_UP) Utils.debug("update - executing SimpleScalarNumericSelection" + dbg);
+                if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
                         throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
@@ -264,17 +363,22 @@ public abstract class UpdateVector extends BaseR {
                     if (isize != 1) {
                         throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_INDEX);
                     }
-
-                    int bsize = abase.size();
-                    if (pos < 1 || pos > bsize) {
-                        throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                    }
-                    pos--;
                     return copy.copy(abase, pos, avalue);
 
                 } catch (UnexpectedResultException e) {
                     Failure f = (Failure) e.getResult();
-                    if (DEBUG_UP) Utils.debug("update - SimpleScalarNumericSelection" + dbg + " failed: " + f);
+                    if (DEBUG_UP) Utils.debug("update - ScalarNumericSelection" + dbg + " failed: " + f);
+                    switch(f) {
+                        case INDEX_OUT_OF_BOUNDS:
+                        case UNEXPECTED_TYPE:
+                            Specialized sn = createGeneric();
+                            replace(sn, "specialize ScalarNumericSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
+                            return sn.execute(context, frame, base, index, value);
+
+                        default:
+                            //TODO: rewrite to generic selection
+                    }
                     Utils.nyi("unsupported update");
                     return null;
                 }
@@ -282,3 +386,4 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 }
+

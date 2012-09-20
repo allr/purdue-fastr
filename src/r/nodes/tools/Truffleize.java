@@ -159,7 +159,7 @@ public class Truffleize implements Visitor {
         AccessVector a = u.getVector();
         splitArgumentList(a.getArgs());
         if (convertedExpressions.length == 1) {
-            RNode vvalue = new r.nodes.truffle.UpdateVector.SimpleScalarNumericSelection(u, createTree(a.getVector()), convertedExpressions, createTree(u.getRHS()), a.isSubset());
+            RNode vvalue = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, createTree(a.getVector()), convertedExpressions, createTree(u.getRHS()), a.isSubset());
             ASTNode v = a.getVector();
             if (!(v instanceof SimpleAccessVariable)) {
                 Utils.nyi("expect vector name for vector update");
