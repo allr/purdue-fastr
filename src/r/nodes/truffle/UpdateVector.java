@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -16,7 +17,7 @@ public abstract class UpdateVector extends BaseR {
     RNode rhs;
     final boolean subset;
 
-    private static final boolean DEBUG_UP = true;
+    private static final boolean DEBUG_UP = false;
 
     UpdateVector(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -31,10 +32,12 @@ public abstract class UpdateVector extends BaseR {
         NOT_ONE_ELEMENT_INDEX,
         NOT_NUMERIC_INDEX,
         NOT_ARRAY_INDEX,
+        NOT_INT_SEQUENCE_INDEX,
         INDEX_OUT_OF_BOUNDS,
         NOT_ONE_ELEMENT_VALUE,
         NOT_ARRAY_VALUE,
-        UNEXPECTED_TYPE
+        UNEXPECTED_TYPE,
+        NOT_SAME_LENGTH,
     }
 
     // for a numeric (int, double) scalar index
@@ -429,19 +432,18 @@ public abstract class UpdateVector extends BaseR {
                 }
                 RArray avalue = (RArray) value;
                 int vsize = avalue.size();
-                if (vsize != 1) {
-                    throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_VALUE);
+                if (vsize == 0) {
+                    throw RError.getReplacementZero(ast);
                 }
                 if (!(index instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX);
                 }
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
-
-                if (isize == 0) {
-                    throw RError.getReplacementZero(ast);
+                if (isize != 1) {
+                    throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_INDEX);
                 }
-                if (isize > 1) {
+                if (vsize > 1) {
                     if (subset) {
                         context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     } else {
@@ -473,7 +475,506 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericScalarSelection failed: " + f);
+                switch (f) {
+                    case NOT_ONE_ELEMENT_INDEX:
+                        if (index instanceof IntImpl.RIntSequence) {
+                            IntSequenceSelection is = new IntSequenceSelection(ast, lhs, indexes, rhs, subset);
+                            replace(is, "install IntSequenceSelection from GenericScalarSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
+                            return is.execute(context, frame, base, index, value);
+                        }
+                        if (index instanceof RInt || index instanceof RDouble) {
+                            NumericSelection ns = new NumericSelection(ast, lhs, indexes, rhs, subset);
+                            replace(ns, "install NumericSelection from GenericScalarSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
+                            return ns.execute(context, frame, base, index, value);
+                        }
+                    default:
+                }
                 Utils.nyi("unsupported update");
+                return null;
+            }
+        }
+    }
+
+    // for updates where the index is an int sequence
+    //   specializes for types (base, value) in simple cases
+    //   handles also some simple cases when types change or when type-conversion of base is needed
+    public static class IntSequenceSelection extends UpdateVector {
+
+        public IntSequenceSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, lhs, indexes, rhs, subset);
+        }
+
+        @Override
+        public Object execute(RContext context, RFrame frame) {
+            RAny index = (RAny) indexes[0].execute(context, frame);
+            RAny base = (RAny) lhs.execute(context, frame);
+            RAny value = (RAny) rhs.execute(context, frame);
+            return execute(context, frame, base, index, value);
+        }
+
+        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
+            Specialized sn = createSimple(base, value);
+            if (sn != null) {
+                replace(sn, "specialize IntSequenceSelection");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Simple");
+                return sn.execute(context, frame, base, index, value);
+            } else {
+                sn = createExtended();
+                replace(sn, "specialize IntSequenceSelection");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
+                return sn.execute(context, frame, base, index, value);
+            }
+        }
+
+        abstract class ValueCopy {
+            abstract RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException;
+        }
+
+        // specialized for type combinations (base vector, value written)
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+            if (baseTemplate instanceof RDouble) {
+                if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                            if (!(base instanceof RDouble)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RDouble typedBase = (RDouble) base;
+                            RDouble typedValue;
+                            if (value instanceof RDouble) {
+                                typedValue = (RDouble) value;
+                            } else if (value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asDouble();
+                            } else {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int imin = index.min();
+                            int imax = index.max();
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            imin--;
+                            imax--;  // convert to 0-based
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+                            if (isize != vsize) {
+                                throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                            }
+                            double[] content = new double[bsize];
+                            int i = 0;
+                            for (; i < imin; i++) {
+                                content[i] = typedBase.getDouble(i);
+                            }
+                            i = index.from() - 1;  // -1 for 0-based
+                            int step = index.step();
+                            int astep;
+                            int delta;
+                            if (step > 0) {
+                                astep = step;
+                                delta = 1;
+                            } else {
+                                astep = -step;
+                                delta = -1;
+                            }
+                            for (int steps = 0; steps < isize; steps++) {
+                                content[i] = typedValue.getDouble(steps);
+                                i += delta;
+                                for (int j = 1; j < astep; j++) {
+                                    content[i] = typedBase.getDouble(i);
+                                    i += delta;
+                                }
+                            }
+                            for (i = imax + 1; i < bsize; i++) {
+                                content[i] = typedBase.getDouble(i);
+                            }
+                            return RDouble.RDoubleFactory.getForArray(content);
+                        }
+                    };
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RInt) {
+                if (valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                            if (!(base instanceof RInt)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RInt typedBase = (RInt) base;
+                            RInt typedValue;
+                            if (value instanceof RInt) {
+                                typedValue = (RInt) value;
+                            } else if (value instanceof RLogical) {
+                                typedValue = value.asInt();
+                            } else {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int imin = index.min();
+                            int imax = index.max();
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            imin--;
+                            imax--;  // convert to 0-based
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+                            if (isize != vsize) {
+                                throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                            }
+                            int[] content = new int[bsize];
+                            int i = 0;
+                            for (; i < imin; i++) {
+                                content[i] = typedBase.getInt(i);
+                            }
+                            i = index.from() - 1;  // -1 for 0-based
+                            int step = index.step();
+                            int astep;
+                            int delta;
+                            if (step > 0) {
+                                astep = step;
+                                delta = 1;
+                            } else {
+                                astep = -step;
+                                delta = -1;
+                            }
+                            for (int steps = 0; steps < isize; steps++) {
+                                content[i] = typedValue.getInt(steps);
+                                i += delta;
+                                for (int j = 1; j < astep; j++) {
+                                    content[i] = typedBase.getInt(i);
+                                    i += delta;
+                                }
+                            }
+                            for (i = imax + 1; i < bsize; i++) {
+                                content[i] = typedBase.getInt(i);
+                            }
+                            return RInt.RIntFactory.getForArray(content);
+                        }
+                    };
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RLogical) {
+                if (valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                            if (!(base instanceof RLogical && value instanceof RLogical)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RLogical typedBase = (RLogical) base;
+                            RLogical typedValue = (RLogical) value;
+                            int bsize = base.size();
+                            int imin = index.min();
+                            int imax = index.max();
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            imin--;
+                            imax--;  // convert to 0-based
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+                            if (isize != vsize) {
+                                throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                            }
+                            int[] content = new int[bsize];
+                            int i = 0;
+                            for (; i < imin; i++) {
+                                content[i] = typedBase.getLogical(i);
+                            }
+                            i = index.from() - 1;  // -1 for 0-based
+                            int step = index.step();
+                            int astep;
+                            int delta;
+                            if (step > 0) {
+                                astep = step;
+                                delta = 1;
+                            } else {
+                                astep = -step;
+                                delta = -1;
+                            }
+                            for (int steps = 0; steps < isize; steps++) {
+                                content[i] = typedValue.getLogical(steps);
+                                i += delta;
+                                for (int j = 1; j < astep; j++) {
+                                    content[i] = typedBase.getLogical(i);
+                                    i += delta;
+                                }
+                            }
+                            for (i = imax + 1; i < bsize; i++) {
+                                content[i] = typedBase.getLogical(i);
+                            }
+                            return RLogical.RLogicalFactory.getForArray(content);
+                        }
+                    };
+                    return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                }
+                return null;
+            }
+            return null;
+        }
+
+        // handles type conversion of base
+        public Specialized createExtended() {
+            ValueCopy cpy = new ValueCopy() {
+                @Override
+                RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                    RArray typedBase;
+                    RArray typedValue;
+                    if (base instanceof RDouble || value instanceof RDouble) {
+                        typedBase = base.asDouble();
+                        typedValue = value.asDouble();
+                    } else if (base instanceof RInt || value instanceof RInt) {
+                        typedBase = base.asInt();
+                        typedValue = value.asInt();
+                    } else if (base instanceof RLogical || value instanceof RLogical) {
+                        typedBase = base.asLogical();
+                        typedValue = value.asLogical();
+                    } else {
+                        Utils.nyi("unsupported vector types");
+                        return null;
+                    }
+                    int bsize = base.size();
+                    int imin = index.min();
+                    int imax = index.max();
+                    if (imin < 1 || imax > bsize) {
+                        throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                    }
+                    imin--;
+                    imax--;  // convert to 0-based
+                    int isize = index.size();
+                    int vsize = typedValue.size();
+                    if (isize != vsize) {
+                        throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                    }
+                    RArray res = Utils.createArray(typedBase, bsize);
+                    int i = 0;
+                    for (; i < imin; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    i = index.from() - 1;  // -1 for 0-based
+                    int step = index.step();
+                    int astep;
+                    int delta;
+                    if (step > 0) {
+                        astep = step;
+                        delta = 1;
+                    } else {
+                        astep = -step;
+                        delta = -1;
+                    }
+                    for (int steps = 0; steps < isize; steps++) {
+                        res.set(i, typedValue.get(steps));
+                        i += delta;
+                        for (int j = 1; j < astep; j++) {
+                            res.set(i,  typedBase.get(i));
+                            i += delta;
+                        }
+                    }
+                    for (i = imax + 1; i < bsize; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    return res;
+                }
+            };
+            return new Specialized(ast, lhs, indexes, rhs, subset, cpy, "<Extended>");
+        }
+
+
+        class Specialized extends IntSequenceSelection {
+            final ValueCopy copy;
+            final String dbg;
+
+            Specialized(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
+                super(ast, lhs, indexes, rhs, subset);
+                this.copy = copy;
+                this.dbg = dbg;
+            }
+
+            @Override
+            public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+                if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
+                try {
+                    if (!(base instanceof RArray)) {
+                        throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                    }
+                    RArray abase = (RArray) base;
+                    if (!(value instanceof RArray)) {
+                        throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                    }
+                    RArray avalue = (RArray) value;
+                    if (!(index instanceof IntImpl.RIntSequence)) {
+                        throw new UnexpectedResultException(Failure.NOT_INT_SEQUENCE_INDEX);
+                    }
+                    return copy.copy(abase, (IntImpl.RIntSequence) index, avalue);
+
+                } catch (UnexpectedResultException e) {
+                    Failure f = (Failure) e.getResult();
+                    if (DEBUG_UP) Utils.debug("update - IntSequenceSelection" + dbg + " failed: " + f);
+                    switch(f) {
+                        case UNEXPECTED_TYPE:
+                            Specialized sn = createExtended();
+                            replace(sn, "specialize IntSequenceSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
+                            return sn.execute(context, frame, base, index, value);
+
+                        default:
+                    }
+                    Utils.nyi("unsupported case");
+                    return null;
+                }
+            }
+        }
+    }
+
+    // for updates where the index is a numeric (int, double) vector
+    public static class NumericSelection extends UpdateVector {
+
+        public NumericSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, lhs, indexes, rhs, subset);
+        }
+
+        @Override
+        public Object execute(RContext context, RFrame frame) {
+            RAny index = (RAny) indexes[0].execute(context, frame);
+            RAny base = (RAny) lhs.execute(context, frame);
+            RAny value = (RAny) rhs.execute(context, frame);
+            return execute(context, frame, base, index, value);
+        }
+
+        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, RFrame frame, ASTNode ast, boolean subset) {
+            RArray typedBase;
+            RArray typedValue;
+            if (base instanceof RDouble || value instanceof RDouble) {
+                typedBase = base.asDouble();
+                typedValue = value.asDouble();
+            } else if (base instanceof RInt || value instanceof RInt) {
+                typedBase = base.asInt();
+                typedValue = value.asInt();
+            } else if (base instanceof RLogical || value instanceof RLogical) {
+                typedBase = base.asLogical();
+                typedValue = value.asLogical();
+            } else {
+                Utils.nyi("unsupported vector types");
+                return null;
+            }
+
+            boolean hasNegative = false;
+            boolean hasPositive = false;
+            boolean hasNA = false;
+            int bsize = typedBase.size();
+            int isize = index.size();
+            boolean[] omit = null;
+            int maxIndex = 0;
+
+            for (int i = 0; i < isize; i++) {
+                int v = index.getInt(i);
+                if (v > maxIndex) {
+                    maxIndex = v;
+                }
+                if (v == RInt.NA) {
+                    hasNA = true;
+                    continue;
+                }
+                if (v > 0) {
+                    hasPositive = true;
+                    continue;
+                }
+                if (v < 0) {
+                    if (!hasNegative) {
+                        hasNegative = true;
+                        omit = new boolean[bsize];
+                    }
+                    int vi = -v - 1;
+                    if (vi < omit.length) {
+                        if (!omit[vi]) {
+                            omit[vi] = true;
+                        }
+                    }
+                }
+            }
+            int vsize = typedValue.size();
+            if (!hasNegative) {
+                int nsize = maxIndex + 1;
+                if (nsize < bsize) {
+                    nsize = bsize;
+                }
+                RArray res = Utils.createArray(typedBase, nsize);
+                // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
+                int i = 0;
+                for (; i < bsize; i++) {
+                    res.set(i, typedBase.get(i));
+                }
+                for (; i < nsize; i++) {
+                    Utils.setNA(res, i);
+                }
+                int j = 0;
+                for (i = 0; i < isize; i++) {
+                    int v = index.getInt(i);
+                    if (v != 0 && v != RInt.NA) {
+                        res.set(v - 1, typedValue.get(j++));
+                        if (j == vsize) {
+                            j = 0;
+                        }
+                    }
+                }
+                if (j != 0) {
+                    context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                }
+                return res;
+            } else {
+                // hasNegative == true
+                if (hasPositive || hasNA) {
+                    throw RError.getOnlyZeroMixed(ast);
+                }
+                RArray res = Utils.createArray(typedBase, bsize);
+                int j = 0;
+                for (int i = 0; i < bsize; i++) {
+                    if (omit[i]) {
+                        res.set(i, typedBase.get(i));
+                    } else {
+                        res.set(i,  typedValue.get(j++));
+                        if (j == vsize) {
+                            j = 0;
+                        }
+                    }
+                }
+                return res;
+            }
+        }
+        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
+            try {
+                if (!(base instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                }
+                RArray abase = (RArray) base;
+                if (!(value instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                }
+                RArray avalue = (RArray) value;
+                RInt iindex;
+                if (index instanceof RInt) {
+                    iindex = (RInt) index;
+                } else if (index instanceof RDouble) {
+                    iindex = index.asInt();
+                } else {
+                    throw new UnexpectedResultException(Failure.NOT_NUMERIC_INDEX);
+                }
+                return genericUpdate(abase, iindex, avalue, context, frame, ast, subset);
+            } catch (UnexpectedResultException e) {
+                Failure f = (Failure) e.getResult();
+                if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
+                Utils.nyi("unsupported case");
                 return null;
             }
         }

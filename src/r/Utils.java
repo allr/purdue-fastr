@@ -77,4 +77,19 @@ public final class Utils {
             Utils.nyi("unsupported array type");
         }
     }
+
+    public static RArray copyArray(RArray arr) {
+        if (arr instanceof RDouble) {
+            return RDouble.RDoubleFactory.copy((RDouble) arr);
+        }
+        if (arr instanceof RInt) {
+            return RInt.RIntFactory.copy((RInt) arr);
+        }
+        if (arr instanceof RLogical) {
+            return RLogical.RLogicalFactory.copy((RLogical) arr);
+        } else {
+            Utils.nyi("unuspported array type");
+            return null;
+        }
+    }
 }
