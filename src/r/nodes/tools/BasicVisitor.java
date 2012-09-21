@@ -100,6 +100,11 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(UnaryMinus op) {
+        visit((UnaryOperation) op);
+    }
+
+    @Override
     public void visit(Constant c) {
         visit((ASTNode) c);
     }

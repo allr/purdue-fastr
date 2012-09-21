@@ -10,6 +10,7 @@ import r.nodes.*;
 
 // FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
 // FIXME: could reduce code size by some refactoring, e.g. subclassing on copiers that use double, int, logical
+// FIXME: some of the guards from common "exec" methods could be elided - type checking for RArray and then again in specialized functions for RArray subclasses
 
 public abstract class UpdateVector extends BaseR {
 

@@ -11,6 +11,7 @@ import r.nodes.If;
 import r.nodes.Not;
 import r.nodes.Sequence;
 import r.nodes.UpdateVector;
+import r.nodes.UnaryMinus;
 import r.nodes.truffle.*;
 
 public class Truffleize implements Visitor {
@@ -66,6 +67,11 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(Not n) {
         result = new r.nodes.truffle.Not.LogicalScalar(n, createTree(n.getLHS()));
+    }
+
+    @Override
+    public void visit(UnaryMinus m) {
+        result = new r.nodes.truffle.UnaryMinus.NumericScalar(m, createTree(m.getLHS()));
     }
 
     @Override

@@ -18,6 +18,7 @@ public interface Visitor {
     void visit(Colon col);
 
     void visit(Not n);
+    void visit(UnaryMinus m);
 
     void visit(Constant constant);
     void visit(SimpleAccessVariable readVariable);

@@ -8,6 +8,7 @@ public abstract class Operation extends ASTNode {
     public static final int SUB_PRECEDENCE = ADD_PRECEDENCE;
     public static final int MULT_PRECEDENCE = SUB_PRECEDENCE + 1;
     public static final int COLON_PRECEDENCE = MULT_PRECEDENCE + 1;
+    public static final int SIGN_PRECEDENCE = COLON_PRECEDENCE + 1;
     ASTNode lhs;
 
     public Operation(ASTNode left) {
