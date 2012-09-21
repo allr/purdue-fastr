@@ -188,12 +188,31 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(EQ eq) {
-        result = new r.nodes.truffle.Comparison(eq, createTree(eq.getLHS()), createTree(eq.getRHS()), BinaryOperator.EQ);
+        result = new r.nodes.truffle.Comparison(eq, createTree(eq.getLHS()), createTree(eq.getRHS()), r.nodes.truffle.Comparison.getEQ());
     }
 
     @Override
+    public void visit(NE ne) {
+        result = new r.nodes.truffle.Comparison(ne, createTree(ne.getLHS()), createTree(ne.getRHS()), r.nodes.truffle.Comparison.getNE());
+    }
+    @Override
     public void visit(LE le) {
-        result = new r.nodes.truffle.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), BinaryOperator.LE);
+        result = new r.nodes.truffle.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), r.nodes.truffle.Comparison.getLE());
+    }
+
+    @Override
+    public void visit(GE ge) {
+        result = new r.nodes.truffle.Comparison(ge, createTree(ge.getLHS()), createTree(ge.getRHS()), r.nodes.truffle.Comparison.getGE());
+    }
+
+    @Override
+    public void visit(LT lt) {
+        result = new r.nodes.truffle.Comparison(lt, createTree(lt.getLHS()), createTree(lt.getRHS()), r.nodes.truffle.Comparison.getLT());
+    }
+
+    @Override
+    public void visit(GT gt) {
+        result = new r.nodes.truffle.Comparison(gt, createTree(gt.getLHS()), createTree(gt.getRHS()), r.nodes.truffle.Comparison.getGT());
     }
 
     @Override

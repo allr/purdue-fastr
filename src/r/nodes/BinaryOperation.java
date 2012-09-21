@@ -40,11 +40,11 @@ public abstract class BinaryOperation extends Operation {
             case BITWISEAND: return new Add(left, right);
 
             case EQ: return new EQ(left, right);
-            case GE: return new Add(left, right);
-            case GT: return new Add(left, right);
-            case NE: return new Add(left, right);
+            case GE: return new GE(left, right);
+            case GT: return new GT(left, right);
+            case NE: return new NE(left, right);
             case LE: return new LE(left, right);
-            case LT: return new Add(left, right);
+            case LT: return new LT(left, right);
 
             case COLUMN : return new Colon(left, right);
         }

@@ -1,10 +1,10 @@
 package r.nodes;
 
-@PrettyName("<=")
+@PrettyName("<")
 @Precedence(Operation.COMPARE_PRECEDENCE)
-public class LE extends BinaryOperation {
+public class LT extends BinaryOperation {
 
-    public LE(ASTNode l, ASTNode r) {
+    public LT(ASTNode l, ASTNode r) {
         super(l, r);
     }
 
@@ -14,4 +14,3 @@ public class LE extends BinaryOperation {
     }
 
 }
-

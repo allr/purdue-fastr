@@ -7,30 +7,21 @@ import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.BinaryOperation.BinaryOperator;
 
 
 public class Comparison extends BaseR {
 
     final ValueComparison cmp;
-    final BinaryOperator op;
     RNode left;
     RNode right;
 
     private static final boolean DEBUG_CMP = false;
 
-    public Comparison(ASTNode ast, RNode left, RNode right, BinaryOperator op) {
+    public Comparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
         super(ast);
         this.left = updateParent(left);
-        this.op = op;
         this.right = updateParent(right);
-
-        switch(op) {
-            case EQ: this.cmp = EQ; break;
-            case LE: this.cmp = LE; break;
-            default:
-                throw new RuntimeException("not implemented comparison operation");
-        }
+        this.cmp = cmp;
     }
 
     @Override
@@ -404,29 +395,76 @@ public class Comparison extends BaseR {
         }
     }
 
-    public static final class Equal extends ValueComparison {
-        @Override
-        public boolean cmp(int a, int b) {
-            return a == b;
-        }
-        @Override
-        public boolean cmp(double a, double b) {
-            return a == b;
-        }
+    public static ValueComparison getEQ() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a == b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a == b;
+            }
+        };
     }
-
-    public static final class LessOrEqual extends ValueComparison {
-        @Override
-        public boolean cmp(int a, int b) {
-            return a <= b;
-        }
-        @Override
-        public boolean cmp(double a, double b) {
-            return a <= b;
-        }
+    public static ValueComparison getNE() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a != b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a != b;
+            }
+        };
     }
-
-    protected static Equal EQ = new Equal();
-    protected static LessOrEqual LE = new LessOrEqual();
-
+    public static ValueComparison getLE() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a <= b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a <= b;
+            }
+        };
+    }
+    public static ValueComparison getGE() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a >= b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a >= b;
+            }
+        };
+    }
+    public static ValueComparison getLT() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a < b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a < b;
+            }
+        };
+    }
+    public static ValueComparison getGT() {
+        return new ValueComparison() {
+            @Override
+            public boolean cmp(int a, int b) {
+                return a > b;
+            }
+            @Override
+            public boolean cmp(double a, double b) {
+                return a > b;
+            }
+        };
+    }
 }

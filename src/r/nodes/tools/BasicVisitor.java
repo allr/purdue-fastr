@@ -46,7 +46,27 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(NE op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
     public void visit(LE op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
+    public void visit(GE op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
+    public void visit(LT op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
+    public void visit(GT op) {
         visit((BinaryOperation) op);
     }
 

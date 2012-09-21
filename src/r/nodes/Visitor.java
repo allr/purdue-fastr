@@ -7,7 +7,11 @@ public interface Visitor {
     void visit(Sequence sequence);
 
     void visit(EQ eq);
+    void visit(NE ne);
     void visit(LE le);
+    void visit(GE ge);
+    void visit(LT lt);
+    void visit(GT gt);
     void visit(Mult mult);
     void visit(Add add);
     void visit(Sub sub);
