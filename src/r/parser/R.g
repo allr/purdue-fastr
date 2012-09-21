@@ -178,8 +178,12 @@ or_expr returns [ASTNode v]
 	(((or_operator)=>op=or_operator n_ r=and_expr {$v = BinaryOperation.create(op, $or_expr.v, $r.v);} ))*
 	;
 and_expr returns [ASTNode v]
-	: l=comp_expr { $v = $l.v ;}
-    (((and_operator)=>op=and_operator n_ r=comp_expr {$v = BinaryOperation.create(op, $and_expr.v, $r.v);} ))*
+	: l=not_expr { $v = $l.v ;}
+    (((and_operator)=>op=and_operator n_ r=not_expr {$v = BinaryOperation.create(op, $and_expr.v, $r.v);} ))*
+	;
+not_expr returns [ASTNode v]
+	: NOT n_ l=not_expr {$v = UnaryOperation.create(UnaryOperator.NOT, $l.v);}
+	| b=comp_expr { $v=b; }
 	;
 comp_expr returns [ASTNode v]
 	: l=add_expr { $v = $l.v ;}
@@ -207,8 +211,7 @@ power_expr returns [ASTNode v]
     |)
     ;
 unary_expression returns [ASTNode v] // Does !~ work ? ..if yes I'm not sure to understand 
-	: NOT n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.NOT, l);}
-	| PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
+	: PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
 	| MINUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MINUS, l);}
 	| TILDE n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MODEL, l);}
 	| b=basic_expr { $v=b; }
