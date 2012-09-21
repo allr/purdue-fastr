@@ -10,6 +10,7 @@ import r.nodes.*;
 
 // FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
 // FIXME: could reduce code size by some refactoring, e.g. subclassing on copiers that use double, int, logical
+
 public abstract class UpdateVector extends BaseR {
 
     RNode lhs;
@@ -45,6 +46,7 @@ public abstract class UpdateVector extends BaseR {
     //   first installs an uninitialized node
     //   this node rewrites itself to type-specialized nodes for simple assignment, or to a generic node
     //   the specialized nodes can rewrite themselves to the generic node
+    //   rewrites to GenericScalarSelection when types change or otherwise needed
     public static class ScalarNumericSelection extends UpdateVector {
 
         public ScalarNumericSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -339,7 +341,6 @@ public abstract class UpdateVector extends BaseR {
         }
 
 
-        // specialized for type combinations (base vector, value written)
         class Specialized extends ScalarNumericSelection {
             final ValueCopy copy;
             final String dbg;
@@ -407,6 +408,8 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
+    // any update when the selector is a scalar
+    //   rewrites for other cases (vector selection)
     public static class GenericScalarSelection extends UpdateVector {
 
         public GenericScalarSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -498,14 +501,16 @@ public abstract class UpdateVector extends BaseR {
                         }
                         if (index instanceof RLogical) {
                             LogicalSelection ls = new LogicalSelection(ast, lhs, indexes, rhs, subset);
-                            replace(ls, "install NumericSelection from GenericScalarSelection");
+                            replace(ls, "install LogicalSelection from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
                             return ls.execute(context, frame, base, index, value);
                         }
                     default:
+                        GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
+                        replace(gs, "install GenericSelection from GenericScalarSelection");
+                        if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
+                        return gs.execute(context, frame, base, index, value);
                 }
-                Utils.nyi("unsupported update");
-                return null;
             }
         }
     }
@@ -513,6 +518,7 @@ public abstract class UpdateVector extends BaseR {
     // for updates where the index is an int sequence
     //   specializes for types (base, value) in simple cases
     //   handles also some simple cases when types change or when type-conversion of base is needed
+    //   rewrites itself for more complicated cases
     public static class IntSequenceSelection extends UpdateVector {
 
         public IntSequenceSelection(ASTNode ast, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -841,9 +847,11 @@ public abstract class UpdateVector extends BaseR {
                             return sn.execute(context, frame, base, index, value);
 
                         default:
+                            NumericSelection ns = new NumericSelection(ast, lhs, indexes, rhs, subset);
+                            replace(ns, "install NumericSelection from IntSequenceSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
+                            return ns.execute(context, frame, base, index, value);
                     }
-                    Utils.nyi("unsupported case");
-                    return null;
                 }
             }
         }
@@ -917,7 +925,7 @@ public abstract class UpdateVector extends BaseR {
             }
             int vsize = typedValue.size();
             if (!hasNegative) {
-                int nsize = maxIndex + 1;
+                int nsize = maxIndex;
                 if (nsize < bsize) {
                     nsize = bsize;
                 }
@@ -987,8 +995,10 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
-                Utils.nyi("unsupported case");
-                return null;
+                GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
+                replace(gs, "install GenericSelection from NumericSelection");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
+                return gs.execute(context, frame, base, index, value);
             }
         }
     }
@@ -1314,9 +1324,11 @@ public abstract class UpdateVector extends BaseR {
                             return sn.execute(context, frame, base, index, value);
 
                         default:
+                            GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
+                            replace(gs, "install GenericSelection from LogicalSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
+                            return gs.execute(context, frame, base, index, value);
                     }
-                    Utils.nyi("unsupported case");
-                    return null;
                 }
             }
         }
