@@ -20,6 +20,7 @@ public abstract class RError extends RuntimeException {
     public static final String REPLACEMENT_0 = "replacement has length zero";
     public static final String NOT_MULTIPLE_REPLACEMENT = "number of items to replace is not a multiple of replacement length";
     public static final String MORE_SUPPLIED_REPLACE = "more elements supplied than there are to replace";
+    public static final String NA_SUBSCRIPTED = "NAs are not allowed in subscripted assignments";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -136,6 +137,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return MORE_SUPPLIED_REPLACE;
+            }
+        };
+    }
+
+    public static RError getNASubscripted(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return NA_SUBSCRIPTED;
             }
         };
     }
