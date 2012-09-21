@@ -90,6 +90,40 @@ public interface RDouble extends RNumber {
         }
     }
 
+    public static class RLogicalView extends View.RLogicalView implements RLogical {
+
+        RDouble rdbl;
+
+        public RLogicalView(RDouble rdbl) {
+            this.rdbl = rdbl;
+        }
+
+        @Override
+        public int size() {
+            return rdbl.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rdbl.getAttributes();
+        }
+
+        @Override
+        public RInt asInt() {
+            return rdbl.asInt();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rdbl;
+        }
+
+        @Override
+        public int getLogical(int i) {
+            return Convert.double2logical(rdbl.getDouble(i));
+        }
+    }
+
     public static class RDoubleExclusion extends View.RDoubleView implements RDouble {
 
         final RDouble orig;

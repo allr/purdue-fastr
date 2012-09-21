@@ -1,8 +1,5 @@
 package r.nodes;
 
-import r.builtins.*;
-import r.data.*;
-
 public abstract class BinaryOperation extends Operation {
     ASTNode rhs;
 

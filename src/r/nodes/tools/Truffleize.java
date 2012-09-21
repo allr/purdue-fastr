@@ -8,6 +8,7 @@ import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;
 import r.nodes.If;
+import r.nodes.Not;
 import r.nodes.Sequence;
 import r.nodes.UpdateVector;
 import r.nodes.truffle.*;
@@ -64,6 +65,7 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(Not n) {
+        result = new r.nodes.truffle.Not.LogicalScalar(n, createTree(n.getLHS()));
     }
 
     @Override

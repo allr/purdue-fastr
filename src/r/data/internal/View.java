@@ -52,8 +52,7 @@ public abstract class View implements RArray {
 
         @Override
         public RLogical asLogical() {
-            Utils.nyi();
-            return null;
+            return new RInt.RLogicalView(this);
         }
 
         @Override
@@ -120,8 +119,7 @@ public abstract class View implements RArray {
 
         @Override
         public RLogical asLogical() {
-            Utils.nyi();
-            return null;
+            return new RDouble.RLogicalView(this);
         }
 
         @Override

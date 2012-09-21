@@ -254,7 +254,7 @@ public abstract class ReadVector extends BaseR {
                     throw RError.getSelectLessThanOne(ast);
                 }
                 // size == 2
-                if (i != 1 && i != 2) {
+                if (i != -1 && i != -2) {
                     throw RError.getSelectMoreThanOne(ast);
                 }
             }

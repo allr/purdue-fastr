@@ -91,8 +91,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RLogical asLogical() {
-        Utils.nyi();
-        return null;
+        return new RDouble.RLogicalView(this);
     }
 
     @Override

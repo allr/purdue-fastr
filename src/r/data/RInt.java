@@ -82,6 +82,39 @@ public interface RInt extends RNumber {
         }
     }
 
+    public static class RLogicalView extends View.RLogicalView implements RLogical {
+
+        final RInt rint;
+        public RLogicalView(RInt rint) {
+            this.rint = rint;
+        }
+
+        public int size() {
+            return rint.size();
+        }
+
+        @Override
+        public RInt asInt() {
+            return rint;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rint.getAttributes();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rint.asDouble();
+        }
+
+        @Override
+        public int getLogical(int i) {
+            int v = rint.getInt(i);
+            return Convert.int2logical(v);
+        }
+    }
+
     public static class RIntExclusion extends View.RIntView implements RInt {
 
         final RInt orig;

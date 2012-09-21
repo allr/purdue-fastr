@@ -89,8 +89,7 @@ public class IntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RLogical asLogical() {
-        Utils.nyi();
-        return null;
+        return new RInt.RLogicalView(this);
     }
 
     @Override

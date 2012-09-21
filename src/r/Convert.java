@@ -72,4 +72,18 @@ public class Convert {
     public static double int2double(int i) {
         return  i == RInt.NA ? RDouble.NA : i;
     }
+
+    public static int double2logical(double d) {
+        if (RDouble.RDoubleUtils.isNA(d)) {
+            return RLogical.NA;
+        }
+        return d != 0 ? RLogical.TRUE : RLogical.FALSE;
+    }
+
+    public static int int2logical(int i) {
+        if (i == RInt.NA) {
+            return RLogical.NA;
+        }
+        return i != 0 ? RLogical.TRUE : RLogical.FALSE;
+    }
 }
