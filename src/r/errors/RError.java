@@ -23,6 +23,8 @@ public abstract class RError extends RuntimeException {
     public static final String NA_SUBSCRIPTED = "NAs are not allowed in subscripted assignments";
     public static final String INVALID_ARG_TYPE = "invalid argument type";
     public static final String INVALID_ARG_TYPE_UNARY = "invalid argument to unary operator";
+    public static final String INVALID_LENGTH = "invalid 'length' argument";
+    public static final String VECTOR_SIZE_NEGATIVE = "vector size cannot be negative";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -175,6 +177,30 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return INVALID_ARG_TYPE_UNARY;
+            }
+        };
+    }
+
+    public static RError getInvalidLength(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return INVALID_LENGTH;
+            }
+        };
+    }
+
+    public static RError getVectorSizeNegative(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return VECTOR_SIZE_NEGATIVE;
             }
         };
     }

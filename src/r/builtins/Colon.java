@@ -9,8 +9,7 @@ import r.nodes.truffle.*;
 
 public class Colon {
 
-    // a simple version that eagerly creates the vector
-    // FIXME: create a more efficient version with a view
+    // a simple version that eagerly creates the vector, create(int, int) and (double, double) below are more efficient
     public static RAny createEager(int left, int right) {
         if (left <= right) {
             int len = right - left + 1;

@@ -5,13 +5,13 @@ import r.nodes.*;
 
 public abstract class AbstractCall extends BaseR {
 
-    protected final RSymbol[] argsNames;
-    protected final RNode[] argsValues;
+    protected final RSymbol[] argNames;
+    protected final RNode[] argExprs;
 
-    public AbstractCall(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+    public AbstractCall(ASTNode orig, RSymbol[] argNames, RNode[] argsExprs) {
         super(orig);
-        this.argsNames = argNames;
-        this.argsValues = updateParent(argExprs);
+        this.argNames = argNames;
+        this.argExprs = updateParent(argsExprs);
     }
 
 }

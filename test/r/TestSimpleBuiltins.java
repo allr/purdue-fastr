@@ -19,4 +19,13 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{10:1}", "10L, 9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L");
         assertEval("{(0-5):(0-9)}", "-5L, -6L, -7L, -8L, -9L");
     }
+
+    @Test
+    public void testArrayConstructors() throws RecognitionException {
+        assertEval("{ integer() }", "integer(0)");
+        assertEval("{ double() }", "numeric(0)");
+        assertEval("{ logical() }", "logical(0)");
+        assertEval("{ double(3) }", "0.0, 0.0, 0.0");
+        assertEval("{ logical(3L) }", "FALSE, FALSE, FALSE");
+    }
 }

@@ -14,10 +14,12 @@ public class Primitives {
     private static Map<RSymbol, PrimitiveEntry> map;
     static {
         map = new HashMap<>();
-        add(":", 2, Colon.FACTORY);
-        add("c", -1, Combine.FACTORY);
+        add(":", 2, 2, Colon.FACTORY);
+        add("c", 0, -1, Combine.FACTORY);
+        add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
+        add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
+        add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
     }
-
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
@@ -28,9 +30,10 @@ public class Primitives {
 
             @Override
             public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-                int count = pe.getArgsCount();
+                int minArgs = pe.getMinArgs();
+                int maxArgs = pe.getMaxArgs();
 
-                if (!(count >= 0 ? count == exprs.length : exprs.length >= (-count - 1))) {
+                if (minArgs != -1 && exprs.length < minArgs || maxArgs != -1 && exprs.length > maxArgs) {
                     throw RError.getGenericError(call, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
                 }
 
@@ -51,13 +54,13 @@ public class Primitives {
         return map.get(name);
     }
 
-    private static void add(String name, int nbArgs, CallFactory body) {
-        add(name, nbArgs, body, PrimitiveEntry.PREFIX);
+    private static void add(String name, int minArgs, int maxArgs, CallFactory body) {
+        add(name, minArgs, maxArgs, body, PrimitiveEntry.PREFIX);
     }
 
-    private static void add(String name, int nbArgs, CallFactory body, int pp) {
+    private static void add(String name, int minArgs, int maxArgs, CallFactory body, int pp) {
         RSymbol sym = RSymbol.getSymbol(name);
         assert Utils.check(!map.containsKey(sym));
-        map.put(sym, new PrimitiveEntry(sym, nbArgs, body, pp));
+        map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, pp));
     }
 }

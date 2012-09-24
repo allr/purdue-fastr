@@ -41,10 +41,10 @@ public abstract class FunctionCall extends AbstractCall {
                 @Override
                 protected RFrame matchParams(RContext context, RFunction func, RFrame parentFrame, RFrame callerFrame) {
                     RFrame calleeFrame = new RFrame(parentFrame, func);
-                    RSymbol[] names = new RSymbol[argsValues.length];
+                    RSymbol[] names = new RSymbol[argExprs.length];
 
                     int[] positions = computePositions(context, func, names);
-                    displaceArgs(context, callerFrame, calleeFrame, positions, argsValues, names, func.paramValues());
+                    displaceArgs(context, callerFrame, calleeFrame, positions, argExprs, names, func.paramValues());
                     return calleeFrame;
                 }
             };
@@ -62,10 +62,10 @@ public abstract class FunctionCall extends AbstractCall {
                     RFrame calleeFrame = new RFrame(parentFrame, func);
                     if (func != lastCall) {
                         lastCall = func;
-                        names = new RSymbol[argsValues.length];
+                        names = new RSymbol[argExprs.length];
                         positions = computePositions(context, func, names);
                     }
-                    displaceArgs(context, callerFrame, calleeFrame, positions, argsValues, names, func.paramValues());
+                    displaceArgs(context, callerFrame, calleeFrame, positions, argExprs, names, func.paramValues());
                     return calleeFrame;
 
                 }
@@ -78,7 +78,7 @@ public abstract class FunctionCall extends AbstractCall {
                 @Override
                 protected RFrame matchParams(RContext context, RFunction func, RFrame parentFrame, RFrame callerFrame) {
                     RFrame calleeFrame = new RFrame(parentFrame, func);
-                    displaceArgs(context, callerFrame, calleeFrame, argsValues, func.paramValues());
+                    displaceArgs(context, callerFrame, calleeFrame, argExprs, func.paramValues());
                     return calleeFrame;
                 }
             };
@@ -102,7 +102,7 @@ public abstract class FunctionCall extends AbstractCall {
     protected int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
         RSymbol[] defaultsNames = func.paramNames();
 
-        int nbArgs = argsValues.length;
+        int nbArgs = argExprs.length;
         int nbFormals = defaultsNames.length;
 
         boolean[] used = new boolean[nbFormals]; // Alloc in stack if we are lucky !
@@ -111,10 +111,10 @@ public abstract class FunctionCall extends AbstractCall {
         int[] positions = new int[has3dots ? (nbArgs + nbFormals) : nbFormals]; // The right size is unknown in presence of ``...'' !
 
         for (int i = 0; i < nbArgs; i++) {
-            if (argsNames[i] != null) {
+            if (argNames[i] != null) {
                 for (int j = 0; j < nbFormals; j++) {
-                    if (argsNames[i] == defaultsNames[j]) {
-                        names[i] = argsNames[i];
+                    if (argNames[i] == defaultsNames[j]) {
+                        names[i] = argNames[i];
                         positions[i] = j;
                         used[j] = true;
                     }
@@ -130,9 +130,9 @@ public abstract class FunctionCall extends AbstractCall {
                 }
                 if (nextParam == nbFormals) {
                     // TODO either error or ``...''
-                    context.error(getAST(), "unused argument(s) (" + argsValues[i].getAST() + ")");
+                    context.error(getAST(), "unused argument(s) (" + argExprs[i].getAST() + ")");
                 }
-                if (argsValues[i] != null) {
+                if (argExprs[i] != null) {
                     names[i] = defaultsNames[nextParam]; // This is for now useless but needed for ``...''
                     positions[i] = nextParam;
                     used[nextParam] = true;

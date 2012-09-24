@@ -39,7 +39,7 @@ public abstract class BuiltIn extends AbstractCall {
 
         @Override
         public Object execute(RContext context, RFrame frame) {
-            return doBuiltIn(context, frame, (RAny) argsValues[0].execute(context, frame));
+            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame));
         }
 
         public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg);
@@ -59,7 +59,7 @@ public abstract class BuiltIn extends AbstractCall {
 
         @Override
         public Object execute(RContext context, RFrame frame) {
-            return doBuiltIn(context, frame, (RAny) argsValues[0].execute(context, frame), (RAny) argsValues[1].execute(context, frame));
+            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame), (RAny) argExprs[1].execute(context, frame));
         }
 
         public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1);
@@ -78,10 +78,10 @@ public abstract class BuiltIn extends AbstractCall {
     public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny[] params);
 
     private RAny[] evalArgs(RContext context, RFrame frame) {
-        int len = argsValues.length;
+        int len = argExprs.length;
         RAny[] args = new RAny[len];
         for (int i = 0; i < len; i++) {
-            args[i] = (RAny) argsValues[i].execute(context, frame);
+            args[i] = (RAny) argExprs[i].execute(context, frame);
         }
         return args;
     }
