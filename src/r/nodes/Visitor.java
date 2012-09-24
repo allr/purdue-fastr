@@ -6,6 +6,9 @@ public interface Visitor {
     void visit(While wh1le);
     void visit(Sequence sequence);
 
+    void visit(Break n);
+    void visit(Next n);
+
     void visit(EQ eq);
     void visit(NE ne);
     void visit(LE le);

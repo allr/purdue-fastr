@@ -25,6 +25,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_ARG_TYPE_UNARY = "invalid argument to unary operator";
     public static final String INVALID_LENGTH = "invalid 'length' argument";
     public static final String VECTOR_SIZE_NEGATIVE = "vector size cannot be negative";
+    public static final String NO_LOOP_FOR_BREAK_NEXT = "no loop for break/next, jumping to top level";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -201,6 +202,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return VECTOR_SIZE_NEGATIVE;
+            }
+        };
+    }
+
+    public static RError getNoLoopForBreakNext(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return NO_LOOP_FOR_BREAK_NEXT;
             }
         };
     }

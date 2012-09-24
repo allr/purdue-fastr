@@ -1,7 +1,10 @@
 package r.nodes.tools;
 
+import com.oracle.truffle.nodes.control.*;
+
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.BinaryOperation.BinaryOperator;
 import r.nodes.Constant;
@@ -25,7 +28,13 @@ public class Truffleize implements Visitor {
 
             @Override
             public Object execute(RContext context, RFrame frame) {
-                return node.execute(context, frame);
+                try {
+                    return node.execute(context, frame);
+                } catch (ContinueException ce) {
+                    throw RError.getNoLoopForBreakNext(ast);
+                } catch (BreakException be) {
+                    throw RError.getNoLoopForBreakNext(ast);
+                }
             }
         };
     }
@@ -48,10 +57,31 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(Repeat repeat) {
+        result = new r.nodes.truffle.Loop.Repeat(repeat, createLazyTree(repeat.getBody()));
     }
 
     @Override
-    public void visit(While wh1le) {
+    public void visit(While n) {
+        ASTNode cond = n.getCond();
+        if (cond instanceof Constant) {
+            RAny value = ((Constant) cond).getValue();
+            int l = value.asLogical().getLogical(0);
+            if (l == RLogical.TRUE) {
+                result = new r.nodes.truffle.Loop.Repeat(n, createLazyTree(n.getBody()));
+                return;
+            }
+        }
+        result = new r.nodes.truffle.Loop.While(n, createTree(cond), createLazyTree(n.getBody()));
+    }
+
+    @Override
+    public void visit(Break n) {
+        result = new r.nodes.truffle.Loop.Break(n);
+    }
+
+    @Override
+    public void visit(Next n) {
+        result = new r.nodes.truffle.Loop.Next(n);
     }
 
     @Override

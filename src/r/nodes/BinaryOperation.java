@@ -43,7 +43,7 @@ public abstract class BinaryOperation extends Operation {
             case LE: return new LE(left, right);
             case LT: return new LT(left, right);
 
-            case COLUMN : return new Colon(left, right);
+            case COLON : return new Colon(left, right);
         }
         throw new Error("No node implemented for: '" + op + "' (" + left + ", " + right + ")");
     }
@@ -66,7 +66,7 @@ public abstract class BinaryOperation extends Operation {
         POW,
 
         MODEL,
-        COLUMN,
+        COLON,
 
         GE, GT,
         LE, LT,

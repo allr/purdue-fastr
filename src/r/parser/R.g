@@ -96,7 +96,7 @@ statement returns [ASTNode v]
 	;
 
 n_	: (NEWLINE | COMMENT)*;
-n	: (NEWLINE | COMMENT)+ | EOF | SEMICOLUMN n_;
+n	: (NEWLINE | COMMENT)+ | EOF | SEMICOLON n_;
 
 expr_or_assign returns [ASTNode v]
 	: a=alter_assign { v = a; }
@@ -110,8 +110,8 @@ expr_wo_assign returns [ASTNode v]
 	| f=for_expr { $v = f; }
 	| r=repeat_expr { $v = r; }
 	| fun=function { $v = fun; }
-	| NEXT ((LPAR)=>LPAR n_ RPAR)? 
-	| BREAK ((LPAR)=>LPAR n_ RPAR)? 
+	| NEXT /* ((LPAR)=>LPAR n_ RPAR)? */ { v = Next.create(); } 
+	| BREAK /* ((LPAR)=>LPAR n_ RPAR)? */ { v = Break.create(); }
 	;
 sequence returns [ASTNode v]
     @init{ArrayList<ASTNode> stmts = new ArrayList<ASTNode>();}
@@ -198,12 +198,12 @@ mult_expr returns [ASTNode v]
 	(((mult_operator)=>op=mult_operator n_ r=operator_expr { $v = BinaryOperation.create(op, $mult_expr.v, $r.v);} ))*
 	;
 operator_expr returns [ASTNode v]
-	: l=column_expr { $v = $l.v ;}
-	(((OP)=>op=OP n_ r=column_expr { $v = null; } ))*  /* FIXME BinaryOperation.create(op, $operator_expr.v, $r.v); */ 
+	: l=colon_expr { $v = $l.v ;}
+	(((OP)=>op=OP n_ r=colon_expr { $v = null; } ))*  /* FIXME BinaryOperation.create(op, $operator_expr.v, $r.v); */ 
 	;
-column_expr returns [ASTNode v] // FIXME
+colon_expr returns [ASTNode v] // FIXME
 	: l=power_expr { $v = $l.v ;}
-	(((COLUMN)=>op=COLUMN n_ r=power_expr { $v = BinaryOperation.create(BinaryOperator.COLUMN, $column_expr.v, $r.v);} ))*
+	(((COLON)=>op=COLON n_ r=power_expr { $v = BinaryOperation.create(BinaryOperator.COLON, $colon_expr.v, $r.v);} ))*
 	;
 power_expr returns [ASTNode v]
 	: l=unary_expression {$v=$l.v;}
@@ -325,9 +325,9 @@ NS_GET_INT
 NS_GET
 	: '::';
 
-COLUMN
+COLON
 	: ':';
-SEMICOLUMN
+SEMICOLON
 	: ';';
 COMMA
 	: ',';

@@ -87,6 +87,16 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     @Override
+    public void visit(Next n) {
+        print("next");
+    }
+
+    @Override
+    public void visit(Break n) {
+        print("break");
+    }
+
+    @Override
     public void visit(Sequence n) {
         ASTNode[] exprs = n.getExprs();
         switch (exprs.length) {

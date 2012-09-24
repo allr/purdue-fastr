@@ -35,6 +35,20 @@ public class BasicVisitor implements Visitor {
         visit((Loop) n);
     }
 
+    public void visit(ControlStatement n) {
+        visit((ASTNode) n);
+    }
+
+    @Override
+    public void visit(Next n) {
+        visit((ControlStatement) n);
+    }
+
+    @Override
+    public void visit(Break n) {
+        visit((ControlStatement) n);
+    }
+
     public void visit(BinaryOperation op) {
         op.visit_all(this);
         visit((ASTNode) op); // FIXME: why? isn't this in op.visit_all already?
