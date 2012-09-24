@@ -1,5 +1,7 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.nodes.control.*;
+
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -93,7 +95,13 @@ public abstract class FunctionCall extends AbstractCall {
         RFrame calleeFrame = matchParams(context, func, tgt.environment(), callerFrame);
 
         RNode code = func.body();
-        Object res = code.execute(context, calleeFrame);
+        Object res;
+
+        try {
+            res = code.execute(context, calleeFrame);
+        } catch (ReturnException re) {
+            res = calleeFrame.getReturnValue();
+        }
         return res;
     }
 

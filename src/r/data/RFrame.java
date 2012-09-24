@@ -11,11 +11,12 @@ public final class RFrame extends Frame {
     public static final int PARENT_SLOT = 0;
     public static final int FUNCTION_SLOT = 1;
     public static final int EXTENSION_SLOT = 2;
+    public static final int RETURN_VALUE_SLOT = 3;
 
     /**
      * Number of reserved slots (i.e., last slot id + 1).
      */
-    public static final int RESERVED_SLOTS = EXTENSION_SLOT + 1;
+    public static final int RESERVED_SLOTS = RETURN_VALUE_SLOT + 1;
     public static final long DIRTY_MASK = 1 << (Long.SIZE - 1);
     public static final long HOPS_BITS = 16;
     public static final long POS_BITS = 16;
@@ -168,6 +169,14 @@ public final class RFrame extends Frame {
 
     public long localExtra(int pos) {
         return primitiveLocals[pos + RESERVED_SLOTS];
+    }
+
+    public void setReturnValue(Object value) {
+        locals[RETURN_VALUE_SLOT] = value;
+    }
+
+    public Object getReturnValue() {
+        return locals[RETURN_VALUE_SLOT];
     }
 
     public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public because of ReadVariable

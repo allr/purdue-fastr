@@ -16,6 +16,7 @@ public class Primitives {
         map = new HashMap<>();
         add(":", 2, 2, Colon.FACTORY);
         add("c", 0, -1, Combine.FACTORY);
+        add("return", 0, -1, Return.FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);

@@ -39,6 +39,9 @@ public class TestSimpleFunctions extends TestBase {
         assertEval("{ f<-function(z, x=if (z) 2 else 3) {x} ; f(FALSE) }", "3.0");
 
         assertEval("{f<-function(a,b,c=2,d) {c} ; g <- function() f(d=8,c=1,2,3) ; g() ; g() }", "1.0");
+
+        assertEval("{ f<-function() { return() } ; f() }", "NULL");
+        assertEval("{ f<-function() { return(2) ; 3 } ; f() }", "2.0");
     }
 
     @Rule
