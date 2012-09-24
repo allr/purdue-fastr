@@ -148,7 +148,7 @@ while_expr returns [ASTNode v]
 	: WHILE n_ LPAR n_ c=expr_or_assign n_ RPAR n_ body=expr_or_assign { $v = Loop.create(c, body); }
 	;
 for_expr returns [ASTNode v]
-	: FOR n_ LPAR n_ ID n_ IN n_ in=expr_or_assign n_ RPAR n_ body=expr_or_assign 
+	: FOR n_ LPAR n_ i=ID n_ IN n_ in=expr_or_assign n_ RPAR n_ body=expr_or_assign { $v = Loop.create($i.text, in, body); } 
 	;
 repeat_expr returns [ASTNode v]
 	: REPEAT n_ body=expr_or_assign {v = Loop.create(body); }

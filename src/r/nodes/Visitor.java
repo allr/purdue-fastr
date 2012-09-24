@@ -4,6 +4,7 @@ public interface Visitor {
     void visit(If iff);
     void visit(Repeat repeat);
     void visit(While wh1le);
+    void visit(For n);
     void visit(Sequence sequence);
 
     void visit(Break n);

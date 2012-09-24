@@ -35,6 +35,11 @@ public class BasicVisitor implements Visitor {
         visit((Loop) n);
     }
 
+    @Override
+    public void visit(For n) {
+        visit((Loop) n);
+    }
+
     public void visit(ControlStatement n) {
         visit((ASTNode) n);
     }

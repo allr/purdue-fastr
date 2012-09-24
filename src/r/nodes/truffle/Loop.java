@@ -108,5 +108,59 @@ public abstract class Loop extends BaseR {
         }
     }
 
+    public static class For extends Loop {
+
+        RNode range;
+        RSymbol cvar;
+
+        public For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+            super(ast, body);
+            this.range = updateParent(range);
+            this.cvar = cvar;
+        }
+
+        @Override
+        public RAny execute(RContext context, RFrame frame) {
+            try {
+                if (DEBUG_LO) Utils.debug("loop - entering for loop");
+                RAny rval = (RAny) range.execute(context, frame);
+                if (!(rval instanceof RArray)) {
+                    throw RError.getInvalidForSequence(ast);
+                }
+                RArray arange = (RArray) rval;
+                int size = arange.size();
+                if (frame == null) {
+                    if (DEBUG_LO) Utils.debug("loop - control variable is top-level");
+                    for (int i = 0; i < size; i++) {
+                        RAny vvalue = arange.boxedGet(i);
+                        RFrame.writeInTopLevel(cvar, vvalue);
+                        try {
+                            body.execute(context, frame);
+                        } catch (ContinueException ce) {
+                            if (DEBUG_LO) Utils.debug("loop - for loop received continue exception");
+                        }
+                    }
+                } else {
+                    int pos = frame.getPositionInWS(cvar);
+                    Utils.check(pos >= 0);
+                    if (DEBUG_LO) Utils.debug("loop - control variable is in local write set");
+                    for (int i = 0; i < size; i++) {
+                        RAny vvalue = arange.boxedGet(i);
+                        frame.writeAt(pos, vvalue);
+                        try {
+                            body.execute(context, frame);
+                        } catch (ContinueException ce) {
+                            if (DEBUG_LO) Utils.debug("loop - for loop received continue exception");
+                        }
+                    }
+                }
+
+            } catch (BreakException be) {
+                if (DEBUG_LO) Utils.debug("loop - for loop received break exception");
+            }
+            return RNull.getNull();
+        }
+    }
+
 
 }

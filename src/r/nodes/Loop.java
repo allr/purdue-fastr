@@ -1,5 +1,7 @@
 package r.nodes;
 
+import r.data.*;
+
 public abstract class Loop extends ASTNode {
     ASTNode body;
 
@@ -26,5 +28,9 @@ public abstract class Loop extends ASTNode {
 
     public static Repeat create(ASTNode expr) {
         return new Repeat(expr);
+    }
+
+    public static For create(String cvar, ASTNode range, ASTNode body) {
+        return new For(RSymbol.getSymbol(cvar), range, body);
     }
 }

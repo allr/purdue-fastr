@@ -226,5 +226,11 @@ public class Function extends ASTNode {
             read.add(functionCall.getName());
             functionCall.visit_all(this); // visit default value expressions if any
         }
+
+        @Override
+        public void visit(For n) {
+            written.add(n.getCVar());
+            n.visit_all(this);
+        }
     }
 }
