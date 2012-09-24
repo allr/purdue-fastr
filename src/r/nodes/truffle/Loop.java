@@ -5,6 +5,7 @@ import com.oracle.truffle.nodes.control.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -13,7 +14,7 @@ public abstract class Loop extends BaseR {
 
     RNode body;
 
-    private static final boolean DEBUG_LO = true;
+    private static final boolean DEBUG_LO = false;
 
     Loop(ASTNode ast, RNode body) {
         super(ast);
@@ -108,59 +109,192 @@ public abstract class Loop extends BaseR {
         }
     }
 
-    public static class For extends Loop {
+    public abstract static class For extends Loop {
 
         RNode range;
         RSymbol cvar;
 
-        public For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+        For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
             super(ast, body);
             this.range = updateParent(range);
             this.cvar = cvar;
         }
 
-        @Override
-        public RAny execute(RContext context, RFrame frame) {
-            try {
-                if (DEBUG_LO) Utils.debug("loop - entering for loop");
-                RAny rval = (RAny) range.execute(context, frame);
-                if (!(rval instanceof RArray)) {
-                    throw RError.getInvalidForSequence(ast);
-                }
-                RArray arange = (RArray) rval;
-                int size = arange.size();
+        // when a range is a sequence of integeres
+        public static class IntSequenceRange extends For {
+            public IntSequenceRange(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                super(ast, cvar, range, body);
+            }
+
+            @Override
+            public RAny execute(RContext context, RFrame frame) {
+                Specialized sn;
+                String dbg;
                 if (frame == null) {
-                    if (DEBUG_LO) Utils.debug("loop - control variable is top-level");
-                    for (int i = 0; i < size; i++) {
-                        RAny vvalue = arange.boxedGet(i);
-                        RFrame.writeInTopLevel(cvar, vvalue);
-                        try {
-                            body.execute(context, frame);
-                        } catch (ContinueException ce) {
-                            if (DEBUG_LO) Utils.debug("loop - for loop received continue exception");
-                        }
-                    }
+                    sn = createToplevel(ast, cvar, range, body);
+                    dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
                 } else {
-                    int pos = frame.getPositionInWS(cvar);
-                    Utils.check(pos >= 0);
-                    if (DEBUG_LO) Utils.debug("loop - control variable is in local write set");
-                    for (int i = 0; i < size; i++) {
-                        RAny vvalue = arange.boxedGet(i);
-                        frame.writeAt(pos, vvalue);
-                        try {
-                            body.execute(context, frame);
-                        } catch (ContinueException ce) {
-                            if (DEBUG_LO) Utils.debug("loop - for loop received continue exception");
-                        }
-                    }
+                    sn = create(ast, cvar, range, body);
+                    dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
+                }
+                replace(sn, dbg);
+                return sn.execute(context, frame);
+            }
+
+            public abstract static class Specialized extends IntSequenceRange {
+                public Specialized(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                    super(ast, cvar, range, body);
                 }
 
-            } catch (BreakException be) {
-                if (DEBUG_LO) Utils.debug("loop - for loop received break exception");
+                @Override
+                public RAny execute(RContext context, RFrame frame) {
+                    RAny rval = (RAny) range.execute(context, frame);
+                    try {
+                        if (!(rval instanceof IntImpl.RIntSequence)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
+                        int size = sval.size();
+                        try {
+                            return execute(context, frame, sval, size);
+                        } catch (BreakException be) { }
+                    } catch (UnexpectedResultException e) {
+                        Generic gn;
+                        if (frame == null) {
+                            gn = Generic.createToplevel(ast, cvar, range, body);
+                        } else {
+                            gn = Generic.create(ast, cvar, range, body);
+                        }
+                        replace(gn, "install Generic from IntSequenceRange");
+                        return gn.execute(context, frame, rval);
+                    }
+                    return RNull.getNull();
+                }
+
+                public abstract RAny execute(RContext context, RFrame frame, IntImpl.RIntSequence sval, int size);
             }
-            return RNull.getNull();
+
+            public static Specialized createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Specialized(ast, cvar, range, body) {
+                    @Override
+                    public RAny execute(RContext context, RFrame frame, IntImpl.RIntSequence sval, int size) {
+                        final int from = sval.from();
+                        final int to = sval.to();
+                        final int step = sval.step();
+                        try {
+                            for (int i = from;; i += step) {
+                                RFrame.writeInTopLevel(cvar, RInt.RIntFactory.getScalar(i));
+                                try {
+                                    body.execute(context, frame);
+                                } catch (ContinueException ce) { }
+                                if (i == to) {
+                                    break;
+                                }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
+
+            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Specialized(ast, cvar, range, body) {
+                    @Override
+                    public RAny execute(RContext context, RFrame frame, IntImpl.RIntSequence sval, int size) {
+                        final int from = sval.from();
+                        final int to = sval.to();
+                        final int step = sval.step();
+                        final int pos = frame.getPositionInWS(cvar);
+                        try {
+                            for (int i = from;; i += step) {
+                                frame.writeAt(pos, RInt.RIntFactory.getScalar(i));
+                                try {
+                                    body.execute(context, frame);
+                                } catch (ContinueException ce) { }
+                                if (i == to) {
+                                    break;
+                                }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
+        }
+
+        // works for any type of loop range
+        public static class Generic extends For {
+
+            public Generic(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                super(ast, cvar, range, body);
+            }
+
+            @Override
+            public RAny execute(RContext context, RFrame frame) {
+                RAny rval = (RAny) range.execute(context, frame);
+                return execute(context, frame, rval);
+            }
+
+            public RAny execute(RContext context, RFrame frame, RAny rval) {
+                Generic gn;
+                String dbg;
+                if (frame == null) {
+                    gn = createToplevel(ast, cvar, range, body);
+                    dbg = "install Generic.TopLevel from Generic (uninitialized)";
+                } else {
+                    gn = create(ast, cvar, range, body);
+                    dbg = "install Generic from Generic (uninitialized)";
+                }
+                replace(gn, dbg);
+                return gn.execute(context, frame, rval);
+            }
+
+            public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Generic(ast, cvar, range, body) {
+                    @Override
+                    public RAny execute(RContext context, RFrame frame, RAny rval) {
+                        if (!(rval instanceof RArray)) {
+                            throw RError.getInvalidForSequence(ast);
+                        }
+                        RArray arange = (RArray) rval;
+                        int size = arange.size();
+                        try {
+                            for (int i = 0; i < size; i++) {
+                                RAny vvalue = arange.boxedGet(i);
+                                RFrame.writeInTopLevel(cvar, vvalue);
+                                try {
+                                    body.execute(context, frame);
+                                } catch (ContinueException ce) { }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
+
+            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Generic(ast, cvar, range, body) {
+                    @Override
+                    public RAny execute(RContext context, RFrame frame, RAny rval) {
+                        if (!(rval instanceof RArray)) {
+                            throw RError.getInvalidForSequence(ast);
+                        }
+                        RArray arange = (RArray) rval;
+                        int size = arange.size();
+                        try {
+                            int pos = frame.getPositionInWS(cvar);
+                            for (int i = 0; i < size; i++) {
+                                RAny vvalue = arange.boxedGet(i);
+                                frame.writeAt(pos, vvalue);
+                                try {
+                                    body.execute(context, frame);
+                                } catch (ContinueException ce) { }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
         }
     }
-
-
 }

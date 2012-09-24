@@ -76,7 +76,7 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(For n) {
-        result = new r.nodes.truffle.Loop.For(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
+        result = new r.nodes.truffle.Loop.For.IntSequenceRange(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
     }
 
     @Override
