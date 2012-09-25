@@ -10,6 +10,8 @@ public interface RDouble extends RNumber {
 
     RDouble EMPTY = RDoubleFactory.getUninitializedArray(0);
     RDouble BOXED_NA = RDoubleFactory.getArray(NA);
+    RDouble BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
+    double NEG_INF = Double.NEGATIVE_INFINITY;
 
     RArray set(int i, double val);
     double getDouble(int i);

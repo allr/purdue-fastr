@@ -28,4 +28,11 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ double(3) }", "0.0, 0.0, 0.0");
         assertEval("{ logical(3L) }", "FALSE, FALSE, FALSE");
     }
+
+    @Test
+    public void testMaximum() throws RecognitionException {
+        assertEval("{ max((-1):100) }", "100L");
+        assertEval("{ max(1:10, 100:200, c(4.0, 5.0)) }", "200.0");
+        assertEval("{ max(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
+    }
 }

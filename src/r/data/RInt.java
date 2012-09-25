@@ -10,6 +10,7 @@ public interface RInt extends RNumber {
     String TYPE_STRING = "integer";
 
     RInt BOXED_NA = RIntFactory.getArray(NA);
+    RInt BOXED_ONE = RIntFactory.getScalar(1);
     RInt EMPTY = RIntFactory.getUninitializedArray(0);
 
     int getInt(int i);
