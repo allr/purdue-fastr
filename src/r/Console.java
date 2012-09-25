@@ -30,9 +30,12 @@ public class Console {
 
     public static void main(String[] args) {
         boolean errorStmt = false;
+        long before = System.nanoTime();
+        boolean interactive = true;
         try {
             if (args.length > 0) {
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
+                interactive = false;
             }
 
             context = new RContext();
@@ -41,7 +44,9 @@ public class Console {
             parser = new RParser(null);
 
             do {
-                out.print(incomplete.length() == 0 ? prompt : promptMore);
+                if (interactive) {
+                    out.print(incomplete.length() == 0 ? prompt : promptMore);
+                }
                 out.flush();
                 errorStmt = !parse_statement();
                 if (!errorStmt) {
@@ -58,6 +63,9 @@ public class Console {
             } while (true);
         } catch (IOException e) {
         }
+        long after = System.nanoTime();
+        long elapsed = after - before;
+        System.out.println("\nElapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
     static boolean parse_statement() throws IOException {

@@ -35,4 +35,9 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0)) }", "200.0");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
     }
+
+    @Test
+    public void testOther() throws RecognitionException {
+        assertEval("{ rev <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev(1:3) }", "3L, 2L, 1L");
+    }
 }

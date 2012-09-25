@@ -56,7 +56,7 @@ package r.parser;
 }
 
 @lexer::members{
-    public final int MAX_INCOMPLETE_SIZE = 100;
+    public final int MAX_INCOMPLETE_SIZE = 1000;
     int incomplete_stack[] = new int[MAX_INCOMPLETE_SIZE]; // TODO probably go for an ArrayList of int :S
     int incomplete_depth;
     

@@ -1,4 +1,4 @@
-// $ANTLR !Unknown version! R.g 2012-09-24 15:10:11
+// $ANTLR !Unknown version! R.g 2012-09-25 12:21:33
 
 package r.parser;
 //Checkstyle: stop
@@ -92,7 +92,7 @@ public class RLexer extends Lexer {
     public static final int LE=66;
     public static final int STRING=55;
 
-        public final int MAX_INCOMPLETE_SIZE = 100;
+        public final int MAX_INCOMPLETE_SIZE = 1000;
         int incomplete_stack[] = new int[MAX_INCOMPLETE_SIZE]; // TODO probably go for an ArrayList of int :S
         int incomplete_depth;
         

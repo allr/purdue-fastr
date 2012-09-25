@@ -26,13 +26,11 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     public void print(ASTNode n) {
-        level = 0;
         n.accept(this);
         flush();
     }
 
     public void println(ASTNode n) {
-        level = 0;
         n.accept(this);
         println("");
     }
@@ -61,15 +59,17 @@ public class PrettyPrinter extends BasicVisitor {
         level--;
     }
 
+    private void indent() {
+        for (int i = 0; i < level; i++) {
+            out.append('\t');
+        }
+    }
     private void print(String arg) {
         buff.append(arg);
     }
 
     private void println(String arg) {
-        for (int i = 0; i < level; i++) {
-            out.append('\t');
-        }
-        buff.append(arg);
+        print(arg);
         buff.append('\n');
         flush();
     }
@@ -113,10 +113,12 @@ public class PrettyPrinter extends BasicVisitor {
                 println("{");
                 inc();
                 for (ASTNode e : exprs) {
+                    indent();
                     e.accept(this);
                     println("");
                 }
                 dec();
+                indent();
                 print("}");
         }
     }
@@ -195,6 +197,17 @@ public class PrettyPrinter extends BasicVisitor {
         print(") ");
         n.getBody().accept(this);
     }
+
+    @Override
+    public void visit(For n) {
+        print("for(");
+        print(n.getCVar().pretty());
+        print(" in ");
+        n.getRange().accept(this);
+        print(") ");
+        n.getBody().accept(this);
+    }
+
 
     @Override
     public void visit(SimpleAssignVariable n) {
