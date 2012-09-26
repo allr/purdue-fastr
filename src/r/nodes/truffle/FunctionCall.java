@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.control.*;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.builtins.*;
@@ -88,17 +89,18 @@ public abstract class FunctionCall extends AbstractCall {
     };
 
     @Override
-    public Object execute(RContext context, RFrame callerFrame) {
-        RClosure tgt = (RClosure) closureExpr.execute(context, callerFrame);
+    public Object executeHelper(Context context, RFrame callerFrame) {
+        RContext rcontext = (RContext) context;
+        RClosure tgt = (RClosure) closureExpr.execute(rcontext, callerFrame);
         RFunction func = tgt.function();
 
-        RFrame calleeFrame = matchParams(context, func, tgt.environment(), callerFrame);
+        RFrame calleeFrame = matchParams(rcontext, func, tgt.environment(), callerFrame);
 
         RNode code = func.body();
         Object res;
 
         try {
-            res = code.execute(context, calleeFrame);
+            res = code.execute(rcontext, calleeFrame);
         } catch (ReturnException re) {
             res = calleeFrame.getReturnValue();
         }

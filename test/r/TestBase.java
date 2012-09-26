@@ -3,6 +3,8 @@ package r;
 import org.antlr.runtime.*;
 import org.junit.*;
 
+import com.oracle.truffle.compiler.*;
+
 import r.data.*;
 import r.nodes.*;
 import r.nodes.tools.*;
@@ -10,7 +12,7 @@ import r.nodes.tools.*;
 public class TestBase {
 
     static Truffleize truffleize = new Truffleize();
-    static RContext global = new RContext();
+    static RContext global = new RContext(1);
 
     static String evalString(String input) throws RecognitionException {
         return eval(input).pretty();

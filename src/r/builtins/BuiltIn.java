@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.*;
+
 import r.*;
 import r.data.*;
 import r.nodes.*;
@@ -18,8 +20,8 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
-            return doBuiltIn(context, frame);
+        public Object executeHelper(Context context, RFrame frame) {
+            return doBuiltIn((RContext) context, frame);
         }
 
         public abstract RAny doBuiltIn(RContext context, RFrame frame);
@@ -38,8 +40,9 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
-            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame));
+        public Object executeHelper(Context context, RFrame frame) {
+            RContext rcontext = (RContext) context;
+            return doBuiltIn(rcontext, frame, (RAny) argExprs[0].execute(rcontext, frame));
         }
 
         public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg);
@@ -58,8 +61,9 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
-            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame), (RAny) argExprs[1].execute(context, frame));
+        public Object executeHelper(Context context, RFrame frame) {
+            RContext rcontext = (RContext) context;
+            return doBuiltIn(rcontext, frame, (RAny) argExprs[0].execute(rcontext, frame), (RAny) argExprs[1].execute(rcontext, frame));
         }
 
         public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1);
@@ -71,8 +75,9 @@ public abstract class BuiltIn extends AbstractCall {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
-        return doBuiltIn(context, frame, evalArgs(context, frame));
+    public Object executeHelper(Context context, RFrame frame) {
+        RContext rcontext = (RContext) context;
+        return doBuiltIn(rcontext, frame, evalArgs(rcontext, frame));
     }
 
     public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny[] params);

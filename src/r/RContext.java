@@ -14,12 +14,30 @@ public class RContext implements Context {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
-    ManageError errorManager;
+    private final TruffleCompiler compiler;
 
+    ManageError errorManager;
     Truffleize truffleize;
 
-    RContext() {
+    RContext(int compilerThreshold) {
         init();
+        TruffleCompiler cmp;
+        try {
+            cmp = new TruffleCompilerImpl(compilerThreshold);
+        } catch (UnsatisfiedLinkError le) {
+            System.out.println("Not using the Truffle compiler as it is not available.");
+            cmp = null;
+        }
+        this.compiler = cmp;
+    }
+
+    RContext(TruffleCompiler compiler) {
+        init();
+        this.compiler = compiler;
+    }
+
+    RContext() {
+        this(null);
     }
 
     public RAny eval(ASTNode expr) {
@@ -81,7 +99,7 @@ public class RContext implements Context {
 
     @Override
     public TruffleCompiler getCompiler() {
-        return null;
+        return compiler;
     }
 
     @Override

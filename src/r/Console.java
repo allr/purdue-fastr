@@ -4,6 +4,8 @@ import java.io.*;
 
 import org.antlr.runtime.*;
 
+import com.oracle.truffle.compiler.*;
+
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
@@ -38,7 +40,7 @@ public class Console {
                 interactive = false;
             }
 
-            context = new RContext();
+            context = new RContext(1);
             out = System.out;
             lexer = new RLexer();
             parser = new RParser(null);
