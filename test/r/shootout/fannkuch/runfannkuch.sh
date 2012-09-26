@@ -2,10 +2,9 @@
 
 # Runs Fannkuch (on Linux) - please customize sizes below and check r.sh and rg.sh scripts work
 
-#SIZES="8 9 10 11 12 13 14 15"
-SIZES="11"
-FASTR=../../../r.sh 
-GFASTR=../../../rg.sh 
+SIZES="8 9 10 11 12"
+FASTR=../../../../r.sh 
+GFASTR=../../../../rg.sh 
 
 # --------------
 
@@ -22,6 +21,7 @@ function run {
   OF=${NAME}.out
   rm -f $TF
   rm -f $OF
+  date
   for N in `seq 1 $ITER` ; do
     /usr/bin/time -a -o $TF -p $* <$INPUT
   done > $OF 
