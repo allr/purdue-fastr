@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -16,7 +18,7 @@ public class Combine {
         return offset + len;
     }
 
-    public static RAny combine(RContext context, RFrame frame, RAny[] params) {
+    public static RAny combine(RContext context, Frame frame, RAny[] params) {
         int len = 0;
         boolean hasDouble = false;
         boolean hasLogical = false;
@@ -64,7 +66,7 @@ public class Combine {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, RFrame frame) {
+                    public RAny doBuiltIn(RContext context, Frame frame) {
                         return RNull.getNull();
                     }
 
@@ -73,7 +75,7 @@ public class Combine {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     return combine(context, frame, params);
                 }
             };

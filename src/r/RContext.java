@@ -69,7 +69,7 @@ public class RContext implements Context {
         return truffleize.createTree(expr);
     }
 
-    public RFrame topLevel() {
+    public Frame topLevel() {
         return null;
     }
 

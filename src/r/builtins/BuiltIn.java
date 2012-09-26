@@ -20,14 +20,14 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object executeHelper(Context context, RFrame frame) {
+        public Object executeHelper(Context context, Frame frame) {
             return doBuiltIn((RContext) context, frame);
         }
 
-        public abstract RAny doBuiltIn(RContext context, RFrame frame);
+        public abstract RAny doBuiltIn(RContext context, Frame frame);
 
         @Override
-        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
             // TODO or not runtime test, since it's not the entry point
             return doBuiltIn(context, frame);
         }
@@ -40,15 +40,15 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object executeHelper(Context context, RFrame frame) {
+        public Object executeHelper(Context context, Frame frame) {
             RContext rcontext = (RContext) context;
             return doBuiltIn(rcontext, frame, (RAny) argExprs[0].execute(rcontext, frame));
         }
 
-        public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg);
+        public abstract RAny doBuiltIn(RContext context, Frame frame, RAny arg);
 
         @Override
-        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
             // TODO or not runtime test, since it's not the entry point
             return doBuiltIn(context, frame, params[0]);
         }
@@ -61,28 +61,28 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object executeHelper(Context context, RFrame frame) {
+        public Object executeHelper(Context context, Frame frame) {
             RContext rcontext = (RContext) context;
             return doBuiltIn(rcontext, frame, (RAny) argExprs[0].execute(rcontext, frame), (RAny) argExprs[1].execute(rcontext, frame));
         }
 
-        public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1);
+        public abstract RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1);
 
         @Override
-        public final RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
             return doBuiltIn(context, frame, params[0], params[1]);
         }
     }
 
     @Override
-    public Object executeHelper(Context context, RFrame frame) {
+    public Object executeHelper(Context context, Frame frame) {
         RContext rcontext = (RContext) context;
         return doBuiltIn(rcontext, frame, evalArgs(rcontext, frame));
     }
 
-    public abstract RAny doBuiltIn(RContext context, RFrame frame, RAny[] params);
+    public abstract RAny doBuiltIn(RContext context, Frame frame, RAny[] params);
 
-    private RAny[] evalArgs(RContext context, RFrame frame) {
+    private RAny[] evalArgs(RContext context, Frame frame) {
         int len = argExprs.length;
         RAny[] args = new RAny[len];
         for (int i = 0; i < len; i++) {

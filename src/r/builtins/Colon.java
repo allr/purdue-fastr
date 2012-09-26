@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.*;
+
 import r.*;
 import r.builtins.BuiltIn.BuiltIn2;
 import r.data.*;
@@ -85,7 +87,7 @@ public class Colon {
             return new BuiltIn2(call, names, exprs) {
                 @SuppressWarnings("cast")
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny arg0, RAny arg1) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
 
                     if (arg0 instanceof RInt) {
                         RInt a0rint = (RInt) arg0;

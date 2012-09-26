@@ -1,14 +1,16 @@
 package r.data.internal;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 
-    RFrame environment;
+    Frame environment;
     RFunction function;
 
-    public ClosureImpl(RFunction function, RFrame environment) {
+    public ClosureImpl(RFunction function, Frame environment) {
         this.function = function;
         this.environment = environment;
     }
@@ -42,7 +44,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
-    public RFrame environment() {
+    public Frame environment() {
         return environment;
     }
 

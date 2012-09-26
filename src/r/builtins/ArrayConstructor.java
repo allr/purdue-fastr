@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 import r.errors.*;
@@ -49,7 +51,7 @@ public class ArrayConstructor {
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] args) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RDouble.EMPTY;
                     }
@@ -65,7 +67,7 @@ public class ArrayConstructor {
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] args) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RInt.EMPTY;
                     }
@@ -81,7 +83,7 @@ public class ArrayConstructor {
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] args) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RLogical.EMPTY;
                     }

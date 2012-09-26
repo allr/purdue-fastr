@@ -1,5 +1,7 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 import r.data.RFunction.ReadSetEntry;
@@ -19,7 +21,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 ReadVariable node;
                 int pos;
                 ReadSetEntry rse;
@@ -28,10 +30,10 @@ public abstract class ReadVariable extends BaseR {
                 if (frame == null) {
                     node = getReadOnlyFromTopLevel(getAST(), symbol);
                     reason = "installReadOnlyFromTopLevelNode";
-                } else if ((pos = frame.getPositionInWS(symbol)) >= 0) {
+                } else if ((pos = RFrame.getPositionInWS(frame,symbol)) >= 0) {
                     node = getReadLocal(getAST(), symbol, pos);
                     reason = "installReadLocalNode";
-                } else if ((rse = frame.getRSEntry(symbol)) == null) {
+                } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
                     node = getReadTopLevel(getAST(), symbol); // TODO this should be removed or at least asserted false !
                     reason = "installReadTopLevel when read set is empty (!!! REMOVE when read set is implemented)";
                 } else {
@@ -48,8 +50,8 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
-                RAny val = frame.readViaWriteSet(position, symbol);
+            public Object execute(RContext context, Frame frame) {
+                RAny val = RFrame.readViaWriteSet(frame, position, symbol);
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
@@ -62,8 +64,8 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
-                RAny val = frame.readViaReadSet(hops, position, symbol);
+            public Object execute(RContext context, Frame frame) {
+                RAny val = RFrame.readViaReadSet(frame, hops, position, symbol);
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
@@ -78,11 +80,11 @@ public abstract class ReadVariable extends BaseR {
             int version;
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 RAny val; // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
-                    val = frame.readFromExtension(symbol, null);
+                    val = RFrame.readFromExtension(frame, symbol, null);
                     if (val == null) {
                         version = symbol.getVersion();
                         // oldFrame = frame;
@@ -103,7 +105,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null) {

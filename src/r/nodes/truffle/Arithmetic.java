@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -33,7 +34,7 @@ public class Arithmetic extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
         // version for scalars
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
@@ -111,13 +112,13 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, frame, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
             if (DEBUG_AR) Utils.debug("arithmetic - generic case");
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();

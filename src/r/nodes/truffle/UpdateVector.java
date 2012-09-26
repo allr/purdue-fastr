@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -55,14 +56,14 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
             return execute(context, frame, base, index, value);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
@@ -353,7 +354,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -418,7 +419,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
@@ -461,7 +462,7 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericScalarSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -527,14 +528,14 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
             return execute(context, frame, base, index, value);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
@@ -821,7 +822,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -866,14 +867,14 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
             return execute(context, frame, base, index, value);
         }
 
-        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, RFrame frame, ASTNode ast, boolean subset) {
+        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, Frame frame, ASTNode ast, boolean subset) {
             RArray typedBase;
             RArray typedValue;
             if (base instanceof RDouble || value instanceof RDouble) {
@@ -973,7 +974,7 @@ public abstract class UpdateVector extends BaseR {
                 return res;
             }
         }
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1014,14 +1015,14 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
             return execute(context, frame, base, index, value);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing LogicalSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
@@ -1297,7 +1298,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing LogicalSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -1343,14 +1344,14 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
             return execute(context, frame, base, index, value);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericSelection");
             try {
                 if (!(base instanceof RArray)) {

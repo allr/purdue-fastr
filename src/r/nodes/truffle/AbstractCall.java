@@ -8,7 +8,7 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-public abstract class AbstractCall extends BaseR implements Compilable<RFrame> {
+public abstract class AbstractCall extends BaseR implements Compilable<Frame> {
 
     protected final RSymbol[] argNames;
     protected final RNode[] argExprs;
@@ -21,7 +21,7 @@ public abstract class AbstractCall extends BaseR implements Compilable<RFrame> {
         this.compileThreshold = 1;  // FIXME: do something smarter here
     }
 
-    @Stable private CompiledObject<RFrame> compiledObject;
+    @Stable private CompiledObject<Frame> compiledObject;
     private final int compileThreshold;
     private int counter;
 
@@ -30,12 +30,12 @@ public abstract class AbstractCall extends BaseR implements Compilable<RFrame> {
     }
 
     @Override
-    public final Object execute(RContext context, RFrame frame) { // FIXME: would've been much easier if Compilable supported RContext
+    public final Object execute(RContext context, Frame frame) { // FIXME: would've been much easier if Compilable supported RContext
         return execute((Context) context, frame);
     }
 
     @Override
-    public final Object execute(Context context, RFrame frame) {
+    public final Object execute(Context context, Frame frame) {
         if (context.getCompiler() == null) { // FIXME: handle this through node-rewriting
             return executeHelper(context, frame);
         }
@@ -50,13 +50,13 @@ public abstract class AbstractCall extends BaseR implements Compilable<RFrame> {
                 if (count() < compileThreshold) {
                     return executeHelper(context, frame);
                 } else {
-                    compiledObject = context.getCompiler().compile(this, new String("executeHelper"), new Class[] {Context.class, RFrame.class});
+                    compiledObject = context.getCompiler().compile(this, new String("executeHelper"), new Class[] {Context.class, Frame.class});
                 }
             }
         }
     }
 
     @Override
-    public abstract Object executeHelper(Context context, RFrame frame);
+    public abstract Object executeHelper(Context context, Frame frame);
 
 }

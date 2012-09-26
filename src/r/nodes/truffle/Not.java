@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -17,12 +18,12 @@ public abstract class Not extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
         RAny value = (RAny) lhs.execute(context, frame);
         return execute(context, frame, value);
     }
 
-    abstract RLogical execute(RContext context, RFrame frame, RAny value);
+    abstract RLogical execute(RContext context, Frame frame, RAny value);
 
     // when the argument is a logical scalar
     public static class LogicalScalar extends Not {
@@ -31,7 +32,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RLogical execute(RContext context, RFrame frame, RAny value) {
+        RLogical execute(RContext context, Frame frame, RAny value) {
             try {
                 if (!(value instanceof RLogical)) {
                     throw new UnexpectedResultException(null);
@@ -60,7 +61,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RLogical execute(RContext context, RFrame frame, RAny value) {
+        RLogical execute(RContext context, Frame frame, RAny value) {
             final RLogical lvalue = value.asLogical();
             final int vsize = lvalue.size();
             if (vsize == 0) {

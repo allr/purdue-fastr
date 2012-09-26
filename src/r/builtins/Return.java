@@ -1,6 +1,7 @@
 package r.builtins;
 
-import com.oracle.truffle.nodes.control.*;
+import com.oracle.truffle.nodes.control.ReturnException;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -17,8 +18,8 @@ public class Return {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, RFrame frame) {
-                        frame.setReturnValue(RNull.getNull());
+                    public RAny doBuiltIn(RContext context, Frame frame) {
+                        RFrame.setReturnValue(frame, RNull.getNull());
                         throw ReturnException.instance;
                     }
 
@@ -27,9 +28,9 @@ public class Return {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     RAny toReturn = Combine.combine(context, frame, params);
-                    frame.setReturnValue(toReturn);
+                    RFrame.setReturnValue(frame, toReturn);
                     throw ReturnException.instance;
                 }
             };

@@ -1,7 +1,8 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
-import r.data.*;
 import r.nodes.*;
 
 
@@ -16,7 +17,7 @@ public class Sequence extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
 
         Object res = null;
         for (RNode e : exprs) {

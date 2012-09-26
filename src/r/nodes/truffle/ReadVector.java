@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -60,13 +61,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny vector = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, vector);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny vector) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarIntSelection");
             try {
                 if (!(vector instanceof RArray)) {
@@ -134,13 +135,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny vector = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, vector);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny vector) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarDoubleSelection");
             try {
                 if (!(vector instanceof RArray)) {
@@ -194,14 +195,14 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny vector = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, vector);
         }
 
         // index must be a scalar
-        public static RAny executeScalar(RContext context, RFrame frame, RArray vector, RArray index, boolean subset, ASTNode ast) {
+        public static RAny executeScalar(RContext context, Frame frame, RArray vector, RArray index, boolean subset, ASTNode ast) {
             int i = 0;
             int size = vector.size();
             if (index instanceof RDouble) {
@@ -310,7 +311,7 @@ public abstract class ReadVector extends BaseR {
             return null;
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny vector) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericScalarSelection");
             try {
                 if (!(vector instanceof RArray)) {
@@ -354,13 +355,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, base);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny base) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleIntSequenceSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -529,13 +530,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, base);
         }
 
-        public static RAny executeIntVector(RContext context, RFrame frame, RInt index, RArray base, ASTNode ast) {
+        public static RAny executeIntVector(RContext context, Frame frame, RInt index, RArray base, ASTNode ast) {
             int nzeros = 0;
             boolean hasNegative = false;
             boolean hasPositive = false;
@@ -617,7 +618,7 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny base) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing IntSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -654,13 +655,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, base);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny base) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleLogicalSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -722,13 +723,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, base);
         }
 
-        public static RAny executeLogicalVector(RContext context, RFrame frame, RLogical index, RArray base, ASTNode ast) {
+        public static RAny executeLogicalVector(RContext context, Frame frame, RLogical index, RArray base, ASTNode ast) {
             int isize = index.size();
             int bsize = base.size();
 
@@ -790,7 +791,7 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny base) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleLogicalSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -819,13 +820,13 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny vector = (RAny) lhs.execute(context, frame);
             return execute(context, frame, index, vector);
         }
 
-        public RAny execute(RContext context, RFrame frame, RAny index, RAny base) {
+        public RAny execute(RContext context, Frame frame, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericSelection");
             if (!(base instanceof RArray)) {
                 Utils.nyi("unsupported base");

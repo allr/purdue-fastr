@@ -6,7 +6,7 @@ import r.data.internal.*;
 
 import com.oracle.truffle.runtime.*;
 
-public final class RFrame extends Frame {
+public final class RFrame  {
 
     public static final int PARENT_SLOT = 0;
     public static final int FUNCTION_SLOT = 1;
@@ -23,28 +23,29 @@ public final class RFrame extends Frame {
     public static final long HOPS_MASK = ((1 << HOPS_BITS) - 1) << POS_BITS;
 
     // parent is the enclosing environment, not previous frame on call stack
-    public RFrame(RFrame parent, RFunction function) {
+    public static Frame create(Frame parent, RFunction function) {
         /*
          * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
          * used for primitives but for dirty check + linking
          */
-        super(function.nlocals() + RESERVED_SLOTS, parent);
-        locals[FUNCTION_SLOT] = function;
+        Frame f = new Frame(function.nlocals() + RESERVED_SLOTS, parent);
+        f.setObject(FUNCTION_SLOT, function);
+        return f;
     }
 
-    public RAny read(RSymbol sym) {
-        int pos = getPositionInWS(sym);
+    public static RAny read(Frame f, RSymbol sym) {
+        int pos = getPositionInWS(f, sym);
         RFunction.ReadSetEntry rse;
         RAny val;
         if (pos >= 0) {
-            return readViaWriteSet(pos, sym);
-        } else if ((rse = getRSEntry(sym)) != null) {
-            val = getParent().readViaReadSet(rse.frameHops - 1, rse.framePos, sym, this);
+            return readViaWriteSet(f, pos, sym);
+        } else if ((rse = getRSEntry(f, sym)) != null) {
+            val = readViaReadSet(getParent(f), rse.frameHops - 1, rse.framePos, sym, f);
             if (val == null) {
                 val = readFromTopLevel(sym);
             }
         } else {
-            val = readFromExtension(sym, null);
+            val = readFromExtension(f, sym, null);
             if (val == null) {
                 val = readFromTopLevel(sym);
             }
@@ -52,37 +53,37 @@ public final class RFrame extends Frame {
         return val;
     }
 
-    public void write(RSymbol sym, RAny value) {
-        int pos = getPositionInWS(sym);
+    public static void write(Frame f, RSymbol sym, RAny value) {
+        int pos = getPositionInWS(f, sym);
         if (pos >= 0) {
-            writeAt(pos, value);
+            writeAt(f, pos, value);
         } else {
-            writeInExtension(sym, value);
+            writeInExtension(f, sym, value);
         }
     }
 
-    public RAny readViaReadSet(int hops, int pos, RSymbol symbol) {
+    public static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0); // It was present in the writeSet
-        RAny val = getParent().readViaReadSet(hops - 1, pos, symbol, this);
+        RAny val = readViaReadSet(getParent(f), hops - 1, pos, symbol, f);
         if (val == null) {
             val = readFromTopLevel(symbol);
         }
         return val;
     }
 
-    public RAny readViaWriteSet(int pos, RSymbol symbol) {
+    public static RAny readViaWriteSet(Frame f, int pos, RSymbol symbol) {
         Object val;
 
-        val = locals[pos + RESERVED_SLOTS];
+        val = f.getObject(pos + RESERVED_SLOTS);
         if (val != null) {
             return Utils.cast(val);
         }
-        ReadSetEntry rse = getRSEFromCache(pos, symbol);
+        ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
         if (rse == null) {
             val = readFromTopLevel(symbol);
         } else {
-            RFrame f = getParent();
-            val = f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
+            Frame pf = getParent(f);
+            val = readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
             if (val == null) {
                 val = readFromTopLevel(symbol);
             }
@@ -90,9 +91,9 @@ public final class RFrame extends Frame {
         return Utils.cast(val);
     }
 
-    public RAny readFromTopLevel(RSymbol sym, int version) {
+    public static RAny readFromTopLevel(Frame f, RSymbol sym, int version) {
         if (sym.getVersion() != version) {
-            RAny val = readFromExtension(sym, null);
+            RAny val = readFromExtension(f, sym, null);
             if (val != null) {
                 return val;
             }
@@ -100,22 +101,22 @@ public final class RFrame extends Frame {
         return sym.getValue();
     }
 
-    public void writeAt(int pos, RAny value) {
+    public static void writeAt(Frame f, int pos, RAny value) {
         // Put an assertion or not ?
-        locals[pos + RESERVED_SLOTS] = value;
+        f.setObject(pos + RESERVED_SLOTS, value);
     }
 
-    public void writeInExtension(RSymbol sym, RAny value) {
-        RFrameExtension ext = getExtension();
+    public static void writeInExtension(Frame f, RSymbol sym, RAny value) {
+        RFrameExtension ext = getExtension(f);
         if (ext == null) {
-            ext = installExtension();
-            ext.put(this, sym, value); // The extension is brand new, we can use the first slot safely
+            ext = installExtension(f);
+            ext.put(f, sym, value); // The extension is brand new, we can use the first slot safely
         } else {
             int pos = ext.getPosition(sym);
             if (pos >= 0) {
                 ext.writeAt(pos, value);
             } else {
-                ext.put(this, sym, value);
+                ext.put(f, sym, value);
             }
         }
     }
@@ -128,34 +129,35 @@ public final class RFrame extends Frame {
         return sym.value;
     }
 
-    private RAny readViaReadSet(int hops, int pos, RSymbol symbol, RFrame first) {
+    private static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
         if (hops == 0) {
             Object val;
-            if (isDirty(pos)) {
-                val = first.readFromExtension(symbol, this);
+            if (isDirty(f, pos)) {
+                val = readFromExtension(first, symbol, f);
                 if (val != null) {
                     return Utils.cast(val);
                 }
             }
-            val = locals[pos + RESERVED_SLOTS];
+            val = f.getObject(pos + RESERVED_SLOTS);
             if (val != null) {
                 return Utils.cast(val);
             }
-            ReadSetEntry rse = getRSEFromCache(pos, symbol);
-            RFrame f = getParent();
+            ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
+            Frame pf = getParent(f);
 
-            return f.readViaReadSet(rse.frameHops - 1, rse.framePos, symbol, f);
+            return readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         } else {
-            return getParent().readViaReadSet(hops - 1, pos, symbol, first);
+            return readViaReadSet(getParent(f), hops - 1, pos, symbol, first);
         }
     }
 
-    private ReadSetEntry getRSEFromCache(int pos, RSymbol sym) {
-        long cache = primitiveLocals[pos + RESERVED_SLOTS] & ~DIRTY_MASK;
+    private static ReadSetEntry getRSEFromCache(Frame f, int pos, RSymbol sym) {
+        long cache = f.getLong(pos + RESERVED_SLOTS) & ~DIRTY_MASK;
         if (cache == 0) {
-            ReadSetEntry rse = getFunction().getLocalReadSetEntry(sym);
+            ReadSetEntry rse = getFunction(f).getLocalReadSetEntry(sym);
             if (rse != null) { // variable is top-level or constructed by reflection and read by reflection
-                primitiveLocals[pos + RESERVED_SLOTS] |= (rse.frameHops << POS_BITS) | rse.framePos;
+                long l = f.getLong(pos + RESERVED_SLOTS) | (rse.frameHops << POS_BITS) | rse.framePos;
+                f.setLong(pos, l);
             }
             return rse;
         } else {
@@ -163,79 +165,72 @@ public final class RFrame extends Frame {
         }
     }
 
-    public void localExtra(int pos, long value) {
-        primitiveLocals[pos + RESERVED_SLOTS] = value;
+    public static void setReturnValue(Frame f, Object value) {
+        f.setObject(RETURN_VALUE_SLOT, value);
     }
 
-    public long localExtra(int pos) {
-        return primitiveLocals[pos + RESERVED_SLOTS];
+    public static Object getReturnValue(Frame f) {
+        return f.getObject(RETURN_VALUE_SLOT);
     }
 
-    public void setReturnValue(Object value) {
-        locals[RETURN_VALUE_SLOT] = value;
-    }
-
-    public Object getReturnValue() {
-        return locals[RETURN_VALUE_SLOT];
-    }
-
-    public RAny readFromExtension(RSymbol sym, RFrame stopFrame) { // It's public because of ReadVariable
-        if (this == stopFrame) {
+    public static RAny readFromExtension(Frame f, RSymbol sym, Frame stopFrame) { // It's public because of ReadVariable
+        if (f == stopFrame) {
             return null;
         }
-        RFrameExtension ext = getExtension();
+        RFrameExtension ext = getExtension(f);
         if (ext != null) {
             RAny val = ext.get(sym);
             if (val != null) {
                 return val;
             }
         }
-        return getParent().readFromExtension(sym, stopFrame);
+        return readFromExtension(getParent(f), sym, stopFrame);
     }
 
-    private boolean isDirty(int pos) {
-        return (primitiveLocals[pos] & DIRTY_MASK) != 0;
+    private static boolean isDirty(Frame f, int pos) {
+        return (f.getLong(pos) & DIRTY_MASK) != 0;
     }
 
-    public int getPositionInWS(RSymbol sym) {
-        return getFunction().positionInLocalWriteSet(sym);
+    public static int getPositionInWS(Frame f, RSymbol sym) {
+        return getFunction(f).positionInLocalWriteSet(sym);
     }
 
-    public ReadSetEntry getRSEntry(RSymbol sym) {
-        return getFunction().getLocalReadSetEntry(sym);
+    public static ReadSetEntry getRSEntry(Frame f, RSymbol sym) {
+        return getFunction(f).getLocalReadSetEntry(sym);
     }
 
-    public RFrame getParent() {
-        return Utils.cast(getObject(PARENT_SLOT));
+    public static Frame getParent(Frame f) {
+        return Utils.cast(f.getObject(PARENT_SLOT));
     }
 
-    public RFunction getFunction() {
-        return Utils.cast(getObject(FUNCTION_SLOT));
+    public static RFunction getFunction(Frame f) {
+        return Utils.cast(f.getObject(FUNCTION_SLOT));
     }
 
-    private RFrameExtension getExtension() {
-        return Utils.cast(getObject(EXTENSION_SLOT));
+    private static RFrameExtension getExtension(Frame f) {
+        return Utils.cast(f.getObject(EXTENSION_SLOT));
     }
 
-    private RFrameExtension installExtension() {
+    private static RFrameExtension installExtension(Frame f) {
         RFrameExtension ext = new RFrameExtension();
-        setObject(EXTENSION_SLOT, ext);
+        f.setObject(EXTENSION_SLOT, ext);
         return ext;
     }
 
-    private void markDirty(int pos) {
-        primitiveLocals[pos] |= ~DIRTY_MASK;
+    private static void markDirty(Frame f, int pos) {
+        long l = f.getLong(pos) | ~DIRTY_MASK;
+        f.setLong(pos, l);
     }
 
-    private static void markDirty(RFrame enclosing, RSymbol sym) {
-        RFrame current = enclosing;
+    private static void markDirty(Frame enclosing, RSymbol sym) {
+        Frame current = enclosing;
         while (current != null) {
             int pos;
-            if ((pos = current.getPositionInWS(sym)) >= 0) {
-                current.markDirty(pos);
+            if ((pos = getPositionInWS(current, sym)) >= 0) {
+                markDirty(current, pos);
                 return;
             }
-            current = enclosing.getParent();
+            current = getParent(enclosing);
         }
         sym.markDirty();
     }
@@ -273,7 +268,7 @@ public final class RFrame extends Frame {
             return -1;
         }
 
-        private void put(RFrame enclosing, RSymbol sym, RAny val) {
+        private void put(Frame enclosing, RSymbol sym, RAny val) {
             int pos = used;
             if (pos == capacity) {
                 expand(capacity * 2);

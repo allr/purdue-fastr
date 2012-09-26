@@ -30,7 +30,7 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 WriteVariable node;
                 String reason;
 
@@ -38,7 +38,7 @@ public abstract class WriteVariable extends BaseR {
                     node = getWriteTopLevel(getAST(), symbol, expr);
                     reason = "installWriteTopLevelNode";
                 } else {
-                    int pos = frame.getPositionInWS(symbol);
+                    int pos = RFrame.getPositionInWS(frame, symbol);
                     if (pos >= 0) {
                         node = getWriteLocal(getAST(), symbol, pos, expr);
                         reason = "installWriteLocalNode";
@@ -60,9 +60,9 @@ public abstract class WriteVariable extends BaseR {
             int position = pos;
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
-                frame.writeAt(position, val);
+                RFrame.writeAt(frame, position, val);
                 return val;
             }
         };
@@ -72,7 +72,7 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeInTopLevel(symbol, val);
                 return val;
@@ -84,9 +84,9 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
-                frame.writeInExtension(symbol, val);
+                RFrame.writeInExtension(frame, symbol, val);
                 return val;
             }
         };

@@ -1,5 +1,6 @@
 package r.data.internal;
 
+import com.oracle.truffle.runtime.Frame;
 import r.*;
 import r.data.*;
 import r.nodes.Function;
@@ -155,7 +156,7 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     @Override
-    public RClosure createClosure(RFrame frame) {
+    public RClosure createClosure(Frame frame) {
         return new ClosureImpl(this, frame);
     }
 

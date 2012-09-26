@@ -1,5 +1,6 @@
 package r.data;
 
+import com.oracle.truffle.runtime.Frame;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
@@ -9,7 +10,7 @@ public interface RFunction {
     RSymbol[] paramNames();
     RNode[] paramValues();
     RNode body();
-    RClosure createClosure(RFrame frame);
+    RClosure createClosure(Frame frame);
 
     ASTNode getSource();
 

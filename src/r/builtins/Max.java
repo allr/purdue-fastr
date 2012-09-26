@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 import r.errors.*;
@@ -120,7 +122,7 @@ public class Max {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, RFrame frame) {
+                    public RAny doBuiltIn(RContext context, Frame frame) {
                         return RDouble.BOXED_NEG_INF;
                     }
 
@@ -130,7 +132,7 @@ public class Max {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, RFrame frame, RAny arg) {
+                    public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
                         return max(arg, context, ast);
                     }
 
@@ -139,7 +141,7 @@ public class Max {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny[] params) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     return max(params, context, ast);
                 }
             };

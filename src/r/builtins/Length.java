@@ -1,5 +1,7 @@
 package r.builtins;
 
+import com.oracle.truffle.runtime.Frame;
+
 import r.*;
 import r.data.*;
 import r.nodes.*;
@@ -14,7 +16,7 @@ public class Length {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, RFrame frame, RAny arg) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
                     if (arg instanceof RArray) {
                         return RInt.RIntFactory.getScalar(((RArray) arg).size());
                     }

@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -18,12 +19,12 @@ public abstract class UnaryMinus extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
         RAny value = (RAny) lhs.execute(context, frame);
         return execute(context, frame, value);
     }
 
-    abstract RAny execute(RContext context, RFrame frame, RAny value);
+    abstract RAny execute(RContext context, Frame frame, RAny value);
 
     enum Failure {
         NOT_ONE_ELEMENT,
@@ -113,7 +114,7 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RFrame frame, RAny value) {
+        public RAny execute(RContext context, Frame frame, RAny value) {
             Specialized sn = createSimple(value);
             if (sn != null) {
                 replace(sn, "specialize Scalar");
@@ -136,7 +137,7 @@ public abstract class UnaryMinus extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RFrame frame, RAny value) {
+            public RAny execute(RContext context, Frame frame, RAny value) {
                 try {
                     return minus.minus(value);
                 } catch (UnexpectedResultException e) {
@@ -161,7 +162,7 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RFrame frame, RAny value) {
+        RAny execute(RContext context, Frame frame, RAny value) {
 
             if (value instanceof RDouble) {
                 final RDouble dvalue = (RDouble) value;

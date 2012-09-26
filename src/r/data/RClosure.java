@@ -1,7 +1,8 @@
 package r.data;
 
+import com.oracle.truffle.runtime.Frame;
 
 public interface RClosure extends RAny {
-    RFrame environment();
+    Frame environment();
     RFunction function();
 }

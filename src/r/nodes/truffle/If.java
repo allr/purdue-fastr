@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -27,7 +28,7 @@ public class If extends BaseR {
     //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
     //   - a generic conversion node that can convert anything
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
         int ifVal;
         RNode condNode = getCond();
 

@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -25,7 +26,7 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, RFrame frame) {
+    public Object execute(RContext context, Frame frame) {
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
         // this version assumes comparison of two scalars (int, double, int vs. double)
@@ -93,13 +94,13 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, frame, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -183,13 +184,13 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RFrame frame) {
+        public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, frame, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RFrame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
             if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();

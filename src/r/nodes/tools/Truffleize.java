@@ -1,6 +1,7 @@
 package r.nodes.tools;
 
 import com.oracle.truffle.nodes.control.*;
+import com.oracle.truffle.runtime.Frame;
 
 import r.*;
 import r.data.*;
@@ -27,7 +28,7 @@ public class Truffleize implements Visitor {
             final RNode node = updateParent(createLazyTree(ast));
 
             @Override
-            public Object execute(RContext context, RFrame frame) {
+            public Object execute(RContext context, Frame frame) {
                 try {
                     return node.execute(context, frame);
                 } catch (ContinueException ce) {
