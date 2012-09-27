@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
@@ -42,8 +41,8 @@ public abstract class FunctionCall extends AbstractCall {
             return new FunctionCall(ast, closureExpr, argNames, argExprs) {
 
                 @Override
-                protected Frame matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Frame calleeFrame = RFrame.create(parentFrame, func);
+                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                    Object[] calleeFrame = RFrame.createArgsArray(func);
                     RSymbol[] names = new RSymbol[argExprs.length];
 
                     int[] positions = computePositions(context, func, names);
@@ -61,8 +60,8 @@ public abstract class FunctionCall extends AbstractCall {
                 int[] positions;
 
                 @Override
-                protected Frame matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Frame calleeFrame = RFrame.create(parentFrame, func);
+                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                    Object[] calleeFrame = RFrame.createArgsArray(func);
                     if (func != lastCall) {
                         lastCall = func;
                         names = new RSymbol[argExprs.length];
@@ -79,8 +78,8 @@ public abstract class FunctionCall extends AbstractCall {
             return new FunctionCall(ast, closureExpr, argNames, argExprs) {
 
                 @Override
-                protected Frame matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Frame calleeFrame = RFrame.create(parentFrame, func);
+                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                    Object[] calleeFrame = RFrame.createArgsArray(func);
                     displaceArgs(context, callerFrame, calleeFrame, argExprs, func.paramValues());
                     return calleeFrame;
                 }
@@ -89,25 +88,13 @@ public abstract class FunctionCall extends AbstractCall {
     };
 
     @Override
-    public Object executeHelper(Context context, Frame callerFrame) {
-        RContext rcontext = (RContext) context;
-        RClosure tgt = (RClosure) closureExpr.execute(rcontext, callerFrame);
-        RFunction func = tgt.function();
-
-        Frame calleeFrame = matchParams(rcontext, func, tgt.environment(), callerFrame);
-
-        RNode code = func.body();
-        Object res;
-
-        try {
-            res = code.execute(rcontext, calleeFrame);
-        } catch (ReturnException re) {
-            res = RFrame.getReturnValue(calleeFrame);
-        }
-        return res;
+    public Object execute(RContext context, Frame callerFrame) {
+        RClosure tgt = (RClosure) closureExpr.execute(context, callerFrame);
+        Object[] calleeFrame = matchParams(context, tgt.function(), tgt.environment(), callerFrame);
+        return tgt.call(context, calleeFrame);
     }
 
-    protected abstract Frame matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame);
+    protected abstract Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame);
 
     protected int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
         RSymbol[] defaultsNames = func.paramNames();
@@ -174,7 +161,7 @@ public abstract class FunctionCall extends AbstractCall {
      * @param names Names of extra arguments (...).
      * @param fdefs Defaults values for unprovided parameters. futureparam 3dotsposition where ... as to be put
      */
-    private static void displaceArgs(RContext context, Frame callerFrame, Frame calleeFrame, int[] positions, RNode[] args, RSymbol[] names, RNode[] fdefs) {
+    private static void displaceArgs(RContext context, Frame callerFrame, Object[] calleeFrame, int[] positions, RNode[] args, RSymbol[] names, RNode[] fdefs) {
         int i;
         int argsGiven = args.length;
         int dfltsArgs = positions.length;
@@ -184,12 +171,13 @@ public abstract class FunctionCall extends AbstractCall {
             if (p >= 0) {
                 RNode v = args[i];
                 if (v != null) {
-                    RFrame.writeAt(calleeFrame, p, (RAny) args[i].execute(context, callerFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                    calleeFrame[p] = args[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                     // FIXME and it's even worst since it's not the good frame at all !
                 } else {
                     v = fdefs[positions[i]];
                     if (v != null) { // TODO insert special value for missing
-                        RFrame.writeAt(calleeFrame, positions[i], (RAny) fdefs[positions[i]].execute(context, calleeFrame));
+                        // FIXME: can't execute now because the callee Frame does not yet exist
+                        calleeFrame[positions[i]] = null; /* fdefs[positions[i]].execute(context, calleeFrame)); */
                     }
 
                 }
@@ -205,18 +193,19 @@ public abstract class FunctionCall extends AbstractCall {
             // Thus there could be a bug if a default values depends on another
             RNode v = fdefs[positions[i]];
             if (v != null) { // TODO insert special value for missing
-                RFrame.writeAt(calleeFrame, positions[i], (RAny) fdefs[positions[i]].execute(context, calleeFrame));
+                // FIXME: can't execute now because the callee Frame does not yet exist
+                calleeFrame[positions[i]] = null; /*fdefs[positions[i]].execute(context, calleeFrame)); */
             }
         }
     }
 
-    private static void displaceArgs(RContext context, Frame parentFrame, Frame frame, RNode[] args, RNode[] fdefs) {
+    private static void displaceArgs(RContext context, Frame callerFrame, Object[] calleeFrame, RNode[] args, RNode[] fdefs) {
         int i = 0;
         int max = fdefs.length;
 
         for (; i < args.length; i++) {
             if (i < max) {
-                RFrame.writeAt(frame, i, (RAny) args[i].execute(context, parentFrame)); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                calleeFrame[i] = args[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
             } else {
                 // TODO either error or ``...''
                 context.error(args[i].getAST(), "unused argument(s)");
@@ -225,7 +214,8 @@ public abstract class FunctionCall extends AbstractCall {
         for (; i < fdefs.length; i++) {
             RNode v = fdefs[i];
             if (v != null) { // TODO insert special value for missing
-                RFrame.writeAt(frame, i, (RAny) fdefs[i].execute(context, frame));
+                // FIXME: can't execute now because the callee Frame does not yet exist
+                calleeFrame[i] = null; /* fdefs[i].execute(context, calleeFrame)); */
             }
         }
     }

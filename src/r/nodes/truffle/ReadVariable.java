@@ -30,7 +30,7 @@ public abstract class ReadVariable extends BaseR {
                 if (frame == null) {
                     node = getReadOnlyFromTopLevel(getAST(), symbol);
                     reason = "installReadOnlyFromTopLevelNode";
-                } else if ((pos = RFrame.getPositionInWS(frame,symbol)) >= 0) {
+                } else if ((pos = RFrame.getPositionInWS(frame, symbol)) >= 0) {
                     node = getReadLocal(getAST(), symbol, pos);
                     reason = "installReadLocalNode";
                 } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {

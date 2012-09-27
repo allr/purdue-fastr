@@ -1,6 +1,7 @@
 package r.data.internal;
 
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
+
 import r.*;
 import r.data.*;
 import r.nodes.Function;
@@ -10,7 +11,6 @@ import r.nodes.truffle.*;
 public class FunctionImpl extends BaseObject implements RFunction {
 
     final RFunction enclosing;
-
     final Function source;
 
     final RSymbol[] paramNames;
@@ -92,6 +92,10 @@ public class FunctionImpl extends BaseObject implements RFunction {
 
     public int nlocals() {
         return writeSet.length;
+    }
+
+    public int nparams() {
+        return paramNames.length;
     }
 
     public int positionInLocalWriteSet(RSymbol sym) {

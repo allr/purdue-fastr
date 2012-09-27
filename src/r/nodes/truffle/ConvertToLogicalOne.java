@@ -1,6 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -12,7 +12,7 @@ import com.oracle.truffle.nodes.*;
 
 public abstract class ConvertToLogicalOne extends RNode {
 
-    RNode input;
+    @Stable RNode input;
 
     private static final boolean DEBUG_C = false;
 
@@ -30,18 +30,18 @@ public abstract class ConvertToLogicalOne extends RNode {
 
     @Override
     public int executeLogicalOne(RContext context, Frame frame) {
-        return executeLogicalOne(context, frame, (RAny) input.execute(context, frame));
+        return executeLogicalOne(context, (RAny) input.execute(context, frame));
     }
 
     // The execute methods are use by intermediate cast nodes - those assuming an array of logicals or ints
-    public int executeLogicalOne(RContext context, Frame frame, RAny condValue) {
+    public int executeLogicalOne(RContext context, RAny condValue) {
         try {
             if (DEBUG_C) Utils.debug("executing 2nd level cast");
             return cast(condValue, context);
         } catch (UnexpectedResultException e) {
             if (DEBUG_C) Utils.debug("2nd level cast failed, replacing by generic");
             ConvertToLogicalOne castNode = replace(createGenericNode(), "installGenericConvertToLogical from cast node");
-            return castNode.executeLogicalOne(context, frame, condValue);
+            return castNode.executeLogicalOne(context, condValue);
         }
     }
 
@@ -131,7 +131,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                 }
 
                 @Override
-                public int executeLogicalOne(RContext context, Frame frame, RAny condValue) {
+                public int executeLogicalOne(RContext context, RAny condValue) {
                     return cast(condValue, context);
                 }
             };

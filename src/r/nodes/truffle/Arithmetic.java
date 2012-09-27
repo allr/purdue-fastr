@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -13,8 +13,8 @@ import r.nodes.BinaryOperation.BinaryOperator;
 
 public class Arithmetic extends BaseR {
 
-    RNode left;
-    RNode right;
+    @Stable RNode left;
+    @Stable RNode right;
     final ValueArithmetic arit;
 
     private static final boolean DEBUG_AR = false;
@@ -102,7 +102,7 @@ public class Arithmetic extends BaseR {
             if (DEBUG_AR) Utils.debug("arithmetic - optimistic arithmetic failed, values are not scalars");
             GenericArithmetic ga = new GenericArithmetic(ast);
             replace(ga, "genericArithmetic");
-            return ga.execute(context, frame, lexpr, rexpr);
+            return ga.execute(context, lexpr, rexpr);
         }
     }
 
@@ -115,10 +115,10 @@ public class Arithmetic extends BaseR {
         public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
-            return execute(context, frame, lexpr, rexpr);
+            return execute(context, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
             if (DEBUG_AR) Utils.debug("arithmetic - generic case");
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();

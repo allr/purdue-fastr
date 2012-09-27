@@ -22,12 +22,16 @@ public final class RFrame  {
     public static final long POS_BITS = 16;
     public static final long HOPS_MASK = ((1 << HOPS_BITS) - 1) << POS_BITS;
 
+    /*
+     * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
+     * used for primitives but for dirty check + linking
+     */
+    public static Object[] createArgsArray(RFunction function) {
+        return new Object[function.nparams()];
+    }
+
     // parent is the enclosing environment, not previous frame on call stack
-    public static Frame create(Frame parent, RFunction function) {
-        /*
-         * NOTE: We differ from the normal one since you cannot screw up the special fields NOTE: primitives are NOT
-         * used for primitives but for dirty check + linking
-         */
+    public static Frame create(RFunction function, Frame parent) {
         Frame f = new Frame(function.nlocals() + RESERVED_SLOTS, parent);
         f.setObject(FUNCTION_SLOT, function);
         return f;
@@ -101,7 +105,7 @@ public final class RFrame  {
         return sym.getValue();
     }
 
-    public static void writeAt(Frame f, int pos, RAny value) {
+    public static void writeAt(Frame f, int pos, Object value) {
         // Put an assertion or not ?
         f.setObject(pos + RESERVED_SLOTS, value);
     }

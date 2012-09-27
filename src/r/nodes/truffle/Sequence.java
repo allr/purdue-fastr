@@ -1,6 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.nodes.*;
@@ -8,7 +8,7 @@ import r.nodes.*;
 
 public class Sequence extends BaseR {
 
-    final RNode[] exprs; // FIXME: elements cannot be final; can Truffle handle this?
+    @Stable RNode[] exprs;
 
     public Sequence(ASTNode ast, RNode[] exprs) {
         super(ast);
@@ -17,6 +17,7 @@ public class Sequence extends BaseR {
     }
 
     @Override
+    @ExplodeLoop // needed to make Truffle happy
     public Object execute(RContext context, Frame frame) {
 
         Object res = null;

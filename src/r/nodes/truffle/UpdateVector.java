@@ -2,6 +2,7 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.Stable;
 
 import r.*;
 import r.data.*;
@@ -15,9 +16,9 @@ import r.nodes.*;
 
 public abstract class UpdateVector extends BaseR {
 
-    RNode lhs;
-    RNode[] indexes;
-    RNode rhs;
+    @Stable RNode lhs;
+    @Stable RNode[] indexes;
+    @Stable RNode rhs;
     final boolean subset;
 
     private static final boolean DEBUG_UP = false;
@@ -60,21 +61,21 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
                 replace(sn, "specialize ScalarNumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Simple");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             } else {
                 sn = createGeneric();
                 replace(sn, "specialize ScalarNumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             }
         }
 
@@ -354,7 +355,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -397,13 +398,13 @@ public abstract class UpdateVector extends BaseR {
                             Specialized sn = createGeneric();
                             replace(sn, "specialize ScalarNumericSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
-                            return sn.execute(context, frame, base, index, value);
+                            return sn.execute(context, base, index, value);
 
                         default:
                             GenericScalarSelection gs = new GenericScalarSelection(ast, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericScalarSelection from ScalarNumericSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
-                            return gs.execute(context, frame, base, index, value);
+                            return gs.execute(context, base, index, value);
                     }
                 }
             }
@@ -423,7 +424,7 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
         public static RAny update(RContext context, RArray base, RArray index, RArray value, ASTNode ast, boolean subset) {
@@ -462,7 +463,7 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericScalarSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -493,25 +494,25 @@ public abstract class UpdateVector extends BaseR {
                             IntSequenceSelection is = new IntSequenceSelection(ast, lhs, indexes, rhs, subset);
                             replace(is, "install IntSequenceSelection from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
-                            return is.execute(context, frame, base, index, value);
+                            return is.execute(context, base, index, value);
                         }
                         if (index instanceof RInt || index instanceof RDouble) {
                             NumericSelection ns = new NumericSelection(ast, lhs, indexes, rhs, subset);
                             replace(ns, "install NumericSelection from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
-                            return ns.execute(context, frame, base, index, value);
+                            return ns.execute(context, base, index, value);
                         }
                         if (index instanceof RLogical) {
                             LogicalSelection ls = new LogicalSelection(ast, lhs, indexes, rhs, subset);
                             replace(ls, "install LogicalSelection from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
-                            return ls.execute(context, frame, base, index, value);
+                            return ls.execute(context, base, index, value);
                         }
                     default:
                         GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
                         if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
-                        return gs.execute(context, frame, base, index, value);
+                        return gs.execute(context, base, index, value);
                 }
             }
         }
@@ -532,21 +533,21 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
                 replace(sn, "specialize IntSequenceSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Simple");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             } else {
                 sn = createExtended();
                 replace(sn, "specialize IntSequenceSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             }
         }
 
@@ -822,7 +823,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -846,13 +847,13 @@ public abstract class UpdateVector extends BaseR {
                             Specialized sn = createExtended();
                             replace(sn, "specialize IntSequenceSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
-                            return sn.execute(context, frame, base, index, value);
+                            return sn.execute(context, base, index, value);
 
                         default:
                             NumericSelection ns = new NumericSelection(ast, lhs, indexes, rhs, subset);
                             replace(ns, "install NumericSelection from IntSequenceSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
-                            return ns.execute(context, frame, base, index, value);
+                            return ns.execute(context, base, index, value);
                     }
                 }
             }
@@ -871,10 +872,10 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
-        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, Frame frame, ASTNode ast, boolean subset) {
+        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, ASTNode ast, boolean subset) {
             RArray typedBase;
             RArray typedValue;
             if (base instanceof RDouble || value instanceof RDouble) {
@@ -974,7 +975,7 @@ public abstract class UpdateVector extends BaseR {
                 return res;
             }
         }
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -993,14 +994,14 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     throw new UnexpectedResultException(Failure.NOT_NUMERIC_INDEX);
                 }
-                return genericUpdate(abase, iindex, avalue, context, frame, ast, subset);
+                return genericUpdate(abase, iindex, avalue, context, ast, subset);
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
                 replace(gs, "install GenericSelection from NumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                return gs.execute(context, frame, base, index, value);
+                return gs.execute(context, base, index, value);
             }
         }
     }
@@ -1019,21 +1020,21 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing LogicalSelection (uninitialized)");
             Specialized sn = createSimple(base, value);
             if (sn != null) {
                 replace(sn, "specialize LogicalSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Simple");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             } else {
                 sn = createGeneric();
                 replace(sn, "specialize LogicalSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
-                return sn.execute(context, frame, base, index, value);
+                return sn.execute(context, base, index, value);
             }
         }
 
@@ -1298,7 +1299,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing LogicalSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -1323,13 +1324,13 @@ public abstract class UpdateVector extends BaseR {
                             Specialized sn = createGeneric();
                             replace(sn, "specialize LogicalSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
-                            return sn.execute(context, frame, base, index, value);
+                            return sn.execute(context, base, index, value);
 
                         default:
                             GenericSelection gs = new GenericSelection(ast, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericSelection from LogicalSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                            return gs.execute(context, frame, base, index, value);
+                            return gs.execute(context, base, index, value);
                     }
                 }
             }
@@ -1348,10 +1349,10 @@ public abstract class UpdateVector extends BaseR {
             RAny index = (RAny) indexes[0].execute(context, frame);
             RAny base = (RAny) lhs.execute(context, frame);
             RAny value = (RAny) rhs.execute(context, frame);
-            return execute(context, frame, base, index, value);
+            return execute(context, base, index, value);
         }
 
-        public RAny execute(RContext context, Frame frame, RAny base, RAny index, RAny value) {
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1373,7 +1374,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 if (subset) {
                     if (aindex instanceof RDouble || aindex instanceof RInt) {
-                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, frame, ast, subset);
+                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, ast, subset);
                     } else if (aindex instanceof RLogical) {
                         return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, context, ast);
                     } else {

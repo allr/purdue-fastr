@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -10,7 +10,7 @@ import r.errors.*;
 import r.nodes.*;
 
 public abstract class Not extends BaseR {
-    RNode lhs;
+    @Stable RNode lhs;
 
     Not(ASTNode ast, RNode lhs) {
         super(ast);
@@ -20,10 +20,10 @@ public abstract class Not extends BaseR {
     @Override
     public Object execute(RContext context, Frame frame) {
         RAny value = (RAny) lhs.execute(context, frame);
-        return execute(context, frame, value);
+        return execute(context, value);
     }
 
-    abstract RLogical execute(RContext context, Frame frame, RAny value);
+    abstract RLogical execute(RContext context, RAny value);
 
     // when the argument is a logical scalar
     public static class LogicalScalar extends Not {
@@ -32,7 +32,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RLogical execute(RContext context, Frame frame, RAny value) {
+        RLogical execute(RContext context, RAny value) {
             try {
                 if (!(value instanceof RLogical)) {
                     throw new UnexpectedResultException(null);
@@ -50,7 +50,7 @@ public abstract class Not extends BaseR {
             } catch (UnexpectedResultException e) {
                 Generic gn = new Generic(ast, lhs);
                 replace(gn, "install Generic from LogicalScalar");
-                return gn.execute(context, frame, value);
+                return gn.execute(context, value);
             }
         }
     }
@@ -61,7 +61,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RLogical execute(RContext context, Frame frame, RAny value) {
+        RLogical execute(RContext context, RAny value) {
             final RLogical lvalue = value.asLogical();
             final int vsize = lvalue.size();
             if (vsize == 0) {

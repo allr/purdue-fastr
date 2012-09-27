@@ -2,7 +2,7 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.nodes.control.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -13,7 +13,7 @@ import r.nodes.*;
 
 public abstract class Loop extends BaseR {
 
-    RNode body;
+    @Stable RNode body;
 
     private static final boolean DEBUG_LO = false;
 
@@ -89,7 +89,7 @@ public abstract class Loop extends BaseR {
                             RAny result = (RAny) e.getResult();
                             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                             replaceChild(cond, castNode);
-                            condVal = castNode.executeLogicalOne(context, frame, result);
+                            condVal = castNode.executeLogicalOne(context, result);
                         }
                         if (condVal == RLogical.FALSE) {
                             break;

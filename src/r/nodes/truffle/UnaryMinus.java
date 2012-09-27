@@ -1,17 +1,16 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.truffle.UpdateVector.ScalarNumericSelection.*;
 
 public abstract class UnaryMinus extends BaseR {
-    RNode lhs;
+    @Stable RNode lhs;
 
     UnaryMinus(ASTNode ast, RNode lhs) {
         super(ast);
@@ -21,10 +20,10 @@ public abstract class UnaryMinus extends BaseR {
     @Override
     public Object execute(RContext context, Frame frame) {
         RAny value = (RAny) lhs.execute(context, frame);
-        return execute(context, frame, value);
+        return execute(context, value);
     }
 
-    abstract RAny execute(RContext context, Frame frame, RAny value);
+    abstract RAny execute(RContext context, RAny value);
 
     enum Failure {
         NOT_ONE_ELEMENT,
@@ -114,15 +113,15 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, Frame frame, RAny value) {
+        public RAny execute(RContext context, RAny value) {
             Specialized sn = createSimple(value);
             if (sn != null) {
                 replace(sn, "specialize Scalar");
-                return sn.execute(context, frame, value);
+                return sn.execute(context, value);
             } else {
                 sn = createGeneric();
                 replace(sn, "specialize Scalar");
-                return sn.execute(context, frame, value);
+                return sn.execute(context, value);
             }
         }
 
@@ -137,7 +136,7 @@ public abstract class UnaryMinus extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame, RAny value) {
+            public RAny execute(RContext context, RAny value) {
                 try {
                     return minus.minus(value);
                 } catch (UnexpectedResultException e) {
@@ -145,11 +144,11 @@ public abstract class UnaryMinus extends BaseR {
                     if (f == Failure.UNEXPECTED_TYPE) {
                         Specialized sn = createGeneric();
                         replace(sn, "install Scalar.Generic from Scalar.Simple" + dbg);
-                        return sn.execute(context, frame, value);
+                        return sn.execute(context, value);
                     } else {
                         GenericMinus n = new GenericMinus(ast, lhs);
                         replace(n, "install GenericMinus from Scalar" + dbg);
-                        return n.execute(context, frame, value);
+                        return n.execute(context, value);
                     }
                 }
             }
@@ -162,7 +161,7 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, Frame frame, RAny value) {
+        RAny execute(RContext context, RAny value) {
 
             if (value instanceof RDouble) {
                 final RDouble dvalue = (RDouble) value;

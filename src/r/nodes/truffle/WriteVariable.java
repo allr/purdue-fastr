@@ -10,7 +10,7 @@ public abstract class WriteVariable extends BaseR {
 
     // TODO: All BaseRNode are useless EXCEPT for uninitialized version (since truffle keep track of the original)
     final RSymbol symbol;
-    RNode expr;
+    @Stable RNode expr;
 
     private WriteVariable(ASTNode orig, RSymbol symbol, RNode expr) {
         super(orig);

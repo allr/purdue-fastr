@@ -15,6 +15,7 @@ public interface RFunction {
     ASTNode getSource();
 
     int nlocals();
+    int nparams();
     // FIXME: will also need methods to modify a function
 
     public static final class ReadSetEntry {

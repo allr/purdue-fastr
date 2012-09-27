@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -13,8 +13,8 @@ import r.nodes.*;
 public class Comparison extends BaseR {
 
     final ValueComparison cmp;
-    RNode left;
-    RNode right;
+    @Stable RNode left;
+    @Stable RNode right;
 
     private static final boolean DEBUG_CMP = false;
 
@@ -83,7 +83,7 @@ public class Comparison extends BaseR {
             if (DEBUG_CMP) Utils.debug("comparison - optimistic comparison failed, values are not scalar numbers");
             VectorScalarComparison vs = new VectorScalarComparison(ast);
             replace(vs, "specializeNumericVectorScalarComparison");
-            return vs.execute(context, frame, lexpr, rexpr);
+            return vs.execute(context,lexpr, rexpr);
         }
     }
 
@@ -97,10 +97,10 @@ public class Comparison extends BaseR {
         public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
-            return execute(context, frame, lexpr, rexpr);
+            return execute(context, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -172,7 +172,7 @@ public class Comparison extends BaseR {
                 if (DEBUG_CMP) Utils.debug("comparison - 2nd level comparison failed (not int,double scalar and vector)");
                 GenericComparison vs = new GenericComparison(ast);
                 replace(vs, "genericComparison");
-                return vs.execute(context, frame, lexpr, rexpr);
+                return vs.execute(context, lexpr, rexpr);
             }
         }
     }
@@ -187,10 +187,10 @@ public class Comparison extends BaseR {
         public Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
-            return execute(context, frame, lexpr, rexpr);
+            return execute(context, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, Frame frame, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
             if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();

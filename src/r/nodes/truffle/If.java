@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
@@ -10,9 +10,9 @@ import r.nodes.*;
 
 
 public class If extends BaseR {
-    RNode cond;
-    RNode trueBranch;
-    RNode falseBranch;
+    @Stable RNode cond;
+    @Stable RNode trueBranch;
+    @Stable RNode falseBranch;
 
     private static final boolean DEBUG_IF = false;
 
@@ -30,7 +30,7 @@ public class If extends BaseR {
     @Override
     public Object execute(RContext context, Frame frame) {
         int ifVal;
-        RNode condNode = getCond();
+        final RNode condNode = getCond();
 
         try {
             if (DEBUG_IF) Utils.debug("executing condition");
@@ -42,7 +42,7 @@ public class If extends BaseR {
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(condNode, result);
             replaceChild(condNode, castNode);
             Utils.check(getCond() == castNode, "replaceChild failed");
-            ifVal = castNode.executeLogicalOne(context, frame, result);
+            ifVal = castNode.executeLogicalOne(context, result);
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
