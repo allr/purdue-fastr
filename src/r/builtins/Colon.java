@@ -9,6 +9,7 @@ import r.errors.*;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
+// FIXME: Truffle can't optimize BuiltIn2, so using BuiltIn
 public class Colon {
 
     // a simple version that eagerly creates the vector, create(int, int) and (double, double) below are more efficient
@@ -84,11 +85,13 @@ public class Colon {
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn2(call, names, exprs) {
+            return new BuiltIn(call, names, exprs) {
                 @SuppressWarnings("cast")
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
 
+                    RAny arg0 = args[0];
+                    RAny arg1 = args[1];
                     if (arg0 instanceof RInt) {
                         RInt a0rint = (RInt) arg0;
                         Colon.checkScalar(a0rint, ast, context);

@@ -18,9 +18,9 @@ public class If extends BaseR {
 
     public If(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
         super(ast);
-        setCond(cond);
-        setTrueBranch(trueBranch);
-        setFalseBranch(falseBranch);
+        this.cond = updateParent(cond);
+        this.trueBranch = updateParent(trueBranch);
+        this.falseBranch = updateParent(falseBranch);
     }
 
     // The condition is treated as follows:
@@ -30,57 +30,25 @@ public class If extends BaseR {
     @Override
     public Object execute(RContext context, Frame frame) {
         int ifVal;
-        final RNode condNode = getCond();
 
         try {
             if (DEBUG_IF) Utils.debug("executing condition");
-            ifVal = condNode.executeLogicalOne(context, frame);
+            ifVal = cond.executeLogicalOne(context, frame);
             if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (UnexpectedResultException e) {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
-            ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(condNode, result);
-            replaceChild(condNode, castNode);
-            Utils.check(getCond() == castNode, "replaceChild failed");
+            ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+            replaceChild(cond, castNode);
             ifVal = castNode.executeLogicalOne(context, result);
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
-            Object v = getTrueBranch().execute(context, frame);
+            Object v = trueBranch.execute(context, frame);
             return v;
         } else if (ifVal == RLogical.FALSE) {
-            return getFalseBranch().execute(context, frame);
+            return falseBranch.execute(context, frame);
         }
         throw RError.getUnexpectedNA(getAST());
-    }
-
-
-    public RNode getCond() {
-        return cond;
-    }
-
-
-    public void setCond(RNode cond) {
-        this.cond = updateParent(cond);
-    }
-
-
-    public RNode getTrueBranch() {
-        return trueBranch;
-    }
-
-
-    public void setTrueBranch(RNode trueBranch) {
-        this.trueBranch = updateParent(trueBranch);
-    }
-
-
-    public RNode getFalseBranch() {
-        return falseBranch;
-    }
-
-
-    public void setFalseBranch(RNode falseBranch) {
-        this.falseBranch = updateParent(falseBranch);
     }
 }

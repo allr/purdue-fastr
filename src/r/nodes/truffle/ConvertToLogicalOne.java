@@ -6,7 +6,6 @@ import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
-import r.nodes.*;
 
 import com.oracle.truffle.nodes.*;
 
@@ -16,16 +15,13 @@ public abstract class ConvertToLogicalOne extends RNode {
 
     private static final boolean DEBUG_C = false;
 
-    private ConvertToLogicalOne() {
-    }
-
-    public void setInput(RNode expr) {
-        input = updateParent(expr);
+    private ConvertToLogicalOne(RNode input) {
+        this.input = updateParent(input);
     }
 
     @Override
-    public RAny execute(RContext context, Frame frame) {
-        return RLogicalFactory.getArray(executeLogicalOne(context, frame));
+    public final Object execute(RContext context, Frame frame) {
+        return RLogicalFactory.getScalar(executeLogicalOne(context, frame));
     }
 
     @Override
@@ -40,101 +36,96 @@ public abstract class ConvertToLogicalOne extends RNode {
             return cast(condValue, context);
         } catch (UnexpectedResultException e) {
             if (DEBUG_C) Utils.debug("2nd level cast failed, replacing by generic");
-            ConvertToLogicalOne castNode = replace(createGenericNode(), "installGenericConvertToLogical from cast node");
+            ConvertToLogicalOne castNode = replace(fromGeneric(input), "installGenericConvertToLogical from cast node");
             return castNode.executeLogicalOne(context, condValue);
         }
     }
 
-    public static ConvertToLogicalOne createNode(RNode expr, RAny value) {
-        ConvertToLogicalOne node = value.callNodeFactory(factory);
-        node.setInput(expr);
-        return node;
-    }
+    public static ConvertToLogicalOne createNode(RNode input, RAny value) {
 
-    public static ConvertToLogicalOne createGenericNode() {
-        return factory.fromGeneric();
+        if (value instanceof RLogical) {
+            return fromLogical(input);
+        } else if (value instanceof RInt) {
+            return fromInt(input);
+        } else {
+            return fromGeneric(input);
+        }
     }
 
     public abstract int cast(RAny value, RContext context) throws UnexpectedResultException;
 
-    static OperationFactory<ConvertToLogicalOne> factory = new OperationFactory<ConvertToLogicalOne>() {
+    public static ConvertToLogicalOne fromLogical(RNode input) {
+        return new ConvertToLogicalOne(input) {
 
-        @Override
-        public ConvertToLogicalOne fromLogical() {
-            return new ConvertToLogicalOne() {
-
-                @Override
-                public int cast(RAny value, RContext context) throws UnexpectedResultException {
-                    if (DEBUG_C) Utils.debug("casting logical to one logical");
-                    if (!(value instanceof RLogical)) {
-                        throw new UnexpectedResultException(input);
-                    }
-                    RLogical logicalArray = ((RLogical) value);
-                    if (logicalArray.size() == 1) {
-                        return logicalArray.getLogical(0);
-                    }
-                    if (logicalArray.size() > 1) {
-                        context.warning(getAST(), RError.LENGTH_GT_1);
-                        return logicalArray.getLogical(0);
-                    }
-                    throw RError.getNulLength(null);
+            @Override
+            public int cast(RAny value, RContext context) throws UnexpectedResultException {
+                if (DEBUG_C) Utils.debug("casting logical to one logical");
+                if (!(value instanceof RLogical)) {
+                    throw new UnexpectedResultException(input);
                 }
-            };
-        }
-
-        @Override
-        public ConvertToLogicalOne fromInt() {
-            return new ConvertToLogicalOne() {
-
-                @Override
-                public int cast(RAny value, RContext context) throws UnexpectedResultException {
-                    if (DEBUG_C) Utils.debug("casting integer to one logical");
-                    if (!(value instanceof RInt)) {
-                        throw new UnexpectedResultException(input);
-                    }
-                    RInt intArray = ((RInt) value);
-                    int intValue;
-                    if (intArray.size() == 1) {
-                        intValue = intArray.getInt(0);
-                    } else if (intArray.size() > 1) {
-                        context.warning(getAST(), RError.LENGTH_GT_1);
-                        intValue = intArray.getInt(0);
-                    } else {
-                        throw RError.getNulLength(null);
-                    }
-
-                    if (intValue == RLogical.FALSE || intValue == RLogical.NA) {
-                        return intValue;
-                    } else {
-                        return RLogical.TRUE;
-                    }
+                RLogical logicalArray = ((RLogical) value);
+                if (logicalArray.size() == 1) {
+                    return logicalArray.getLogical(0);
                 }
-            };
-        }
+                if (logicalArray.size() > 1) {
+                    context.warning(getAST(), RError.LENGTH_GT_1);
+                    return logicalArray.getLogical(0);
+                }
+                throw RError.getNulLength(null);
+            }
+        };
+    }
 
-        @Override
-        public ConvertToLogicalOne fromGeneric() {
-            return new ConvertToLogicalOne() {
+    public static ConvertToLogicalOne fromInt(RNode input) {
+        return new ConvertToLogicalOne(input) {
 
-                @Override
-                public int cast(RAny value, RContext context) {
-                    if (DEBUG_C) Utils.debug("casting generic to one logical");
-                    RLogical logicalArray = value.asLogical();
-                    if (logicalArray.size() == 1) { // FIXME try to call perform check
-                        return logicalArray.getLogical(0);
-                    }
-                    if (logicalArray.size() > 1) {
-                        context.warning(getAST(), RError.LENGTH_GT_1);
-                        return logicalArray.getLogical(0);
-                    }
+            @Override
+            public int cast(RAny value, RContext context) throws UnexpectedResultException {
+                if (DEBUG_C) Utils.debug("casting integer to one logical");
+                if (!(value instanceof RInt)) {
+                    throw new UnexpectedResultException(input);
+                }
+                RInt intArray = ((RInt) value);
+                int intValue;
+                if (intArray.size() == 1) {
+                    intValue = intArray.getInt(0);
+                } else if (intArray.size() > 1) {
+                    context.warning(getAST(), RError.LENGTH_GT_1);
+                    intValue = intArray.getInt(0);
+                } else {
                     throw RError.getNulLength(null);
                 }
 
-                @Override
-                public int executeLogicalOne(RContext context, RAny condValue) {
-                    return cast(condValue, context);
+                if (intValue == RLogical.FALSE || intValue == RLogical.NA) {
+                    return intValue;
+                } else {
+                    return RLogical.TRUE;
                 }
-            };
-        }
-    };
+            }
+        };
+    }
+
+    public static ConvertToLogicalOne fromGeneric(RNode input) {
+        return new ConvertToLogicalOne(input) {
+
+            @Override
+            public int cast(RAny value, RContext context) {
+                if (DEBUG_C) Utils.debug("casting generic to one logical");
+                RLogical logicalArray = value.asLogical();
+                if (logicalArray.size() == 1) {
+                    return logicalArray.getLogical(0);
+                }
+                if (logicalArray.size() > 1) {
+                    context.warning(getAST(), RError.LENGTH_GT_1);
+                    return logicalArray.getLogical(0);
+                }
+                throw RError.getNulLength(null);
+            }
+
+            @Override
+            public int executeLogicalOne(RContext context, RAny condValue) {
+                return cast(condValue, context);
+            }
+        };
+    }
 }

@@ -79,6 +79,7 @@ public abstract class BuiltIn extends AbstractCall {
 
     public abstract RAny doBuiltIn(RContext context, Frame frame, RAny[] params);
 
+    @ExplodeLoop
     private RAny[] evalArgs(RContext context, Frame frame) {
         int len = argExprs.length;
         RAny[] args = new RAny[len];

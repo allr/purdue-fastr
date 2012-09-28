@@ -53,7 +53,9 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(If iff) {
         ASTNode fbranch = iff.getFalseCase();
-        result = new r.nodes.truffle.If(iff, createLazyTree(iff.getCond()), createLazyTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createLazyTree(fbranch));
+        // lazy build breaks Truffle inliner
+        //result = new r.nodes.truffle.If(iff, createLazyTree(iff.getCond()), createLazyTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createLazyTree(fbranch));
+        result = new r.nodes.truffle.If(iff, createTree(iff.getCond()), createTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createTree(fbranch));
     }
 
     @Override
