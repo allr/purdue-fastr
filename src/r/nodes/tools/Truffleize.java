@@ -25,7 +25,8 @@ public class Truffleize implements Visitor {
     public RNode createRootTree(final ASTNode ast) {
         return new BaseR(ast) {
 
-            final RNode node = updateParent(createLazyTree(ast));
+            //final RNode node = updateParent(createLazyTree(ast)); Truffle does not like Lazy
+            final RNode node = updateParent(createTree(ast));
 
             @Override
             public Object execute(RContext context, Frame frame) {
@@ -131,7 +132,9 @@ public class Truffleize implements Visitor {
         if (assign.isSuper()) {
             Utils.nyi();
         }
-        result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+        // Truffle does not like Lazy...
+        //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+        result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createTree(assign.getExpr()));
     }
 
     private RSymbol[] convertedNames;

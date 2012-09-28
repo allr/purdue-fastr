@@ -34,8 +34,9 @@ public abstract class ReadVariable extends BaseR {
                     node = getReadLocal(getAST(), symbol, pos);
                     reason = "installReadLocalNode";
                 } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
-                    node = getReadTopLevel(getAST(), symbol); // TODO this should be removed or at least asserted false !
-                    reason = "installReadTopLevel when read set is empty (!!! REMOVE when read set is implemented)";
+                        // note: this can happen although we thought initially it shouldn't (why did we think that?)
+                    node = getReadTopLevel(getAST(), symbol);
+                    reason = "installReadTopLevel";
                 } else {
                     node = getReadEnclosing(getAST(), symbol, rse.frameHops, rse.framePos);
                     reason = "installReadEnclosingNode";

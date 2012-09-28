@@ -42,12 +42,9 @@ public abstract class FunctionCall extends AbstractCall {
 
                 @Override
                 protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Object[] calleeFrame = RFrame.createArgsArray(func);
                     RSymbol[] names = new RSymbol[argExprs.length];
-
                     int[] positions = computePositions(context, func, names);
-                    displaceArgs(context, callerFrame, calleeFrame, positions, argExprs, names, func.paramValues());
-                    return calleeFrame;
+                    return displaceArgs(context, callerFrame, positions, names, func.nparams());
                 }
             };
         }
@@ -61,14 +58,12 @@ public abstract class FunctionCall extends AbstractCall {
 
                 @Override
                 protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Object[] calleeFrame = RFrame.createArgsArray(func);
                     if (func != lastCall) {
                         lastCall = func;
                         names = new RSymbol[argExprs.length];
                         positions = computePositions(context, func, names);
                     }
-                    displaceArgs(context, callerFrame, calleeFrame, positions, argExprs, names, func.paramValues());
-                    return calleeFrame;
+                    return displaceArgs(context, callerFrame, positions, names, func.nparams());
 
                 }
             };
@@ -79,9 +74,7 @@ public abstract class FunctionCall extends AbstractCall {
 
                 @Override
                 protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    Object[] calleeFrame = RFrame.createArgsArray(func);
-                    displaceArgs(context, callerFrame, calleeFrame, argExprs, func.paramValues());
-                    return calleeFrame;
+                    return displaceArgs(context, callerFrame, func.nparams());
                 }
             };
         }
@@ -90,8 +83,8 @@ public abstract class FunctionCall extends AbstractCall {
     @Override
     public Object execute(RContext context, Frame callerFrame) {
         RClosure tgt = (RClosure) closureExpr.execute(context, callerFrame);
-        Object[] calleeFrame = matchParams(context, tgt.function(), tgt.environment(), callerFrame);
-        return tgt.call(context, calleeFrame);
+        Object[] argValues = matchParams(context, tgt.function(), tgt.environment(), callerFrame);
+        return tgt.call(context, argValues);
     }
 
     protected abstract Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame);
@@ -155,68 +148,74 @@ public abstract class FunctionCall extends AbstractCall {
      *
      * @param context The global context (needed for warning ... and for know for evaluate)
      * @param callerFrame The frame to evaluate exprs (it's the last argument, since with promises, it should be removed or at least changed)
-     * @param calleeFrame The frame to populate (not the one for evaluate expressions, cf parentFrame)
      * @param positions Where arguments need to be displaced (-1 means ``...'')
-     * @param args Arguments provided to this calls
      * @param names Names of extra arguments (...).
-     * @param fdefs Defaults values for unprovided parameters. futureparam 3dotsposition where ... as to be put
      */
-    private static void displaceArgs(RContext context, Frame callerFrame, Object[] calleeFrame, int[] positions, RNode[] args, RSymbol[] names, RNode[] fdefs) {
-        int i;
-        int argsGiven = args.length;
-        int dfltsArgs = positions.length;
+    @ExplodeLoop
+    protected Object[] displaceArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
+        //int dfltsArgs = positions.length;
 
-        for (i = 0; i < argsGiven; i++) {
+        Object[] argValues = new Object[nparams];
+        int i;
+        for (i = 0; i < argExprs.length; i++) {
             int p = positions[i];
             if (p >= 0) {
-                RNode v = args[i];
+                RNode v = argExprs[i];
                 if (v != null) {
-                    calleeFrame[p] = args[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                    argValues[p] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                     // FIXME and it's even worst since it's not the good frame at all !
-                } else {
+                } /*   this is now done in executeHelper (at the callee)
+                else {
                     v = fdefs[positions[i]];
                     if (v != null) { // TODO insert special value for missing
                         // FIXME: can't execute now because the callee Frame does not yet exist
-                        calleeFrame[positions[i]] = null; /* fdefs[positions[i]].execute(context, calleeFrame)); */
+                        argValues[positions[i]] = null;  fdefs[positions[i]].execute(context, calleeFrame));
                     }
 
-                }
+                } */
             } else {
                 // TODO add to ``...''
                 // Note that names[i] contains a key if needed
-                context.warning(args[i].getAST(), "need to be put in ``...'', which is NYI");
+                context.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
             }
         }
 
+        /* this is now done in executeHelper (at the callee)
         for (; i < dfltsArgs; i++) { // For now we populate frames with prom/value.
             // I'm not found of this, there should be a way to only create/evaluate when needed.
             // Thus there could be a bug if a default values depends on another
             RNode v = fdefs[positions[i]];
             if (v != null) { // TODO insert special value for missing
                 // FIXME: can't execute now because the callee Frame does not yet exist
-                calleeFrame[positions[i]] = null; /*fdefs[positions[i]].execute(context, calleeFrame)); */
+                argValues[positions[i]] = null; // fdefs[positions[i]].execute(context, calleeFrame));
             }
         }
+        */
+        return argValues;
     }
 
-    private static void displaceArgs(RContext context, Frame callerFrame, Object[] calleeFrame, RNode[] args, RNode[] fdefs) {
+    @ExplodeLoop
+    protected Object[] displaceArgs(RContext context, Frame callerFrame, int nparams) {
+        Object[] argValues = new Object[nparams];
         int i = 0;
-        int max = fdefs.length;
 
-        for (; i < args.length; i++) {
-            if (i < max) {
-                calleeFrame[i] = args[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+        for (; i < argExprs.length; i++) {
+            if (i < nparams) {
+                argValues[i] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
             } else {
                 // TODO either error or ``...''
-                context.error(args[i].getAST(), "unused argument(s)");
+                context.error(argExprs[i].getAST(), "unused argument(s)");
             }
         }
+        /* this is now done in executeHelper (at the callee)
         for (; i < fdefs.length; i++) {
             RNode v = fdefs[i];
             if (v != null) { // TODO insert special value for missing
                 // FIXME: can't execute now because the callee Frame does not yet exist
-                calleeFrame[i] = null; /* fdefs[i].execute(context, calleeFrame)); */
+                argValues[i] = null; // fdefs[i].execute(context, calleeFrame));
             }
         }
+        */
+        return argValues;
     }
 }
