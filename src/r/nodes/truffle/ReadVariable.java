@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.Frame;
 
 import r.*;
@@ -22,27 +23,32 @@ public abstract class ReadVariable extends BaseR {
 
             @Override
             public Object execute(RContext context, Frame frame) {
-                ReadVariable node;
-                int pos;
-                ReadSetEntry rse;
-                String reason;
 
-                if (frame == null) {
-                    node = getReadOnlyFromTopLevel(getAST(), symbol);
-                    reason = "installReadOnlyFromTopLevelNode";
-                } else if ((pos = RFrame.getPositionInWS(frame, symbol)) >= 0) {
-                    node = getReadLocal(getAST(), symbol, pos);
-                    reason = "installReadLocalNode";
-                } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
-                        // note: this can happen although we thought initially it shouldn't (why did we think that?)
-                    node = getReadTopLevel(getAST(), symbol);
-                    reason = "installReadTopLevel";
-                } else {
-                    node = getReadEnclosing(getAST(), symbol, rse.frameHops, rse.framePos);
-                    reason = "installReadEnclosingNode";
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    ReadVariable node;
+                    int pos;
+                    ReadSetEntry rse;
+                    String reason;
+
+                    if (frame == null) {
+                        node = getReadOnlyFromTopLevel(getAST(), symbol);
+                        reason = "installReadOnlyFromTopLevelNode";
+                    } else if ((pos = RFrame.getPositionInWS(frame, symbol)) >= 0) {
+                        node = getReadLocal(getAST(), symbol, pos);
+                        reason = "installReadLocalNode";
+                    } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
+                            // note: this can happen although we thought initially it shouldn't (why did we think that?)
+                        node = getReadTopLevel(getAST(), symbol);
+                        reason = "installReadTopLevel";
+                    } else {
+                        node = getReadEnclosing(getAST(), symbol, rse.frameHops, rse.framePos);
+                        reason = "installReadEnclosingNode";
+                    }
+                    replace(node, reason);
+                    return node.execute(context, frame);
                 }
-                replace(node, reason);
-                return node.execute(context, frame);
             }
         };
     }
