@@ -139,7 +139,7 @@ public class Truffleize implements Visitor {
     private RSymbol[] convertedNames;
     private RNode[] convertedExpressions;
 
-    private void splitArgumentList(ArgumentList alist) {
+    private void splitArgumentList(ArgumentList alist, boolean root) {
         int args = alist.size();
         RSymbol[] names = new RSymbol[args];
         RNode[] expressions = new RNode[args];
@@ -148,7 +148,11 @@ public class Truffleize implements Visitor {
             names[i] = e.getName();
             ASTNode exp = e.getValue();
             if (exp != null) {
-                expressions[i] = createLazyRootTree(exp);
+                if (root) {
+                    expressions[i] = createLazyRootTree(exp);
+                } else {
+                    expressions[i] = createTree(exp);
+                }
             }
             i++;
         }
@@ -163,7 +167,7 @@ public class Truffleize implements Visitor {
 
         RFunction encf = getEnclosing(function);
 
-        splitArgumentList(function.getSignature()); // the name is not really accurate since, these are parameters
+        splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
 
             // note: body has to be built lazily, otherwise nested functions won't work correctly
         RFunction impl = function.createImpl(convertedNames, convertedExpressions, createLazyRootTree(function.getBody()), encf);
@@ -187,7 +191,7 @@ public class Truffleize implements Visitor {
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
-        splitArgumentList(functionCall.getArgs());
+        splitArgumentList(functionCall.getArgs(), true);
 
         r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(functionCall.getName(), getEnclosing(functionCall));
         if (factory == null) {
@@ -198,7 +202,7 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(AccessVector a) {
-        splitArgumentList(a.getArgs());
+        splitArgumentList(a.getArgs(), false);
         if (convertedExpressions.length == 1) {
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
@@ -211,7 +215,7 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(UpdateVector u) {
         AccessVector a = u.getVector();
-        splitArgumentList(a.getArgs());
+        splitArgumentList(a.getArgs(), false);
         if (convertedExpressions.length == 1) {
             RNode vvalue;
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
