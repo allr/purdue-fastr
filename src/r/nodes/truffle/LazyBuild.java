@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.Frame;
 
 import r.*;
@@ -14,9 +15,13 @@ public class LazyBuild extends BaseR {
 
     @Override
     public Object execute(RContext context, Frame frame) {
-        RNode node = context.createNode(getAST());
-        replace(node, "expandLazyBuildNode");
-        return node.execute(context, frame);
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            RNode node = context.createNode(getAST());
+            replace(node, "expandLazyBuildNode");
+            return node.execute(context, frame);
+        }
     }
 
 }
