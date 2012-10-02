@@ -66,16 +66,21 @@ public abstract class UpdateVector extends BaseR {
 
         public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
-            Specialized sn = createSimple(base, value);
-            if (sn != null) {
-                replace(sn, "specialize ScalarNumericSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Simple");
-                return sn.execute(context, base, index, value);
-            } else {
-                sn = createGeneric();
-                replace(sn, "specialize ScalarNumericSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
-                return sn.execute(context, base, index, value);
+
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                Specialized sn = createSimple(base, value);
+                if (sn != null) {
+                    replace(sn, "specialize ScalarNumericSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Simple");
+                    return sn.execute(context, base, index, value);
+                } else {
+                    sn = createGeneric();
+                    replace(sn, "specialize ScalarNumericSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
+                    return sn.execute(context, base, index, value);
+                }
             }
         }
 
@@ -538,16 +543,21 @@ public abstract class UpdateVector extends BaseR {
 
         public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
-            Specialized sn = createSimple(base, value);
-            if (sn != null) {
-                replace(sn, "specialize IntSequenceSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Simple");
-                return sn.execute(context, base, index, value);
-            } else {
-                sn = createExtended();
-                replace(sn, "specialize IntSequenceSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
-                return sn.execute(context, base, index, value);
+
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                Specialized sn = createSimple(base, value);
+                if (sn != null) {
+                    replace(sn, "specialize IntSequenceSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Simple");
+                    return sn.execute(context, base, index, value);
+                } else {
+                    sn = createExtended();
+                    replace(sn, "specialize IntSequenceSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
+                    return sn.execute(context, base, index, value);
+                }
             }
         }
 
@@ -1025,16 +1035,20 @@ public abstract class UpdateVector extends BaseR {
 
         public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing LogicalSelection (uninitialized)");
-            Specialized sn = createSimple(base, value);
-            if (sn != null) {
-                replace(sn, "specialize LogicalSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Simple");
-                return sn.execute(context, base, index, value);
-            } else {
-                sn = createGeneric();
-                replace(sn, "specialize LogicalSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
-                return sn.execute(context, base, index, value);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                Specialized sn = createSimple(base, value);
+                if (sn != null) {
+                    replace(sn, "specialize LogicalSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Simple");
+                    return sn.execute(context, base, index, value);
+                } else {
+                    sn = createGeneric();
+                    replace(sn, "specialize LogicalSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
+                    return sn.execute(context, base, index, value);
+                }
             }
         }
 
