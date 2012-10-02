@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
@@ -31,24 +32,29 @@ public abstract class WriteVariable extends BaseR {
 
             @Override
             public Object execute(RContext context, Frame frame) {
-                WriteVariable node;
-                String reason;
 
-                if (frame == null) {
-                    node = getWriteTopLevel(getAST(), symbol, expr);
-                    reason = "installWriteTopLevelNode";
-                } else {
-                    int pos = RFrame.getPositionInWS(frame, symbol);
-                    if (pos >= 0) {
-                        node = getWriteLocal(getAST(), symbol, pos, expr);
-                        reason = "installWriteLocalNode";
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    WriteVariable node;
+                    String reason;
+
+                    if (frame == null) {
+                        node = getWriteTopLevel(getAST(), symbol, expr);
+                        reason = "installWriteTopLevelNode";
                     } else {
-                        node = getWriteExtension(getAST(), symbol, expr); // TODO this should be removed or at least asserted false !
-                        reason = "installWriteExtensionNode (!!! REMOVE when write sets are implemented)";
-                        Utils.check(false, "TODO: implement wset and remove this condition");
+                        int pos = RFrame.getPositionInWS(frame, symbol);
+                        if (pos >= 0) {
+                            node = getWriteLocal(getAST(), symbol, pos, expr);
+                            reason = "installWriteLocalNode";
+                        } else {
+                            node = getWriteExtension(getAST(), symbol, expr); // TODO this should be removed or at least asserted false !
+                            reason = "installWriteExtensionNode (!!! REMOVE when write sets are implemented)";
+                            Utils.check(false, "TODO: implement wset and remove this condition");
+                        }
                     }
+                    return replace(node, reason).execute(context, frame);
                 }
-                return replace(node, reason).execute(context, frame);
             }
         };
     }
