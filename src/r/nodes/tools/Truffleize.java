@@ -22,11 +22,10 @@ public class Truffleize implements Visitor {
 
     RNode result;
 
-    public RNode createRootTree(final ASTNode ast) {
+    public RNode createLazyRootTree(final ASTNode ast) {
         return new BaseR(ast) {
 
-            //final RNode node = updateParent(createLazyTree(ast)); Truffle does not like Lazy
-            final RNode node = updateParent(createTree(ast));
+            final RNode node = updateParent(createLazyTree(ast));
 
             @Override
             public Object execute(RContext context, Frame frame) {
@@ -149,7 +148,7 @@ public class Truffleize implements Visitor {
             names[i] = e.getName();
             ASTNode exp = e.getValue();
             if (exp != null) {
-                expressions[i] = createRootTree(exp);
+                expressions[i] = createLazyRootTree(exp);
             }
             i++;
         }
@@ -166,7 +165,8 @@ public class Truffleize implements Visitor {
 
         splitArgumentList(function.getSignature()); // the name is not really accurate since, these are parameters
 
-        RFunction impl = function.createImpl(convertedNames, convertedExpressions, createRootTree(function.getBody()), encf);
+            // note: body has to be built lazily, otherwise nested functions won't work correctly
+        RFunction impl = function.createImpl(convertedNames, convertedExpressions, createLazyRootTree(function.getBody()), encf);
         r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
 
         result = functionNode;
@@ -174,8 +174,13 @@ public class Truffleize implements Visitor {
 
     private static RFunction getEnclosing(ASTNode node) {
         // find lexically enclosing function if exists
-        Function astEnc = findParent(node, Function.class);
-        return astEnc == null ? null : astEnc.getRFunction();
+        Function enfunc = findParent(node, Function.class);
+        if (enfunc == null) {
+            return null;
+        }
+        RFunction rfunc = enfunc.getRFunction();
+        Utils.check(rfunc != null, "RFunction is not yet ready - note lazy build is necessary for functions");
+        return rfunc;
     }
 
     @Override

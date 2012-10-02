@@ -42,7 +42,7 @@ public class RContext implements Context {
 
     public RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createRootTree(expr).execute(this, topLevel());
+            return (RAny) truffleize.createLazyRootTree(expr).execute(this, topLevel());
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
