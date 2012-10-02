@@ -2,6 +2,7 @@ package r.nodes;
 
 import java.util.*;
 
+import r.*;
 import r.data.*;
 import r.data.RFunction.*;
 import r.data.internal.*;
@@ -13,9 +14,11 @@ public class Function extends ASTNode {
     final ArgumentList signature;
     final ASTNode body;
 
-    private static ReadSetEntry[] emptyReadSet = new ReadSetEntry[0];
+    private static final ReadSetEntry[] emptyReadSet = new ReadSetEntry[0];
 
     RFunction rfunction; // FIXME: is it ok this is not final?
+
+    private static final boolean DEBUG_FUNCTIONS = false;
 
     Function(ArgumentList alist, ASTNode body) {
         this.signature = alist;
@@ -76,6 +79,21 @@ public class Function extends ASTNode {
         return str.toString();
     }
 
+    private static void printAccesses(Set<RSymbol> read, Set<RSymbol> written) {
+        StringBuilder str = new StringBuilder();
+        str.append("Reads found in a function:");
+        for (RSymbol s : read) {
+            str.append(" ");
+            str.append(s.pretty());
+        }
+        str.append("\nWrites found in a function:");
+        for (RSymbol s : written) {
+            str.append(" ");
+            str.append(s.pretty());
+        }
+        Utils.debug(str.toString());
+    }
+
     // note: the locallyWritten and locallyRead hash sets are modified input parameters
     public RFunction createImpl(RSymbol[] paramNames, RNode[] paramValues, RNode runnableBody, RFunction enclosing) {
         // note: we cannot read fnode.argNames() here as it is not yet initialized
@@ -84,6 +102,9 @@ public class Function extends ASTNode {
         Set<RSymbol> read = new HashSet<>();
         Set<RSymbol> written = new HashSet<>();
         findAccesses(read, written);
+        if (DEBUG_FUNCTIONS) {
+            printAccesses(read, written);
+        }
 
         RSymbol[] writeSet = buildWriteSet(paramNames, written);
         ReadSetEntry[] readSet = buildReadSet(enclosing, read);
@@ -103,7 +124,7 @@ public class Function extends ASTNode {
         for (; i < argNames.length; i++) {
             writeSet[i] = argNames[i];
         }
-        for (RSymbol s : origWSet) {
+        for (RSymbol s : origWSet) { // FIXME: an argument can be in the write-set twice (that used to be handled in the previous version...)
             writeSet[i++] = s;
         }
         return writeSet;

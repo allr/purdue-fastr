@@ -13,6 +13,8 @@ public abstract class WriteVariable extends BaseR {
     final RSymbol symbol;
     @Stable RNode expr;
 
+    private static final boolean DEBUG_W = false;
+
     private WriteVariable(ASTNode orig, RSymbol symbol, RNode expr) {
         super(orig);
         setExpr(expr);
@@ -53,6 +55,7 @@ public abstract class WriteVariable extends BaseR {
                             Utils.check(false, "TODO: implement wset and remove this condition");
                         }
                     }
+                    if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" uninitialized rewritten: "+reason); }
                     return replace(node, reason).execute(context, frame);
                 }
             }
@@ -69,6 +72,7 @@ public abstract class WriteVariable extends BaseR {
             public Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeAt(frame, position, val);
+                if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" local-ws, wrote "+val+" ("+val.pretty()+") to position "+position); }
                 return val;
             }
         };
@@ -81,6 +85,7 @@ public abstract class WriteVariable extends BaseR {
             public Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeInTopLevel(symbol, val);
+                if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" toplevel, wrote "+val+" ("+val.pretty()+")"); }
                 return val;
             }
         };

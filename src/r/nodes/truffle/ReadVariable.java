@@ -13,6 +13,8 @@ public abstract class ReadVariable extends BaseR {
 
     final RSymbol symbol;
 
+    private static final boolean DEBUG_R = false;
+
     public ReadVariable(ASTNode orig, RSymbol sym) {
         super(orig);
         symbol = sym;
@@ -47,6 +49,7 @@ public abstract class ReadVariable extends BaseR {
                         reason = "installReadEnclosingNode";
                     }
                     replace(node, reason);
+                    if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" uninitialized rewritten: "+reason); }
                     return node.execute(context, frame);
                 }
             }
@@ -62,6 +65,7 @@ public abstract class ReadVariable extends BaseR {
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from position "+position); }
                 return val;
             }
         };
@@ -76,6 +80,7 @@ public abstract class ReadVariable extends BaseR {
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from position "+position+" hops "+hops); }
                 return val;
             }
         };
@@ -103,6 +108,7 @@ public abstract class ReadVariable extends BaseR {
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
                 return val;
             }
         };
