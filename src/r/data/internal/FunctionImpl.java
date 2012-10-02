@@ -47,8 +47,8 @@ public class FunctionImpl extends BaseObject implements RFunction {
 
         if (DEBUG_CALLS) {
             Utils.debug("creating function with");
-            Utils.debug("write set (" + writeSet.length + ") is: " + printWriteSet(writeSet));
-            Utils.debug("read set (" + readSet.length + ") is: " + printReadSet(readSet));
+            Utils.debug("  write set [" + writeSet.length + "]: " + printWriteSet(writeSet));
+            Utils.debug("  read set  [" + readSet.length + "]: " + printReadSet(readSet));
         }
     }
 
