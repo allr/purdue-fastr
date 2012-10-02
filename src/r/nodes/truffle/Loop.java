@@ -70,7 +70,7 @@ public abstract class Loop extends BaseR {
 
     public static class While extends Loop {
 
-        RNode cond;
+        @Stable RNode cond;
         public While(ASTNode ast, RNode cond, RNode body) {
             super(ast, body);
             this.cond = cond;
@@ -112,7 +112,7 @@ public abstract class Loop extends BaseR {
 
     public abstract static class For extends Loop {
 
-        RNode range;
+        @Stable RNode range;
         RSymbol cvar;
 
         For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
