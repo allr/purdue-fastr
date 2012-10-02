@@ -16,7 +16,7 @@ public class Constant extends BaseR {
     }
 
     @Override
-    public RAny execute(RContext context, Frame frame) {
+    public final RAny execute(RContext context, Frame frame) {
         return value;
     }
 
