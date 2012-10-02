@@ -113,7 +113,7 @@ public abstract class Loop extends BaseR {
     public abstract static class For extends Loop {
 
         @Stable RNode range;
-        RSymbol cvar;
+        final RSymbol cvar;
 
         For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
             super(ast, body);
@@ -121,7 +121,7 @@ public abstract class Loop extends BaseR {
             this.cvar = cvar;
         }
 
-        // when a range is a sequence of integeres
+        // when a range is a sequence of integers
         public static class IntSequenceRange extends For {
             public IntSequenceRange(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 super(ast, cvar, range, body);
@@ -129,17 +129,22 @@ public abstract class Loop extends BaseR {
 
             @Override
             public RAny execute(RContext context, Frame frame) {
-                Specialized sn;
-                String dbg;
-                if (frame == null) {
-                    sn = createToplevel(ast, cvar, range, body);
-                    dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
-                } else {
-                    sn = create(ast, cvar, range, body);
-                    dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
+
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    Specialized sn;
+                    String dbg;
+                    if (frame == null) {
+                        sn = createToplevel(ast, cvar, range, body);
+                        dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
+                    } else {
+                        sn = create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
+                        dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
+                    }
+                    replace(sn, dbg);
+                    return sn.execute(context, frame);
                 }
-                replace(sn, dbg);
-                return sn.execute(context, frame);
             }
 
             public abstract static class Specialized extends IntSequenceRange {
@@ -164,7 +169,7 @@ public abstract class Loop extends BaseR {
                         if (frame == null) {
                             gn = Generic.createToplevel(ast, cvar, range, body);
                         } else {
-                            gn = Generic.create(ast, cvar, range, body);
+                            gn = Generic.create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
                         }
                         replace(gn, "install Generic from IntSequenceRange");
                         return gn.execute(context, frame, rval);
@@ -198,17 +203,16 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
                     public RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
-                        final int pos = RFrame.getPositionInWS(frame, cvar);
                         try {
                             for (int i = from;; i += step) {
-                                RFrame.writeAt(frame, pos, RInt.RIntFactory.getScalar(i));
+                                RFrame.writeAt(frame, position, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -237,17 +241,21 @@ public abstract class Loop extends BaseR {
             }
 
             public RAny execute(RContext context, Frame frame, RAny rval) {
-                Generic gn;
-                String dbg;
-                if (frame == null) {
-                    gn = createToplevel(ast, cvar, range, body);
-                    dbg = "install Generic.TopLevel from Generic (uninitialized)";
-                } else {
-                    gn = create(ast, cvar, range, body);
-                    dbg = "install Generic from Generic (uninitialized)";
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    Generic gn;
+                    String dbg;
+                    if (frame == null) {
+                        gn = createToplevel(ast, cvar, range, body);
+                        dbg = "install Generic.TopLevel from Generic (uninitialized)";
+                    } else {
+                        gn = create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
+                        dbg = "install Generic from Generic (uninitialized)";
+                    }
+                    replace(gn, dbg);
+                    return gn.execute(context, frame, rval);
                 }
-                replace(gn, dbg);
-                return gn.execute(context, frame, rval);
             }
 
             public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
@@ -273,7 +281,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
                     public RAny execute(RContext context, Frame frame, RAny rval) {
@@ -283,10 +291,9 @@ public abstract class Loop extends BaseR {
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
-                            int pos = RFrame.getPositionInWS(frame,cvar);
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeAt(frame, pos, vvalue);
+                                RFrame.writeAt(frame, position, vvalue);
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
