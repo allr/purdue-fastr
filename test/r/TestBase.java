@@ -1,5 +1,7 @@
 package r;
 
+import java.io.*;
+
 import org.antlr.runtime.*;
 import org.junit.*;
 
@@ -19,7 +21,49 @@ public class TestBase {
     }
 
     static void assertEval(String input, String expected) throws RecognitionException {
-        Assert.assertEquals(expected, evalString(input));
+
+        if (global.getCompiler() != null) {
+
+            final PrintStream oldOut = System.out;
+            final PrintStream oldErr = System.err;
+
+            final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
+            final PrintStream myOutPS = new PrintStream(myOut);
+
+            System.out.println("Testing " + input + " with captured output.");
+
+            System.setOut(myOutPS);
+            System.setErr(myOutPS);
+            String result = evalString(input);
+            myOutPS.flush();
+            System.setOut(oldOut);
+            System.setErr(oldErr);
+
+            String output = myOut.toString();
+            String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
+                                   "Captured output of " + input + " is above.\n";
+
+            if (!result.equals(expected)) {
+                System.err.println(verboseOutput);
+                Assert.fail("incorrect result when running with Truffle, got " + result + " for " + input);
+            }
+            if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
+                System.err.println("Truffle compilation failed for " + input);
+                System.err.println(verboseOutput);
+                Assert.fail("Truffle compilation failed");
+            }
+            if (!input.contains("junitWrapper")) {
+                // the test did not trigger compilation
+                String newInput = "{ junitWrapper <- function() { " + input + " }; junitWrapper(); junitWrapper() }";
+                System.out.println("Converted input " + input + " to " + newInput);
+                assertEval(newInput, expected);
+            } else {
+                System.out.println(verboseOutput);
+            }
+        } else {
+            String result = evalString(input);
+            Assert.assertEquals(expected, result);
+        }
     }
 
     static RAny eval(String input) throws RecognitionException {

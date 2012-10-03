@@ -2,6 +2,7 @@ package r.nodes.tools;
 
 import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.runtime.Stable;
 
 import r.*;
 import r.data.*;
@@ -25,10 +26,10 @@ public class Truffleize implements Visitor {
     public RNode createLazyRootTree(final ASTNode ast) {
         return new BaseR(ast) {
 
-            final RNode node = updateParent(createLazyTree(ast));
+            @Stable RNode node = updateParent(createLazyTree(ast));
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 try {
                     return node.execute(context, frame);
                 } catch (ContinueException ce) {
