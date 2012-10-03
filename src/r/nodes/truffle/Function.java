@@ -14,12 +14,12 @@ public class Function extends RNode {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         return function.createClosure(frame);
     }
 
     @Override
-    public ASTNode getAST() {
+    public final ASTNode getAST() {
      return function.getSource();
     }
 }

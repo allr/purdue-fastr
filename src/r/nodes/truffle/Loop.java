@@ -28,7 +28,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, Frame frame) {
+        public final RAny execute(RContext context, Frame frame) {
             throw new BreakException();
         }
     }
@@ -39,7 +39,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, Frame frame) {
+        public final RAny execute(RContext context, Frame frame) {
             throw new ContinueException();
         }
     }
@@ -50,7 +50,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, Frame frame) {
+        public final RAny execute(RContext context, Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering repeat loop");
                 for (;;) {
@@ -77,7 +77,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, Frame frame) {
+        public final RAny execute(RContext context, Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering while loop");
                 for (;;) {
@@ -153,7 +153,7 @@ public abstract class Loop extends BaseR {
                 }
 
                 @Override
-                public RAny execute(RContext context, Frame frame) {
+                public final RAny execute(RContext context, Frame frame) {
                     RAny rval = (RAny) range.execute(context, frame);
                     try {
                         if (!(rval instanceof IntImpl.RIntSequence)) {
@@ -183,7 +183,7 @@ public abstract class Loop extends BaseR {
             public static Specialized createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
-                    public RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
+                    public final RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -206,7 +206,7 @@ public abstract class Loop extends BaseR {
             public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
-                    public RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
+                    public final RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -235,7 +235,7 @@ public abstract class Loop extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame) {
+            public final RAny execute(RContext context, Frame frame) {
                 RAny rval = (RAny) range.execute(context, frame);
                 return execute(context, frame, rval);
             }
@@ -261,7 +261,7 @@ public abstract class Loop extends BaseR {
             public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
-                    public RAny execute(RContext context, Frame frame, RAny rval) {
+                    public final RAny execute(RContext context, Frame frame, RAny rval) {
                         if (!(rval instanceof RArray)) {
                             throw RError.getInvalidForSequence(ast);
                         }
@@ -284,7 +284,7 @@ public abstract class Loop extends BaseR {
             public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
-                    public RAny execute(RContext context, Frame frame, RAny rval) {
+                    public final RAny execute(RContext context, Frame frame, RAny rval) {
                         if (!(rval instanceof RArray)) {
                             throw RError.getInvalidForSequence(ast);
                         }

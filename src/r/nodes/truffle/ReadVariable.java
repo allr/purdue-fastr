@@ -24,7 +24,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -60,7 +60,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val = RFrame.readViaWriteSet(frame, position, symbol);
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
@@ -75,7 +75,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val = RFrame.readViaReadSet(frame, hops, position, symbol);
                 if (val == null) {
                     throw RError.getUnknownVariable(getAST());
@@ -92,7 +92,7 @@ public abstract class ReadVariable extends BaseR {
             int version;
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val; // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
@@ -118,7 +118,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null) {

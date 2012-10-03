@@ -34,7 +34,7 @@ public class Arithmetic extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         // version for scalars
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
@@ -112,7 +112,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, lexpr, rexpr);

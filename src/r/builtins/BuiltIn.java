@@ -20,7 +20,7 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             return doBuiltIn(context, frame);
         }
 
@@ -40,7 +40,7 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame));
         }
 
@@ -60,7 +60,7 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame), (RAny) argExprs[1].execute(context, frame));
         }
 

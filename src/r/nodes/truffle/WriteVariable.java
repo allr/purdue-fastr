@@ -33,7 +33,7 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -69,7 +69,7 @@ public abstract class WriteVariable extends BaseR {
             int position = pos;
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeAt(frame, position, val);
                 if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" local-ws, wrote "+val+" ("+val.pretty()+") to position "+position); }
@@ -82,7 +82,7 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeInTopLevel(symbol, val);
                 if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" toplevel, wrote "+val+" ("+val.pretty()+")"); }
@@ -95,7 +95,7 @@ public abstract class WriteVariable extends BaseR {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override
-            public Object execute(RContext context, Frame frame) {
+            public final Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
                 RFrame.writeInExtension(frame, symbol, val);
                 return val;

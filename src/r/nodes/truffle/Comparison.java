@@ -26,7 +26,7 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
         // this version assumes comparison of two scalars (int, double, int vs. double)
@@ -94,7 +94,7 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, lexpr, rexpr);
@@ -184,7 +184,7 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public final Object execute(RContext context, Frame frame) {
             RAny lexpr = (RAny) left.execute(context, frame);
             RAny rexpr = (RAny) right.execute(context, frame);
             return execute(context, lexpr, rexpr);

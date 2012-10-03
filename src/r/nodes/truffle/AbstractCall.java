@@ -7,8 +7,8 @@ import r.nodes.*;
 
 public abstract class AbstractCall extends BaseR {
 
-    @Stable protected final RSymbol[] argNames;
-    @Stable protected final RNode[] argExprs;
+    @ContentStable protected final RSymbol[] argNames;
+    @ContentStable protected final RNode[] argExprs;
 
     public AbstractCall(ASTNode orig, RSymbol[] argNames, RNode[] argsExprs) {
         super(orig);

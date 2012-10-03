@@ -25,7 +25,7 @@ public abstract class ConvertToLogicalOne extends RNode {
     }
 
     @Override
-    public int executeLogicalOne(RContext context, Frame frame) {
+    public final int executeLogicalOne(RContext context, Frame frame) {
         return executeLogicalOne(context, (RAny) input.execute(context, frame));
     }
 

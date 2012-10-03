@@ -28,7 +28,7 @@ public class If extends BaseR {
     //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
     //   - a generic conversion node that can convert anything
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         int ifVal;
 
         try {

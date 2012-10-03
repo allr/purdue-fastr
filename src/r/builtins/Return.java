@@ -18,7 +18,7 @@ public class Return {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(RContext context, Frame frame) {
                         RFrame.setReturnValue(frame, RNull.getNull());
                         throw ReturnException.instance;
                     }
@@ -28,7 +28,7 @@ public class Return {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     RAny toReturn = Combine.combine(context, frame, params);
                     RFrame.setReturnValue(frame, toReturn);
                     throw ReturnException.instance;

@@ -13,13 +13,13 @@ public class FunctionImpl extends BaseObject implements RFunction {
     final RFunction enclosing;
     final Function source;
 
-    final RSymbol[] paramNames;
-    final RNode[] paramValues;
+    @ContentStable final RSymbol[] paramNames;
+    @ContentStable final RNode[] paramValues;
     final RNode body;
 
-    final RSymbol[] writeSet;
+    @ContentStable final RSymbol[] writeSet;
     final int writeSetBloom;
-    final ReadSetEntry[] readSet;
+    @ContentStable final ReadSetEntry[] readSet;
     final int readSetBloom;
 
     private static final boolean DEBUG_CALLS = false;

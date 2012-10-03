@@ -17,7 +17,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     final int nparams; // to make Truffle happy
     final int nslots;
     final RNode body;
-    @Stable RNode[] dflParams;
+    @ContentStable final RNode[] dflParams;
 
     @Stable private CompiledObject<Object[]> compiledObject;
     private final int compileThreshold;
@@ -77,7 +77,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
-    public Object call(Context context, Object[] args) {
+    public final Object call(Context context, Object[] args) {
         return execute(context, args);
     }
 
@@ -104,7 +104,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
-    public Object executeHelper(Context context, Object[] args) {
+    public final Object executeHelper(Context context, Object[] args) {
             // Frame frame = RFrame.create(function, environment);
             // but cannot call that directly because Truffle would miss the Frame allocation
         Frame frame = new Frame(nslots, environment);

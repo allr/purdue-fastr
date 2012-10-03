@@ -8,7 +8,7 @@ import r.nodes.*;
 
 public class Sequence extends BaseR {
 
-    @Stable RNode[] exprs;
+    @ContentStable final RNode[] exprs;
 
     public Sequence(ASTNode ast, RNode[] exprs) {
         super(ast);
@@ -17,8 +17,8 @@ public class Sequence extends BaseR {
     }
 
     @Override
-    @ExplodeLoop // needed to make Truffle happy
-    public Object execute(RContext context, Frame frame) {
+    @ExplodeLoop
+    public final Object execute(RContext context, Frame frame) {
 
         Object res = null;
         for (RNode e : exprs) {

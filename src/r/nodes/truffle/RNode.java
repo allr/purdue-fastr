@@ -15,7 +15,7 @@ public abstract class RNode extends Node {
     }
 
     @Override
-    public Object execute(Context context, Frame frame) {
+    public final Object execute(Context context, Frame frame) {
         return execute((RContext) context, frame);
     }
 

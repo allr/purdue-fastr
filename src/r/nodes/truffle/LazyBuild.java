@@ -14,7 +14,7 @@ public class LazyBuild extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {

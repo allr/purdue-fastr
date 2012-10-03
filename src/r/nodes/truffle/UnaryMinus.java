@@ -18,7 +18,7 @@ public abstract class UnaryMinus extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
+    public final Object execute(RContext context, Frame frame) {
         RAny value = (RAny) lhs.execute(context, frame);
         return execute(context, value);
     }

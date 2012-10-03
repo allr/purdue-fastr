@@ -16,7 +16,7 @@ public class Length {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RAny arg = args[0];
                     if (arg instanceof RArray) {
                         return RInt.RIntFactory.getScalar(((RArray) arg).size());

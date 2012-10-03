@@ -12,7 +12,7 @@ public abstract class BaseR extends RNode {
     }
 
     @Override
-    public ASTNode getAST() {
+    public final ASTNode getAST() {
         return ast == null ? super.getAST() : ast;
     }
 

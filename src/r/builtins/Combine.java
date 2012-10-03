@@ -66,7 +66,7 @@ public class Combine {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(RContext context, Frame frame) {
                         return RNull.getNull();
                     }
 
@@ -75,7 +75,7 @@ public class Combine {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     return combine(context, frame, params);
                 }
             };

@@ -41,7 +41,7 @@ public abstract class FunctionCall extends AbstractCall {
             return new FunctionCall(ast, closureExpr, argNames, argExprs) {
 
                 @Override
-                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
                     RSymbol[] names = new RSymbol[argExprs.length];
                     int[] positions = computePositions(context, func, names);
                     return displaceArgs(context, callerFrame, positions, names, func.nparams());
@@ -57,7 +57,7 @@ public abstract class FunctionCall extends AbstractCall {
                 int[] positions;
 
                 @Override
-                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
                     if (func != lastCall) {
                         lastCall = func;
                         names = new RSymbol[argExprs.length];
@@ -73,7 +73,7 @@ public abstract class FunctionCall extends AbstractCall {
             return new FunctionCall(ast, closureExpr, argNames, argExprs) {
 
                 @Override
-                protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
                     return displaceArgs(context, callerFrame, func.nparams());
                 }
             };
@@ -81,7 +81,7 @@ public abstract class FunctionCall extends AbstractCall {
     };
 
     @Override
-    public Object execute(RContext context, Frame callerFrame) {
+    public final Object execute(RContext context, Frame callerFrame) {
         RClosure tgt = (RClosure) closureExpr.execute(context, callerFrame);
         Object[] argValues = matchParams(context, tgt.function(), tgt.environment(), callerFrame);
         return tgt.call(context, argValues);
@@ -89,7 +89,7 @@ public abstract class FunctionCall extends AbstractCall {
 
     protected abstract Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame);
 
-    protected int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
+    protected final int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
         RSymbol[] defaultsNames = func.paramNames();
 
         int nbArgs = argExprs.length;
@@ -152,7 +152,7 @@ public abstract class FunctionCall extends AbstractCall {
      * @param names Names of extra arguments (...).
      */
     @ExplodeLoop
-    protected Object[] displaceArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
+    protected final Object[] displaceArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
         //int dfltsArgs = positions.length;
 
         Object[] argValues = new Object[nparams];
@@ -195,7 +195,7 @@ public abstract class FunctionCall extends AbstractCall {
     }
 
     @ExplodeLoop
-    protected Object[] displaceArgs(RContext context, Frame callerFrame, int nparams) {
+    protected final Object[] displaceArgs(RContext context, Frame callerFrame, int nparams) {
         Object[] argValues = new Object[nparams];
         int i = 0;
 
