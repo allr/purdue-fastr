@@ -76,8 +76,17 @@ def rfannkuch(args, vmArgs, vm):
 
   shutil.copyfile(source, tmp);
   with open(tmp, "a") as f:
+#  
+#  This was intended as a warm-up, but running with different sizes breaks
+#  Truffle/Graal: it gives incorrect results
+#
+#    f.write("fannkuch(3L)\n");
+#    f.write("fannkuch(3L)\n");   
+#    f.write("fannkuch(3L)\n");     
     f.write("fannkuch("+size+")\n");
-        
+    f.write("fannkuch("+size+")\n");
+    f.write("fannkuch("+size+")\n");    
+    f.write("fannkuch("+size+")\n");       
   print("Problem size "+size);
   print("Input file "+tmp);
   
