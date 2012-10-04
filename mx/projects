@@ -4,7 +4,7 @@
 # fastr
 project@fastr@subDir=..
 project@fastr@sourceDirs=src,test
-project@fastr@dependencies=com.oracle.truffle,ANTLR
+project@fastr@dependencies=com.oracle.truffle,com.oracle.truffle.compiler,ANTLR
 project@fastr@javaCompliance=1.7
 
 # AntLR
