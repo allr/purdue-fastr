@@ -1,3 +1,27 @@
+
+
+Installation
+------------
+
+hg clone http://r.cs.purdue.edu/hg/fastr
+hg clone --insecure https://maxinevm@lafo.ssw.uni-linz.ac.at/hg/graalvm-truffle
+
+cd graalvm-truffle
+echo "../fastr" > mx/includes
+
+./mx.sh build
+
+Running
+-------
+
+Using HotSpot ./mx.sh r
+Using Graal ./mx.sh rg
+
+
+Earlier documentation (to be merged in/updated):
+------------------------------------------------
+
+
 # Installation
 
  -  Preparing your project, i.e., create a fresh directory (for instance `fastr`)
