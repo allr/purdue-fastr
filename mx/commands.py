@@ -14,7 +14,9 @@ def mx_init():
       'r': [rconsoleServer, ''],
       'rg': [rconsoleGraal, ''],
       'rfannkuch': [rfannkuchServer, '[size]'],
-      'rgfannkuch': [rfannkuchGraal, '[size]']
+      'rgfannkuch': [rfannkuchGraal, '[size]'],
+      'runittest': [runittestServer, ''],
+      'rgunittest': [runittestGraal, '']
   }
   mx.commands.update(commands);
 
@@ -58,6 +60,14 @@ def rfannkuchGraal(args):
   """Run Fannkuch with the Graal VM"""  
   rfannkuch(args, ['-XX:-BootstrapGraal'], 'graal')
 
+def runittestServer(args):
+  """Run unit tests with the HotSpot server VM"""
+  runittest(args, [], 'server')
+
+def runittestGraal(args):
+  """Run unit tests with the Graal VM"""
+  runittest(args, ['-XX:-BootstrapGraal'], 'graal')
+
 # ------------------
   
 def rconsole(vmArgs, vm, cArgs):
@@ -91,4 +101,10 @@ def rfannkuch(args, vmArgs, vm):
   print("Input file "+tmp);
   
   rconsole(vmArgs, vm, [tmp]);
+
+def runittest(args, vmArgs, vm): 
+  """Run unit tests using the given VM""" 
+  
+  classes = gmod._find_classes_with_annotations(mx.project('fastr'), None, ['@Test', '@Parameters'])
+  gmod.vm( ['-esa', '-ea', '-cp', mx.classpath('fastr')] + vmArgs + ['org.junit.runner.JUnitCore'] + classes, vm )
   
