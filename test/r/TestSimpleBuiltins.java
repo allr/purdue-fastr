@@ -18,6 +18,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{(0-1.5):(0-12)}", "-1.5, -2.5, -3.5, -4.5, -5.5, -6.5, -7.5, -8.5, -9.5, -10.5, -11.5");
         assertEval("{10:1}", "10L, 9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L");
         assertEval("{(0-5):(0-9)}", "-5L, -6L, -7L, -8L, -9L");
+
+        assertEval("{seq(1,10)}", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L");
+        assertEval("{seq(10,1)}", "10L, 9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L");
+        assertEval("{seq(from=1,to=3)}", "1L, 2L, 3L");
+        assertEval("{seq(to=-1,from=-10)}", "-10L, -9L, -8L, -7L, -6L, -5L, -4L, -3L, -2L, -1L");
+        assertEval("{seq(length.out=13.4)}", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L, 14L");
+        assertEval("{seq(length.out=0)}", "integer(0)");
+        assertEval("{seq(length.out=1)}", "1L");
     }
 
     @Test

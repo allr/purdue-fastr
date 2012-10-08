@@ -3,7 +3,6 @@ package r.builtins;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
-import r.builtins.BuiltIn.BuiltIn2;
 import r.data.*;
 import r.errors.*;
 import r.nodes.ASTNode;
@@ -76,7 +75,7 @@ public class Colon {
         }
     }
 
-    public static void checkNAandNaN(int i, ASTNode ast) {
+    public static void checkNA(int i, ASTNode ast) {
         if (i == RInt.NA) {
             throw RError.getNAorNaN(ast);
         }
@@ -96,12 +95,12 @@ public class Colon {
                         RInt a0rint = (RInt) arg0;
                         Colon.checkScalar(a0rint, ast, context);
                         int a0 = a0rint.getInt(0);
-                        Colon.checkNAandNaN(a0, ast);
+                        Colon.checkNA(a0, ast);
                         if (arg1 instanceof RInt) {
                             RInt a1rint = (RInt) arg1;
                             Colon.checkScalar(a1rint, ast, context);
                             int a1 = a1rint.getInt(0);
-                            Colon.checkNAandNaN(a1, ast);
+                            Colon.checkNA(a1, ast);
                             return Colon.create(a0, a1);
                         }
                         if (arg1 instanceof RDouble) {
@@ -131,7 +130,7 @@ public class Colon {
                                 RInt a1rint = (RInt) arg1;
                                 Colon.checkScalar(a1rint, ast, context);
                                 int a1 = a1rint.getInt(0);
-                                Colon.checkNAandNaN(a1, ast);
+                                Colon.checkNA(a1, ast);
                                 return Colon.create(ia0, a1);
                             }
                             if (arg1 instanceof RDouble) {

@@ -22,6 +22,7 @@ public class Primitives {
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
         add("max", 0, -1, Max.FACTORY);
         add("return", 0, -1, Return.FACTORY);
+        add("seq", 0, -1, Seq.FACTORY);
     }
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {

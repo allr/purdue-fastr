@@ -44,7 +44,7 @@ public abstract class FunctionCall extends AbstractCall {
                 protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
                     RSymbol[] names = new RSymbol[argExprs.length];
                     int[] positions = computePositions(context, func, names);
-                    return displaceArgs(context, callerFrame, positions, names, func.nparams());
+                    return placeArgs(context, callerFrame, positions, names, func.nparams());
                 }
             };
         }
@@ -63,7 +63,7 @@ public abstract class FunctionCall extends AbstractCall {
                         names = new RSymbol[argExprs.length];
                         positions = computePositions(context, func, names);
                     }
-                    return displaceArgs(context, callerFrame, positions, names, func.nparams());
+                    return placeArgs(context, callerFrame, positions, names, func.nparams());
 
                 }
             };
@@ -74,7 +74,7 @@ public abstract class FunctionCall extends AbstractCall {
 
                 @Override
                 protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    return displaceArgs(context, callerFrame, func.nparams());
+                    return placeArgs(context, callerFrame, func.nparams());
                 }
             };
         }
@@ -89,52 +89,59 @@ public abstract class FunctionCall extends AbstractCall {
 
     protected abstract Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame);
 
-    protected final int[] computePositions(final RContext context, final RFunction func, RSymbol[] names) {
-        RSymbol[] defaultsNames = func.paramNames();
+    // providedArgNames is an output parameter, should be an array of argExprs.length nulls before the call
+    // FIXME: what do we need the parameter for?
 
-        int nbArgs = argExprs.length;
-        int nbFormals = defaultsNames.length;
+    protected final int[] computePositions(final RContext context, final RFunction func, RSymbol[] usedArgNames) {
+        return computePositions(context, func.paramNames(), usedArgNames);
+    }
 
-        boolean[] used = new boolean[nbFormals]; // Alloc in stack if we are lucky !
+    protected final int[] computePositions(final RContext context, RSymbol[] paramNames, RSymbol[] usedArgNames) {
+
+        int nArgs = argExprs.length;
+        int nParams = paramNames.length;
+
+        boolean[] provided = new boolean[nParams]; // Alloc in stack if we are lucky !
 
         boolean has3dots = false;
-        int[] positions = new int[has3dots ? (nbArgs + nbFormals) : nbFormals]; // The right size is unknown in presence of ``...'' !
+        int[] positions = new int[has3dots ? (nArgs + nParams) : nParams]; // The right size is unknown in presence of ``...'' !
 
-        for (int i = 0; i < nbArgs; i++) {
+        for (int i = 0; i < nArgs; i++) { // matching by name
             if (argNames[i] != null) {
-                for (int j = 0; j < nbFormals; j++) {
-                    if (argNames[i] == defaultsNames[j]) {
-                        names[i] = argNames[i];
+                for (int j = 0; j < nParams; j++) {
+                    if (argNames[i] == paramNames[j]) {
+                        usedArgNames[i] = argNames[i];
                         positions[i] = j;
-                        used[j] = true;
+                        provided[j] = true;
                     }
                 }
             }
         }
 
         int nextParam = 0;
-        for (int i = 0; i < nbArgs; i++) {
-            if (names[i] == null) {
-                while (nextParam < nbFormals && used[nextParam]) {
+        for (int i = 0; i < nArgs; i++) { // matching by position
+            if (usedArgNames[i] == null) {
+                while (nextParam < nParams && provided[nextParam]) {
                     nextParam++;
                 }
-                if (nextParam == nbFormals) {
+                if (nextParam == nParams) {
                     // TODO either error or ``...''
                     context.error(getAST(), "unused argument(s) (" + argExprs[i].getAST() + ")");
                 }
                 if (argExprs[i] != null) {
-                    names[i] = defaultsNames[nextParam]; // This is for now useless but needed for ``...''
+                    usedArgNames[i] = paramNames[nextParam]; // This is for now useless but needed for ``...''
                     positions[i] = nextParam;
-                    used[nextParam] = true;
+                    provided[nextParam] = true;
                 } else {
                     nextParam++;
                 }
             }
         }
 
-        int j = nbArgs;
-        while (j < nbFormals) {
-            if (!used[nextParam]) {
+     // FIXME ??? - what is this? - why more positions than nArgs?
+        int j = nArgs;
+        while (j < nParams) {
+            if (!provided[nextParam]) {
                 positions[j++] = nextParam;
             }
             nextParam++;
@@ -142,6 +149,7 @@ public abstract class FunctionCall extends AbstractCall {
 
         return positions;
     }
+
 
     /**
      * Displace args provided at the good position in the frame.
@@ -152,8 +160,7 @@ public abstract class FunctionCall extends AbstractCall {
      * @param names Names of extra arguments (...).
      */
     @ExplodeLoop
-    protected final Object[] displaceArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
-        //int dfltsArgs = positions.length;
+    protected final Object[] placeArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
 
         Object[] argValues = new Object[nparams];
         int i;
@@ -163,39 +170,18 @@ public abstract class FunctionCall extends AbstractCall {
                 RNode v = argExprs[i];
                 if (v != null) {
                     argValues[p] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
-                    // FIXME and it's even worst since it's not the good frame at all !
-                } /*   this is now done in executeHelper (at the callee)
-                else {
-                    v = fdefs[positions[i]];
-                    if (v != null) { // TODO insert special value for missing
-                        // FIXME: can't execute now because the callee Frame does not yet exist
-                        argValues[positions[i]] = null;  fdefs[positions[i]].execute(context, calleeFrame));
-                    }
-
-                } */
+                }
             } else {
                 // TODO add to ``...''
                 // Note that names[i] contains a key if needed
                 context.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
             }
         }
-
-        /* this is now done in executeHelper (at the callee)
-        for (; i < dfltsArgs; i++) { // For now we populate frames with prom/value.
-            // I'm not found of this, there should be a way to only create/evaluate when needed.
-            // Thus there could be a bug if a default values depends on another
-            RNode v = fdefs[positions[i]];
-            if (v != null) { // TODO insert special value for missing
-                // FIXME: can't execute now because the callee Frame does not yet exist
-                argValues[positions[i]] = null; // fdefs[positions[i]].execute(context, calleeFrame));
-            }
-        }
-        */
         return argValues;
     }
 
     @ExplodeLoop
-    protected final Object[] displaceArgs(RContext context, Frame callerFrame, int nparams) {
+    protected final Object[] placeArgs(RContext context, Frame callerFrame, int nparams) {
         Object[] argValues = new Object[nparams];
         int i = 0;
 
@@ -207,15 +193,6 @@ public abstract class FunctionCall extends AbstractCall {
                 context.error(argExprs[i].getAST(), "unused argument(s)");
             }
         }
-        /* this is now done in executeHelper (at the callee)
-        for (; i < fdefs.length; i++) {
-            RNode v = fdefs[i];
-            if (v != null) { // TODO insert special value for missing
-                // FIXME: can't execute now because the callee Frame does not yet exist
-                argValues[i] = null; // fdefs[i].execute(context, calleeFrame));
-            }
-        }
-        */
         return argValues;
     }
 }
