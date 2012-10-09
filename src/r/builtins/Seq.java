@@ -59,8 +59,83 @@ public class Seq {
                   if (exprs.length == 3) {
                       if (provided[IBY]) {
                           //from, to, by
-                          Utils.nyi();
-                          return null;
+                          return new BuiltIn(call, names, exprs) {
+
+                              // note: does not implement the full semantics
+                              @Override
+                              public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+
+                                  RAny argfrom = args[paramPositions[IFROM]];
+                                  RAny argto = args[paramPositions[ITO]];
+                                  RAny argby = args[paramPositions[IBY]];
+
+                                  if (!(argfrom instanceof RArray && argto instanceof RArray && argby instanceof RArray)) {
+                                      Utils.nyi("unsupported argument types");
+                                  }
+
+                                  RArray afrom = (RArray) argfrom;
+                                  RArray ato = (RArray) argto;
+                                  RArray aby = (RArray) argby;
+
+                                  Colon.checkScalar(afrom, ast, context);
+                                  Colon.checkScalar(ato, ast, context);
+                                  Colon.checkScalar(aby, ast, context);
+
+                                      // FIXME: perhaps could be optimized for integer-only case
+                                  double from = afrom.asDouble().getDouble(0);
+                                  double to = ato.asDouble().getDouble(0);
+                                  double by = aby.asDouble().getDouble(0);
+
+                                  double del = to - from;
+                                  if (del == 0 && to == 0) {
+                                      return argto;
+                                  }
+                                  double n = del / by;
+                                  if (!RDouble.RDoubleUtils.isFinite(n)) {
+                                      if (by == 0 && del == 0) {
+                                          return argfrom;
+                                      }
+                                      throw RError.getInvalidTFB(ast);
+                                  }
+                                  if (n < 0) {
+                                      throw RError.getWrongSignInBy(ast);
+                                  }
+                                  if (n > Integer.MAX_VALUE) {
+                                      throw RError.getByTooSmall(ast);
+                                  }
+                                  double dd = Math.abs(del) / Math.max(Math.abs(to), Math.abs(from));
+                                  if (dd < 100 * RDouble.EPSILON) {
+                                      return argfrom;
+                                  }
+                                  if (ato instanceof RInt && afrom instanceof RInt && aby instanceof RInt) {
+                                      return RInt.RIntFactory.forSequence((int) from, (int) (from + ((int)n) * by), (int) by);
+                                  } else {
+                                      int in = (int) (n + 1e-10);
+                                      double[] content = new double[in + 1];
+                                      if (by > 0) {
+                                          for (int i = 0; i <= in; i++) {
+                                              double x = from + i * by;
+                                              if (x <= to) {
+                                                  content[i] = x;
+                                              } else {
+                                                  content[i] = to;
+                                              }
+                                          }
+                                      } else {
+                                          for (int i = 0; i <= in; i++) {
+                                              double x = from + i * by;
+                                              if (x >= to) {
+                                                  content[i] = x;
+                                              } else {
+                                                  content[i] = to;
+                                              }
+                                          }
+                                      }
+                                      return RDouble.RDoubleFactory.getArray(content);
+                                  }
+                              }
+                          };
+
                       }
                       if (provided[ILENGTH_OUT]) {
                           // from, to, length.out

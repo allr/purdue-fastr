@@ -30,6 +30,9 @@ public abstract class RError extends RuntimeException {
     public static final String NO_NONMISSING_MAX = "no non-missing arguments to max; returning -Inf";
     public static final String LENGTH_NONNEGATIVE = "length must be non-negative number";
     public static final String INVALID_TIMES = "invalid 'times' argument";
+    public static final String INVALID_TFB = "invalid (to - from)/by in seq(.)";
+    public static final String WRONG_SIGN_IN_BY = "wrong sign in 'by' argument";
+    public static final String BY_TOO_SMALL = "'by' argument is much too small";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -254,6 +257,43 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.INVALID_TIMES;
+            }
+        };
+    }
+
+
+    public static RError getWrongSignInBy(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.WRONG_SIGN_IN_BY;
+            }
+        };
+    }
+
+    public static RError getByTooSmall(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.BY_TOO_SMALL;
+            }
+        };
+    }
+
+    public static RError getInvalidTFB(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_TFB;
             }
         };
     }
