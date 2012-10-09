@@ -26,6 +26,9 @@ public interface RDouble extends RNumber {
         public static boolean isNAorNaN(double d) {
             return Double.isNaN(d);
         }
+        public static boolean isFinite(double d) {
+            return !isNAorNaN(d) && !Double.isInfinite(d);
+        }
     }
     public class RDoubleFactory {
         public static DoubleImpl getScalar(double value) {

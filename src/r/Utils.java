@@ -66,6 +66,20 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createEmptyArray(RAny type) {
+        if (type instanceof RInt) {
+            return RInt.EMPTY;
+        }
+        if (type instanceof RDouble) {
+            return RDouble.EMPTY;
+        }
+        if (type instanceof RLogical) {
+            return RLogical.EMPTY;
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
     public static void setNA(RArray arr, int index) { // FIXME: !!! should find better design to get rid of these
         if (arr instanceof RInt) {
             arr.set(index, RInt.NA);

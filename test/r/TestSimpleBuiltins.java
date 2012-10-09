@@ -26,6 +26,21 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{seq(length.out=13.4)}", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L, 14L");
         assertEval("{seq(length.out=0)}", "integer(0)");
         assertEval("{seq(length.out=1)}", "1L");
+        assertEval("{seq(along.with=10)}", "1L");
+        assertEval("{seq(along.with=NA)}", "1L");
+        assertEval("{seq(along.with=1:10)}", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L");
+        assertEval("{seq(along.with=-3:-5)}", "1L, 2L, 3L");
+        assertEval("{seq(from=1.4)}", "1L");
+        assertEval("{seq(from=1.7)}", "1L");
+        assertEval("{seq(from=10:12)}", "1L, 2L, 3L");
+        assertEval("{seq(from=c(TRUE, FALSE))}", "1L, 2L");
+        assertEval("{seq(from=TRUE, to=TRUE, length.out=0)}", "integer(0)");
+        assertEval("{seq(from=10.5, to=15.4, length.out=4)}", "10.5, 12.133333333333333, 13.766666666666667, 15.4");
+        assertEval("{seq(from=11, to=12, length.out=2)}", "11.0, 12.0");
+
+        assertEval("{rep(1,3)}", "1.0, 1.0, 1.0");
+        assertEval("{rep(1:3,2)}", "1L, 2L, 3L, 1L, 2L, 3L");
+        assertEval("{rep(c(1,2),0)}", "numeric(0)");
     }
 
     @Test
@@ -46,6 +61,6 @@ public class TestSimpleBuiltins extends TestBase {
 
     @Test
     public void testOther() throws RecognitionException {
-        assertEval("{ rev <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev(1:3) }", "3L, 2L, 1L");
+        assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
 }

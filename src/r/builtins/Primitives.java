@@ -21,8 +21,11 @@ public class Primitives {
         add("length", 1, 1, Length.FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
         add("max", 0, -1, Max.FACTORY);
+        add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
+        add("rep.int", 2, 2, Rep.FACTORY);
         add("return", 0, -1, Return.FACTORY);
-        add("seq", 0, -1, Seq.FACTORY);
+        add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
+        add("seq.default", 0, -1, Seq.FACTORY);
     }
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {

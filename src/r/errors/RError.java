@@ -29,6 +29,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_FOR_SEQUENCE = "invalid for() loop sequence";
     public static final String NO_NONMISSING_MAX = "no non-missing arguments to max; returning -Inf";
     public static final String LENGTH_NONNEGATIVE = "length must be non-negative number";
+    public static final String INVALID_TIMES = "invalid 'times' argument";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
 
@@ -241,6 +242,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.LENGTH_NONNEGATIVE;
+            }
+        };
+    }
+
+    public static RError getInvalidTimes(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_TIMES;
             }
         };
     }

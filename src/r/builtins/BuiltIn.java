@@ -100,11 +100,13 @@ public abstract class BuiltIn extends AbstractCall {
         public static class AnalyzedArguments {
             public boolean[] providedParams;
             public int[] argPositions;
+            public int[] paramPositions;
             public ArrayList<Integer> unusedArgs;
 
             AnalyzedArguments(int nParams, int nArgs) {
-                providedParams = new boolean[nParams];
+                providedParams = new boolean[nParams]; // FIXME: could merge with paramPositions
                 argPositions = new int[nArgs];
+                paramPositions = new int[nParams];
             }
         }
 
@@ -128,6 +130,7 @@ public abstract class BuiltIn extends AbstractCall {
                     for (int j = 0; j < nParams; j++) {
                         if (argNames[i] == paramNames[j]) {
                             a.argPositions[i] = j;
+                            a.paramPositions[j] = i;
                             a.providedParams[j] = true;
                             usedArgs[i] = true;
                         }
@@ -151,6 +154,7 @@ public abstract class BuiltIn extends AbstractCall {
                         if (argExprs[i] != null) {
                             /* usedArgs[i] = true; - not needed */
                             a.argPositions[i] = nextParam;
+                            a.paramPositions[nextParam] = i;
                             a.providedParams[nextParam] = true;
                         } else {
                             nextParam++;
