@@ -62,9 +62,9 @@ public abstract class UpdateVector extends BaseR {
 
     @Override
     public final Object execute(RContext context, Frame frame) {
+        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
         RAny index = (RAny) indexes[0].execute(context, frame);
         RAny base = (RAny) lhs.execute(context, frame);
-        RAny value = (RAny) rhs.execute(context, frame);
 
         newVector = execute(context, base, index, value);
         assign.execute(context, frame);

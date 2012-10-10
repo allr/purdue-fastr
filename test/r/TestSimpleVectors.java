@@ -87,6 +87,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(TRUE,TRUE,FALSE,TRUE) ; x[3:2] <- TRUE; x }", "TRUE, TRUE, TRUE, TRUE");
 
         assertEval("{ x<-1:3 ; y<-(x[2]<-100) ; y }", "100.0");
+        assertEval("{ x<-1:5 ; x[x[4]<-2] <- (x[4]<-100) ; x }", "1.0, 100.0, 3.0, 2.0, 5.0");
+        assertEval("{ x<-1:5 ; x[3] <- (x[4]<-100) ; x }", "1.0, 2.0, 100.0, 100.0, 5.0");
+        assertEval("{ x<-5:1 ; x[x[2]<-2] }", "4L");
+        assertEval("{ x<-5:1 ; x[x[2]<-2] <- (x[3]<-50) ; x }", "5.0, 50.0, 50.0, 2.0, 1.0");
     }
 
     @Test

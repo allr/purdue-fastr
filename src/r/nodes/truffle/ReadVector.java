@@ -60,8 +60,8 @@ public abstract class ReadVector extends BaseR {
 
     @Override
     public final Object execute(RContext context, Frame frame) {
+        RAny base = (RAny) lhs.execute(context, frame);  // note: order is important
         RAny index = (RAny) indexes[0].execute(context, frame);
-        RAny base = (RAny) lhs.execute(context, frame);
         return execute(context, index, base);
     }
 
