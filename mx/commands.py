@@ -13,6 +13,7 @@ def mx_init():
       'frtest': [frtest, ''],
       'r': [rconsoleServer, ''],
       'rg': [rconsoleGraal, ''],
+      'rgd': [rconsoleDebugGraal, ''],      
       'rfannkuch': [rfannkuchServer, '[size]'],
       'rgfannkuch': [rfannkuchGraal, '[size]'],
       'runittest': [runittestServer, ''],
@@ -51,6 +52,10 @@ def rconsoleServer(args):
 def rconsoleGraal(args):
   """Run R Console with the Graal VM"""  
   rconsole(['-XX:-BootstrapGraal'], 'graal', [])
+
+def rconsoleDebugGraal(args):
+  """Run R Console with the Graal VM, debugging options"""  
+  rconsole(['-XX:-BootstrapGraal', '-G:+DumpOnError', '-G:Dump=Truffle', '-G:+PrintBinaryGraphs', '-G:+PrintCFG', '-esa'], 'graal', [])
 
 def rfannkuchServer(args):
   """Run Fannkuch with the HotSpot server VM"""  
