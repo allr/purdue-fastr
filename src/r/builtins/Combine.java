@@ -18,7 +18,7 @@ public class Combine {
         return offset + len;
     }
 
-    public static RAny combine(RContext context, Frame frame, RAny[] params) {
+    public static RAny combine(RAny[] params) {
         int len = 0;
         boolean hasDouble = false;
         boolean hasLogical = false;
@@ -76,7 +76,7 @@ public class Combine {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    return combine(context, frame, params);
+                    return combine(params);
                 }
             };
         }

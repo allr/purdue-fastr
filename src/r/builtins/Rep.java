@@ -18,7 +18,7 @@ public class Rep {
         }
     }
 
-    public static RAny rep(RContext context, ASTNode ast, RAny arg0, RAny arg1) {
+    public static RAny rep(ASTNode ast, RAny arg0, RAny arg1) {
 
         int times = -1;
         if (arg1 instanceof RDouble) {
@@ -123,7 +123,7 @@ public class Rep {
             return new BuiltIn(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    return rep(context, ast, args[0], args[1]);
+                    return rep(ast, args[0], args[1]);
                 }
             };
         }

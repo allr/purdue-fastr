@@ -7,7 +7,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.*;
 
 // FIXME: this would have been easier to write in R
@@ -175,10 +174,10 @@ public class Seq {
                                       return argfrom;
                                   }
                                   if (lengthOut == 2) {
-                                      return Combine.combine(context, frame, new RAny[] {argfrom, argto});
+                                      return Combine.combine(new RAny[] {argfrom, argto});
                                   }
                                   if (from == to) {
-                                      return Rep.rep(context, ast, argfrom, arglengthOut);
+                                      return Rep.rep(ast, argfrom, arglengthOut);
                                   }
 
                                   double by = ((to - from) / (lengthOut - 1)); // FIXME: this may not reflect exactly R semantics in corner cases
@@ -191,7 +190,7 @@ public class Seq {
                                   for (int i = 1; i <= len - 2; i++) {
                                       vec[i] = RDouble.RDoubleFactory.getScalar(from + i * by);
                                   }
-                                  return Combine.combine(context, frame, vec);
+                                  return Combine.combine(vec);
                               }
                           };
                       }
