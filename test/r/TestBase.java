@@ -5,8 +5,6 @@ import java.io.*;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-import com.oracle.truffle.compiler.*;
-
 import r.data.*;
 import r.nodes.*;
 import r.nodes.tools.*;

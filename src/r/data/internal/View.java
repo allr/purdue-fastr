@@ -179,4 +179,54 @@ public abstract class View implements RArray {
             return RLogical.RLogicalFactory.subset(this, index);
         }
     }
+
+    public abstract static class RListView extends View implements RList {
+        @Override
+        public Object get(int i) {
+            return getRAny(i);
+         }
+
+        @Override
+        public RList materialize() {
+            return RList.RListFactory.copy(this);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RInt asInt() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            Utils.nyi();
+            return null;
+        }
+
+
+        public RAny boxedGet(int i) {
+            return RList.RListFactory.getScalar(getRAny(i));
+        }
+
+        @Override
+        public RArray set(int i, RAny val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RList.RListFactory.subset(this, index);
+        }
+    }
 }

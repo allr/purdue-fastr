@@ -62,6 +62,9 @@ public final class Utils {
         if (type instanceof RLogical) {
             return RLogical.RLogicalFactory.getUninitializedArray(size);
         }
+        if (type instanceof RList) {
+            return RList.RListFactory.getUninitializedArray(size);
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -76,6 +79,9 @@ public final class Utils {
         if (type instanceof RLogical) {
             return RLogical.EMPTY;
         }
+        if (type instanceof RList) {
+            return RList.EMPTY;
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -87,6 +93,8 @@ public final class Utils {
             arr.set(index, RDouble.NA);
         } else if (arr instanceof RLogical) {
             arr.set(index, RLogical.NA);
+        } else if (arr instanceof RList) {
+            arr.set(index,  RNull.getNull());
         } else {
             Utils.nyi("unsupported array type");
         }
@@ -101,9 +109,11 @@ public final class Utils {
         }
         if (arr instanceof RLogical) {
             return RLogical.RLogicalFactory.copy((RLogical) arr);
-        } else {
-            Utils.nyi("unuspported array type");
-            return null;
         }
+        if (arr instanceof RList) {
+            return RList.RListFactory.copy((RList) arr);
+        }
+        Utils.nyi("unuspported array type");
+        return null;
     }
 }

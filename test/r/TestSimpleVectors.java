@@ -86,4 +86,35 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ f<-function(b,i,v) { b[i]<-v ; b } ; f(1:4,4:1,TRUE) ; f(c(3,2,1),8,10) ; f(c(TRUE,FALSE),TRUE,FALSE) }", "FALSE, FALSE");
         assertEval("{ x<-c(TRUE,TRUE,FALSE,TRUE) ; x[3:2] <- TRUE; x }", "TRUE, TRUE, TRUE, TRUE");
     }
+
+    @Test
+    public void testLists() throws RecognitionException {
+        // definitions
+        assertEval("{ list(1:4) }", "[[1]]\n1L, 2L, 3L, 4L");
+        assertEval("{ list(1,list(2,list(3,4))) }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0\n\n[[2]][[2]][[2]]\n4.0");
+
+        // indexing
+        assertEval("{ l<-list(1,2L,TRUE) ; l[[2]] }", "2L");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[c(FALSE,FALSE,TRUE)] }", "[[1]]\nTRUE");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[FALSE] }", "list()");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[-2] }", "[[1]]\n1.0\n\n[[2]]\nTRUE");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[NA] }", "[[1]]\nNULL\n\n[[2]]\nNULL\n\n[[3]]\nNULL");
+        assertEval("{ l<-list(1,2,3) ; l[c(1,2)] }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ l<-list(1,2,3) ; l[c(2)] }", "[[1]]\n2.0");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[2:4] }", "[[1]]\n2L\n\n[[2]]\nTRUE\n\n[[3]]\nFALSE");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[4:2] }", "[[1]]\nFALSE\n\n[[2]]\nTRUE\n\n[[3]]\n2L");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(-2,-3)] }", "[[1]]\n1.0\n\n[[2]]\nFALSE\n\n[[3]]\n5.0");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(-2,-3,-4,0,0,0)] }", "[[1]]\n1.0\n\n[[2]]\n5.0");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(2,5,4,3,3,3,0)] }", "[[1]]\n2L\n\n[[2]]\n5.0\n\n[[3]]\nFALSE\n\n[[4]]\nTRUE\n\n[[5]]\nTRUE\n\n[[6]]\nTRUE");
+        assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(2L,5L,4L,3L,3L,3L,0L)] }", "[[1]]\n2L\n\n[[2]]\n5.0\n\n[[3]]\nFALSE\n\n[[4]]\nTRUE\n\n[[5]]\nTRUE\n\n[[6]]\nTRUE");
+
+        // indexing with rewriting
+        assertEval("{ f<-function(x, i) { x[i] } ; f(list(1,2,3),3:1) ; f(list(1L,2L,3L,4L,5L),c(0,0,0,0-2)) }", "[[1]]\n1L\n\n[[2]]\n3L\n\n[[3]]\n4L\n\n[[4]]\n5L");
+        assertEval("{ x<-list(1,2,3,4,5) ; x[c(TRUE,TRUE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE,NA)] }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0\n\n[[4]]\nNULL\n\n[[5]]\nNULL");
+        assertEval("{ f<-function(i) { x<-list(1,2,3,4,5) ; x[i] } ; f(1) ; f(1L) ; f(TRUE) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0\n\n[[4]]\n4.0\n\n[[5]]\n5.0");
+        assertEval("{ f<-function(i) { x<-list(1,2,3,4,5) ; x[i] } ; f(1) ; f(TRUE) ; f(1L)  }", "[[1]]\n1.0");
+        assertEval("{ f<-function(i) { x<-list(1L,2L,3L,4L,5L) ; x[i] } ; f(1) ; f(TRUE) ; f(c(3,2))  }", "[[1]]\n3L\n\n[[2]]\n2L");
+        assertEval("{ f<-function(i) { x<-list(1,2,3,4,5) ; x[i] } ; f(1)  ; f(3:4) }", "[[1]]\n3.0\n\n[[2]]\n4.0");
+        assertEval("{ f<-function(i) { x<-list(1,2,3,4,5) ; x[i] } ; f(c(TRUE,FALSE))  ; f(3:4) }", "[[1]]\n3.0\n\n[[2]]\n4.0");
+    }
 }

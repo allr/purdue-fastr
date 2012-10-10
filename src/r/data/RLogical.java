@@ -9,10 +9,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     int TRUE = 1;
     int FALSE = 0;
     int NA = Integer.MIN_VALUE;
-    RLogical BOXED_TRUE = RLogicalFactory.getArray(TRUE);
-    RLogical BOXED_FALSE = RLogicalFactory.getArray(FALSE);
-    RLogical BOXED_NA = RLogicalFactory.getArray(NA);
-    RLogical EMPTY = RLogicalFactory.getUninitializedArray(0);
+
+    LogicalImpl BOXED_TRUE = RLogicalFactory.getArray(TRUE);
+    LogicalImpl BOXED_FALSE = RLogicalFactory.getArray(FALSE);
+    LogicalImpl BOXED_NA = RLogicalFactory.getArray(NA);
+    LogicalImpl EMPTY = RLogicalFactory.getUninitializedArray(0);
 
     int getLogical(int il);
     RLogical set(int i, int val);

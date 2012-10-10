@@ -11,6 +11,9 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
+// FIXME: add check for the number of dimensions in index
+// FIXME: probably should also specialize for base types
+
 // rewriting of vector selection nodes:
 //
 // *SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
@@ -96,7 +99,11 @@ public abstract class ReadVector extends BaseR {
                 if (i > vrarr.size()) {
                     throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                 }
-                return vrarr.boxedGet(i - 1);
+                if (subset || !(vrarr instanceof RList)) {
+                    return vrarr.boxedGet(i - 1);
+                } else {
+                    return ((RList) vrarr).getRAny(i - 1);
+                }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarIntSelection failed: " + f);
@@ -164,7 +171,11 @@ public abstract class ReadVector extends BaseR {
                 if (i > vrarr.size()) {
                     throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                 }
-                return vrarr.boxedGet(i - 1);
+                if (subset || !(vrarr instanceof RList)) {
+                    return vrarr.boxedGet(i - 1);
+                } else {
+                    return ((RList) vrarr).getRAny(i - 1);
+                }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarDoubleSelection failed: " + f);
@@ -194,9 +205,9 @@ public abstract class ReadVector extends BaseR {
         }
 
         // index must be a scalar
-        public static RAny executeScalar(RContext context, RArray vector, RArray index, boolean subset, ASTNode ast) {
+        public static RAny executeScalar(RArray base, RArray index, boolean subset, ASTNode ast) {
             int i = 0;
-            int size = vector.size();
+            int size = base.size();
             if (index instanceof RDouble) {
                 RDouble idbl = (RDouble) index;
                 i = Convert.double2int(idbl.getDouble(0)); // FIXME: check when the index is too large
@@ -206,26 +217,21 @@ public abstract class ReadVector extends BaseR {
                 i = ((RLogical) index).getLogical(0);
                 if (subset) {
                     if (i == RLogical.TRUE) {
-                        return vector;
+                        return base;
                     }
                     if (i == RLogical.FALSE) {
-                        if (vector instanceof RDouble) { // FIXME: to reduce verbosity could make "empty" a method, but this may be faster
-                            return RDouble.EMPTY;
-                        }
-                        if (vector instanceof RInt) {
-                            return RInt.EMPTY;
-                        }
-                        if (vector instanceof RLogical) {
-                            return RLogical.EMPTY;
-                        }
-                        Utils.nyi("unsupported vector type");
+                        return Utils.createEmptyArray(base);
                     }
                 }
             }
 
             if (i > 0) { // NOTE: RInt.NA < 0
                 if (i <= size) {
-                    return vector.boxedGet(i - 1);
+                    if (subset || !(base instanceof RList)) {
+                        return base.boxedGet(i - 1);
+                    } else {
+                        return ((RList) base).getRAny(i - 1);
+                    }
                 }
             }
 
@@ -251,15 +257,15 @@ public abstract class ReadVector extends BaseR {
                     throw RError.getSelectMoreThanOne(ast);
                 }
             }
-            if (vector instanceof RDouble) { // FIXME: could reduce verbosity through refactoring the number factories?
+            if (base instanceof RDouble) { // FIXME: could reduce verbosity through refactoring the number factories?
                 if (i == RInt.NA) {
                     return RDouble.RDoubleFactory.getNAArray(size);
                 }
                 if (i < 0) {
                     if (-i > size) {
-                        return vector;
+                        return base;
                     }
-                    return RDouble.RDoubleFactory.exclude(-i - 1, (RDouble) vector);
+                    return RDouble.RDoubleFactory.exclude(-i - 1, (RDouble) base);
                 }
                 if (i == 0) {
                     return RDouble.EMPTY;
@@ -267,15 +273,15 @@ public abstract class ReadVector extends BaseR {
                 // i > size
                 return RDouble.BOXED_NA;
             }
-            if (vector instanceof RInt) {
+            if (base instanceof RInt) {
                 if (i == RInt.NA) {
                     return RInt.RIntFactory.getNAArray(size);
                 }
                 if (i < 0) {
                     if (-i > size) {
-                        return vector;
+                        return base;
                     }
-                    return RInt.RIntFactory.exclude(-i - 1, (RInt) vector);
+                    return RInt.RIntFactory.exclude(-i - 1, (RInt) base);
                 }
                 if (i == 0) {
                     return RInt.EMPTY;
@@ -283,21 +289,37 @@ public abstract class ReadVector extends BaseR {
                 // i > size
                 return RInt.BOXED_NA;
             }
-            if (vector instanceof RLogical) {
+            if (base instanceof RLogical) {
                 if (i == RInt.NA) {
                     return RLogical.RLogicalFactory.getNAArray(size);
                 }
                 if (i < 0) {
                     if (-i > size) {
-                        return vector;
+                        return base;
                     }
-                    return RLogical.RLogicalFactory.exclude(-i - 1, (RLogical) vector);
+                    return RLogical.RLogicalFactory.exclude(-i - 1, (RLogical) base);
                 }
                 if (i == 0) {
                     return RLogical.EMPTY;
                 }
                 // i > size
                 return RLogical.BOXED_NA;
+            }
+            if (base instanceof RList) {
+                if (i == RInt.NA) {
+                    return RList.RListFactory.getNullArray(size);
+                }
+                if (i < 0) {
+                    if (-i > size) {
+                        return base;
+                    }
+                    return RList.RListFactory.exclude(-i - 1, (RList) base);
+                }
+                if (i == 0) {
+                    return RList.EMPTY;
+                }
+                // i > size
+                return RList.NULL;
             }
             Utils.nyi("unsupported vector type for subscript");
             return null;
@@ -318,7 +340,7 @@ public abstract class ReadVector extends BaseR {
                 if (irarr.size() != 1) {
                     throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
                 }
-                return executeScalar(context, vrarr, irarr, subset, ast);
+                return executeScalar(vrarr, irarr, subset, ast);
 
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -364,7 +386,6 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ALL_POSITIVE_INDEX);
                 }
                 int size = abase.size();
-                //Utils.debug("Index is from "+sindex.min()+" to "+sindex.max());
                 if (sindex.max() > size) {
                     throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                 }
@@ -377,6 +398,9 @@ public abstract class ReadVector extends BaseR {
                 }
                 if (abase instanceof RLogical) {
                     return new RLogicalView((RLogical) abase, sindex.from(), sindex.to(), sindex.step());
+                }
+                if (abase instanceof RList) {
+                    return new RListView((RList) abase, sindex.from(), sindex.to(), sindex.step());
                 }
                 Utils.nyi("unsupported base vector type");
                 return null;
@@ -503,6 +527,41 @@ public abstract class ReadVector extends BaseR {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
                 return base.getLogical(from + i * step - 1);
+            }
+        }
+
+        static class RListView extends View.RListView implements RList {
+            final RList base;
+            final int from;
+            final int to;
+            final int step;
+
+            final int size;
+
+            public RListView(RList base, int from, int to, int step) {
+                this.base = base;
+                this.from = from;
+                this.to = to;
+                this.step = step;
+
+                int absstep = (step > 0) ? step : -step;
+                if (from <= to) {
+                    size = (to - from + 1) / absstep;
+                } else {
+                    size = (from - to + 1) / absstep;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public RAny getRAny(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return base.getRAny(from + i * step - 1);
             }
         }
     }
@@ -697,7 +756,7 @@ public abstract class ReadVector extends BaseR {
             Utils.check(subset);
         }
 
-        public static RAny executeLogicalVector(RContext context, RLogical index, RArray base, ASTNode ast) {
+        public static RAny executeLogicalVector(RLogical index, RArray base) {
             int isize = index.size();
             int bsize = base.size();
 
@@ -769,7 +828,7 @@ public abstract class ReadVector extends BaseR {
                 if (!(index instanceof RLogical)) {
                     throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX);
                 }
-                return executeLogicalVector(context, (RLogical) index, (RArray) base, ast);
+                return executeLogicalVector((RLogical) index, (RArray) base);
 
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -801,7 +860,7 @@ public abstract class ReadVector extends BaseR {
             RArray aindex = (RArray) index;
             int isize = aindex.size();
             if (isize == 1) {
-                return GenericScalarSelection.executeScalar(context, abase, aindex, subset, ast);
+                return GenericScalarSelection.executeScalar(abase, aindex, subset, ast);
             }
             if (subset) {
                 if (aindex instanceof RInt) {
@@ -809,7 +868,7 @@ public abstract class ReadVector extends BaseR {
                 } else if (aindex instanceof RDouble) {
                     return IntSelection.executeIntVector(context, aindex.asInt(), abase, ast);
                 } else if (aindex instanceof RLogical) {
-                    return LogicalSelection.executeLogicalVector(context, (RLogical) aindex, abase, ast);
+                    return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
                 }
             } else {
                 if (isize > 1) {

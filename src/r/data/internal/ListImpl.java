@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
+import r.data.RInt.*;
 
 public class ListImpl extends ArrayImpl implements RList {
 
@@ -24,6 +25,19 @@ public class ListImpl extends ArrayImpl implements RList {
         content = new RAny[size];
     }
 
+    public ListImpl(RList v) {
+        content = new RAny[v.size()];
+        for (int i = 0; i < content.length; i++) {
+            RAny e = v.getRAny(i);
+            if (e instanceof RNull) {
+                content[i] = e;
+            } else if (e instanceof RArray) {
+                content[i] = Utils.copyArray((RArray) e);
+            } else {
+                Utils.nyi("unsupported type");
+            }
+        }
+    }
 
     @Override
     public int size() {
@@ -37,12 +51,23 @@ public class ListImpl extends ArrayImpl implements RList {
 
     @Override
     public RAny boxedGet(int i) {
+        return RListFactory.getScalar(getRAny(i));
+    }
+
+    @Override
+    public RAny getRAny(int i) {
         return content[i];
     }
 
     @Override
     public RArray set(int i, Object val) {
         content[i] = (RAny) val; //FIXME a better conversion
+        return this;
+    }
+
+    @Override
+    public RArray set(int i, RAny val) {
+        content[i] = val;
         return this;
     }
 
@@ -95,5 +120,10 @@ public class ListImpl extends ArrayImpl implements RList {
     public RDouble asDouble() {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public RArray subset(RInt index) {
+        return RList.RListFactory.subset(this, index);
     }
 }

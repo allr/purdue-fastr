@@ -8,10 +8,11 @@ public interface RDouble extends RNumber {
     long NA_LONGBITS = 0x7ff00000000007a2L; // R's NA is a special instance of IEEE's NaN
     double NA = Double.longBitsToDouble(NA_LONGBITS);
     double EPSILON = Math.pow(2.0, -52.0);
-    RDouble EMPTY = RDoubleFactory.getUninitializedArray(0);
-    RDouble BOXED_NA = RDoubleFactory.getArray(NA);
-    RDouble BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
     double NEG_INF = Double.NEGATIVE_INFINITY;
+
+    DoubleImpl EMPTY = RDoubleFactory.getUninitializedArray(0);
+    DoubleImpl BOXED_NA = RDoubleFactory.getArray(NA);
+    DoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
 
     RArray set(int i, double val);
     double getDouble(int i);
