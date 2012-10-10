@@ -1,7 +1,6 @@
 package r.data;
 
 import r.*;
-import r.data.RDouble.*;
 import r.data.internal.*;
 
 public interface RLogical extends RArray { // FIXME: should extend Number instead?

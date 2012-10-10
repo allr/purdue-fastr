@@ -8,7 +8,6 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-import r.nodes.truffle.AbstractCall.*;
 
 public abstract class BuiltIn extends AbstractCall {
 

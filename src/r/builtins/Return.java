@@ -29,7 +29,7 @@ public class Return {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    RAny toReturn = Combine.combine(context, frame, params);
+                    RAny toReturn = Combine.combine(params);
                     RFrame.setReturnValue(frame, toReturn);
                     throw ReturnException.instance;
                 }
