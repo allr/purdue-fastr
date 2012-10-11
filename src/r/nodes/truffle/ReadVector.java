@@ -19,9 +19,13 @@ import r.nodes.*;
 // *SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
 //                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> SimpleLogicalSelection -> LogicalSelection -> GenericSelection
 //                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> SimpleLogicalSelection -> GenericSelection
+//                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> Subscript -> GenericSelection
+//                             -> SimpleScalarDoubleSelection -> Subscript -> GenericSelection
+//                             -> GenericScalarSelection -> Subscript -> GenericSelection
 //                             -> GenericScalarSelection -> GenericSelection
 //                             -> SimpleIntSequenceSelection -> (below)
 //                             -> IntSelection -> GenericSelection
+//                             -> Subscript -> GenericSelection
 //                             -
 // *SimpleIntSequenceSelection -> IntSelection -> GenericSelection
 //                             -> GenericSelection
@@ -49,6 +53,7 @@ public abstract class ReadVector extends BaseR {
         NOT_DOUBLE_INDEX,
         NOT_ALL_POSITIVE_INDEX,
         NOT_INT_OR_DOUBLE_INDEX,
+        NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
         NOT_LOGICAL_INDEX,
         NOT_ONE_ELEMENT,
         NA_INDEX,
@@ -127,7 +132,13 @@ public abstract class ReadVector extends BaseR {
                                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
                                 return is.execute(context, index, vector);
                             }
-                        } // propagate below
+                        } else {
+                            Subscript s = new Subscript(ast, lhs, indexes, subset);
+                            replace(s, "install Subscript from SimpleScalarIntSelection");
+                            if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
+                            return s.execute(context, index, vector);
+                        }
+
                     default:
                         GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                         replace(gen, "install GenericScalarSelection from SimpleScalarIntSelection");
@@ -186,7 +197,12 @@ public abstract class ReadVector extends BaseR {
                             replace(is, "install IntSelection from SimpleScalarDoubleSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
                             return is.execute(context, index, vector);
-                        } // propagate below
+                        } else {
+                            Subscript s = new Subscript(ast, lhs, indexes, subset);
+                            replace(s, "install Subscript from SimpleScalarDoubleSelection");
+                            if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
+                            return s.execute(context, index, vector);
+                        }
                     default:
                         GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                         replace(gen, "install GenericScalarSelection from SimpleScalarDoubleSelection");
@@ -352,10 +368,17 @@ public abstract class ReadVector extends BaseR {
                     if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleLogicalSelection");
                     return ls.execute(context, index, vector);
                 } else {
-                    GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
-                    replace(gs, "install GenericSelection from GenericScalarSelection");
-                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                    return gs.execute(context, index, vector);
+                    if (!subset) {
+                        Subscript s = new Subscript(ast, lhs, indexes, subset);
+                        replace(s, "install Subscript from GenericScalarSelection");
+                        if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
+                        return s.execute(context, index, vector);
+                    } else {
+                        GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
+                        replace(gs, "install GenericSelection from GenericScalarSelection");
+                        if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
+                        return gs.execute(context, index, vector);
+                    }
                 }
             }
         }
@@ -575,7 +598,7 @@ public abstract class ReadVector extends BaseR {
             Utils.check(subset);
         }
 
-        public static RAny executeIntVector(RContext context, RInt index, RArray base, ASTNode ast) {
+        public static RAny executeIntVector(RInt index, RArray base, ASTNode ast) {
             int nzeros = 0;
             boolean hasNegative = false;
             boolean hasPositive = false;
@@ -673,7 +696,7 @@ public abstract class ReadVector extends BaseR {
                 } else {
                     throw new UnexpectedResultException(Failure.NOT_INT_OR_DOUBLE_INDEX);
                 }
-                return executeIntVector(context, iindex, abase, ast);
+                return executeIntVector(iindex, abase, ast);
 
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -841,6 +864,145 @@ public abstract class ReadVector extends BaseR {
         }
     }
 
+    // when the index is a vector of integers (selection by index)
+    //   and the base can be recursive
+    //   and the mode is subscript ([[.]])
+    public static class Subscript extends ReadVector {
+        public Subscript(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+            super(ast, lhs, indexes, subset);
+            Utils.check(!subset);
+        }
+
+        public static RAny executeSubscript(RInt index, RArray base, ASTNode ast) {
+            final int isize = index.size();
+            if (isize == 0) {
+                throw RError.getSelectLessThanOne(ast);
+            }
+            int i = 0;
+            RAny b = base;
+
+            if (isize > 1) {
+                // the upper levels of recursive indexes have to be treated differently from the lowest level (error semantics is different)
+                // also, we know that upper levels must be lists
+                for (; i < isize - 1; i++) {
+                    if (!(b instanceof RList)) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                    RList l = (RList) b;
+                    int indexv = index.getInt(i);
+                    int bsize = l.size();
+
+                    if (indexv > 0) {
+                        if (indexv <= bsize) { // NOTE: RInt.NA < 0
+                            b = l.getRAny(indexv - 1);
+                            continue;
+                        } else {
+                            throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, i + 1));
+                        }
+                    } else {
+                        if (indexv == RInt.NA) {
+                            throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, i + 1));
+                        }
+                        if (bsize > 2) {
+                            throw RError.getSelectMoreThanOne(ast);
+                        }
+                        if (bsize < 2) {
+                            throw RError.getSelectLessThanOne(ast);
+                        }
+                        // bsize == 2
+                        if (indexv == -1) {
+                            b = l.getRAny(1);
+                        } else if (indexv == -2) {
+                            b = l.getRAny(0);
+                        } else if (indexv == 0) {
+                            throw RError.getSelectLessThanOne(ast);
+                        } else {
+                            throw RError.getSelectMoreThanOne(ast);
+                        }
+                    }
+                }
+            }
+            // selection at the last level
+            int indexv = index.getInt(i);
+            if (!(b instanceof RArray)) {
+                Utils.nyi("unuspported base type");
+            }
+            RArray a = (RArray) b;
+            int bsize = a.size();
+            boolean isList = a instanceof RList;
+
+            if (indexv > 0) {
+                if (indexv <= bsize) {
+                    if (isList) {
+                        return ((RList) a).getRAny(indexv - 1);
+                    } else {
+                        return a.boxedGet(indexv - 1);
+                    }
+                } else {
+                    throw RError.getSubscriptBounds(ast);
+                }
+            } else {
+                if (indexv == RInt.NA) {
+                    if (isList) {
+                        return RList.NULL;
+                    } else {
+                        throw RError.getSubscriptBounds(ast);
+                    }
+                }
+                if (bsize > 2) {
+                    throw RError.getSelectMoreThanOne(ast);
+                }
+                if (bsize < 2) {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+                // bsize == 2
+                int fromIndex = -1;
+                if (indexv == -1) {
+                    fromIndex = 1;
+                } else if (indexv == -2) {
+                    fromIndex = 0;
+                } else if (indexv == 0) {
+                    throw RError.getSelectLessThanOne(ast);
+                } else {
+                    throw RError.getSelectMoreThanOne(ast);
+                }
+                if (isList) {
+                    return ((RList) a).getRAny(fromIndex);
+                } else {
+                    return a.boxedGet(fromIndex);
+                }
+            }
+        }
+
+        @Override
+        public RAny execute(RContext context, RAny index, RAny base) {
+            if (DEBUG_SEL) Utils.debug("selection - executing Subscript");
+            try {
+                if (!(base instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                }
+                RArray abase = (RArray) base;
+                RInt iindex;
+                if (index instanceof RInt) {
+                    iindex = (RInt) index;
+                } else if (index instanceof RDouble || index instanceof RLogical) {
+                    iindex = index.asInt();
+                } else {
+                    throw new UnexpectedResultException(Failure.NOT_INT_DOUBLE_OR_LOGICAL_INDEX);
+                }
+                return executeSubscript(iindex, abase, ast);
+
+            } catch (UnexpectedResultException e) {
+                Failure f = (Failure) e.getResult();
+                if (DEBUG_SEL) Utils.debug("selection - Subscript failed: " + f);
+                GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset); // rewriting itself only to handle the error, there is no way to recover
+                replace(gs, "install GenericSelection from IntSelection");
+                if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
+                return gs.execute(context, index, base);
+            }
+        }
+    }
+
     // any selection, won't rewrite itself
     public static class GenericSelection extends ReadVector {
         public GenericSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
@@ -854,7 +1016,7 @@ public abstract class ReadVector extends BaseR {
                 Utils.nyi("unsupported base");
             }
             RArray abase = (RArray) base;
-            if (!(index instanceof RArray)) {
+            if (!(index instanceof RArray) || index instanceof RList) {
                 Utils.nyi("unsupported index");
             }
             RArray aindex = (RArray) index;
@@ -864,18 +1026,14 @@ public abstract class ReadVector extends BaseR {
             }
             if (subset) {
                 if (aindex instanceof RInt) {
-                    return IntSelection.executeIntVector(context, (RInt) aindex, abase, ast);
+                    return IntSelection.executeIntVector((RInt) aindex, abase, ast);
                 } else if (aindex instanceof RDouble) {
-                    return IntSelection.executeIntVector(context, aindex.asInt(), abase, ast);
+                    return IntSelection.executeIntVector(aindex.asInt(), abase, ast);
                 } else if (aindex instanceof RLogical) {
                     return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
                 }
             } else {
-                if (isize > 1) {
-                    throw RError.getSelectMoreThanOne(ast);
-                } else {
-                    throw RError.getSelectLessThanOne(ast);
-                }
+                return Subscript.executeSubscript(aindex.asInt(), abase, ast);
             }
             Utils.nyi("vector in generic selection");
             return null;

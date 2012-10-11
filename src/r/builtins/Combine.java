@@ -23,15 +23,45 @@ public class Combine {
         boolean hasDouble = false;
         boolean hasLogical = false;
         boolean hasInt = false;
+        boolean hasList = false;
         for (int i = 0; i < params.length; i++) {
             RAny v = params[i];
-            if ((hasDouble = v instanceof RDouble) || (hasInt = v instanceof RInt) || (hasLogical = v instanceof RLogical)) {
-                len += ((RArray) v).size();
+
+            if (v instanceof RList) {
+                hasList = true;
+            } else if (v instanceof RDouble) {
+                hasDouble = true;
+            } else if (v instanceof RInt) {
+                hasInt = true;
+            } else if (v instanceof RLogical) {
+                hasLogical = true;
             } else {
-                Utils.nyi("unsupported vector element");
+                Utils.nyi("unsupported type");
+                return null;
             }
+            len += ((RArray) v).size();
         }
         int offset = 0;
+        if (hasList) {
+            ListImpl res = RList.RListFactory.getUninitializedArray(len);
+            for (RAny v : params) {
+                RArray a = (RArray) v;
+                int asize = a.size();
+                if (v instanceof RList) {
+                    RList l = (RList) v;
+                    // FIXME: no deep copying here
+                    for (int i = 0; i < asize; i++) {
+                        res.set(offset + i, l.getRAny(i));
+                    }
+                } else {
+                    for (int i = 0; i < asize; i++) {
+                        res.set(offset + i, a.boxedGet(i));
+                    }
+                }
+                offset += asize;
+            }
+            return res;
+        }
         if (hasDouble) {
             DoubleImpl res = RDouble.RDoubleFactory.getUninitializedArray(len);
             for (RAny v : params) {

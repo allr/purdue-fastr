@@ -33,8 +33,10 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_TFB = "invalid (to - from)/by in seq(.)";
     public static final String WRONG_SIGN_IN_BY = "wrong sign in 'by' argument";
     public static final String BY_TOO_SMALL = "'by' argument is much too small";
+    public static final String INCORRECT_SUBSCRIPTS = "incorrect number of subscripts";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
+    public static final String NO_SUCH_INDEX = "no such index at level %d";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -282,6 +284,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.BY_TOO_SMALL;
+            }
+        };
+    }
+
+    public static RError getIncorrectSubscripts(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INCORRECT_SUBSCRIPTS;
             }
         };
     }
