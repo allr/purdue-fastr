@@ -1,5 +1,7 @@
 package r.data;
 
+import r.data.internal.*;
+
 
 public interface RArray extends RAny {
     int size();
@@ -14,4 +16,21 @@ public interface RArray extends RAny {
     RArray subset(RString names);
 
     RArray materialize();
+
+    public static class RListView extends View.RListView implements RList {
+        final RArray arr;
+        public RListView(RArray arr) {
+            this.arr = arr;
+        }
+
+        @Override
+        public int size() {
+            return arr.size();
+        }
+
+        @Override
+        public RAny getRAny(int i) {
+            return arr.boxedGet(i);
+        }
+    }
 }

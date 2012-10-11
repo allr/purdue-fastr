@@ -47,18 +47,25 @@ public class ClosureImpl extends BaseObject implements RClosure {
 
     @Override
     public RLogical asLogical() {
-        // TODO Auto-generated method stub
+        Utils.nyi();
         return null;
     }
 
     @Override
     public RInt asInt() {
-        // TODO Auto-generated method stub
+        Utils.nyi();
         return null;
     }
 
     @Override
     public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RList asList() {
+        Utils.nyi();
         return null;
     }
 

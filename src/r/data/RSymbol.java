@@ -69,6 +69,12 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
+    @Override
+    public RList asList() {
+        Utils.nyi();
+        return null;
+    }
+
     public RAny getValue() {
         return value;
     }

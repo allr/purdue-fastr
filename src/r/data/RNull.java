@@ -66,6 +66,11 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public RList asList() {
+        return RList.EMPTY;
+    }
+
+    @Override
     public RArray materialize() {
         return this;
     }

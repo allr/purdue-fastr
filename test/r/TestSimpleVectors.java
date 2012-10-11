@@ -94,11 +94,13 @@ public class TestSimpleVectors extends TestBase {
     }
 
     @Test
-    public void testLists() throws RecognitionException {
-        // definitions
+    public void testListDefinitions() throws RecognitionException {
         assertEval("{ list(1:4) }", "[[1]]\n1L, 2L, 3L, 4L");
         assertEval("{ list(1,list(2,list(3,4))) }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0\n\n[[2]][[2]][[2]]\n4.0");
+    }
 
+    @Test
+    public void testListAccess() throws RecognitionException {
         // indexing
         assertEval("{ l<-list(1,2L,TRUE) ; l[[2]] }", "2L");
         assertEval("{ l<-list(1,2L,TRUE) ; l[c(FALSE,FALSE,TRUE)] }", "[[1]]\nTRUE");
@@ -113,6 +115,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(-2,-3,-4,0,0,0)] }", "[[1]]\n1.0\n\n[[2]]\n5.0");
         assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(2,5,4,3,3,3,0)] }", "[[1]]\n2L\n\n[[2]]\n5.0\n\n[[3]]\nFALSE\n\n[[4]]\nTRUE\n\n[[5]]\nTRUE\n\n[[6]]\nTRUE");
         assertEval("{ x<-list(1,2L,TRUE,FALSE,5) ; x[c(2L,5L,4L,3L,3L,3L,0L)] }", "[[1]]\n2L\n\n[[2]]\n5.0\n\n[[3]]\nFALSE\n\n[[4]]\nTRUE\n\n[[5]]\nTRUE\n\n[[6]]\nTRUE");
+        assertEval("{ m<-list(1,2) ; m[NULL] }", "list()");
 
         // indexing with rewriting
         assertEval("{ f<-function(x, i) { x[i] } ; f(list(1,2,3),3:1) ; f(list(1L,2L,3L,4L,5L),c(0,0,0,0-2)) }", "[[1]]\n1L\n\n[[2]]\n3L\n\n[[3]]\n4L\n\n[[4]]\n5L");
@@ -129,6 +132,19 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-(list(list(1,2),list(3,4))); l[[c(1,-1)]] }", "2.0");
         assertEval("{ l<-(list(list(1,2),list(3,4))); l[[c(1,TRUE)]] }", "1.0");
         assertEval("{ l<-(list(list(1,2),c(3,4))); l[[c(2,1)]] }", "3.0");
+    }
 
+    @Test
+    public void testListUpdate() throws RecognitionException {
+        assertEval("{ l<-list(1,2L,TRUE) ; l[[2]]<-100 ; l }", "[[1]]\n1.0\n\n[[2]]\n100.0\n\n[[3]]\nTRUE");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[[5]]<-100 ; l }", "[[1]]\n1.0\n\n[[2]]\n2L\n\n[[3]]\nTRUE\n\n[[4]]\nNULL\n\n[[5]]\n100.0");
+        assertEval("{ l<-list(1,2L,TRUE) ; l[[3]]<-list(100) ; l }", "[[1]]\n1.0\n\n[[2]]\n2L\n\n[[3]]\n[[3]][[1]]\n100.0");
+
+        // element deletion
+        assertEval("{ m<-list(1,2) ; m[TRUE] <- NULL ; m }", "list()");
+        assertEval("{ m<-list(1,2) ; m[[TRUE]] <- NULL ; m }", "[[1]]\n2.0");
+        assertEval("{ m<-list(1,2) ; m[[1]] <- NULL ; m }", "[[1]]\n2.0");
+        assertEval("{ m<-list(1,2) ; m[[-1]] <- NULL ; m }", "[[1]]\n1.0");
+        assertEval("{ m<-list(1,2) ; m[[-2]] <- NULL ; m }", "[[1]]\n2.0");
     }
 }

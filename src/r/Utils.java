@@ -94,10 +94,21 @@ public final class Utils {
         } else if (arr instanceof RLogical) {
             arr.set(index, RLogical.NA);
         } else if (arr instanceof RList) {
-            arr.set(index,  RNull.getNull());
+            arr.set(index,  RList.NULL);
         } else {
             Utils.nyi("unsupported array type");
         }
+    }
+
+    public static RAny copy(RAny a) {
+        if (a instanceof RNull) {
+            return a;
+        }
+        if (a instanceof RArray) {
+            return copyArray((RArray) a);
+        }
+        Utils.nyi("unsupported type");
+        return null;
     }
 
     public static RArray copyArray(RArray arr) {

@@ -25,18 +25,16 @@ public class ListImpl extends ArrayImpl implements RList {
         content = new RAny[size];
     }
 
-    public ListImpl(RList v) {
+    public ListImpl(RList v) { // deep-copy
         content = new RAny[v.size()];
         for (int i = 0; i < content.length; i++) {
             RAny e = v.getRAny(i);
-            if (e instanceof RNull) {
-                content[i] = e;
-            } else if (e instanceof RArray) {
-                content[i] = Utils.copyArray((RArray) e);
-            } else {
-                Utils.nyi("unsupported type");
-            }
+            content[i] = Utils.copy(e);
         }
+    }
+    @Override
+    public ListImpl asList() {
+        return this;
     }
 
     @Override
@@ -46,7 +44,7 @@ public class ListImpl extends ArrayImpl implements RList {
 
     @Override
     public Object get(int i) {
-        return content[i];  // FIXME: should remove the R box ?
+        return content[i];
     }
 
     @Override
@@ -61,7 +59,7 @@ public class ListImpl extends ArrayImpl implements RList {
 
     @Override
     public RArray set(int i, Object val) {
-        content[i] = (RAny) val; //FIXME a better conversion
+        content[i] = (RAny) val;
         return this;
     }
 

@@ -180,7 +180,7 @@ public abstract class UpdateVector extends BaseR {
                             if (pos < 1 || pos > bsize) {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
-                            int zpos = pos -1;
+                            int zpos = pos - 1;
                             double[] content = new double[bsize];
                             int i = 0;
                             for (; i < zpos; i++) {
@@ -234,7 +234,7 @@ public abstract class UpdateVector extends BaseR {
                             if (pos < 1 || pos > bsize) {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
-                            int zpos = pos -1;
+                            int zpos = pos - 1;
                             double[] content = new double[bsize];
                             int i = 0;
                             for (; i < zpos; i++) {
@@ -280,13 +280,46 @@ public abstract class UpdateVector extends BaseR {
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
                 }
             }
+            if (baseTemplate instanceof RList) {
+                ValueCopy cpy = new ValueCopy() {
+                    @Override
+                    RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
+                        if (!(base instanceof RList)) {
+                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                        }
+                        RList lbase = (RList) base;
+                        int bsize = lbase.size();
+                        if (pos < 1 || pos > bsize) {
+                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                        }
+                        int zpos = pos - 1;
+                        RAny[] content = new RAny[bsize];
+                        int i = 0;
+                        // shallow copy
+                        for (; i < zpos; i++) {
+                            content[i] = lbase.getRAny(i);
+                        }
+                        content[i++] = value;
+                        for (; i < bsize; i++) {
+                            content[i] = lbase.getRAny(i);
+                        }
+                        return RList.RListFactory.getForArray(content);
+                    }
+                };
+                return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
+            }
             return null;
         }
 
+        // FIXME: the asXXX functions will allocate views, but the value has only a single element, this is an over-kill
+        //        probably should create asXXXScalar() casts
         public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RDouble || value instanceof RDouble) {
+            if (base instanceof RList) {
+                typedBase = base;
+                typedValue = value.asList();
+            } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
             } else if (base instanceof RInt || value instanceof RInt) {
@@ -438,11 +471,84 @@ public abstract class UpdateVector extends BaseR {
     }
 
     // any update when the selector is a scalar
+    //   includes deletion of list elements (FIXME: perhaps could move that out into a special node?)
     //   rewrites for other cases (vector selection)
     public static class GenericScalarSelection extends UpdateVector {
 
         public GenericScalarSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, var, lhs, indexes, rhs, subset);
+        }
+
+        public static RAny deleteElement(RList base, int i, ASTNode ast, boolean subset) {
+            int size = base.size();
+            if (i > 0) {
+                if (i <= size) {
+                    // remove element i
+                    int zi = i - 1; // zero-based
+                    int nsize = size - 1;
+                    RAny[] content = new RAny[nsize];
+                    int j = 0;
+                    for (; j < zi; j++) {  // shallow copy
+                        content[j] = base.getRAny(j);
+                    }
+                    zi++;
+                    for (; j < nsize; j++) {
+                        content[j] = base.getRAny(zi++);
+                    }
+                    return RList.RListFactory.getForArray(content);
+                } else {
+                    return base;
+                }
+            }
+            if (i == 0 || i == RInt.NA) {
+                if (subset) {
+                    return base;
+                } else {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+            }
+            // i < 0
+            if (!subset) {
+                if (size <= 1) {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+                if (size > 2) {
+                    throw RError.getSelectMoreThanOne(ast);
+                }
+                if (i != -1 && i != -2) {
+                    throw RError.getSelectMoreThanOne(ast);
+                }
+            }
+            int keep = -i - 1;
+            return RList.RListFactory.getScalar(base.getRAny(keep));
+        }
+
+        public static RAny deleteElement(RArray base, RArray index, ASTNode ast, boolean subset) {
+            if (!(base instanceof RList)) {
+                throw RError.getReplacementZero(ast);
+            }
+            RList l = (RList) base;
+            int i = -1;
+            if (index instanceof RInt) {
+                i = ((RInt) index).getInt(0);
+                return deleteElement(l, i, ast, subset);
+            } else if (index instanceof RDouble) {
+                i = Convert.double2int(((RDouble) index).getDouble(0));
+                return deleteElement(l, i, ast, subset);
+            } else if (index instanceof RLogical) {
+                i = Convert.logical2int(((RLogical) index).getLogical(0));
+                if (subset) {
+                    if (i == RLogical.TRUE) {
+                        return RList.EMPTY;
+                    } else {
+                        return base;
+                    }
+                }
+                return deleteElement(l, i, ast, subset);
+            } else {
+                Utils.nyi("unsupported type");
+                return null;
+            }
         }
 
         public static RAny update(RContext context, RArray base, RArray index, RArray value, ASTNode ast, boolean subset) {
@@ -489,11 +595,6 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray abase = (RArray) base;
-                if (!(value instanceof RArray)) {
-                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
-                }
-                RArray avalue = (RArray) value;
-
                 if (!(index instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX);
                 }
@@ -502,6 +603,13 @@ public abstract class UpdateVector extends BaseR {
                 if (isize != 1) {
                     throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_INDEX);
                 }
+                if (value instanceof RNull) {
+                    return deleteElement(abase, aindex, ast, subset);
+                }
+                if (!(value instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                }
+                RArray avalue = (RArray) value;
                 return update(context, abase, aindex, avalue, ast, subset);
 
             } catch (UnexpectedResultException e) {
@@ -1361,16 +1469,19 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray abase = (RArray) base;
-                if (!(value instanceof RArray)) {
-                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
-                }
-                RArray avalue = (RArray) value;
-
                 if (!(index instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX);
                 }
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
+                if (value instanceof RNull) {
+                    return GenericScalarSelection.deleteElement(abase, aindex, ast, subset);
+                }
+                if (!(value instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                }
+                RArray avalue = (RArray) value;
+
                 if (isize <= 1) {
                     return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
                 }

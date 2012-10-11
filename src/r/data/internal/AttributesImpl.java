@@ -88,4 +88,10 @@ public class AttributesImpl extends BaseObject implements RAttributes {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public RList asList() {
+        Utils.nyi();
+        return null;
+    }
 }

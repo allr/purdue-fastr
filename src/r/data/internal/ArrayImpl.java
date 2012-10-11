@@ -36,4 +36,9 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     public RArray materialize() {
         return this;
     }
+
+    @Override
+    public RList asList() {
+        return new RArray.RListView(this);
+    }
 }

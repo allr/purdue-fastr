@@ -20,6 +20,7 @@ public class Combine {
 
     public static RAny combine(RAny[] params) {
         int len = 0;
+        boolean hasNull = false;
         boolean hasDouble = false;
         boolean hasLogical = false;
         boolean hasInt = false;
@@ -27,6 +28,10 @@ public class Combine {
         for (int i = 0; i < params.length; i++) {
             RAny v = params[i];
 
+            if (v instanceof RNull) {
+                hasNull = true;
+                continue;
+            }
             if (v instanceof RList) {
                 hasList = true;
             } else if (v instanceof RDouble) {
@@ -45,6 +50,9 @@ public class Combine {
         if (hasList) {
             ListImpl res = RList.RListFactory.getUninitializedArray(len);
             for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
                 RArray a = (RArray) v;
                 int asize = a.size();
                 if (v instanceof RList) {
@@ -65,6 +73,9 @@ public class Combine {
         if (hasDouble) {
             DoubleImpl res = RDouble.RDoubleFactory.getUninitializedArray(len);
             for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
                 offset = fillIn(res, v instanceof RDouble ? (RDouble) v : v.asDouble(), offset);
             }
             return res;
@@ -72,6 +83,9 @@ public class Combine {
         if (hasInt) {
             IntImpl res = RInt.RIntFactory.getUninitializedArray(len);
             for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
                 offset = fillIn(res, v instanceof RInt ? (RInt) v : v.asInt(), offset);
             }
             return res;
@@ -79,9 +93,15 @@ public class Combine {
         if (hasLogical) {
             LogicalImpl res = RLogical.RLogicalFactory.getUninitializedArray(len);
             for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
                 offset = fillIn(res, v instanceof RLogical ? (RLogical) v : v.asLogical(), offset);
             }
             return res;
+        }
+        if (hasNull) {
+            return RNull.getNull();
         }
         Utils.nyi("Unreacheable");
         return null;

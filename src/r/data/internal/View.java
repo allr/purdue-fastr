@@ -6,7 +6,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 
-public abstract class View implements RArray {
+public abstract class View extends ArrayImpl implements RArray {
 
     @Override
     public RArray set(int i, Object val) {
@@ -209,7 +209,12 @@ public abstract class View implements RArray {
             return null;
         }
 
+        @Override
+        public RList asList() {
+            return this;
+        }
 
+        @Override
         public RAny boxedGet(int i) {
             return RList.RListFactory.getScalar(getRAny(i));
         }

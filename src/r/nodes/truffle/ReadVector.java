@@ -1031,6 +1031,8 @@ public abstract class ReadVector extends BaseR {
                     return IntSelection.executeIntVector(aindex.asInt(), abase, ast);
                 } else if (aindex instanceof RLogical) {
                     return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
+                } else if (aindex instanceof RNull) {
+                    return Utils.createEmptyArray(abase);
                 }
             } else {
                 return Subscript.executeSubscript(aindex.asInt(), abase, ast);

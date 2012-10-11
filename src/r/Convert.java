@@ -62,7 +62,7 @@ public class Convert {
         if (RDouble.RDoubleUtils.isNA(d)) {
             return RInt.NA;
         }
-        return (int) d;
+        return (int) d; // FIXME: NA when double too big to fit + warning
     }
 
     public static double logical2double(int l) {
@@ -85,5 +85,9 @@ public class Convert {
             return RLogical.NA;
         }
         return i != 0 ? RLogical.TRUE : RLogical.FALSE;
+    }
+
+    public static int logical2int(int l) {
+        return l;
     }
 }
