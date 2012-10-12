@@ -26,7 +26,7 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
 
-    private static final boolean DEBUG_UP = true;
+    private static final boolean DEBUG_UP = false;
 
     UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -702,6 +702,70 @@ public abstract class UpdateVector extends BaseR {
 
         // specialized for type combinations (base vector, value written)
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+            if (baseTemplate instanceof RList) {
+                if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                            if (!(base instanceof RList)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RList typedBase = (RList) base;
+                            RList typedValue;
+                            if (value instanceof RList) {
+                                typedValue = (RList) value;
+                            } else if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asList();
+                            } else {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int imin = index.min();
+                            int imax = index.max();
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            imin--;
+                            imax--;  // convert to 0-based
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+                            if (isize != vsize) {
+                                throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                            }
+                            RAny[] content = new RAny[bsize];
+                            int i = 0;
+                            for (; i < imin; i++) {
+                                content[i] = typedBase.getRAny(i);
+                            }
+                            i = index.from() - 1;  // -1 for 0-based
+                            int step = index.step();
+                            int astep;
+                            int delta;
+                            if (step > 0) {
+                                astep = step;
+                                delta = 1;
+                            } else {
+                                astep = -step;
+                                delta = -1;
+                            }
+                            for (int steps = 0; steps < isize; steps++) {
+                                content[i] = typedValue.getRAny(steps);
+                                i += delta;
+                                for (int j = 1; j < astep; j++) {
+                                    content[i] = typedBase.getRAny(i);
+                                    i += delta;
+                                }
+                            }
+                            for (i = imax + 1; i < bsize; i++) {
+                                content[i] = typedBase.getRAny(i);
+                            }
+                            return RList.RListFactory.getForArray(content);
+                        }
+                    };
+                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
+                }
+                return null;
+            }
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
@@ -897,7 +961,10 @@ public abstract class UpdateVector extends BaseR {
                 RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
                     RArray typedBase;
                     RArray typedValue;
-                    if (base instanceof RDouble || value instanceof RDouble) {
+                    if (base instanceof RList || value instanceof RList) {
+                        typedBase = base.asList();
+                        typedValue = value.asList();
+                    } else if (base instanceof RDouble || value instanceof RDouble) {
                         typedBase = base.asDouble();
                         typedValue = value.asDouble();
                     } else if (base instanceof RInt || value instanceof RInt) {
@@ -1015,9 +1082,13 @@ public abstract class UpdateVector extends BaseR {
 
 
         public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, ASTNode ast, boolean subset) {
+            Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RDouble || value instanceof RDouble) {
+            if (base instanceof RList || value instanceof RList) {
+                typedBase = base.asList();
+                typedValue = value.asList();
+            } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
             } else if (base instanceof RInt || value instanceof RInt) {
@@ -1182,6 +1253,65 @@ public abstract class UpdateVector extends BaseR {
         }
 
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+            if (baseTemplate instanceof RList) {
+                if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                            if (!(base instanceof RList)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RList typedBase = (RList) base;
+                            RList typedValue;
+                            if (value instanceof RList) {
+                                typedValue = (RList) value;
+                            } else if (value instanceof RDouble|| value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asList();
+                            } else {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int isize = index.size();
+                            if (isize > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int vsize = typedValue.size();
+                            RAny[] content = new RAny[bsize];
+                            int ii = 0;
+                            int vi = 0;
+                            boolean hasNA = false;
+                            for (int bi = 0; bi < bsize; bi++) {
+                                int v = index.getLogical(ii);
+                                ii++;
+                                if (ii == isize) {
+                                    ii = 0;
+                                }
+                                if (v == RLogical.TRUE) {
+                                    content[bi] = typedValue.getRAny(vi);
+                                    vi++;
+                                    if (vi == vsize) {
+                                        vi = 0;
+                                    }
+                                    continue;
+                                }
+                                if (v == RLogical.NA) {
+                                    hasNA = true;
+                                }
+                                content[bi] = typedBase.getRAny(bi);
+                            }
+                            if (hasNA && vsize >= 2) {
+                                throw RError.getNASubscripted(ast);
+                            }
+                            if (vi != 0) {
+                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return RList.RListFactory.getForArray(content);
+                        }
+                    };
+                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
+                }
+                return null;
+            }
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
@@ -1363,7 +1493,10 @@ public abstract class UpdateVector extends BaseR {
         public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RDouble || value instanceof RDouble) {
+            if (base instanceof RList || value instanceof RList) {
+                typedBase = base.asList();
+                typedValue = value.asList();
+            } if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
             } else if (base instanceof RInt || value instanceof RInt) {
