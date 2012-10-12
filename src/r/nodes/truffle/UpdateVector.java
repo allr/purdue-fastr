@@ -1080,12 +1080,101 @@ public abstract class UpdateVector extends BaseR {
             Utils.check(subset);
         }
 
+        public static RArray deleteElements(RList base, RInt index, ASTNode ast, boolean subset) {
+            Utils.check(subset);
+            boolean hasNegative = false;
+            boolean hasPositive = false;
+            boolean hasNA = false;
+            int bsize = base.size();
+            int isize = index.size();
+            boolean[] selected = new boolean[bsize];
+            int maxIndex = 0;
+            int ntrue = 0;
+
+            for (int i = 0; i < isize; i++) {
+                int v = index.getInt(i);
+                if (v > maxIndex) {
+                    maxIndex = v;
+                }
+                if (v == RInt.NA) {
+                    hasNA = true;
+                    continue;
+                }
+                if (v == 0) {
+                    continue;
+                }
+                int vi;
+                if (v > 0) {
+                    hasPositive = true;
+                    vi = v - 1;
+                } else {
+                    hasNegative = true;
+                    vi = -v - 1;
+                }
+                if (vi < selected.length) {
+                    if (!selected[vi]) {
+                        ntrue++;
+                        selected[vi] = true;
+                    }
+                }
+            }
+            if (!hasNegative) {
+                int nullsToAdd = 0;
+                if (maxIndex > (bsize + 1)) {
+                    // there were indexes "above" the base vector, but perhaps not all were mentioned
+                    // for all non-mentioned we have to add NULL at the end of the new list
+                    final int aboveSize = maxIndex - bsize;
+                    boolean[] aboveSelected = new boolean[aboveSize];
+                    int natrue = 0;
+
+                    for (int i = 0; i < isize; i++) {
+                        int v = index.getInt(i);
+                        if (v > bsize) { // note RInt.NA < 0, bsize >= 0
+                            int vi = v - bsize - 1;
+                            if (!aboveSelected[vi]) {
+                                aboveSelected[vi] = true;
+                                natrue++;
+                            }
+                        }
+                    }
+                    nullsToAdd = aboveSize - natrue;
+                }
+                int nsize = (bsize - ntrue) + nullsToAdd;
+                RAny[] content = new RAny[nsize];
+                int j = 0;
+                for (int i = 0; i < bsize; i++) {
+                    if (!selected[i]) {
+                        content[j++] = base.getRAny(i);
+                    }
+                }
+                for (int i = 0; i < nullsToAdd; i++) {
+                    content[j++] = RList.NULL;
+                }
+                return RList.RListFactory.getForArray(content);
+            } else {
+                // hasNegative == true
+                if (hasPositive || hasNA) {
+                    throw RError.getOnlyZeroMixed(ast);
+                }
+                int nsize = ntrue;
+                RAny[] content = new RAny[nsize];
+                int j = 0;
+                for (int i = 0; i < bsize; i++) {
+                    if (selected[i]) {
+                        content[j++] = base.getRAny(i);
+                    }
+                }
+                return RList.RListFactory.getForArray(content);
+            }
+        }
 
         public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, ASTNode ast, boolean subset) {
             Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RList || value instanceof RList) {
+            if (base instanceof RList && value instanceof RNull) {
+                return deleteElements((RList) base, index, ast, subset);
+            } else if (base instanceof RList || value instanceof RList) {
                 typedBase = base.asList();
                 typedValue = value.asList();
             } else if (base instanceof RDouble || value instanceof RDouble) {

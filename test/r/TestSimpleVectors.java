@@ -168,5 +168,12 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-list(1,2L,list(3,list(4)),list(5)) ; x[c(4,2,3)]<-list(256L,257L,258L); x }", "[[1]]\n1.0\n\n[[2]]\n257L\n\n[[3]]\n258L\n\n[[4]]\n256L");
         assertEval("{ x<-list(FALSE,NULL,3L,4L,5.5); x[c(TRUE,FALSE)] <- 1000; x }", "[[1]]\n1000.0\n\n[[2]]\nNULL\n\n[[3]]\n1000.0\n\n[[4]]\n4L\n\n[[5]]\n1000.0");
         assertEval("{ x<-list(11,10,9) ; x[c(TRUE, FALSE, TRUE)] <- c(1000,2000); x }", "[[1]]\n1000.0\n\n[[2]]\n10.0\n\n[[3]]\n2000.0");
+
+        // vector element deletion
+
+        assertEval("{ v<-list(1,2,3) ; v[c(2,3,NA,7,0)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\nNULL\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
+        assertEval("{ v<-list(1,2,3) ; v[c(2,3,4)] <- NULL ; v }", "[[1]]\n1.0");
+        assertEval("{ v<-list(1,2,3) ; v[c(-1,-2,-6)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+
     }
 }
