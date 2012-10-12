@@ -91,6 +91,11 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-1:5 ; x[3] <- (x[4]<-100) ; x }", "1.0, 2.0, 100.0, 100.0, 5.0");
         assertEval("{ x<-5:1 ; x[x[2]<-2] }", "4L");
         assertEval("{ x<-5:1 ; x[x[2]<-2] <- (x[3]<-50) ; x }", "5.0, 50.0, 50.0, 2.0, 1.0");
+
+        assertEval("{ v<-1:3 ; v[TRUE] <- 100 ; v }", "100.0, 100.0, 100.0");
+        assertEval("{ v<-1:3 ; v[-1] <- c(100,101) ; v }", "1.0, 100.0, 101.0");
+        assertEval("{ v<-1:3 ; v[TRUE] <- c(100,101,102) ; v }", "100.0, 101.0, 102.0");
+
     }
 
     @Test
@@ -139,6 +144,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-list(1,2L,TRUE) ; l[[2]]<-100 ; l }", "[[1]]\n1.0\n\n[[2]]\n100.0\n\n[[3]]\nTRUE");
         assertEval("{ l<-list(1,2L,TRUE) ; l[[5]]<-100 ; l }", "[[1]]\n1.0\n\n[[2]]\n2L\n\n[[3]]\nTRUE\n\n[[4]]\nNULL\n\n[[5]]\n100.0");
         assertEval("{ l<-list(1,2L,TRUE) ; l[[3]]<-list(100) ; l }", "[[1]]\n1.0\n\n[[2]]\n2L\n\n[[3]]\n[[3]][[1]]\n100.0");
+        assertEval("{ v<-1:3 ; v[2] <- list(100) ; v }", "[[1]]\n1L\n\n[[2]]\n100.0\n\n[[3]]\n3L");
 
         // element deletion
         assertEval("{ m<-list(1,2) ; m[TRUE] <- NULL ; m }", "list()");

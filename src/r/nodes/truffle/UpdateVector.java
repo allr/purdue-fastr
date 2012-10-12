@@ -26,7 +26,7 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
 
-    private static final boolean DEBUG_UP = false;
+    private static final boolean DEBUG_UP = true;
 
     UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -58,6 +58,7 @@ public abstract class UpdateVector extends BaseR {
         NOT_ARRAY_VALUE,
         UNEXPECTED_TYPE,
         NOT_SAME_LENGTH,
+        MAYBE_VECTOR_UPDATE,
     }
 
     @Override
@@ -316,8 +317,8 @@ public abstract class UpdateVector extends BaseR {
         public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RList) {
-                typedBase = base;
+            if (base instanceof RList || value instanceof RList) {
+                typedBase = base.asList();
                 typedValue = value.asList();
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
@@ -472,7 +473,9 @@ public abstract class UpdateVector extends BaseR {
 
     // any update when the selector is a scalar
     //   includes deletion of list elements (FIXME: perhaps could move that out into a special node?)
+    //   rewrites itself if the update is in fact vector-like (subset with logical index, multi-value subset with negative number index)
     //   rewrites for other cases (vector selection)
+    //   so the contract is that this can handle any subscript with a single-value index
     public static class GenericScalarSelection extends UpdateVector {
 
         public GenericScalarSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -551,40 +554,53 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RAny update(RContext context, RArray base, RArray index, RArray value, ASTNode ast, boolean subset) {
+        public static RAny update(RContext context, RArray base, RArray index, RArray value, ASTNode ast, boolean subset) throws UnexpectedResultException {
             int vsize = value.size();
             if (vsize == 0) {
                 throw RError.getReplacementZero(ast);
             }
-            if (vsize > 1) {
+            if (index instanceof RLogical) {
                 if (subset) {
-                    context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
-                } else {
+                    throw new UnexpectedResultException(Failure.MAYBE_VECTOR_UPDATE);
+                }
+                if (vsize > 1) {
                     throw RError.getMoreElementsSupplied(ast);
                 }
-            }
-            if (index instanceof RInt) {
-                return ScalarNumericSelection.genericUpdate(base, ((RInt) index).getInt(0), value, subset, ast);
-            } else if (index instanceof RDouble) {
-                return ScalarNumericSelection.genericUpdate(base, Convert.double2int(((RDouble) index).getDouble(0)), value, subset, ast);
-            } else if (index instanceof RLogical) {
                 int l = ((RLogical) index).getLogical(0);
                 if (l == RLogical.FALSE) {
-                    if (!subset) {
-                        throw RError.getSelectLessThanOne(ast);
-                    }
-                    return base;
+                    throw RError.getSelectLessThanOne(ast);
                 }
                 if (l == RLogical.NA) {
-                    if (!subset) {
-                        throw RError.getSelectMoreThanOne(ast);
-                    }
-                    return base;
+                    throw RError.getSelectMoreThanOne(ast);
                 }
                 return ScalarNumericSelection.genericUpdate(base, RLogical.TRUE, value, subset, ast);
             }
-            Utils.nyi("unsupported type in vector update");
-            return null;
+            int i = -1;
+            if (index instanceof RInt) {
+                i = ((RInt) index).getInt(0);
+            } else if (index instanceof RDouble) {
+                i = Convert.double2int(((RDouble) index).getDouble(0));
+            } else {
+                Utils.nyi("unsupported index type in vector update");
+                return null;
+            }
+            if (i >= 0 || i == RInt.NA || !subset) {
+                if (vsize > 1) {
+                    if (subset) {
+                        context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                    } else {
+                        throw RError.getMoreElementsSupplied(ast);
+                    }
+                }
+                return ScalarNumericSelection.genericUpdate(base, i, value, subset, ast);
+            } else {
+                // subset with negative index
+                if (vsize == 1) {
+                    return ScalarNumericSelection.genericUpdate(base, i, value, subset, ast);
+                } else {
+                    throw new UnexpectedResultException(Failure.MAYBE_VECTOR_UPDATE);
+                }
+            }
         }
 
         @Override
@@ -616,25 +632,28 @@ public abstract class UpdateVector extends BaseR {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericScalarSelection failed: " + f);
                 switch (f) {
+                    case MAYBE_VECTOR_UPDATE:
                     case NOT_ONE_ELEMENT_INDEX:
-                        if (index instanceof IntImpl.RIntSequence) {
-                            IntSequenceSelection is = new IntSequenceSelection(ast, var, lhs, indexes, rhs, subset);
-                            replace(is, "install IntSequenceSelection from GenericScalarSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
-                            return is.execute(context, base, index, value);
-                        }
-                        if (index instanceof RInt || index instanceof RDouble) {
-                            NumericSelection ns = new NumericSelection(ast, var, lhs, indexes, rhs, subset);
-                            replace(ns, "install NumericSelection from GenericScalarSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
-                            return ns.execute(context, base, index, value);
-                        }
-                        if (index instanceof RLogical) {
-                            LogicalSelection ls = new LogicalSelection(ast, var, lhs, indexes, rhs, subset);
-                            replace(ls, "install LogicalSelection from GenericScalarSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
-                            return ls.execute(context, base, index, value);
-                        }
+                        if (subset) {
+                            if (index instanceof IntImpl.RIntSequence) {
+                                IntSequenceSelection is = new IntSequenceSelection(ast, var, lhs, indexes, rhs, subset);
+                                replace(is, "install IntSequenceSelection from GenericScalarSelection");
+                                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
+                                return is.execute(context, base, index, value);
+                            }
+                            if (index instanceof RInt || index instanceof RDouble) {
+                                NumericSelection ns = new NumericSelection(ast, var, lhs, indexes, rhs, subset);
+                                replace(ns, "install NumericSelection from GenericScalarSelection");
+                                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
+                                return ns.execute(context, base, index, value);
+                            }
+                            if (index instanceof RLogical) {
+                                LogicalSelection ls = new LogicalSelection(ast, var, lhs, indexes, rhs, subset);
+                                replace(ls, "install LogicalSelection from GenericScalarSelection");
+                                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
+                                return ls.execute(context, base, index, value);
+                            }
+                        } // propagate below
                     default:
                         GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
@@ -653,6 +672,7 @@ public abstract class UpdateVector extends BaseR {
 
         public IntSequenceSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, var, lhs, indexes, rhs, subset);
+            Utils.check(subset);
         }
 
         @Override
@@ -990,6 +1010,7 @@ public abstract class UpdateVector extends BaseR {
 
         public NumericSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, var, lhs, indexes, rhs, subset);
+            Utils.check(subset);
         }
 
 
@@ -1133,6 +1154,7 @@ public abstract class UpdateVector extends BaseR {
 
         public LogicalSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, var, lhs, indexes, rhs, subset);
+            Utils.check(subset);
         }
 
         @Override
@@ -1482,9 +1504,6 @@ public abstract class UpdateVector extends BaseR {
                 }
                 RArray avalue = (RArray) value;
 
-                if (isize <= 1) {
-                    return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
-                }
                 if (subset) {
                     if (aindex instanceof RDouble || aindex instanceof RInt) {
                         return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, ast, subset);
@@ -1495,7 +1514,11 @@ public abstract class UpdateVector extends BaseR {
                         return null;
                     }
                 } else {
-                    throw RError.getSelectMoreThanOne(ast);
+                    if (isize <= 1) {
+                        return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
+                    } else {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
                 }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
