@@ -10,6 +10,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.truffle.ReadVector.*;
 
 // FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
 // FIXME: could reduce code size by some refactoring, e.g. subclassing on copiers that use double, int, logical
@@ -26,7 +27,7 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
 
-    private static final boolean DEBUG_UP = false;
+    private static final boolean DEBUG_UP = true;
 
     UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -59,6 +60,7 @@ public abstract class UpdateVector extends BaseR {
         UNEXPECTED_TYPE,
         NOT_SAME_LENGTH,
         MAYBE_VECTOR_UPDATE,
+        NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
     }
 
     @Override
@@ -1763,6 +1765,102 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
+ // when the index is a vector of integers (selection by index)
+    //   and the base can be recursive
+    //   and the mode is subscript ([[.]])
+    public static class Subscript extends UpdateVector {
+        public Subscript(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, var, lhs, indexes, rhs, subset);
+            Utils.check(!subset);
+        }
+
+        public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) {
+            final int isize = index.size();
+            if (isize == 0) {
+                throw RError.getSelectLessThanOne(ast);
+            }
+            int i = 0;
+            RAny b = base;
+            RAny res = null;
+            RList parent = null;
+            int parentIndex = -1;
+            if (isize > 1) {
+                for (; i < isize - 1; i++) {  // shallow copy
+                    if (!(b instanceof RList)) {
+                        throw RError.getMoreElementsSupplied(ast);
+                    }
+                    RList l = (RList) b;
+                    int indexv = index.getInt(i);
+                    int bsize = l.size();
+                    int isel = ReadVector.Subscript.convertDereferencingIndex(indexv, i, bsize, ast);
+
+                    RAny[] content = new RAny[bsize];
+                    int k = 0;
+                    int j = 0;
+                    for (; j < isel; j++) {
+                        content[k++] = l.getRAny(j);
+                    }
+                    j++; // skip
+                    k++;
+                    for (; j < bsize; j++) {
+                        content[k++] = l.getRAny(j);
+                    }
+                    RList newList = RList.RListFactory.getForArray(content);
+                    if (parent != null) {
+                        parent.set(parentIndex, newList);
+                    } else {
+                        res = newList;
+                    }
+                    parent = newList;
+                    parentIndex = isel;
+                }
+            }
+            // selection at the last level
+            int indexv = index.getInt(i);
+            if (!(b instanceof RArray)) {
+                Utils.nyi("unuspported base type");
+            }
+            RArray a = (RArray) b;
+            int bsize = a.size();
+            boolean isList = a instanceof RList;
+            Utils.nyi("finish this!");
+            return null;
+        }
+
+        @Override
+        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing Subscript");
+            try {
+                if (!(base instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                }
+                RArray abase = (RArray) base;
+                RInt iindex;
+                if (index instanceof RInt) {
+                    iindex = (RInt) index;
+                } else if (index instanceof RDouble || index instanceof RLogical) {
+                    iindex = index.asInt();
+                } else {
+                    throw new UnexpectedResultException(Failure.NOT_INT_DOUBLE_OR_LOGICAL_INDEX);
+                }
+                if (!(value instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
+                }
+                RArray avalue = (RArray) value;
+                return executeSubscript(iindex, abase, avalue, ast);
+
+            } catch (UnexpectedResultException e) {
+                Failure f = (Failure) e.getResult();
+                if (DEBUG_UP) Utils.debug("update - Subscript failed: " + f);
+                GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
+                  // rewriting itself only to handle the error, there is no way to recover
+                replace(gs, "install GenericSelection from Subscript");
+                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
+                return gs.execute(context, base, index, value);
+            }
+        }
+    }
+
     // handles any update, won't rewrite itself
     public static class GenericSelection extends UpdateVector {
 
@@ -1790,6 +1888,9 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
                 }
                 RArray avalue = (RArray) value;
+                if (!subset && isize == 1) {
+                    return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
+                }
 
                 if (subset) {
                     if (aindex instanceof RDouble || aindex instanceof RInt) {
@@ -1801,11 +1902,7 @@ public abstract class UpdateVector extends BaseR {
                         return null;
                     }
                 } else {
-                    if (isize <= 1) {
-                        return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
-                    } else {
-                        throw RError.getSelectMoreThanOne(ast);
-                    }
+                    return Subscript.executeSubscript(aindex.asInt(), abase, avalue, ast);
                 }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();

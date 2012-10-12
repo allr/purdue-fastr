@@ -873,6 +873,45 @@ public abstract class ReadVector extends BaseR {
             Utils.check(!subset);
         }
 
+        public static int convertNegativeNonNAIndex(int indexv, int bsize, ASTNode ast) {
+            int res;
+
+            if (bsize > 2) {
+                throw RError.getSelectMoreThanOne(ast);
+            }
+            if (bsize < 2) {
+                throw RError.getSelectLessThanOne(ast);
+            }
+            // bsize == 2
+            if (indexv == -1) {
+               res = 1;
+            } else if (indexv == -2) {
+                res = 0;
+            } else if (indexv == 0) {
+                throw RError.getSelectLessThanOne(ast);
+            } else {
+                throw RError.getSelectMoreThanOne(ast);
+            }
+            return res;
+        }
+
+        public static int convertDereferencingIndex(int indexv, int iindex, int bsize, ASTNode ast) {
+            int isel;
+            if (indexv > 0) {
+                if (indexv <= bsize) { // NOTE: RInt.NA < 0
+                    isel = indexv - 1;
+                } else {
+                    throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, iindex + 1));
+                }
+            } else {
+                if (indexv == RInt.NA) {
+                    throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, iindex + 1));
+                }
+                isel = convertNegativeNonNAIndex(indexv, bsize, ast);
+            }
+            return isel;
+        }
+
         public static RAny executeSubscript(RInt index, RArray base, ASTNode ast) {
             final int isize = index.size();
             if (isize == 0) {
@@ -891,35 +930,8 @@ public abstract class ReadVector extends BaseR {
                     RList l = (RList) b;
                     int indexv = index.getInt(i);
                     int bsize = l.size();
-
-                    if (indexv > 0) {
-                        if (indexv <= bsize) { // NOTE: RInt.NA < 0
-                            b = l.getRAny(indexv - 1);
-                            continue;
-                        } else {
-                            throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, i + 1));
-                        }
-                    } else {
-                        if (indexv == RInt.NA) {
-                            throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, i + 1));
-                        }
-                        if (bsize > 2) {
-                            throw RError.getSelectMoreThanOne(ast);
-                        }
-                        if (bsize < 2) {
-                            throw RError.getSelectLessThanOne(ast);
-                        }
-                        // bsize == 2
-                        if (indexv == -1) {
-                            b = l.getRAny(1);
-                        } else if (indexv == -2) {
-                            b = l.getRAny(0);
-                        } else if (indexv == 0) {
-                            throw RError.getSelectLessThanOne(ast);
-                        } else {
-                            throw RError.getSelectMoreThanOne(ast);
-                        }
-                    }
+                    int isel = convertDereferencingIndex(indexv, i, bsize, ast);
+                    b = l.getRAny(isel);
                 }
             }
             // selection at the last level
@@ -949,23 +961,7 @@ public abstract class ReadVector extends BaseR {
                         throw RError.getSubscriptBounds(ast);
                     }
                 }
-                if (bsize > 2) {
-                    throw RError.getSelectMoreThanOne(ast);
-                }
-                if (bsize < 2) {
-                    throw RError.getSelectLessThanOne(ast);
-                }
-                // bsize == 2
-                int fromIndex = -1;
-                if (indexv == -1) {
-                    fromIndex = 1;
-                } else if (indexv == -2) {
-                    fromIndex = 0;
-                } else if (indexv == 0) {
-                    throw RError.getSelectLessThanOne(ast);
-                } else {
-                    throw RError.getSelectMoreThanOne(ast);
-                }
+                int fromIndex = convertNegativeNonNAIndex(indexv, bsize, ast);
                 if (isList) {
                     return ((RList) a).getRAny(fromIndex);
                 } else {
@@ -996,7 +992,7 @@ public abstract class ReadVector extends BaseR {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - Subscript failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset); // rewriting itself only to handle the error, there is no way to recover
-                replace(gs, "install GenericSelection from IntSelection");
+                replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
                 return gs.execute(context, index, base);
             }
