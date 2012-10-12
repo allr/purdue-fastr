@@ -18,6 +18,18 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     int getLogical(int il);
     RLogical set(int i, int val);
 
+    public class RLogicalUtils {
+        public static int truesInRange(RLogical l, int from, int to) {
+            int ntrue = 0;
+            for (int i = from; i < to; i++) {
+                if (l.getLogical(i) == TRUE) {
+                   ntrue++;
+                }
+            }
+            return ntrue;
+        }
+    }
+
     public class RLogicalFactory {
         public static LogicalImpl getScalar(int value) {
             return new LogicalImpl(new int[]{value}, false);

@@ -548,6 +548,8 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 return deleteElement(l, i, ast, subset);
+            } else if (index instanceof RNull) {
+                return l;
             } else {
                 Utils.nyi("unsupported type");
                 return null;
@@ -1579,13 +1581,76 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
+        public static RAny deleteElements(RList base, RLogical index, ASTNode ast) {
+            int bsize = base.size();
+            int isize = index.size();
+
+            if (isize == bsize) {
+                int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, isize);
+                int nsize = bsize - ntrue;
+                RAny[] content = new RAny[nsize];
+                int j = 0;
+                for (int i = 0; i < bsize; i++) {
+                    int l = index.getLogical(i);
+                    if (l != RLogical.TRUE) {
+                        content[j++] = base.getRAny(i);
+                    }
+                }
+                return RList.RListFactory.getForArray(content);
+            }
+            if (isize > bsize) {
+                // for each "non-TRUE" element above base vector size, have to add NULL to the vector
+                int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, bsize);
+                int natrue = RLogical.RLogicalUtils.truesInRange(index, bsize, isize);
+                int nullsToAdd = isize - bsize - natrue;
+                int nsize = (bsize - ntrue) + nullsToAdd;
+                RAny[] content = new RAny[nsize];
+                int j = 0;
+                for (int i = 0; i < bsize; i++) {
+                    int l = index.getLogical(i);
+                    if (l != RLogical.TRUE) {
+                        content[j++] = base.getRAny(i);
+                    }
+                }
+                for (int i = 0; i < nullsToAdd; i++) {
+                    content[j++] = RList.NULL;
+                }
+                return RList.RListFactory.getForArray(content);
+            }
+            // isize < bsize
+            if (isize == 0) {
+                return base;
+            }
+            int rep = bsize / isize;
+            int lsize = bsize - rep * isize;
+            int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, isize);
+            int nltrue = RLogical.RLogicalUtils.truesInRange(index, 0, lsize); // TRUEs in the last cycle of index over base
+
+            int nsize = bsize - (ntrue * rep + nltrue);
+            RAny[] content = new RAny[nsize];
+            int ii = 0;
+            int ci = 0;
+            for (int bi = 0; bi < bsize; bi++) {
+                int l = index.getLogical(ii++);
+                if (ii == isize) {
+                    ii = 0;
+                }
+                if (l != RLogical.TRUE) {
+                    content[ci++] = base.getRAny(bi);
+                }
+            }
+            return RList.RListFactory.getForArray(content);
+        }
+
         public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RList || value instanceof RList) {
+            if (base instanceof RList && value instanceof RNull) {
+                return deleteElements((RList) base, index, ast);
+            } else if (base instanceof RList || value instanceof RList) {
                 typedBase = base.asList();
                 typedValue = value.asList();
-            } if (base instanceof RDouble || value instanceof RDouble) {
+            } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
             } else if (base instanceof RInt || value instanceof RInt) {

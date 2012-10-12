@@ -174,6 +174,14 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ v<-list(1,2,3) ; v[c(2,3,NA,7,0)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\nNULL\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
         assertEval("{ v<-list(1,2,3) ; v[c(2,3,4)] <- NULL ; v }", "[[1]]\n1.0");
         assertEval("{ v<-list(1,2,3) ; v[c(-1,-2,-6)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,TRUE)] <- NULL ; v }", "[[1]]\n2.0");
+        assertEval("{ v<-list(1,2,3) ; v[c()] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ v<-list(1,2,3) ; v[integer()] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ v<-list(1,2,3) ; v[double()] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ v<-list(1,2,3) ; v[logical()] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE)] <- NULL ; v }", "[[1]]\n2.0");
+        assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,FALSE,FALSE,FALSE,TRUE)] <- NULL ; v }", "[[1]]\n2.0\n\n[[2]]\n3.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
+
 
     }
 }
