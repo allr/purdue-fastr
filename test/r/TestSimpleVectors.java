@@ -170,7 +170,6 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-list(11,10,9) ; x[c(TRUE, FALSE, TRUE)] <- c(1000,2000); x }", "[[1]]\n1000.0\n\n[[2]]\n10.0\n\n[[3]]\n2000.0");
 
         // vector element deletion
-
         assertEval("{ v<-list(1,2,3) ; v[c(2,3,NA,7,0)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\nNULL\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
         assertEval("{ v<-list(1,2,3) ; v[c(2,3,4)] <- NULL ; v }", "[[1]]\n1.0");
         assertEval("{ v<-list(1,2,3) ; v[c(-1,-2,-6)] <- NULL ; v }", "[[1]]\n1.0\n\n[[2]]\n2.0");
@@ -182,6 +181,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE)] <- NULL ; v }", "[[1]]\n2.0");
         assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,FALSE,FALSE,FALSE,TRUE)] <- NULL ; v }", "[[1]]\n2.0\n\n[[2]]\n3.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
 
-
+        // recursive indexing
+        assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- NULL ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0");
+        assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- 4 ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n4.0");
+        assertEval("{ l <- list(1,list(2,list(3))) ; l[[1]] <- NULL ; l }", "[[1]]\n[[1]][[1]]\n2.0\n\n[[1]][[2]]\n[[1]][[2]][[1]]\n3.0");
+        assertEval("{ l <- list(1,list(2,list(3))) ; l[[1]] <- 5 ; l }", "[[1]]\n5.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0");
     }
 }

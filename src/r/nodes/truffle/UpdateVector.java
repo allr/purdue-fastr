@@ -10,7 +10,6 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.truffle.ReadVector.*;
 
 // FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
 // FIXME: could reduce code size by some refactoring, e.g. subclassing on copiers that use double, int, logical
@@ -27,7 +26,7 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
 
-    private static final boolean DEBUG_UP = true;
+    private static final boolean DEBUG_UP = false;
 
     UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
@@ -462,6 +461,15 @@ public abstract class UpdateVector extends BaseR {
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
                             return sn.execute(context, base, index, value);
 
+                        case NOT_ONE_ELEMENT_INDEX:
+                            if (!subset) {
+                                Subscript s = new Subscript(ast, var, lhs, indexes, rhs, subset);
+                                replace(s, "install Subscript from ScalarNumericSelection");
+                                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
+                                return s.execute(context, base, index, value);
+                            }
+                            // propagate below
+
                         default:
                             GenericScalarSelection gs = new GenericScalarSelection(ast, var, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericScalarSelection from ScalarNumericSelection");
@@ -657,7 +665,14 @@ public abstract class UpdateVector extends BaseR {
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
                                 return ls.execute(context, base, index, value);
                             }
-                        } // propagate below
+                        } else {
+                            Subscript s = new Subscript(ast, var, lhs, indexes, rhs, subset);
+                            replace(s, "install Subscript from GenericScalarSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
+                            return s.execute(context, base, index, value);
+                        }
+                        // propagate below
+
                     default:
                         GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
@@ -1765,7 +1780,7 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
- // when the index is a vector of integers (selection by index)
+    // when the index is a vector of integers (selection by index)
     //   and the base can be recursive
     //   and the mode is subscript ([[.]])
     public static class Subscript extends UpdateVector {
@@ -1813,6 +1828,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                     parent = newList;
                     parentIndex = isel;
+                    b = l.getRAny(isel);
                 }
             }
             // selection at the last level
@@ -1821,10 +1837,25 @@ public abstract class UpdateVector extends BaseR {
                 Utils.nyi("unuspported base type");
             }
             RArray a = (RArray) b;
-            int bsize = a.size();
-            boolean isList = a instanceof RList;
-            Utils.nyi("finish this!");
-            return null;
+            if (value instanceof RNull) {
+                if (a instanceof RList) {
+                    b = GenericScalarSelection.deleteElement((RList) a, indexv, ast, false);
+                } else {
+                    throw RError.getMoreElementsSupplied(ast);
+                }
+            } else {
+                if (value.size() > 1) {
+                    throw RError.getMoreElementsSupplied(ast);
+                } else {
+                    b = ScalarNumericSelection.genericUpdate(a, indexv, value, false, ast);
+                }
+            }
+            if (parent == null) {
+                return b;
+            } else {
+                parent.set(parentIndex, b);
+                return res;
+            }
         }
 
         @Override
