@@ -29,6 +29,7 @@ public class Primitives {
         add("return", 0, -1, Return.FACTORY);
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);
+        add("sum", 0, -1, Sum.FACTORY);
     }
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {

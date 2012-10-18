@@ -118,6 +118,9 @@ public abstract class BuiltIn extends AbstractCall {
         }
         public static AnalyzedArguments analyzeArguments(RSymbol[] argNames, RNode[] argExprs, RSymbol[] paramNames) {
 
+            // argument is the value passed by caller
+            // parameter is the callee's placeholder for the value
+
             int nParams = paramNames.length;
 
             int nArgs = argExprs.length;
@@ -140,6 +143,12 @@ public abstract class BuiltIn extends AbstractCall {
             int nextParam = 0;
             for (int i = 0; i < nArgs; i++) { // matching by position
                 if (!usedArgs[i]) {
+                    if (paramNames[nextParam] == threeDots) {
+                        /* usedArgs[i] = true; - not needed */
+                        a.argPositions[i] = nextParam;
+                        a.paramPositions[nextParam] = i; // so record the last argument that was taken by ...
+                        continue;
+                    }
                     while (nextParam < nParams && a.providedParams[nextParam]) {
                         nextParam++;
                     }

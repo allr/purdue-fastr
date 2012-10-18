@@ -10,6 +10,8 @@ public abstract class AbstractCall extends BaseR {
     @ContentStable protected final RSymbol[] argNames;
     @ContentStable protected final RNode[] argExprs;
 
+    public static final RSymbol threeDots = RSymbol.getSymbol("...");
+
     public AbstractCall(ASTNode orig, RSymbol[] argNames, RNode[] argsExprs) {
         super(orig);
         this.argNames = argNames;

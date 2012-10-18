@@ -94,6 +94,18 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testSum() throws RecognitionException {
+        assertEval("{ sum(1:6, 3, 4) }", "28.0");
+        assertEval("{ sum(1:6, 3L, TRUE) }", "25L");
+        assertEval("{ sum() }", "0L");
+        assertEval("{ sum(0, 1[3]) }", "NA");
+        assertEval("{ sum(na.rm=FALSE, 0, 1[3]) }", "NA");
+        assertEval("{ sum(0, na.rm=FALSE, 1[3]) }", "NA");
+        assertEval("{ sum(0, 1[3], na.rm=FALSE) }", "NA");
+        assertEval("{ sum(0, 1[3], na.rm=TRUE) }", "0.0");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

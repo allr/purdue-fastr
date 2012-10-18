@@ -64,7 +64,7 @@ public class Seq {
                               @Override
                               public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
 
-                                  RAny argfrom = args[paramPositions[IFROM]];
+                                  RAny argfrom = args[paramPositions[IFROM]]; // FIXME: will this be optimized out?
                                   RAny argto = args[paramPositions[ITO]];
                                   RAny argby = args[paramPositions[IBY]];
 
@@ -144,7 +144,7 @@ public class Seq {
                               @Override
                               public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
 
-                                  RAny argfrom = args[paramPositions[IFROM]];
+                                  RAny argfrom = args[paramPositions[IFROM]]; // FIXME: will this be optimized out ?
                                   RAny argto = args[paramPositions[ITO]];
                                   RAny arglengthOut = args[paramPositions[ILENGTH_OUT]];
 
