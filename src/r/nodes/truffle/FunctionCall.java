@@ -42,7 +42,7 @@ public abstract class FunctionCall extends AbstractCall {
 
                 @Override
                 protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    RSymbol[] names = new RSymbol[argExprs.length];
+                    RSymbol[] names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
                     int[] positions = computePositions(context, func, names);
                     return placeArgs(context, callerFrame, positions, names, func.nparams());
                 }
@@ -60,7 +60,7 @@ public abstract class FunctionCall extends AbstractCall {
                 protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
                     if (func != lastCall) {
                         lastCall = func;
-                        names = new RSymbol[argExprs.length];
+                        names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
                         positions = computePositions(context, func, names);
                     }
                     return placeArgs(context, callerFrame, positions, names, func.nparams());
