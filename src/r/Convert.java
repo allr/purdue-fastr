@@ -90,4 +90,18 @@ public class Convert {
     public static int logical2int(int l) {
         return l;
     }
+
+    public static int scalar2int(RAny v) {
+        if (v instanceof RInt) {
+            return ((RInt) v).getInt(0);
+        }
+        if (v instanceof RDouble) {
+            return double2int(((RDouble) v).getDouble(0));
+        }
+        if (v instanceof RLogical) {
+            return logical2int(((RLogical) v).getLogical(0));
+        }
+        Utils.nyi("unsupported type");
+        return -1;
+    }
 }

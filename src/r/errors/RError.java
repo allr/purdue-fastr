@@ -37,6 +37,7 @@ public abstract class RError extends RuntimeException {
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
+    public static final String LIST_COERCION = "(list) object cannot be coerced to type '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {

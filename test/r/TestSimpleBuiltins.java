@@ -86,6 +86,14 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testCasts() throws RecognitionException {
+        assertEval("{ as.integer(c(1,2,3)) }", "1L, 2L, 3L");
+        assertEval("{ as.integer(list(c(1),2,3)) }", "1L, 2L, 3L");
+        assertEval("{ as.integer(list(integer(),2,3)) }", "NA, 2L, 3L");
+        assertEval("{ as.integer(list(list(1),2,3)) }", "NA, 2L, 3L");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
