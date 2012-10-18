@@ -2,7 +2,6 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.data.RInt.*;
 
 public class ListImpl extends ArrayImpl implements RList {
 
@@ -55,6 +54,18 @@ public class ListImpl extends ArrayImpl implements RList {
     @Override
     public RAny getRAny(int i) {
         return content[i];
+    }
+
+    @Override
+    public boolean isNAorNaN(int i) {
+        RAny v = content[i];
+        if (v instanceof RArray) {
+            RArray a = (RArray) v;
+            if (a.size() == 1) {
+                return a.isNAorNaN(0);
+            }
+        }
+        return false;
     }
 
     @Override

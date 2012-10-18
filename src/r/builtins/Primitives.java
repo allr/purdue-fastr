@@ -18,6 +18,7 @@ public class Primitives {
         add("c", 0, -1, Combine.FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
+        add("is.na", 1, 1, IsNA.FACTORY);
         add("length", 1, 1, Length.FACTORY);
         add("list", 0, -1, List.FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);

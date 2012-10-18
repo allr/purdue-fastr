@@ -31,6 +31,11 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public boolean isNAorNaN(int i) {
+        return false;
+    }
+
+    @Override
     public RArray set(int i, Object val) {
         return this;
     }

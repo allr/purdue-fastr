@@ -46,6 +46,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public boolean isNAorNaN(int i) {
+        return RDouble.RDoubleUtils.isNAorNaN(content[i]);
+    }
+
+    @Override
     public RArray set(int i, Object val) {
         return set(i, ((Double) val).doubleValue()); // FIXME better conversion
     }

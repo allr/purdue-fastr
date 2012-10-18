@@ -78,6 +78,14 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testIsNA() throws RecognitionException {
+        assertEval("{ is.na(c(1,2,3,4)) }", "FALSE, FALSE, FALSE, FALSE");
+        assertEval("{ is.na(1[10]) }", "TRUE");
+        assertEval("{ is.na(c(1[10],2[10],3)) }", "TRUE, TRUE, FALSE");
+        assertEval("{ is.na(list(1[10],1L[10],list(),integer())) }", "TRUE, TRUE, FALSE, FALSE");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

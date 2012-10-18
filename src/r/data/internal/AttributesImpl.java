@@ -66,6 +66,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
+    public boolean isNAorNaN(int i) {
+        Utils.nyi();
+        return false;
+    }
+
+    @Override
     public String pretty() {
         Utils.nyi();
         return null;

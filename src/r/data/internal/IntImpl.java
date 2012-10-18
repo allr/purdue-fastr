@@ -54,6 +54,11 @@ public class IntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public boolean isNAorNaN(int i) {
+        return content[i] == RInt.NA;
+    }
+
+    @Override
     public RArray set(int i, Object val) {
         return set(i, ((Integer) val).intValue()); // FIXME better conversion
     }

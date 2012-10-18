@@ -65,9 +65,14 @@ public abstract class View extends ArrayImpl implements RArray {
             return new RInt.RDoubleView(this);
         }
 
-
+        @Override
         public RAny boxedGet(int i) {
             return RIntFactory.getScalar(getInt(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return getInt(i) == RInt.NA;
         }
 
         @Override
@@ -95,6 +100,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RAny boxedGet(int i) {
             return RDoubleFactory.getScalar(getDouble(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return RDouble.RDoubleUtils.isNAorNaN(getDouble(i));
         }
 
         @Override
@@ -159,9 +169,14 @@ public abstract class View extends ArrayImpl implements RArray {
             return new RLogical.RDoubleView(this);
         }
 
-
+        @Override
         public RAny boxedGet(int i) {
             return RLogicalFactory.getScalar(getLogical(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return getLogical(i) == RLogical.NA;
         }
 
         @Override
@@ -217,6 +232,18 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RAny boxedGet(int i) {
             return RList.RListFactory.getScalar(getRAny(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            RAny v = getRAny(i);
+            if (v instanceof RArray) {
+                RArray a = (RArray) v;
+                if (a.size() == 1) {
+                    return a.isNAorNaN(0);
+                }
+            }
+            return false;
         }
 
         @Override

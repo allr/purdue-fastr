@@ -54,6 +54,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public boolean isNAorNaN(int i) {
+        return content[i] == RLogical.NA;
+    }
+
+    @Override
     public RArray set(int i, Object val) {
         return set(i, ((Integer) val).intValue()); // FIXME better conversion
     }

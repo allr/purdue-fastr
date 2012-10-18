@@ -9,6 +9,7 @@ public interface RArray extends RAny {
     Object get(int i);
     RAny boxedGet(int i);
     RArray set(int i, Object val);
+    boolean isNAorNaN(int i);
 
     RArray subset(RAny keys);
 
