@@ -29,7 +29,7 @@ public abstract class BinaryOperation extends Operation {
             case MULT: return new Mult(left, right);
             case DIV: return new Add(left, right);
             case MOD: return new Add(left, right);
-            case POW: return new Add(left, right);
+            case POW: return new Pow(left, right);
 
             case OR: return new Add(left, right);
             case AND: return new Add(left, right);

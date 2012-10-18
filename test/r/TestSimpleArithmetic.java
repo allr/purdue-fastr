@@ -20,6 +20,7 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ TRUE+TRUE+TRUE*TRUE+FALSE+4 }", "7.0");
         assertEval("{ 1L*NA }", "NA");
         assertEval("{ 1+NA }", "NA");
+        assertEval("{ 2L^10L }", "1024.0");
     }
 
     @Test

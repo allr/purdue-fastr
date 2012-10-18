@@ -17,6 +17,7 @@ public interface Visitor {
     void visit(LT lt);
     void visit(GT gt);
     void visit(Mult mult);
+    void visit(Pow pow);
     void visit(Add add);
     void visit(Sub sub);
     void visit(Colon col);

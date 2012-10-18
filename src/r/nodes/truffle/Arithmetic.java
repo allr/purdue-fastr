@@ -8,7 +8,6 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.BinaryOperation.BinaryOperator;
 
 
 public class Arithmetic extends BaseR {
@@ -16,21 +15,16 @@ public class Arithmetic extends BaseR {
     @Stable RNode left;
     @Stable RNode right;
     final ValueArithmetic arit;
+    final boolean returnsDouble;
 
     private static final boolean DEBUG_AR = false;
 
-    public Arithmetic(ASTNode ast, RNode left, RNode right, BinaryOperator op) {
+    public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
         super(ast);
         this.left = updateParent(left);
         this.right = updateParent(right);
-
-        switch(op) {
-            case ADD: this.arit = ADD; break;
-            case SUB: this.arit = SUB; break;
-            case MULT: this.arit = MULT; break;
-            default:
-                throw new RuntimeException("not implemented arithmetic operation");
-        }
+        this.arit = arit;
+        this.returnsDouble = (arit == POW);
     }
 
     @Override
@@ -69,19 +63,30 @@ public class Arithmetic extends BaseR {
             } else if (larr instanceof RInt) {
                 int lint = ((RInt) larr).getInt(0);
                 if (rarr instanceof RInt) {
-                    if (lint == RInt.NA) {
-                        return RInt.BOXED_NA;
-                    }
-                    int rint = ((RInt) rarr).getInt(0);
-                    if (rint == RInt.NA) {
-                        return RInt.BOXED_NA;
-                    }
-                    int res = arit.op(lint, rint);
-                    if (res != RInt.NA) {
-                        return RInt.RIntFactory.getArray(res);
+                    if (returnsDouble) {
+                        if (lint == RInt.NA) {
+                            return RDouble.BOXED_NA;
+                        }
+                        int rint = ((RInt) rarr).getInt(0);
+                        if (rint == RInt.NA) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getArray(arit.op((double) lint, (double) rint));
                     } else {
-                        context.warning(ast, RError.INTEGER_OVERFLOW);
-                        return RInt.BOXED_NA;
+                        if (lint == RInt.NA) {
+                            return RInt.BOXED_NA;
+                        }
+                        int rint = ((RInt) rarr).getInt(0);
+                        if (rint == RInt.NA) {
+                            return RInt.BOXED_NA;
+                        }
+                        int res = arit.op(lint, rint);
+                        if (res != RInt.NA) {
+                            return RInt.RIntFactory.getArray(res);
+                        } else {
+                            context.warning(ast, RError.INTEGER_OVERFLOW);
+                            return RInt.BOXED_NA;
+                        }
                     }
                 } else if (rarr instanceof RDouble) {
                     if (lint == RInt.NA) {
@@ -120,15 +125,22 @@ public class Arithmetic extends BaseR {
 
         public Object execute(RContext context, RAny lexpr, RAny rexpr) {
             if (DEBUG_AR) Utils.debug("arithmetic - generic case");
-            if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
+
+            if (returnsDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
                 return new DoubleView(ldbl, rdbl, context);
-            }
-            if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) {
-                RInt lint = lexpr.asInt();
-                RInt rint = rexpr.asInt();
-                return new IntView(lint, rint, context);
+            } else {
+                if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
+                    RDouble ldbl = lexpr.asDouble();
+                    RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                    return new DoubleView(ldbl, rdbl, context);
+                }
+                if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) {
+                    RInt lint = lexpr.asInt();
+                    RInt rint = rexpr.asInt();
+                    return new IntView(lint, rint, context);
+                }
             }
             Utils.nyi("unsupported case for binary arithmetic operation");
             return null;
@@ -202,9 +214,22 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    protected static Add ADD = new Add();
-    protected static Sub SUB = new Sub();
-    protected static Mult MULT = new Mult();
+    public static final class Pow extends ValueArithmetic {
+        @Override
+        public double op(double a, double b) {
+            return Math.pow(a, b); // FIXME: check the R rules correspond to Java
+        }
+        @Override
+        public int op(int a, int b) {
+            Utils.nyi("unreachable");
+            return -1;
+        }
+    }
+
+    public static final Add ADD = new Add();
+    public static final Sub SUB = new Sub();
+    public static final Mult MULT = new Mult();
+    public static final Pow POW = new Pow();
 
     class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;
