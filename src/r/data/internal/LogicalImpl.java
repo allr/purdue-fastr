@@ -85,6 +85,12 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";

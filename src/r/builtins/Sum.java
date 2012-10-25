@@ -14,7 +14,6 @@ public class Sum {
     private static final String[] paramNames = new String[]{"...", "na.rm"};
     private static final int INA_RM = 1;
 
-
     public static double sum(RDouble v, boolean narm) {
         int size = v.size();
         double res = 0;

@@ -17,6 +17,7 @@ public class Primitives {
         add(":", 2, 2, Colon.FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
+        add("cat", 0, -1, Cat.FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);

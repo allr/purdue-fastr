@@ -100,6 +100,12 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RArray subset(RInt index) {
         return RDouble.RDoubleFactory.subset(this, index);
     }

@@ -132,6 +132,12 @@ public class ListImpl extends ArrayImpl implements RList {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RArray subset(RInt index) {
         return RList.RListFactory.subset(this, index);
     }

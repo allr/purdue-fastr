@@ -71,6 +71,11 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public RString asString() {
+        return RString.EMPTY;
+    }
+
+    @Override
     public RList asList() {
         return RList.EMPTY;
     }

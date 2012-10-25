@@ -5,6 +5,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// FIXME: the Impl classes for data types should also inherit from View.*, reducing code duplication
 
 public abstract class View extends ArrayImpl implements RArray {
 
@@ -63,6 +64,12 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RDouble asDouble() {
             return new RInt.RDoubleView(this);
+        }
+
+        @Override
+        public RString asString() {
+            Utils.nyi();
+            return null;
         }
 
         @Override
@@ -133,6 +140,12 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RString asString() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
         public RArray set(int i, double val) {
             return materialize().set(i, val);
         }
@@ -170,6 +183,12 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RString asString() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
         public RAny boxedGet(int i) {
             return RLogicalFactory.getScalar(getLogical(i));
         }
@@ -192,6 +211,66 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RArray subset(RInt index) {
             return RLogical.RLogicalFactory.subset(this, index);
+        }
+    }
+
+    public abstract static class RStringView extends View implements RString {
+        @Override
+        public Object get(int i) {
+            return getString(i);
+         }
+
+        @Override
+        public RArray materialize() {
+            return RString.RStringFactory.copy(this);
+        }
+
+        @Override
+        public RString asString() {
+            return this;
+        }
+
+        @Override
+        public RInt asInt() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RStringFactory.getScalar(getString(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return getString(i) == RString.NA;
+        }
+
+        @Override
+        public RArray set(int i, String val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RString.RStringFactory.subset(this, index);
         }
     }
 
@@ -220,6 +299,12 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RString asString() {
             Utils.nyi();
             return null;
         }

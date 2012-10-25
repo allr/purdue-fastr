@@ -15,6 +15,8 @@ public interface RAny {
 
     RDouble asDouble();
 
+    RString asString();
+
     RList asList();
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);

@@ -98,6 +98,13 @@ public class Constant extends ASTNode {
         throw new Error("Non scalar constants are not implemented.");
     }
 
+    public static Constant createStringConstant(String... values) {
+        if (values.length == 1) {
+            return new Constant(RString.RStringFactory.getArray(values));
+        }
+        throw new Error("Non scalar constants are not implemented.");
+    }
+
     @Override
     public String toString() {
         return getValue().pretty();

@@ -103,6 +103,12 @@ public class IntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromInt();
     }

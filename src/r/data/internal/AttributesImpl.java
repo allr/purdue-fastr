@@ -96,6 +96,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RList asList() {
         Utils.nyi();
         return null;

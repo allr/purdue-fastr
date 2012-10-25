@@ -1,4 +1,4 @@
-// $ANTLR !Unknown version! R.g 2012-09-25 12:21:32
+// $ANTLR !Unknown version! R.g 2012-10-22 13:45:06
 
 package r.parser;
 
@@ -51,8 +51,8 @@ public class RParser extends Parser {
     public static final int COMMA=35;
     public static final int TILDE=38;
     public static final int DOUBLE=53;
-    public static final int NEXT=16;
     public static final int PLUS=42;
+    public static final int NEXT=16;
     public static final int EQ=67;
     public static final int COMMENT=14;
     public static final int NA=58;
@@ -112,7 +112,7 @@ public class RParser extends Parser {
         }
         public RParser(TokenStream input, RecognizerSharedState state) {
             super(input, state);
-            this.state.ruleMemo = new HashMap[59+1];
+            this.state.ruleMemo = new HashMap[60+1];
              
              
         }
@@ -3398,7 +3398,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "simple_expr"
-    // R.g:232:1: simple_expr returns [ASTNode v] : (i= id | b= bool | DD | NULL | num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign );
+    // R.g:232:1: simple_expr returns [ASTNode v] : (i= id | b= bool | DD | NULL | num= number | cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign );
     public final ASTNode simple_expr() throws RecognitionException {
         ASTNode v = null;
         int simple_expr_StartIndex = input.index();
@@ -3407,6 +3407,8 @@ public class RParser extends Parser {
         ASTNode b = null;
 
         ASTNode num = null;
+
+        ASTNode cstr = null;
 
         ASTNode ea = null;
 
@@ -3417,8 +3419,8 @@ public class RParser extends Parser {
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 31) ) { return v; }
-            // R.g:233:2: (i= id | b= bool | DD | NULL | num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign )
-            int alt31=10;
+            // R.g:233:2: (i= id | b= bool | DD | NULL | num= number | cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign )
+            int alt31=11;
             alt31 = dfa31.predict(input);
             switch (alt31) {
                 case 1 :
@@ -3481,42 +3483,34 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:238:4: id NS_GET n_ id
+                    // R.g:238:4: cstr= conststring
                     {
-                    pushFollow(FOLLOW_id_in_simple_expr1708);
-                    id();
+                    pushFollow(FOLLOW_conststring_in_simple_expr1710);
+                    cstr=conststring();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    match(input,NS_GET,FOLLOW_NS_GET_in_simple_expr1710); if (state.failed) return v;
-                    pushFollow(FOLLOW_n__in_simple_expr1712);
-                    n_();
-
-                    state._fsp--;
-                    if (state.failed) return v;
-                    pushFollow(FOLLOW_id_in_simple_expr1714);
-                    id();
-
-                    state._fsp--;
-                    if (state.failed) return v;
+                    if ( state.backtracking==0 ) {
+                       v = cstr; 
+                    }
 
                     }
                     break;
                 case 7 :
-                    // R.g:239:4: id NS_GET_INT n_ id
+                    // R.g:239:4: id NS_GET n_ id
                     {
-                    pushFollow(FOLLOW_id_in_simple_expr1719);
+                    pushFollow(FOLLOW_id_in_simple_expr1717);
                     id();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    match(input,NS_GET_INT,FOLLOW_NS_GET_INT_in_simple_expr1721); if (state.failed) return v;
-                    pushFollow(FOLLOW_n__in_simple_expr1723);
+                    match(input,NS_GET,FOLLOW_NS_GET_in_simple_expr1719); if (state.failed) return v;
+                    pushFollow(FOLLOW_n__in_simple_expr1721);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    pushFollow(FOLLOW_id_in_simple_expr1725);
+                    pushFollow(FOLLOW_id_in_simple_expr1723);
                     id();
 
                     state._fsp--;
@@ -3525,35 +3519,57 @@ public class RParser extends Parser {
                     }
                     break;
                 case 8 :
-                    // R.g:240:4: LPAR n_ ea= expr_or_assign n_ RPAR
+                    // R.g:240:4: id NS_GET_INT n_ id
                     {
-                    match(input,LPAR,FOLLOW_LPAR_in_simple_expr1730); if (state.failed) return v;
+                    pushFollow(FOLLOW_id_in_simple_expr1728);
+                    id();
+
+                    state._fsp--;
+                    if (state.failed) return v;
+                    match(input,NS_GET_INT,FOLLOW_NS_GET_INT_in_simple_expr1730); if (state.failed) return v;
                     pushFollow(FOLLOW_n__in_simple_expr1732);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    pushFollow(FOLLOW_expr_or_assign_in_simple_expr1738);
-                    ea=expr_or_assign();
+                    pushFollow(FOLLOW_id_in_simple_expr1734);
+                    id();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    pushFollow(FOLLOW_n__in_simple_expr1740);
+
+                    }
+                    break;
+                case 9 :
+                    // R.g:241:4: LPAR n_ ea= expr_or_assign n_ RPAR
+                    {
+                    match(input,LPAR,FOLLOW_LPAR_in_simple_expr1739); if (state.failed) return v;
+                    pushFollow(FOLLOW_n__in_simple_expr1741);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    match(input,RPAR,FOLLOW_RPAR_in_simple_expr1742); if (state.failed) return v;
+                    pushFollow(FOLLOW_expr_or_assign_in_simple_expr1747);
+                    ea=expr_or_assign();
+
+                    state._fsp--;
+                    if (state.failed) return v;
+                    pushFollow(FOLLOW_n__in_simple_expr1749);
+                    n_();
+
+                    state._fsp--;
+                    if (state.failed) return v;
+                    match(input,RPAR,FOLLOW_RPAR_in_simple_expr1751); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                        v = ea; 
                     }
 
                     }
                     break;
-                case 9 :
-                    // R.g:241:4: s= sequence
+                case 10 :
+                    // R.g:242:4: s= sequence
                     {
-                    pushFollow(FOLLOW_sequence_in_simple_expr1753);
+                    pushFollow(FOLLOW_sequence_in_simple_expr1762);
                     s=sequence();
 
                     state._fsp--;
@@ -3564,10 +3580,10 @@ public class RParser extends Parser {
 
                     }
                     break;
-                case 10 :
-                    // R.g:242:4: e= expr_wo_assign
+                case 11 :
+                    // R.g:243:4: e= expr_wo_assign
                     {
-                    pushFollow(FOLLOW_expr_wo_assign_in_simple_expr1764);
+                    pushFollow(FOLLOW_expr_wo_assign_in_simple_expr1773);
                     e=expr_wo_assign();
 
                     state._fsp--;
@@ -3594,7 +3610,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "number"
-    // R.g:244:1: number returns [ASTNode n] : (i= INTEGER | d= DOUBLE | c= COMPLEX );
+    // R.g:245:1: number returns [ASTNode n] : (i= INTEGER | d= DOUBLE | c= COMPLEX );
     public final ASTNode number() throws RecognitionException {
         ASTNode n = null;
         int number_StartIndex = input.index();
@@ -3604,7 +3620,7 @@ public class RParser extends Parser {
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 32) ) { return n; }
-            // R.g:245:5: (i= INTEGER | d= DOUBLE | c= COMPLEX )
+            // R.g:246:5: (i= INTEGER | d= DOUBLE | c= COMPLEX )
             int alt32=3;
             switch ( input.LA(1) ) {
             case INTEGER:
@@ -3632,9 +3648,9 @@ public class RParser extends Parser {
 
             switch (alt32) {
                 case 1 :
-                    // R.g:245:7: i= INTEGER
+                    // R.g:246:7: i= INTEGER
                     {
-                    i=(Token)match(input,INTEGER,FOLLOW_INTEGER_in_number1785); if (state.failed) return n;
+                    i=(Token)match(input,INTEGER,FOLLOW_INTEGER_in_number1794); if (state.failed) return n;
                     if ( state.backtracking==0 ) {
                        n = Constant.createIntConstant((i!=null?i.getText():null)); 
                     }
@@ -3642,9 +3658,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:246:7: d= DOUBLE
+                    // R.g:247:7: d= DOUBLE
                     {
-                    d=(Token)match(input,DOUBLE,FOLLOW_DOUBLE_in_number1797); if (state.failed) return n;
+                    d=(Token)match(input,DOUBLE,FOLLOW_DOUBLE_in_number1806); if (state.failed) return n;
                     if ( state.backtracking==0 ) {
                        n = Constant.createDoubleConstant((d!=null?d.getText():null)); 
                     }
@@ -3652,9 +3668,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:247:7: c= COMPLEX
+                    // R.g:248:7: c= COMPLEX
                     {
-                    c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1809); if (state.failed) return n;
+                    c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1818); if (state.failed) return n;
                     if ( state.backtracking==0 ) {
                        n = Constant.createComplexConstant((c!=null?c.getText():null)); 
                     }
@@ -3676,48 +3692,70 @@ public class RParser extends Parser {
     // $ANTLR end "number"
 
 
+    // $ANTLR start "conststring"
+    // R.g:250:1: conststring returns [ASTNode n] : s= STRING ;
+    public final ASTNode conststring() throws RecognitionException {
+        ASTNode n = null;
+        int conststring_StartIndex = input.index();
+        Token s=null;
+
+        try {
+            if ( state.backtracking>0 && alreadyParsedRule(input, 33) ) { return n; }
+            // R.g:251:5: (s= STRING )
+            // R.g:251:7: s= STRING
+            {
+            s=(Token)match(input,STRING,FOLLOW_STRING_in_conststring1842); if (state.failed) return n;
+            if ( state.backtracking==0 ) {
+               n = Constant.createStringConstant((s!=null?s.getText():null)); 
+            }
+
+            }
+
+        }
+
+            catch(RecognitionException re){
+                throw re; // Stop at first error
+            }
+        finally {
+            if ( state.backtracking>0 ) { memoize(input, 33, conststring_StartIndex); }
+        }
+        return n;
+    }
+    // $ANTLR end "conststring"
+
+
     // $ANTLR start "id"
-    // R.g:249:1: id returns [Token t] : (i= ID | s= STRING | v= VARIATIC );
+    // R.g:253:1: id returns [Token t] : (i= ID | v= VARIATIC );
     public final Token id() throws RecognitionException {
         Token t = null;
         int id_StartIndex = input.index();
         Token i=null;
-        Token s=null;
         Token v=null;
 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 33) ) { return t; }
-            // R.g:250:5: (i= ID | s= STRING | v= VARIATIC )
-            int alt33=3;
-            switch ( input.LA(1) ) {
-            case ID:
-                {
+            if ( state.backtracking>0 && alreadyParsedRule(input, 34) ) { return t; }
+            // R.g:254:5: (i= ID | v= VARIATIC )
+            int alt33=2;
+            int LA33_0 = input.LA(1);
+
+            if ( (LA33_0==ID) ) {
                 alt33=1;
-                }
-                break;
-            case STRING:
-                {
+            }
+            else if ( (LA33_0==VARIATIC) ) {
                 alt33=2;
-                }
-                break;
-            case VARIATIC:
-                {
-                alt33=3;
-                }
-                break;
-            default:
+            }
+            else {
                 if (state.backtracking>0) {state.failed=true; return t;}
                 NoViableAltException nvae =
                     new NoViableAltException("", 33, 0, input);
 
                 throw nvae;
             }
-
             switch (alt33) {
                 case 1 :
-                    // R.g:250:7: i= ID
+                    // R.g:254:7: i= ID
                     {
-                    i=(Token)match(input,ID,FOLLOW_ID_in_id1833); if (state.failed) return t;
+                    i=(Token)match(input,ID,FOLLOW_ID_in_id1866); if (state.failed) return t;
                     if ( state.backtracking==0 ) {
                        t = i; 
                     }
@@ -3725,19 +3763,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:251:7: s= STRING
+                    // R.g:255:7: v= VARIATIC
                     {
-                    s=(Token)match(input,STRING,FOLLOW_STRING_in_id1845); if (state.failed) return t;
-                    if ( state.backtracking==0 ) {
-                       t = s; 
-                    }
-
-                    }
-                    break;
-                case 3 :
-                    // R.g:252:7: v= VARIATIC
-                    {
-                    v=(Token)match(input,VARIATIC,FOLLOW_VARIATIC_in_id1857); if (state.failed) return t;
+                    v=(Token)match(input,VARIATIC,FOLLOW_VARIATIC_in_id1878); if (state.failed) return t;
                     if ( state.backtracking==0 ) {
                        t = v; 
                     }
@@ -3752,7 +3780,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 33, id_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 34, id_StartIndex); }
         }
         return t;
     }
@@ -3760,13 +3788,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "bool"
-    // R.g:254:1: bool returns [ASTNode v] : ( TRUE | FALSE | NA );
+    // R.g:257:1: bool returns [ASTNode v] : ( TRUE | FALSE | NA );
     public final ASTNode bool() throws RecognitionException {
         ASTNode v = null;
         int bool_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 34) ) { return v; }
-            // R.g:255:5: ( TRUE | FALSE | NA )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 35) ) { return v; }
+            // R.g:258:5: ( TRUE | FALSE | NA )
             int alt34=3;
             switch ( input.LA(1) ) {
             case TRUE:
@@ -3794,9 +3822,9 @@ public class RParser extends Parser {
 
             switch (alt34) {
                 case 1 :
-                    // R.g:255:7: TRUE
+                    // R.g:258:7: TRUE
                     {
-                    match(input,TRUE,FOLLOW_TRUE_in_bool1879); if (state.failed) return v;
+                    match(input,TRUE,FOLLOW_TRUE_in_bool1900); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = Constant.createBoolConstant(1); 
                     }
@@ -3804,9 +3832,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:256:7: FALSE
+                    // R.g:259:7: FALSE
                     {
-                    match(input,FALSE,FOLLOW_FALSE_in_bool1889); if (state.failed) return v;
+                    match(input,FALSE,FOLLOW_FALSE_in_bool1910); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = Constant.createBoolConstant(0); 
                     }
@@ -3814,9 +3842,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:257:7: NA
+                    // R.g:260:7: NA
                     {
-                    match(input,NA,FOLLOW_NA_in_bool1899); if (state.failed) return v;
+                    match(input,NA,FOLLOW_NA_in_bool1920); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = Constant.createBoolConstant(RLogical.NA); 
                     }
@@ -3831,7 +3859,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 34, bool_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 35, bool_StartIndex); }
         }
         return v;
     }
@@ -3839,13 +3867,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_operator"
-    // R.g:259:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
+    // R.g:262:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
     public final BinaryOperator or_operator() throws RecognitionException {
         BinaryOperator v = null;
         int or_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 35) ) { return v; }
-            // R.g:260:2: ( OR | BITWISEOR )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 36) ) { return v; }
+            // R.g:263:2: ( OR | BITWISEOR )
             int alt35=2;
             int LA35_0 = input.LA(1);
 
@@ -3864,9 +3892,9 @@ public class RParser extends Parser {
             }
             switch (alt35) {
                 case 1 :
-                    // R.g:260:4: OR
+                    // R.g:263:4: OR
                     {
-                    match(input,OR,FOLLOW_OR_in_or_operator1918); if (state.failed) return v;
+                    match(input,OR,FOLLOW_OR_in_or_operator1939); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.OR; 
                     }
@@ -3874,9 +3902,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:261:5: BITWISEOR
+                    // R.g:264:5: BITWISEOR
                     {
-                    match(input,BITWISEOR,FOLLOW_BITWISEOR_in_or_operator1935); if (state.failed) return v;
+                    match(input,BITWISEOR,FOLLOW_BITWISEOR_in_or_operator1956); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.BITWISEOR; 
                     }
@@ -3891,7 +3919,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 35, or_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 36, or_operator_StartIndex); }
         }
         return v;
     }
@@ -3899,13 +3927,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_operator"
-    // R.g:262:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
+    // R.g:265:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
     public final BinaryOperator and_operator() throws RecognitionException {
         BinaryOperator v = null;
         int and_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 36) ) { return v; }
-            // R.g:263:2: ( AND | BITWISEAND )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 37) ) { return v; }
+            // R.g:266:2: ( AND | BITWISEAND )
             int alt36=2;
             int LA36_0 = input.LA(1);
 
@@ -3924,9 +3952,9 @@ public class RParser extends Parser {
             }
             switch (alt36) {
                 case 1 :
-                    // R.g:263:4: AND
+                    // R.g:266:4: AND
                     {
-                    match(input,AND,FOLLOW_AND_in_and_operator1951); if (state.failed) return v;
+                    match(input,AND,FOLLOW_AND_in_and_operator1972); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.AND; 
                     }
@@ -3934,9 +3962,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:264:4: BITWISEAND
+                    // R.g:267:4: BITWISEAND
                     {
-                    match(input,BITWISEAND,FOLLOW_BITWISEAND_in_and_operator1967); if (state.failed) return v;
+                    match(input,BITWISEAND,FOLLOW_BITWISEAND_in_and_operator1988); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.BITWISEAND; 
                     }
@@ -3951,7 +3979,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 36, and_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 37, and_operator_StartIndex); }
         }
         return v;
     }
@@ -3959,13 +3987,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_operator"
-    // R.g:265:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
+    // R.g:268:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
     public final BinaryOperator comp_operator() throws RecognitionException {
         BinaryOperator v = null;
         int comp_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 37) ) { return v; }
-            // R.g:266:2: ( GT | GE | LT | LE | EQ | NE )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 38) ) { return v; }
+            // R.g:269:2: ( GT | GE | LT | LE | EQ | NE )
             int alt37=6;
             switch ( input.LA(1) ) {
             case GT:
@@ -4008,9 +4036,9 @@ public class RParser extends Parser {
 
             switch (alt37) {
                 case 1 :
-                    // R.g:266:4: GT
+                    // R.g:269:4: GT
                     {
-                    match(input,GT,FOLLOW_GT_in_comp_operator1983); if (state.failed) return v;
+                    match(input,GT,FOLLOW_GT_in_comp_operator2004); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.GT; 
                     }
@@ -4018,9 +4046,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:267:4: GE
+                    // R.g:270:4: GE
                     {
-                    match(input,GE,FOLLOW_GE_in_comp_operator1990); if (state.failed) return v;
+                    match(input,GE,FOLLOW_GE_in_comp_operator2011); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.GE; 
                     }
@@ -4028,9 +4056,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:268:4: LT
+                    // R.g:271:4: LT
                     {
-                    match(input,LT,FOLLOW_LT_in_comp_operator1997); if (state.failed) return v;
+                    match(input,LT,FOLLOW_LT_in_comp_operator2018); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.LT; 
                     }
@@ -4038,9 +4066,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:269:4: LE
+                    // R.g:272:4: LE
                     {
-                    match(input,LE,FOLLOW_LE_in_comp_operator2004); if (state.failed) return v;
+                    match(input,LE,FOLLOW_LE_in_comp_operator2025); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.LE; 
                     }
@@ -4048,9 +4076,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:270:4: EQ
+                    // R.g:273:4: EQ
                     {
-                    match(input,EQ,FOLLOW_EQ_in_comp_operator2011); if (state.failed) return v;
+                    match(input,EQ,FOLLOW_EQ_in_comp_operator2032); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.EQ; 
                     }
@@ -4058,9 +4086,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:271:4: NE
+                    // R.g:274:4: NE
                     {
-                    match(input,NE,FOLLOW_NE_in_comp_operator2018); if (state.failed) return v;
+                    match(input,NE,FOLLOW_NE_in_comp_operator2039); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.NE; 
                     }
@@ -4075,7 +4103,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 37, comp_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 38, comp_operator_StartIndex); }
         }
         return v;
     }
@@ -4083,13 +4111,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_operator"
-    // R.g:272:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
+    // R.g:275:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
     public final BinaryOperator add_operator() throws RecognitionException {
         BinaryOperator v = null;
         int add_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 38) ) { return v; }
-            // R.g:273:2: ( PLUS | MINUS )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 39) ) { return v; }
+            // R.g:276:2: ( PLUS | MINUS )
             int alt38=2;
             int LA38_0 = input.LA(1);
 
@@ -4108,9 +4136,9 @@ public class RParser extends Parser {
             }
             switch (alt38) {
                 case 1 :
-                    // R.g:273:4: PLUS
+                    // R.g:276:4: PLUS
                     {
-                    match(input,PLUS,FOLLOW_PLUS_in_add_operator2032); if (state.failed) return v;
+                    match(input,PLUS,FOLLOW_PLUS_in_add_operator2053); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.ADD; 
                     }
@@ -4118,9 +4146,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:274:4: MINUS
+                    // R.g:277:4: MINUS
                     {
-                    match(input,MINUS,FOLLOW_MINUS_in_add_operator2039); if (state.failed) return v;
+                    match(input,MINUS,FOLLOW_MINUS_in_add_operator2060); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.SUB; 
                     }
@@ -4135,7 +4163,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 38, add_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 39, add_operator_StartIndex); }
         }
         return v;
     }
@@ -4143,13 +4171,13 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_operator"
-    // R.g:275:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV | MOD );
+    // R.g:278:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV | MOD );
     public final BinaryOperator mult_operator() throws RecognitionException {
         BinaryOperator v = null;
         int mult_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 39) ) { return v; }
-            // R.g:276:2: ( MULT | DIV | MOD )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 40) ) { return v; }
+            // R.g:279:2: ( MULT | DIV | MOD )
             int alt39=3;
             switch ( input.LA(1) ) {
             case MULT:
@@ -4177,9 +4205,9 @@ public class RParser extends Parser {
 
             switch (alt39) {
                 case 1 :
-                    // R.g:276:4: MULT
+                    // R.g:279:4: MULT
                     {
-                    match(input,MULT,FOLLOW_MULT_in_mult_operator2054); if (state.failed) return v;
+                    match(input,MULT,FOLLOW_MULT_in_mult_operator2075); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.MULT; 
                     }
@@ -4187,9 +4215,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:277:4: DIV
+                    // R.g:280:4: DIV
                     {
-                    match(input,DIV,FOLLOW_DIV_in_mult_operator2061); if (state.failed) return v;
+                    match(input,DIV,FOLLOW_DIV_in_mult_operator2082); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.DIV; 
                     }
@@ -4197,9 +4225,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:278:4: MOD
+                    // R.g:281:4: MOD
                     {
-                    match(input,MOD,FOLLOW_MOD_in_mult_operator2069); if (state.failed) return v;
+                    match(input,MOD,FOLLOW_MOD_in_mult_operator2090); if (state.failed) return v;
                     if ( state.backtracking==0 ) {
                       v = BinaryOperator.MOD; 
                     }
@@ -4214,7 +4242,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 39, mult_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 40, mult_operator_StartIndex); }
         }
         return v;
     }
@@ -4222,16 +4250,16 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "power_operator"
-    // R.g:279:1: power_operator returns [BinaryOperator v] : CARRET ;
+    // R.g:282:1: power_operator returns [BinaryOperator v] : CARRET ;
     public final BinaryOperator power_operator() throws RecognitionException {
         BinaryOperator v = null;
         int power_operator_StartIndex = input.index();
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 40) ) { return v; }
-            // R.g:280:2: ( CARRET )
-            // R.g:280:4: CARRET
+            if ( state.backtracking>0 && alreadyParsedRule(input, 41) ) { return v; }
+            // R.g:283:2: ( CARRET )
+            // R.g:283:4: CARRET
             {
-            match(input,CARRET,FOLLOW_CARRET_in_power_operator2084); if (state.failed) return v;
+            match(input,CARRET,FOLLOW_CARRET_in_power_operator2105); if (state.failed) return v;
             if ( state.backtracking==0 ) {
               v = BinaryOperator.POW; 
             }
@@ -4244,7 +4272,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 40, power_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 41, power_operator_StartIndex); }
         }
         return v;
     }
@@ -4252,29 +4280,29 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "args"
-    // R.g:282:1: args returns [ArgumentList v] : ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )* ;
+    // R.g:285:1: args returns [ArgumentList v] : ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )* ;
     public final ArgumentList args() throws RecognitionException {
         ArgumentList v = null;
         int args_StartIndex = input.index();
          v = new ArgumentList.Default(); 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 41) ) { return v; }
-            // R.g:284:5: ( ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )* )
-            // R.g:284:7: ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )*
+            if ( state.backtracking>0 && alreadyParsedRule(input, 42) ) { return v; }
+            // R.g:287:5: ( ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )* )
+            // R.g:287:7: ( n_ arg_expr[v] )? n_ ( COMMA ( | n_ arg_expr[v] ) n_ )*
             {
-            // R.g:284:7: ( n_ arg_expr[v] )?
+            // R.g:287:7: ( n_ arg_expr[v] )?
             int alt40=2;
             alt40 = dfa40.predict(input);
             switch (alt40) {
                 case 1 :
-                    // R.g:284:8: n_ arg_expr[v]
+                    // R.g:287:8: n_ arg_expr[v]
                     {
-                    pushFollow(FOLLOW_n__in_args2109);
+                    pushFollow(FOLLOW_n__in_args2130);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
-                    pushFollow(FOLLOW_arg_expr_in_args2111);
+                    pushFollow(FOLLOW_arg_expr_in_args2132);
                     arg_expr(v);
 
                     state._fsp--;
@@ -4285,12 +4313,12 @@ public class RParser extends Parser {
 
             }
 
-            pushFollow(FOLLOW_n__in_args2116);
+            pushFollow(FOLLOW_n__in_args2137);
             n_();
 
             state._fsp--;
             if (state.failed) return v;
-            // R.g:284:28: ( COMMA ( | n_ arg_expr[v] ) n_ )*
+            // R.g:287:28: ( COMMA ( | n_ arg_expr[v] ) n_ )*
             loop42:
             do {
                 int alt42=2;
@@ -4303,15 +4331,15 @@ public class RParser extends Parser {
 
                 switch (alt42) {
             	case 1 :
-            	    // R.g:284:29: COMMA ( | n_ arg_expr[v] ) n_
+            	    // R.g:287:29: COMMA ( | n_ arg_expr[v] ) n_
             	    {
-            	    match(input,COMMA,FOLLOW_COMMA_in_args2119); if (state.failed) return v;
-            	    // R.g:284:35: ( | n_ arg_expr[v] )
+            	    match(input,COMMA,FOLLOW_COMMA_in_args2140); if (state.failed) return v;
+            	    // R.g:287:35: ( | n_ arg_expr[v] )
             	    int alt41=2;
             	    alt41 = dfa41.predict(input);
             	    switch (alt41) {
             	        case 1 :
-            	            // R.g:284:37: 
+            	            // R.g:287:37: 
             	            {
             	            if ( state.backtracking==0 ) {
             	               v.add((ASTNode)null); 
@@ -4320,14 +4348,14 @@ public class RParser extends Parser {
             	            }
             	            break;
             	        case 2 :
-            	            // R.g:284:66: n_ arg_expr[v]
+            	            // R.g:287:66: n_ arg_expr[v]
             	            {
-            	            pushFollow(FOLLOW_n__in_args2127);
+            	            pushFollow(FOLLOW_n__in_args2148);
             	            n_();
 
             	            state._fsp--;
             	            if (state.failed) return v;
-            	            pushFollow(FOLLOW_arg_expr_in_args2129);
+            	            pushFollow(FOLLOW_arg_expr_in_args2150);
             	            arg_expr(v);
 
             	            state._fsp--;
@@ -4338,7 +4366,7 @@ public class RParser extends Parser {
 
             	    }
 
-            	    pushFollow(FOLLOW_n__in_args2133);
+            	    pushFollow(FOLLOW_n__in_args2154);
             	    n_();
 
             	    state._fsp--;
@@ -4361,7 +4389,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 41, args_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 42, args_StartIndex); }
         }
         return v;
     }
@@ -4369,7 +4397,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "arg_expr"
-    // R.g:286:1: arg_expr[ArgumentList l] : (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
+    // R.g:289:1: arg_expr[ArgumentList l] : (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
     public final void arg_expr(ArgumentList l) throws RecognitionException {
         int arg_expr_StartIndex = input.index();
         ASTNode e = null;
@@ -4380,15 +4408,15 @@ public class RParser extends Parser {
 
 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 42) ) { return ; }
-            // R.g:287:2: (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
+            if ( state.backtracking>0 && alreadyParsedRule(input, 43) ) { return ; }
+            // R.g:290:2: (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
             int alt43=5;
             alt43 = dfa43.predict(input);
             switch (alt43) {
                 case 1 :
-                    // R.g:287:4: e= expr
+                    // R.g:290:4: e= expr
                     {
-                    pushFollow(FOLLOW_expr_in_arg_expr2150);
+                    pushFollow(FOLLOW_expr_in_arg_expr2171);
                     e=expr();
 
                     state._fsp--;
@@ -4400,25 +4428,25 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:288:4: name= id n_ ASSIGN n_ val= expr
+                    // R.g:291:4: name= id n_ ASSIGN n_ val= expr
                     {
-                    pushFollow(FOLLOW_id_in_arg_expr2159);
+                    pushFollow(FOLLOW_id_in_arg_expr2180);
                     name=id();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2161);
+                    pushFollow(FOLLOW_n__in_arg_expr2182);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2163); if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2165);
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2184); if (state.failed) return ;
+                    pushFollow(FOLLOW_n__in_arg_expr2186);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    pushFollow(FOLLOW_expr_in_arg_expr2169);
+                    pushFollow(FOLLOW_expr_in_arg_expr2190);
                     val=expr();
 
                     state._fsp--;
@@ -4430,19 +4458,19 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:289:4: name= id n_ ASSIGN
+                    // R.g:292:4: name= id n_ ASSIGN
                     {
-                    pushFollow(FOLLOW_id_in_arg_expr2178);
+                    pushFollow(FOLLOW_id_in_arg_expr2199);
                     name=id();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2180);
+                    pushFollow(FOLLOW_n__in_arg_expr2201);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2182); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2203); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        l.add(name.getText(), null); 
                     }
@@ -4450,21 +4478,21 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:290:4: NULL n_ ASSIGN n_ val= expr
+                    // R.g:293:4: NULL n_ ASSIGN n_ val= expr
                     {
-                    match(input,NULL,FOLLOW_NULL_in_arg_expr2190); if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2192);
+                    match(input,NULL,FOLLOW_NULL_in_arg_expr2211); if (state.failed) return ;
+                    pushFollow(FOLLOW_n__in_arg_expr2213);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2194); if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2196);
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2215); if (state.failed) return ;
+                    pushFollow(FOLLOW_n__in_arg_expr2217);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    pushFollow(FOLLOW_expr_in_arg_expr2200);
+                    pushFollow(FOLLOW_expr_in_arg_expr2221);
                     val=expr();
 
                     state._fsp--;
@@ -4476,15 +4504,15 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:291:4: NULL n_ ASSIGN
+                    // R.g:294:4: NULL n_ ASSIGN
                     {
-                    match(input,NULL,FOLLOW_NULL_in_arg_expr2207); if (state.failed) return ;
-                    pushFollow(FOLLOW_n__in_arg_expr2209);
+                    match(input,NULL,FOLLOW_NULL_in_arg_expr2228); if (state.failed) return ;
+                    pushFollow(FOLLOW_n__in_arg_expr2230);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2211); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2232); if (state.failed) return ;
                     if ( state.backtracking==0 ) {
                        Utils.nyi(); 
                     }
@@ -4499,7 +4527,7 @@ public class RParser extends Parser {
                 throw re; // Stop at first error
             }
         finally {
-            if ( state.backtracking>0 ) { memoize(input, 42, arg_expr_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 43, arg_expr_StartIndex); }
         }
         return ;
     }
@@ -4834,6 +4862,20 @@ public class RParser extends Parser {
         state.failed=false;
         return success;
     }
+    public final boolean synpred13_R() {
+        state.backtracking++;
+        int start = input.mark();
+        try {
+            synpred13_R_fragment(); // can never throw exception
+        } catch (RecognitionException re) {
+            System.err.println("impossible: "+re);
+        }
+        boolean success = !state.failed;
+        input.rewind(start);
+        state.backtracking--;
+        state.failed=false;
+        return success;
+    }
     public final boolean synpred3_R() {
         state.backtracking++;
         int start = input.mark();
@@ -4853,20 +4895,6 @@ public class RParser extends Parser {
         int start = input.mark();
         try {
             synpred6_R_fragment(); // can never throw exception
-        } catch (RecognitionException re) {
-            System.err.println("impossible: "+re);
-        }
-        boolean success = !state.failed;
-        input.rewind(start);
-        state.backtracking--;
-        state.failed=false;
-        return success;
-    }
-    public final boolean synpred13_R() {
-        state.backtracking++;
-        int start = input.mark();
-        try {
-            synpred13_R_fragment(); // can never throw exception
         } catch (RecognitionException re) {
             System.err.println("impossible: "+re);
         }
@@ -5056,7 +5084,7 @@ public class RParser extends Parser {
     static final String DFA12_acceptS =
         "\6\uffff\1\6\1\1\1\2\1\3\1\4\1\5";
     static final String DFA12_specialS =
-        "\1\uffff\1\0\1\3\1\4\1\2\1\1\6\uffff}>";
+        "\1\uffff\1\2\1\0\1\4\1\1\1\3\6\uffff}>";
     static final String[] DFA12_transitionS = {
             "\3\6\3\uffff\1\6\1\1\1\2\1\3\1\4\1\5\1\uffff\3\6\6\uffff\1\6"+
             "\2\uffff\1\6\1\uffff\11\6\12\uffff\16\6",
@@ -5112,36 +5140,21 @@ public class RParser extends Parser {
         	int _s = s;
             switch ( s ) {
                     case 0 : 
-                        int LA12_1 = input.LA(1);
+                        int LA12_2 = input.LA(1);
 
                          
-                        int index12_1 = input.index();
+                        int index12_2 = input.index();
                         input.rewind();
                         s = -1;
-                        if ( (synpred1_R()) ) {s = 7;}
+                        if ( (synpred2_R()) ) {s = 8;}
 
                         else if ( (true) ) {s = 6;}
 
                          
-                        input.seek(index12_1);
+                        input.seek(index12_2);
                         if ( s>=0 ) return s;
                         break;
                     case 1 : 
-                        int LA12_5 = input.LA(1);
-
-                         
-                        int index12_5 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (synpred5_R()) ) {s = 11;}
-
-                        else if ( (true) ) {s = 6;}
-
-                         
-                        input.seek(index12_5);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 2 : 
                         int LA12_4 = input.LA(1);
 
                          
@@ -5156,19 +5169,34 @@ public class RParser extends Parser {
                         input.seek(index12_4);
                         if ( s>=0 ) return s;
                         break;
-                    case 3 : 
-                        int LA12_2 = input.LA(1);
+                    case 2 : 
+                        int LA12_1 = input.LA(1);
 
                          
-                        int index12_2 = input.index();
+                        int index12_1 = input.index();
                         input.rewind();
                         s = -1;
-                        if ( (synpred2_R()) ) {s = 8;}
+                        if ( (synpred1_R()) ) {s = 7;}
 
                         else if ( (true) ) {s = 6;}
 
                          
-                        input.seek(index12_2);
+                        input.seek(index12_1);
+                        if ( s>=0 ) return s;
+                        break;
+                    case 3 : 
+                        int LA12_5 = input.LA(1);
+
+                         
+                        int index12_5 = input.index();
+                        input.rewind();
+                        s = -1;
+                        if ( (synpred5_R()) ) {s = 11;}
+
+                        else if ( (true) ) {s = 6;}
+
+                         
+                        input.seek(index12_5);
                         if ( s>=0 ) return s;
                         break;
                     case 4 : 
@@ -5256,21 +5284,21 @@ public class RParser extends Parser {
     static final String DFA16_maxS =
         "\1\45\4\43\2\uffff\1\43\2\uffff\1\43\2\uffff";
     static final String DFA16_acceptS =
-        "\5\uffff\1\1\1\2\1\uffff\1\4\1\3\1\uffff\1\6\1\5";
+        "\5\uffff\1\2\1\1\1\uffff\1\4\1\3\1\uffff\1\5\1\6";
     static final String DFA16_specialS =
         "\15\uffff}>";
     static final String[] DFA16_transitionS = {
             "\1\1\4\uffff\1\2\1\3",
-            "\2\4\11\uffff\1\6\2\uffff\1\5\7\uffff\1\5",
+            "\2\4\11\uffff\1\5\2\uffff\1\6\7\uffff\1\6",
             "\2\7\11\uffff\1\10\2\uffff\1\11\7\uffff\1\11",
-            "\2\12\11\uffff\1\13\2\uffff\1\14\7\uffff\1\14",
-            "\2\4\11\uffff\1\6\2\uffff\1\5\7\uffff\1\5",
+            "\2\12\11\uffff\1\14\2\uffff\1\13\7\uffff\1\13",
+            "\2\4\11\uffff\1\5\2\uffff\1\6\7\uffff\1\6",
             "",
             "",
             "\2\7\11\uffff\1\10\2\uffff\1\11\7\uffff\1\11",
             "",
             "",
-            "\2\12\11\uffff\1\13\2\uffff\1\14\7\uffff\1\14",
+            "\2\12\11\uffff\1\14\2\uffff\1\13\7\uffff\1\13",
             "",
             ""
     };
@@ -5320,7 +5348,7 @@ public class RParser extends Parser {
     static final String DFA29_acceptS =
         "\6\uffff\40\2\1\1";
     static final String DFA29_specialS =
-        "\1\4\1\3\1\0\1\5\1\1\1\2\41\uffff}>";
+        "\1\2\1\4\1\1\1\0\1\3\1\5\41\uffff}>";
     static final String[] DFA29_transitionS = {
             "\2\35\1\43\3\uffff\1\44\1\31\1\32\1\33\1\34\1\41\1\uffff\1\5"+
             "\1\37\1\45\6\uffff\1\36\2\uffff\1\30\1\uffff\1\10\1\7\1\14\1"+
@@ -5405,6 +5433,21 @@ public class RParser extends Parser {
         	int _s = s;
             switch ( s ) {
                     case 0 : 
+                        int LA29_3 = input.LA(1);
+
+                         
+                        int index29_3 = input.index();
+                        input.rewind();
+                        s = -1;
+                        if ( (true) ) {s = 38;}
+
+                        else if ( (synpred17_R()) ) {s = 37;}
+
+                         
+                        input.seek(index29_3);
+                        if ( s>=0 ) return s;
+                        break;
+                    case 1 : 
                         int LA29_2 = input.LA(1);
 
                          
@@ -5419,52 +5462,7 @@ public class RParser extends Parser {
                         input.seek(index29_2);
                         if ( s>=0 ) return s;
                         break;
-                    case 1 : 
-                        int LA29_4 = input.LA(1);
-
-                         
-                        int index29_4 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (true) ) {s = 38;}
-
-                        else if ( (synpred17_R()) ) {s = 37;}
-
-                         
-                        input.seek(index29_4);
-                        if ( s>=0 ) return s;
-                        break;
                     case 2 : 
-                        int LA29_5 = input.LA(1);
-
-                         
-                        int index29_5 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (true) ) {s = 38;}
-
-                        else if ( (synpred17_R()) ) {s = 37;}
-
-                         
-                        input.seek(index29_5);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 3 : 
-                        int LA29_1 = input.LA(1);
-
-                         
-                        int index29_1 = input.index();
-                        input.rewind();
-                        s = -1;
-                        if ( (true) ) {s = 38;}
-
-                        else if ( (synpred17_R()) ) {s = 37;}
-
-                         
-                        input.seek(index29_1);
-                        if ( s>=0 ) return s;
-                        break;
-                    case 4 : 
                         int LA29_0 = input.LA(1);
 
                          
@@ -5549,11 +5547,11 @@ public class RParser extends Parser {
                         input.seek(index29_0);
                         if ( s>=0 ) return s;
                         break;
-                    case 5 : 
-                        int LA29_3 = input.LA(1);
+                    case 3 : 
+                        int LA29_4 = input.LA(1);
 
                          
-                        int index29_3 = input.index();
+                        int index29_4 = input.index();
                         input.rewind();
                         s = -1;
                         if ( (true) ) {s = 38;}
@@ -5561,7 +5559,37 @@ public class RParser extends Parser {
                         else if ( (synpred17_R()) ) {s = 37;}
 
                          
-                        input.seek(index29_3);
+                        input.seek(index29_4);
+                        if ( s>=0 ) return s;
+                        break;
+                    case 4 : 
+                        int LA29_1 = input.LA(1);
+
+                         
+                        int index29_1 = input.index();
+                        input.rewind();
+                        s = -1;
+                        if ( (true) ) {s = 38;}
+
+                        else if ( (synpred17_R()) ) {s = 37;}
+
+                         
+                        input.seek(index29_1);
+                        if ( s>=0 ) return s;
+                        break;
+                    case 5 : 
+                        int LA29_5 = input.LA(1);
+
+                         
+                        int index29_5 = input.index();
+                        input.rewind();
+                        s = -1;
+                        if ( (true) ) {s = 38;}
+
+                        else if ( (synpred17_R()) ) {s = 37;}
+
+                         
+                        input.seek(index29_5);
                         if ( s>=0 ) return s;
                         break;
             }
@@ -5575,24 +5603,23 @@ public class RParser extends Parser {
     static final String DFA31_eotS =
         "\16\uffff";
     static final String DFA31_eofS =
-        "\1\uffff\3\13\12\uffff";
+        "\1\uffff\2\14\13\uffff";
     static final String DFA31_minS =
-        "\1\20\3\15\12\uffff";
+        "\1\20\2\15\13\uffff";
     static final String DFA31_maxS =
-        "\1\72\3\110\12\uffff";
+        "\1\72\2\110\13\uffff";
     static final String DFA31_acceptS =
-        "\4\uffff\1\2\1\3\1\4\1\5\1\10\1\11\1\12\1\1\1\7\1\6";
+        "\3\uffff\1\2\1\3\1\4\1\5\1\6\1\11\1\12\1\13\1\10\1\1\1\7";
     static final String DFA31_specialS =
         "\16\uffff}>";
     static final String[] DFA31_transitionS = {
             "\2\12\1\11\6\uffff\1\12\1\10\2\uffff\2\12\1\1\1\uffff\2\12\1"+
-            "\uffff\1\3\1\5\13\uffff\1\6\2\uffff\3\7\1\2\3\4",
-            "\3\13\3\uffff\6\13\1\uffff\3\13\6\uffff\1\13\2\uffff\1\13\1"+
-            "\uffff\11\13\1\uffff\1\15\1\14\7\uffff\16\13",
-            "\3\13\3\uffff\6\13\1\uffff\3\13\6\uffff\1\13\2\uffff\1\13\1"+
-            "\uffff\11\13\1\uffff\1\15\1\14\7\uffff\16\13",
-            "\3\13\3\uffff\6\13\1\uffff\3\13\6\uffff\1\13\2\uffff\1\13\1"+
-            "\uffff\11\13\1\uffff\1\15\1\14\7\uffff\16\13",
+            "\uffff\1\2\1\4\13\uffff\1\5\2\uffff\3\6\1\7\3\3",
+            "\3\14\3\uffff\6\14\1\uffff\3\14\6\uffff\1\14\2\uffff\1\14\1"+
+            "\uffff\11\14\1\uffff\1\15\1\13\7\uffff\16\14",
+            "\3\14\3\uffff\6\14\1\uffff\3\14\6\uffff\1\14\2\uffff\1\14\1"+
+            "\uffff\11\14\1\uffff\1\15\1\13\7\uffff\16\14",
+            "",
             "",
             "",
             "",
@@ -5636,7 +5663,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "232:1: simple_expr returns [ASTNode v] : (i= id | b= bool | DD | NULL | num= number | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign );";
+            return "232:1: simple_expr returns [ASTNode v] : (i= id | b= bool | DD | NULL | num= number | cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR | s= sequence | e= expr_wo_assign );";
         }
     }
     static final String DFA40_eotS =
@@ -5691,7 +5718,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "284:7: ( n_ arg_expr[v] )?";
+            return "287:7: ( n_ arg_expr[v] )?";
         }
     }
     static final String DFA41_eotS =
@@ -5746,48 +5773,46 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "284:35: ( | n_ arg_expr[v] )";
+            return "287:35: ( | n_ arg_expr[v] )";
         }
     }
     static final String DFA43_eotS =
-        "\20\uffff";
+        "\17\uffff";
     static final String DFA43_eofS =
-        "\20\uffff";
+        "\17\uffff";
     static final String DFA43_minS =
-        "\1\20\1\uffff\11\15\2\uffff\1\15\2\uffff";
+        "\1\20\1\uffff\10\15\2\uffff\1\15\2\uffff";
     static final String DFA43_maxS =
-        "\1\72\1\uffff\4\110\1\57\1\72\1\57\2\72\2\uffff\1\72\2\uffff";
+        "\1\72\1\uffff\3\110\1\57\1\72\1\57\2\72\2\uffff\1\72\2\uffff";
     static final String DFA43_acceptS =
-        "\1\uffff\1\1\11\uffff\1\2\1\3\1\uffff\1\4\1\5";
+        "\1\uffff\1\1\10\uffff\1\3\1\2\1\uffff\1\5\1\4";
     static final String DFA43_specialS =
-        "\20\uffff}>";
+        "\17\uffff}>";
     static final String[] DFA43_transitionS = {
-            "\3\1\6\uffff\2\1\2\uffff\2\1\1\2\1\uffff\2\1\1\uffff\1\4\3\1"+
-            "\2\uffff\2\1\5\uffff\1\5\2\uffff\3\1\1\3\3\1",
+            "\3\1\6\uffff\2\1\2\uffff\2\1\1\2\1\uffff\2\1\1\uffff\1\3\3\1"+
+            "\2\uffff\2\1\5\uffff\1\4\2\uffff\7\1",
             "",
-            "\2\6\5\uffff\4\1\1\7\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
+            "\2\5\5\uffff\4\1\1\6\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
             "\uffff\11\1\1\uffff\2\1\7\uffff\16\1",
-            "\2\6\5\uffff\4\1\1\7\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
+            "\2\5\5\uffff\4\1\1\6\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
             "\uffff\11\1\1\uffff\2\1\7\uffff\16\1",
-            "\2\6\5\uffff\4\1\1\7\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
-            "\uffff\11\1\1\uffff\2\1\7\uffff\16\1",
-            "\2\10\5\uffff\4\1\1\11\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1"+
-            "\1\uffff\11\1\12\uffff\16\1",
-            "\2\6\11\uffff\1\7\2\uffff\1\1\7\uffff\1\1\13\uffff\1\1",
-            "\2\12\1\uffff\3\13\6\uffff\2\13\1\14\1\uffff\3\13\1\uffff\2"+
-            "\13\1\14\4\13\2\uffff\2\13\3\uffff\1\14\1\uffff\1\13\2\uffff"+
+            "\2\7\5\uffff\4\1\1\10\1\uffff\2\1\7\uffff\1\1\2\uffff\1\1\1"+
+            "\uffff\11\1\12\uffff\16\1",
+            "\2\5\11\uffff\1\6\2\uffff\1\1\7\uffff\1\1\13\uffff\1\1",
+            "\2\11\1\uffff\3\13\6\uffff\2\13\1\12\1\uffff\3\13\1\uffff\2"+
+            "\13\1\12\4\13\2\uffff\2\13\3\uffff\1\12\1\uffff\1\13\2\uffff"+
             "\7\13",
-            "\2\10\11\uffff\1\11\2\uffff\1\1\7\uffff\1\1\13\uffff\1\1",
-            "\2\15\1\uffff\3\16\6\uffff\2\16\1\17\1\uffff\3\16\1\uffff\2"+
-            "\16\1\17\4\16\2\uffff\2\16\3\uffff\1\17\1\uffff\1\16\2\uffff"+
+            "\2\7\11\uffff\1\10\2\uffff\1\1\7\uffff\1\1\13\uffff\1\1",
+            "\2\14\1\uffff\3\16\6\uffff\2\16\1\15\1\uffff\3\16\1\uffff\2"+
+            "\16\1\15\4\16\2\uffff\2\16\3\uffff\1\15\1\uffff\1\16\2\uffff"+
             "\7\16",
-            "\2\12\1\uffff\3\13\6\uffff\2\13\1\14\1\uffff\3\13\1\uffff\2"+
-            "\13\1\14\4\13\2\uffff\2\13\3\uffff\1\14\1\uffff\1\13\2\uffff"+
+            "\2\11\1\uffff\3\13\6\uffff\2\13\1\12\1\uffff\3\13\1\uffff\2"+
+            "\13\1\12\4\13\2\uffff\2\13\3\uffff\1\12\1\uffff\1\13\2\uffff"+
             "\7\13",
             "",
             "",
-            "\2\15\1\uffff\3\16\6\uffff\2\16\1\17\1\uffff\3\16\1\uffff\2"+
-            "\16\1\17\4\16\2\uffff\2\16\3\uffff\1\17\1\uffff\1\16\2\uffff"+
+            "\2\14\1\uffff\3\16\6\uffff\2\16\1\15\1\uffff\3\16\1\uffff\2"+
+            "\16\1\15\4\16\2\uffff\2\16\3\uffff\1\15\1\uffff\1\16\2\uffff"+
             "\7\16",
             "",
             ""
@@ -5824,7 +5849,7 @@ public class RParser extends Parser {
         }
         @Override
         public String getDescription() {
-            return "286:1: arg_expr[ArgumentList l] : (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
+            return "289:1: arg_expr[ArgumentList l] : (e= expr | name= id n_ ASSIGN n_ val= expr | name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
         }
     }
  
@@ -6008,11 +6033,11 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_basic_expr_in_unary_expression1482 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_simple_expr_in_basic_expr1500 = new BitSet(new long[]{0x0001700004000002L});
     public static final BitSet FOLLOW_expr_subset_in_basic_expr1521 = new BitSet(new long[]{0x0001700004000002L});
-    public static final BitSet FOLLOW_FIELD_in_expr_subset1554 = new BitSet(new long[]{0x0080001080006000L});
-    public static final BitSet FOLLOW_n__in_expr_subset1556 = new BitSet(new long[]{0x0080001080000000L});
+    public static final BitSet FOLLOW_FIELD_in_expr_subset1554 = new BitSet(new long[]{0x0000001080006000L});
+    public static final BitSet FOLLOW_n__in_expr_subset1556 = new BitSet(new long[]{0x0000001080000000L});
     public static final BitSet FOLLOW_id_in_expr_subset1560 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_AT_in_expr_subset1573 = new BitSet(new long[]{0x0080001080006000L});
-    public static final BitSet FOLLOW_n__in_expr_subset1575 = new BitSet(new long[]{0x0080001080000000L});
+    public static final BitSet FOLLOW_AT_in_expr_subset1573 = new BitSet(new long[]{0x0000001080006000L});
+    public static final BitSet FOLLOW_n__in_expr_subset1575 = new BitSet(new long[]{0x0000001080000000L});
     public static final BitSet FOLLOW_id_in_expr_subset1579 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_LBRAKET_in_expr_subset1593 = new BitSet(new long[]{0x07F20CFEE6076000L});
     public static final BitSet FOLLOW_args_in_expr_subset1597 = new BitSet(new long[]{0x0000800000000000L});
@@ -6029,70 +6054,71 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_DD_in_simple_expr1687 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NULL_in_simple_expr1692 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_number_in_simple_expr1701 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_simple_expr1708 = new BitSet(new long[]{0x0004000000000000L});
-    public static final BitSet FOLLOW_NS_GET_in_simple_expr1710 = new BitSet(new long[]{0x0080001080006000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1712 = new BitSet(new long[]{0x0080001080000000L});
-    public static final BitSet FOLLOW_id_in_simple_expr1714 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_simple_expr1719 = new BitSet(new long[]{0x0008000000000000L});
-    public static final BitSet FOLLOW_NS_GET_INT_in_simple_expr1721 = new BitSet(new long[]{0x0080001080006000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1723 = new BitSet(new long[]{0x0080001080000000L});
-    public static final BitSet FOLLOW_id_in_simple_expr1725 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LPAR_in_simple_expr1730 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1732 = new BitSet(new long[]{0x07F20CF6E6070000L});
-    public static final BitSet FOLLOW_expr_or_assign_in_simple_expr1738 = new BitSet(new long[]{0x0000000008006000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1740 = new BitSet(new long[]{0x0000000008000000L});
-    public static final BitSet FOLLOW_RPAR_in_simple_expr1742 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_sequence_in_simple_expr1753 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expr_wo_assign_in_simple_expr1764 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INTEGER_in_number1785 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DOUBLE_in_number1797 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_COMPLEX_in_number1809 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_id1833 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_in_id1845 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_VARIATIC_in_id1857 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_TRUE_in_bool1879 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_FALSE_in_bool1889 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NA_in_bool1899 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_OR_in_or_operator1918 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BITWISEOR_in_or_operator1935 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_AND_in_and_operator1951 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BITWISEAND_in_and_operator1967 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_GT_in_comp_operator1983 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_GE_in_comp_operator1990 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LT_in_comp_operator1997 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LE_in_comp_operator2004 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQ_in_comp_operator2011 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NE_in_comp_operator2018 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PLUS_in_add_operator2032 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_add_operator2039 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MULT_in_mult_operator2054 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DIV_in_mult_operator2061 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MOD_in_mult_operator2069 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CARRET_in_power_operator2084 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_n__in_args2109 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_arg_expr_in_args2111 = new BitSet(new long[]{0x0000000800006000L});
-    public static final BitSet FOLLOW_n__in_args2116 = new BitSet(new long[]{0x0000000800000002L});
-    public static final BitSet FOLLOW_COMMA_in_args2119 = new BitSet(new long[]{0x07F20CFEE6076000L});
-    public static final BitSet FOLLOW_n__in_args2127 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_arg_expr_in_args2129 = new BitSet(new long[]{0x0000000800006000L});
-    public static final BitSet FOLLOW_n__in_args2133 = new BitSet(new long[]{0x0000000800000002L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2150 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_arg_expr2159 = new BitSet(new long[]{0x0000000001006000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2161 = new BitSet(new long[]{0x0000000001000000L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2163 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2165 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2169 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_arg_expr2178 = new BitSet(new long[]{0x0000000001006000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2180 = new BitSet(new long[]{0x0000000001000000L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2182 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_arg_expr2190 = new BitSet(new long[]{0x0000000001006000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2192 = new BitSet(new long[]{0x0000000001000000L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2194 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2196 = new BitSet(new long[]{0x07F20CF6E6076000L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2200 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_arg_expr2207 = new BitSet(new long[]{0x0000000001006000L});
-    public static final BitSet FOLLOW_n__in_arg_expr2209 = new BitSet(new long[]{0x0000000001000000L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2211 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_conststring_in_simple_expr1710 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_simple_expr1717 = new BitSet(new long[]{0x0004000000000000L});
+    public static final BitSet FOLLOW_NS_GET_in_simple_expr1719 = new BitSet(new long[]{0x0000001080006000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1721 = new BitSet(new long[]{0x0000001080000000L});
+    public static final BitSet FOLLOW_id_in_simple_expr1723 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_simple_expr1728 = new BitSet(new long[]{0x0008000000000000L});
+    public static final BitSet FOLLOW_NS_GET_INT_in_simple_expr1730 = new BitSet(new long[]{0x0000001080006000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1732 = new BitSet(new long[]{0x0000001080000000L});
+    public static final BitSet FOLLOW_id_in_simple_expr1734 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LPAR_in_simple_expr1739 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1741 = new BitSet(new long[]{0x07F20CF6E6070000L});
+    public static final BitSet FOLLOW_expr_or_assign_in_simple_expr1747 = new BitSet(new long[]{0x0000000008006000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1749 = new BitSet(new long[]{0x0000000008000000L});
+    public static final BitSet FOLLOW_RPAR_in_simple_expr1751 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_sequence_in_simple_expr1762 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expr_wo_assign_in_simple_expr1773 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INTEGER_in_number1794 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_DOUBLE_in_number1806 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_COMPLEX_in_number1818 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_in_conststring1842 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_id1866 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_VARIATIC_in_id1878 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_TRUE_in_bool1900 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_FALSE_in_bool1910 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NA_in_bool1920 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_OR_in_or_operator1939 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BITWISEOR_in_or_operator1956 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_AND_in_and_operator1972 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BITWISEAND_in_and_operator1988 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_GT_in_comp_operator2004 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_GE_in_comp_operator2011 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LT_in_comp_operator2018 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LE_in_comp_operator2025 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_EQ_in_comp_operator2032 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NE_in_comp_operator2039 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PLUS_in_add_operator2053 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_add_operator2060 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MULT_in_mult_operator2075 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_DIV_in_mult_operator2082 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MOD_in_mult_operator2090 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CARRET_in_power_operator2105 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_n__in_args2130 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_arg_expr_in_args2132 = new BitSet(new long[]{0x0000000800006000L});
+    public static final BitSet FOLLOW_n__in_args2137 = new BitSet(new long[]{0x0000000800000002L});
+    public static final BitSet FOLLOW_COMMA_in_args2140 = new BitSet(new long[]{0x07F20CFEE6076000L});
+    public static final BitSet FOLLOW_n__in_args2148 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_arg_expr_in_args2150 = new BitSet(new long[]{0x0000000800006000L});
+    public static final BitSet FOLLOW_n__in_args2154 = new BitSet(new long[]{0x0000000800000002L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2171 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_arg_expr2180 = new BitSet(new long[]{0x0000000001006000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2182 = new BitSet(new long[]{0x0000000001000000L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2184 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2186 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2190 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_arg_expr2199 = new BitSet(new long[]{0x0000000001006000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2201 = new BitSet(new long[]{0x0000000001000000L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2203 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_arg_expr2211 = new BitSet(new long[]{0x0000000001006000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2213 = new BitSet(new long[]{0x0000000001000000L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2215 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2217 = new BitSet(new long[]{0x07F20CF6E6076000L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2221 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_arg_expr2228 = new BitSet(new long[]{0x0000000001006000L});
+    public static final BitSet FOLLOW_n__in_arg_expr2230 = new BitSet(new long[]{0x0000000001000000L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2232 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ARROW_in_synpred1_R536 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_SUPER_ARROW_in_synpred2_R554 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_RIGHT_ARROW_in_synpred3_R572 = new BitSet(new long[]{0x0000000000000002L});

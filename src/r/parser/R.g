@@ -235,6 +235,7 @@ simple_expr returns [ASTNode v]
 	| DD
 	| NULL { $v = Constant.getNull(); }
 	| num=number { $v = num; }
+	| cstr=conststring { $v = cstr; }
 	| id NS_GET n_ id
 	| id NS_GET_INT n_ id
 	| LPAR n_ ea = expr_or_assign n_ RPAR { $v = ea; }
@@ -246,9 +247,11 @@ number returns [ASTNode n]
     | d=DOUBLE { $n = Constant.createDoubleConstant($d.text); }
     | c=COMPLEX { $n = Constant.createComplexConstant($c.text); }
     ;
+conststring returns [ASTNode n]
+    : s=STRING { $n = Constant.createStringConstant($s.text); }
+    ;
 id	returns [Token t]
     : i=ID { $t = $i; }
-    | s=STRING { $t = $s; }
     | v=VARIATIC { $t = $v; }
     ;
 bool returns [ASTNode v]

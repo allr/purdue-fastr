@@ -64,6 +64,12 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public RString asString() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RList asList() {
         Utils.nyi();
         return null;
