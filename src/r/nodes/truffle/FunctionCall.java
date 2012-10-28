@@ -16,6 +16,59 @@ public abstract class FunctionCall extends AbstractCall {
         this.closureExpr = updateParent(closureExpr);
     }
 
+    public static FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        for (int i = 0; i < argNames.length; i++) { // FIXME this test is kind of inefficient, part of this job can be done by splitArguments
+            if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are defaults args
+                return getCachedGenericFunctionCall(ast, closureExpr, argNames, argExprs);
+            }
+        }
+        return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+    }
+
+    // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
+    @SuppressWarnings("unused")
+    public static FunctionCall getGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            @Override
+            protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                RSymbol[] names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
+                int[] positions = computePositions(context, func, names);
+                return placeArgs(context, callerFrame, positions, names, func.nparams());
+            }
+        };
+    }
+
+    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            RFunction lastCall;
+            RSymbol[] names;
+            int[] positions;
+
+            @Override
+            protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                if (func != lastCall) {
+                    lastCall = func;
+                    names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
+                    positions = computePositions(context, func, names);
+                }
+                return placeArgs(context, callerFrame, positions, names, func.nparams());
+
+            }
+        };
+    }
+
+    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+
+            @Override
+            protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                return placeArgs(context, callerFrame, func.nparams());
+            }
+        };
+    }
+
     public static CallFactory FACTORY = new CallFactory() {
 
         @Override
@@ -24,59 +77,6 @@ public abstract class FunctionCall extends AbstractCall {
             RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(call, fcall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
 
             return getFunctionCall(fcall, fexp, names, exprs);
-        }
-
-        public FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-            for (int i = 0; i < argNames.length; i++) { // FIXME this test is kind of inefficient, part of this job can be done by splitArguments
-                if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are defaults args
-                    return getCachedGenericFunctionCall(ast, closureExpr, argNames, argExprs);
-                }
-            }
-            return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
-        }
-
-        // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
-        @SuppressWarnings("unused")
-        public FunctionCall getGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-            return new FunctionCall(ast, closureExpr, argNames, argExprs) {
-
-                @Override
-                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    RSymbol[] names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                    int[] positions = computePositions(context, func, names);
-                    return placeArgs(context, callerFrame, positions, names, func.nparams());
-                }
-            };
-        }
-
-        public FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-            return new FunctionCall(ast, closureExpr, argNames, argExprs) {
-
-                RFunction lastCall;
-                RSymbol[] names;
-                int[] positions;
-
-                @Override
-                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    if (func != lastCall) {
-                        lastCall = func;
-                        names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                        positions = computePositions(context, func, names);
-                    }
-                    return placeArgs(context, callerFrame, positions, names, func.nparams());
-
-                }
-            };
-        }
-
-        public FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-            return new FunctionCall(ast, closureExpr, argNames, argExprs) {
-
-                @Override
-                protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                    return placeArgs(context, callerFrame, func.nparams());
-                }
-            };
         }
     };
 

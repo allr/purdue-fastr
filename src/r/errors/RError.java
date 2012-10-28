@@ -36,11 +36,13 @@ public abstract class RError extends RuntimeException {
     public static final String INCORRECT_SUBSCRIPTS = "incorrect number of subscripts";
     public static final String INVALID_TYPE_LIST = "invalid 'type' (list) of argument";
     public static final String INVALID_SEP = "invalid 'sep' specification";
+    public static final String NOT_FUNCTION = "argument is not a function, character or symbol"; // GNU R gives also expression for the argument
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
     public static final String LIST_COERCION = "(list) object cannot be coerced to type '%s'";
     public static final String CAT_ARGUMENT_LIST = "argument %d (type 'list') cannot be handled by 'cat'";
+
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -336,6 +338,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.INVALID_SEP;
+            }
+        };
+    }
+
+    public static RError getNotFunction(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NOT_FUNCTION;
             }
         };
     }
