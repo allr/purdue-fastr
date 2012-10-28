@@ -432,12 +432,39 @@ ID  : '.'* ID_NAME
 	;
 OP	: '%' OP_NAME+ '%'
 	;
+/*
 STRING
     :
     ( '"' ( ESC_SEQ | ~('\\'|'"') )* '"' 
     | '\'' ( ESC_SEQ | ~('\\'|'\'') )* '\'' 
     ) {setText(getText().substring(1, getText().length()-1));} 
     ;
+*/
+STRING
+@init { final StringBuilder buf = new StringBuilder(); }
+:
+    '"'
+    (
+    ESCAPE[buf]
+    | i = ~( '\\' | '"' ) { buf.appendCodePoint(i); }
+    )*
+    '"'
+    { setText(buf.toString()); };
+
+/* not supporting \v and \a */
+fragment ESCAPE[StringBuilder buf] :
+    '\\'
+    ( 't' { buf.append('\t'); }
+    | 'n' { buf.append('\n'); }
+    | 'r' { buf.append('\r'); }
+    | 'b' { buf.append('\b'); }
+    | 'f' { buf.append('\f'); }
+    | '"' { buf.append('\"'); }
+    | '\\' { buf.append('\\'); }
+    | 'x' a = HEX_DIGIT b = HEX_DIGIT { buf.append(ParseUtil.hexChar($a.text, $b.text)); }
+    | 'u' a = HEX_DIGIT b = HEX_DIGIT c = HEX_DIGIT d = HEX_DIGIT { buf.append(ParseUtil.hexChar($a.text, $b.text, $c.text, $d.text)); }
+    | 'U' a = HEX_DIGIT b = HEX_DIGIT c = HEX_DIGIT d = HEX_DIGIT e = HEX_DIGIT f = HEX_DIGIT g = HEX_DIGIT h = HEX_DIGIT { buf.append(ParseUtil.hexChar($a.text, $b.text, $c.text, $d.text, $e.text, $f.text, $g.text, $h.text)); }
+    );
 fragment
 LINE_BREAK
 	:

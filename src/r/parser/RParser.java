@@ -1,4 +1,4 @@
-// $ANTLR !Unknown version! R.g 2012-10-22 13:45:06
+// $ANTLR !Unknown version! R.g 2012-10-27 18:03:53
 
 package r.parser;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.HashMap;
 public class RParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "CALL", "BRAKET", "KW", "PARMS", "SEQUENCE", "MISSING_VAL", "UPLUS", "UMINUS", "UTILDE", "NEWLINE", "COMMENT", "SEMICOLON", "NEXT", "BREAK", "LBRACE", "RBRACE", "ARROW", "SUPER_ARROW", "RIGHT_ARROW", "SUPER_RIGHT_ARROW", "ASSIGN", "IF", "LPAR", "RPAR", "ELSE", "WHILE", "FOR", "ID", "IN", "REPEAT", "FUNCTION", "COMMA", "VARIATIC", "DD", "TILDE", "NOT", "OP", "COLON", "PLUS", "MINUS", "FIELD", "AT", "LBRAKET", "RBRAKET", "LBB", "NULL", "NS_GET", "NS_GET_INT", "INTEGER", "DOUBLE", "COMPLEX", "STRING", "TRUE", "FALSE", "NA", "OR", "BITWISEOR", "AND", "BITWISEAND", "GT", "GE", "LT", "LE", "EQ", "NE", "MULT", "DIV", "MOD", "CARRET", "LINE_BREAK", "WS", "EXPONENT", "HEX_DIGIT", "ID_NAME", "ESC_SEQ", "OP_NAME", "UNICODE_ESC", "OCTAL_ESC", "HEX_ESC", "'--EOF--'"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "CALL", "BRAKET", "KW", "PARMS", "SEQUENCE", "MISSING_VAL", "UPLUS", "UMINUS", "UTILDE", "NEWLINE", "COMMENT", "SEMICOLON", "NEXT", "BREAK", "LBRACE", "RBRACE", "ARROW", "SUPER_ARROW", "RIGHT_ARROW", "SUPER_RIGHT_ARROW", "ASSIGN", "IF", "LPAR", "RPAR", "ELSE", "WHILE", "FOR", "ID", "IN", "REPEAT", "FUNCTION", "COMMA", "VARIATIC", "DD", "TILDE", "NOT", "OP", "COLON", "PLUS", "MINUS", "FIELD", "AT", "LBRAKET", "RBRAKET", "LBB", "NULL", "NS_GET", "NS_GET_INT", "INTEGER", "DOUBLE", "COMPLEX", "STRING", "TRUE", "FALSE", "NA", "OR", "BITWISEOR", "AND", "BITWISEAND", "GT", "GE", "LT", "LE", "EQ", "NE", "MULT", "DIV", "MOD", "CARRET", "LINE_BREAK", "WS", "EXPONENT", "HEX_DIGIT", "ID_NAME", "ESC_SEQ", "OP_NAME", "ESCAPE", "UNICODE_ESC", "OCTAL_ESC", "HEX_ESC", "'--EOF--'"
     };
     public static final int FUNCTION=34;
     public static final int PARMS=7;
@@ -31,7 +31,7 @@ public class RParser extends Parser {
     public static final int LBB=48;
     public static final int RIGHT_ARROW=22;
     public static final int LBRACE=18;
-    public static final int OCTAL_ESC=81;
+    public static final int OCTAL_ESC=82;
     public static final int MISSING_VAL=9;
     public static final int FOR=30;
     public static final int COMPLEX=54;
@@ -47,6 +47,7 @@ public class RParser extends Parser {
     public static final int BITWISEAND=62;
     public static final int ESC_SEQ=78;
     public static final int IN=32;
+    public static final int ESCAPE=80;
     public static final int LPAR=26;
     public static final int COMMA=35;
     public static final int TILDE=38;
@@ -62,10 +63,9 @@ public class RParser extends Parser {
     public static final int GE=64;
     public static final int LBRAKET=46;
     public static final int RBRACE=19;
-    public static final int T__83=83;
     public static final int NS_GET_INT=51;
     public static final int UPLUS=10;
-    public static final int UNICODE_ESC=80;
+    public static final int UNICODE_ESC=81;
     public static final int NULL=49;
     public static final int ELSE=28;
     public static final int ID_NAME=77;
@@ -74,12 +74,13 @@ public class RParser extends Parser {
     public static final int SEMICOLON=15;
     public static final int MULT=69;
     public static final int MINUS=43;
+    public static final int T__84=84;
     public static final int TRUE=56;
     public static final int VARIATIC=36;
     public static final int BITWISEOR=60;
     public static final int COLON=41;
     public static final int SEQUENCE=8;
-    public static final int HEX_ESC=82;
+    public static final int HEX_ESC=83;
     public static final int LINE_BREAK=73;
     public static final int WS=74;
     public static final int NEWLINE=13;
@@ -161,7 +162,7 @@ public class RParser extends Parser {
                 int alt1=2;
                 int LA1_0 = input.LA(1);
 
-                if ( ((LA1_0>=NEXT && LA1_0<=LBRACE)||(LA1_0>=IF && LA1_0<=LPAR)||(LA1_0>=WHILE && LA1_0<=ID)||(LA1_0>=REPEAT && LA1_0<=FUNCTION)||(LA1_0>=VARIATIC && LA1_0<=NOT)||(LA1_0>=PLUS && LA1_0<=MINUS)||LA1_0==NULL||(LA1_0>=INTEGER && LA1_0<=NA)||LA1_0==83) ) {
+                if ( ((LA1_0>=NEXT && LA1_0<=LBRACE)||(LA1_0>=IF && LA1_0<=LPAR)||(LA1_0>=WHILE && LA1_0<=ID)||(LA1_0>=REPEAT && LA1_0<=FUNCTION)||(LA1_0>=VARIATIC && LA1_0<=NOT)||(LA1_0>=PLUS && LA1_0<=MINUS)||LA1_0==NULL||(LA1_0>=INTEGER && LA1_0<=NA)||LA1_0==84) ) {
                     alt1=1;
                 }
 
@@ -265,7 +266,7 @@ public class RParser extends Parser {
             if ( ((LA3_0>=NEXT && LA3_0<=LBRACE)||(LA3_0>=IF && LA3_0<=LPAR)||(LA3_0>=WHILE && LA3_0<=ID)||(LA3_0>=REPEAT && LA3_0<=FUNCTION)||(LA3_0>=VARIATIC && LA3_0<=NOT)||(LA3_0>=PLUS && LA3_0<=MINUS)||LA3_0==NULL||(LA3_0>=INTEGER && LA3_0<=NA)) ) {
                 alt3=1;
             }
-            else if ( (LA3_0==83) ) {
+            else if ( (LA3_0==84) ) {
                 alt3=2;
             }
             else {
@@ -298,14 +299,14 @@ public class RParser extends Parser {
                 case 2 :
                     // R.g:95:4: '--EOF--' ( . )* EOF
                     {
-                    match(input,83,FOLLOW_83_in_statement210); if (state.failed) return v;
+                    match(input,84,FOLLOW_84_in_statement210); if (state.failed) return v;
                     // R.g:95:14: ( . )*
                     loop2:
                     do {
                         int alt2=2;
                         int LA2_0 = input.LA(1);
 
-                        if ( ((LA2_0>=CALL && LA2_0<=83)) ) {
+                        if ( ((LA2_0>=CALL && LA2_0<=84)) ) {
                             alt2=1;
                         }
                         else if ( (LA2_0==EOF) ) {
@@ -959,7 +960,7 @@ public class RParser extends Parser {
             case TRUE:
             case FALSE:
             case NA:
-            case 83:
+            case 84:
                 {
                 alt11=5;
                 }
@@ -5854,13 +5855,13 @@ public class RParser extends Parser {
     }
  
 
-    public static final BitSet FOLLOW_n__in_script156 = new BitSet(new long[]{0x07F20CF6E6070002L,0x0000000000080000L});
-    public static final BitSet FOLLOW_statement_in_script161 = new BitSet(new long[]{0x07F20CF6E6070002L,0x0000000000080000L});
-    public static final BitSet FOLLOW_n__in_interactive179 = new BitSet(new long[]{0x07F20CF6E6070000L,0x0000000000080000L});
+    public static final BitSet FOLLOW_n__in_script156 = new BitSet(new long[]{0x07F20CF6E6070002L,0x0000000000100000L});
+    public static final BitSet FOLLOW_statement_in_script161 = new BitSet(new long[]{0x07F20CF6E6070002L,0x0000000000100000L});
+    public static final BitSet FOLLOW_n__in_interactive179 = new BitSet(new long[]{0x07F20CF6E6070000L,0x0000000000100000L});
     public static final BitSet FOLLOW_statement_in_interactive183 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_expr_or_assign_in_statement201 = new BitSet(new long[]{0x000000000000E000L});
     public static final BitSet FOLLOW_n_in_statement203 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_83_in_statement210 = new BitSet(new long[]{0xFFFFFFFFFFFFFFF0L,0x00000000000FFFFFL});
+    public static final BitSet FOLLOW_84_in_statement210 = new BitSet(new long[]{0xFFFFFFFFFFFFFFF0L,0x00000000001FFFFFL});
     public static final BitSet FOLLOW_EOF_in_statement215 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_set_in_n_225 = new BitSet(new long[]{0x0000000000006002L});
     public static final BitSet FOLLOW_set_in_n239 = new BitSet(new long[]{0x0000000000006002L});

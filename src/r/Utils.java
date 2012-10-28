@@ -127,8 +127,4 @@ public final class Utils {
         Utils.nyi("unuspported array type");
         return null;
     }
-
-    public static String unescape(String input) { // FIXME add more escape characters
-        return input.replaceAll("\\\\n", "\n");
-    }
 }

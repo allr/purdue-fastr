@@ -67,7 +67,7 @@ public class Cat {
                             System.out.print(" ");
                         }
                     }
-                    System.out.print(Utils.unescape(va.get(j).toString()));
+                    System.out.print(va.get(j).toString());
                 }
             }
         }
