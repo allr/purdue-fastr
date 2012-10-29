@@ -119,6 +119,14 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testCat() throws RecognitionException {
+        assertEval("{ cat(\"hi\",1:3,\"hello\") }", "hi 1 2 3 hello", "NULL");
+        assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
+        assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
+        assertEval("{ cat(\"hi\",1[2],\"hello\",sep=\"-\") }", "hi-NA-hello", "NULL");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

@@ -18,6 +18,27 @@ public class TestBase {
         return eval(input).pretty();
     }
 
+    static void assertEval(String input, String expectedOutput, String expectedResult) throws RecognitionException {
+        // FIXME: can this be made work also with Truffle?
+
+        final PrintStream oldOut = System.out;
+        final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
+        final PrintStream myOutPS = new PrintStream(myOut);
+        System.setOut(myOutPS);
+        String result = evalString(input);
+        myOutPS.flush();
+        System.setOut(oldOut);
+        String output = myOut.toString();
+
+        if (!result.equals(expectedResult)) {
+            Assert.fail("incorrect result, got " + result + " for " + input + " expecting " + expectedResult);
+        }
+        if (!output.equals(expectedOutput)) {
+            Assert.fail("incorrect output, got " + output + " for " + input + " expecting " + expectedOutput);
+        }
+
+    }
+
     static void assertEval(String input, String expected) throws RecognitionException {
 
         if (global.getCompiler() != null) {
