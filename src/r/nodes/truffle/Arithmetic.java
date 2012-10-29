@@ -24,7 +24,7 @@ public class Arithmetic extends BaseR {
         this.left = updateParent(left);
         this.right = updateParent(right);
         this.arit = arit;
-        this.returnsDouble = (arit == POW);
+        this.returnsDouble = (arit == POW || arit == DIV);
     }
 
     @Override
@@ -217,7 +217,19 @@ public class Arithmetic extends BaseR {
     public static final class Pow extends ValueArithmetic {
         @Override
         public double op(double a, double b) {
-            return Math.pow(a, b); // FIXME: check the R rules correspond to Java
+            return Math.pow(a, b); // FIXME: check that the R rules correspond to Java
+        }
+        @Override
+        public int op(int a, int b) {
+            Utils.nyi("unreachable");
+            return -1;
+        }
+    }
+
+    public static final class Div extends ValueArithmetic {
+        @Override
+        public double op(double a, double b) {
+            return a / b; // FIXME: check that the R rules correspond to Java
         }
         @Override
         public int op(int a, int b) {
@@ -230,6 +242,7 @@ public class Arithmetic extends BaseR {
     public static final Sub SUB = new Sub();
     public static final Mult MULT = new Mult();
     public static final Pow POW = new Pow();
+    public static final Div DIV = new Div();
 
     class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;

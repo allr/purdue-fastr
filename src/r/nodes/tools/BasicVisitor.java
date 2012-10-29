@@ -110,6 +110,11 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(Div op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
     public void visit(Colon col) {
         visit((BinaryOperation) col);
     }

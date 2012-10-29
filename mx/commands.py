@@ -17,6 +17,7 @@ def mx_init():
       'rfannkuch': [rfannkuchServer, '[size]'],
       'rgfannkuch': [rfannkuchGraal, '[size]'],
       'rbinarytrees': [rbinarytreesServer, '[size]'],
+      'rspectralnorm': [rspectralnormServer, '[size]'],      
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, '']
   }
@@ -70,6 +71,10 @@ def rbinarytreesServer(args):
   """Run Binary Trees with the HotSpot server VM"""  
   rbinarytrees(args, [], 'server')
 
+def rspectralnormServer(args):
+  """Run Spectral Norm with the HotSpot server VM"""  
+  rspectralnorm(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -91,6 +96,10 @@ def rfannkuch(args, vmArgs, vm):
 def rbinarytrees(args, vmArgs, vm):
   """Run Binary Trees benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "10L");
+
+def rspectralnorm(args, vmArgs, vm):
+  """Run Spectral Norm benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "80L");
 
 # generic shootout runner
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
