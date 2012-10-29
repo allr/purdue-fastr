@@ -155,7 +155,7 @@ repeat_expr returns [ASTNode v]
 	;
 function returns [ASTNode v]
 @init { ArgumentList l = new ArgumentList.Default(); }
-	: FUNCTION n_ LPAR  n_ (par_decl[l] (n_ COMMA n_ par_decl[l])* n_)? RPAR n_ body=expr_or_assign { $v = Function.create(l, body); } 
+	: FUNCTION n_ LPAR  n_ (par_decl[l] (n_ COMMA n_ par_decl[l])* n_)? RPAR n_ body=expr_or_assign { $v = Function.create(l, body); ArgumentList.Default.updateParent(v, l); } 
 	;
 par_decl [ArgumentList l]
 	: i=ID { $l.add($i.text, null); } 
@@ -223,10 +223,10 @@ basic_expr returns [ASTNode v]
 expr_subset [ASTNode i] returns [ASTNode v]
     : (FIELD n_ name=id) { v = FieldAccess.create(FieldOperator.FIELD, i, name.getText()); } 
     | (AT n_ name=id)  { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); } 
-    | (LBRAKET subset=args RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); }
-    | (LBB subscript=args RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); }
+    | (LBRAKET subset=args RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); ArgumentList.Default.updateParent(v, subset); }
+    | (LBB subscript=args RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); ArgumentList.Default.updateParent(v, subscript); }
     // Must use RBRAKET in`stead of RBB beacause of : a[b[1]]
-    | (LPAR a=args RPAR)  { v = Call.create(i, a); } 
+    | (LPAR a=args RPAR)  { v = Call.create(i, a);  ArgumentList.Default.updateParent(v, a); } 
     //| { v = i; }
     ;
 simple_expr returns [ASTNode v]

@@ -9,6 +9,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.BinaryOperation.BinaryOperator;
+import r.nodes.*;
 import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;
@@ -298,5 +299,9 @@ public class Truffleize implements Visitor {
     public void visit(Colon col) {
         // FIXME: this does not allow overriding when as operator, but maybe this should not be allowed anyway
         result = r.builtins.Colon.FACTORY.create(col, createTree(col.getLHS()), createTree(col.getRHS()));
+    }
+
+    @Override
+    public void visit(ArgumentList.Default.DefaultEntry entry) {
     }
 }

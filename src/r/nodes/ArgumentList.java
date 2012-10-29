@@ -27,12 +27,12 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
 
         @Override
         public void add(ASTNode e) {
-            add(new DefaultEntry(null, e));
+            super.add(new DefaultEntry(null, e));
         }
 
         @Override
         public void add(RSymbol name, ASTNode value) {
-            add(new DefaultEntry(name, value));
+            super.add(new DefaultEntry(name, value));
         }
 
         @Override
@@ -45,14 +45,20 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
             return this.get(0);
         }
 
-        private static final class DefaultEntry implements Entry {
+        public static void updateParent(ASTNode parent, ArgumentList list) {
+            for (Entry e : list) {
+                parent.updateParent((ASTNode) e);
+            }
+        }
+
+        public static final class DefaultEntry extends ASTNode implements Entry {
 
             RSymbol name;
             ASTNode value;
 
             private DefaultEntry(RSymbol n, ASTNode v) {
                 name = n;
-                value = v;
+                value = updateParent(v);
             }
 
             @Override
@@ -65,6 +71,15 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
                 return value;
             }
 
+            @Override
+            public void visit_all(Visitor v) {
+                getValue().accept(v);
+            }
+
+            @Override
+            public void accept(Visitor v) {
+                v.visit(this);
+            }
         }
     }
 }

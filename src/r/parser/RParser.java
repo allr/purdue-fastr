@@ -1,4 +1,4 @@
-// $ANTLR !Unknown version! R.g 2012-10-27 18:03:53
+// $ANTLR !Unknown version! R.g 2012-10-29 13:41:24
 
 package r.parser;
 
@@ -1723,7 +1723,7 @@ public class RParser extends Parser {
             state._fsp--;
             if (state.failed) return v;
             if ( state.backtracking==0 ) {
-               v = Function.create(l, body); 
+               v = Function.create(l, body); ArgumentList.Default.updateParent(v, l); 
             }
 
             }
@@ -3333,7 +3333,7 @@ public class RParser extends Parser {
                     }
 
                     if ( state.backtracking==0 ) {
-                       v = Call.create(CallOperator.SUBSET, i, subset); 
+                       v = Call.create(CallOperator.SUBSET, i, subset); ArgumentList.Default.updateParent(v, subset); 
                     }
 
                     }
@@ -3356,7 +3356,7 @@ public class RParser extends Parser {
                     }
 
                     if ( state.backtracking==0 ) {
-                       v = Call.create(CallOperator.SUBSCRIPT, i, subscript); 
+                       v = Call.create(CallOperator.SUBSCRIPT, i, subscript); ArgumentList.Default.updateParent(v, subscript); 
                     }
 
                     }
@@ -3378,7 +3378,7 @@ public class RParser extends Parser {
                     }
 
                     if ( state.backtracking==0 ) {
-                       v = Call.create(i, a); 
+                       v = Call.create(i, a);  ArgumentList.Default.updateParent(v, a); 
                     }
 
                     }

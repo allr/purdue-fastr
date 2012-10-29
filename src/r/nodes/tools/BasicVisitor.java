@@ -172,4 +172,9 @@ public class BasicVisitor implements Visitor {
         visit((ASTNode) n);
     }
 
+    @Override
+    public void visit(ArgumentList.Default.DefaultEntry entry) {
+        visit((ASTNode) entry);
+    }
+
 }
