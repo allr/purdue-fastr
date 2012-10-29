@@ -37,6 +37,8 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_TYPE_LIST = "invalid 'type' (list) of argument";
     public static final String INVALID_SEP = "invalid 'sep' specification";
     public static final String NOT_FUNCTION = "argument is not a function, character or symbol"; // GNU R gives also expression for the argument
+    public static final String NON_NUMERIC_MATH = "non-numeric argument to mathematical function";
+    public static final String NAN_PRODUCED = "NaNs produced";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -350,6 +352,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NOT_FUNCTION;
+            }
+        };
+    }
+
+    public static RError getNonNumericMath(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NON_NUMERIC_MATH;
             }
         };
     }
