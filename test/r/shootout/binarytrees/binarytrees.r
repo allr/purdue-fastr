@@ -51,4 +51,6 @@ binarytrees <- function(args) {
         check(long_lived_tree), "\n")
 }
 
-# run as binarytrees(i) where i is problem size (e.g. i=8L)
+run <- function(i) {
+    binarytrees(i)
+}

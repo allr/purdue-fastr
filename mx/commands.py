@@ -86,55 +86,34 @@ def rconsole(vmArgs, vm, cArgs):
 
 def rfannkuch(args, vmArgs, vm):
   """Run Fannkuch benchmark using the given VM"""
-  if (len(args)==0):
-    size = '6L';
-  else:
-    size = args[0] + 'L';
+  rshootout(args, vmArgs, vm, "fannkuch", "fannkuchredux.r", "6L");
 
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "fannkuch", "fannkuchredux.r"); 
-  tmp = ".tmp.fannkuch.torun.r";
+def rbinarytrees(args, vmArgs, vm):
+  """Run Binary Trees benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "10L");
+
+# generic shootout runner
+def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
+  """Run given shootout benchmark using given VM"""
+  if (len(args)==0):
+    arg = defaultArg;
+  else:
+    arg = args[0];
+
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile); 
+  tmp = ".tmp." + benchDir + ".torun.r";
 
   shutil.copyfile(source, tmp);
   with open(tmp, "a") as f:
-#  
-#  This was intended as a warm-up, but running with different sizes breaks
-#  Truffle/Graal: it gives incorrect results
-#
-#    f.write("fannkuch(3L)\n");
-#    f.write("fannkuch(3L)\n");   
-#    f.write("fannkuch(3L)\n");     
-    f.write("fannkuch("+size+")\n");
-    f.write("fannkuch("+size+")\n");
-    f.write("fannkuch("+size+")\n");    
-    f.write("fannkuch("+size+")\n");       
-  print("Problem size "+size);
+    f.write("run(" + arg + ")\n");       
+
+  print("Argument "+ arg);
   print("Input file "+tmp);
   
   rconsole(vmArgs, vm, [tmp]);
 
 # TODO: a generic function to run a shootout benchmark
 
-def rbinarytrees(args, vmArgs, vm):
-  """Run Binary Trees benchmark using the given VM"""
-  if (len(args)==0):
-    size = '10L';
-  else:
-    size = args[0] + 'L';
-
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "binarytrees", "binarytrees.r"); 
-  tmp = ".tmp.binarytrees.torun.r";
-
-  shutil.copyfile(source, tmp);
-  with open(tmp, "a") as f:
-#    f.write("binarytrees("+size+")\n");
-#    f.write("binarytrees("+size+")\n");    
-    f.write("binarytrees("+size+")\n");       
-#    f.write("check(tree(1,0))\n");       
-
-  print("Problem size "+size);
-  print("Input file "+tmp);
-  
-  rconsole(vmArgs, vm, [tmp]);
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 

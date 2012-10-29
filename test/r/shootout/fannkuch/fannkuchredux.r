@@ -71,6 +71,6 @@ fannkuch <- function(n) {
     }
 }
 
-# run as fannkuch(i) where i is problem size (e.g. i=8L)
-
-
+run <- function(i) {
+    fannkuch(i)
+}
