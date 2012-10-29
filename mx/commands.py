@@ -16,6 +16,7 @@ def mx_init():
       'rgd': [rconsoleDebugGraal, ''],      
       'rfannkuch': [rfannkuchServer, '[size]'],
       'rgfannkuch': [rfannkuchGraal, '[size]'],
+      'rbinarytrees': [rbinarytreesServer, '[size]'],
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, '']
   }
@@ -65,6 +66,10 @@ def rfannkuchGraal(args):
   """Run Fannkuch with the Graal VM"""  
   rfannkuch(args, ['-XX:-BootstrapGraal'], 'graal')
 
+def rbinarytreesServer(args):
+  """Run Binary Trees with the HotSpot server VM"""  
+  rbinarytrees(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -102,6 +107,30 @@ def rfannkuch(args, vmArgs, vm):
     f.write("fannkuch("+size+")\n");
     f.write("fannkuch("+size+")\n");    
     f.write("fannkuch("+size+")\n");       
+  print("Problem size "+size);
+  print("Input file "+tmp);
+  
+  rconsole(vmArgs, vm, [tmp]);
+
+# TODO: a generic function to run a shootout benchmark
+
+def rbinarytrees(args, vmArgs, vm):
+  """Run Binary Trees benchmark using the given VM"""
+  if (len(args)==0):
+    size = '10L';
+  else:
+    size = args[0] + 'L';
+
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "binarytrees", "binarytrees.r"); 
+  tmp = ".tmp.binarytrees.torun.r";
+
+  shutil.copyfile(source, tmp);
+  with open(tmp, "a") as f:
+#    f.write("binarytrees("+size+")\n");
+#    f.write("binarytrees("+size+")\n");    
+    f.write("binarytrees("+size+")\n");       
+#    f.write("check(tree(1,0))\n");       
+
   print("Problem size "+size);
   print("Input file "+tmp);
   
