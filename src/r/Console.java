@@ -1,10 +1,9 @@
 package r;
 
 import java.io.*;
+import java.util.Scanner;
 
 import org.antlr.runtime.*;
-
-import com.oracle.truffle.compiler.*;
 
 import r.nodes.*;
 import r.nodes.tools.*;
@@ -32,11 +31,19 @@ public class Console {
 
     public static void main(String[] args) {
         boolean errorStmt = false;
-        long before = System.nanoTime();
         boolean interactive = true;
+        int nextArg = 0;
+        if (args.length > nextArg) {
+            if (args[0].equals("--waitForKey")) {
+                nextArg++;
+                System.out.println("Press ENTER to start...");
+                new Scanner(System.in).nextLine();
+            }
+        }
+        long before = System.nanoTime();
         try {
-            if (args.length > 0) {
-                in = new BufferedReader(new InputStreamReader(new FileInputStream(args[0])));
+            if (args.length > nextArg) {
+                in = new BufferedReader(new InputStreamReader(new FileInputStream(args[nextArg++])));
                 interactive = false;
             }
 

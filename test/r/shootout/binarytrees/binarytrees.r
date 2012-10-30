@@ -39,7 +39,6 @@ binarytrees <- function(args) {
         check_sum <- sum(sapply(
                 1:iterations,
 		function(i) { 
-                  iterations
                   check(tree(i, depth)) + check(tree(-i, depth))
                 }	
         ))

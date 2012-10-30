@@ -28,7 +28,7 @@ public class Primitives {
         add("max", 0, -1, Max.FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
         add("rep.int", 2, 2, Rep.FACTORY);
-        add("return", 0, -1, Return.FACTORY);
+        add("return", 0, 1, Return.FACTORY);
         add("sapply", 2, -1, Apply.SAPPLY_FACTORY);
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);

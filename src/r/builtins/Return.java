@@ -25,15 +25,18 @@ public class Return {
 
                 };
             }
-            return new BuiltIn(call, names, exprs) {
+            if (exprs.length == 1) {
+                return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    RAny toReturn = Combine.combine(params);
-                    RFrame.setReturnValue(frame, toReturn);
-                    throw ReturnException.instance;
-                }
-            };
+                    @Override
+                    public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                        RFrame.setReturnValue(frame, params[0]);
+                        throw ReturnException.instance;
+                    }
+                };
+            }
+            Utils.nyi("unreachable");
+            return null;
         }
     };
 
