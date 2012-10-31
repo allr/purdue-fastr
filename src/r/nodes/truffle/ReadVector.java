@@ -13,6 +13,8 @@ import r.nodes.*;
 
 // FIXME: add check for the number of dimensions in index
 // FIXME: probably should also specialize for base types
+// FIXME: get get a bit more performance by joining failure modes when distinction is not necessary (and particularly when that makes the checks easier)
+//        i've done this with SimpleScalarDoubleSelection, and it helped a bit
 
 // rewriting of vector selection nodes:
 //
@@ -60,7 +62,8 @@ public abstract class ReadVector extends BaseR {
         NOT_POSITIVE_INDEX,
         INDEX_OUT_OF_BOUNDS,
         NOT_SAME_LENGTH,
-        NOT_SUBSET
+        NOT_SUBSET,
+        UNSPECIFIED
     }
 
     @Override
@@ -114,7 +117,7 @@ public abstract class ReadVector extends BaseR {
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarIntSelection failed: " + f);
                 switch(f) {
                     case NOT_INT_INDEX:
-                        SimpleScalarDoubleSelection dbl = new SimpleScalarDoubleSelection(ast, lhs, indexes, subset);
+                        SimpleScalarDoubleSelection dbl = new SimpleScalarDoubleSelection(ast, lhs, indexes, subset, vector);
                         replace(dbl, "install SimpleScalarDoubleSelection from SimpleScalarIntSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleScalarDoubleSelection");
                         return dbl.execute(context, index, vector);
@@ -153,18 +156,62 @@ public abstract class ReadVector extends BaseR {
     // when the index has only one argument, which is a double
     //   for more complicated and corner cases rewrites itself
     public static class SimpleScalarDoubleSelection extends ReadVector {
-        public SimpleScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+        final Select select;
+        public SimpleScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, RAny vectorTemplate) {
             super(ast, lhs, indexes, subset);
+            if (subset) {
+                select = new Select() {
+                    @Override
+                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                        if (!(vector instanceof RArray)) {
+                            throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                        }
+                        RArray vrarr = (RArray) vector;
+                        if (index > vrarr.size()) {
+                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                        }
+                        return vrarr.boxedGet(index - 1);
+                    }
+                };
+            } else if (!(vectorTemplate instanceof RList)) {
+                select = new Select() {
+                    @Override
+                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                        if (vector instanceof RList || !(vector instanceof RArray)) {
+                            throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                        }
+                        RArray vrarr = (RArray) vector;
+                        if (index > vrarr.size()) {
+                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                        }
+                        return vrarr.boxedGet(index - 1);
+                    }
+                };
+            } else {
+                select = new Select() {
+                    @Override
+                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                        if (!(vector instanceof RList)) {
+                            throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                        }
+                        RList vlist = (RList) vector;
+                        if (index > vlist.size()) {
+                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                        }
+                        return vlist.getRAny(index - 1);
+                    }
+                };
+            }
+        }
+
+        private abstract static class Select {
+            abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
         }
 
         @Override
         public RAny execute(RContext context, RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarDoubleSelection");
             try {
-                if (!(vector instanceof RArray)) {
-                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
-                }
-                RArray vrarr = (RArray) vector;
                 if (!(index instanceof RDouble)) {
                     throw new UnexpectedResultException(Failure.NOT_DOUBLE_INDEX);
                 }
@@ -173,20 +220,10 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
                 }
                 int i = Convert.double2int(irdbl.getDouble(0)); // FIXME: check when the index is too large
-                if (i == RInt.NA) {
-                    throw new UnexpectedResultException(Failure.NA_INDEX);
-                }
                 if (i <= 0) {
-                    throw new UnexpectedResultException(Failure.NOT_POSITIVE_INDEX);
+                    throw new UnexpectedResultException(Failure.NOT_POSITIVE_INDEX); // includes NA_INDEX
                 }
-                if (i > vrarr.size()) {
-                    throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                }
-                if (subset || !(vrarr instanceof RList)) {
-                    return vrarr.boxedGet(i - 1);
-                } else {
-                    return ((RList) vrarr).getRAny(i - 1);
-                }
+                return select.select(vector, i);
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarDoubleSelection failed: " + f);
