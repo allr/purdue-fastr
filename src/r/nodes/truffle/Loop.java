@@ -73,7 +73,7 @@ public abstract class Loop extends BaseR {
         @Stable RNode cond;
         public While(ASTNode ast, RNode cond, RNode body) {
             super(ast, body);
-            this.cond = cond;
+            this.cond = updateParent(cond);
         }
 
         @Override
