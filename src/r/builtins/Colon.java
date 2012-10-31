@@ -81,86 +81,87 @@ public class Colon {
         }
     }
 
+    @SuppressWarnings("cast")
+    public static RAny generic(ASTNode ast, RContext context, RAny arg0, RAny arg1) {
+        if (arg0 instanceof RInt) {
+            RInt a0rint = (RInt) arg0;
+            Colon.checkScalar(a0rint, ast, context);
+            int a0 = a0rint.getInt(0);
+            Colon.checkNA(a0, ast);
+            if (arg1 instanceof RInt) {
+                RInt a1rint = (RInt) arg1;
+                Colon.checkScalar(a1rint, ast, context);
+                int a1 = a1rint.getInt(0);
+                Colon.checkNA(a1, ast);
+                return Colon.create(a0, a1);
+            }
+            if (arg1 instanceof RDouble) {
+                RDouble a1rdbl = (RDouble) arg1;
+                Colon.checkScalar(a1rdbl, ast, context);
+                double a1 = a1rdbl.getDouble(0);
+                Colon.checkNAandNaN(a1, ast);
+                if (RDouble.RDoubleUtils.fitsRInt(a1)) {
+                    return Colon.create(a0, (int) a1);
+                        // note casting to int does exactly what we want - truncate towards zero
+                } else {
+                    return Colon.create(a0, a1);
+                }
+            }
+            Utils.nyi("unsupported argument type for colon operator");
+        }
+
+        if (arg0 instanceof RDouble) {
+            RDouble a0rdbl = (RDouble) arg0;
+            Colon.checkScalar(a0rdbl, ast, context);
+            double a0 = a0rdbl.getDouble(0);
+            Colon.checkNAandNaN(a0, ast);
+            int ia0 = (int) a0;
+            if (((double) ia0) == a0) {  // this re-casting is intentional
+                // note: nearly copy-paste from above, but we should rewrite to nodes anyway
+                if (arg1 instanceof RInt) {
+                    RInt a1rint = (RInt) arg1;
+                    Colon.checkScalar(a1rint, ast, context);
+                    int a1 = a1rint.getInt(0);
+                    Colon.checkNA(a1, ast);
+                    return Colon.create(ia0, a1);
+                }
+                if (arg1 instanceof RDouble) {
+                    RDouble a1rdbl = (RDouble) arg1;
+                    Colon.checkScalar(a1rdbl, ast, context);
+                    double a1 = a1rdbl.getDouble(0);
+                    Colon.checkNAandNaN(a1, ast);
+                    if (RDouble.RDoubleUtils.fitsRInt(a1)) {
+                        return Colon.create(ia0, (int) a1);
+                            // note casting to int does exactly what we want - truncate towards zero
+                    } else {
+                        return Colon.create(a0, a1);
+                    }
+                }
+                Utils.nyi("unsupported argument type for colon operator");
+
+            } else {
+                if (arg1 instanceof RDouble) {
+                    RDouble a1rdbl = (RDouble) arg1;
+                    Colon.checkScalar(a1rdbl, ast, context);
+                    double a1 = a1rdbl.getDouble(0);
+                    Colon.checkNAandNaN(a1, ast);
+                    return Colon.create(a0, a1);
+                } else {
+                    Utils.nyi("unsupported argument type for colon operator");
+                }
+            }
+        }
+        Utils.nyi("unsupported argument types for colon operator");
+        return null;
+    }
+
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn(call, names, exprs) {
-                @SuppressWarnings("cast")
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-
-                    RAny arg0 = args[0];
-                    RAny arg1 = args[1];
-                    if (arg0 instanceof RInt) {
-                        RInt a0rint = (RInt) arg0;
-                        Colon.checkScalar(a0rint, ast, context);
-                        int a0 = a0rint.getInt(0);
-                        Colon.checkNA(a0, ast);
-                        if (arg1 instanceof RInt) {
-                            RInt a1rint = (RInt) arg1;
-                            Colon.checkScalar(a1rint, ast, context);
-                            int a1 = a1rint.getInt(0);
-                            Colon.checkNA(a1, ast);
-                            return Colon.create(a0, a1);
-                        }
-                        if (arg1 instanceof RDouble) {
-                            RDouble a1rdbl = (RDouble) arg1;
-                            Colon.checkScalar(a1rdbl, ast, context);
-                            double a1 = a1rdbl.getDouble(0);
-                            Colon.checkNAandNaN(a1, ast);
-                            if (RDouble.RDoubleUtils.fitsRInt(a1)) {
-                                return Colon.create(a0, (int) a1);
-                                    // note casting to int does exactly what we want - truncate towards zero
-                            } else {
-                                return Colon.create(a0, a1);
-                            }
-                        }
-                        Utils.nyi("unsupported argument type for colon operator");
-                    }
-
-                    if (arg0 instanceof RDouble) {
-                        RDouble a0rdbl = (RDouble) arg0;
-                        Colon.checkScalar(a0rdbl, ast, context);
-                        double a0 = a0rdbl.getDouble(0);
-                        Colon.checkNAandNaN(a0, ast);
-                        int ia0 = (int) a0;
-                        if (((double) ia0) == a0) {  // this re-casting is intentional
-                            // note: nearly copy-paste from above, but we should rewrite to nodes anyway
-                            if (arg1 instanceof RInt) {
-                                RInt a1rint = (RInt) arg1;
-                                Colon.checkScalar(a1rint, ast, context);
-                                int a1 = a1rint.getInt(0);
-                                Colon.checkNA(a1, ast);
-                                return Colon.create(ia0, a1);
-                            }
-                            if (arg1 instanceof RDouble) {
-                                RDouble a1rdbl = (RDouble) arg1;
-                                Colon.checkScalar(a1rdbl, ast, context);
-                                double a1 = a1rdbl.getDouble(0);
-                                Colon.checkNAandNaN(a1, ast);
-                                if (RDouble.RDoubleUtils.fitsRInt(a1)) {
-                                    return Colon.create(ia0, (int) a1);
-                                        // note casting to int does exactly what we want - truncate towards zero
-                                } else {
-                                    return Colon.create(a0, a1);
-                                }
-                            }
-                            Utils.nyi("unsupported argument type for colon operator");
-
-                        } else {
-                            if (arg1 instanceof RDouble) {
-                                RDouble a1rdbl = (RDouble) arg1;
-                                Colon.checkScalar(a1rdbl, ast, context);
-                                double a1 = a1rdbl.getDouble(0);
-                                Colon.checkNAandNaN(a1, ast);
-                                return Colon.create(a0, a1);
-                            } else {
-                                Utils.nyi("unsupported argument type for colon operator");
-                            }
-                        }
-                    }
-                    Utils.nyi("unsupported argument types for colon operator");
-                    return null;
+                    return generic(ast, context, args[0], args[1]);
                 }
             };
         }
