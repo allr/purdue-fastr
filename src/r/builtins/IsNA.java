@@ -10,7 +10,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 // FIXME: add more specializations, e.g. for a numeric vector
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
+// FIXME: Truffle can't inline BuiltIn.BuiltIn1
 public class IsNA {
 
     public static RAny generic(RAny arg) {
@@ -59,7 +59,7 @@ public class IsNA {
         public abstract RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException;
     }
 
-    public static class Specialized extends BuiltIn {
+    public static class Specialized extends BuiltIn.BuiltIn1 {
         IsNAAction isNA;
 
         public Specialized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, IsNAAction isNA) {
@@ -148,8 +148,7 @@ public class IsNA {
         }
 
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-            RAny param = params[0];
+        public final RAny doBuiltIn(RContext context, Frame frame, RAny param) {
             try {
                 return isNA.isNA(context, frame, param);
             } catch (UnexpectedResultException e) {
@@ -159,7 +158,7 @@ public class IsNA {
                     case SCALAR:
                         s = createScalar(ast, argNames, argExprs, param);
                         replace(s, "install SimpleScalars in IsNA.Specialized");
-                        return s.doBuiltIn(context, frame, params);
+                        return s.doBuiltIn(context, frame, param);
 
                     case GENERIC:
                     default:

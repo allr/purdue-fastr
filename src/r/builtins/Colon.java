@@ -8,7 +8,7 @@ import r.errors.*;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
-// FIXME: Truffle can't optimize BuiltIn2, so using BuiltIn
+// FIXME: Truffle can't optimize BuiltIn2
 public class Colon {
 
     // a simple version that eagerly creates the vector, create(int, int) and (double, double) below are more efficient
@@ -158,10 +158,10 @@ public class Colon {
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn(call, names, exprs) {
+            return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    return generic(ast, context, args[0], args[1]);
+                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                    return generic(ast, context, arg0, arg1);
                 }
             };
         }

@@ -8,7 +8,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-
+// FIXME: Truffle can't handle BuiltIn1
 public class Return {
     public static final CallFactory FACTORY = new CallFactory() {
 
@@ -26,11 +26,11 @@ public class Return {
                 };
             }
             if (exprs.length == 1) {
-                return new BuiltIn(call, names, exprs) {
+                return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                        RFrame.setReturnValue(frame, params[0]);
+                    public final RAny doBuiltIn(RContext context, Frame frame, RAny param) {
+                        RFrame.setReturnValue(frame, param);
                         throw ReturnException.instance;
                     }
                 };

@@ -9,6 +9,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// FIXME: Truffle can't handle BuiltIn1
 public class Cast {
 
     public static RAny generic(ASTNode ast, RAny arg) {
@@ -53,11 +54,11 @@ public class Cast {
 
                 };
             }
-            return new BuiltIn(call, names, exprs) {
+            return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    return generic(ast, args[0]);
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                    return generic(ast, arg);
                 }
             };
         }

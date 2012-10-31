@@ -9,6 +9,7 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.runtime.*;
 
+// FIXME: optimize for single argument
 // NOTE: we could probably get some performance if we gave up on preserving NA vs NaN in double computations; the current implementation strives to be strict
 public class Sum {
     private static final String[] paramNames = new String[]{"...", "na.rm"};

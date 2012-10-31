@@ -9,6 +9,7 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.runtime.*;
 
+// FIXME: Truffle can't handle BuiltIn2
 public class Rep {
 
     public static void checkScalar(RArray a, ASTNode ast) {
@@ -120,10 +121,10 @@ public class Rep {
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn(call, names, exprs) {
+            return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    return rep(ast, args[0], args[1]);
+                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                    return rep(ast, arg0, arg1);
                 }
             };
         }

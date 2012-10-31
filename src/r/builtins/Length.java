@@ -13,11 +13,10 @@ public class Length {
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn(call, names, exprs) {
+            return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    RAny arg = args[0];
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
                     if (arg instanceof RArray) {
                         return RInt.RIntFactory.getScalar(((RArray) arg).size());
                     }
