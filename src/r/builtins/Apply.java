@@ -70,7 +70,6 @@ public class Apply {
             final ValueProvider closureProvider = new ValueProvider(null);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, closureProvider, cnNames, cnExprs);
             return new Lapply(call, names, exprs, callNode, firstArgProvider, closureProvider, paramPositions[IX], paramPositions[IFUN]);
-
         }
     };
 
@@ -104,7 +103,6 @@ public class Apply {
             final ValueProvider closureProvider = new ValueProvider(null);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, closureProvider, cnNames, cnExprs);
             return new Sapply(call, names, exprs, callNode, firstArgProvider, closureProvider, paramPositions[IX], paramPositions[IFUN]);
-
         }
     };
 
