@@ -75,6 +75,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ c() }", "NULL");
         assertEval("{ c(NULL,NULL) }", "NULL");
         assertEval("{ c(NULL,1,2,3) }", "1.0, 2.0, 3.0");
+        assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) }", "1.0, 1.0");
+        assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) ; f(NULL, NULL) }", "NULL");
     }
 
     @Test
