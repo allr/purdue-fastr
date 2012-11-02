@@ -209,6 +209,20 @@ public class Truffleize implements Visitor {
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             } else {
+              RNode e = convertedExpressions[0];
+              if (e instanceof r.nodes.truffle.Constant) {
+                  RAny v = (RAny) e.execute(null, null);
+                  if (v instanceof RDouble || v instanceof RInt) {
+                      RInt iv = v.asInt();
+                      if (iv.size() == 1) {
+                          int index = v.asInt().getInt(0);
+                          if (index > 0) {
+                              result = new ReadVector.SimpleConstantScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, index, a.isSubset());
+                              return;
+                          }
+                      }
+                  }
+              }
               result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
             }
         }

@@ -19,6 +19,8 @@ import r.nodes.*;
 // FIXME: consider adding Select specialization to SimpleIntScalarSelection, but now disabled even in SimpleDoubleScalarSelection as it is not good for the
 //        binarytrees benchmark
 
+// FIXME: add more support for constant vector indices
+
 // rewriting of vector selection nodes:
 //
 // *SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
@@ -70,7 +72,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public Object execute(RContext context, Frame frame) {
         RAny base = (RAny) lhs.execute(context, frame);  // note: order is important
         RAny index = (RAny) indexes[0].execute(context, frame);
         return execute(context, index, base);
@@ -198,6 +200,46 @@ public abstract class ReadVector extends BaseR {
 
                 }
             }
+        }
+    }
+
+    // when the index has only one argument, which is a constant integer (so can use for double, too, with a cast)
+    //   for more complicated and corner cases rewrites itself
+    public static class SimpleConstantScalarIntSelection extends ReadVector {
+
+        final int index;
+
+        public SimpleConstantScalarIntSelection(ASTNode ast, RNode lhs, RNode[] indexes, int index, boolean subset) {
+            super(ast, lhs, indexes, subset);
+            this.index = index;
+        }
+
+        @Override
+        public Object execute(RContext context, Frame frame) {
+            RAny base = (RAny) lhs.execute(context, frame);
+            try {
+                if (!(base instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                }
+                RArray vrarr = (RArray) base;
+                if (index > vrarr.size()) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                }
+                if (subset || !(vrarr instanceof RList)) {
+                    return vrarr.boxedGet(index - 1);
+                } else {
+                    return ((RList) vrarr).getRAny(index - 1);
+                }
+            } catch (UnexpectedResultException e) {
+                GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
+                replace(gen, "");
+                return gen.execute(context, (RAny) indexes[0].execute(context, frame), base);
+            }
+        }
+
+        @Override
+        public RAny execute(RContext context, RAny index, RAny vector) {
+            return null;
         }
     }
 
