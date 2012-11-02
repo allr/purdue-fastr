@@ -380,7 +380,7 @@ public class Apply {
             this.funPosition = funPosition;
         }
 
-        public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode, RAny[] partialContent) {
+        public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
 
             boolean hasLogical = false;
             boolean hasInt = false;
@@ -400,6 +400,7 @@ public class Apply {
                 RAny v;
                 if (partialContent == null || content[i] == null) {
                     argIterator.setNext();
+                    FunctionCall callNode = sapply.callNode;
                     v = (RAny) callNode.execute(context, frame);
                     content[i] = v;
                 } else {
@@ -517,12 +518,12 @@ public class Apply {
             if (resTemplate instanceof RDouble) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         double[] content = new double[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
                             if (v instanceof RDouble) {
                                 content[i] = ((RDouble) v).getDouble(0);
                             } else { // NOTE: can also add Int and Logical support here
@@ -537,12 +538,12 @@ public class Apply {
             if (resTemplate instanceof RInt) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
                             if (v instanceof RInt) {
                                 content[i] = ((RInt) v).getInt(0);
                             } else { // NOTE: can also add Logical support here
@@ -557,12 +558,12 @@ public class Apply {
             if (resTemplate instanceof RLogical) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
                             if (v instanceof RLogical) {
                                 content[i] = ((RLogical) v).getLogical(0);
                             } else {
@@ -577,13 +578,13 @@ public class Apply {
             if (resTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         RAny[] content = new RAny[xsize];
                         boolean returnsList = false;
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
                             content[i] = v;
                             if (!returnsList) {
                                 if (v instanceof RList || v instanceof RNull) {
@@ -631,7 +632,7 @@ public class Apply {
                     Utils.nyi("unsupported type");
                     return null;
                 }
-                RAny res = generic(context, frame, argIterator, callNode, null);
+                RAny res = generic(context, frame, argIterator, this, null);
                 Specialized sn = createSpecialized(res, argIterator);
                 if (DEBUG_AP) Utils.debug("apply - rewrote initial generic to " + argIterator.toString() + " " + sn.dbg);
                 replace(sn, "install Specialized from Sapply");
@@ -649,15 +650,15 @@ public class Apply {
         public Specialized createGeneric(ArgIterator argIterator) {
             ApplyFunc a = new ApplyFunc() {
                 @Override
-                public RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException {
-                    return generic(context, frame, argIterator, callNode, null);
+                public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    return generic(context, frame, argIterator, sapply, null);
                 }
             };
             return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<Generic>");
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(RContext context, Frame frame, ArgIterator argIterator, FunctionCall callNode) throws UnexpectedResultException;
+            public abstract RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException;
         }
 
         class Specialized extends Sapply {
@@ -691,13 +692,13 @@ public class Apply {
                 }
 
                 try {
-                    return apply.apply(context, frame, argIterator, callNode);
+                    return apply.apply(context, frame, argIterator, this);
                 } catch (UnexpectedResultException e) {
                     RAny[] partialContent = unpackPartial(e.getResult());
                     Specialized sn = createGeneric(argIterator);
                     if (DEBUG_AP) Utils.debug("apply - Specialized " + argIterator.toString() + " " + dbg + " failed, rewriting to " + sn.argIterator.toString() + " " + sn.dbg);
                     replace(sn, "install Specialized<?, Generic> from Sapply.Specialized");
-                    return generic(context, frame, argIterator, callNode, partialContent);
+                    return generic(context, frame, argIterator, this, partialContent);
                 }
             }
         }
