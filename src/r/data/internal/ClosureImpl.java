@@ -19,6 +19,10 @@ public class ClosureImpl extends BaseObject implements RClosure {
     final RNode body;
     @ContentStable final RNode[] dflParams;
 
+    // experimental feature only, won't work with Truffle
+    private static final boolean CACHING_FRAMES = false;
+    Frame cachedFrame;
+
     @Stable private CompiledObject<Object[]> compiledObject;
     private final int compileThreshold;
     private int counter;
@@ -92,6 +96,70 @@ public class ClosureImpl extends BaseObject implements RClosure {
     @Override
     public final Object call(Context context, Object[] args) {
         return execute(context, args);
+    }
+
+    // non-truffle
+    @Override
+    public Object trivialCall(RContext context, Object arg0, Object arg1) {
+        Frame frame = null;
+        if (CACHING_FRAMES) {
+            frame = cachedFrame;
+            if (cachedFrame == null) {
+                 frame = new Frame(nslots, environment);
+            } else {
+                cachedFrame = null; // for recursive calls
+            }
+        } else {
+            frame = new Frame(nslots, environment);
+        }
+
+        frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
+        frame.setLong(RFrame.RESERVED_SLOTS + 1, 0);
+
+        frame.setObject(RFrame.FUNCTION_SLOT, function);
+        RFrame.writeAt(frame, 0, arg0);
+        RFrame.writeAt(frame, 1, arg1);
+        Object res;
+        try {
+            res = body.execute(context, frame);
+        } catch (ReturnException re) {
+            res = RFrame.getReturnValue(frame);
+        }
+        if (CACHING_FRAMES) {
+            cachedFrame = frame;
+        }
+        return res;
+    }
+
+    // non-truffle
+    @Override
+    public Object trivialCall(RContext context, Object arg0) {
+        Frame frame = null;
+        if (CACHING_FRAMES) {
+            frame = cachedFrame;
+            if (cachedFrame == null) {
+                 frame = new Frame(nslots, environment);
+            } else {
+                cachedFrame = null; // for recursive calls
+            }
+        } else {
+            frame = new Frame(nslots, environment);
+        }
+
+        frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
+
+        frame.setObject(RFrame.FUNCTION_SLOT, function);
+        RFrame.writeAt(frame, 0, arg0);
+        Object res;
+        try {
+            res = body.execute(context, frame);
+        } catch (ReturnException re) {
+            res = RFrame.getReturnValue(frame);
+        }
+        if (CACHING_FRAMES) {
+            cachedFrame = frame;
+        }
+        return res;
     }
 
     @Override
