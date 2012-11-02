@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
@@ -22,7 +23,8 @@ public abstract class FunctionCall extends AbstractCall {
                 return getCachedGenericFunctionCall(ast, closureExpr, argNames, argExprs);
             }
         }
-        return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+//        return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+        return new TrivialFunctionCall(ast, closureExpr, argNames, argExprs);
     }
 
     // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
@@ -57,6 +59,88 @@ public abstract class FunctionCall extends AbstractCall {
 
             }
         };
+    }
+
+    public static class TrivialFunctionCall extends FunctionCall {
+
+        public TrivialFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+            super(ast, closureExpr, argNames, argExprs);
+        }
+
+        @Override
+        protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if (argExprs.length != func.nparams() || argExprs.length > 3) {
+                    FunctionCall f = getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+                    replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
+                    return f.matchParams(context, func, parentFrame, callerFrame);
+                }
+                FillArgs fill = null;
+                switch(argExprs.length) {
+                    case 0 : fill = new FillArgs() {
+                        @Override
+                        public final Object[] fill(RContext context, Frame callerFrame, RNode[] argExprs) {
+                            return new Object[0];
+                        }
+                    }; break;
+
+                    case 1 : fill = new FillArgs() {
+                        @Override
+                        public final Object[] fill(RContext context, Frame callerFrame, RNode[] argExprs) {
+                            return new Object[] {argExprs[0].execute(context, callerFrame)};
+                        }
+                    }; break;
+
+                    case 2 : fill = new FillArgs() {
+                        @Override
+                        public final Object[] fill(RContext context, Frame callerFrame, RNode[] argExprs) {
+                            return new Object[] {argExprs[0].execute(context, callerFrame), argExprs[1].execute(context, callerFrame)};
+                        }
+                    }; break;
+
+                    case 3 : fill = new FillArgs() {
+                        @Override
+                        public final Object[] fill(RContext context, Frame callerFrame, RNode[] argExprs) {
+                            return new Object[] {argExprs[0].execute(context, callerFrame), argExprs[1].execute(context, callerFrame), argExprs[2].execute(context, callerFrame)};
+                        }
+                    }; break;
+                }
+                FunctionCall f = new Cached(ast, closureExpr, argNames, argExprs, func, fill);
+                replace(f, "install CachedSimpleFunctionCall from TrivialFunctionCall");
+                return f.matchParams(context, func, parentFrame, callerFrame);
+            }
+        }
+
+        public abstract static class FillArgs {
+            public abstract Object[] fill(RContext context, Frame callerFrame, RNode[] argExprs);
+        }
+
+        public static class Cached extends FunctionCall {
+            final RFunction cachedFunction;
+            final FillArgs fill;
+
+            public Cached(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function, FillArgs fill) {
+                super(ast, closureExpr, argNames, argExprs);
+                this.cachedFunction = function;
+                this.fill = fill;
+            }
+
+            @Override
+            protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+                try {
+                    if (func != cachedFunction) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return fill.fill(context, callerFrame, argExprs);
+                } catch (UnexpectedResultException e) {
+                    FunctionCall f = getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+                    replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
+                    return f.matchParams(context, func, parentFrame, callerFrame);
+                }
+            }
+        }
     }
 
     public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {

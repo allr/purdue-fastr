@@ -84,7 +84,6 @@ public class Comparison extends BaseR {
                         if (RDouble.RDoubleUtils.isNA(l) || RDouble.RDoubleUtils.isNA(r)) {
                             return RLogical.BOXED_NA;
                         }
-                        Utils.debug("A");
                         return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
                     }
                 };

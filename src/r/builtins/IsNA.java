@@ -173,7 +173,7 @@ public class IsNA {
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return Specialized.createUninitialized(call, names, exprs);
+           return Specialized.createUninitialized(call, names, exprs);
         }
     };
 }

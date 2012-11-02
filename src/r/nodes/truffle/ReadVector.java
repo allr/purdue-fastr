@@ -16,6 +16,9 @@ import r.nodes.*;
 // FIXME: get get a bit more performance by joining failure modes when distinction is not necessary (and particularly when that makes the checks easier)
 //        i've done this with SimpleScalarDoubleSelection, and it helped a bit
 
+// FIXME: consider adding Select specialization to SimpleIntScalarSelection, but now disabled even in SimpleDoubleScalarSelection as it is not good for the
+//        binarytrees benchmark
+
 // rewriting of vector selection nodes:
 //
 // *SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
@@ -75,9 +78,60 @@ public abstract class ReadVector extends BaseR {
 
     abstract RAny execute(RContext context, RAny index, RAny vector);
 
+    private abstract static class Select {
+        abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
+    }
+
+    private static Select createScalarSelect(boolean subset, RAny vectorTemplate) {
+        if (subset) {
+            return new Select() {
+                @Override
+                final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                    if (!(vector instanceof RArray)) {
+                        throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
+                    }
+                    RArray vrarr = (RArray) vector;
+                    if (index > vrarr.size()) {
+                        throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                    }
+                    return vrarr.boxedGet(index - 1);
+                }
+            };
+        } else if (!(vectorTemplate instanceof RList)) {
+            return new Select() {
+                @Override
+                final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                    if (vector instanceof RList || !(vector instanceof RArray)) {
+                        throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                    }
+                    RArray vrarr = (RArray) vector;
+                    if (index > vrarr.size()) {
+                        throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                    }
+                    return vrarr.boxedGet(index - 1);
+                }
+            };
+        } else {
+            return new Select() {
+                @Override
+                final RAny select(RAny vector, int index) throws UnexpectedResultException {
+                    if (!(vector instanceof RList)) {
+                        throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                    }
+                    RList vlist = (RList) vector;
+                    if (index > vlist.size()) {
+                        throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                    }
+                    return vlist.getRAny(index - 1);
+                }
+            };
+        }
+    }
+
     // when the index has only one argument, which is an integer
     //   for more complicated and corner cases rewrites itself
     public static class SimpleScalarIntSelection extends ReadVector {
+
         public SimpleScalarIntSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
         }
@@ -98,14 +152,8 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
                 }
                 int i = irint.getInt(0);
-                if (i == RInt.NA) {
-                    throw new UnexpectedResultException(Failure.NA_INDEX);
-                }
-                if (i <= 0) {
-                    throw new UnexpectedResultException(Failure.NOT_POSITIVE_INDEX);
-                }
-                if (i > vrarr.size()) {
-                    throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                if (i <= 0 || i > vrarr.size()) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 }
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
@@ -156,56 +204,10 @@ public abstract class ReadVector extends BaseR {
     // when the index has only one argument, which is a double
     //   for more complicated and corner cases rewrites itself
     public static class SimpleScalarDoubleSelection extends ReadVector {
-        final Select select;
+        //final Select select;
         public SimpleScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, RAny vectorTemplate) {
             super(ast, lhs, indexes, subset);
-            if (subset) {
-                select = new Select() {
-                    @Override
-                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                        if (!(vector instanceof RArray)) {
-                            throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
-                        }
-                        RArray vrarr = (RArray) vector;
-                        if (index > vrarr.size()) {
-                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                        }
-                        return vrarr.boxedGet(index - 1);
-                    }
-                };
-            } else if (!(vectorTemplate instanceof RList)) {
-                select = new Select() {
-                    @Override
-                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                        if (vector instanceof RList || !(vector instanceof RArray)) {
-                            throw new UnexpectedResultException(Failure.UNSPECIFIED);
-                        }
-                        RArray vrarr = (RArray) vector;
-                        if (index > vrarr.size()) {
-                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                        }
-                        return vrarr.boxedGet(index - 1);
-                    }
-                };
-            } else {
-                select = new Select() {
-                    @Override
-                    final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                        if (!(vector instanceof RList)) {
-                            throw new UnexpectedResultException(Failure.UNSPECIFIED);
-                        }
-                        RList vlist = (RList) vector;
-                        if (index > vlist.size()) {
-                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                        }
-                        return vlist.getRAny(index - 1);
-                    }
-                };
-            }
-        }
-
-        private abstract static class Select {
-            abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
+            //this.select = createScalarSelect(subset, vectorTemplate);
         }
 
         @Override
@@ -220,10 +222,25 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
                 }
                 int i = Convert.double2int(irdbl.getDouble(0)); // FIXME: check when the index is too large
-                if (i <= 0) {
-                    throw new UnexpectedResultException(Failure.NOT_POSITIVE_INDEX); // includes NA_INDEX
+
+                // FIXME: surprisingly using select did not work well in binarytrees benchmark, where the base alternates between list and integer
+//                if (i <= 0) {
+//                    throw new UnexpectedResultException(Failure.NOT_POSITIVE_INDEX); // includes NA_INDEX
+//                }
+//                return select.select(vector, i);
+
+                if (!(vector instanceof RArray)) {
+                    throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
-                return select.select(vector, i);
+                RArray vrarr = (RArray) vector;
+                if (i <= 0 || i > vrarr.size()) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                }
+                if (subset || !(vrarr instanceof RList)) {
+                    return vrarr.boxedGet(i - 1);
+                } else {
+                    return ((RList) vrarr).getRAny(i - 1);
+                }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarDoubleSelection failed: " + f);
