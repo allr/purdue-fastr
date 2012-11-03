@@ -11,10 +11,10 @@ public interface RDouble extends RNumber {
     double NEG_INF = Double.NEGATIVE_INFINITY;
 
     DoubleImpl EMPTY = RDoubleFactory.getUninitializedArray(0);
-    DoubleImpl BOXED_NA = RDoubleFactory.getArray(NA);
-    DoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
+    ScalarDoubleImpl BOXED_NA = RDoubleFactory.getScalar(NA);
+    ScalarDoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
 
-    RArray set(int i, double val);
+    RDouble set(int i, double val);
     double getDouble(int i);
 
     public class RDoubleUtils {
@@ -32,8 +32,8 @@ public interface RDouble extends RNumber {
         }
     }
     public class RDoubleFactory {
-        public static DoubleImpl getScalar(double value) {
-            return new DoubleImpl(new double[]{value}, false);
+        public static ScalarDoubleImpl getScalar(double value) {
+            return new ScalarDoubleImpl(value);
         }
         public static DoubleImpl getArray(double... values) {
             return new DoubleImpl(values);
@@ -52,6 +52,9 @@ public interface RDouble extends RNumber {
             return new DoubleImpl(d);
         }
         public static RDouble getForArray(double[] values) {  // re-uses values!
+            if (values.length == 1) {
+                return new ScalarDoubleImpl(values[0]);
+            }
             return new DoubleImpl(values, false);
         }
         public static RDouble exclude(int excludeIndex, RDouble orig) {

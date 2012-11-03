@@ -56,7 +56,7 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
-    public RArray set(int i, double val) {
+    public RDouble set(int i, double val) {
         content[i] = val;
         return this;
     }

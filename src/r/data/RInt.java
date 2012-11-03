@@ -3,22 +3,23 @@ package r.data;
 import r.*;
 import r.data.internal.*;
 
+// FIXME: add conversion to scalar representation to copies (also other types that have scalar representations)
 
 public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
 
     IntImpl BOXED_NA = RIntFactory.getArray(NA);
-    IntImpl BOXED_ZERO = RIntFactory.getScalar(0);
-    IntImpl BOXED_ONE = RIntFactory.getScalar(1);
+    ScalarIntImpl BOXED_ZERO = RIntFactory.getScalar(0);
+    ScalarIntImpl BOXED_ONE = RIntFactory.getScalar(1);
     IntImpl EMPTY = RIntFactory.getUninitializedArray(0);
 
     int getInt(int i);
-    RArray set(int i, int val);
+    RInt set(int i, int val);
 
     public class RIntFactory {
-        public static IntImpl getScalar(int value) {
-            return new IntImpl(new int[]{value}, false);
+        public static ScalarIntImpl getScalar(int value) {
+            return new ScalarIntImpl(value);
         }
         public static IntImpl getArray(int... values) {
             return new IntImpl(values);
@@ -37,6 +38,9 @@ public interface RInt extends RNumber {
             return new IntImpl(i);
         }
         public static RInt getForArray(int[] values) {  // re-uses values!
+            if (values.length == 1) {
+                return new ScalarIntImpl(values[0]);
+            }
             return new IntImpl(values, false);
         }
         public static RInt forSequence(int from, int to, int step) {

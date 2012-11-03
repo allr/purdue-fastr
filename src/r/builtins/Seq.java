@@ -107,7 +107,7 @@ public class Seq {
                                       return argfrom;
                                   }
                                   if (ato instanceof RInt && afrom instanceof RInt && aby instanceof RInt) {
-                                      return RInt.RIntFactory.forSequence((int) from, (int) (from + ((int)n) * by), (int) by);
+                                      return RInt.RIntFactory.forSequence((int) from, (int) (from + ((int) n) * by), (int) by);
                                   } else {
                                       int in = (int) (n + 1e-10);
                                       double[] content = new double[in + 1];
@@ -130,7 +130,7 @@ public class Seq {
                                               }
                                           }
                                       }
-                                      return RDouble.RDoubleFactory.getArray(content);
+                                      return RDouble.RDoubleFactory.getForArray(content);
                                   }
                               }
                           };

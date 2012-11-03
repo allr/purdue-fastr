@@ -47,7 +47,7 @@ public class Constant extends ASTNode {
 
     public static Constant createDoubleConstant(double... values) {
         if (values.length == 1) {
-            return new Constant(RDouble.RDoubleFactory.getArray(values));
+            return new Constant(RDouble.RDoubleFactory.getScalar(values[0]));
         }
         throw new Error("Non scalar constants are not implemented.");
     }
@@ -78,7 +78,7 @@ public class Constant extends ASTNode {
 
     public static Constant createIntConstant(int... values) {
         if (values.length == 1) {
-            return new Constant(RInt.RIntFactory.getArray(values));
+            return new Constant(RInt.RIntFactory.getScalar(values[0]));
         }
         throw new Error("Non scalar constants are not implemented.");
     }
@@ -93,14 +93,14 @@ public class Constant extends ASTNode {
 
     public static Constant createBoolConstant(int... values) {
         if (values.length == 1) {
-            return new Constant(RLogical.RLogicalFactory.getArray(values));
+            return new Constant(RLogical.RLogicalFactory.getScalar(values[0]));
         }
         throw new Error("Non scalar constants are not implemented.");
     }
 
     public static Constant createStringConstant(String... values) {
         if (values.length == 1) {
-            return new Constant(RString.RStringFactory.getArray(values));
+            return new Constant(RString.RStringFactory.getScalar(values[0]));
         }
         throw new Error("Non scalar constants are not implemented.");
     }

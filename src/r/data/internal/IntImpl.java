@@ -64,7 +64,7 @@ public class IntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
-    public RArray set(int i, int val) {
+    public RInt set(int i, int val) {
         content[i] = val;
         return this;
     }

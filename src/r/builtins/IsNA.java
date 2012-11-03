@@ -71,6 +71,7 @@ public class IsNA {
             return createTransition(ast, names, exprs, Transition.SCALAR);
         }
 
+        // FIXME: check on a larger set of benchmarks if all these are needed
         public static Specialized createTransition(ASTNode ast, RSymbol[] names, RNode[] exprs, final Transition t) {
             IsNAAction a = new IsNAAction() {
                 @Override
@@ -88,6 +89,18 @@ public class IsNA {
         }
 
         public static Specialized createScalar(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
+            if (typeTemplate instanceof ScalarDoubleImpl) {
+                IsNAAction a = new IsNAAction() {
+                    @Override
+                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                        if (!(param instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(Transition.GENERIC);
+                        }
+                        return ((ScalarDoubleImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    }
+                };
+                return new Specialized(ast, names, exprs, a);
+            }
             if (typeTemplate instanceof RDouble) {
                 IsNAAction a = new IsNAAction() {
                     @Override
@@ -102,6 +115,18 @@ public class IsNA {
                 };
                 return new Specialized(ast, names, exprs, a);
             }
+            if (typeTemplate instanceof ScalarIntImpl) {
+                IsNAAction a = new IsNAAction() {
+                    @Override
+                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                        if (!(param instanceof ScalarIntImpl)) {
+                            throw new UnexpectedResultException(Transition.GENERIC);
+                        }
+                        return ((ScalarIntImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    }
+                };
+                return new Specialized(ast, names, exprs, a);
+            }
             if (typeTemplate instanceof RInt) {
                 IsNAAction a = new IsNAAction() {
                     @Override
@@ -112,6 +137,18 @@ public class IsNA {
                         RInt v = (RInt) param;
                         checkScalar(v, Transition.GENERIC);
                         return v.getInt(0) == RInt.NA ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    }
+                };
+                return new Specialized(ast, names, exprs, a);
+            }
+            if (typeTemplate instanceof ScalarLogicalImpl) {
+                IsNAAction a = new IsNAAction() {
+                    @Override
+                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                        if (!(param instanceof ScalarLogicalImpl)) {
+                            throw new UnexpectedResultException(Transition.GENERIC);
+                        }
+                        return ((ScalarLogicalImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -174,6 +211,7 @@ public class IsNA {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
            return Specialized.createUninitialized(call, names, exprs);
+//             return createGeneric(call, names, exprs);
         }
     };
 }

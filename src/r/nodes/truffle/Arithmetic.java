@@ -57,6 +57,23 @@ public class Arithmetic extends BaseR {
         }
 
         public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+            if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
+                        double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarDouble>");
+            }
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
                 Calculator c = new Calculator() {
                     @Override
@@ -78,6 +95,23 @@ public class Arithmetic extends BaseR {
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<RDouble, RDouble>");
+            }
+            if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
+                        int rint = ((ScalarIntImpl) rexpr).getInt();
+                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rint));
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarInt>");
             }
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RInt) {
                 Calculator c = new Calculator() {
@@ -101,6 +135,28 @@ public class Arithmetic extends BaseR {
                 };
                 return new Specialized(ast, left, right, arit, c, "<RDouble, RInt>");
             }
+            if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        RInt li = (RInt) lexpr;
+                        RDouble rd = (RDouble) rexpr;
+                        if (li.size() != 1 || rd.size() != 1) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        int lint = ((ScalarIntImpl) lexpr).getInt();
+                        double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(lint, rdbl));
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarDouble>");
+            }
             if (leftTemplate instanceof RInt && rightTemplate instanceof RDouble) {
                 Calculator c = new Calculator() {
                     @Override
@@ -123,6 +179,42 @@ public class Arithmetic extends BaseR {
                 };
                 return new Specialized(ast, left, right, arit, c, "<RInt, RDouble>");
             }
+            if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
+                if (returnsDouble(arit)) {
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int lint = ((ScalarIntImpl) lexpr).getInt();
+                            int rint = ((ScalarIntImpl) rexpr).getInt();
+                            if (lint == RInt.NA || rint == RInt.NA) {
+                                return RDouble.BOXED_NA;
+                            }
+                            return RDouble.RDoubleFactory.getScalar(arit.op((double) lint, (double) rint));
+                        }
+                    };
+                    return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
+                } else {
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int lint = ((ScalarIntImpl) lexpr).getInt();
+                            int rint = ((ScalarIntImpl) rexpr).getInt();
+                            if (lint == RInt.NA || rint == RInt.NA) {
+                                return RInt.BOXED_NA;
+                            }
+                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                        }
+                    };
+                    return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
+                }
+            }
+
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
                 if (returnsDouble(arit)) {
                     Calculator c = new Calculator() {

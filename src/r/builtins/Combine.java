@@ -94,7 +94,7 @@ public class Combine {
             return res;
         }
         if (hasLogical) {
-            LogicalImpl res = RLogical.RLogicalFactory.getUninitializedArray(len);
+            RLogical res = RLogical.RLogicalFactory.getUninitializedArray(len);
             for (RAny v : params) {
                 if (v instanceof RNull) {
                     continue;
@@ -154,7 +154,7 @@ public class Combine {
         }
 
         public static Specialized createSimpleScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
-            if (typeTemplate instanceof RDouble) {
+            if (typeTemplate instanceof ScalarDoubleImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
                     public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
@@ -162,21 +162,17 @@ public class Combine {
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof RDouble)) {
+                            if (!(v instanceof ScalarDoubleImpl)) {
                                 throw new UnexpectedResultException(Transition.CASTING_SCALARS);
                             }
-                            RDouble d = (RDouble) v;
-                            if (d.size() != 1) {
-                                throw new UnexpectedResultException(Transition.SIMPLE_VECTORS);
-                            }
-                            content[i] = d.getDouble(0);
+                            content[i] = ((ScalarDoubleImpl) v).getDouble();
                         }
                         return RDouble.RDoubleFactory.getForArray(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
             }
-            if (typeTemplate instanceof RInt) {
+            if (typeTemplate instanceof ScalarIntImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
                     public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
@@ -184,21 +180,17 @@ public class Combine {
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof RInt)) {
+                            if (!(v instanceof ScalarIntImpl)) {
                                 throw new UnexpectedResultException(Transition.CASTING_SCALARS);
                             }
-                            RInt vi = (RInt) v;
-                            if (vi.size() != 1) {
-                                throw new UnexpectedResultException(Transition.SIMPLE_VECTORS);
-                            }
-                            content[i] = vi.getInt(0);
+                            content[i] = ((ScalarIntImpl) v).getInt();
                         }
                         return RInt.RIntFactory.getForArray(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
             }
-            if (typeTemplate instanceof RLogical) {
+            if (typeTemplate instanceof ScalarLogicalImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
                     public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
@@ -206,14 +198,10 @@ public class Combine {
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof RLogical)) {
+                            if (!(v instanceof ScalarLogicalImpl)) {
                                 throw new UnexpectedResultException(Transition.CASTING_SCALARS);
                             }
-                            RLogical vl = (RLogical) v;
-                            if (vl.size() != 1) {
-                                throw new UnexpectedResultException(Transition.SIMPLE_VECTORS);
-                            }
-                            content[i] = vl.getLogical(0);
+                            content[i] = ((ScalarLogicalImpl) v).getLogical();
                         }
                         return RLogical.RLogicalFactory.getForArray(content);
                     }
@@ -224,11 +212,6 @@ public class Combine {
             return createTransition(ast, names, exprs, Transition.GENERIC);
         }
 
-        private static void checkScalar(RArray a, Transition t) throws UnexpectedResultException {
-            if (a.size() != 1) {
-                throw new UnexpectedResultException(t);
-            }
-        }
         public static Specialized createCastingScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
             if (typeTemplate instanceof RDouble) {
                 CombineAction a = new CombineAction() {
@@ -238,22 +221,16 @@ public class Combine {
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (v instanceof RDouble) {
-                                RDouble d = (RDouble) v;
-                                checkScalar(d, Transition.GENERIC);
-                                content[i] = d.getDouble(0);
+                            if (v instanceof ScalarDoubleImpl) {
+                                content[i] = ((ScalarDoubleImpl) v).getDouble();
                                 continue;
                             }
-                            if (v instanceof RInt) {
-                                RInt vi = (RInt) v;
-                                checkScalar(vi, Transition.GENERIC);
-                                content[i] = Convert.int2double(vi.getInt(0));
+                            if (v instanceof ScalarIntImpl) {
+                                content[i] = Convert.int2double(((ScalarIntImpl) v).getInt());
                                 continue;
                             }
-                            if (v instanceof RLogical) {
-                                RLogical l = (RLogical) v;
-                                checkScalar(l, Transition.GENERIC);
-                                content[i] = Convert.logical2double(l.getLogical(0));
+                            if (v instanceof ScalarLogicalImpl) {
+                                content[i] = Convert.logical2double(((ScalarLogicalImpl) v).getLogical());
                                 continue;
                             }
                             throw new UnexpectedResultException(Transition.GENERIC);
@@ -271,16 +248,12 @@ public class Combine {
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (v instanceof RInt) {
-                                RInt vi = (RInt) v;
-                                checkScalar(vi, Transition.GENERIC);
-                                content[i] = vi.getInt(0);
+                            if (v instanceof ScalarIntImpl) {
+                                content[i] = ((ScalarIntImpl) v).getInt();
                                 continue;
                             }
-                            if (v instanceof RLogical) {
-                                RLogical l = (RLogical) v;
-                                checkScalar(l, Transition.GENERIC);
-                                content[i] = Convert.logical2int(l.getLogical(0));
+                            if (v instanceof ScalarLogicalImpl) {
+                                content[i] = Convert.logical2int(((ScalarLogicalImpl) v).getLogical());
                                 continue;
                             }
                             throw new UnexpectedResultException(Transition.GENERIC);

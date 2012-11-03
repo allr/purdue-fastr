@@ -47,7 +47,7 @@ public abstract class View extends ArrayImpl implements RArray {
          }
 
         @Override
-        public RArray materialize() {
+        public RInt materialize() {
             return RIntFactory.copy(this);
         }
 
@@ -83,7 +83,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RArray set(int i, int val) {
+        public RInt set(int i, int val) {
             return materialize().set(i, val);
         }
 
@@ -125,7 +125,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RArray materialize() {
+        public RDouble materialize() {
             return RDouble.RDoubleFactory.copy(this);
         }
 
@@ -146,7 +146,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RArray set(int i, double val) {
+        public RDouble set(int i, double val) {
             return materialize().set(i, val);
         }
 

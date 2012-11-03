@@ -424,64 +424,64 @@ public class Comparison extends BaseR {
             if (RDouble.RDoubleUtils.isNA(b)) {
                 return RLogicalFactory.getNAArray(n);
             }
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 double adbl = a.getDouble(i);
                 if (RDouble.RDoubleUtils.isNA(adbl)) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
         public RLogical cmp(double a, RDouble b) {
             int n = b.size();
             if (RDouble.RDoubleUtils.isNA(a)) {
                 return RLogicalFactory.getNAArray(n);
             }
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 double bdbl = b.getDouble(i);
                 if (RDouble.RDoubleUtils.isNA(bdbl)) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
         public RLogical cmp(RInt a, int b) {
             int n = a.size();
             if (b == RInt.NA) {
                 return RLogicalFactory.getNAArray(n);
             }
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 int aint = a.getInt(i);
                 if (aint == RInt.NA) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(aint, b) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(aint, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
         public RLogical cmp(int a, RInt b) {
             int n = b.size();
             if (a == RInt.NA) {
                 return RLogicalFactory.getNAArray(n);
             }
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 int bint = b.getInt(i);
                 if (bint == RInt.NA) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(a, bint) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(a, bint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
 
         public RLogical cmp(RDouble a, RDouble b, RContext context, ASTNode ast) {
@@ -489,11 +489,11 @@ public class Comparison extends BaseR {
             int nb = b.size();
 
             if (na == 0 || nb == 0) {
-                return RLogicalFactory.getUninitializedArray(0);
+                return RLogical.EMPTY;
             }
 
             int n = (na > nb) ? na : nb;
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             int ai = 0;
             int bi = 0;
 
@@ -508,27 +508,27 @@ public class Comparison extends BaseR {
                 }
 
                 if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
 
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
         public RLogical cmp(RInt a, RInt b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
 
             if (na == 0 || nb == 0) {
-                return RLogicalFactory.getUninitializedArray(0);
+                return RLogical.EMPTY;
             }
 
             int n = (na > nb) ? na : nb;
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             int ai = 0;
             int bi = 0;
 
@@ -543,27 +543,27 @@ public class Comparison extends BaseR {
                 }
 
                 if (aint == RInt.NA || bint == RInt.NA) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(aint, bint) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(aint, bint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
 
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
         public RLogical cmp(RLogical a, RLogical b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
 
             if (na == 0 || nb == 0) {
-                return RLogicalFactory.getUninitializedArray(0);
+                return RLogical.EMPTY;
             }
 
             int n = (na > nb) ? na : nb;
-            RLogical r = RLogicalFactory.getUninitializedArray(n);
+            int[] content = new int[n];
             int ai = 0;
             int bi = 0;
 
@@ -578,16 +578,16 @@ public class Comparison extends BaseR {
                 }
 
                 if (alog == RLogical.NA || blog == RLogical.NA) {
-                    r.set(i, RLogical.NA);
+                    content[i] = RLogical.NA;
                 } else {
-                    r.set(i, cmp(alog, blog) ? RLogical.TRUE : RLogical.FALSE);
+                    content[i] = cmp(alog, blog) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
 
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return r;
+            return RLogical.RLogicalFactory.getForArray(content);
         }
     }
 

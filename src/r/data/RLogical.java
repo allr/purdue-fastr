@@ -10,10 +10,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     int FALSE = 0;
     int NA = Integer.MIN_VALUE;
 
-    LogicalImpl BOXED_TRUE = RLogicalFactory.getArray(TRUE);
-    LogicalImpl BOXED_FALSE = RLogicalFactory.getArray(FALSE);
-    LogicalImpl BOXED_NA = RLogicalFactory.getArray(NA);
-    LogicalImpl EMPTY = RLogicalFactory.getUninitializedArray(0);
+    ScalarLogicalImpl BOXED_TRUE = RLogicalFactory.getScalar(TRUE);
+    ScalarLogicalImpl BOXED_FALSE = RLogicalFactory.getScalar(FALSE);
+    ScalarLogicalImpl BOXED_NA = RLogicalFactory.getScalar(NA);
+
+    RLogical EMPTY = RLogicalFactory.getUninitializedArray(0);
 
     int getLogical(int il);
     RLogical set(int i, int val);
@@ -31,17 +32,23 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     }
 
     public class RLogicalFactory {
-        public static LogicalImpl getScalar(int value) {
-            return new LogicalImpl(new int[]{value}, false);
+        public static ScalarLogicalImpl getScalar(int value) {
+            return new ScalarLogicalImpl(value);
         }
         public static LogicalImpl getArray(int... values) {
             return new LogicalImpl(values);
         }
-        public static LogicalImpl getUninitializedArray(int size) {
+        public static RLogical getUninitializedArray(int size) {
+            if (size == 1) {
+                return new ScalarLogicalImpl(0);
+            }
             return new LogicalImpl(size);
         }
-        public static LogicalImpl getNAArray(int size) {
-            LogicalImpl l = getUninitializedArray(size);
+        public static RLogical getNAArray(int size) {
+            if (size == 1) {
+                return new ScalarLogicalImpl(NA);
+            }
+            LogicalImpl l = (LogicalImpl) getUninitializedArray(size);
             for (int i = 0; i < size; i++) {
                 l.set(i, NA);
             }
@@ -51,6 +58,9 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             return new LogicalImpl(l);
         }
         public static RLogical getForArray(int[] values) {  // re-uses values!
+            if (values.length == 1) {
+                return new ScalarLogicalImpl(values[0]);
+            }
             return new LogicalImpl(values, false);
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
