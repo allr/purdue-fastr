@@ -100,6 +100,40 @@ public class ClosureImpl extends BaseObject implements RClosure {
 
     // non-truffle
     @Override
+    public Object trivialCall(RContext context, Object arg0, Object arg1, Object arg2) {
+        Frame frame = null;
+        if (CACHING_FRAMES) {
+            frame = cachedFrame;
+            if (cachedFrame == null) {
+                 frame = new Frame(nslots, environment);
+            } else {
+                cachedFrame = null; // for recursive calls
+                frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
+                frame.setLong(RFrame.RESERVED_SLOTS + 1, 0);
+                frame.setLong(RFrame.RESERVED_SLOTS + 2, 0);
+            }
+        } else {
+            frame = new Frame(nslots, environment);
+        }
+
+        frame.setObject(RFrame.FUNCTION_SLOT, function);
+        RFrame.writeAt(frame, 0, arg0);
+        RFrame.writeAt(frame, 1, arg1);
+        RFrame.writeAt(frame, 2, arg2);
+        Object res;
+        try {
+            res = body.execute(context, frame);
+        } catch (ReturnException re) {
+            res = RFrame.getReturnValue(frame);
+        }
+        if (CACHING_FRAMES) {
+            cachedFrame = frame;
+        }
+        return res;
+    }
+
+    // non-truffle
+    @Override
     public Object trivialCall(RContext context, Object arg0, Object arg1) {
         Frame frame = null;
         if (CACHING_FRAMES) {
@@ -108,13 +142,12 @@ public class ClosureImpl extends BaseObject implements RClosure {
                  frame = new Frame(nslots, environment);
             } else {
                 cachedFrame = null; // for recursive calls
+                frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
+                frame.setLong(RFrame.RESERVED_SLOTS + 1, 0);
             }
         } else {
             frame = new Frame(nslots, environment);
         }
-
-        frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
-        frame.setLong(RFrame.RESERVED_SLOTS + 1, 0);
 
         frame.setObject(RFrame.FUNCTION_SLOT, function);
         RFrame.writeAt(frame, 0, arg0);
@@ -141,15 +174,42 @@ public class ClosureImpl extends BaseObject implements RClosure {
                  frame = new Frame(nslots, environment);
             } else {
                 cachedFrame = null; // for recursive calls
+                frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
             }
         } else {
             frame = new Frame(nslots, environment);
         }
 
-        frame.setLong(RFrame.RESERVED_SLOTS + 0, 0);
-
         frame.setObject(RFrame.FUNCTION_SLOT, function);
         RFrame.writeAt(frame, 0, arg0);
+        Object res;
+        try {
+            res = body.execute(context, frame);
+        } catch (ReturnException re) {
+            res = RFrame.getReturnValue(frame);
+        }
+        if (CACHING_FRAMES) {
+            cachedFrame = frame;
+        }
+        return res;
+    }
+
+    // non-truffle
+    @Override
+    public Object trivialCall(RContext context) {
+        Frame frame = null;
+        if (CACHING_FRAMES) {
+            frame = cachedFrame;
+            if (cachedFrame == null) {
+                 frame = new Frame(nslots, environment);
+            } else {
+                cachedFrame = null; // for recursive calls
+            }
+        } else {
+            frame = new Frame(nslots, environment);
+        }
+
+        frame.setObject(RFrame.FUNCTION_SLOT, function);
         Object res;
         try {
             res = body.execute(context, frame);
