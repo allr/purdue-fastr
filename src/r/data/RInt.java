@@ -9,10 +9,11 @@ public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
 
-    IntImpl BOXED_NA = RIntFactory.getArray(NA);
+    ScalarIntImpl BOXED_NA = RIntFactory.getScalar(NA);
     ScalarIntImpl BOXED_ZERO = RIntFactory.getScalar(0);
     ScalarIntImpl BOXED_ONE = RIntFactory.getScalar(1);
-    IntImpl EMPTY = RIntFactory.getUninitializedArray(0);
+
+    IntImpl EMPTY = (IntImpl) RIntFactory.getUninitializedArray(0);
 
     int getInt(int i);
     RInt set(int i, int val);
@@ -21,20 +22,32 @@ public interface RInt extends RNumber {
         public static ScalarIntImpl getScalar(int value) {
             return new ScalarIntImpl(value);
         }
-        public static IntImpl getArray(int... values) {
+        public static RInt getArray(int... values) {
+            if (values.length == 1) {
+                return new ScalarIntImpl(values[0]);
+            }
             return new IntImpl(values);
         }
-        public static IntImpl getUninitializedArray(int size) {
+        public static RInt getUninitializedArray(int size) {
+            if (size == 1) {
+                return new ScalarIntImpl(0);
+            }
             return new IntImpl(size);
         }
-        public static IntImpl getNAArray(int size) {
-            IntImpl v = getUninitializedArray(size);
+        public static RInt getNAArray(int size) {
+            if (size == 1) {
+                return new ScalarIntImpl(NA);
+            }
+            IntImpl v = (IntImpl) getUninitializedArray(size);
             for (int i = 0; i < size; i++) {
                 v.set(i, NA);
             }
             return v;
         }
-        public static IntImpl copy(RInt i) {
+        public static RInt copy(RInt i) {
+            if (i.size() == 1) {
+                return new ScalarIntImpl(i.getInt(0));
+            }
             return new IntImpl(i);
         }
         public static RInt getForArray(int[] values) {  // re-uses values!

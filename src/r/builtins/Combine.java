@@ -74,7 +74,7 @@ public class Combine {
             return res;
         }
         if (hasDouble) {
-            DoubleImpl res = RDouble.RDoubleFactory.getUninitializedArray(len);
+            RDouble res = RDouble.RDoubleFactory.getUninitializedArray(len);
             for (RAny v : params) {
                 if (v instanceof RNull) {
                     continue;
@@ -84,7 +84,7 @@ public class Combine {
             return res;
         }
         if (hasInt) {
-            IntImpl res = RInt.RIntFactory.getUninitializedArray(len);
+            RInt res = RInt.RIntFactory.getUninitializedArray(len);
             for (RAny v : params) {
                 if (v instanceof RNull) {
                     continue;

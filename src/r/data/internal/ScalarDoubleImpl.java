@@ -57,6 +57,10 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
         return RDouble.RDoubleUtils.isNAorNaN(value);
     }
 
+    public boolean isNA() {
+        return RDouble.RDoubleUtils.isNA(value);
+    }
+
     @Override
     public String pretty() {
         return Convert.double2string(value);

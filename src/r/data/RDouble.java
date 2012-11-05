@@ -10,7 +10,7 @@ public interface RDouble extends RNumber {
     double EPSILON = Math.pow(2.0, -52.0);
     double NEG_INF = Double.NEGATIVE_INFINITY;
 
-    DoubleImpl EMPTY = RDoubleFactory.getUninitializedArray(0);
+    DoubleImpl EMPTY = (DoubleImpl) RDoubleFactory.getUninitializedArray(0);
     ScalarDoubleImpl BOXED_NA = RDoubleFactory.getScalar(NA);
     ScalarDoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
 
@@ -35,20 +35,29 @@ public interface RDouble extends RNumber {
         public static ScalarDoubleImpl getScalar(double value) {
             return new ScalarDoubleImpl(value);
         }
-        public static DoubleImpl getArray(double... values) {
+        public static RDouble getArray(double... values) {
+            if (values.length == 1) {
+                return new ScalarDoubleImpl(values[0]);
+            }
             return new DoubleImpl(values);
         }
-        public static DoubleImpl getUninitializedArray(int size) {
+        public static RDouble getUninitializedArray(int size) {
             return new DoubleImpl(size);
         }
-        public static DoubleImpl getNAArray(int size) {
-            DoubleImpl d = getUninitializedArray(size);
+        public static RDouble getNAArray(int size) {
+            if (size == 1) {
+                return new ScalarDoubleImpl(NA);
+            }
+            DoubleImpl d = (DoubleImpl) getUninitializedArray(size);
             for (int i = 0; i < size; i++) {
                 d.set(i, NA);
             }
             return d;
         }
-        public static DoubleImpl copy(RDouble d) {
+        public static RDouble copy(RDouble d) {
+            if (d.size() == 1) {
+                return new ScalarDoubleImpl(d.getDouble(0));
+            }
             return new DoubleImpl(d);
         }
         public static RDouble getForArray(double[] values) {  // re-uses values!

@@ -14,7 +14,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     ScalarLogicalImpl BOXED_FALSE = RLogicalFactory.getScalar(FALSE);
     ScalarLogicalImpl BOXED_NA = RLogicalFactory.getScalar(NA);
 
-    RLogical EMPTY = RLogicalFactory.getUninitializedArray(0);
+    LogicalImpl EMPTY = (LogicalImpl) RLogicalFactory.getUninitializedArray(0);
 
     int getLogical(int il);
     RLogical set(int i, int val);
@@ -35,7 +35,10 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public static ScalarLogicalImpl getScalar(int value) {
             return new ScalarLogicalImpl(value);
         }
-        public static LogicalImpl getArray(int... values) {
+        public static RLogical getArray(int... values) {
+            if (values.length == 1) {
+                return new ScalarLogicalImpl(values[0]);
+            }
             return new LogicalImpl(values);
         }
         public static RLogical getUninitializedArray(int size) {
@@ -54,7 +57,10 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return l;
         }
-        public static LogicalImpl copy(RLogical l) {
+        public static RLogical copy(RLogical l) {
+            if (l.size() == 1) {
+                return new ScalarLogicalImpl(l.getLogical(0));
+            }
             return new LogicalImpl(l);
         }
         public static RLogical getForArray(int[] values) {  // re-uses values!

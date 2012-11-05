@@ -6,6 +6,7 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -77,20 +78,16 @@ public class Comparison extends BaseR {
         }
 
         public static ScalarComparison createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueComparison cmp) {
-            if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
+            if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RDouble && rexpr instanceof RDouble)) {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RDouble ld = (RDouble) lexpr;
-                        RDouble rd = (RDouble) rexpr;
-                        checkScalar(ld, Transition.COMMON_SCALAR);
-                        checkScalar(rd, Transition.COMMON_SCALAR);
-                        double l = ld.getDouble(0);
-                        double r = rd.getDouble(0);
-                        if (RDouble.RDoubleUtils.isNA(l) || RDouble.RDoubleUtils.isNA(r)) {
+                        double l = ((ScalarDoubleImpl) lexpr).getDouble();
+                        double r = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (RDouble.RDoubleUtils.isNA(r) || RDouble.RDoubleUtils.isNA(l)) {
                             return RLogical.NA;
                         }
                         return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
@@ -98,19 +95,15 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
-            if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
+            if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
+                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RInt li = (RInt) lexpr;
-                        RInt ri = (RInt) rexpr;
-                        checkScalar(li, Transition.COMMON_SCALAR);
-                        checkScalar(ri, Transition.COMMON_SCALAR);
-                        int l = li.getInt(0);
-                        int r = ri.getInt(0);
+                        int l = ((ScalarIntImpl) lexpr).getInt();
+                        int r = ((ScalarIntImpl) rexpr).getInt();
                         if (l == RInt.NA || r == RInt.NA) {
                             return RLogical.NA;
                         }
@@ -119,19 +112,15 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
-            if (leftTemplate instanceof RDouble && rightTemplate instanceof RInt) {
+            if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RDouble && rexpr instanceof RInt)) {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RDouble ld = (RDouble) lexpr;
-                        RInt ri = (RInt) rexpr;
-                        checkScalar(ld, Transition.COMMON_SCALAR);
-                        checkScalar(ri, Transition.COMMON_SCALAR);
-                        double l = ld.getDouble(0);
-                        int r = ri.getInt(0);
+                        double l = ((ScalarDoubleImpl) lexpr).getDouble();
+                        int r = ((ScalarIntImpl) rexpr).getInt();
                         if (RDouble.RDoubleUtils.isNAorNaN(l) || r == RInt.NA) {
                             return RLogical.NA;
                         }
@@ -140,19 +129,15 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
-            if (leftTemplate instanceof RInt && rightTemplate instanceof RDouble) {
+            if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RInt && rexpr instanceof RDouble)) {
+                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RInt li = (RInt) lexpr;
-                        RDouble rd = (RDouble) rexpr;
-                        checkScalar(li, Transition.COMMON_SCALAR);
-                        checkScalar(rd, Transition.COMMON_SCALAR);
-                        int l = li.getInt(0);
-                        double r = rd.getDouble(0);
+                        int l = ((ScalarIntImpl) lexpr).getInt();
+                        double r = ((ScalarDoubleImpl) rexpr).getDouble();
                         if (l == RInt.NA || RDouble.RDoubleUtils.isNAorNaN(r)) {
                             return RLogical.NA;
                         }
@@ -161,19 +146,15 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
-            if (leftTemplate instanceof RInt && rightTemplate instanceof RLogical) {
+            if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarLogicalImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RInt && rexpr instanceof RLogical)) {
+                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarLogicalImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RInt li = (RInt) lexpr;
-                        RLogical rl = (RLogical) rexpr;
-                        checkScalar(li, Transition.COMMON_SCALAR);
-                        checkScalar(rl, Transition.COMMON_SCALAR);
-                        int l = li.getInt(0);
-                        int r = rl.getLogical(0);
+                        int l = ((ScalarIntImpl) lexpr).getInt();
+                        int r = ((ScalarLogicalImpl) rexpr).getLogical();
                         if (l == RInt.NA || r == RLogical.NA) {
                             return RLogical.NA;
                         }
@@ -182,19 +163,15 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
-            if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
+            if (leftTemplate instanceof ScalarLogicalImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RLogical && rexpr instanceof RInt)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
-                        RLogical ll = (RLogical) lexpr;
-                        RInt ri = (RInt) rexpr;
-                        checkScalar(ll, Transition.COMMON_SCALAR);
-                        checkScalar(ri, Transition.COMMON_SCALAR);
-                        int l = ll.getLogical(0);
-                        int r = ri.getInt(0);
+                        int l = ((ScalarLogicalImpl) lexpr).getLogical();
+                        int r = ((ScalarIntImpl) rexpr).getInt();
                         if (l == RLogical.NA || r == RInt.NA) {
                             return RLogical.NA;
                         }
