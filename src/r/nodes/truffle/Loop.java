@@ -84,12 +84,12 @@ public abstract class Loop extends BaseR {
                     try {
                         int condVal;
                         try {
-                            condVal = cond.executeLogicalOne(context, frame);
+                            condVal = cond.executeScalarLogical(context, frame);
                         } catch (UnexpectedResultException e) {
                             RAny result = (RAny) e.getResult();
                             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                             replaceChild(cond, castNode);
-                            condVal = castNode.executeLogicalOne(context, result);
+                            condVal = castNode.executeScalarLogical(context, result);
                         }
                         if (condVal == RLogical.FALSE) {
                             break;

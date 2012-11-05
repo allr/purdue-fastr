@@ -21,16 +21,8 @@ public abstract class RNode extends Node {
 
     public abstract Object execute(RContext context, Frame frame);
 
-    public int executeInt(RContext context, Frame frame) throws UnexpectedResultException {
-        return ValueConversion.expectInt(execute(context, frame));
-    }
-
-    public double executeDouble(RContext context, Frame frame) throws UnexpectedResultException {
-        return ValueConversion.expectDouble(execute(context, frame));
-    }
-
-    public int executeLogicalOne(RContext context, Frame frame) throws UnexpectedResultException {
-        return RValueConversion.expectLogicalOne((RAny) execute(context, frame));
+    public int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
+        return RValueConversion.expectScalarLogical((RAny) execute(context, frame));
     }
 
     public Object executeVoid(RContext context, Frame frame) {

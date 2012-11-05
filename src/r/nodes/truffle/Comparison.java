@@ -28,19 +28,28 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public final int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
-        return execute(context, lexpr, rexpr);
+        return executeScalarLogical(context, lexpr, rexpr);
     }
 
-    public Object execute(RContext context, RAny lexpr, RAny rexpr) {
+    public int executeScalarLogical(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
             ScalarComparison sc = ScalarComparison.createSpecialized(lexpr, rexpr, ast, left, right, cmp);
             replace(sc, "install ScalarComparison.Specialized from Comparison");
-            return sc.execute(context, lexpr, rexpr);
+            return sc.executeScalarLogical(context, lexpr, rexpr);
+        }
+    }
+
+    @Override
+    public final Object execute(RContext context, Frame frame) {
+        try {
+            return RLogical.RLogicalFactory.getScalar(executeScalarLogical(context, frame));
+        } catch (UnexpectedResultException e) {
+            return e.getResult();
         }
     }
 
@@ -53,7 +62,7 @@ public class Comparison extends BaseR {
         }
 
         public abstract static class Comparator {
-            public abstract RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
+            public abstract int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
         }
 
         enum Transition {
@@ -71,7 +80,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RDouble && rexpr instanceof RDouble)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -82,9 +91,9 @@ public class Comparison extends BaseR {
                         double l = ld.getDouble(0);
                         double r = rd.getDouble(0);
                         if (RDouble.RDoubleUtils.isNA(l) || RDouble.RDoubleUtils.isNA(r)) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -92,7 +101,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -103,9 +112,9 @@ public class Comparison extends BaseR {
                         int l = li.getInt(0);
                         int r = ri.getInt(0);
                         if (l == RInt.NA || r == RInt.NA) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -113,7 +122,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RInt) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RDouble && rexpr instanceof RInt)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -124,9 +133,9 @@ public class Comparison extends BaseR {
                         double l = ld.getDouble(0);
                         int r = ri.getInt(0);
                         if (RDouble.RDoubleUtils.isNAorNaN(l) || r == RInt.NA) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -134,7 +143,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RInt && rightTemplate instanceof RDouble) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RInt && rexpr instanceof RDouble)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -145,9 +154,9 @@ public class Comparison extends BaseR {
                         int l = li.getInt(0);
                         double r = rd.getDouble(0);
                         if (l == RInt.NA || RDouble.RDoubleUtils.isNAorNaN(r)) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -155,7 +164,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RInt && rightTemplate instanceof RLogical) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RInt && rexpr instanceof RLogical)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -166,9 +175,9 @@ public class Comparison extends BaseR {
                         int l = li.getInt(0);
                         int r = rl.getLogical(0);
                         if (l == RInt.NA || r == RLogical.NA) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -176,7 +185,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof RLogical && rexpr instanceof RInt)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -187,9 +196,9 @@ public class Comparison extends BaseR {
                         int l = ll.getLogical(0);
                         int r = ri.getInt(0);
                         if (l == RLogical.NA || r == RInt.NA) {
-                            return RLogical.BOXED_NA;
+                            return RLogical.NA;
                         }
-                        return cmp.cmp(l, r) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
@@ -197,7 +206,7 @@ public class Comparison extends BaseR {
             return createGeneric(ast, left, right, cmp);
         }
 
-        public static RLogical generic(RContext context, RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
+        public static int generic(RContext context, RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
             if (lexpr instanceof RDouble) { // note: could make this shorter if we didn't care about Java-level boxing
@@ -205,48 +214,48 @@ public class Comparison extends BaseR {
                 checkScalar(ld, Transition.VECTOR_SCALAR);
                 double ldbl = ld.getDouble(0);
                 if (RDouble.RDoubleUtils.isNA(ldbl)) {
-                    return RLogical.BOXED_NA;
+                    return RLogical.NA;
                 }
                 if (rexpr instanceof RDouble) {
                     RDouble rd = (RDouble) rexpr;
                     checkScalar(rd, Transition.VECTOR_SCALAR);
                     double rdbl = rd.getDouble(0);
                     if (RDouble.RDoubleUtils.isNA(rdbl)) {
-                        return RLogical.BOXED_NA;
+                        return RLogical.NA;
                     }
-                    return cmp.cmp(ldbl, rdbl) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    return cmp.cmp(ldbl, rdbl) ? RLogical.TRUE : RLogical.FALSE;
                 } else if (rexpr instanceof RInt) {
                     RInt ri = (RInt) rexpr;
                     checkScalar(ri, Transition.VECTOR_SCALAR);
                     int rint = ri.getInt(0);
                     if (rint == RInt.NA) {
-                        return RLogical.BOXED_NA;
+                        return RLogical.NA;
                     }
-                    return cmp.cmp(ldbl, rint) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    return cmp.cmp(ldbl, rint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             } else if (lexpr instanceof RInt) {
                 RInt li = (RInt) lexpr;
                 checkScalar(li, Transition.VECTOR_SCALAR);
                 int lint = li.getInt(0);
                 if (lint == RInt.NA) {
-                    return RLogical.BOXED_NA;
+                    return RLogical.NA;
                 }
                 if (rexpr instanceof RInt) {
                     RInt ri = (RInt) rexpr;
                     checkScalar(ri, Transition.VECTOR_SCALAR);
                     int rint = ri.getInt(0);
                     if (rint == RInt.NA) {
-                        return RLogical.BOXED_NA;
+                        return RLogical.NA;
                     }
-                    return cmp.cmp(lint, rint) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    return cmp.cmp(lint, rint) ? RLogical.TRUE : RLogical.FALSE;
                 } else if (rexpr instanceof RDouble) {
                     RDouble rd = (RDouble) rexpr;
                     checkScalar(rd, Transition.VECTOR_SCALAR);
                     double rdbl = rd.getDouble(0);
                     if (RDouble.RDoubleUtils.isNA(rdbl)) {
-                        return RLogical.BOXED_NA;
+                        return RLogical.NA;
                     }
-                    return cmp.cmp(lint, rdbl) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                    return cmp.cmp(lint, rdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
             throw new UnexpectedResultException(Transition.VECTOR_SCALAR);
@@ -255,7 +264,7 @@ public class Comparison extends BaseR {
         public static ScalarComparison createGeneric(final ASTNode ast, RNode left, RNode right, final ValueComparison cmp) {
             Comparator c = new Comparator() {
                 @Override
-                public RLogical compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                public int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                     return generic(context, lexpr, rexpr, cmp, ast);
                 }
             };
@@ -263,7 +272,7 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public final Object execute(RContext context, RAny lexpr, RAny rexpr) {
+        public final int executeScalarLogical(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
             try {
                 return comp.compare(context, lexpr, rexpr);
             } catch (UnexpectedResultException e) {
@@ -271,12 +280,13 @@ public class Comparison extends BaseR {
                 if (t == Transition.COMMON_SCALAR) {
                     ScalarComparison sc = createGeneric(ast, left, right, cmp);
                     replace(sc, "install CommonScalar from Comparison.Scalar");
-                    return sc.execute(context, lexpr, rexpr);
+                    return sc.executeScalarLogical(context, lexpr, rexpr);
                 } else {
                     if (DEBUG_CMP) Utils.debug("comparison - optimistic comparison failed, values are not scalar numbers");
                     VectorScalarComparison vs = new VectorScalarComparison(ast);
                     replace(vs, "specializeNumericVectorScalarComparison");
-                    return vs.execute(context,lexpr, rexpr);
+                    Object res = vs.execute(context,lexpr, rexpr);
+                    throw new UnexpectedResultException(res);
                 }
             }
         }

@@ -13,7 +13,7 @@ import r.nodes.truffle.*;
 // FIXME: Truffle can't inline BuiltIn.BuiltIn1
 public class IsNA {
 
-    public static RAny generic(RAny arg) {
+    public static RLogical generic(RAny arg) {
         if (arg instanceof RArray) {
             final RArray a = (RArray) arg;
             final int asize = a.size();
@@ -56,11 +56,13 @@ public class IsNA {
     }
 
     public abstract static class IsNAAction {
-        public abstract RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException;
+        public abstract int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException;
     }
 
-    public static class Specialized extends BuiltIn.BuiltIn1 {
-        IsNAAction isNA;
+    public static class Specialized extends AbstractCall {
+        // FIXME: could create ScalarLogicalBuiltIn1 for this if needed more often
+
+        final IsNAAction isNA;
 
         public Specialized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, IsNAAction isNA) {
             super(orig, argNames, argExprs);
@@ -75,7 +77,7 @@ public class IsNA {
         public static Specialized createTransition(ASTNode ast, RSymbol[] names, RNode[] exprs, final Transition t) {
             IsNAAction a = new IsNAAction() {
                 @Override
-                public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                     throw new UnexpectedResultException(t);
                 }
             };
@@ -92,11 +94,11 @@ public class IsNA {
             if (typeTemplate instanceof ScalarDoubleImpl) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof ScalarDoubleImpl)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
-                        return ((ScalarDoubleImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return ((ScalarDoubleImpl) param).isNAorNaN() ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -104,13 +106,13 @@ public class IsNA {
             if (typeTemplate instanceof RDouble) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof RDouble)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
                         RDouble v = (RDouble) param;
                         checkScalar(v, Transition.GENERIC);
-                        return RDouble.RDoubleUtils.isNAorNaN(v.getDouble(0)) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return RDouble.RDoubleUtils.isNAorNaN(v.getDouble(0)) ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -118,11 +120,11 @@ public class IsNA {
             if (typeTemplate instanceof ScalarIntImpl) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
-                        return ((ScalarIntImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return ((ScalarIntImpl) param).isNAorNaN() ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -130,13 +132,13 @@ public class IsNA {
             if (typeTemplate instanceof RInt) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof RInt)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
                         RInt v = (RInt) param;
                         checkScalar(v, Transition.GENERIC);
-                        return v.getInt(0) == RInt.NA ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return v.getInt(0) == RInt.NA ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -144,11 +146,11 @@ public class IsNA {
             if (typeTemplate instanceof ScalarLogicalImpl) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof ScalarLogicalImpl)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
-                        return ((ScalarLogicalImpl) param).isNAorNaN() ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return ((ScalarLogicalImpl) param).isNAorNaN() ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -156,13 +158,13 @@ public class IsNA {
             if (typeTemplate instanceof RLogical) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof RLogical)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
                         RLogical v = (RLogical) param;
                         checkScalar(v, Transition.GENERIC);
-                        return v.getLogical(0) == RLogical.NA ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return v.getLogical(0) == RLogical.NA ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -170,13 +172,13 @@ public class IsNA {
             if (typeTemplate instanceof RString) {
                 IsNAAction a = new IsNAAction() {
                     @Override
-                    public final RLogical isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
+                    public final int isNA(RContext context, Frame frame, RAny param) throws UnexpectedResultException {
                         if (!(param instanceof RString)) {
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
                         RString v = (RString) param;
                         checkScalar(v, Transition.GENERIC);
-                        return v.getString(0) == RString.NA ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+                        return v.getString(0) == RString.NA ? RLogical.TRUE : RLogical.FALSE;
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -185,22 +187,37 @@ public class IsNA {
         }
 
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny param) {
+        public final int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
+            RAny arg = (RAny) argExprs[0].execute(context, frame);
+            return executeScalarLogical(context, frame, arg);
+        }
+
+        @Override
+        public final Object execute(RContext context, Frame frame) {
             try {
-                return isNA.isNA(context, frame, param);
+                return RLogical.RLogicalFactory.getScalar(executeScalarLogical(context, frame));
+            } catch (UnexpectedResultException e) {
+                return e.getResult();
+            }
+        }
+
+        public final int executeScalarLogical(RContext context, Frame frame, RAny arg) throws UnexpectedResultException {
+            try {
+                return isNA.isNA(context, frame, arg);
             } catch (UnexpectedResultException e) {
                 Transition t = (Transition) e.getResult();
                 Specialized s = null;
                 switch(t) {
                     case SCALAR:
-                        s = createScalar(ast, argNames, argExprs, param);
+                        s = createScalar(ast, argNames, argExprs, arg);
                         replace(s, "install SimpleScalars in IsNA.Specialized");
-                        return s.doBuiltIn(context, frame, param);
+                        return s.executeScalarLogical(context, frame, arg);
 
                     case GENERIC:
                     default:
                         replace(createGeneric(ast, argNames, argExprs), "install Generic in IsNA.Specialized");
-                        return generic(param);
+                        RLogical res = generic(arg);
+                        throw new UnexpectedResultException(res);
                 }
              }
         }

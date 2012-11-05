@@ -33,14 +33,14 @@ public class If extends BaseR {
 
         try {
             if (DEBUG_IF) Utils.debug("executing condition");
-            ifVal = cond.executeLogicalOne(context, frame);
+            ifVal = cond.executeScalarLogical(context, frame);
             if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (UnexpectedResultException e) {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
             replaceChild(cond, castNode);
-            ifVal = castNode.executeLogicalOne(context, result);
+            ifVal = castNode.executeScalarLogical(context, result);
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?

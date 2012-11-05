@@ -21,23 +21,23 @@ public abstract class ConvertToLogicalOne extends RNode {
 
     @Override
     public final Object execute(RContext context, Frame frame) {
-        return RLogicalFactory.getScalar(executeLogicalOne(context, frame));
+        return RLogicalFactory.getScalar(executeScalarLogical(context, frame));
     }
 
     @Override
-    public final int executeLogicalOne(RContext context, Frame frame) {
-        return executeLogicalOne(context, (RAny) input.execute(context, frame));
+    public final int executeScalarLogical(RContext context, Frame frame) {
+        return executeScalarLogical(context, (RAny) input.execute(context, frame));
     }
 
     // The execute methods are use by intermediate cast nodes - those assuming an array of logicals or ints
-    public int executeLogicalOne(RContext context, RAny condValue) {
+    public int executeScalarLogical(RContext context, RAny condValue) {
         try {
             if (DEBUG_C) Utils.debug("executing 2nd level cast");
             return cast(condValue, context);
         } catch (UnexpectedResultException e) {
             if (DEBUG_C) Utils.debug("2nd level cast failed, replacing by generic");
             ConvertToLogicalOne castNode = replace(fromGeneric(input), "installGenericConvertToLogical from cast node");
-            return castNode.executeLogicalOne(context, condValue);
+            return castNode.executeScalarLogical(context, condValue);
         }
     }
 
@@ -123,7 +123,7 @@ public abstract class ConvertToLogicalOne extends RNode {
             }
 
             @Override
-            public int executeLogicalOne(RContext context, RAny condValue) {
+            public int executeScalarLogical(RContext context, RAny condValue) {
                 return cast(condValue, context);
             }
         };
