@@ -53,11 +53,30 @@ public class Truffleize implements Visitor {
     }
 
     @Override
-    public void visit(If iff) {
-        ASTNode fbranch = iff.getFalseCase();
-        // lazy build breaks Truffle inliner
-        //result = new r.nodes.truffle.If(iff, createLazyTree(iff.getCond()), createLazyTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createLazyTree(fbranch));
-        result = new r.nodes.truffle.If(iff, createTree(iff.getCond()), createTree(iff.getTrueCase()), fbranch == null ? r.nodes.truffle.Constant.getNull() : createTree(fbranch));
+    public void visit(If ast) {
+        // FIXME: lazy build breaks Truffle inliner
+
+        ASTNode falseBranch = ast.getFalseCase();
+        ASTNode cond = ast.getCond();
+        RNode rcond = createLazyTree(cond);
+        RNode rtrueBranch = createLazyTree(ast.getTrueCase());
+        RNode rfalseBranch = (falseBranch == null) ? r.nodes.truffle.Constant.getNull() : createLazyTree(falseBranch);
+
+        if (cond instanceof EQ) {
+            EQ e = (EQ) cond;
+            ASTNode rhs = e.getRHS();
+            ASTNode lhs = e.getLHS();
+            if (rhs instanceof Constant) {
+                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(lhs), rtrueBranch, rfalseBranch, ((Constant) rhs).execute(null, null));
+                return;
+            }
+            if (lhs instanceof Constant) {
+                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(rhs), rtrueBranch, rfalseBranch, ((Constant) lhs).execute(null, null));
+                return;
+            }
+        }
+
+        result = new r.nodes.truffle.If(ast, rcond, rtrueBranch, rfalseBranch);
     }
 
     @Override
