@@ -57,6 +57,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ max((-1):100) }", "100L");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0)) }", "200.0");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
+        assertEval("{ max(2L, 4L) }", "4L");
     }
 
     @Test

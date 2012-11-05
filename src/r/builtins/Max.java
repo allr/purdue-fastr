@@ -99,7 +99,7 @@ public class Max {
             if (scalar1 instanceof RDouble) {
                 return RDouble.RDoubleFactory.getScalar(Math.max(Convert.int2double(((RInt) scalar0).getInt(0)), ((RDouble) scalar1).getDouble(0)));
             } else {
-                return RDouble.RDoubleFactory.getScalar(Math.max(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
+                return RInt.RIntFactory.getScalar(Math.max(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
             }
         }
     }
@@ -141,8 +141,8 @@ public class Max {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    return max(params, context, ast);
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    return max(args, context, ast);
                 }
             };
         }
