@@ -30,16 +30,27 @@ public class Arithmetic extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public Object execute(RContext context, Frame frame) {
         RAny lexpr = (RAny) left.execute(context, frame);
         RAny rexpr = (RAny) right.execute(context, frame);
         return execute(context, lexpr, rexpr);
     }
 
     public Object execute(RContext context, RAny lexpr, RAny rexpr) {
-        Specialized sn = Specialized.createSpecialized(lexpr, rexpr, ast, left, right, arit);
-        replace(sn, "install Specialized from Uninitialized");
-        return sn.execute(context,  lexpr, rexpr);
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+
+            if (left instanceof Constant || right instanceof Constant) {
+                SpecializedConst sc = SpecializedConst.createSpecialized(lexpr, rexpr, ast, left, right, arit);
+                replace(sc, "install Specialized from Uninitialized");
+                return sc.execute(context,  lexpr, rexpr);
+            } else {
+                Specialized sn = Specialized.createSpecialized(lexpr, rexpr, ast, left, right, arit);
+                replace(sn, "install Specialized from Uninitialized");
+                return sn.execute(context,  lexpr, rexpr);
+            }
+        }
     }
 
     static class Specialized extends Arithmetic {
@@ -74,28 +85,6 @@ public class Arithmetic extends BaseR {
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarDouble>");
             }
-            if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
-                Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RDouble && rexpr instanceof RDouble)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        RDouble ld = (RDouble) lexpr;
-                        RDouble rd = (RDouble) rexpr;
-                        if (ld.size() != 1 || rd.size() != 1) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        double ldbl = ld.getDouble(0);
-                        double rdbl = rd.getDouble(0);
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
-                    }
-                };
-                return new Specialized(ast, left, right, arit, c, "<RDouble, RDouble>");
-            }
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Calculator c = new Calculator() {
                     @Override
@@ -112,28 +101,6 @@ public class Arithmetic extends BaseR {
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarInt>");
-            }
-            if (leftTemplate instanceof RDouble && rightTemplate instanceof RInt) {
-                Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RDouble && rexpr instanceof RInt)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        RDouble ld = (RDouble) lexpr;
-                        RInt ri = (RInt) rexpr;
-                        if (ld.size() != 1 || ri.size() != 1) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        double ldbl = ld.getDouble(0);
-                        int rint = ri.getInt(0);
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
-                            return RDouble.BOXED_NA;
-                        }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rint));
-                    }
-                };
-                return new Specialized(ast, left, right, arit, c, "<RDouble, RInt>");
             }
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
@@ -157,28 +124,6 @@ public class Arithmetic extends BaseR {
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarDouble>");
             }
-            if (leftTemplate instanceof RInt && rightTemplate instanceof RDouble) {
-                Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RInt && rexpr instanceof RDouble)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        RInt li = (RInt) lexpr;
-                        RDouble rd = (RDouble) rexpr;
-                        if (li.size() != 1 || rd.size() != 1) {
-                            throw new UnexpectedResultException(null);
-                        }
-                        int lint = li.getInt(0);
-                        double rdbl = rd.getDouble(0);
-                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(lint, rdbl));
-                    }
-                };
-                return new Specialized(ast, left, right, arit, c, "<RInt, RDouble>");
-            }
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
                 if (returnsDouble(arit)) {
                     Calculator c = new Calculator() {
@@ -200,7 +145,7 @@ public class Arithmetic extends BaseR {
                     Calculator c = new Calculator() {
                         @Override
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
+                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
                                 throw new UnexpectedResultException(null);
                             }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
@@ -212,52 +157,6 @@ public class Arithmetic extends BaseR {
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
-                }
-            }
-
-            if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
-                if (returnsDouble(arit)) {
-                    Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
-                                throw new UnexpectedResultException(null);
-                            }
-                            RInt li = (RInt) lexpr;
-                            RInt ri = (RInt) rexpr;
-                            if (li.size() != 1 || ri.size() != 1) {
-                                throw new UnexpectedResultException(null);
-                            }
-                            int lint = li.getInt(0);
-                            int rint = ri.getInt(0);
-                            if (lint == RInt.NA || rint == RInt.NA) {
-                                return RDouble.BOXED_NA;
-                            }
-                            return RDouble.RDoubleFactory.getScalar(arit.op((double) lint, (double) rint));
-                        }
-                    };
-                    return new Specialized(ast, left, right, arit, c, "<RInt, RInt>");
-                } else {
-                    Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
-                                throw new UnexpectedResultException(null);
-                            }
-                            RInt li = (RInt) lexpr;
-                            RInt ri = (RInt) rexpr;
-                            if (li.size() != 1 || ri.size() != 1) {
-                                throw new UnexpectedResultException(null);
-                            }
-                            int lint = li.getInt(0);
-                            int rint = ri.getInt(0);
-                            if (lint == RInt.NA || rint == RInt.NA) {
-                                return RInt.BOXED_NA;
-                            }
-                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
-                        }
-                    };
-                    return new Specialized(ast, left, right, arit, c, "<RInt, RInt>");
                 }
             }
             return createGeneric(ast, left, right, arit);
@@ -321,6 +220,329 @@ public class Arithmetic extends BaseR {
                 Specialized gn = createGeneric(ast, left, right, arit);
                 replace(gn, "install Specialized<Generic, Generic> from Specialized");
                 return gn.execute(context, lexpr, rexpr);
+            }
+        }
+    }
+
+    static class SpecializedConst extends Arithmetic {
+        final String dbg;
+        final Calculator calc;
+
+        public SpecializedConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
+            super(ast, left, right, arit);
+            this.dbg = dbg;
+            this.calc = calc;
+        }
+
+        public abstract static class Calculator {
+            public abstract Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
+        }
+
+        public static SpecializedConst createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+            boolean leftConst = left instanceof Constant;
+            boolean rightConst = right instanceof Constant;
+            // non-const is double
+            if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
+                final double ldbl = (leftTemplate.asDouble()).getDouble(0);
+                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                    }
+                };
+                return createLeftConst(ast, left, right, arit, c, "<ConstScalarDouble, Number>");
+            }
+            if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
+                final double rdbl = (rightTemplate.asDouble()).getDouble(0);
+                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
+                        if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                    }
+                };
+                return createRightConst(ast, left, right, arit, c, "<Number, ConstScalarDouble>");
+            }
+            // non-const is int and const is double
+            // FIXME: handle also logical?
+            if (leftConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarIntImpl)) {
+                final double ldbl = (leftTemplate.asDouble()).getDouble(0);
+                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarIntImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        int rint = ((ScalarIntImpl) rexpr).getInt();
+                        if (isLeftNA || rint == RInt.NA) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rint));
+                    }
+                };
+                return createLeftConst(ast, left, right, arit, c, "<ConstScalarDouble, ScalarInt>");
+            }
+            if (rightConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarIntImpl)) {
+                final double rdbl = (rightTemplate.asDouble()).getDouble(0);
+                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarIntImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        int lint = ((ScalarIntImpl) lexpr).getInt();
+                        if (isRightNA || lint == RInt.NA) {
+                            return RDouble.BOXED_NA;
+                        }
+                        return RDouble.RDoubleFactory.getScalar(arit.op(lint, rdbl));
+                    }
+                };
+                return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarDouble>");
+            }
+            // non-const is int and const is int or logical
+            if (leftConst && (leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl) && (rightTemplate instanceof ScalarIntImpl)) {
+                final int lint = (leftTemplate.asInt()).getInt(0);
+                final boolean isLeftNA = (lint == RInt.NA);
+                if (returnsDouble(arit)) {
+                    final double ldbl = lint;
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(rexpr instanceof ScalarIntImpl)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int rint = ((ScalarIntImpl) rexpr).getInt();
+                            if (isLeftNA || rint == RInt.NA) {
+                                return RDouble.BOXED_NA;
+                            }
+                            return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, (double) rint));
+                        }
+                    };
+                    return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
+                } else {
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(rexpr instanceof ScalarIntImpl)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int rint = ((ScalarIntImpl) rexpr).getInt();
+                            if (isLeftNA || rint == RInt.NA) {
+                                return RInt.BOXED_NA;
+                            }
+                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                        }
+                    };
+                    return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
+                }
+            }
+            if (rightConst && (rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl) && (leftTemplate instanceof ScalarIntImpl)) {
+                final int rint = (rightTemplate.asInt()).getInt(0);
+                final boolean isRightNA = (rint == RInt.NA);
+                if (returnsDouble(arit)) {
+                    final double rdbl = rint;
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int lint = ((ScalarIntImpl) lexpr).getInt();
+                            if (isRightNA || lint == RInt.NA) {
+                                return RDouble.BOXED_NA;
+                            }
+                            return RDouble.RDoubleFactory.getScalar(arit.op((double) lint, rdbl));
+                        }
+                    };
+                    return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
+                } else {
+                    Calculator c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            int lint = ((ScalarIntImpl) lexpr).getInt();
+                            if (isRightNA || lint == RInt.NA) {
+                                return RInt.BOXED_NA;
+                            }
+                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                        }
+                    };
+                    return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
+                }
+            }
+            return createGeneric(leftTemplate, rightTemplate, ast, left, right, arit);
+        }
+
+        public static SpecializedConst createGeneric(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+            Calculator c = null;
+            boolean leftConst = left instanceof Constant;
+            boolean rightConst = right instanceof Constant;
+
+            if (returnsDouble(arit)) {
+                if (leftConst) {
+                    final RDouble ldbl = leftTemplate.asDouble(); // FIXME: could force materialization
+                    c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                            RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                            RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                            if (!EAGER) {
+                                return res;
+                            } else {
+                                return RDouble.RDoubleFactory.copy(res);
+                            }
+                        }
+                    };
+                }
+                if (rightConst) {
+                    final RDouble rdbl = rightTemplate.asDouble(); // FIXME: could force materialization
+                    c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                            RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                            RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                            if (!EAGER) {
+                                return res;
+                            } else {
+                                return RDouble.RDoubleFactory.copy(res);
+                            }
+                        }
+                    };
+                }
+            } else {
+                if (leftConst) {
+                    final boolean leftDouble = leftTemplate instanceof RDouble;
+                    final boolean leftLogicalOrInt = leftTemplate instanceof RLogical || leftTemplate instanceof RInt;
+                    final RDouble ldbl = (leftDouble) ? (RDouble) leftTemplate : leftTemplate.asDouble();
+                    final RInt lint = (leftLogicalOrInt) ? leftTemplate.asInt() : null;
+                    c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                            if (leftDouble || rexpr instanceof RDouble) {
+                                RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                                RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                                if (!EAGER) {
+                                    return res;
+                                } else {
+                                    return RDouble.RDoubleFactory.copy(res);
+                                }
+
+                            }
+                            if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
+                                RInt rint = rexpr.asInt();
+                                RInt res = new IntView(lint, rint, context, arit, ast);
+                                if (!EAGER) {
+                                    return res;
+                                } else {
+                                    return RInt.RIntFactory.copy(res);
+                                }
+                            }
+                            Utils.nyi("unsupported case for binary arithmetic operation");
+                            return null;
+                        }
+                    };
+                }
+                if (rightConst) {
+                    final boolean rightDouble = rightTemplate instanceof RDouble;
+                    final boolean rightLogicalOrInt = rightTemplate instanceof RLogical || rightTemplate instanceof RInt;
+                    final RDouble rdbl = (rightDouble) ? (RDouble) rightTemplate : rightTemplate.asDouble();
+                    final RInt rint = (rightLogicalOrInt) ? rightTemplate.asInt() : null;
+                    c = new Calculator() {
+                        @Override
+                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                            if (rightDouble || lexpr instanceof RDouble) {
+                                RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
+                                RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                                if (!EAGER) {
+                                    return res;
+                                } else {
+                                    return RDouble.RDoubleFactory.copy(res);
+                                }
+
+                            }
+                            if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
+                                RInt lint = lexpr.asInt();
+                                RInt res = new IntView(lint, rint, context, arit, ast);
+                                if (!EAGER) {
+                                    return res;
+                                } else {
+                                    return RInt.RIntFactory.copy(res);
+                                }
+                            }
+                            Utils.nyi("unsupported case for binary arithmetic operation");
+                            return null;
+                        }
+                    };
+                }
+            }
+            if (c == null) {
+                Utils.nyi("unreachable");
+                return null;
+            }
+            if (rightConst) {
+                return createRightConst(ast, left, right, arit, c, "<Generic, ConstGeneric>");
+            } else {
+                return createLeftConst(ast, right, left, arit, c, "<ConstGeneric, Generic>");
+            }
+        }
+
+        public static SpecializedConst createLeftConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
+            return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+                @Override
+                public Object execute(RContext context, Frame frame) {
+                    RAny rexpr = (RAny) right.execute(context, frame);
+                    return execute(context, null, rexpr);
+                }
+            };
+        }
+
+        public static SpecializedConst createRightConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
+            return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+                @Override
+                public Object execute(RContext context, Frame frame) {
+                    RAny lexpr = (RAny) left.execute(context, frame);
+                    return execute(context, lexpr, null);
+                }
+            };
+        }
+
+        private static RAny getExpr(RNode node, RAny value) {
+            if (value == null) {
+                return (RAny) node.execute(null, null);
+            } else {
+                return value;
+            }
+        }
+
+        @Override
+        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
+            try {
+                return calc.calc(context, lexpr, rexpr);
+            } catch (UnexpectedResultException e) {
+                RAny leftTemplate = getExpr(left, lexpr);
+                RAny rightTemplate = getExpr(right, rexpr);
+                SpecializedConst gn = createGeneric(leftTemplate, rightTemplate, ast, left, right, arit);
+                replace(gn, "install SpecializedConst<Generic, Generic> from SpecializedConst");
+                return gn.execute(context, leftTemplate, rightTemplate);
             }
         }
     }
