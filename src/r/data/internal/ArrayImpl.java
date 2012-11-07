@@ -41,4 +41,20 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     public RList asList() {
         return new RArray.RListView(this);
     }
+
+    @Override
+    public int[] dimensions() {
+        return null;
+    }
+
+    @Override
+    public void setDimensions(int[] dimensions) {
+        Utils.nyi("not supported");
+    }
+
+    @Override
+    public int index(int i, int j) { // i-th row, j-th column indexed from 1
+        int[] dims = dimensions();
+        return i + (j - 1) * dims[1];
+    }
 }

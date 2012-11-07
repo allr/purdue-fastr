@@ -1,5 +1,6 @@
 package r.data;
 
+import r.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -97,5 +98,22 @@ public final class RNull implements RAny, RAttributes {
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromNull();
+    }
+
+    @Override
+    public int[] dimensions() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public void setDimensions(int[] dimensions) {
+        Utils.nyi();
+    }
+
+    @Override
+    public int index(int i, int j) {
+        Utils.nyi();
+        return 0;
     }
 }

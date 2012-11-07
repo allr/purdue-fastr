@@ -5,11 +5,14 @@ import r.data.internal.*;
 
 public interface RArray extends RAny {
     int size();
+    int[] dimensions();
 
     Object get(int i);
     RAny boxedGet(int i);
     RArray set(int i, Object val);
+    void setDimensions(int [] dimensions);
     boolean isNAorNaN(int i);
+    int index(int i, int j);
 
     RArray subset(RAny keys);
 

@@ -57,6 +57,11 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public ScalarIntImpl materialize() {
+        return this;
+    }
+
+    @Override
     public String pretty() {
         return Convert.int2string(value);
     }

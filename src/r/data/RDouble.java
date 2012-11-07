@@ -16,6 +16,7 @@ public interface RDouble extends RNumber {
 
     RDouble set(int i, double val);
     double getDouble(int i);
+    RDouble materialize();
 
     public class RDoubleUtils {
         public static boolean isNA(double d) {
@@ -54,6 +55,9 @@ public interface RDouble extends RNumber {
             }
             return d;
         }
+        public static DoubleImpl getMatrixFor(double[] values, int m, int n) {
+            return new DoubleImpl(values, new int[] {m, n}, false);
+        }
         public static RDouble copy(RDouble d) {
             if (d.size() == 1) {
                 return new ScalarDoubleImpl(d.getDouble(0));
@@ -64,7 +68,7 @@ public interface RDouble extends RNumber {
             if (values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, false);
+            return new DoubleImpl(values, null, false);
         }
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             return new RDoubleExclusion(excludeIndex, orig);

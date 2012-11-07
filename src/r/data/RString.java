@@ -11,6 +11,7 @@ public interface RString extends RArray {
 
     String getString(int i);
     RArray set(int i, String val);
+    RString materialize();
 
     public class RStringFactory {
         public static StringImpl getScalar(String value) {

@@ -91,6 +91,11 @@ public class LogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public LogicalImpl materialize() {
+        return this;
+    }
+
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";

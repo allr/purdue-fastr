@@ -17,6 +17,7 @@ public interface RInt extends RNumber {
 
     int getInt(int i);
     RInt set(int i, int val);
+    RInt materialize();
 
     public class RIntFactory {
         public static ScalarIntImpl getScalar(int value) {

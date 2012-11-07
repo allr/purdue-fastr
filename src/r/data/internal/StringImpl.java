@@ -83,6 +83,11 @@ public class StringImpl extends ArrayImpl implements RString {
     }
 
     @Override
+    public StringImpl materialize() {
+        return this;
+    }
+
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RString.TYPE_STRING + "(0)";

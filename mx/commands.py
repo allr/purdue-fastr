@@ -121,6 +121,7 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   
 #  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey',tmp]);
   rconsole(vmArgs, vm, ['--waitForKey',tmp]);
+#  rconsole(vmArgs, vm, [tmp]);
 
 # TODO: a generic function to run a shootout benchmark
 

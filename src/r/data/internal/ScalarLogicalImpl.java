@@ -58,6 +58,11 @@ public class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public ScalarLogicalImpl materialize() {
+        return this;
+    }
+
+    @Override
     public String pretty() {
         return Convert.logical2string(value);
     }

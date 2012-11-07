@@ -31,7 +31,12 @@ public abstract class View extends ArrayImpl implements RArray {
 
     @Override
     public String pretty() {
-        return materialize().pretty(); // FIXME what a stupid impl ...
+        return materialize().pretty();
+    }
+
+    @Override
+    public void setDimensions(int[] dimensions) {
+        materialize().setDimensions(dimensions);
     }
 
     @Override
@@ -221,7 +226,7 @@ public abstract class View extends ArrayImpl implements RArray {
          }
 
         @Override
-        public RArray materialize() {
+        public RString materialize() {
             return RString.RStringFactory.copy(this);
         }
 

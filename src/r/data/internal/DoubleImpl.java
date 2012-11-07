@@ -6,17 +6,26 @@ import r.data.*;
 public class DoubleImpl extends ArrayImpl implements RDouble {
 
     double[] content;
+    int[] dimensions;
 
-    public DoubleImpl(double[] values, boolean doCopy) {
+    public DoubleImpl(double[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
+            if (dimensions != null) {
+                this.dimensions = new int[dimensions.length];
+                System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);
+            }
         } else {
             content = values;
+            this.dimensions = dimensions;
         }
     }
+    public DoubleImpl(double[] values, int[] dimensions) {
+        this(values, dimensions, true);
+    }
     public DoubleImpl(double[] values) {
-        this(values, true);
+        this(values, null, true);
     }
 
     public DoubleImpl(int size) {
@@ -27,6 +36,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
         content = new double[d.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = d.getDouble(i);
+        }
+        int[] dims = d.dimensions();
+        if (dims != null) {
+            dimensions = new int[dims.length];
+            System.arraycopy(dims, 0, dimensions,  0,  dims.length);
         }
     }
 
@@ -73,6 +87,11 @@ public class DoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RDouble asDouble() {
+        return this;
+    }
+
+    @Override
+    public DoubleImpl materialize() {
         return this;
     }
 

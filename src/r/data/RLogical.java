@@ -18,6 +18,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
     int getLogical(int il);
     RLogical set(int i, int val);
+    RLogical materialize();
 
     public class RLogicalUtils {
         public static int truesInRange(RLogical l, int from, int to) {

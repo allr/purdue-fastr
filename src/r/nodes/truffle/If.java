@@ -171,7 +171,7 @@ public class If extends BaseR {
                     return new Specialized(ast, cond, expr, trueBranch, falseBranch, constant, cmp);
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
-                    if (!(constant instanceof ScalarLogicalImpl || constant instanceof ScalarIntImpl || constant instanceof ScalarLogicalImpl)) {
+                    if (!(constant instanceof ScalarLogicalImpl || constant instanceof ScalarIntImpl)) {
                         return null;
                     }
                     final int c = constant.asLogical().getLogical(0);

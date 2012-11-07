@@ -39,6 +39,8 @@ public abstract class RError extends RuntimeException {
     public static final String NOT_FUNCTION = "argument is not a function, character or symbol"; // GNU R gives also expression for the argument
     public static final String NON_NUMERIC_MATH = "non-numeric argument to mathematical function";
     public static final String NAN_PRODUCED = "NaNs produced";
+    public static final String NUMERIC_COMPLEX_MATRIX_VECTOR = "requires numeric/complex matrix/vector arguments";
+    public static final String NON_CONFORMABLE_ARGS = "non-conformable arguments";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -364,6 +366,30 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NON_NUMERIC_MATH;
+            }
+        };
+    }
+
+    public static RError getNumericComplexMatrixVector(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NUMERIC_COMPLEX_MATRIX_VECTOR;
+            }
+        };
+    }
+
+    public static RError getNonConformableArgs(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NON_CONFORMABLE_ARGS;
             }
         };
     }

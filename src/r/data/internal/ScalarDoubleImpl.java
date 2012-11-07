@@ -82,6 +82,11 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public ScalarDoubleImpl materialize() {
+        return this;
+    }
+
+    @Override
     public RString asString() {
         Utils.nyi();
         return null;

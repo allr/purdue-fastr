@@ -75,6 +75,11 @@ public class IntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public IntImpl materialize() {
+        return this;
+    }
+
+    @Override
     public String pretty() {
         if (content.length == 0) {
             return RInt.TYPE_STRING + "(0)";
