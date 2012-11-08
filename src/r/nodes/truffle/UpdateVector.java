@@ -69,7 +69,9 @@ public abstract class UpdateVector extends BaseR {
         RAny base = (RAny) lhs.execute(context, frame);
 
         newVector = execute(context, base, index, value);
-        assign.execute(context, frame);
+        if (base != newVector) { // assignment if equal would increase reference count
+            assign.execute(context, frame);
+        }
         return value;
     }
 
@@ -126,16 +128,21 @@ public abstract class UpdateVector extends BaseR {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
                             int zpos = pos - 1;
-                            int[] content = new int[bsize];
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                content[i] = ibase.getInt(i);
+                            if (!ibase.isShared()) {
+                                ibase.set(zpos, ((ScalarIntImpl) value).getInt());
+                                return ibase;
+                            } else {
+                                int[] content = new int[bsize];
+                                int i = 0;
+                                for (; i < zpos; i++) {
+                                    content[i] = ibase.getInt(i);
+                                }
+                                content[i++] = ((ScalarIntImpl) value).getInt();
+                                for (; i < bsize; i++) {
+                                    content[i] = ibase.getInt(i);
+                                }
+                                return RInt.RIntFactory.getForArray(content);
                             }
-                            content[i++] = ((ScalarIntImpl) value).getInt();
-                            for (; i < bsize; i++) {
-                                content[i] = ibase.getInt(i);
-                            }
-                            return RInt.RIntFactory.getForArray(content);
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarInt>");
@@ -153,16 +160,21 @@ public abstract class UpdateVector extends BaseR {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
                             int zpos = pos - 1;
-                            int[] content = new int[bsize];
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                content[i] = ibase.getInt(i);
+                            if (!ibase.isShared()) {
+                                ibase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
+                                return ibase;
+                            } else {
+                                int[] content = new int[bsize];
+                                int i = 0;
+                                for (; i < zpos; i++) {
+                                    content[i] = ibase.getInt(i);
+                                }
+                                content[i++] = ((ScalarLogicalImpl) value).getLogical();
+                                for (; i < bsize; i++) {
+                                    content[i] = ibase.getInt(i);
+                                }
+                                return RInt.RIntFactory.getForArray(content);
                             }
-                            content[i++] = ((ScalarLogicalImpl) value).getLogical();
-                            for (; i < bsize; i++) {
-                                content[i] = ibase.getInt(i);
-                            }
-                            return RInt.RIntFactory.getForArray(content);
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarLogical>");
@@ -184,7 +196,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
-                                dbase.set(zpos, ((RDouble) value).getDouble(0));
+                                dbase.set(zpos, ((ScalarDoubleImpl) value).getDouble());
                                 return dbase;
                             } else {
                                 double[] content = new double[bsize];
@@ -215,16 +227,21 @@ public abstract class UpdateVector extends BaseR {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
                             int zpos = pos - 1;
-                            double[] content = new double[bsize];
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                content[i] = dbase.getDouble(i);
+                            if (!dbase.isShared()) {
+                                dbase.set(zpos, Convert.int2double(((ScalarIntImpl) value).getInt()));
+                                return dbase;
+                            } else {
+                                double[] content = new double[bsize];
+                                int i = 0;
+                                for (; i < zpos; i++) {
+                                    content[i] = dbase.getDouble(i);
+                                }
+                                content[i++] = Convert.int2double(((ScalarIntImpl) value).getInt());
+                                for (; i < bsize; i++) {
+                                    content[i] = dbase.getDouble(i);
+                                }
+                                return RDouble.RDoubleFactory.getForArray(content);
                             }
-                            content[i++] = Convert.int2double(((ScalarIntImpl) value).getInt());
-                            for (; i < bsize; i++) {
-                                content[i] = dbase.getDouble(i);
-                            }
-                            return RDouble.RDoubleFactory.getForArray(content);
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarInt>");
@@ -242,16 +259,21 @@ public abstract class UpdateVector extends BaseR {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
                             int zpos = pos - 1;
-                            double[] content = new double[bsize];
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                content[i] = dbase.getDouble(i);
+                            if (!dbase.isShared()) {
+                                dbase.set(zpos, Convert.logical2double(((ScalarLogicalImpl) value).getLogical()));
+                                return dbase;
+                            } else {
+                                double[] content = new double[bsize];
+                                int i = 0;
+                                for (; i < zpos; i++) {
+                                    content[i] = dbase.getDouble(i);
+                                }
+                                content[i++] = Convert.logical2double(((ScalarLogicalImpl) value).getLogical());
+                                for (; i < bsize; i++) {
+                                    content[i] = dbase.getDouble(i);
+                                }
+                                return RDouble.RDoubleFactory.getForArray(content);
                             }
-                            content[i++] = Convert.logical2double(((ScalarLogicalImpl) value).getLogical());
-                            for (; i < bsize; i++) {
-                                content[i] = dbase.getDouble(i);
-                            }
-                            return RDouble.RDoubleFactory.getForArray(content);
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarLogical>");
@@ -272,23 +294,28 @@ public abstract class UpdateVector extends BaseR {
                                 throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                             }
                             int zpos = pos - 1;
-                            int[] content = new int[bsize];
-                            int i = 0;
-                            for (; i < zpos; i++) {
-                                content[i] = lbase.getLogical(i);
+                            if (!lbase.isShared()) {
+                                lbase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
+                                return lbase;
+                            } else {
+                                int[] content = new int[bsize];
+                                int i = 0;
+                                for (; i < zpos; i++) {
+                                    content[i] = lbase.getLogical(i);
+                                }
+                                content[i++] = ((ScalarLogicalImpl) value).getLogical();
+                                for (; i < bsize; i++) {
+                                    content[i] = lbase.getLogical(i);
+                                }
+                                return RLogical.RLogicalFactory.getForArray(content);
                             }
-                            content[i++] = ((ScalarLogicalImpl) value).getLogical();
-                            for (; i < bsize; i++) {
-                                content[i] = lbase.getLogical(i);
-                            }
-                            return RLogical.RLogicalFactory.getForArray(content);
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,ScalarLogical>");
                 }
             }
             if (baseTemplate instanceof RList && !(valueTemplate instanceof RNull)) {
-                ValueCopy cpy = new ValueCopy() {
+                ValueCopy cpy = new ValueCopy() { // FIXME: avoid some copying here as well, but carefully (handle recursive lists correctly)
                     @Override
                     RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
                         if (!(base instanceof RList) || (value instanceof RNull)) {
@@ -319,7 +346,7 @@ public abstract class UpdateVector extends BaseR {
 
         // FIXME: the asXXX functions will allocate views, but the value has only a single element, this is an over-kill
         //        probably should create asXXXScalar() casts
-        public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) {
+        public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) { // FIXME: avoid some copying here but careful about lists
             RArray typedBase;
             RArray typedValue;
             if (base instanceof RList || value instanceof RList) {

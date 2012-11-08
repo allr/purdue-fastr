@@ -5,7 +5,7 @@ import r.data.*;
 
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
-    double[] content;
+    final double[] content;
     int[] dimensions;
 
     public DoubleImpl(double[] values, int[] dimensions, boolean doCopy) {

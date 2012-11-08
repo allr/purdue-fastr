@@ -113,6 +113,12 @@ public final class RFrame  {
         }
     }
 
+    public static void writeAt(Frame f, int pos, RAny value) { // FIXME: should find a fast way to avoid .ref() calls when the variable in fact did not change
+        // Put an assertion or not ?
+        f.setObject(pos + RESERVED_SLOTS, value);
+        value.ref();
+    }
+
     public static void writeInExtension(Frame f, RSymbol sym, RAny value) {
         RFrameExtension ext = getExtension(f);
         if (ext == null) {

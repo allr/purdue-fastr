@@ -91,15 +91,15 @@ def rconsole(vmArgs, vm, cArgs):
 
 def rfannkuch(args, vmArgs, vm):
   """Run Fannkuch benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "fannkuch", "fannkuchredux.r", "6L");
+  rshootout(args, vmArgs, vm, "fannkuch", "fannkuchredux.r", "10L");
 
 def rbinarytrees(args, vmArgs, vm):
   """Run Binary Trees benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "10L");
+  rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "15L");
 
 def rspectralnorm(args, vmArgs, vm):
   """Run Spectral Norm benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "80L");
+  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "800L");
 
 # generic shootout runner
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):

@@ -8,7 +8,7 @@ import r.nodes.truffle.*;
 
 public class StringImpl extends NonScalarArrayImpl implements RString {
 
-    String[] content;
+    final String[] content;
 
     public StringImpl(String[] values, boolean doCopy) {
         if (doCopy) {

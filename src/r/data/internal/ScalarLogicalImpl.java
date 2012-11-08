@@ -4,7 +4,7 @@ import r.*;
 import r.data.*;
 
 
-public class ScalarLogicalImpl extends ArrayImpl implements RLogical {
+public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
 
     int value;
 

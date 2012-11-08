@@ -5,6 +5,7 @@ import r.data.*;
 
 
 public final class ScalarIntImpl extends ArrayImpl implements RInt {
+
     int value;
 
     public ScalarIntImpl(int value) {

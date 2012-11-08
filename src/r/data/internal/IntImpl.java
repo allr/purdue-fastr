@@ -7,7 +7,7 @@ import r.nodes.truffle.*;
 
 public class IntImpl extends NonScalarArrayImpl implements RInt {
 
-    int[] content;
+    final int[] content;
 
     public IntImpl(int[] values, boolean doCopy) {
         if (doCopy) {

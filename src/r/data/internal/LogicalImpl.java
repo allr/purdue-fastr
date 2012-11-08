@@ -7,7 +7,7 @@ import r.nodes.truffle.*;
 
 public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
-    int[] content;
+    final int[] content;
 
     public LogicalImpl(int size) {
         content = new int[size];
