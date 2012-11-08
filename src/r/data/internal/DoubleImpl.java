@@ -3,7 +3,7 @@ package r.data.internal;
 import r.*;
 import r.data.*;
 
-public class DoubleImpl extends ArrayImpl implements RDouble {
+public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     double[] content;
     int[] dimensions;

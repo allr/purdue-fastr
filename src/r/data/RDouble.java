@@ -110,6 +110,16 @@ public interface RDouble extends RNumber {
         public int getInt(int i) {
             return Convert.double2int(rdbl.getDouble(i));
         }
+
+        @Override
+        public boolean isShared() {
+            return rdbl.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rdbl.ref();
+        }
     }
 
     public static class RLogicalView extends View.RLogicalView implements RLogical {
@@ -144,6 +154,16 @@ public interface RDouble extends RNumber {
         public int getLogical(int i) {
             return Convert.double2logical(rdbl.getDouble(i));
         }
+
+        @Override
+        public boolean isShared() {
+            return rdbl.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rdbl.ref();
+        }
     }
 
     public static class RDoubleExclusion extends View.RDoubleView implements RDouble {
@@ -173,6 +193,16 @@ public interface RDouble extends RNumber {
             } else {
                 return orig.getDouble(i + 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
         }
     }
 
@@ -205,6 +235,17 @@ public interface RDouble extends RNumber {
             } else {
                 return value.getDouble(j - 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return value.isShared() || index.isShared();
+        }
+
+        @Override
+        public void ref() {
+            value.ref();
+            index.ref();
         }
     }
 }

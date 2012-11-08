@@ -36,5 +36,15 @@ public interface RArray extends RAny {
         public RAny getRAny(int i) {
             return arr.boxedGet(i);
         }
+
+        @Override
+        public boolean isShared() {
+            return arr.isShared();
+        }
+
+        @Override
+        public void ref() {
+            arr.ref();
+        }
     }
 }

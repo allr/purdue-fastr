@@ -116,4 +116,13 @@ public final class RNull implements RAny, RAttributes {
         Utils.nyi();
         return 0;
     }
+
+    @Override
+    public void ref() {
+    }
+
+    @Override
+    public boolean isShared() {
+        return false;
+    }
 }

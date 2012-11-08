@@ -5,7 +5,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-public class IntImpl extends ArrayImpl implements RInt {
+public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     int[] content;
 

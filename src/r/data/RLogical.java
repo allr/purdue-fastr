@@ -110,6 +110,16 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             int ll = l.getLogical(i);
             return Convert.logical2double(ll);
         }
+
+        @Override
+        public boolean isShared() {
+            return l.isShared();
+        }
+
+        @Override
+        public void ref() {
+            l.ref();
+        }
     }
 
     public static class RIntView extends View.RIntView implements RInt {
@@ -143,6 +153,16 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public int getInt(int i) {
             return l.getLogical(i);
         }
+
+        @Override
+        public boolean isShared() {
+            return l.isShared();
+        }
+
+        @Override
+        public void ref() {
+            l.ref();
+        }
     }
 
     public static class RLogicalExclusion extends View.RLogicalView implements RLogical {
@@ -172,6 +192,16 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             } else {
                 return orig.getLogical(i + 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
         }
     }
 
@@ -204,6 +234,17 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             } else {
                 return value.getLogical(j - 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return value.isShared() || index.isShared();
+        }
+
+        @Override
+        public void ref() {
+            value.ref();
+            index.ref();
         }
     }
 }

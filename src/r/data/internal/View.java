@@ -7,7 +7,7 @@ import r.nodes.truffle.*;
 
 // FIXME: the Impl classes for data types should also inherit from View.*, reducing code duplication
 
-public abstract class View extends ArrayImpl implements RArray {
+public abstract class View extends NonScalarArrayImpl implements RArray {
 
     @Override
     public RArray set(int i, Object val) {
@@ -349,6 +349,13 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RArray subset(RInt index) {
             return RList.RListFactory.subset(this, index);
+        }
+
+        @Override
+        public RAny getRAnyRef(int i) {
+            RAny v = getRAny(i);
+            v.ref();
+            return v;
         }
     }
 }

@@ -60,9 +60,9 @@ public class Combine {
                 int asize = a.size();
                 if (v instanceof RList) {
                     RList l = (RList) v;
-                    // FIXME: no deep copying here
-                    for (int i = 0; i < asize; i++) {
-                        res.set(offset + i, l.getRAny(i));
+                    for (int i = 0; i < asize; i++) { // shallow copy
+                        RAny ll = l.getRAnyRef(i);
+                        res.set(offset + i, ll);
                     }
                 } else {
                     for (int i = 0; i < asize; i++) {

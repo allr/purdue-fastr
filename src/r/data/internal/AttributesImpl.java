@@ -123,4 +123,13 @@ public class AttributesImpl extends BaseObject implements RAttributes {
         Utils.nyi();
         return 0;
     }
+
+    @Override
+    public void ref() {
+    }
+
+    @Override
+    public boolean isShared() {
+        return true;
+    }
 }

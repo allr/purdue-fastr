@@ -53,6 +53,16 @@ public class Sqrt {
                                 return res;
                             }
                         }
+
+                        @Override
+                        public boolean isShared() {
+                            return orig.isShared();
+                        }
+
+                        @Override
+                        public void ref() {
+                            orig.ref();
+                        }
                     };
                 }
 

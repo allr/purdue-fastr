@@ -704,6 +704,17 @@ public class Arithmetic extends BaseR {
                 return arit.op(adbl, bdbl);
             }
          }
+
+        @Override
+        public boolean isShared() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public void ref() {
+            a.ref();
+            b.ref();
+        }
     }
 
     static class IntView extends View.RIntView implements RInt {
@@ -772,6 +783,17 @@ public class Arithmetic extends BaseR {
                 }
                 return res;
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public void ref() {
+            a.ref();
+            b.ref();
         }
     }
 }

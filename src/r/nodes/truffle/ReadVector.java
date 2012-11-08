@@ -577,6 +577,16 @@ public abstract class ReadVector extends BaseR {
                 Utils.check(i >= 0, "bounds check");
                 return base.getInt(from + i * step - 1);
             }
+
+            @Override
+            public boolean isShared() {
+                return base.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
+            }
         }
 
         static class RDoubleView extends View.RDoubleView implements RDouble {
@@ -611,6 +621,16 @@ public abstract class ReadVector extends BaseR {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
                 return base.getDouble(from + i * step - 1);
+            }
+
+            @Override
+            public boolean isShared() {
+                return base.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
             }
         }
 
@@ -647,6 +667,16 @@ public abstract class ReadVector extends BaseR {
                 Utils.check(i >= 0, "bounds check");
                 return base.getLogical(from + i * step - 1);
             }
+
+            @Override
+            public boolean isShared() {
+                return base.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
+            }
         }
 
         static class RListView extends View.RListView implements RList {
@@ -681,6 +711,16 @@ public abstract class ReadVector extends BaseR {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
                 return base.getRAny(from + i * step - 1);
+            }
+
+            @Override
+            public boolean isShared() {
+                return base.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
             }
         }
     }

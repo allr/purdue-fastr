@@ -8,7 +8,7 @@ import r.data.internal.*;
 public final class RSymbol extends BaseObject implements RAny {
 
     final String name;
-    // The next to fields are for the topLevel
+    // The next two fields are for the topLevel
     RAny value;
     int version;
 
@@ -95,6 +95,15 @@ public final class RSymbol extends BaseObject implements RAny {
 
     void markDirty() {
         version++;
+    }
+
+    @Override
+    public boolean isShared() {
+        return false;
+    }
+
+    @Override
+    public void ref() {
     }
 
 }

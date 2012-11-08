@@ -5,7 +5,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-public class LogicalImpl extends ArrayImpl implements RLogical {
+public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     int[] content;
 

@@ -32,6 +32,16 @@ public class IsNA {
                     public int getLogical(int i) {
                         return a.isNAorNaN(i) ? RLogical.TRUE : RLogical.FALSE;
                     }
+
+                    @Override
+                    public boolean isShared() {
+                        return a.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        a.ref();
+                    }
                 };
             }
             // asize == 0

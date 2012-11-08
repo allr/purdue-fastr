@@ -184,6 +184,16 @@ public abstract class UnaryMinus extends BaseR {
                             return -d;
                         }
                     }
+
+                    @Override
+                    public boolean isShared() {
+                        return dvalue.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        dvalue.ref();
+                    }
                 };
             }
             if (value instanceof RInt || value instanceof RLogical) {
@@ -206,6 +216,16 @@ public abstract class UnaryMinus extends BaseR {
                         } else {
                             return -v;
                         }
+                    }
+
+                    @Override
+                    public boolean isShared() {
+                        return ivalue.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        ivalue.ref();
                     }
                 };
             }

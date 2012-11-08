@@ -108,6 +108,9 @@ public final class RFrame  {
     public static void writeAt(Frame f, int pos, Object value) {
         // Put an assertion or not ?
         f.setObject(pos + RESERVED_SLOTS, value);
+        if (value instanceof RAny) {
+            ((RAny) value).ref();
+        }
     }
 
     public static void writeInExtension(Frame f, RSymbol sym, RAny value) {
@@ -127,6 +130,7 @@ public final class RFrame  {
 
     public static void writeInTopLevel(RSymbol sym, RAny value) {
         sym.setValue(value);
+        value.ref();
     }
 
     private static RAny readFromTopLevel(RSymbol sym) {

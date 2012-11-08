@@ -84,6 +84,16 @@ public abstract class Not extends BaseR {
                         return RLogical.NA;
                     }
                 }
+
+                @Override
+                public boolean isShared() {
+                    return lvalue.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    lvalue.ref();
+                }
             };
         }
     }

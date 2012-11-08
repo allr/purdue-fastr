@@ -10,6 +10,7 @@ public interface RList extends RArray {
     RNull NULL = RNull.getNull();
 
     RAny getRAny(int i);
+    RAny getRAnyRef(int i);
     RArray set(int i, RAny val);
 
     public class RListFactory {
@@ -71,6 +72,16 @@ public interface RList extends RArray {
                 return orig.getRAny(i + 1);
             }
         }
+
+        @Override
+        public boolean isShared() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
     }
 
     // indexes must all be positive
@@ -102,6 +113,17 @@ public interface RList extends RArray {
             } else {
                 return value.getRAny(j - 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return value.isShared() || index.isShared();
+        }
+
+        @Override
+        public void ref() {
+            value.ref();
+            index.ref();
         }
     }
 }

@@ -76,6 +76,16 @@ public class Rep {
                 public int getInt(int i) {
                     return orig.getInt(i % osize);
                 }
+
+                @Override
+                public boolean isShared() {
+                    return orig.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    orig.ref();
+                }
             };
         }
         if (arg0 instanceof RDouble) {
@@ -94,6 +104,16 @@ public class Rep {
                 public double getDouble(int i) {
                     return orig.getDouble(i % osize);
                 }
+
+                @Override
+                public boolean isShared() {
+                    return orig.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    orig.ref();
+                }
             };
         }
         if (arg0 instanceof RLogical) {
@@ -111,6 +131,16 @@ public class Rep {
                 @Override
                 public int getLogical(int i) {
                     return orig.getLogical(i % osize);
+                }
+
+                @Override
+                public boolean isShared() {
+                    return orig.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    orig.ref();
                 }
             };
         }

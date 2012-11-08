@@ -112,4 +112,9 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     public double getDouble() {
         return value;
     }
+
+    @Override
+    public boolean isShared() {
+        return false;
+    }
 }

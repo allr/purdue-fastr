@@ -12,7 +12,7 @@ import r.nodes.truffle.*;
 // FIXME: Truffle can't handle BuiltIn1
 public class Cast {
 
-    public static RAny generic(ASTNode ast, RAny arg) {
+    public static RAny genericAsInt(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             RList l = (RList) arg;
             int size = l.size();
@@ -58,7 +58,7 @@ public class Cast {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                    return generic(ast, arg);
+                    return genericAsInt(ast, arg);
                 }
             };
         }

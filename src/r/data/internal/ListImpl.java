@@ -3,7 +3,7 @@ package r.data.internal;
 import r.*;
 import r.data.*;
 
-public class ListImpl extends ArrayImpl implements RList {
+public class ListImpl extends NonScalarArrayImpl implements RList {
 
     RAny[] content;
 
@@ -54,6 +54,13 @@ public class ListImpl extends ArrayImpl implements RList {
     @Override
     public RAny getRAny(int i) {
         return content[i];
+    }
+
+    @Override
+    public RAny getRAnyRef(int i) {
+        RAny v = content[i];
+        v.ref();
+        return v;
     }
 
     @Override

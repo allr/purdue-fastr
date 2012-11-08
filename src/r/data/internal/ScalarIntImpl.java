@@ -107,4 +107,9 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
         value = val;
         return this;
     }
+
+    @Override
+    public boolean isShared() {
+        return false;
+    }
 }

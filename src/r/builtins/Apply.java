@@ -443,7 +443,7 @@ public class Apply {
                 if (!notAllScalarLists) {
                     for (int i = 0; i < xsize; i++) {
                         RList v = (RList) content[i];
-                        content[i] = v.getRAny(0);
+                        content[i] = v.getRAny(0); // shallow but no need to ref here
                     }
                 }
                 return RList.RListFactory.getForArray(content);

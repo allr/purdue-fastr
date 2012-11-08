@@ -99,6 +99,16 @@ public interface RInt extends RNumber {
             int v = rint.getInt(i);
             return Convert.int2double(v);
         }
+
+        @Override
+        public boolean isShared() {
+            return rint.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rint.ref();
+        }
     }
 
     public static class RLogicalView extends View.RLogicalView implements RLogical {
@@ -132,6 +142,16 @@ public interface RInt extends RNumber {
             int v = rint.getInt(i);
             return Convert.int2logical(v);
         }
+
+        @Override
+        public boolean isShared() {
+            return rint.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rint.ref();
+        }
     }
 
     public static class RIntExclusion extends View.RIntView implements RInt {
@@ -161,6 +181,16 @@ public interface RInt extends RNumber {
             } else {
                 return orig.getInt(i + 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
         }
     }
 
@@ -193,6 +223,17 @@ public interface RInt extends RNumber {
             } else {
                 return value.getInt(j - 1);
             }
+        }
+
+        @Override
+        public boolean isShared() {
+            return value.isShared() || index.isShared();
+        }
+
+        @Override
+        public void ref() {
+            value.ref();
+            index.ref();
         }
     }
 }

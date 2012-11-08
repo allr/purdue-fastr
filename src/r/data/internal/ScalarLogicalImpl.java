@@ -109,4 +109,8 @@ public class ScalarLogicalImpl extends ArrayImpl implements RLogical {
         return this;
     }
 
+    @Override
+    public boolean isShared() {
+        return false;
+    }
 }

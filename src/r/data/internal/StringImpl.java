@@ -6,7 +6,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 
-public class StringImpl extends ArrayImpl implements RString {
+public class StringImpl extends NonScalarArrayImpl implements RString {
 
     String[] content;
 

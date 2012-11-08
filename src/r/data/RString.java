@@ -61,5 +61,16 @@ public interface RString extends RArray {
                 return value.getString(j - 1);
             }
         }
+
+        @Override
+        public boolean isShared() {
+            return value.isShared() || index.isShared();
+        }
+
+        @Override
+        public void ref() {
+            value.ref();
+            index.ref();
+        }
     }
 }

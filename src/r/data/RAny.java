@@ -19,5 +19,8 @@ public interface RAny {
 
     RList asList();
 
+    void ref();
+    boolean isShared(); // FIXME: at some point will probably neet do distinguish "1" and "2"
+
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 }

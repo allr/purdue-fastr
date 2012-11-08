@@ -289,4 +289,13 @@ public class ClosureImpl extends BaseObject implements RClosure {
     public Frame getDeclarationFrame() {
         return null;
     }
+
+    @Override
+    public boolean isShared() { // FIXME: will have to update this when we support modification of closures
+        return false;
+    }
+
+    @Override
+    public void ref() { // FIXME: will have to update this when we support modification of closures
+    }
 }

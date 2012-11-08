@@ -127,4 +127,10 @@ public final class Utils {
         Utils.nyi("unuspported array type");
         return null;
     }
+
+    public static void ref(RAny[] values) {
+        for (RAny v : values) {
+            v.ref();
+        }
+    }
 }

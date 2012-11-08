@@ -57,4 +57,13 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         int[] dims = dimensions();
         return i + (j - 1) * dims[1];
     }
+
+    @Override
+    public void ref() {
+    }
+
+    @Override
+    public boolean isShared() {
+        return true;
+    }
 }
