@@ -626,7 +626,7 @@ public abstract class UpdateVector extends BaseR {
                 return null;
             }
             if (i >= 0 || i == RInt.NA || !subset) {
-                if (vsize > 1) {
+                if (vsize > 1 && !(base instanceof RList)) {
                     if (subset) {
                         context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     } else {
