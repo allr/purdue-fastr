@@ -189,8 +189,6 @@ public class Console {
         String[] tokNames = parser.getTokenNames();
         System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) +
                         ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
-        parser.display_next_tokens();
-        System.err.println("");
-        System.out.println(e.getMessage());
+        System.err.println(parser.getErrorMessage(e, null));
     }
 }
