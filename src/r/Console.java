@@ -187,8 +187,4 @@ public class Console {
         parser.display_next_tokens();
         System.err.println("");
     }
-
-    class PressReturnOption {
-
-    }
 }
