@@ -643,7 +643,9 @@ public abstract class UpdateVector extends BaseR {
                     if (subset) {
                         context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     } else {
-                        throw RError.getMoreElementsSupplied(ast);
+                        if (!(base instanceof RList)) {
+                            throw RError.getMoreElementsSupplied(ast);
+                        }
                     }
                 }
                 return ScalarNumericSelection.genericUpdate(base, i, value, subset, ast);
