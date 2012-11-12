@@ -348,19 +348,33 @@ public abstract class UpdateVector extends BaseR {
         //        probably should create asXXXScalar() casts
         public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) { // FIXME: avoid some copying here but careful about lists
             RArray typedBase;
-            RArray typedValue;
-            if (base instanceof RList || value instanceof RList) {
+            Object rawValue;
+
+            boolean blist = base instanceof RList;
+            boolean vlist = value instanceof RList;
+
+            if (blist && vlist) {
+                typedBase = base;
+                rawValue = ((RList) value).getRAny(0);
+            } else if (blist) {
+                typedBase = base;
+                rawValue = value;
+            } else if (vlist) {
                 typedBase = base.asList();
-                typedValue = value.asList();
+                if (subset) {
+                    rawValue = ((RList) value).getRAny(0);
+                } else {
+                    rawValue = value;
+                }
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
-                typedValue = value.asDouble();
+                rawValue = value.asDouble().get(0);
             } else if (base instanceof RInt || value instanceof RInt) {
                 typedBase = base.asInt();
-                typedValue = value.asInt();
+                rawValue = value.asInt().get(0);
             } else if (base instanceof RLogical || value instanceof RLogical) {
                 typedBase = base.asLogical();
-                typedValue = value.asLogical();
+                rawValue = value.asLogical().get(0);
             } else {
                 Utils.nyi("unsupported vector types");
                 return null;
@@ -374,7 +388,7 @@ public abstract class UpdateVector extends BaseR {
                     for (; i < zpos; i++) {
                         res.set(i, typedBase.get(i));
                     }
-                    res.set(i++, typedValue.get(0));
+                    res.set(i++, rawValue);
                     for (; i < bsize; i++) {
                         res.set(i, typedBase.get(i));
                     }
@@ -390,7 +404,7 @@ public abstract class UpdateVector extends BaseR {
                     for (; i < zpos; i++) {
                         Utils.setNA(res, i);
                     }
-                    res.set(i, typedValue.get(0));
+                    res.set(i, rawValue);
                     return res;
                 }
             } else { // pos < 0
@@ -412,14 +426,13 @@ public abstract class UpdateVector extends BaseR {
                 int keep = -pos - 1;
                 RArray res = Utils.createArray(typedBase, bsize);
                 int i = 0;
-                Object v = typedValue.get(0);
                 for (; i < keep; i++) {
-                    res.set(i, v);
+                    res.set(i, rawValue);
                 }
                 res.set(i, typedBase.get(i));
                 i++;
                 for (; i < bsize; i++) {
-                    res.set(i, v);
+                    res.set(i, rawValue);
                 }
                 return res;
             }
@@ -630,7 +643,9 @@ public abstract class UpdateVector extends BaseR {
                     if (subset) {
                         context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     } else {
-                        throw RError.getMoreElementsSupplied(ast);
+                        if (!(base instanceof RList)) {
+                            throw RError.getMoreElementsSupplied(ast);
+                        }
                     }
                 }
                 return ScalarNumericSelection.genericUpdate(base, i, value, subset, ast);
