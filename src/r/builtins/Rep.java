@@ -78,7 +78,7 @@ public class Rep {
                 }
 
                 @Override
-                public boolean isShared() {
+                public boolean isSharedReal() {
                     return orig.isShared();
                 }
 
@@ -106,7 +106,7 @@ public class Rep {
                 }
 
                 @Override
-                public boolean isShared() {
+                public boolean isSharedReal() {
                     return orig.isShared();
                 }
 
@@ -134,7 +134,7 @@ public class Rep {
                 }
 
                 @Override
-                public boolean isShared() {
+                public boolean isSharedReal() {
                     return orig.isShared();
                 }
 

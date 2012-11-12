@@ -112,7 +112,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return l.isShared();
         }
 
@@ -155,7 +155,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return l.isShared();
         }
 
@@ -195,7 +195,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return orig.isShared();
         }
 
@@ -237,7 +237,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return value.isShared() || index.isShared();
         }
 

@@ -38,7 +38,7 @@ public interface RArray extends RAny {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return arr.isShared();
         }
 

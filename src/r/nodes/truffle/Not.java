@@ -86,7 +86,7 @@ public abstract class Not extends BaseR {
                 }
 
                 @Override
-                public boolean isShared() {
+                public boolean isSharedReal() {
                     return lvalue.isShared();
                 }
 

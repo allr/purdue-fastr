@@ -112,7 +112,7 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return rdbl.isShared();
         }
 
@@ -156,7 +156,7 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return rdbl.isShared();
         }
 
@@ -196,7 +196,7 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return orig.isShared();
         }
 
@@ -238,7 +238,7 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return value.isShared() || index.isShared();
         }
 

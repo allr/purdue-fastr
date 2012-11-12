@@ -78,6 +78,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(TRUE,TRUE,FALSE); x[c(TRUE, FALSE, TRUE)] <- c(FALSE,TRUE); x }", "FALSE, TRUE, TRUE");
         assertEval("{ x<-c(TRUE,TRUE,FALSE); x[c(TRUE, FALSE, TRUE)] <- c(1000,2000); x }", "1000.0, 1.0, 2000.0");
         assertEval("{ x<-11:9 ; x[c(TRUE, FALSE, TRUE)] <- c(1000,2000); x }", "1000.0, 10.0, 2000.0");
+        assertEval("{ l <- double() ; l[c(TRUE,TRUE)] <-2 ; l}", "2.0, 2.0");
+        assertEval("{ l <- double() ; l[c(FALSE,TRUE)] <-2 ; l}", "NA, 2.0");
 
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[i]<-v ; x } ; f(1,1) ; f(1L,TRUE) ; f(2,TRUE) }", "1L, 1L, 3L, 4L, 5L");
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[[i]]<-v ; x } ; f(1,1) ; f(1L,TRUE) ; f(2,TRUE) }", "1L, 1L, 3L, 4L, 5L");
@@ -164,6 +166,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(1,2,3) ; l[-1] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
         assertEval("{ l <- list(1,2,3) ; l[-1L] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
         assertEval("{ l <- list(1,2,3) ; l[c(FALSE,TRUE,TRUE)] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
+        assertEval("{ l <- list() ; l[c(TRUE,TRUE)] <-2 ; l }", "[[1]]\n2.0\n\n[[2]]\n2.0");
+        assertEval("{ x <- 1:3 ; l <- list(1) ; l[[TRUE]] <- x ; l[[1]] } ", "1L, 2L, 3L");
 
         assertEval("{ x<-list(1,2,3,4,5); x[3:4]<-c(300L,400L); x }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n300L\n\n[[4]]\n400L\n\n[[5]]\n5.0");
         assertEval("{ x<-list(1,2,3,4,5); x[4:3]<-c(300L,400L); x }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n400L\n\n[[4]]\n300L\n\n[[5]]\n5.0");
@@ -192,5 +196,9 @@ public class TestSimpleVectors extends TestBase {
 
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");
+        assertEval("{ l<-list() ; x <- 1:3 ; l[[1]] <- x; x[2] <- 100L; l[[1]] }", "1L, 2L, 3L");
+        assertEval("{ l <- list(1, list(2)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
+        assertEval("{ l <- list(1, list(2,3,4)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
+        assertEval("{ x <- c(1L,2L,3L) ; l <- list(1) ; l[[1]] <- x ; x[2] <- 100L ; l[[1]] }", "1L, 2L, 3L");
     }
 }

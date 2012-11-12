@@ -34,7 +34,7 @@ public class IsNA {
                     }
 
                     @Override
-                    public boolean isShared() {
+                    public boolean isSharedReal() {
                         return a.isShared();
                     }
 

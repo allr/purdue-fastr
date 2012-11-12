@@ -133,4 +133,10 @@ public final class Utils {
             v.ref();
         }
     }
+
+    public static void refIfRAny(Object o) {
+        if (o instanceof RAny) {
+            ((RAny) o).ref();
+        }
+    }
 }

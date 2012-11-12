@@ -579,7 +579,7 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public boolean isShared() {
+            public boolean isSharedReal() {
                 return base.isShared();
             }
 
@@ -624,7 +624,7 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public boolean isShared() {
+            public boolean isSharedReal() {
                 return base.isShared();
             }
 
@@ -669,7 +669,7 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public boolean isShared() {
+            public boolean isSharedReal() {
                 return base.isShared();
             }
 
@@ -714,7 +714,7 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public boolean isShared() {
+            public boolean isSharedReal() {
                 return base.isShared();
             }
 

@@ -63,7 +63,7 @@ public interface RString extends RArray {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return value.isShared() || index.isShared();
         }
 

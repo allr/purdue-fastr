@@ -706,7 +706,7 @@ public class Arithmetic extends BaseR {
          }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
@@ -786,7 +786,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public boolean isShared() {
+        public boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 

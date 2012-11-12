@@ -327,16 +327,22 @@ public abstract class UpdateVector extends BaseR {
                             throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                         }
                         int zpos = pos - 1;
-                        RAny[] content = new RAny[bsize];
-                        int i = 0;
-                        for (; i < zpos; i++) { // shallow copy
-                            content[i] = lbase.getRAnyRef(i);
+                        value.ref();
+                        if (!lbase.isShared()) {
+                            lbase.set(zpos, value);
+                            return lbase;
+                        } else {
+                            RAny[] content = new RAny[bsize];
+                            int i = 0;
+                            for (; i < zpos; i++) { // shallow copy
+                                content[i] = lbase.getRAny(i);
+                            }
+                            content[i++] = value;
+                            for (; i < bsize; i++) { // shallow copy
+                                content[i] = lbase.getRAny(i);
+                            }
+                            return RList.RListFactory.getForArray(content);
                         }
-                        content[i++] = value;
-                        for (; i < bsize; i++) { // shallow copy
-                            content[i] = lbase.getRAnyRef(i);
-                        }
-                        return RList.RListFactory.getForArray(content);
                     }
                 };
                 return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RList,?>");
@@ -355,17 +361,23 @@ public abstract class UpdateVector extends BaseR {
 
             if (blist && vlist) {
                 typedBase = base;
-                rawValue = ((RList) value).getRAny(0);
+                RAny v = ((RList) value).getRAny(0);
+                v.ref();
+                rawValue = v;
             } else if (blist) {
                 typedBase = base;
                 rawValue = value;
+                value.ref();
             } else if (vlist) {
                 typedBase = base.asList();
+                RAny v = null;
                 if (subset) {
-                    rawValue = ((RList) value).getRAny(0);
+                    v = ((RList) value).getRAny(0);
                 } else {
-                    rawValue = value;
+                    v = value;
                 }
+                v.ref();
+                rawValue = v;
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 rawValue = value.asDouble().get(0);
@@ -424,6 +436,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 int keep = -pos - 1;
+                Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
                 RArray res = Utils.createArray(typedBase, bsize);
                 int i = 0;
                 for (; i < keep; i++) {
@@ -544,11 +557,11 @@ public abstract class UpdateVector extends BaseR {
                     RAny[] content = new RAny[nsize];
                     int j = 0;
                     for (; j < zi; j++) {  // shallow copy
-                        content[j] = base.getRAnyRef(j);
+                        content[j] = base.getRAny(j);
                     }
                     zi++;
                     for (; j < nsize; j++) { // shallow copy
-                        content[j] = base.getRAnyRef(zi++);
+                        content[j] = base.getRAny(zi++);
                     }
                     return RList.RListFactory.getForArray(content);
                 } else {
@@ -575,7 +588,7 @@ public abstract class UpdateVector extends BaseR {
                 }
             }
             int keep = -i - 1;
-            return RList.RListFactory.getScalar(base.getRAnyRef(keep)); // shallow copy
+            return RList.RListFactory.getScalar(base.getRAny(keep)); // shallow copy
         }
 
         public static RAny deleteElement(RArray base, RArray index, ASTNode ast, boolean subset) {
@@ -617,7 +630,7 @@ public abstract class UpdateVector extends BaseR {
                 if (subset) {
                     throw new UnexpectedResultException(Failure.MAYBE_VECTOR_UPDATE);
                 }
-                if (vsize > 1) {
+                if (vsize > 1 && !(base instanceof RList)) {
                     throw RError.getMoreElementsSupplied(ast);
                 }
                 int l = ((RLogical) index).getLogical(0);
@@ -764,7 +777,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         // specialized for type combinations (base vector, value written)
-        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {  // FIXME: could reduce copying when value is not shared
             if (baseTemplate instanceof RList) {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
@@ -798,7 +811,7 @@ public abstract class UpdateVector extends BaseR {
                             RAny[] content = new RAny[bsize];
                             int i = 0;
                             for (; i < imin; i++) { // shallow copy
-                                content[i] = typedBase.getRAnyRef(i);
+                                content[i] = typedBase.getRAny(i);
                             }
                             i = index.from() - 1;  // -1 for 0-based
                             int step = index.step();
@@ -815,12 +828,12 @@ public abstract class UpdateVector extends BaseR {
                                 content[i] = typedValue.getRAnyRef(steps);
                                 i += delta;
                                 for (int j = 1; j < astep; j++) { // shallow copy
-                                    content[i] = typedBase.getRAnyRef(i);
+                                    content[i] = typedBase.getRAny(i);
                                     i += delta;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) { // shallow copy
-                                content[i] = typedBase.getRAnyRef(i);
+                                content[i] = typedBase.getRAny(i);
                             }
                             return RList.RListFactory.getForArray(content);
                         }
@@ -1207,7 +1220,7 @@ public abstract class UpdateVector extends BaseR {
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (!selected[i]) { // shallow copy
-                        content[j++] = base.getRAnyRef(i);
+                        content[j++] = base.getRAny(i);
                     }
                 }
                 for (int i = 0; i < nullsToAdd; i++) {
@@ -1224,7 +1237,7 @@ public abstract class UpdateVector extends BaseR {
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (selected[i]) { // shallow copy
-                        content[j++] = base.getRAnyRef(i);
+                        content[j++] = base.getRAny(i);
                     }
                 }
                 return RList.RListFactory.getForArray(content);
@@ -1449,7 +1462,7 @@ public abstract class UpdateVector extends BaseR {
                                 if (v == RLogical.NA) {
                                     hasNA = true;
                                 }
-                                content[bi] = typedBase.getRAnyRef(bi); // shallow copy
+                                content[bi] = typedBase.getRAny(bi); // shallow copy
                             }
                             if (hasNA && vsize >= 2) {
                                 throw RError.getNASubscripted(ast);
@@ -1654,7 +1667,7 @@ public abstract class UpdateVector extends BaseR {
                 for (int i = 0; i < bsize; i++) {
                     int l = index.getLogical(i);
                     if (l != RLogical.TRUE) { // shallow copy
-                        content[j++] = base.getRAnyRef(i);
+                        content[j++] = base.getRAny(i);
                     }
                 }
                 return RList.RListFactory.getForArray(content);
@@ -1670,7 +1683,7 @@ public abstract class UpdateVector extends BaseR {
                 for (int i = 0; i < bsize; i++) {
                     int l = index.getLogical(i);
                     if (l != RLogical.TRUE) { // shallow copy
-                        content[j++] = base.getRAnyRef(i);
+                        content[j++] = base.getRAny(i);
                     }
                 }
                 for (int i = 0; i < nullsToAdd; i++) {
@@ -1697,7 +1710,7 @@ public abstract class UpdateVector extends BaseR {
                     ii = 0;
                 }
                 if (l != RLogical.TRUE) { // shallow copy
-                    content[ci++] = base.getRAnyRef(bi);
+                    content[ci++] = base.getRAny(bi);
                 }
             }
             return RList.RListFactory.getForArray(content);
@@ -1732,9 +1745,8 @@ public abstract class UpdateVector extends BaseR {
             RArray res = Utils.createArray(typedBase, nsize);
             int ii = 0;
             int vi = 0;
-            int ni = 0;
             boolean hasNA = false;
-            for (; ni < bsize; ni++) {
+            for (int ni = 0; ni < nsize; ni++) {
                 int v = index.getLogical(ii);
                 ii++;
                 if (ii == isize) {
@@ -1751,10 +1763,11 @@ public abstract class UpdateVector extends BaseR {
                 if (v == RLogical.NA) {
                     hasNA = true;
                 }
-                res.set(ni, typedBase.get(ni));
-            }
-            for (; ni < nsize; ni++) {
-                Utils.setNA(res, ni);
+                if (ni < bsize) {
+                    res.set(ni, typedBase.get(ni));
+                } else {
+                    Utils.setNA(res, ni);
+                }
             }
             if (hasNA && vsize >= 2) {
                 throw RError.getNASubscripted(ast);
@@ -1857,12 +1870,12 @@ public abstract class UpdateVector extends BaseR {
                     int k = 0;
                     int j = 0;
                     for (; j < isel; j++) { // shallow copy
-                        content[k++] = l.getRAnyRef(j);
+                        content[k++] = l.getRAny(j);
                     }
                     j++; // skip
                     k++;
                     for (; j < bsize; j++) { // shallow copy
-                        content[k++] = l.getRAnyRef(j);
+                        content[k++] = l.getRAny(j);
                     }
                     RList newList = RList.RListFactory.getForArray(content);
                     if (parent != null) {
@@ -1872,7 +1885,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                     parent = newList;
                     parentIndex = isel;
-                    b = l.getRAnyRef(isel); // shallow copy
+                    b = l.getRAny(isel); // shallow copy
                 }
             }
             // selection at the last level

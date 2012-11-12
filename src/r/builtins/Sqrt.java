@@ -55,7 +55,7 @@ public class Sqrt {
                         }
 
                         @Override
-                        public boolean isShared() {
+                        public boolean isSharedReal() {
                             return orig.isShared();
                         }
 

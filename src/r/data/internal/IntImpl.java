@@ -179,5 +179,10 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         public int max() {
             return (to > from) ? to : from;
         }
+
+        @Override
+        public boolean isSharedReal() { // no state, so not shared
+            return false;
+        }
     }
 }

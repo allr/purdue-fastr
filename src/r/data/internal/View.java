@@ -45,6 +45,16 @@ public abstract class View extends ArrayImpl implements RArray {
         return null;
     }
 
+    @Override
+    public boolean isShared() {
+        return true;  // optimization / hack -- unless the views change the default behavior of materialize-on-set, calculating "shared"
+                      //   would take unnecessary time, we are copying anyway
+    }
+
+    public boolean isSharedReal() {
+        return true;
+    }
+
     public abstract static class RIntView extends View implements RInt {
         @Override
         public Object get(int i) {

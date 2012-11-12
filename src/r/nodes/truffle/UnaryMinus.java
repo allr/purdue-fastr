@@ -186,7 +186,7 @@ public abstract class UnaryMinus extends BaseR {
                     }
 
                     @Override
-                    public boolean isShared() {
+                    public boolean isSharedReal() {
                         return dvalue.isShared();
                     }
 
@@ -219,7 +219,7 @@ public abstract class UnaryMinus extends BaseR {
                     }
 
                     @Override
-                    public boolean isShared() {
+                    public boolean isSharedReal() {
                         return ivalue.isShared();
                     }
 
