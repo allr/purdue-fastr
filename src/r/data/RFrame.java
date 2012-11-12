@@ -81,7 +81,14 @@ public final class RFrame  {
         val = f.getObject(pos + RESERVED_SLOTS);
         if (val != null) {
             return Utils.cast(val);
+        } else {
+            return readViaWriteSetSlowPath(f, pos, symbol);
         }
+    }
+
+    public static RAny readViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
+        Object val;
+
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
         if (rse == null) {
             val = readFromTopLevel(symbol);
@@ -110,6 +117,15 @@ public final class RFrame  {
         f.setObject(pos + RESERVED_SLOTS, value);
         if (value instanceof RAny) {
             ((RAny) value).ref();
+        }
+    }
+
+    public static void writeParamAt(Frame f, int pos, Object value) {
+        // Put an assertion or not ?
+        f.setObject(pos + RESERVED_SLOTS, value);
+        if (value instanceof RAny) {
+            ((RAny) value).ref();
+            ((RAny) value).ref();  // function parameter has to become shared
         }
     }
 

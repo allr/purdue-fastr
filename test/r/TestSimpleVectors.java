@@ -200,5 +200,6 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(1, list(2)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
         assertEval("{ l <- list(1, list(2,3,4)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
         assertEval("{ x <- c(1L,2L,3L) ; l <- list(1) ; l[[1]] <- x ; x[2] <- 100L ; l[[1]] }", "1L, 2L, 3L");
+        assertEval("{ l <- list(100) ; f <- function() { l[[1]] <- 2 } ; f() ; l }", "[[1]]\n100.0");
     }
 }

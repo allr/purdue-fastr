@@ -252,17 +252,16 @@ public class Truffleize implements Visitor {
         AccessVector a = u.getVector();
         splitArgumentList(a.getArgs(), false);
 
-
         if (convertedExpressions.length == 1) {
-            ASTNode v = a.getVector();
-            if (!(v instanceof SimpleAccessVariable)) {
+            ASTNode varAccess = a.getVector();
+            if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expect vector name for vector update");
             }
-            RSymbol var = ((SimpleAccessVariable) v).getSymbol();
+            RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-                result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, var, createTree(a.getVector()), convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, var, createTree(varAccess), convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
-                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, var, createTree(a.getVector()), convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, var, createTree(varAccess), convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         }
     }

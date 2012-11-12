@@ -23,27 +23,30 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode rhs;
     final boolean subset;
 
-    @Stable RNode assign;  // node which will assign the whole new vector to var
-    RAny newVector;
+//    @Stable RNode assign;  // node which will assign the whole new vector to var
+//    RAny newVector;
+
+    int framePosition = -1;
+    boolean positionInitialized = false;
 
     private static final boolean DEBUG_UP = false;
 
     UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
         this.var = var;
-        this.lhs = updateParent(lhs);
+        this.lhs = updateParent(lhs);  // lhs is always SimpleAccessVariable of var
         this.indexes = updateParent(indexes);
         this.rhs = updateParent(rhs);
         this.subset = subset;
 
-        RNode node = updateParent(new BaseR(ast) {
-            @Override
-            public final Object execute(RContext context, Frame frame) {
-                return newVector;
-            }
-        });
-
-        this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
+//        RNode node = updateParent(new BaseR(ast) {
+//            @Override
+//            public final Object execute(RContext context, Frame frame) {
+//                return newVector;
+//            }
+//        });
+//
+//        this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
     }
 
     enum Failure {
@@ -62,15 +65,60 @@ public abstract class UpdateVector extends BaseR {
         NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
     }
 
+//    @Override
+//    public final Object execute0(RContext context, Frame frame) {
+//        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
+//        RAny index = (RAny) indexes[0].execute(context, frame);
+//        RAny base = (RAny) lhs.execute(context, frame);
+//
+//        newVector = execute(context, base, index, value);
+//        if (base != newVector) { // assignment if equal would increase reference count
+//            assign.execute(context, frame);
+//        }
+//        return value;
+//    }
+
     @Override
     public final Object execute(RContext context, Frame frame) {
         RAny value = (RAny) rhs.execute(context, frame); // note: order is important
         RAny index = (RAny) indexes[0].execute(context, frame);
-        RAny base = (RAny) lhs.execute(context, frame);
 
-        newVector = execute(context, base, index, value);
-        if (base != newVector) { // assignment if equal would increase reference count
-            assign.execute(context, frame);
+        if (frame != null) {
+            if (!positionInitialized) { // FIXME: turn this into node rewriting
+                framePosition = RFrame.getPositionInWS(frame, var);
+                positionInitialized = true;
+            }
+            // variable has a local slot
+            // note: this always has to be the case because the variable is in the write set
+            // FIXME: this won't work for reflections
+            Utils.check(framePosition >= 0);
+            RAny base = (RAny) frame.getObject(framePosition + RFrame.RESERVED_SLOTS);
+            if (base != null) {
+                RAny newBase = execute(context, base, index, value);
+                if (newBase != base) {
+                    RFrame.writeAt(frame, framePosition, newBase);
+                }
+            } else {
+                base = RFrame.readViaWriteSetSlowPath(frame, framePosition, var);
+                if (base == null) {
+                    throw RError.getUnknownVariable(getAST());
+                }
+                base.ref(); // reading from parent, hence need to copy on update
+                Utils.check(base.isShared());
+                RAny newBase = execute(context, base, index, value);
+                Utils.check(base != newBase);
+                RFrame.writeAt(frame, framePosition, newBase);
+            }
+        } else {
+            // variable is top-level
+            RAny base = var.getValue();
+            if (base == null) {
+                throw RError.getUnknownVariable(getAST());
+            }
+            RAny newBase = execute(context, base, index, value);
+            if (newBase != base) {
+                RFrame.writeInTopLevel(var, newBase);
+            }
         }
         return value;
     }
