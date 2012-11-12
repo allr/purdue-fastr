@@ -88,7 +88,9 @@ script returns [ASTNode v]
 	: n_ (s=statement {stmts.add(s);})*
 	;
 interactive returns [ASTNode v]
-	: n_ e=statement {$v = e;}
+    @init{ArrayList<ASTNode> stmts = new ArrayList<ASTNode>();}
+	@after{ if(stmts.size() > 1) $v = Sequence.create(stmts); else $v = stmts.get(0); }
+	: n_ (s=statement {stmts.add(s);})*
 	;
 statement returns [ASTNode v]
 	: e=expr_or_assign n {$v = e;}
