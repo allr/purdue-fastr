@@ -123,10 +123,12 @@ public class Console {
                 out.flush();
                 tree = parseStatement(lexer, parser, incomplete);
                 parser.reset();
-                if (DEBUG) {
-                    debug(tree);
+                if (tree != null) {
+                    if (DEBUG) {
+                        debug(tree);
+                    }
+                    out.println(context.eval(tree).pretty());
                 }
-                out.println(context.eval(tree).pretty());
             } catch (RecognitionException e) {
                 if (e.getUnexpectedType() != -1) { // if we reached EOF, the sentence is obviously finished and contains
 // a
@@ -152,7 +154,9 @@ public class Console {
 
         try {
             ASTNode tree = parser.script();
-            System.out.println(new RContext(compilerThreshold).eval(tree).pretty());
+            if (tree != null) {
+                System.out.println(new RContext(compilerThreshold).eval(tree).pretty());
+            }
         } catch (RecognitionException e) {
             parseError(parser, e);
         }
@@ -183,8 +187,10 @@ public class Console {
     static void parseError(RParser parser, RecognitionException e) {
         Token tok = e.token;
         String[] tokNames = parser.getTokenNames();
-        System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + tok.getCharPositionInLine() + " (" + tokNames[tok.getType()] + ") expected:");
+        System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) +
+                        ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
         parser.display_next_tokens();
         System.err.println("");
+        System.out.println(e.getMessage());
     }
 }

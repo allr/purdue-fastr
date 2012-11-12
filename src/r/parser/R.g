@@ -45,9 +45,11 @@ package r.parser;
 }
 @members {
     public void display_next_tokens(){
-        System.err.print("Allowed tokens: ");
-        for(int next: next_tokens())
-            System.err.print(tokenNames[next]);
+        System.err.print("Expected tokens: ");
+        for(int next: next_tokens()) {
+        		if(next > 3)
+            		System.err.print(tokenNames[next] + " ");
+            }
         System.err.println("");
     }
     public int[] next_tokens(){
@@ -89,7 +91,7 @@ script returns [ASTNode v]
 	;
 interactive returns [ASTNode v]
     @init{ArrayList<ASTNode> stmts = new ArrayList<ASTNode>();}
-	@after{ if(stmts.size() > 1) $v = Sequence.create(stmts); else $v = stmts.get(0); }
+	@after{ switch(stmts.size()) { case 0: $v = null; break; case 1: $v = stmts.get(0); break; default: $v = Sequence.create(stmts);} }
 	: n_ (s=statement {stmts.add(s);})*
 	;
 statement returns [ASTNode v]
