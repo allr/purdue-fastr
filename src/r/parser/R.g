@@ -210,7 +210,7 @@ operator_expr returns [ASTNode v]
 	;
 colon_expr returns [ASTNode v] // FIXME
 	: l=unary_expression { $v = $l.v ;}
-	(((COLON)=>op=COLON n_ r=power_expr { $v = BinaryOperation.create(BinaryOperator.COLON, $colon_expr.v, $r.v);} ))*
+	(((COLON)=>op=COLON n_ r=unary_expression { $v = BinaryOperation.create(BinaryOperator.COLON, $colon_expr.v, $r.v);} ))*
 	;
 unary_expression returns [ASTNode v] // Does !~ work ? ..if yes I'm not sure to understand 
 	: PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}

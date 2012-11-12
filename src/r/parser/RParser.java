@@ -1,4 +1,4 @@
-// $ANTLR 3.4 R.g 2012-11-12 17:40:02
+// $ANTLR 3.4 R.g 2012-11-12 19:17:03
 
 package r.parser;
 
@@ -3229,7 +3229,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "colon_expr"
-    // R.g:211:1: colon_expr returns [ASTNode v] : l= unary_expression ( ( ( COLON )=>op= COLON n_ r= power_expr ) )* ;
+    // R.g:211:1: colon_expr returns [ASTNode v] : l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* ;
     public final ASTNode colon_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3244,8 +3244,8 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 27) ) { return v; }
 
-            // R.g:212:2: (l= unary_expression ( ( ( COLON )=>op= COLON n_ r= power_expr ) )* )
-            // R.g:212:4: l= unary_expression ( ( ( COLON )=>op= COLON n_ r= power_expr ) )*
+            // R.g:212:2: (l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* )
+            // R.g:212:4: l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
             {
             pushFollow(FOLLOW_unary_expression_in_colon_expr1394);
             l=unary_expression();
@@ -3255,7 +3255,7 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) { v = l ;}
 
-            // R.g:213:2: ( ( ( COLON )=>op= COLON n_ r= power_expr ) )*
+            // R.g:213:2: ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
             loop27:
             do {
                 int alt27=2;
@@ -3274,10 +3274,10 @@ public class RParser extends Parser {
 
                 switch (alt27) {
             	case 1 :
-            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= power_expr )
+            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
             	    {
-            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= power_expr )
-            	    // R.g:213:4: ( COLON )=>op= COLON n_ r= power_expr
+            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
+            	    // R.g:213:4: ( COLON )=>op= COLON n_ r= unary_expression
             	    {
             	    op=(Token)match(input,COLON,FOLLOW_COLON_in_colon_expr1407); if (state.failed) return v;
 
@@ -3287,8 +3287,8 @@ public class RParser extends Parser {
             	    state._fsp--;
             	    if (state.failed) return v;
 
-            	    pushFollow(FOLLOW_power_expr_in_colon_expr1413);
-            	    r=power_expr();
+            	    pushFollow(FOLLOW_unary_expression_in_colon_expr1413);
+            	    r=unary_expression();
 
             	    state._fsp--;
             	    if (state.failed) return v;
@@ -3706,6 +3706,9 @@ public class RParser extends Parser {
             else if ( (LA31_0==CARRET) && (synpred17_R())) {
                 alt31=2;
             }
+            else if ( (LA31_0==COLON) && (synpred17_R())) {
+                alt31=2;
+            }
             else if ( (LA31_0==OP) && (synpred17_R())) {
                 alt31=2;
             }
@@ -3797,9 +3800,6 @@ public class RParser extends Parser {
                 alt31=2;
             }
             else if ( (LA31_0==ELSE) && (synpred17_R())) {
-                alt31=2;
-            }
-            else if ( (LA31_0==COLON) && (synpred17_R())) {
                 alt31=2;
             }
             else {
@@ -6621,9 +6621,9 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_n__in_operator_expr1363 = new BitSet(new long[]{0x0891225434160800L,0x00000000000C2212L});
     public static final BitSet FOLLOW_colon_expr_in_operator_expr1367 = new BitSet(new long[]{0x2000000000000002L});
     public static final BitSet FOLLOW_unary_expression_in_colon_expr1394 = new BitSet(new long[]{0x0000000000004002L});
-    public static final BitSet FOLLOW_COLON_in_colon_expr1407 = new BitSet(new long[]{0x08D0225434170800L,0x00000000000C2210L});
-    public static final BitSet FOLLOW_n__in_colon_expr1409 = new BitSet(new long[]{0x0890225434160800L,0x00000000000C2210L});
-    public static final BitSet FOLLOW_power_expr_in_colon_expr1413 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_COLON_in_colon_expr1407 = new BitSet(new long[]{0x08D1225434170800L,0x00000000000C2212L});
+    public static final BitSet FOLLOW_n__in_colon_expr1409 = new BitSet(new long[]{0x0891225434160800L,0x00000000000C2212L});
+    public static final BitSet FOLLOW_unary_expression_in_colon_expr1413 = new BitSet(new long[]{0x0000000000004002L});
     public static final BitSet FOLLOW_PLUS_in_unary_expression1434 = new BitSet(new long[]{0x08D1225434170800L,0x00000000000C2212L});
     public static final BitSet FOLLOW_n__in_unary_expression1436 = new BitSet(new long[]{0x0891225434160800L,0x00000000000C2212L});
     public static final BitSet FOLLOW_unary_expression_in_unary_expression1440 = new BitSet(new long[]{0x0000000000000002L});
