@@ -14,8 +14,8 @@ import r.parser.*;
  */
 public class Console {
 
-    public static final boolean DEBUG = Utils.getProperty("RConsole.debug", false);
-    public static final boolean DEBUG_GUI = Utils.getProperty("RConsole.debug.gui", false);
+    public static boolean DEBUG = Utils.getProperty("RConsole.debug", false);
+    public static boolean DEBUG_GUI = Utils.getProperty("RConsole.debug.gui", false);
 
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
@@ -64,6 +64,16 @@ public class Console {
                             try {
                                 compilerThreshold = Integer.parseInt(opts[0]);
                             } catch (NumberFormatException e) {
+                            }
+                        }
+                    }, //
+                    new Option("--debug", "debug in 'text' or 'gui' mode", 1) {
+
+                        @Override
+                        protected void processOption(String name, String[] opts) {
+                            DEBUG = true;
+                            if (opts[0].equalsIgnoreCase("gui")) {
+                                DEBUG_GUI = true;
                             }
                         }
                     }, //

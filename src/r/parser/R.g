@@ -172,9 +172,12 @@ par_decl [ArgumentList l]
  	| DD n_ ASSIGN n_ expr
 	;
 tilde_expr returns [ASTNode v]
-	: l=or_expr { $v = $l.v ;}
-	( ((TILDE)=>TILDE n_ r=or_expr {$v = BinaryOperation.create(BinaryOperator.ADD, $tilde_expr.v, $r.v);} ))*
+	: l=utilde_expr { $v = $l.v ;}
+	( ((TILDE)=>TILDE n_ r=utilde_expr {$v = BinaryOperation.create(BinaryOperator.ADD, $tilde_expr.v, $r.v);} ))*
 	;
+utilde_expr returns [ASTNode v]
+	: TILDE n_ l=or_expr {$v = UnaryOperation.create(UnaryOperator.MODEL, l);}
+	| l=or_expr { $v = l; };
 or_expr returns [ASTNode v]
 	: l=and_expr { $v = $l.v ;}
 	(((or_operator)=>op=or_operator n_ r=and_expr {$v = BinaryOperation.create(op, $or_expr.v, $r.v);} ))*
@@ -204,20 +207,19 @@ operator_expr returns [ASTNode v]
 	(((OP)=>op=OP n_ r=colon_expr { $v = null; } ))*  /* FIXME BinaryOperation.create(op, $operator_expr.v, $r.v); */ 
 	;
 colon_expr returns [ASTNode v] // FIXME
-	: l=power_expr { $v = $l.v ;}
+	: l=unary_expression { $v = $l.v ;}
 	(((COLON)=>op=COLON n_ r=power_expr { $v = BinaryOperation.create(BinaryOperator.COLON, $colon_expr.v, $r.v);} ))*
 	;
-power_expr returns [ASTNode v]
-	: l=unary_expression {$v=$l.v;}
-    (((power_operator)=>op=power_operator n_ r=power_expr { $v = BinaryOperation.create(op, $l.v, $r.v);} )
-    |)
-    ;
 unary_expression returns [ASTNode v] // Does !~ work ? ..if yes I'm not sure to understand 
 	: PLUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.PLUS, l);}
 	| MINUS n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MINUS, l);}
-	| TILDE n_ l=unary_expression {$v = UnaryOperation.create(UnaryOperator.MODEL, l);}
-	| b=basic_expr { $v=b; }
+	| b=power_expr { $v=b; }
 	;
+power_expr returns [ASTNode v]
+	: l=basic_expr {$v=$l.v;}
+    (((power_operator)=>op=power_operator n_ r=power_expr { $v = BinaryOperation.create(op, $l.v, $r.v);} )
+    |)
+    ;
 basic_expr returns [ASTNode v]
 	: lhs=simple_expr { $v = lhs; }
 	(((FIELD|AT|LBRAKET|LBB|LPAR)=>subset=expr_subset[v] { $v = subset; })+ | (n_)=>)
