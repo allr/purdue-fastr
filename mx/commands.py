@@ -49,15 +49,15 @@ def frtest(args):
   
 def rconsoleServer(args):
   """Run R Console with the HotSpot server VM"""  
-  rconsole([], 'server', [])
+  rconsole([], 'server', args)
   
 def rconsoleGraal(args):
   """Run R Console with the Graal VM"""  
-  rconsole(['-XX:-BootstrapGraal'], 'graal', [])
+  rconsole(['-XX:-BootstrapGraal'], 'graal', args)
 
 def rconsoleDebugGraal(args):
   """Run R Console with the Graal VM, debugging options"""  
-  rconsole(['-XX:-BootstrapGraal', '-G:+DumpOnError', '-G:Dump=Truffle', '-G:+PrintBinaryGraphs', '-G:+PrintCFG', '-esa'], 'graal', [])
+  rconsole(['-XX:-BootstrapGraal', '-G:+DumpOnError', '-G:Dump=Truffle', '-G:+PrintBinaryGraphs', '-G:+PrintCFG', '-esa'], 'graal', args)
 
 def rfannkuchServer(args):
   """Run Fannkuch with the HotSpot server VM"""  
@@ -120,7 +120,7 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   print("Input file "+tmp);
   
 #  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey',tmp]);
-  rconsole(vmArgs, vm, ['--waitForKey',tmp]);
+  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
 #  rconsole(vmArgs, vm, [tmp]);
 
 # TODO: a generic function to run a shootout benchmark
