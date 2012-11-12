@@ -253,5 +253,26 @@ public class Function extends ASTNode {
             written.add(n.getCVar());
             n.visit_all(this);
         }
+
+        @Override
+        public void visit(UpdateVector n) {
+            AccessVector a = n.getVector();
+            ASTNode v = a.getVector();
+            if (!(v instanceof SimpleAccessVariable)) {
+                Utils.nyi("unsupported");
+            }
+            written.add(((SimpleAccessVariable) v).getSymbol());
+            n.visit_all(this);
+        }
+
+        @Override
+        public void visit(AccessVector n) {
+            ASTNode v = n.getVector();
+            if (!(v instanceof SimpleAccessVariable)) {
+                Utils.nyi("unsupported");
+            }
+            read.add(((SimpleAccessVariable) v).getSymbol());
+            n.visit_all(this);
+        }
     }
 }

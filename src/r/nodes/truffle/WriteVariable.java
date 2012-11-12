@@ -50,9 +50,10 @@ public abstract class WriteVariable extends BaseR {
                             node = getWriteLocal(getAST(), symbol, pos, expr);
                             reason = "installWriteLocalNode";
                         } else {
-                            node = getWriteExtension(getAST(), symbol, expr); // TODO this should be removed or at least asserted false !
-                            reason = "installWriteExtensionNode (!!! REMOVE when write sets are implemented)";
-                            Utils.check(false, "TODO: implement wset and remove this condition");
+                            // this is only with reflective access
+                            node = getWriteExtension(getAST(), symbol, expr);
+                            reason = "installWriteExtensionNode (!!! only reflective access !!!)";
+                            Utils.check(false, "unreachable as long as not doing any reflective writes");
                         }
                     }
                     if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" uninitialized rewritten: "+reason); }
