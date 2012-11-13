@@ -8,8 +8,6 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.BinaryOperation.BinaryOperator;
-import r.nodes.*;
 import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;

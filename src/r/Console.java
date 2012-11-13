@@ -5,8 +5,10 @@ import java.util.Scanner;
 
 import org.antlr.runtime.*;
 
+import r.data.*;
 import r.nodes.*;
 import r.nodes.tools.*;
+import r.nodes.truffle.*;
 import r.parser.*;
 
 /*
@@ -26,6 +28,7 @@ public class Console {
     static int compilerThreshold = 1; // For --threshold
     static String inputFile;
     static boolean interactive;
+    static boolean forceVisible;
 
     static Option[] options = new Option[]{
                     //
@@ -42,6 +45,13 @@ public class Console {
                         @Override
                         protected void processOption(String name, String[] opts) throws IOException {
                             interactive = true;
+                        }
+                    }, //
+                    new Option("--visible", "Skip invisibility checks") {
+
+                        @Override
+                        protected void processOption(String name, String[] opts) throws IOException {
+                            forceVisible = true;
                         }
                     }, //
                     new Option("--waitForKey", "Wait for presing 'return' before starting execution") {
@@ -93,7 +103,7 @@ public class Console {
 
         long before = System.nanoTime();
         try {
-            if (interactive  || inputFile == null) {
+            if (interactive || inputFile == null) {
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 processFile(openANTLRStream(inputFile));
@@ -110,20 +120,19 @@ public class Console {
         RParser parser = new RParser(null);
         ASTNode tree;
         RContext context = new RContext(compilerThreshold);
-        PrintStream out = System.out;
         StringBuilder incomplete = new StringBuilder();
 
         do {
             try {
-                out.print(incomplete.length() == 0 ? prompt : promptMore);
-                out.flush();
+                System.out.print(incomplete.length() == 0 ? prompt : promptMore);
+                System.out.flush();
                 tree = parseStatement(in, lexer, parser, incomplete);
                 parser.reset();
                 if (tree != null) {
                     if (DEBUG) {
                         debug(tree);
                     }
-                    out.println(context.eval(tree).pretty());
+                    printResult(tree, context.eval(tree));
                 }
             } catch (RecognitionException e) {
                 if (e.getUnexpectedType() != -1) { // if we reached EOF, the sentence is obviously finished and contains
@@ -151,7 +160,7 @@ public class Console {
         try {
             ASTNode tree = parser.script();
             if (tree != null) {
-                System.out.println(new RContext(compilerThreshold).eval(tree).pretty());
+                printResult(tree, new RContext(compilerThreshold).eval(tree));
             }
         } catch (RecognitionException e) {
             parseError(parser, e);
@@ -197,5 +206,12 @@ public class Console {
         String[] tokNames = parser.getTokenNames();
         System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
+    }
+
+    static void printResult(ASTNode expr, RAny result) {
+        // TODO to be a bit more compatible, we need to keep '()' as an ASTNode, but Truffelize must SKIP it.
+        if (forceVisible || !(expr instanceof AssignVariable)) {
+            System.out.println(result.pretty());
+        }
     }
 }
