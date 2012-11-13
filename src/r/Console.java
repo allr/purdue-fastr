@@ -170,8 +170,7 @@ public class Console {
         incomplete.append(line);
         lexer.setCharStream(new ANTLRStringStream(incomplete.toString()));
         parser.setTokenStream(new CommonTokenStream(lexer));
-        ASTNode result;
-        result = parser.interactive();
+        ASTNode result = parser.interactive();
         incomplete.setLength(0); // Kind of reset
         return result;
     }
