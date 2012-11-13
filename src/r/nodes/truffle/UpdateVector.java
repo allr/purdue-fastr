@@ -104,7 +104,7 @@ public abstract class UpdateVector extends BaseR {
                     throw RError.getUnknownVariable(getAST());
                 }
                 base.ref(); // reading from parent, hence need to copy on update
-                Utils.check(base.isShared());
+                            // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(context, base, index, value);
                 Utils.check(base != newBase);
                 RFrame.writeAt(frame, framePosition, newBase);
@@ -177,8 +177,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!ibase.isShared()) {
-                                ibase.set(zpos, ((ScalarIntImpl) value).getInt());
-                                return ibase;
+                                return ibase.set(zpos, ((ScalarIntImpl) value).getInt());
                             } else {
                                 int[] content = new int[bsize];
                                 int i = 0;
@@ -209,8 +208,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!ibase.isShared()) {
-                                ibase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
-                                return ibase;
+                                return ibase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
                             } else {
                                 int[] content = new int[bsize];
                                 int i = 0;
@@ -244,8 +242,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
-                                dbase.set(zpos, ((ScalarDoubleImpl) value).getDouble());
-                                return dbase;
+                                return dbase.set(zpos, ((ScalarDoubleImpl) value).getDouble());
                             } else {
                                 double[] content = new double[bsize];
                                 int i = 0;
@@ -276,8 +273,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
-                                dbase.set(zpos, Convert.int2double(((ScalarIntImpl) value).getInt()));
-                                return dbase;
+                                return dbase.set(zpos, Convert.int2double(((ScalarIntImpl) value).getInt()));
                             } else {
                                 double[] content = new double[bsize];
                                 int i = 0;
@@ -308,8 +304,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
-                                dbase.set(zpos, Convert.logical2double(((ScalarLogicalImpl) value).getLogical()));
-                                return dbase;
+                                return dbase.set(zpos, Convert.logical2double(((ScalarLogicalImpl) value).getLogical()));
                             } else {
                                 double[] content = new double[bsize];
                                 int i = 0;
@@ -343,8 +338,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int zpos = pos - 1;
                             if (!lbase.isShared()) {
-                                lbase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
-                                return lbase;
+                                return lbase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
                             } else {
                                 int[] content = new int[bsize];
                                 int i = 0;
@@ -363,7 +357,7 @@ public abstract class UpdateVector extends BaseR {
                 }
             }
             if (baseTemplate instanceof RList && !(valueTemplate instanceof RNull)) {
-                ValueCopy cpy = new ValueCopy() { // FIXME: avoid some copying here as well, but carefully (handle recursive lists correctly)
+                ValueCopy cpy = new ValueCopy() {
                     @Override
                     RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
                         if (!(base instanceof RList) || (value instanceof RNull)) {
@@ -377,8 +371,7 @@ public abstract class UpdateVector extends BaseR {
                         int zpos = pos - 1;
                         value.ref();
                         if (!lbase.isShared()) {
-                            lbase.set(zpos, value);
-                            return lbase;
+                            return lbase.set(zpos, value);
                         } else {
                             RAny[] content = new RAny[bsize];
                             int i = 0;
@@ -409,7 +402,7 @@ public abstract class UpdateVector extends BaseR {
 
             if (blist && vlist) {
                 typedBase = base;
-                RAny v = ((RList) value).getRAny(0);
+                RAny v = subset ? ((RList) value).getRAny(0) : value;
                 v.ref();
                 rawValue = v;
             } else if (blist) {
