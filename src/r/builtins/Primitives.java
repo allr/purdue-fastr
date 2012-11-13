@@ -25,6 +25,7 @@ public class Primitives {
         add("length", 1, 1, Length.FACTORY);
         add("list", 0, -1, List.FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
+        add("matrix", 0, 5, Matrix.FACTORY);
         add("max", 0, -1, Max.FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
         add("rep.int", 2, 2, Rep.FACTORY);

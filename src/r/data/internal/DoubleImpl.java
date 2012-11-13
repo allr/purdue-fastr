@@ -6,7 +6,6 @@ import r.data.*;
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
-    int[] dimensions;
 
     public DoubleImpl(double[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
@@ -97,6 +96,9 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public String pretty() {
+        if (dimensions != null) {
+            return matrixPretty();
+        }
         if (content.length == 0) {
             return RDouble.TYPE_STRING + "(0)";
         }

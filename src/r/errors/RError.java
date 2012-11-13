@@ -41,11 +41,19 @@ public abstract class RError extends RuntimeException {
     public static final String NAN_PRODUCED = "NaNs produced";
     public static final String NUMERIC_COMPLEX_MATRIX_VECTOR = "requires numeric/complex matrix/vector arguments";
     public static final String NON_CONFORMABLE_ARGS = "non-conformable arguments";
+    public static final String INVALID_BYROW = "invalid 'byrow' argument";
+    public static final String DATA_VECTOR = "'data' must be of a vector type";
+    public static final String NON_NUMERIC_MATRIX_EXTENT = "non-numeric matrix extent";
+    public static final String INVALID_NCOL = "invalid 'ncol' value (too large or NA)"; // also can mean empty
+    public static final String INVALID_NROW = "invalid 'nrow' value (too large or NA)"; // also can mean empty
+    public static final String NEGATIVE_NCOL = "invalid 'ncol' value (< 0)";
+    public static final String NEGATIVE_NROW = "invalid 'nrow' value (< 0)";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
     public static final String LIST_COERCION = "(list) object cannot be coerced to type '%s'";
     public static final String CAT_ARGUMENT_LIST = "argument %d (type 'list') cannot be handled by 'cat'";
+    public static final String DATA_NOT_MULTIPLE_ROWS = "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]";
 
 
     public static RError getNYI(final String msg) {
@@ -390,6 +398,90 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NON_CONFORMABLE_ARGS;
+            }
+        };
+    }
+
+    public static RError getInvalidByRow(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_BYROW;
+            }
+        };
+    }
+
+    public static RError getDataVector(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.DATA_VECTOR;
+            }
+        };
+    }
+
+    public static RError getNonNumericMatrixExtent(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NON_NUMERIC_MATRIX_EXTENT;
+            }
+        };
+    }
+
+    public static RError getInvalidNCol(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_NCOL;
+            }
+        };
+    }
+
+    public static RError getInvalidNRow(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_NROW;
+            }
+        };
+    }
+
+    public static RError getNegativeNCol(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NEGATIVE_NCOL;
+            }
+        };
+    }
+
+    public static RError getNegativeNRow(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NEGATIVE_NROW;
             }
         };
     }

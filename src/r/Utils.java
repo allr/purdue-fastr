@@ -86,6 +86,21 @@ public final class Utils {
         return null;
     }
 
+    public static RArray getBoxedNA(RArray arr) {
+        if (arr instanceof RInt) {
+            return RInt.BOXED_NA;
+        } else if (arr instanceof RDouble) {
+            return RDouble.BOXED_NA;
+        } else if (arr instanceof RLogical) {
+            return RLogical.BOXED_NA;
+        } else if (arr instanceof RList) {
+            return RList.NULL;
+        } else {
+            Utils.nyi("unsupported array type");
+            return null;
+        }
+    }
+
     public static void setNA(RArray arr, int index) { // FIXME: !!! should find better design to get rid of these
         if (arr instanceof RInt) {
             arr.set(index, RInt.NA);

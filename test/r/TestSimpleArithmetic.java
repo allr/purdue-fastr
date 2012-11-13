@@ -50,4 +50,9 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ !c(1,2,3,4,0,0,NA) }", "FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, NA");
         assertEval("{ !((0-3):3) }", "FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE");
     }
+
+    @Test
+    public void testMatrix() throws RecognitionException {
+        assertEval("{ x <- 1:3 %*% 9:11 ; x[1] }", "62.0");
+    }
 }

@@ -97,6 +97,9 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public String pretty() {
+        if (dimensions != null) {
+            return matrixPretty();
+        }
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";
         }

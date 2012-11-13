@@ -89,6 +89,9 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public String pretty() {
+        if (dimensions != null) {
+            return matrixPretty();
+        }
         if (content.length == 0) {
             return RString.TYPE_STRING + "(0)";
         }
