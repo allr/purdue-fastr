@@ -7,6 +7,7 @@ import org.antlr.runtime.*;
 
 import r.data.*;
 import r.nodes.*;
+import r.nodes.Loop;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
 import r.parser.*;
@@ -210,7 +211,9 @@ public class Console {
 
     static void printResult(ASTNode expr, RAny result) {
         // TODO to be a bit more compatible, we need to keep '()' as an ASTNode, but Truffelize must SKIP it.
-        if (forceVisible || !(expr instanceof AssignVariable)) {
+        if (forceVisible || !(
+                            expr instanceof AssignVariable
+                            || expr instanceof Loop)) {
             System.out.println(result.pretty());
         }
     }
