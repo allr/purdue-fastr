@@ -20,15 +20,12 @@ public class Console {
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
 
-    static String[] moreArgs; // For commandArgs()
+    static String[] trailingArgs; // For commandArgs(trailing=T)
+    static String[] commandArgs; // For commandArgs(trailing=F)
 
     static int compilerThreshold = 1; // For --threshold
-
-    // When we aren't in interactive mode
-    static ANTLRStringStream stream;
-
-    // When we are
-    static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    static String inputFile;
+    static boolean interactive;
 
     static Option[] options = new Option[]{
                     //
@@ -36,17 +33,15 @@ public class Console {
                     new Option("-f", "Script input file", 1) {
 
                         @Override
+                        protected void processOption(String name, String[] opts) {
+                            inputFile = opts[0];
+                        }
+                    }, //
+                    new Option("--interactive", "Force interactive even if -f is provided") {
+
+                        @Override
                         protected void processOption(String name, String[] opts) throws IOException {
-                            try {
-                                if (opts[0].equals("-")) {
-                                    stream = new ANTLRInputStream(System.in);
-                                } else {
-                                    stream = new ANTLRFileStream(opts[0]);
-                                }
-                            } catch (IOException e) {
-                                System.err.println(e.getLocalizedMessage());
-                                throw e;
-                            }
+                            interactive = true;
                         }
                     }, //
                     new Option("--waitForKey", "Wait for presing 'return' before starting execution") {
@@ -89,7 +84,8 @@ public class Console {
 
     public static void main(String[] args) {
         try {
-            moreArgs = Option.processCommandLine(args, options);
+            commandArgs = args;
+            trailingArgs = Option.processCommandLine(args, options);
             // TODO store this in a more appropriate place (needed for commandArgs())
         } catch (Exception e1) {
             return;
@@ -97,10 +93,10 @@ public class Console {
 
         long before = System.nanoTime();
         try {
-            if (stream != null) {
-                processFile(stream);
+            if (interactive  || inputFile == null) {
+                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
-                interactive();
+                processFile(openANTLRStream(inputFile));
             }
         } catch (IOException e) {
         }
@@ -109,7 +105,7 @@ public class Console {
         System.out.println("\nElapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
-    static void interactive() throws IOException {
+    static void interactive(BufferedReader in) throws IOException {
         RLexer lexer = new RLexer();
         RParser parser = new RParser(null);
         ASTNode tree;
@@ -121,7 +117,7 @@ public class Console {
             try {
                 out.print(incomplete.length() == 0 ? prompt : promptMore);
                 out.flush();
-                tree = parseStatement(lexer, parser, incomplete);
+                tree = parseStatement(in, lexer, parser, incomplete);
                 parser.reset();
                 if (tree != null) {
                     if (DEBUG) {
@@ -162,7 +158,7 @@ public class Console {
         }
     }
 
-    static ASTNode parseStatement(RLexer lexer, RParser parser, StringBuilder incomplete) throws IOException, RecognitionException {
+    static ASTNode parseStatement(BufferedReader in, RLexer lexer, RParser parser, StringBuilder incomplete) throws IOException, RecognitionException {
         String line = in.readLine();
         if (line == null) {
             throw new EOFException();
@@ -173,6 +169,19 @@ public class Console {
         ASTNode result = parser.interactive();
         incomplete.setLength(0); // Kind of reset
         return result;
+    }
+
+    static ANTLRStringStream openANTLRStream(String fName) throws IOException {
+        try {
+            if (fName.equals("-")) {
+                return new ANTLRInputStream(System.in);
+            } else {
+                return new ANTLRFileStream(fName);
+            }
+        } catch (IOException e) {
+            System.err.println(e.getLocalizedMessage());
+            throw e;
+        }
     }
 
     static void debug(ASTNode tree) {
@@ -186,8 +195,7 @@ public class Console {
     static void parseError(RParser parser, RecognitionException e) {
         Token tok = e.token;
         String[] tokNames = parser.getTokenNames();
-        System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) +
-                        ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
+        System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
     }
 }
