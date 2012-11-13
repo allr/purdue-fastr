@@ -397,28 +397,15 @@ public abstract class UpdateVector extends BaseR {
             RArray typedBase;
             Object rawValue;
 
-            boolean blist = base instanceof RList;
-            boolean vlist = value instanceof RList;
-
-            if (blist && vlist) {
-                typedBase = base;
+            if (value instanceof RList) {
+                typedBase = base.asList();
                 RAny v = subset ? ((RList) value).getRAny(0) : value;
                 v.ref();
                 rawValue = v;
-            } else if (blist) {
+            } else if (base instanceof RList) {
                 typedBase = base;
                 rawValue = value;
                 value.ref();
-            } else if (vlist) {
-                typedBase = base.asList();
-                RAny v = null;
-                if (subset) {
-                    v = ((RList) value).getRAny(0);
-                } else {
-                    v = value;
-                }
-                v.ref();
-                rawValue = v;
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 rawValue = value.asDouble().get(0);
@@ -1078,9 +1065,11 @@ public abstract class UpdateVector extends BaseR {
                 RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
                     RArray typedBase;
                     RArray typedValue;
+                    RList listValue = null;
                     if (base instanceof RList || value instanceof RList) {
                         typedBase = base.asList();
-                        typedValue = value.asList();
+                        listValue = value.asList();
+                        typedValue = null;
                     } else if (base instanceof RDouble || value instanceof RDouble) {
                         typedBase = base.asDouble();
                         typedValue = value.asDouble();
@@ -1103,7 +1092,7 @@ public abstract class UpdateVector extends BaseR {
                     imin--;
                     imax--;  // convert to 0-based
                     int isize = index.size();
-                    int vsize = typedValue.size();
+                    int vsize = typedValue != null ? typedValue.size() : listValue.size();
                     if (isize != vsize) {
                         throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
                     }
@@ -1123,12 +1112,23 @@ public abstract class UpdateVector extends BaseR {
                         astep = -step;
                         delta = -1;
                     }
-                    for (int steps = 0; steps < isize; steps++) {
-                        res.set(i, typedValue.get(steps));
-                        i += delta;
-                        for (int j = 1; j < astep; j++) {
-                            res.set(i,  typedBase.get(i));
+                    if (typedValue != null) {
+                        for (int steps = 0; steps < isize; steps++) {
+                            res.set(i, typedValue.get(steps));
                             i += delta;
+                            for (int j = 1; j < astep; j++) {
+                                res.set(i,  typedBase.get(i));
+                                i += delta;
+                            }
+                        }
+                    } else {
+                        for (int steps = 0; steps < isize; steps++) {
+                            res.set(i, listValue.getRAnyRef(steps));
+                            i += delta;
+                            for (int j = 1; j < astep; j++) {
+                                res.set(i,  typedBase.get(i));
+                                i += delta;
+                            }
                         }
                     }
                     for (i = imax + 1; i < bsize; i++) {
@@ -1289,11 +1289,15 @@ public abstract class UpdateVector extends BaseR {
             Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
-            if (base instanceof RList && value instanceof RNull) {
+            final boolean listBase = base instanceof RList;
+            RList listValue = null;
+
+            if (listBase && value instanceof RNull) {
                 return deleteElements((RList) base, index, ast, subset);
-            } else if (base instanceof RList || value instanceof RList) {
+            } else if (listBase || value instanceof RList) {
                 typedBase = base.asList();
-                typedValue = value.asList();
+                listValue = value.asList();
+                typedValue = null;
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
@@ -1342,7 +1346,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
             }
-            int vsize = typedValue.size();
+            int vsize = typedValue != null ? typedValue.size() : listValue.size();
             if (!hasNegative) {
                 int nsize = maxIndex;
                 if (nsize < bsize) {
@@ -1361,7 +1365,11 @@ public abstract class UpdateVector extends BaseR {
                 for (i = 0; i < isize; i++) {
                     int v = index.getInt(i);
                     if (v != 0 && v != RInt.NA) {
-                        res.set(v - 1, typedValue.get(j++));
+                        if (typedValue != null) {
+                            res.set(v - 1, typedValue.get(j++));
+                        } else {
+                            res.set(v - 1, listValue.getRAnyRef(j++));
+                        }
                         if (j == vsize) {
                             j = 0;
                         }
@@ -1382,7 +1390,11 @@ public abstract class UpdateVector extends BaseR {
                     if (omit[i]) {
                         res.set(i, typedBase.get(i));
                     } else {
-                        res.set(i,  typedValue.get(j++));
+                        if (typedValue != null) {
+                            res.set(i,  typedValue.get(j++));
+                        } else {
+                            res.set(i,  listValue.getRAnyRef(j++));
+                        }
                         if (j == vsize) {
                             j = 0;
                         }
@@ -1760,11 +1772,14 @@ public abstract class UpdateVector extends BaseR {
         public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
+            RList listValue = null;
+
             if (base instanceof RList && value instanceof RNull) {
                 return deleteElements((RList) base, index, ast);
             } else if (base instanceof RList || value instanceof RList) {
                 typedBase = base.asList();
-                typedValue = value.asList();
+                listValue = value.asList();
+                typedValue = null;
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 typedValue = value.asDouble();
@@ -1780,7 +1795,7 @@ public abstract class UpdateVector extends BaseR {
             }
             int bsize = base.size();
             int isize = index.size();
-            int vsize = typedValue.size();
+            int vsize = typedValue != null ? typedValue.size() : listValue.size();
             int nsize = (bsize > isize) ? bsize : isize;
 
             RArray res = Utils.createArray(typedBase, nsize);
@@ -1794,7 +1809,11 @@ public abstract class UpdateVector extends BaseR {
                     ii = 0;
                 }
                 if (v == RLogical.TRUE) {
-                    res.set(ni, typedValue.get(vi));
+                    if (typedValue != null) {
+                        res.set(ni, typedValue.get(vi));
+                    } else {
+                        res.set(ni, listValue.get(vi));
+                    }
                     vi++;
                     if (vi == vsize) {
                         vi = 0;
