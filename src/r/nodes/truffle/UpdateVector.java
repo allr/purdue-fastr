@@ -188,7 +188,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content);
+                                return RInt.RIntFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
@@ -219,7 +219,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content);
+                                return RInt.RIntFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
@@ -253,7 +253,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content);
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
@@ -284,7 +284,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content);
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
@@ -315,7 +315,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content);
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
@@ -349,14 +349,14 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = lbase.getLogical(i);
                                 }
-                                return RLogical.RLogicalFactory.getFor(content);
+                                return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                             }
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,ScalarLogical>");
                 }
             }
-            if (baseTemplate instanceof RList && !(valueTemplate instanceof RNull)) {
+            if (baseTemplate instanceof RList && !subset && !(valueTemplate instanceof RNull)) {
                 ValueCopy cpy = new ValueCopy() {
                     @Override
                     RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
@@ -382,7 +382,7 @@ public abstract class UpdateVector extends BaseR {
                             for (; i < bsize; i++) { // shallow copy
                                 content[i] = lbase.getRAny(i);
                             }
-                            return RList.RListFactory.getForArray(content);
+                            return RList.RListFactory.getFor(content, base.dimensions());
                         }
                     }
                 };
@@ -391,14 +391,19 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
-        // FIXME: the asXXX functions will allocate views, but the value has only a single element, this is an over-kill
-        //        probably should create asXXXScalar() casts
+        // FIXME: the asXXX functions will allocate boxes, probably should create asXXXScalar() casts
         public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) { // FIXME: avoid some copying here but careful about lists
             RArray typedBase;
             Object rawValue;
+            int[] dimensions = base.dimensions();
 
             if (value instanceof RList) {
-                typedBase = base.asList();
+                if (base instanceof RList) {
+                    typedBase = base;
+                } else {
+                    typedBase = base.asList();
+                    dimensions = null;
+                }
                 RAny v = subset ? ((RList) value).getRAny(0) : value;
                 v.ref();
                 rawValue = v;
@@ -423,7 +428,7 @@ public abstract class UpdateVector extends BaseR {
             if (pos > 0) {
                 if (pos <= bsize) {
                     int zpos = pos - 1;
-                    RArray res = Utils.createArray(typedBase, bsize);
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions);
                     int i = 0;
                     for (; i < zpos; i++) {
                         res.set(i, typedBase.get(i));
@@ -436,7 +441,7 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     int zpos = pos - 1;
                     int nsize = zpos + 1;
-                    RArray res = Utils.createArray(typedBase, nsize);
+                    RArray res = Utils.createArray(typedBase, nsize); // drop dimensions
                     int i = 0;
                     for (; i < bsize; i++) {
                         res.set(i, typedBase.get(i));
@@ -465,7 +470,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 int keep = -pos - 1;
                 Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
-                RArray res = Utils.createArray(typedBase, bsize);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions);
                 int i = 0;
                 for (; i < keep; i++) {
                     res.set(i, rawValue);
@@ -591,7 +596,7 @@ public abstract class UpdateVector extends BaseR {
                     for (; j < nsize; j++) { // shallow copy
                         content[j] = base.getRAny(zi++);
                     }
-                    return RList.RListFactory.getForArray(content);
+                    return RList.RListFactory.getFor(content); // drop dimensions
                 } else {
                     return base;
                 }
@@ -863,7 +868,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) { // shallow copy
                                 content[i] = typedBase.getRAny(i);
                             }
-                            return RList.RListFactory.getForArray(content);
+                            return RList.RListFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
@@ -927,7 +932,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getDouble(i);
                             }
-                            return RDouble.RDoubleFactory.getFor(content);
+                            return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
@@ -991,7 +996,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getInt(i);
                             }
-                            return RInt.RIntFactory.getFor(content);
+                            return RInt.RIntFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1048,7 +1053,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getLogical(i);
                             }
-                            return RLogical.RLogicalFactory.getFor(content);
+                            return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1066,22 +1071,35 @@ public abstract class UpdateVector extends BaseR {
                     RArray typedBase;
                     RArray typedValue;
                     RList listValue = null;
-                    if (base instanceof RList || value instanceof RList) {
-                        typedBase = base.asList();
-                        listValue = value.asList();
+                    int[] dimensions;
+                    if (value instanceof RList) {
                         typedValue = null;
-                    } else if (base instanceof RDouble || value instanceof RDouble) {
-                        typedBase = base.asDouble();
-                        typedValue = value.asDouble();
-                    } else if (base instanceof RInt || value instanceof RInt) {
-                        typedBase = base.asInt();
-                        typedValue = value.asInt();
-                    } else if (base instanceof RLogical || value instanceof RLogical) {
-                        typedBase = base.asLogical();
-                        typedValue = value.asLogical();
+                        listValue = (RList) value;
+                        if (base instanceof RList) {
+                            typedBase = base;
+                            dimensions = listValue.dimensions();
+                        } else {
+                            typedBase = base.asList();
+                            dimensions = null;
+                        }
                     } else {
-                        Utils.nyi("unsupported vector types");
-                        return null;
+                        if (base instanceof RList) {
+                            typedBase = base;
+                            typedValue = value.asList();
+                        } else if (base instanceof RDouble || value instanceof RDouble) {
+                            typedBase = base.asDouble();
+                            typedValue = value.asDouble();
+                        } else if (base instanceof RInt || value instanceof RInt) {
+                            typedBase = base.asInt();
+                            typedValue = value.asInt();
+                        } else if (base instanceof RLogical || value instanceof RLogical) {
+                            typedBase = base.asLogical();
+                            typedValue = value.asLogical();
+                        } else {
+                            Utils.nyi("unsupported vector types");
+                            return null;
+                        }
+                        dimensions = typedValue.dimensions();
                     }
                     int bsize = base.size();
                     int imin = index.min();
@@ -1096,7 +1114,7 @@ public abstract class UpdateVector extends BaseR {
                     if (isize != vsize) {
                         throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
                     }
-                    RArray res = Utils.createArray(typedBase, bsize);
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions);
                     int i = 0;
                     for (; i < imin; i++) {
                         res.set(i, typedBase.get(i));
@@ -1259,6 +1277,7 @@ public abstract class UpdateVector extends BaseR {
                 int nsize = (bsize - ntrue) + nullsToAdd;
                 RAny[] content = new RAny[nsize];
                 int j = 0;
+
                 for (int i = 0; i < bsize; i++) {
                     if (!selected[i]) { // shallow copy
                         content[j++] = base.getRAny(i);
@@ -1267,7 +1286,11 @@ public abstract class UpdateVector extends BaseR {
                 for (int i = 0; i < nullsToAdd; i++) {
                     content[j++] = RList.NULL;
                 }
-                return RList.RListFactory.getForArray(content);
+                int[] dimensions = null;
+                if (nsize == bsize && maxIndex <= bsize) {
+                    dimensions = base.dimensions();
+                }
+                return RList.RListFactory.getFor(content, dimensions);
             } else {
                 // hasNegative == true
                 if (hasPositive || hasNA) {
@@ -1276,12 +1299,14 @@ public abstract class UpdateVector extends BaseR {
                 int nsize = ntrue;
                 RAny[] content = new RAny[nsize];
                 int j = 0;
+
                 for (int i = 0; i < bsize; i++) {
                     if (selected[i]) { // shallow copy
                         content[j++] = base.getRAny(i);
                     }
                 }
-                return RList.RListFactory.getForArray(content);
+                int[] dimensions = nsize == bsize ? base.dimensions() : null;
+                return RList.RListFactory.getFor(content, dimensions);
             }
         }
 
@@ -1291,25 +1316,39 @@ public abstract class UpdateVector extends BaseR {
             RArray typedValue;
             final boolean listBase = base instanceof RList;
             RList listValue = null;
+            int[] dimensions;
 
             if (listBase && value instanceof RNull) {
                 return deleteElements((RList) base, index, ast, subset);
-            } else if (listBase || value instanceof RList) {
-                typedBase = base.asList();
-                listValue = value.asList();
+            } else if (value instanceof RList) {
+                listValue = (RList) value;
                 typedValue = null;
-            } else if (base instanceof RDouble || value instanceof RDouble) {
-                typedBase = base.asDouble();
-                typedValue = value.asDouble();
-            } else if (base instanceof RInt || value instanceof RInt) {
-                typedBase = base.asInt();
-                typedValue = value.asInt();
-            } else if (base instanceof RLogical || value instanceof RLogical) {
-                typedBase = base.asLogical();
-                typedValue = value.asLogical();
+                if (listBase) {
+                    typedBase = base;
+                    dimensions = base.dimensions();
+                } else {
+                    typedBase = base.asList();
+                    dimensions = null;
+                }
             } else {
-                Utils.nyi("unsupported vector types");
-                return null;
+                dimensions = base.dimensions();
+                if (listBase) {
+                    typedBase = base;
+                    listValue = value.asList();
+                    typedValue = null;
+                } else if (base instanceof RDouble || value instanceof RDouble) {
+                    typedBase = base.asDouble();
+                    typedValue = value.asDouble();
+                } else if (base instanceof RInt || value instanceof RInt) {
+                    typedBase = base.asInt();
+                    typedValue = value.asInt();
+                } else if (base instanceof RLogical || value instanceof RLogical) {
+                    typedBase = base.asLogical();
+                    typedValue = value.asLogical();
+                } else {
+                    Utils.nyi("unsupported vector types");
+                    return null;
+                }
             }
 
             boolean hasNegative = false;
@@ -1351,8 +1390,10 @@ public abstract class UpdateVector extends BaseR {
                 int nsize = maxIndex;
                 if (nsize < bsize) {
                     nsize = bsize;
+                } else if (nsize > bsize) {
+                    dimensions = null; // drop dimensions
                 }
-                RArray res = Utils.createArray(typedBase, nsize);
+                RArray res = Utils.createArray(typedBase, nsize, dimensions);
                 // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
                 int i = 0;
                 for (; i < bsize; i++) {
@@ -1384,7 +1425,7 @@ public abstract class UpdateVector extends BaseR {
                 if (hasPositive || hasNA) {
                     throw RError.getOnlyZeroMixed(ast);
                 }
-                RArray res = Utils.createArray(typedBase, bsize);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions);
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (omit[i]) {
@@ -1523,7 +1564,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RList.RListFactory.getForArray(content);
+                            return RList.RListFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
@@ -1582,7 +1623,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RDouble.RDoubleFactory.getFor(content);
+                            return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
@@ -1641,7 +1682,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RInt.RIntFactory.getFor(content);
+                            return RInt.RIntFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1698,7 +1739,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RLogical.RLogicalFactory.getFor(content);
+                            return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                         }
                     };
                     return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
@@ -1723,7 +1764,7 @@ public abstract class UpdateVector extends BaseR {
                         content[j++] = base.getRAny(i);
                     }
                 }
-                return RList.RListFactory.getForArray(content);
+                return RList.RListFactory.getFor(content, ntrue != 0 ? null : base.dimensions());
             }
             if (isize > bsize) {
                 // for each "non-TRUE" element above base vector size, have to add NULL to the vector
@@ -1742,7 +1783,7 @@ public abstract class UpdateVector extends BaseR {
                 for (int i = 0; i < nullsToAdd; i++) {
                     content[j++] = RList.NULL;
                 }
-                return RList.RListFactory.getForArray(content);
+                return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions());
             }
             // isize < bsize
             if (isize == 0) {
@@ -1766,39 +1807,53 @@ public abstract class UpdateVector extends BaseR {
                     content[ci++] = base.getRAny(bi);
                 }
             }
-            return RList.RListFactory.getForArray(content);
+            return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions());
         }
 
         public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
             RList listValue = null;
+            int[] dimensions;
 
             if (base instanceof RList && value instanceof RNull) {
                 return deleteElements((RList) base, index, ast);
-            } else if (base instanceof RList || value instanceof RList) {
-                typedBase = base.asList();
-                listValue = value.asList();
+            } else if (value instanceof RList) {
+                listValue = (RList) value;
                 typedValue = null;
-            } else if (base instanceof RDouble || value instanceof RDouble) {
-                typedBase = base.asDouble();
-                typedValue = value.asDouble();
-            } else if (base instanceof RInt || value instanceof RInt) {
-                typedBase = base.asInt();
-                typedValue = value.asInt();
-            } else if (base instanceof RLogical || value instanceof RLogical) {
-                typedBase = base.asLogical();
-                typedValue = value.asLogical();
+                if (base instanceof RList) {
+                    typedBase = base;
+                    dimensions = base.dimensions();
+                } else {
+                    typedBase = base.asList();
+                    dimensions = null;
+                }
             } else {
-                Utils.nyi("unsupported vector types");
-                return null;
+                dimensions = base.dimensions();
+                if (base instanceof RList) {
+                    typedBase = base;
+                    listValue = value.asList();
+                    typedValue = null;
+                } else if (base instanceof RDouble || value instanceof RDouble) {
+                    typedBase = base.asDouble();
+                    typedValue = value.asDouble();
+                } else if (base instanceof RInt || value instanceof RInt) {
+                    typedBase = base.asInt();
+                    typedValue = value.asInt();
+                } else if (base instanceof RLogical || value instanceof RLogical) {
+                    typedBase = base.asLogical();
+                    typedValue = value.asLogical();
+                } else {
+                    Utils.nyi("unsupported vector types");
+                    return null;
+                }
             }
             int bsize = base.size();
             int isize = index.size();
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
             int nsize = (bsize > isize) ? bsize : isize;
 
-            RArray res = Utils.createArray(typedBase, nsize);
+            RArray res = Utils.createArray(typedBase, nsize, dimensions);
             int ii = 0;
             int vi = 0;
             boolean hasNA = false;
@@ -1906,7 +1961,7 @@ public abstract class UpdateVector extends BaseR {
             Utils.check(!subset);
         }
 
-        public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) {
+        public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) { // FIXME: check handling of dimensions here
             final int isize = index.size();
             if (isize == 0) {
                 throw RError.getSelectLessThanOne(ast);
@@ -1937,7 +1992,7 @@ public abstract class UpdateVector extends BaseR {
                     for (; j < bsize; j++) { // shallow copy
                         content[k++] = l.getRAny(j);
                     }
-                    RList newList = RList.RListFactory.getForArray(content);
+                    RList newList = RList.RListFactory.getFor(content, l.dimensions());
                     if (parent != null) {
                         parent.set(parentIndex, newList);
                     } else {

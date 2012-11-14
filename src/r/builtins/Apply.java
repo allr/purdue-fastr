@@ -140,7 +140,7 @@ public class Apply {
                 firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
                 content[i] = (RAny) callNode.execute(context, frame);
             }
-            return RList.RListFactory.getForArray(content);
+            return RList.RListFactory.getFor(content);
         }
 
         public Specialized createSpecialized(RAny argxTemplate) {
@@ -158,7 +158,7 @@ public class Apply {
                             firstArgProvider.setValue(x.getRAny(i));
                             content[i] = (RAny) callNode.execute(context, frame);
                         }
-                        return RList.RListFactory.getForArray(content);
+                        return RList.RListFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, a);
@@ -177,7 +177,7 @@ public class Apply {
                             firstArgProvider.setValue(x.boxedGet(i));
                             content[i] = (RAny) callNode.execute(context, frame);
                         }
-                        return RList.RListFactory.getForArray(content);                    }
+                        return RList.RListFactory.getFor(content);                    }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, a);
             }
@@ -446,7 +446,7 @@ public class Apply {
                         content[i] = v.getRAny(0); // shallow but no need to ref here
                     }
                 }
-                return RList.RListFactory.getForArray(content);
+                return RList.RListFactory.getFor(content);
             }
             if (hasDouble) {
                 double[] values = new double[xsize];
@@ -602,7 +602,7 @@ public class Apply {
                         if (!returnsList) {
                             throw new UnexpectedResultException(content);
                         }
-                        return RList.RListFactory.getForArray(content);
+                        return RList.RListFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RList>");

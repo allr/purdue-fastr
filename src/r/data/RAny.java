@@ -8,6 +8,7 @@ public interface RAny {
     RAttributes getAttributes();
 
     String pretty();
+    String prettyMatrixElement();
 
     RLogical asLogical();
 

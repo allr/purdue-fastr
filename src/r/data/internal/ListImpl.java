@@ -5,19 +5,24 @@ import r.data.*;
 
 public class ListImpl extends NonScalarArrayImpl implements RList {
 
-    RAny[] content;
+    final RAny[] content;
 
-    public ListImpl(RAny[] values, boolean doCopy) {
+    public ListImpl(RAny[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
             content = new RAny[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
         } else {
             content = values;
         }
+        this.dimensions = dimensions;
     }
 
     public ListImpl(RAny[] values) {
-        this(values, true);
+        this(values, null, true);
+    }
+
+    public ListImpl(RAny[] values, int[] dimensions) {
+        this(values, dimensions, true);
     }
 
     public ListImpl(int size) {
@@ -25,11 +30,13 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     public ListImpl(RList v) { // deep-copy
+                               // FIXME: why deep? do all callers need it deep?
         content = new RAny[v.size()];
         for (int i = 0; i < content.length; i++) {
             RAny e = v.getRAny(i);
             content[i] = Utils.copy(e);
         }
+        dimensions = v.dimensions();
     }
     @Override
     public ListImpl asList() {
@@ -88,11 +95,49 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     private static final StringBuilder emptyString = new StringBuilder();
+
+    @Override
     public String pretty() {
         return pretty(emptyString);
     }
 
+    @Override
+    public String prettyMatrixElement() { // only called on scalar (boxed) lists
+        Utils.check(content.length == 1);
+        RAny v = content[0];
+        if (!(v instanceof RArray)) {
+            Utils.nyi("unsupported type");
+        }
+        RArray a = (RArray) v;
+        int asize = a.size();
+
+        if (asize == 1) {
+            if (a instanceof RList) {
+                return "List,1";
+            }
+            return a.prettyMatrixElement();
+        }
+
+        String base;
+        if (a instanceof RDouble) {
+            base = "Numeric"; // FIXME: are these names more general in R?
+        } else if (a instanceof RInt) {
+            base = "Integer";
+        } else if (a instanceof RLogical) {
+            base = "Logical";
+        } else if (a instanceof RString) {
+            base = "Character";
+        } else {
+            Utils.nyi("unsupported type");
+            base = null;
+        }
+        return base + "," + Integer.toString(asize);
+    }
+
     public String pretty(StringBuilder indexPrefix) {
+        if (dimensions != null) {
+            return matrixPretty();
+        }
         if (content.length == 0) {
             return RList.TYPE_STRING + "()";
         } else {

@@ -63,11 +63,15 @@ public interface RInt extends RNumber {
             }
             return new IntImpl(i);
         }
-        public static RInt getFor(int[] values) {  // re-uses values!
-            if (values.length == 1) {
+        public static RInt getFor(int[] values) { // re-uses values!
+            return getFor(values, null);
+
+        }
+        public static RInt getFor(int[] values, int[] dimensions) {  // re-uses values!
+            if (values.length == 1 && dimensions == null) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, null, false);
+            return new IntImpl(values, dimensions, false);
         }
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);

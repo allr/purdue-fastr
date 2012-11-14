@@ -66,7 +66,7 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
                 maxWidth = clen;
             }
             for (int j = 0; j < m; j++) {
-                String s = boxedGet(i * m + j).pretty();
+                String s = boxedGet(i * m + j).prettyMatrixElement();
                 data[j][i] = s;
                 int l = s.length();
                 if (l > maxWidth) {

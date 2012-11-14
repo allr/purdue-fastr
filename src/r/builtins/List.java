@@ -17,7 +17,7 @@ public class List {
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
                     Utils.ref(params);
-                    return RList.RListFactory.getForArray(params); // shallow copy (in fact no copy)
+                    return RList.RListFactory.getFor(params); // shallow copy (in fact no copy)
                 }
             };
         }

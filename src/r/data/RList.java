@@ -15,13 +15,16 @@ public interface RList extends RArray {
 
     public class RListFactory {
         public static ListImpl getScalar(RAny value) {
-            return new ListImpl(new RAny[]{value}, false);
+            return new ListImpl(new RAny[]{value}, null, false);
         }
         public static ListImpl getArray(RAny... values) {
             return new ListImpl(values);
         }
         public static ListImpl getUninitializedArray(int size) {
             return new ListImpl(size);
+        }
+        public static ListImpl getUninitializedArray(int size, int[] dimensions) {
+            return new ListImpl(new RAny[size], dimensions);
         }
         public static ListImpl getNullArray(int size) {
             ListImpl v = getUninitializedArray(size);
@@ -33,8 +36,11 @@ public interface RList extends RArray {
         public static ListImpl copy(RList l) {
             return new ListImpl(l);
         }
-        public static ListImpl getForArray(RAny[] values) {  // re-uses values!
-            return new ListImpl(values, false);
+        public static ListImpl getFor(RAny[] values) {
+            return getFor(values, null);
+        }
+        public static ListImpl getFor(RAny[] values, int[] dimensions) {  // re-uses values!
+            return new ListImpl(values, dimensions, false);
         }
         public static RList exclude(int excludeIndex, RList orig) {
             return new RListExclusion(excludeIndex, orig);

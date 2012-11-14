@@ -79,6 +79,9 @@ public final class Utils {
         if (type instanceof RLogical) {
             return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions);
         }
+        if (type instanceof RList) {
+            return RList.RListFactory.getUninitializedArray(size, dimensions);
+        }
         Utils.nyi("unsupported array type");
         return null;
     }

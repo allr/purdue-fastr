@@ -102,7 +102,6 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public int[] dimensions() {
-        Utils.nyi();
         return null;
     }
 
@@ -124,5 +123,10 @@ public final class RNull implements RAny, RAttributes {
     @Override
     public boolean isShared() {
         return false;
+    }
+
+    @Override
+    public String prettyMatrixElement() {
+        return pretty();
     }
 }

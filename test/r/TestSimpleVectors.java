@@ -152,6 +152,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ v<-1:3 ; v[[2]] <- list(100) ; v }", "[[1]]\n1L\n\n[[2]]\n[[2]][[1]]\n100.0\n\n[[3]]\n3L");
         assertEval("{ l <- list() ; l[[1]] <-2 ; l}", "[[1]]\n2.0");
         assertEval("{ l<-list() ; x <- 1:3 ; l[[1]] <- x  ; l }", "[[1]]\n1L, 2L, 3L");
+        assertEval("{ l <- list(1,2,3) ; l[2] <- list(100) ; l[2] }", "[[1]]\n100.0");
+        assertEval("{ l <- list(1,2,3) ; l[[2]] <- list(100) ; l[2] }", "[[1]]\n[[1]][[1]]\n100.0");
 
         // element deletion
         assertEval("{ m<-list(1,2) ; m[TRUE] <- NULL ; m }", "list()");

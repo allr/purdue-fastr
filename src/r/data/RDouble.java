@@ -76,11 +76,14 @@ public interface RDouble extends RNumber {
             }
             return new DoubleImpl(d);
         }
-        public static RDouble getFor(double[] values) {  // re-uses values!
-            if (values.length == 1) {
+        public static RDouble getFor(double[] values) { // re-uses values!
+            return getFor(values, null);
+        }
+        public static RDouble getFor(double[] values, int[] dimensions) {  // re-uses values!
+            if (values.length == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, null, false);
+            return new DoubleImpl(values, dimensions, false);
         }
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             return new RDoubleExclusion(excludeIndex, orig);
