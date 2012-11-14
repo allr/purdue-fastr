@@ -36,7 +36,7 @@ public class Cast {
                     content[i] = RInt.NA;
                 }
             }
-            return RInt.RIntFactory.getForArray(content);
+            return RInt.RIntFactory.getFor(content);
         }
         return arg.asInt();
     }

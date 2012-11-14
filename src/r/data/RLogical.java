@@ -55,29 +55,35 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             return new LogicalImpl(new int[size], dimensions);
         }
         public static RLogical getNAArray(int size) {
-            if (size == 1) {
+            return getNAArray(size, null);
+        }
+        public static RLogical getNAArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(NA);
             }
-            LogicalImpl l = (LogicalImpl) getUninitializedArray(size);
+            int[] content = new int[size];
             for (int i = 0; i < size; i++) {
-                l.set(i, NA);
+                content[i] = NA;
             }
-            return l;
+            return new LogicalImpl(content, dimensions, false);
         }
         public static LogicalImpl getMatrixFor(int[] values, int m, int n) {
             return new LogicalImpl(values, new int[] {m, n}, false);
         }
         public static RLogical copy(RLogical l) {
-            if (l.size() == 1) {
+            if (l.size() == 1 && l.dimensions() == null) {
                 return new ScalarLogicalImpl(l.getLogical(0));
             }
             return new LogicalImpl(l);
         }
-        public static RLogical getForArray(int[] values) {  // re-uses values!
-            if (values.length == 1) {
+        public static RLogical getFor(int[] values) {  // re-uses values!
+            return getFor(values, null);
+        }
+        public static RLogical getFor(int[] values, int[] dimensions) {  // re-uses values!
+            if (values.length == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(values[0]);
             }
-            return new LogicalImpl(values, null, false);
+            return new LogicalImpl(values, dimensions, false);
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             return new RLogicalExclusion(excludeIndex, orig);

@@ -130,7 +130,7 @@ public class Seq {
                                               }
                                           }
                                       }
-                                      return RDouble.RDoubleFactory.getForArray(content);
+                                      return RDouble.RDoubleFactory.getFor(content);
                                   }
                               }
                           };

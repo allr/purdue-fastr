@@ -167,7 +167,7 @@ public class Comparison extends BaseR {
                 Comparator c = new Comparator() {
                     @Override
                     public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof RLogical && rexpr instanceof RInt)) {
+                        if (!(lexpr instanceof ScalarLogicalImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
                         int l = ((ScalarLogicalImpl) lexpr).getLogical();
@@ -186,49 +186,37 @@ public class Comparison extends BaseR {
         public static int generic(RContext context, RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
-            if (lexpr instanceof RDouble) { // note: could make this shorter if we didn't care about Java-level boxing
-                RDouble ld = (RDouble) lexpr;
-                checkScalar(ld, Transition.VECTOR_SCALAR);
-                double ldbl = ld.getDouble(0);
+            if (lexpr instanceof ScalarDoubleImpl) { // note: could make this shorter if we didn't care about Java-level boxing
+                double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                 if (RDouble.RDoubleUtils.isNA(ldbl)) {
                     return RLogical.NA;
                 }
-                if (rexpr instanceof RDouble) {
-                    RDouble rd = (RDouble) rexpr;
-                    checkScalar(rd, Transition.VECTOR_SCALAR);
-                    double rdbl = rd.getDouble(0);
+                if (rexpr instanceof ScalarDoubleImpl) {
+                    double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
                     if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(ldbl, rdbl) ? RLogical.TRUE : RLogical.FALSE;
-                } else if (rexpr instanceof RInt) {
-                    RInt ri = (RInt) rexpr;
-                    checkScalar(ri, Transition.VECTOR_SCALAR);
-                    int rint = ri.getInt(0);
+                } else if (rexpr instanceof ScalarIntImpl) {
+                    int rint = ((ScalarIntImpl) rexpr).getInt();
                     if (rint == RInt.NA) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(ldbl, rint) ? RLogical.TRUE : RLogical.FALSE;
                 }
-            } else if (lexpr instanceof RInt) {
-                RInt li = (RInt) lexpr;
-                checkScalar(li, Transition.VECTOR_SCALAR);
-                int lint = li.getInt(0);
+            } else if (lexpr instanceof ScalarIntImpl) {
+                int lint = ((ScalarIntImpl) lexpr).getInt();
                 if (lint == RInt.NA) {
                     return RLogical.NA;
                 }
-                if (rexpr instanceof RInt) {
-                    RInt ri = (RInt) rexpr;
-                    checkScalar(ri, Transition.VECTOR_SCALAR);
-                    int rint = ri.getInt(0);
+                if (rexpr instanceof ScalarIntImpl) {
+                    int rint = ((ScalarIntImpl) rexpr).getInt();
                     if (rint == RInt.NA) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(lint, rint) ? RLogical.TRUE : RLogical.FALSE;
-                } else if (rexpr instanceof RDouble) {
-                    RDouble rd = (RDouble) rexpr;
-                    checkScalar(rd, Transition.VECTOR_SCALAR);
-                    double rdbl = rd.getDouble(0);
+                } else if (rexpr instanceof ScalarDoubleImpl) {
+                    double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
                     if (RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.NA;
                     }
@@ -291,13 +279,13 @@ public class Comparison extends BaseR {
                     if (rexpr instanceof RDouble) {
                         RDouble rdbl = (RDouble) rexpr;
                         if (rdbl.size() == 1) {
-                            if (ldbl.size() >= 1) {
+                            if (ldbl.size() >= 1 && rdbl.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(ldbl, rdbl.getDouble(0));
                             } else {
                                 throw new UnexpectedResultException(null);
                             }
                         } else {
-                            if (rdbl.size() >= 1 && ldbl.size() == 1) {
+                            if (rdbl.size() > 1 && ldbl.size() == 1 && ldbl.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
                             } else {
                                 throw new UnexpectedResultException(null);
@@ -311,13 +299,13 @@ public class Comparison extends BaseR {
                     if (rexpr instanceof RInt) {
                         RInt rint = (RInt) rexpr;
                         if (rint.size() == 1) {
-                            if (lint.size() >= 1) {
+                            if (lint.size() >= 1 && rint.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(lint, rint.getInt(0));
                             } else {
                                 throw new UnexpectedResultException(null);
                             }
                         } else {
-                            if (rint.size() >= 1 && lint.size() == 1) {
+                            if (rint.size() > 1 && lint.size() == 1 && lint.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(lint.getInt(0), rint);
                             } else {
                                 throw new UnexpectedResultException(null);
@@ -329,9 +317,9 @@ public class Comparison extends BaseR {
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                     RDouble ldbl = lexpr.asDouble();
                     RDouble rdbl = rexpr.asDouble();
-                    if (rdbl.size() == 1) {
+                    if (rdbl.size() == 1 && rdbl.dimensions() == null) {
                         return Comparison.this.cmp.cmp(ldbl, rdbl.getDouble(0));
-                    } else if (ldbl.size() == 1) {
+                    } else if (ldbl.size() == 1 && ldbl.dimensions() == null) {
                         return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
                     } else {
                         throw new UnexpectedResultException(null);
@@ -340,9 +328,9 @@ public class Comparison extends BaseR {
                 if (lexpr instanceof RInt || lexpr instanceof RInt) {
                     RInt lint = lexpr.asInt();
                     RInt rint = lexpr.asInt();
-                    if (rint.size() == 1) {
+                    if (rint.size() == 1 && rint.dimensions() == null) {
                         return Comparison.this.cmp.cmp(lint,  rint.getInt(0));
-                    } else if (lint.size() == 1) {
+                    } else if (lint.size() == 1 && lint.dimensions() == null) {
                         return Comparison.this.cmp.cmp(lint.getInt(0), rint);
                     } else {
                         throw new UnexpectedResultException(null);
@@ -395,7 +383,6 @@ public class Comparison extends BaseR {
 
     }
 
-    // FIXME: check that calls to cmp are inlined, otherwise we might have to do that manually
     public abstract static class ValueComparison {
         public abstract boolean cmp(int a, int b);
         public abstract boolean cmp(double a, double b);
@@ -409,7 +396,7 @@ public class Comparison extends BaseR {
         public RLogical cmp(RDouble a, double b) {
             int n = a.size();
             if (RDouble.RDoubleUtils.isNA(b)) {
-                return RLogicalFactory.getNAArray(n);
+                return RLogicalFactory.getNAArray(n, a.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
@@ -420,12 +407,12 @@ public class Comparison extends BaseR {
                     content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
         }
         public RLogical cmp(double a, RDouble b) {
             int n = b.size();
             if (RDouble.RDoubleUtils.isNA(a)) {
-                return RLogicalFactory.getNAArray(n);
+                return RLogicalFactory.getNAArray(n, b.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
@@ -436,12 +423,12 @@ public class Comparison extends BaseR {
                     content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
         }
         public RLogical cmp(RInt a, int b) {
             int n = a.size();
             if (b == RInt.NA) {
-                return RLogicalFactory.getNAArray(n);
+                return RLogicalFactory.getNAArray(n, a.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
@@ -452,12 +439,12 @@ public class Comparison extends BaseR {
                     content[i] = cmp(aint, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
         }
         public RLogical cmp(int a, RInt b) {
             int n = b.size();
             if (a == RInt.NA) {
-                return RLogicalFactory.getNAArray(n);
+                return RLogicalFactory.getNAArray(n, b.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
@@ -468,13 +455,13 @@ public class Comparison extends BaseR {
                     content[i] = cmp(a, bint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
         }
 
         public RLogical cmp(RDouble a, RDouble b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
-
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
             }
@@ -504,11 +491,12 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
         }
         public RLogical cmp(RInt a, RInt b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
 
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
@@ -539,11 +527,12 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
         }
         public RLogical cmp(RLogical a, RLogical b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
 
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
@@ -574,7 +563,7 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getForArray(content);
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
         }
     }
 

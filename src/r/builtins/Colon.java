@@ -20,7 +20,7 @@ public class Colon {
             for (int i = 0; i < len; i++) {
                 data[i] = val++;
             }
-            return RInt.RIntFactory.getForArray(data);
+            return RInt.RIntFactory.getFor(data);
         } else {
             int len = left - right + 1;
             int[] data = new int[len];
@@ -28,7 +28,7 @@ public class Colon {
             for (int i = 0; i < len; i++) {
                 data[i] = val--;
             }
-            return RInt.RIntFactory.getForArray(data);
+            return RInt.RIntFactory.getFor(data);
         }
     }
 
@@ -46,7 +46,7 @@ public class Colon {
                 data[i] = val;
                 val = val + 1.0;
             }
-            return RDouble.RDoubleFactory.getForArray(data);
+            return RDouble.RDoubleFactory.getFor(data);
         } else {
             int len = (int) (left - right + 1); // FIXME: probably should check for a too long vector
             double[] data = new double[len];
@@ -55,7 +55,7 @@ public class Colon {
                 data[i] = val;
                 val = val - 1.0;
             }
-            return RDouble.RDoubleFactory.getForArray(data);
+            return RDouble.RDoubleFactory.getFor(data);
         }
     }
 

@@ -82,7 +82,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RInt asInt() {
-        return RInt.RIntFactory.getForArray(content);
+        return RInt.RIntFactory.getFor(content);
     }
 
     @Override

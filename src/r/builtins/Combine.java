@@ -167,7 +167,7 @@ public class Combine {
                             }
                             content[i] = ((ScalarDoubleImpl) v).getDouble();
                         }
-                        return RDouble.RDoubleFactory.getForArray(content);
+                        return RDouble.RDoubleFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -185,7 +185,7 @@ public class Combine {
                             }
                             content[i] = ((ScalarIntImpl) v).getInt();
                         }
-                        return RInt.RIntFactory.getForArray(content);
+                        return RInt.RIntFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -203,7 +203,7 @@ public class Combine {
                             }
                             content[i] = ((ScalarLogicalImpl) v).getLogical();
                         }
-                        return RLogical.RLogicalFactory.getForArray(content);
+                        return RLogical.RLogicalFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -235,7 +235,7 @@ public class Combine {
                             }
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
-                        return RDouble.RDoubleFactory.getForArray(content);
+                        return RDouble.RDoubleFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);
@@ -258,7 +258,7 @@ public class Combine {
                             }
                             throw new UnexpectedResultException(Transition.GENERIC);
                         }
-                        return RInt.RIntFactory.getForArray(content);
+                        return RInt.RIntFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, names, exprs, a);

@@ -460,7 +460,7 @@ public class Apply {
                         values[i] = Convert.logical2double(((RLogical) v).getLogical(0));
                     }
                 }
-                return RDouble.RDoubleFactory.getForArray(values);
+                return RDouble.RDoubleFactory.getFor(values);
             }
             if (hasInt) {
                 int[] values = new int[xsize];
@@ -472,7 +472,7 @@ public class Apply {
                         values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
                     }
                 }
-                return RInt.RIntFactory.getForArray(values);
+                return RInt.RIntFactory.getFor(values);
             }
             if (hasLogical) {
                 int[] values = new int[xsize];
@@ -480,7 +480,7 @@ public class Apply {
                     RAny v = content[i];
                     values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
                 }
-                return RLogical.RLogicalFactory.getForArray(values);
+                return RLogical.RLogicalFactory.getFor(values);
             }
             return RList.EMPTY;
         }
@@ -527,10 +527,10 @@ public class Apply {
                             if (v instanceof RDouble) {
                                 content[i] = ((RDouble) v).getDouble(0);
                             } else { // NOTE: can also add Int and Logical support here
-                                throw new UnexpectedResultException(new PartialResult(RDouble.RDoubleFactory.getForArray(content), i, v));
+                                throw new UnexpectedResultException(new PartialResult(RDouble.RDoubleFactory.getFor(content), i, v));
                             }
                         }
-                        return RDouble.RDoubleFactory.getForArray(content);
+                        return RDouble.RDoubleFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
@@ -547,10 +547,10 @@ public class Apply {
                             if (v instanceof RInt) {
                                 content[i] = ((RInt) v).getInt(0);
                             } else { // NOTE: can also add Logical support here
-                               throw new UnexpectedResultException(new PartialResult(RInt.RIntFactory.getForArray(content), i,  v));
+                               throw new UnexpectedResultException(new PartialResult(RInt.RIntFactory.getFor(content), i,  v));
                             }
                         }
-                        return RInt.RIntFactory.getForArray(content);
+                        return RInt.RIntFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
@@ -567,10 +567,10 @@ public class Apply {
                             if (v instanceof RLogical) {
                                 content[i] = ((RLogical) v).getLogical(0);
                             } else {
-                                throw new UnexpectedResultException(new PartialResult(RLogical.RLogicalFactory.getForArray(content), i, v));
+                                throw new UnexpectedResultException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
                             }
                         }
-                        return RLogical.RLogicalFactory.getForArray(content);
+                        return RLogical.RLogicalFactory.getFor(content);
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");

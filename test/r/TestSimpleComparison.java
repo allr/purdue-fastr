@@ -32,4 +32,11 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{x<-c(1L,2L,3L,4L);y<-1.5;x<=y}", "TRUE, FALSE, FALSE, FALSE");
         assertEval("{c(1:3,4,5)==1:5}", "TRUE, TRUE, TRUE, TRUE, TRUE");
     }
+
+    @Test
+    public void testMatrices() throws RecognitionException {
+        assertEval("{ matrix(1) > matrix(2) }", "      [,1]\n[1,] FALSE");
+        assertEval("{ matrix(1) > NA }", "     [,1]\n[1,]   NA");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m > c(1,2,3) }", "      [,1]  [,2] [,3]\n[1,] FALSE FALSE TRUE\n[2,] FALSE  TRUE TRUE");
+    }
 }

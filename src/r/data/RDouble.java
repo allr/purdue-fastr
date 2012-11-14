@@ -55,25 +55,28 @@ public interface RDouble extends RNumber {
             return new DoubleImpl(new double[size], dimensions);
         }
         public static RDouble getNAArray(int size) {
-            if (size == 1) {
+            return getNAArray(size, null);
+        }
+        public static RDouble getNAArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(NA);
             }
-            DoubleImpl d = (DoubleImpl) getUninitializedArray(size);
+            double[] content = new double[size];
             for (int i = 0; i < size; i++) {
-                d.set(i, NA);
+                content[i] = NA;
             }
-            return d;
+            return new DoubleImpl(content, dimensions, false);
         }
         public static DoubleImpl getMatrixFor(double[] values, int m, int n) {
             return new DoubleImpl(values, new int[] {m, n}, false);
         }
         public static RDouble copy(RDouble d) {
-            if (d.size() == 1) {
+            if (d.size() == 1 && d.dimensions() == null) {
                 return new ScalarDoubleImpl(d.getDouble(0));
             }
             return new DoubleImpl(d);
         }
-        public static RDouble getForArray(double[] values) {  // re-uses values!
+        public static RDouble getFor(double[] values) {  // re-uses values!
             if (values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);
             }

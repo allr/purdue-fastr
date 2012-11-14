@@ -42,25 +42,28 @@ public interface RInt extends RNumber {
             return new IntImpl(new int[size], dimensions);
         }
         public static RInt getNAArray(int size) {
-            if (size == 1) {
+            return getNAArray(size, null);
+        }
+        public static RInt getNAArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
                 return new ScalarIntImpl(NA);
             }
-            IntImpl v = (IntImpl) getUninitializedArray(size);
+            int content[] = new int[size];
             for (int i = 0; i < size; i++) {
-                v.set(i, NA);
+                content[i] = NA;
             }
-            return v;
+            return new IntImpl(content, dimensions, false);
         }
         public static IntImpl getMatrixFor(int[] values, int m, int n) {
             return new IntImpl(values, new int[] {m, n}, false);
         }
         public static RInt copy(RInt i) {
-            if (i.size() == 1) {
+            if (i.size() == 1 && i.dimensions() == null) {
                 return new ScalarIntImpl(i.getInt(0));
             }
             return new IntImpl(i);
         }
-        public static RInt getForArray(int[] values) {  // re-uses values!
+        public static RInt getFor(int[] values) {  // re-uses values!
             if (values.length == 1) {
                 return new ScalarIntImpl(values[0]);
             }
