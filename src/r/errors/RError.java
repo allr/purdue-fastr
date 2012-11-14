@@ -48,6 +48,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_NROW = "invalid 'nrow' value (too large or NA)"; // also can mean empty
     public static final String NEGATIVE_NCOL = "invalid 'ncol' value (< 0)";
     public static final String NEGATIVE_NROW = "invalid 'nrow' value (< 0)";
+    public static final String NON_CONFORMABLE_ARRAYS = "non-conformable arrays";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -482,6 +483,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NEGATIVE_NROW;
+            }
+        };
+    }
+
+    public static RError getNonConformableArrays(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NON_CONFORMABLE_ARRAYS;
             }
         };
     }

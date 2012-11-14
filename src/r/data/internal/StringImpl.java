@@ -10,17 +10,22 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     final String[] content;
 
-    public StringImpl(String[] values, boolean doCopy) {
+    public StringImpl(String[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
             content = new String[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
         } else {
             content = values;
         }
+        this.dimensions = dimensions;
+    }
+
+    public StringImpl(String[] values, int[] dimensions) {
+        this(values, dimensions, true);
     }
 
     public StringImpl(String[] values) {
-        this(values, true);
+        this(values, null, true);
     }
 
     public StringImpl(int size) {
@@ -32,6 +37,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         for (int i = 0; i < content.length; i++) {
             content[i] = v.getString(i);
         }
+        dimensions = v.dimensions();
     }
 
     @Override

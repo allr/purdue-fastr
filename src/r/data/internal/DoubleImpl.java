@@ -11,18 +11,15 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         if (doCopy) {
             content = new double[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
-            if (dimensions != null) {
-                this.dimensions = new int[dimensions.length];
-                System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);
-            }
         } else {
             content = values;
-            this.dimensions = dimensions;
         }
+        this.dimensions = dimensions;
     }
     public DoubleImpl(double[] values, int[] dimensions) {
         this(values, dimensions, true);
     }
+
     public DoubleImpl(double[] values) {
         this(values, null, true);
     }
@@ -36,11 +33,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         for (int i = 0; i < content.length; i++) {
             content[i] = d.getDouble(i);
         }
-        int[] dims = d.dimensions();
-        if (dims != null) {
-            dimensions = new int[dims.length];
-            System.arraycopy(dims, 0, dimensions,  0,  dims.length);
-        }
+        dimensions = d.dimensions();
     }
 
     @Override

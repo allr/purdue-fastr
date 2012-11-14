@@ -120,6 +120,11 @@ public interface RDouble extends RNumber {
         public void ref() {
             rdbl.ref();
         }
+
+        @Override
+        public int[] dimensions() {
+            return rdbl.dimensions();
+        }
     }
 
     public static class RLogicalView extends View.RLogicalView implements RLogical {
@@ -163,6 +168,11 @@ public interface RDouble extends RNumber {
         @Override
         public void ref() {
             rdbl.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rdbl.dimensions();
         }
     }
 

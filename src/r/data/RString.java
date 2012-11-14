@@ -15,13 +15,16 @@ public interface RString extends RArray {
 
     public class RStringFactory {
         public static StringImpl getScalar(String value) {
-            return new StringImpl(new String[]{value}, false);
+            return new StringImpl(new String[]{value}, null, false);
         }
         public static StringImpl getArray(String... values) {
             return new StringImpl(values);
         }
         public static StringImpl getUninitializedArray(int size) {
             return new StringImpl(size);
+        }
+        public static StringImpl getMatrixFor(String[] values, int m, int n) {
+            return new StringImpl(values, new int[] {m, n}, false);
         }
         public static StringImpl copy(RString v) {
             return new StringImpl(v);

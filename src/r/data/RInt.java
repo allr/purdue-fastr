@@ -45,6 +45,9 @@ public interface RInt extends RNumber {
             }
             return v;
         }
+        public static IntImpl getMatrixFor(int[] values, int m, int n) {
+            return new IntImpl(values, new int[] {m, n}, false);
+        }
         public static RInt copy(RInt i) {
             if (i.size() == 1) {
                 return new ScalarIntImpl(i.getInt(0));
@@ -55,7 +58,7 @@ public interface RInt extends RNumber {
             if (values.length == 1) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, false);
+            return new IntImpl(values, null, false);
         }
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);
@@ -75,6 +78,7 @@ public interface RInt extends RNumber {
             this.rint = rint;
         }
 
+        @Override
         public int size() {
             return rint.size();
         }
@@ -109,6 +113,11 @@ public interface RInt extends RNumber {
         public void ref() {
             rint.ref();
         }
+
+        @Override
+        public int[] dimensions() {
+            return rint.dimensions();
+        }
     }
 
     public static class RLogicalView extends View.RLogicalView implements RLogical {
@@ -118,6 +127,7 @@ public interface RInt extends RNumber {
             this.rint = rint;
         }
 
+        @Override
         public int size() {
             return rint.size();
         }
@@ -151,6 +161,11 @@ public interface RInt extends RNumber {
         @Override
         public void ref() {
             rint.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rint.dimensions();
         }
     }
 

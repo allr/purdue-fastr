@@ -5,7 +5,7 @@ import r.data.internal.*;
 
 public interface RArray extends RAny {
     int size();
-    int[] dimensions();
+    int[] dimensions(); // the returned array shall not be modified
 
     Object get(int i);
     RAny boxedGet(int i);

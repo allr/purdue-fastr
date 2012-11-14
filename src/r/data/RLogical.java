@@ -58,6 +58,9 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return l;
         }
+        public static LogicalImpl getMatrixFor(int[] values, int m, int n) {
+            return new LogicalImpl(values, new int[] {m, n}, false);
+        }
         public static RLogical copy(RLogical l) {
             if (l.size() == 1) {
                 return new ScalarLogicalImpl(l.getLogical(0));
@@ -68,7 +71,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (values.length == 1) {
                 return new ScalarLogicalImpl(values[0]);
             }
-            return new LogicalImpl(values, false);
+            return new LogicalImpl(values, null, false);
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             return new RLogicalExclusion(excludeIndex, orig);

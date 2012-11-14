@@ -171,7 +171,7 @@ public class Arithmetic extends BaseR {
                     public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                         RDouble ldbl = lexpr.asDouble();
                         RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                        RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                        RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                         if (!EAGER) {
                             return res;
                         } else {
@@ -186,7 +186,7 @@ public class Arithmetic extends BaseR {
                         if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                             RDouble ldbl = lexpr.asDouble();
                             RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                             if (!EAGER) {
                                 return res;
                             } else {
@@ -197,7 +197,7 @@ public class Arithmetic extends BaseR {
                         if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt lint = lexpr.asInt();
                             RInt rint = rexpr.asInt();
-                            RInt res = new IntView(lint, rint, context, arit, ast);
+                            RInt res = IntView.create(lint, rint, context, arit, ast);
                             if (!EAGER) {
                                 return res;
                             } else {
@@ -404,7 +404,7 @@ public class Arithmetic extends BaseR {
                         @Override
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                             if (!EAGER) {
                                 return res;
                             } else {
@@ -419,7 +419,7 @@ public class Arithmetic extends BaseR {
                         @Override
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                             if (!EAGER) {
                                 return res;
                             } else {
@@ -439,7 +439,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             if (leftDouble || rexpr instanceof RDouble) {
                                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                                RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                                 if (!EAGER) {
                                     return res;
                                 } else {
@@ -449,7 +449,7 @@ public class Arithmetic extends BaseR {
                             }
                             if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                                 RInt rint = rexpr.asInt();
-                                RInt res = new IntView(lint, rint, context, arit, ast);
+                                RInt res = IntView.create(lint, rint, context, arit, ast);
                                 if (!EAGER) {
                                     return res;
                                 } else {
@@ -471,7 +471,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             if (rightDouble || lexpr instanceof RDouble) {
                                 RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                RDouble res = new DoubleView(ldbl, rdbl, context, arit, ast);
+                                RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
                                 if (!EAGER) {
                                     return res;
                                 } else {
@@ -481,7 +481,7 @@ public class Arithmetic extends BaseR {
                             }
                             if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
                                 RInt lint = lexpr.asInt();
-                                RInt res = new IntView(lint, rint, context, arit, ast);
+                                RInt res = IntView.create(lint, rint, context, arit, ast);
                                 if (!EAGER) {
                                     return res;
                                 } else {
@@ -650,11 +650,17 @@ public class Arithmetic extends BaseR {
         final int na;
         final int nb;
         final int n;
+        final int[] dimensions;
 
         final ValueArithmetic arit;
         final ASTNode ast;
 
-        public DoubleView(RDouble a, RDouble b, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public static DoubleView create(RDouble a, RDouble b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            int[] dim = resultDimensions(ast, a, b);
+            return new DoubleView(a, b, dim, context, arit, ast);
+        }
+
+        public DoubleView(RDouble a, RDouble b, int[] dimensions, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -663,6 +669,7 @@ public class Arithmetic extends BaseR {
 
             this.arit = arit;
             this.ast = ast;
+            this.dimensions = dimensions;
 
             if (na > nb) {
                 n = na;
@@ -715,6 +722,11 @@ public class Arithmetic extends BaseR {
             a.ref();
             b.ref();
         }
+
+        @Override
+        public int[] dimensions() {
+            return dimensions;
+        }
     }
 
     static class IntView extends View.RIntView implements RInt {
@@ -724,13 +736,18 @@ public class Arithmetic extends BaseR {
         final int na;
         final int nb;
         final int n;
+        final int[] dimensions;
         boolean overflown = false;
 
         final ValueArithmetic arit;
         final ASTNode ast;
 
+        public static IntView create(RInt a, RInt b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            int[] dim = resultDimensions(ast, a, b);
+            return new IntView(a, b, dim, context, arit, ast);
+        }
 
-        public IntView(RInt a, RInt b, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public IntView(RInt a, RInt b, int[] dimensions, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -738,6 +755,7 @@ public class Arithmetic extends BaseR {
             nb = b.size();
             this.ast = ast;
             this.arit = arit;
+            this.dimensions = dimensions;
 
             if (na > nb) {
                 n = na;
@@ -795,5 +813,40 @@ public class Arithmetic extends BaseR {
             a.ref();
             b.ref();
         }
+
+        @Override
+        public int[] dimensions() {
+            return dimensions;
+        }
+    }
+
+    public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
+        int[] dima = a.dimensions();
+        int[] dimb = b.dimensions();
+        if (dimb == null) {
+            return dima;
+        }
+        if (dima == null) {
+            return dimb;
+        }
+        if (dima == dimb) {
+            return dima;
+        }
+        int alen = dima.length;
+        int blen = dimb.length;
+
+        if (alen == 2 && blen == 2 && dima[0] == dimb[0] && dima[1] == dimb[1]) {
+            return dima;
+        }
+
+        if (alen == blen) {
+            for (int i = 0; i < alen; i++) {
+                if (dima[i] != dimb[i]) {
+                    throw RError.getNonConformableArrays(ast);
+                }
+            }
+            return dima;
+        }
+        throw RError.getNonConformableArrays(ast);
     }
 }

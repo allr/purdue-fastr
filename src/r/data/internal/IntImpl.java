@@ -9,17 +9,22 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     final int[] content;
 
-    public IntImpl(int[] values, boolean doCopy) {
+    public IntImpl(int[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
             content = new int[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
         } else {
             content = values;
         }
+        this.dimensions = dimensions;
+    }
+
+    public IntImpl(int[] values, int[] dimensions) {
+        this(values, dimensions, true);
     }
 
     public IntImpl(int[] values) {
-        this(values, true);
+        this(values, null, true);
     }
 
     public IntImpl(int size) {
@@ -31,6 +36,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         for (int i = 0; i < content.length; i++) {
             content[i] = v.getInt(i);
         }
+        dimensions = v.dimensions();
     }
 
     @Override
