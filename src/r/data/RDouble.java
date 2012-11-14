@@ -43,7 +43,16 @@ public interface RDouble extends RNumber {
             return new DoubleImpl(values);
         }
         public static RDouble getUninitializedArray(int size) {
+            if (size == 1) {
+                return new ScalarDoubleImpl(0);
+            }
             return new DoubleImpl(size);
+        }
+        public static RDouble getUninitializedArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
+                return new ScalarDoubleImpl(0);
+            }
+            return new DoubleImpl(new double[size], dimensions);
         }
         public static RDouble getNAArray(int size) {
             if (size == 1) {

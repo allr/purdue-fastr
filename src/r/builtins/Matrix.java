@@ -23,7 +23,7 @@ public class Matrix {
     public static boolean parseByRow(ASTNode ast, RAny arg) {
         RLogical l = arg.asLogical();
         int il;
-        if (l.size() == 0 || (il = l.getLogical(0))== RLogical.NA) {
+        if (l.size() == 0 || (il = l.getLogical(0)) == RLogical.NA) {
             throw RError.getInvalidByRow(ast);
         }
         return (il == RLogical.TRUE);
@@ -100,7 +100,7 @@ public class Matrix {
                             throw RError.getNegativeNRow(ast);
                         }
                     }
-                    int nCol = 1;
+                    int nCol = -1;
                     int size;
                     if (provided[INCOL]) {
                         nCol = parseExtent(ast, args[paramPositions[INCOL]]);
@@ -110,18 +110,51 @@ public class Matrix {
                         if (nCol < 0) {
                             throw RError.getNegativeNCol(ast);
                         }
-                        size = nRow * nCol;
-                    } else {
-                        size = dsize;
                     }
 
-                    if (size % dsize != 0 && dsize % size != 0) {
-                        context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                    if (nRow == -1) {
+                        if (nCol == -1) {
+                            nCol = 1;
+                            nRow = dsize;
+                        } else {
+                            if (dsize >= nCol) {
+                                nRow = dsize / nCol;
+                                if (nRow * nCol != dsize) {
+                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                }
+                            } else {
+                                nRow = 1;
+                                if (nCol % dsize != 0) {
+                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                }
+                            }
+                        }
+                        size = nRow * nCol;
+                    } else { // nRow != -1
+                        if (nCol == -1) {
+                            if (dsize >= nRow) {
+                                nCol = dsize / nRow;
+                                if (nCol * nRow != dsize) {
+                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                }
+                            } else {
+                                nCol = 1;
+                                if (nRow % dsize != 0) {
+                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                }
+                            }
+                            size = nRow * nCol;
+                        } else {
+                            size = nRow * nCol;
+                            if (size % dsize != 0 && dsize % size != 0) {
+                                context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                            }
+                        }
                     }
+
                     boolean byRow = provided[IBYROW] ? parseByRow(ast, args[paramPositions[IBYROW]]) : false;
 
-                    RArray res = Utils.createArray(data, size);
-                    res.setDimensions(new int[] {nRow, nCol});
+                    RArray res = Utils.createArray(data, size, new int[] {nRow, nCol});
                     int di = 0;
                     if (!byRow) {
                         for (int i = 0; i < size; i++) {

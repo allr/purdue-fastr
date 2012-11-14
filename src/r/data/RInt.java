@@ -35,6 +35,12 @@ public interface RInt extends RNumber {
             }
             return new IntImpl(size);
         }
+        public static RInt getUninitializedArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
+                return new ScalarIntImpl(0);
+            }
+            return new IntImpl(new int[size], dimensions);
+        }
         public static RInt getNAArray(int size) {
             if (size == 1) {
                 return new ScalarIntImpl(NA);

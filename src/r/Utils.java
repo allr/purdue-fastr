@@ -69,6 +69,20 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createArray(RAny type, int size, int[] dimensions) {
+        if (type instanceof RInt) {
+            return RInt.RIntFactory.getUninitializedArray(size, dimensions);
+        }
+        if (type instanceof RDouble) {
+            return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions);
+        }
+        if (type instanceof RLogical) {
+            return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions);
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
     public static RArray createEmptyArray(RAny type) {
         if (type instanceof RInt) {
             return RInt.EMPTY;

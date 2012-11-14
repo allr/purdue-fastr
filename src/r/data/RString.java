@@ -23,6 +23,9 @@ public interface RString extends RArray {
         public static StringImpl getUninitializedArray(int size) {
             return new StringImpl(size);
         }
+        public static StringImpl getUninitializedArray(int size, int[] dimensions) {
+            return new StringImpl(new String[size], dimensions);
+        }
         public static StringImpl getMatrixFor(String[] values, int m, int n) {
             return new StringImpl(values, new int[] {m, n}, false);
         }
