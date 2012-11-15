@@ -45,6 +45,96 @@ public abstract class MatrixOperation extends BaseR {
             return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
         }
 
+        // FIXME: make sure that the compiler can optimize these loops
+        // FIXME: could use better algorithms for large/sparse matrices
+        public static RDouble vectorTimesMatrix(ASTNode ast, RDouble vector, RDouble matrix) {
+            int[] dim = matrix.dimensions();
+            int m = dim[0];
+            int n = dim[1];
+            int s = vector.size();
+
+            if (s == m) {
+                // treat vector as 1 x m (row), result is 1 x n
+                double[] content = new double[n];
+                for (int j = 0; j < n; j++) {
+                    double d = 0;
+                    for (int k = 0; k < m; k++) {
+                        d += vector.getDouble(k) * matrix.getDouble(j * m + k);
+                    }
+                    content[j] = d;
+                }
+                return RDouble.RDoubleFactory.getFor(content, new int[] {1, n});
+
+            } else if (m == 1) {
+                // treat vector as s x 1 (column), result is s x n
+                double[] content = new double[s * n];
+                for (int i = 0; i < s; i++) {
+                    for (int j = 0; j < n; j++) {
+                        content[j * s + i] = vector.getDouble(i) * matrix.getDouble(j);
+                    }
+                }
+                return RDouble.RDoubleFactory.getFor(content, new int[] {s, n});
+            } else {
+                throw RError.getNonConformableArgs(ast);
+            }
+        }
+
+        public static RDouble matrixTimesVector(ASTNode ast, RDouble matrix, RDouble vector) {
+            int[] dim = matrix.dimensions();
+            int m = dim[0];
+            int n = dim[1];
+            int s = vector.size();
+
+            if (s == n) {
+                // treat vector as n x 1 (column), result is m x 1
+                double[] content = new double[m];
+                for (int i = 0; i < m; i++) {
+                    double d = 0;
+                    for (int k = 0; k < n; k++) {
+                        d += matrix.getDouble(k * m + i) * vector.getDouble(k);
+                    }
+                    content[i] = d;
+                }
+                return RDouble.RDoubleFactory.getFor(content, new int[] {m, 1});
+            } else if (n == 1) {
+                // treat vector as 1 x s (row), result is m x s
+                double[] content = new double[m * s];
+                for (int i = 0; i < m; i++) {
+                    for (int j = 0; j < s; j++) {
+                        content[ j * m + i] = matrix.getDouble(i) * vector.getDouble(j);
+                    }
+                }
+                return RDouble.RDoubleFactory.getFor(content, new int[] {m, s});
+            } else {
+                throw RError.getNonConformableArrays(ast);
+            }
+        }
+
+        public static RDouble matrixTimesMatrix(ASTNode ast, RDouble a, RDouble b) {
+            int[] dima = a.dimensions();
+            int[] dimb = b.dimensions();
+
+            int m = dima[0];
+            int n = dima[1];
+            if (n != dimb[0]) {
+                throw RError.getNonConformableArgs(ast);
+            }
+            int p = dimb[1];
+
+            // a is m x n, b is n x p, result is m x p
+            double[] content = new double[m * p];
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < p; j++) {
+                    double d = 0;
+                    for (int k = 0; k < n; k++) {
+                        d += a.getDouble(k * m + i) * b.getDouble(j * n + k);
+                    }
+                    content[j * m + i] = d;
+                }
+            }
+            return RDouble.RDoubleFactory.getFor(content, new int[] {m, p});
+        }
+
         @Override
         public Object execute(RContext context, RAny l, RAny r) {
 
@@ -57,12 +147,19 @@ public abstract class MatrixOperation extends BaseR {
             int[] ldims = ld.dimensions();
             int[] rdims = rd.dimensions();
 
-            if (ldims == null && rdims == null) {
-                return dotProduct(ast, ld, rd);
+            if (ldims == null) {
+                if (rdims == null) {
+                    return dotProduct(ast, ld, rd);
+                } else {
+                    return vectorTimesMatrix(ast, ld, rd);
+                }
+            } else {
+                if (rdims == null) {
+                    return matrixTimesVector(ast, ld, rd);
+                } else {
+                    return matrixTimesMatrix(ast, ld, rd);
+                }
             }
-
-            Utils.nyi("case not yet implemented");
-            return null;
         }
     }
 }

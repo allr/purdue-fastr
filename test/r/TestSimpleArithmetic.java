@@ -53,10 +53,18 @@ public class TestSimpleArithmetic extends TestBase {
 
     @Test
     public void testMatrices() throws RecognitionException {
-        assertEval("{ x <- 1:3 %*% 9:11 ; x[1] }", "62.0");
         assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m+1L }", "     [,1] [,2] [,3]\n[1,]   2L   3L   4L\n[2,]   5L   6L   7L");
         assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m-1 }",  "     [,1] [,2] [,3]\n[1,]  0.0  1.0  2.0\n[2,]  3.0  4.0  5.0");
         assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m+m }", "     [,1] [,2] [,3]\n[1,]   2L   4L   6L\n[2,]   8L  10L  12L");
         assertEval("{ z<-matrix(12)+1 ; z }", "     [,1]\n[1,] 13.0");
+
+        // matrix product
+        assertEval("{ x <- 1:3 %*% 9:11 ; x[1] }", "62.0");
+        assertEval("{ m<-matrix(1:3, nrow=1) ; 1:2 %*% m }", "     [,1] [,2] [,3]\n[1,]  1.0  2.0  3.0\n[2,]  2.0  4.0  6.0");
+        assertEval("{ m<-matrix(1:6, nrow=2) ; 1:2 %*% m }", "     [,1] [,2] [,3]\n[1,]  5.0 11.0 17.0");
+        assertEval("{ m<-matrix(1:6, nrow=2) ; m %*% 1:3 }", "     [,1]\n[1,] 22.0\n[2,] 28.0");
+        assertEval("{ m<-matrix(1:3, ncol=1) ; m %*% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
+        assertEval("{ a<-matrix(1:6, ncol=2) ; b<-matrix(11:16, nrow=2) ; a %*% b }", "      [,1]  [,2]  [,3]\n[1,]  59.0  69.0  79.0\n[2,]  82.0  96.0 110.0\n[3,] 105.0 123.0 141.0");
+
     }
 }

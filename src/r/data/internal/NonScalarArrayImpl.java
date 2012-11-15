@@ -57,28 +57,28 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
         int[] colWidth = new int[n];
         int rowNamesWidth = -1;
 
-        for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
             int maxWidth = -1;
-            String cn = "[," + Integer.toString(i + 1) + "]";
-            colNames[i] = cn;
+            String cn = "[," + Integer.toString(j + 1) + "]";
+            colNames[j] = cn;
             int clen = cn.length();
             if (clen > maxWidth) {
                 maxWidth = clen;
             }
-            for (int j = 0; j < m; j++) {
-                String s = boxedGet(i * m + j).prettyMatrixElement();
-                data[j][i] = s;
+            for (int i = 0; i < m; i++) {
+                String s = boxedGet(j * m + i).prettyMatrixElement();
+                data[i][j] = s;
                 int l = s.length();
                 if (l > maxWidth) {
                     maxWidth = l;
                 }
             }
-            colWidth[i] = 1 + maxWidth;
+            colWidth[j] = 1 + maxWidth;
         }
 
-        for (int j = 0; j < m; j++) {
-            String rn = "[" + Integer.toString(j + 1) + ",]";
-            rowNames[j] = rn;
+        for (int i = 0; i < m; i++) {
+            String rn = "[" + Integer.toString(i + 1) + ",]";
+            rowNames[i] = rn;
             int rlen = rn.length();
             if (rlen > rowNamesWidth) {
                 rowNamesWidth = rlen;
@@ -88,16 +88,16 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
         StringBuilder res = new StringBuilder();
 
         strAppend(res, "", rowNamesWidth);
-        for (int i = 0; i < n; i++) {
-            strAppend(res, colNames[i], colWidth[i]);
+        for (int j = 0; j < n; j++) {
+            strAppend(res, colNames[j], colWidth[j]);
         }
         res.append("\n");
-        for (int j = 0; j < m; j++) {
-            strAppend(res, rowNames[j], rowNamesWidth);
-            for (int i = 0; i < n; i++) {
-                strAppend(res, data[j][i], colWidth[i]);
+        for (int i = 0; i < m; i++) {
+            strAppend(res, rowNames[i], rowNamesWidth);
+            for (int j = 0; j < n; j++) {
+                strAppend(res, data[i][j], colWidth[j]);
             }
-            if (j != m - 1) {
+            if (i != m - 1) {
                 res.append("\n");
             }
         }
