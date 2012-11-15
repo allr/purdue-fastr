@@ -13,6 +13,8 @@ public class Length {
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+
+            BuiltIn.ensureArgName(call, "x", names[0]);
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override

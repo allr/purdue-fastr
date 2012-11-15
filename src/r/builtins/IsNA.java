@@ -237,6 +237,7 @@ public class IsNA {
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+           BuiltIn.ensureArgName(call, "x", names[0]);
            return Specialized.createUninitialized(call, names, exprs);
 //             return createGeneric(call, names, exprs);
         }

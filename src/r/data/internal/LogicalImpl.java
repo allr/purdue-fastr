@@ -40,6 +40,20 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
+    public LogicalImpl stripAttributes() {
+        if (dimensions == null) {
+            return this;
+        }
+        if (!isShared()) {
+            dimensions = null;
+            return this;
+        }
+        LogicalImpl v = new LogicalImpl(content, null, false); // note: re-uses current values
+        v.refcount = refcount; // mark the new integer shared
+        return v;
+    }
+
+    @Override
     public int size() {
         return content.length;
     }

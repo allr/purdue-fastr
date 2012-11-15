@@ -6,6 +6,7 @@ import r.nodes.truffle.*;
 public interface RAny {
 
     RAttributes getAttributes();
+    RAny stripAttributes();
 
     String pretty();
     String prettyMatrixElement();

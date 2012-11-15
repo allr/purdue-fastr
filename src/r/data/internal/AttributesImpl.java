@@ -132,4 +132,10 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     public boolean isShared() {
         return true;
     }
+
+    @Override
+    public RAttributes stripAttributes() {
+        Utils.nyi();
+        return null;
+    }
 }

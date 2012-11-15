@@ -37,6 +37,20 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
+    public DoubleImpl stripAttributes() {
+        if (dimensions == null) {
+            return this;
+        }
+        if (!isShared()) {
+            dimensions = null;
+            return this;
+        }
+        DoubleImpl v = new DoubleImpl(content, null, false); // note: re-uses current values
+        v.refcount = refcount; // mark the new integer shared
+        return v;
+    }
+
+    @Override
     public int size() {
         return content.length;
     }

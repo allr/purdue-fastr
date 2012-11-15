@@ -49,6 +49,9 @@ public class ArrayConstructor {
     public static final CallFactory DOUBLE_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
             return new BuiltIn(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
@@ -65,6 +68,9 @@ public class ArrayConstructor {
     public static final CallFactory INT_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
             return new BuiltIn(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
@@ -81,6 +87,9 @@ public class ArrayConstructor {
     public static final CallFactory LOGICAL_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
             return new BuiltIn(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {

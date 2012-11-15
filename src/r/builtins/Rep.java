@@ -1,6 +1,7 @@
 package r.builtins;
 
 import r.*;
+import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -11,6 +12,11 @@ import com.oracle.truffle.runtime.*;
 
 // FIXME: Truffle can't handle BuiltIn2
 public class Rep {
+
+    private static final String[] paramNames = new String[]{"x", "times"};
+
+    private static final int IX = 0;
+    private static final int ITIMES = 1;
 
     public static void checkScalar(RArray a, ASTNode ast) {
         int n = a.size();
@@ -151,10 +157,22 @@ public class Rep {
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (!provided[IX]) {
+                BuiltIn.missingArg(call, paramNames[IX]);
+            }
+            if (!provided[ITIMES]) {
+                BuiltIn.missingArg(call, paramNames[ITIMES]);
+            }
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
-                    return rep(ast, arg0, arg1);
+                    final boolean xfirst = paramPositions[IX] == 0;
+                    return rep(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                 }
             };
         }

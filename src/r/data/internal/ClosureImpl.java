@@ -298,4 +298,10 @@ public class ClosureImpl extends BaseObject implements RClosure {
     @Override
     public void ref() { // FIXME: will have to update this when we support modification of closures
     }
+
+    @Override
+    public ClosureImpl stripAttributes() {
+        Utils.nyi();
+        return null;
+    }
 }

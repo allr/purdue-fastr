@@ -41,6 +41,20 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
+    public StringImpl stripAttributes() {
+        if (dimensions == null) {
+            return this;
+        }
+        if (!isShared()) {
+            dimensions = null;
+            return this;
+        }
+        StringImpl v = new StringImpl(content, null, false); // note: re-uses current values
+        v.refcount = refcount; // mark the new integer shared
+        return v;
+    }
+
+    @Override
     public int size() {
         return content.length;
     }

@@ -129,4 +129,9 @@ public final class RNull implements RAny, RAttributes {
     public String prettyMatrixElement() {
         return pretty();
     }
+
+    @Override
+    public RNull stripAttributes() {
+        return this;
+    }
 }

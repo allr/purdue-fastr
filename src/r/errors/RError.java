@@ -49,13 +49,15 @@ public abstract class RError extends RuntimeException {
     public static final String NEGATIVE_NCOL = "invalid 'ncol' value (< 0)";
     public static final String NEGATIVE_NROW = "invalid 'nrow' value (< 0)";
     public static final String NON_CONFORMABLE_ARRAYS = "non-conformable arrays";
+    public static final String INVALID_MODE = "invalid 'mode' argument";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
     public static final String LIST_COERCION = "(list) object cannot be coerced to type '%s'";
     public static final String CAT_ARGUMENT_LIST = "argument %d (type 'list') cannot be handled by 'cat'";
     public static final String DATA_NOT_MULTIPLE_ROWS = "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]";
-
+    public static final String ARGUMENT_NOT_MATCH = "supplied argument name '%s' does not match '%s'";
+    public static final String ARGUMENT_MISSING = "argument '%s' is missing, with no default";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -495,6 +497,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NON_CONFORMABLE_ARRAYS;
+            }
+        };
+    }
+
+    public static RError getInvalidMode(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_MODE;
             }
         };
     }

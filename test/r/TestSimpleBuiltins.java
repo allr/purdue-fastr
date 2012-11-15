@@ -94,6 +94,11 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.integer(list(c(1),2,3)) }", "1L, 2L, 3L");
         assertEval("{ as.integer(list(integer(),2,3)) }", "NA, 2L, 3L");
         assertEval("{ as.integer(list(list(1),2,3)) }", "NA, 2L, 3L");
+
+        assertEval("{ m<-matrix(1:6, nrow=3) ; as.integer(m) }", "1L, 2L, 3L, 4L, 5L, 6L");
+        assertEval("{ m<-matrix(1:6, nrow=3) ; as.vector(m, \"any\") }", "1L, 2L, 3L, 4L, 5L, 6L");
+        assertEval("{ m<-matrix(1:6, nrow=3) ; as.vector(mode = \"integer\", x=m) }", "1L, 2L, 3L, 4L, 5L, 6L");
+        assertEval("{ as.vector(list(1,2,3), mode=\"integer\") }", "1L, 2L, 3L");
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -71,6 +72,19 @@ public abstract class BuiltIn extends AbstractCall {
         @Override
         public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
             return doBuiltIn(context, frame, params[0], params[1]);
+        }
+    }
+
+    public static void missingArg(ASTNode ast, String paramName) {
+        throw RError.getGenericError(ast, String.format(RError.ARGUMENT_MISSING, paramName));
+    }
+    public static void ensureArgName(ASTNode ast, String expectedName, RSymbol actualName) {
+        if (actualName == null) {
+            return;
+        }
+        RSymbol expected = RSymbol.getSymbol(expectedName);
+        if (actualName != expected) {
+            throw RError.getGenericError(ast, String.format(RError.ARGUMENT_NOT_MATCH, actualName.pretty(), expectedName));
         }
     }
 

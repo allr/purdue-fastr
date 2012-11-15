@@ -31,12 +31,28 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         content = new int[size];
     }
 
-    public IntImpl(RInt v) {
+    public IntImpl(RInt v, boolean valuesOnly) {
         content = new int[v.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = v.getInt(i);
         }
-        dimensions = v.dimensions();
+        if (!valuesOnly) {
+            dimensions = v.dimensions();
+        }
+    }
+
+    @Override
+    public IntImpl stripAttributes() {
+        if (dimensions == null) {
+            return this;
+        }
+        if (!isShared()) {
+            dimensions = null;
+            return this;
+        }
+        IntImpl v = new IntImpl(content, null, false); // note: re-uses current values
+        v.refcount = refcount; // mark the new integer shared
+        return v;
     }
 
     @Override

@@ -66,4 +66,9 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     public boolean isShared() {
         return true;
     }
+
+    @Override
+    public RArray stripAttributes() {
+        return this;
+    }
 }

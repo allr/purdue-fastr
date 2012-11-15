@@ -61,7 +61,13 @@ public interface RInt extends RNumber {
             if (i.size() == 1 && i.dimensions() == null) {
                 return new ScalarIntImpl(i.getInt(0));
             }
-            return new IntImpl(i);
+            return new IntImpl(i, false);
+        }
+        public static RInt copyValuesOnly(RInt i) {
+            if (i.size() == 1) {
+                return new ScalarIntImpl(i.getInt(0));
+            }
+            return new IntImpl(i, true);
         }
         public static RInt getFor(int[] values) { // re-uses values!
             return getFor(values, null);

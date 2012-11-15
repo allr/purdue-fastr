@@ -67,6 +67,11 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RInt stripAttributes() {
+            return RIntFactory.copyValuesOnly(this);
+        }
+
+        @Override
         public RLogical asLogical() {
             return new RInt.RLogicalView(this);
         }

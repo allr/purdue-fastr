@@ -106,4 +106,9 @@ public final class RSymbol extends BaseObject implements RAny {
     public void ref() {
     }
 
+    @Override
+    public RSymbol stripAttributes() {
+        return this;
+    }
+
 }

@@ -6,7 +6,7 @@ import r.*;
 public abstract class NonScalarArrayImpl extends ArrayImpl {
 
     protected int[] dimensions; // the content shall never be modified once set
-    private int refcount;
+    protected int refcount;
 
     @Override
     public final boolean isShared() {
