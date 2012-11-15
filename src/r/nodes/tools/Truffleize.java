@@ -321,6 +321,11 @@ public class Truffleize implements Visitor {
     }
 
     @Override
+    public void visit(OuterMult mult) {
+        result = new r.nodes.truffle.MatrixOperation.OuterProduct(mult, createTree(mult.getLHS()), createTree(mult.getRHS()));
+    }
+
+    @Override
     public void visit(Pow pow) {
         result = new r.nodes.truffle.Arithmetic(pow, createTree(pow.getLHS()), createTree(pow.getRHS()), r.nodes.truffle.Arithmetic.POW);
     }

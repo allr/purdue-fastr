@@ -18,6 +18,7 @@ public interface Visitor {
     void visit(GT gt);
     void visit(Mult mult);
     void visit(MatMult mult);
+    void visit(OuterMult mult);
     void visit(Pow pow);
     void visit(Div div);
     void visit(Add add);

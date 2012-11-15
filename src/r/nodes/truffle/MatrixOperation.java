@@ -162,4 +162,38 @@ public abstract class MatrixOperation extends BaseR {
             }
         }
     }
+
+    public static class OuterProduct extends MatrixOperation {
+        public OuterProduct(ASTNode ast, RNode left, RNode right) {
+            super(ast, left, right);
+        }
+
+        @Override
+        public Object execute(RContext context, RAny l, RAny r) {
+
+            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
+                            (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
+                throw RError.getNumericComplexMatrixVector(ast);
+            }
+            RDouble ld = l.asDouble().materialize();
+            RDouble rd = r.asDouble().materialize();
+
+            int m = ld.size();
+            int n = rd.size();
+            double[] content = new double[m * n];
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n ; j++) {
+                    content[j * m + i] = ld.getDouble(i) * rd.getDouble(j);
+                }
+            }
+            int[] ldims = ld.dimensions();
+            int[] rdims = rd.dimensions();
+            if (ldims == null && rdims == null) {
+                return RDouble.RDoubleFactory.getFor(content, new int[] { m, n });
+            } else {
+                Utils.nyi("unsupported case");
+                return  null;
+            }
+        }
+    }
 }

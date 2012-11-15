@@ -1,4 +1,4 @@
-// $ANTLR 3.4 R.g 2012-11-12 19:17:03
+// $ANTLR !Unknown version! R.g 2012-11-15 16:39:42
 
 package r.parser;
 //Checkstyle: stop
@@ -9,91 +9,91 @@ import java.util.Stack;
 import java.util.List;
 import java.util.ArrayList;
 
-@SuppressWarnings({"all"})
 public class RLexer extends Lexer {
+    public static final int FUNCTION=34;
+    public static final int PARMS=7;
+    public static final int UTILDE=12;
+    public static final int EXPONENT=77;
+    public static final int LT=65;
+    public static final int WHILE=29;
+    public static final int MOD=73;
+    public static final int LBB=48;
+    public static final int RIGHT_ARROW=22;
+    public static final int LBRACE=18;
+    public static final int OCTAL_ESC=84;
+    public static final int FOR=30;
+    public static final int MISSING_VAL=9;
+    public static final int COMPLEX=54;
+    public static final int RBRAKET=47;
+    public static final int NOT=39;
+    public static final int AND=61;
+    public static final int ID=31;
     public static final int EOF=-1;
-    public static final int T__85=85;
-    public static final int AND=4;
-    public static final int ARROW=5;
-    public static final int ASSIGN=6;
-    public static final int AT=7;
-    public static final int BITWISEAND=8;
-    public static final int BITWISEOR=9;
-    public static final int BRAKET=10;
-    public static final int BREAK=11;
-    public static final int CALL=12;
-    public static final int CARRET=13;
-    public static final int COLON=14;
-    public static final int COMMA=15;
-    public static final int COMMENT=16;
-    public static final int COMPLEX=17;
-    public static final int DD=18;
-    public static final int DIV=19;
-    public static final int DOUBLE=20;
-    public static final int ELSE=21;
-    public static final int EQ=22;
-    public static final int ESCAPE=23;
-    public static final int ESC_SEQ=24;
-    public static final int EXPONENT=25;
-    public static final int FALSE=26;
-    public static final int FIELD=27;
-    public static final int FOR=28;
-    public static final int FUNCTION=29;
-    public static final int GE=30;
-    public static final int GT=31;
-    public static final int HEX_DIGIT=32;
-    public static final int HEX_ESC=33;
-    public static final int ID=34;
-    public static final int ID_NAME=35;
-    public static final int IF=36;
-    public static final int IN=37;
-    public static final int INTEGER=38;
-    public static final int KW=39;
-    public static final int LBB=40;
-    public static final int LBRACE=41;
-    public static final int LBRAKET=42;
-    public static final int LE=43;
-    public static final int LINE_BREAK=44;
-    public static final int LPAR=45;
-    public static final int LT=46;
-    public static final int MAT_MULT=47;
-    public static final int MINUS=48;
-    public static final int MISSING_VAL=49;
-    public static final int MOD=50;
-    public static final int MULT=51;
-    public static final int NA=52;
-    public static final int NE=53;
-    public static final int NEWLINE=54;
-    public static final int NEXT=55;
-    public static final int NOT=56;
-    public static final int NS_GET=57;
-    public static final int NS_GET_INT=58;
-    public static final int NULL=59;
-    public static final int OCTAL_ESC=60;
-    public static final int OP=61;
-    public static final int OP_NAME=62;
-    public static final int OR=63;
-    public static final int PARMS=64;
-    public static final int PLUS=65;
-    public static final int RBRACE=66;
-    public static final int RBRAKET=67;
-    public static final int REPEAT=68;
-    public static final int RIGHT_ARROW=69;
-    public static final int RPAR=70;
-    public static final int SEMICOLON=71;
-    public static final int SEQUENCE=72;
-    public static final int STRING=73;
-    public static final int SUPER_ARROW=74;
-    public static final int SUPER_RIGHT_ARROW=75;
-    public static final int TILDE=76;
-    public static final int TRUE=77;
-    public static final int UMINUS=78;
-    public static final int UNICODE_ESC=79;
-    public static final int UPLUS=80;
-    public static final int UTILDE=81;
-    public static final int VARIATIC=82;
-    public static final int WHILE=83;
-    public static final int WS=84;
+    public static final int DD=37;
+    public static final int BREAK=17;
+    public static final int IF=25;
+    public static final int AT=45;
+    public static final int BITWISEAND=62;
+    public static final int ESC_SEQ=80;
+    public static final int IN=32;
+    public static final int ESCAPE=82;
+    public static final int LPAR=26;
+    public static final int COMMA=35;
+    public static final int TILDE=38;
+    public static final int DOUBLE=53;
+    public static final int NEXT=16;
+    public static final int PLUS=42;
+    public static final int EQ=67;
+    public static final int COMMENT=14;
+    public static final int NA=58;
+    public static final int BRAKET=5;
+    public static final int NE=68;
+    public static final int INTEGER=52;
+    public static final int GE=64;
+    public static final int RBRACE=19;
+    public static final int LBRAKET=46;
+    public static final int OUTER_MULT=71;
+    public static final int UPLUS=10;
+    public static final int NS_GET_INT=51;
+    public static final int NULL=49;
+    public static final int UNICODE_ESC=83;
+    public static final int ELSE=28;
+    public static final int UMINUS=11;
+    public static final int HEX_DIGIT=78;
+    public static final int ID_NAME=79;
+    public static final int SEMICOLON=15;
+    public static final int MAT_MULT=70;
+    public static final int MINUS=43;
+    public static final int MULT=69;
+    public static final int VARIATIC=36;
+    public static final int TRUE=56;
+    public static final int T__86=86;
+    public static final int BITWISEOR=60;
+    public static final int COLON=41;
+    public static final int SEQUENCE=8;
+    public static final int HEX_ESC=85;
+    public static final int LINE_BREAK=75;
+    public static final int WS=76;
+    public static final int NEWLINE=13;
+    public static final int SUPER_RIGHT_ARROW=23;
+    public static final int KW=6;
+    public static final int SUPER_ARROW=21;
+    public static final int OP=40;
+    public static final int OR=59;
+    public static final int ASSIGN=24;
+    public static final int ARROW=20;
+    public static final int NS_GET=50;
+    public static final int GT=63;
+    public static final int RPAR=27;
+    public static final int FIELD=44;
+    public static final int REPEAT=33;
+    public static final int CALL=4;
+    public static final int CARRET=74;
+    public static final int OP_NAME=81;
+    public static final int DIV=72;
+    public static final int FALSE=57;
+    public static final int LE=66;
+    public static final int STRING=55;
 
         public final int MAX_INCOMPLETE_SIZE = 1000;
         int incomplete_stack[] = new int[MAX_INCOMPLETE_SIZE]; // TODO probably go for an ArrayList of int :S
@@ -107,30 +107,27 @@ public class RLexer extends Lexer {
 
     // delegates
     // delegators
-    public Lexer[] getDelegates() {
-        return new Lexer[] {};
-    }
 
-    public RLexer() {} 
+    public RLexer() {;} 
     public RLexer(CharStream input) {
         this(input, new RecognizerSharedState());
     }
     public RLexer(CharStream input, RecognizerSharedState state) {
         super(input,state);
+
     }
     @Override
     public String getGrammarFileName() { return "R.g"; }
 
-    // $ANTLR start "T__85"
-    public final void mT__85() throws RecognitionException {
+    // $ANTLR start "T__86"
+    public final void mT__86() throws RecognitionException {
         try {
-            int _type = T__85;
+            int _type = T__86;
             int _channel = DEFAULT_TOKEN_CHANNEL;
             // R.g:31:7: ( '--EOF--' )
             // R.g:31:9: '--EOF--'
             {
             match("--EOF--"); 
-
 
 
             }
@@ -139,44 +136,42 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
-    // $ANTLR end "T__85"
+    // $ANTLR end "T__86"
 
     // $ANTLR start "COMMENT"
     public final void mCOMMENT() throws RecognitionException {
         try {
             int _type = COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:307:5: ( '#' (~ ( '\\n' | '\\r' | '\\f' ) )* ( LINE_BREAK | EOF ) )
-            // R.g:307:9: '#' (~ ( '\\n' | '\\r' | '\\f' ) )* ( LINE_BREAK | EOF )
+            // R.g:308:5: ( '#' (~ ( '\\n' | '\\r' | '\\f' ) )* ( LINE_BREAK | EOF ) )
+            // R.g:308:9: '#' (~ ( '\\n' | '\\r' | '\\f' ) )* ( LINE_BREAK | EOF )
             {
             match('#'); 
-
-            // R.g:307:13: (~ ( '\\n' | '\\r' | '\\f' ) )*
+            // R.g:308:13: (~ ( '\\n' | '\\r' | '\\f' ) )*
             loop1:
             do {
                 int alt1=2;
                 int LA1_0 = input.LA(1);
 
-                if ( ((LA1_0 >= '\u0000' && LA1_0 <= '\t')||LA1_0=='\u000B'||(LA1_0 >= '\u000E' && LA1_0 <= '\uFFFF')) ) {
+                if ( ((LA1_0>='\u0000' && LA1_0<='\t')||LA1_0=='\u000B'||(LA1_0>='\u000E' && LA1_0<='\uFFFF')) ) {
                     alt1=1;
                 }
 
 
                 switch (alt1) {
             	case 1 :
-            	    // R.g:
+            	    // R.g:308:13: ~ ( '\\n' | '\\r' | '\\f' )
             	    {
-            	    if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '\t')||input.LA(1)=='\u000B'||(input.LA(1) >= '\u000E' && input.LA(1) <= '\uFFFF') ) {
+            	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='\t')||input.LA(1)=='\u000B'||(input.LA(1)>='\u000E' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
+
             	    }
             	    else {
             	        MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
-            	        throw mse;
-            	    }
+            	        throw mse;}
 
 
             	    }
@@ -187,37 +182,32 @@ public class RLexer extends Lexer {
                 }
             } while (true);
 
-
-            // R.g:307:32: ( LINE_BREAK | EOF )
+            // R.g:308:32: ( LINE_BREAK | EOF )
             int alt2=2;
             int LA2_0 = input.LA(1);
 
-            if ( (LA2_0=='\n'||(LA2_0 >= '\f' && LA2_0 <= '\r')) ) {
+            if ( (LA2_0=='\n'||(LA2_0>='\f' && LA2_0<='\r')) ) {
                 alt2=1;
             }
             else {
-                alt2=2;
-            }
+                alt2=2;}
             switch (alt2) {
                 case 1 :
-                    // R.g:307:33: LINE_BREAK
+                    // R.g:308:33: LINE_BREAK
                     {
                     mLINE_BREAK(); 
-
 
                     }
                     break;
                 case 2 :
-                    // R.g:307:46: EOF
+                    // R.g:308:46: EOF
                     {
                     match(EOF); 
-
 
                     }
                     break;
 
             }
-
 
              if(incomplete_stack[incomplete_depth]>0) _channel=HIDDEN; 
 
@@ -227,7 +217,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "COMMENT"
@@ -237,7 +226,7 @@ public class RLexer extends Lexer {
         try {
             int _type = ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:310:2: ( '<-' | ':=' )
+            // R.g:311:2: ( '<-' | ':=' )
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -252,23 +241,20 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 3, 0, input);
 
                 throw nvae;
-
             }
             switch (alt3) {
                 case 1 :
-                    // R.g:310:4: '<-'
+                    // R.g:311:4: '<-'
                     {
                     match("<-"); 
-
 
 
                     }
                     break;
                 case 2 :
-                    // R.g:310:11: ':='
+                    // R.g:311:11: ':='
                     {
                     match(":="); 
-
 
 
                     }
@@ -279,7 +265,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ARROW"
@@ -289,11 +274,10 @@ public class RLexer extends Lexer {
         try {
             int _type = SUPER_ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:313:2: ( '<<-' )
-            // R.g:313:5: '<<-'
+            // R.g:314:2: ( '<<-' )
+            // R.g:314:5: '<<-'
             {
             match("<<-"); 
-
 
 
             }
@@ -302,7 +286,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "SUPER_ARROW"
@@ -312,11 +295,10 @@ public class RLexer extends Lexer {
         try {
             int _type = RIGHT_ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:315:2: ( '->' )
-            // R.g:315:4: '->'
+            // R.g:316:2: ( '->' )
+            // R.g:316:4: '->'
             {
             match("->"); 
-
 
 
             }
@@ -325,7 +307,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "RIGHT_ARROW"
@@ -335,11 +316,10 @@ public class RLexer extends Lexer {
         try {
             int _type = SUPER_RIGHT_ARROW;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:318:2: ( '->>' )
-            // R.g:318:4: '->>'
+            // R.g:319:2: ( '->>' )
+            // R.g:319:4: '->>'
             {
             match("->>"); 
-
 
 
             }
@@ -348,7 +328,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "SUPER_RIGHT_ARROW"
@@ -358,14 +337,12 @@ public class RLexer extends Lexer {
         try {
             int _type = VARIATIC;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:321:2: ( '..' ( '.' )+ )
-            // R.g:321:4: '..' ( '.' )+
+            // R.g:322:2: ( '..' ( '.' )+ )
+            // R.g:322:4: '..' ( '.' )+
             {
             match(".."); 
 
-
-
-            // R.g:321:9: ( '.' )+
+            // R.g:322:9: ( '.' )+
             int cnt4=0;
             loop4:
             do {
@@ -379,7 +356,7 @@ public class RLexer extends Lexer {
 
                 switch (alt4) {
             	case 1 :
-            	    // R.g:321:9: '.'
+            	    // R.g:322:9: '.'
             	    {
             	    match('.'); 
 
@@ -402,7 +379,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "VARIATIC"
@@ -412,11 +388,10 @@ public class RLexer extends Lexer {
         try {
             int _type = EQ;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:323:4: ( '==' )
-            // R.g:323:6: '=='
+            // R.g:324:4: ( '==' )
+            // R.g:324:6: '=='
             {
             match("=="); 
-
 
 
             }
@@ -425,7 +400,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "EQ"
@@ -435,11 +409,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:324:5: ( '!=' )
-            // R.g:324:7: '!='
+            // R.g:325:5: ( '!=' )
+            // R.g:325:7: '!='
             {
             match("!="); 
-
 
 
             }
@@ -448,7 +421,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NE"
@@ -458,11 +430,10 @@ public class RLexer extends Lexer {
         try {
             int _type = GE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:325:4: ( '>=' )
-            // R.g:325:6: '>='
+            // R.g:326:4: ( '>=' )
+            // R.g:326:6: '>='
             {
             match(">="); 
-
 
 
             }
@@ -471,7 +442,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "GE"
@@ -481,11 +451,10 @@ public class RLexer extends Lexer {
         try {
             int _type = LE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:326:4: ( '<=' )
-            // R.g:326:6: '<='
+            // R.g:327:4: ( '<=' )
+            // R.g:327:6: '<='
             {
             match("<="); 
-
 
 
             }
@@ -494,7 +463,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LE"
@@ -504,8 +472,8 @@ public class RLexer extends Lexer {
         try {
             int _type = GT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:327:4: ( '>' )
-            // R.g:327:6: '>'
+            // R.g:328:4: ( '>' )
+            // R.g:328:6: '>'
             {
             match('>'); 
 
@@ -515,7 +483,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "GT"
@@ -525,8 +492,8 @@ public class RLexer extends Lexer {
         try {
             int _type = LT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:328:5: ( '<' )
-            // R.g:328:7: '<'
+            // R.g:329:5: ( '<' )
+            // R.g:329:7: '<'
             {
             match('<'); 
 
@@ -536,7 +503,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LT"
@@ -546,8 +512,8 @@ public class RLexer extends Lexer {
         try {
             int _type = ASSIGN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:330:2: ( '=' )
-            // R.g:330:4: '='
+            // R.g:331:2: ( '=' )
+            // R.g:331:4: '='
             {
             match('='); 
 
@@ -557,7 +523,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ASSIGN"
@@ -567,11 +532,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NS_GET_INT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:334:2: ( ':::' )
-            // R.g:334:4: ':::'
+            // R.g:335:2: ( ':::' )
+            // R.g:335:4: ':::'
             {
             match(":::"); 
-
 
 
             }
@@ -580,7 +544,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NS_GET_INT"
@@ -590,11 +553,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NS_GET;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:336:2: ( '::' )
-            // R.g:336:4: '::'
+            // R.g:337:2: ( '::' )
+            // R.g:337:4: '::'
             {
             match("::"); 
-
 
 
             }
@@ -603,7 +565,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NS_GET"
@@ -613,8 +574,8 @@ public class RLexer extends Lexer {
         try {
             int _type = COLON;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:339:2: ( ':' )
-            // R.g:339:4: ':'
+            // R.g:340:2: ( ':' )
+            // R.g:340:4: ':'
             {
             match(':'); 
 
@@ -624,7 +585,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "COLON"
@@ -634,8 +594,8 @@ public class RLexer extends Lexer {
         try {
             int _type = SEMICOLON;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:341:2: ( ';' )
-            // R.g:341:4: ';'
+            // R.g:342:2: ( ';' )
+            // R.g:342:4: ';'
             {
             match(';'); 
 
@@ -645,7 +605,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "SEMICOLON"
@@ -655,8 +614,8 @@ public class RLexer extends Lexer {
         try {
             int _type = COMMA;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:343:2: ( ',' )
-            // R.g:343:4: ','
+            // R.g:344:2: ( ',' )
+            // R.g:344:4: ','
             {
             match(','); 
 
@@ -666,7 +625,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "COMMA"
@@ -676,11 +634,10 @@ public class RLexer extends Lexer {
         try {
             int _type = AND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:345:2: ( '&&' )
-            // R.g:345:4: '&&'
+            // R.g:346:2: ( '&&' )
+            // R.g:346:4: '&&'
             {
             match("&&"); 
-
 
 
             }
@@ -689,7 +646,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "AND"
@@ -699,8 +655,8 @@ public class RLexer extends Lexer {
         try {
             int _type = BITWISEAND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:347:2: ( '&' )
-            // R.g:347:4: '&'
+            // R.g:348:2: ( '&' )
+            // R.g:348:4: '&'
             {
             match('&'); 
 
@@ -710,7 +666,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "BITWISEAND"
@@ -720,11 +675,10 @@ public class RLexer extends Lexer {
         try {
             int _type = OR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:348:4: ( '||' )
-            // R.g:348:6: '||'
+            // R.g:349:4: ( '||' )
+            // R.g:349:6: '||'
             {
             match("||"); 
-
 
 
             }
@@ -733,7 +687,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "OR"
@@ -743,8 +696,8 @@ public class RLexer extends Lexer {
         try {
             int _type = BITWISEOR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:350:2: ( '|' )
-            // R.g:350:3: '|'
+            // R.g:351:2: ( '|' )
+            // R.g:351:3: '|'
             {
             match('|'); 
 
@@ -754,7 +707,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "BITWISEOR"
@@ -764,11 +716,10 @@ public class RLexer extends Lexer {
         try {
             int _type = LBRACE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:352:2: ( '{' )
-            // R.g:352:4: '{'
+            // R.g:353:2: ( '{' )
+            // R.g:353:4: '{'
             {
             match('{'); 
-
             incomplete_stack[++incomplete_depth] = 0; 
 
             }
@@ -777,7 +728,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LBRACE"
@@ -787,11 +737,10 @@ public class RLexer extends Lexer {
         try {
             int _type = RBRACE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:354:2: ( '}' )
-            // R.g:354:4: '}'
+            // R.g:355:2: ( '}' )
+            // R.g:355:4: '}'
             {
             match('}'); 
-
             incomplete_depth -- ;
 
             }
@@ -800,7 +749,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "RBRACE"
@@ -810,11 +758,10 @@ public class RLexer extends Lexer {
         try {
             int _type = LPAR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:356:2: ( '(' )
-            // R.g:356:4: '('
+            // R.g:357:2: ( '(' )
+            // R.g:357:4: '('
             {
             match('('); 
-
              incomplete_stack[incomplete_depth] ++; 
 
             }
@@ -823,7 +770,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LPAR"
@@ -833,11 +779,10 @@ public class RLexer extends Lexer {
         try {
             int _type = RPAR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:358:2: ( ')' )
-            // R.g:358:4: ')'
+            // R.g:359:2: ( ')' )
+            // R.g:359:4: ')'
             {
             match(')'); 
-
              incomplete_stack[incomplete_depth]--; 
 
             }
@@ -846,7 +791,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "RPAR"
@@ -856,12 +800,10 @@ public class RLexer extends Lexer {
         try {
             int _type = LBB;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:360:2: ( '[[' )
-            // R.g:360:4: '[['
+            // R.g:361:2: ( '[[' )
+            // R.g:361:4: '[['
             {
             match("[["); 
-
-
 
              incomplete_stack[incomplete_depth] += 2; 
 
@@ -871,7 +813,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LBB"
@@ -881,11 +822,10 @@ public class RLexer extends Lexer {
         try {
             int _type = LBRAKET;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:362:2: ( '[' )
-            // R.g:362:4: '['
+            // R.g:363:2: ( '[' )
+            // R.g:363:4: '['
             {
             match('['); 
-
              incomplete_stack[incomplete_depth] ++; 
 
             }
@@ -894,7 +834,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LBRAKET"
@@ -904,11 +843,10 @@ public class RLexer extends Lexer {
         try {
             int _type = RBRAKET;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:364:2: ( ']' )
-            // R.g:364:4: ']'
+            // R.g:365:2: ( ']' )
+            // R.g:365:4: ']'
             {
             match(']'); 
-
              incomplete_stack[incomplete_depth] --;
 
             }
@@ -917,7 +855,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "RBRAKET"
@@ -927,7 +864,7 @@ public class RLexer extends Lexer {
         try {
             int _type = CARRET;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:366:2: ( '^' | '**' )
+            // R.g:367:2: ( '^' | '**' )
             int alt5=2;
             int LA5_0 = input.LA(1);
 
@@ -942,21 +879,19 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 5, 0, input);
 
                 throw nvae;
-
             }
             switch (alt5) {
                 case 1 :
-                    // R.g:366:4: '^'
+                    // R.g:367:4: '^'
                     {
                     match('^'); 
 
                     }
                     break;
                 case 2 :
-                    // R.g:366:10: '**'
+                    // R.g:367:10: '**'
                     {
                     match("**"); 
-
 
 
                     }
@@ -967,7 +902,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "CARRET"
@@ -977,8 +911,8 @@ public class RLexer extends Lexer {
         try {
             int _type = TILDE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:368:2: ( '~' )
-            // R.g:368:4: '~'
+            // R.g:369:2: ( '~' )
+            // R.g:369:4: '~'
             {
             match('~'); 
 
@@ -988,7 +922,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "TILDE"
@@ -998,11 +931,10 @@ public class RLexer extends Lexer {
         try {
             int _type = MOD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:370:2: ( '%%' )
-            // R.g:370:4: '%%'
+            // R.g:371:2: ( '%%' )
+            // R.g:371:4: '%%'
             {
             match("%%"); 
-
 
 
             }
@@ -1011,7 +943,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "MOD"
@@ -1021,8 +952,8 @@ public class RLexer extends Lexer {
         try {
             int _type = NOT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:373:2: ( '!' )
-            // R.g:373:4: '!'
+            // R.g:374:2: ( '!' )
+            // R.g:374:4: '!'
             {
             match('!'); 
 
@@ -1032,7 +963,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NOT"
@@ -1042,8 +972,8 @@ public class RLexer extends Lexer {
         try {
             int _type = PLUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:375:2: ( '+' )
-            // R.g:375:4: '+'
+            // R.g:376:2: ( '+' )
+            // R.g:376:4: '+'
             {
             match('+'); 
 
@@ -1053,7 +983,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "PLUS"
@@ -1063,8 +992,8 @@ public class RLexer extends Lexer {
         try {
             int _type = MULT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:377:2: ( '*' )
-            // R.g:377:4: '*'
+            // R.g:378:2: ( '*' )
+            // R.g:378:4: '*'
             {
             match('*'); 
 
@@ -1074,7 +1003,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "MULT"
@@ -1084,11 +1012,10 @@ public class RLexer extends Lexer {
         try {
             int _type = MAT_MULT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:379:2: ( '%*%' )
-            // R.g:379:4: '%*%'
+            // R.g:380:2: ( '%*%' )
+            // R.g:380:4: '%*%'
             {
             match("%*%"); 
-
 
 
             }
@@ -1097,18 +1024,38 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "MAT_MULT"
+
+    // $ANTLR start "OUTER_MULT"
+    public final void mOUTER_MULT() throws RecognitionException {
+        try {
+            int _type = OUTER_MULT;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // R.g:382:2: ( '%o%' )
+            // R.g:382:4: '%o%'
+            {
+            match("%o%"); 
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "OUTER_MULT"
 
     // $ANTLR start "DIV"
     public final void mDIV() throws RecognitionException {
         try {
             int _type = DIV;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:381:5: ( '/' )
-            // R.g:381:7: '/'
+            // R.g:384:5: ( '/' )
+            // R.g:384:7: '/'
             {
             match('/'); 
 
@@ -1118,7 +1065,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "DIV"
@@ -1128,8 +1074,8 @@ public class RLexer extends Lexer {
         try {
             int _type = MINUS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:383:2: ( '-' )
-            // R.g:383:4: '-'
+            // R.g:386:2: ( '-' )
+            // R.g:386:4: '-'
             {
             match('-'); 
 
@@ -1139,7 +1085,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "MINUS"
@@ -1149,8 +1094,8 @@ public class RLexer extends Lexer {
         try {
             int _type = FIELD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:386:2: ( '$' )
-            // R.g:386:4: '$'
+            // R.g:389:2: ( '$' )
+            // R.g:389:4: '$'
             {
             match('$'); 
 
@@ -1160,7 +1105,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "FIELD"
@@ -1170,8 +1114,8 @@ public class RLexer extends Lexer {
         try {
             int _type = AT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:387:4: ( '@' )
-            // R.g:387:6: '@'
+            // R.g:390:4: ( '@' )
+            // R.g:390:6: '@'
             {
             match('@'); 
 
@@ -1181,7 +1125,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "AT"
@@ -1191,11 +1134,10 @@ public class RLexer extends Lexer {
         try {
             int _type = FUNCTION;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:390:2: ( 'function' )
-            // R.g:390:4: 'function'
+            // R.g:393:2: ( 'function' )
+            // R.g:393:4: 'function'
             {
             match("function"); 
-
 
 
             }
@@ -1204,7 +1146,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "FUNCTION"
@@ -1214,11 +1155,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NULL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:392:2: ( 'NULL' )
-            // R.g:392:4: 'NULL'
+            // R.g:395:2: ( 'NULL' )
+            // R.g:395:4: 'NULL'
             {
             match("NULL"); 
-
 
 
             }
@@ -1227,7 +1167,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NULL"
@@ -1237,11 +1176,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NA;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:395:5: ( 'NA' )
-            // R.g:395:7: 'NA'
+            // R.g:398:5: ( 'NA' )
+            // R.g:398:7: 'NA'
             {
             match("NA"); 
-
 
 
             }
@@ -1250,7 +1188,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NA"
@@ -1260,11 +1197,10 @@ public class RLexer extends Lexer {
         try {
             int _type = TRUE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:397:2: ( 'TRUE' )
-            // R.g:397:4: 'TRUE'
+            // R.g:400:2: ( 'TRUE' )
+            // R.g:400:4: 'TRUE'
             {
             match("TRUE"); 
-
 
 
             }
@@ -1273,7 +1209,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "TRUE"
@@ -1283,11 +1218,10 @@ public class RLexer extends Lexer {
         try {
             int _type = FALSE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:399:2: ( 'FALSE' )
-            // R.g:399:4: 'FALSE'
+            // R.g:402:2: ( 'FALSE' )
+            // R.g:402:4: 'FALSE'
             {
             match("FALSE"); 
-
 
 
             }
@@ -1296,7 +1230,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "FALSE"
@@ -1306,11 +1239,10 @@ public class RLexer extends Lexer {
         try {
             int _type = WHILE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:402:2: ( 'while' )
-            // R.g:402:4: 'while'
+            // R.g:405:2: ( 'while' )
+            // R.g:405:4: 'while'
             {
             match("while"); 
-
 
 
             }
@@ -1319,7 +1251,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "WHILE"
@@ -1329,11 +1260,10 @@ public class RLexer extends Lexer {
         try {
             int _type = FOR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:403:5: ( 'for' )
-            // R.g:403:7: 'for'
+            // R.g:406:5: ( 'for' )
+            // R.g:406:7: 'for'
             {
             match("for"); 
-
 
 
             }
@@ -1342,7 +1272,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "FOR"
@@ -1352,11 +1281,10 @@ public class RLexer extends Lexer {
         try {
             int _type = REPEAT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:405:2: ( 'repeat' )
-            // R.g:405:4: 'repeat'
+            // R.g:408:2: ( 'repeat' )
+            // R.g:408:4: 'repeat'
             {
             match("repeat"); 
-
 
 
             }
@@ -1365,7 +1293,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "REPEAT"
@@ -1375,11 +1302,10 @@ public class RLexer extends Lexer {
         try {
             int _type = IN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:406:4: ( 'in' )
-            // R.g:406:6: 'in'
+            // R.g:409:4: ( 'in' )
+            // R.g:409:6: 'in'
             {
             match("in"); 
-
 
 
             }
@@ -1388,7 +1314,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "IN"
@@ -1398,11 +1323,10 @@ public class RLexer extends Lexer {
         try {
             int _type = IF;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:407:4: ( 'if' )
-            // R.g:407:6: 'if'
+            // R.g:410:4: ( 'if' )
+            // R.g:410:6: 'if'
             {
             match("if"); 
-
 
 
             }
@@ -1411,7 +1335,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "IF"
@@ -1421,11 +1344,10 @@ public class RLexer extends Lexer {
         try {
             int _type = ELSE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:409:2: ( 'else' )
-            // R.g:409:4: 'else'
+            // R.g:412:2: ( 'else' )
+            // R.g:412:4: 'else'
             {
             match("else"); 
-
 
 
             }
@@ -1434,7 +1356,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ELSE"
@@ -1444,11 +1365,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NEXT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:411:2: ( 'next' )
-            // R.g:411:4: 'next'
+            // R.g:414:2: ( 'next' )
+            // R.g:414:4: 'next'
             {
             match("next"); 
-
 
 
             }
@@ -1457,7 +1377,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NEXT"
@@ -1467,11 +1386,10 @@ public class RLexer extends Lexer {
         try {
             int _type = BREAK;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:413:2: ( 'break' )
-            // R.g:413:4: 'break'
+            // R.g:416:2: ( 'break' )
+            // R.g:416:4: 'break'
             {
             match("break"); 
-
 
 
             }
@@ -1480,7 +1398,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "BREAK"
@@ -1490,18 +1407,17 @@ public class RLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:416:5: ( ( ' ' | '\\t' ) )
-            // R.g:416:9: ( ' ' | '\\t' )
+            // R.g:419:5: ( ( ' ' | '\\t' ) )
+            // R.g:419:9: ( ' ' | '\\t' )
             {
             if ( input.LA(1)=='\t'||input.LA(1)==' ' ) {
                 input.consume();
+
             }
             else {
                 MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
-                throw mse;
-            }
-
+                throw mse;}
 
             _channel=HIDDEN;
 
@@ -1511,7 +1427,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "WS"
@@ -1521,12 +1436,10 @@ public class RLexer extends Lexer {
         try {
             int _type = NEWLINE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:421:2: ( LINE_BREAK )
-            // R.g:421:4: LINE_BREAK
+            // R.g:424:2: ( LINE_BREAK )
+            // R.g:424:4: LINE_BREAK
             {
             mLINE_BREAK(); 
-
-
              if(incomplete_stack[incomplete_depth]>0) _channel=HIDDEN; 
 
             }
@@ -1535,7 +1448,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "NEWLINE"
@@ -1545,38 +1457,30 @@ public class RLexer extends Lexer {
         try {
             int _type = INTEGER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:423:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L' | '0x' ( HEX_DIGIT )+ 'L' )
+            // R.g:426:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L' | '0x' ( HEX_DIGIT )+ 'L' )
             int alt12=3;
             alt12 = dfa12.predict(input);
             switch (alt12) {
                 case 1 :
-                    // R.g:423:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L'
+                    // R.g:426:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L'
                     {
-                    // R.g:423:9: ( '0' .. '9' )+
+                    // R.g:426:9: ( '0' .. '9' )+
                     int cnt6=0;
                     loop6:
                     do {
                         int alt6=2;
                         int LA6_0 = input.LA(1);
 
-                        if ( ((LA6_0 >= '0' && LA6_0 <= '9')) ) {
+                        if ( ((LA6_0>='0' && LA6_0<='9')) ) {
                             alt6=1;
                         }
 
 
                         switch (alt6) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:426:10: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1590,33 +1494,23 @@ public class RLexer extends Lexer {
                         cnt6++;
                     } while (true);
 
-
                     match('.'); 
-
-                    // R.g:423:25: ( '0' .. '9' )*
+                    // R.g:426:25: ( '0' .. '9' )*
                     loop7:
                     do {
                         int alt7=2;
                         int LA7_0 = input.LA(1);
 
-                        if ( ((LA7_0 >= '0' && LA7_0 <= '9')) ) {
+                        if ( ((LA7_0>='0' && LA7_0<='9')) ) {
                             alt7=1;
                         }
 
 
                         switch (alt7) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:426:26: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1626,17 +1520,15 @@ public class RLexer extends Lexer {
                         }
                     } while (true);
 
-
                     match('L'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
                     break;
                 case 2 :
-                    // R.g:424:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L'
+                    // R.g:427:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L'
                     {
-                    // R.g:424:9: ( '.' )?
+                    // R.g:427:9: ( '.' )?
                     int alt8=2;
                     int LA8_0 = input.LA(1);
 
@@ -1645,7 +1537,7 @@ public class RLexer extends Lexer {
                     }
                     switch (alt8) {
                         case 1 :
-                            // R.g:424:9: '.'
+                            // R.g:427:9: '.'
                             {
                             match('.'); 
 
@@ -1654,32 +1546,23 @@ public class RLexer extends Lexer {
 
                     }
 
-
-                    // R.g:424:14: ( '0' .. '9' )+
+                    // R.g:427:14: ( '0' .. '9' )+
                     int cnt9=0;
                     loop9:
                     do {
                         int alt9=2;
                         int LA9_0 = input.LA(1);
 
-                        if ( ((LA9_0 >= '0' && LA9_0 <= '9')) ) {
+                        if ( ((LA9_0>='0' && LA9_0<='9')) ) {
                             alt9=1;
                         }
 
 
                         switch (alt9) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:427:15: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1693,8 +1576,7 @@ public class RLexer extends Lexer {
                         cnt9++;
                     } while (true);
 
-
-                    // R.g:424:26: ( EXPONENT )?
+                    // R.g:427:26: ( EXPONENT )?
                     int alt10=2;
                     int LA10_0 = input.LA(1);
 
@@ -1703,55 +1585,42 @@ public class RLexer extends Lexer {
                     }
                     switch (alt10) {
                         case 1 :
-                            // R.g:424:26: EXPONENT
+                            // R.g:427:26: EXPONENT
                             {
                             mEXPONENT(); 
-
 
                             }
                             break;
 
                     }
 
-
                     match('L'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
                     break;
                 case 3 :
-                    // R.g:425:9: '0x' ( HEX_DIGIT )+ 'L'
+                    // R.g:428:9: '0x' ( HEX_DIGIT )+ 'L'
                     {
                     match("0x"); 
 
-
-
-                    // R.g:425:14: ( HEX_DIGIT )+
+                    // R.g:428:14: ( HEX_DIGIT )+
                     int cnt11=0;
                     loop11:
                     do {
                         int alt11=2;
                         int LA11_0 = input.LA(1);
 
-                        if ( ((LA11_0 >= '0' && LA11_0 <= '9')||(LA11_0 >= 'A' && LA11_0 <= 'F')||(LA11_0 >= 'a' && LA11_0 <= 'f')) ) {
+                        if ( ((LA11_0>='0' && LA11_0<='9')||(LA11_0>='A' && LA11_0<='F')||(LA11_0>='a' && LA11_0<='f')) ) {
                             alt11=1;
                         }
 
 
                         switch (alt11) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:428:14: HEX_DIGIT
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'F')||(input.LA(1) >= 'a' && input.LA(1) <= 'f') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    mHEX_DIGIT(); 
 
                     	    }
                     	    break;
@@ -1765,9 +1634,7 @@ public class RLexer extends Lexer {
                         cnt11++;
                     } while (true);
 
-
                     match('L'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
@@ -1778,7 +1645,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "INTEGER"
@@ -1788,38 +1654,30 @@ public class RLexer extends Lexer {
         try {
             int _type = COMPLEX;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:428:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i' | '0x' HEX_DIGIT 'i' )
+            // R.g:431:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i' | '0x' HEX_DIGIT 'i' )
             int alt19=3;
             alt19 = dfa19.predict(input);
             switch (alt19) {
                 case 1 :
-                    // R.g:428:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i'
+                    // R.g:431:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i'
                     {
-                    // R.g:428:9: ( '0' .. '9' )+
+                    // R.g:431:9: ( '0' .. '9' )+
                     int cnt13=0;
                     loop13:
                     do {
                         int alt13=2;
                         int LA13_0 = input.LA(1);
 
-                        if ( ((LA13_0 >= '0' && LA13_0 <= '9')) ) {
+                        if ( ((LA13_0>='0' && LA13_0<='9')) ) {
                             alt13=1;
                         }
 
 
                         switch (alt13) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:431:10: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1833,33 +1691,23 @@ public class RLexer extends Lexer {
                         cnt13++;
                     } while (true);
 
-
                     match('.'); 
-
-                    // R.g:428:25: ( '0' .. '9' )*
+                    // R.g:431:25: ( '0' .. '9' )*
                     loop14:
                     do {
                         int alt14=2;
                         int LA14_0 = input.LA(1);
 
-                        if ( ((LA14_0 >= '0' && LA14_0 <= '9')) ) {
+                        if ( ((LA14_0>='0' && LA14_0<='9')) ) {
                             alt14=1;
                         }
 
 
                         switch (alt14) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:431:26: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1869,8 +1717,7 @@ public class RLexer extends Lexer {
                         }
                     } while (true);
 
-
-                    // R.g:428:37: ( EXPONENT )?
+                    // R.g:431:37: ( EXPONENT )?
                     int alt15=2;
                     int LA15_0 = input.LA(1);
 
@@ -1879,27 +1726,24 @@ public class RLexer extends Lexer {
                     }
                     switch (alt15) {
                         case 1 :
-                            // R.g:428:37: EXPONENT
+                            // R.g:431:37: EXPONENT
                             {
                             mEXPONENT(); 
-
 
                             }
                             break;
 
                     }
 
-
                     match('i'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
                     break;
                 case 2 :
-                    // R.g:429:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i'
+                    // R.g:432:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i'
                     {
-                    // R.g:429:9: ( '.' )?
+                    // R.g:432:9: ( '.' )?
                     int alt16=2;
                     int LA16_0 = input.LA(1);
 
@@ -1908,7 +1752,7 @@ public class RLexer extends Lexer {
                     }
                     switch (alt16) {
                         case 1 :
-                            // R.g:429:9: '.'
+                            // R.g:432:9: '.'
                             {
                             match('.'); 
 
@@ -1917,32 +1761,23 @@ public class RLexer extends Lexer {
 
                     }
 
-
-                    // R.g:429:14: ( '0' .. '9' )+
+                    // R.g:432:14: ( '0' .. '9' )+
                     int cnt17=0;
                     loop17:
                     do {
                         int alt17=2;
                         int LA17_0 = input.LA(1);
 
-                        if ( ((LA17_0 >= '0' && LA17_0 <= '9')) ) {
+                        if ( ((LA17_0>='0' && LA17_0<='9')) ) {
                             alt17=1;
                         }
 
 
                         switch (alt17) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:432:15: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -1956,8 +1791,7 @@ public class RLexer extends Lexer {
                         cnt17++;
                     } while (true);
 
-
-                    // R.g:429:26: ( EXPONENT )?
+                    // R.g:432:26: ( EXPONENT )?
                     int alt18=2;
                     int LA18_0 = input.LA(1);
 
@@ -1966,35 +1800,27 @@ public class RLexer extends Lexer {
                     }
                     switch (alt18) {
                         case 1 :
-                            // R.g:429:26: EXPONENT
+                            // R.g:432:26: EXPONENT
                             {
                             mEXPONENT(); 
-
 
                             }
                             break;
 
                     }
 
-
                     match('i'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
                     break;
                 case 3 :
-                    // R.g:430:9: '0x' HEX_DIGIT 'i'
+                    // R.g:433:9: '0x' HEX_DIGIT 'i'
                     {
                     match("0x"); 
 
-
-
                     mHEX_DIGIT(); 
-
-
                     match('i'); 
-
                     setText(getText().substring(0, getText().length()-1));
 
                     }
@@ -2005,7 +1831,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "COMPLEX"
@@ -2015,38 +1840,30 @@ public class RLexer extends Lexer {
         try {
             int _type = DOUBLE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:433:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? | '0x' HEX_DIGIT )
+            // R.g:436:5: ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? | '0x' HEX_DIGIT )
             int alt26=3;
             alt26 = dfa26.predict(input);
             switch (alt26) {
                 case 1 :
-                    // R.g:433:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )?
+                    // R.g:436:9: ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )?
                     {
-                    // R.g:433:9: ( '0' .. '9' )+
+                    // R.g:436:9: ( '0' .. '9' )+
                     int cnt20=0;
                     loop20:
                     do {
                         int alt20=2;
                         int LA20_0 = input.LA(1);
 
-                        if ( ((LA20_0 >= '0' && LA20_0 <= '9')) ) {
+                        if ( ((LA20_0>='0' && LA20_0<='9')) ) {
                             alt20=1;
                         }
 
 
                         switch (alt20) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:436:10: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -2060,33 +1877,23 @@ public class RLexer extends Lexer {
                         cnt20++;
                     } while (true);
 
-
                     match('.'); 
-
-                    // R.g:433:25: ( '0' .. '9' )*
+                    // R.g:436:25: ( '0' .. '9' )*
                     loop21:
                     do {
                         int alt21=2;
                         int LA21_0 = input.LA(1);
 
-                        if ( ((LA21_0 >= '0' && LA21_0 <= '9')) ) {
+                        if ( ((LA21_0>='0' && LA21_0<='9')) ) {
                             alt21=1;
                         }
 
 
                         switch (alt21) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:436:26: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -2096,8 +1903,7 @@ public class RLexer extends Lexer {
                         }
                     } while (true);
 
-
-                    // R.g:433:37: ( EXPONENT )?
+                    // R.g:436:37: ( EXPONENT )?
                     int alt22=2;
                     int LA22_0 = input.LA(1);
 
@@ -2106,10 +1912,9 @@ public class RLexer extends Lexer {
                     }
                     switch (alt22) {
                         case 1 :
-                            // R.g:433:37: EXPONENT
+                            // R.g:436:37: EXPONENT
                             {
                             mEXPONENT(); 
-
 
                             }
                             break;
@@ -2120,9 +1925,9 @@ public class RLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // R.g:434:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )?
+                    // R.g:437:9: ( '.' )? ( '0' .. '9' )+ ( EXPONENT )?
                     {
-                    // R.g:434:9: ( '.' )?
+                    // R.g:437:9: ( '.' )?
                     int alt23=2;
                     int LA23_0 = input.LA(1);
 
@@ -2131,7 +1936,7 @@ public class RLexer extends Lexer {
                     }
                     switch (alt23) {
                         case 1 :
-                            // R.g:434:9: '.'
+                            // R.g:437:9: '.'
                             {
                             match('.'); 
 
@@ -2140,32 +1945,23 @@ public class RLexer extends Lexer {
 
                     }
 
-
-                    // R.g:434:14: ( '0' .. '9' )+
+                    // R.g:437:14: ( '0' .. '9' )+
                     int cnt24=0;
                     loop24:
                     do {
                         int alt24=2;
                         int LA24_0 = input.LA(1);
 
-                        if ( ((LA24_0 >= '0' && LA24_0 <= '9')) ) {
+                        if ( ((LA24_0>='0' && LA24_0<='9')) ) {
                             alt24=1;
                         }
 
 
                         switch (alt24) {
                     	case 1 :
-                    	    // R.g:
+                    	    // R.g:437:15: '0' .. '9'
                     	    {
-                    	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                    	        input.consume();
-                    	    }
-                    	    else {
-                    	        MismatchedSetException mse = new MismatchedSetException(null,input);
-                    	        recover(mse);
-                    	        throw mse;
-                    	    }
-
+                    	    matchRange('0','9'); 
 
                     	    }
                     	    break;
@@ -2179,8 +1975,7 @@ public class RLexer extends Lexer {
                         cnt24++;
                     } while (true);
 
-
-                    // R.g:434:26: ( EXPONENT )?
+                    // R.g:437:26: ( EXPONENT )?
                     int alt25=2;
                     int LA25_0 = input.LA(1);
 
@@ -2189,10 +1984,9 @@ public class RLexer extends Lexer {
                     }
                     switch (alt25) {
                         case 1 :
-                            // R.g:434:26: EXPONENT
+                            // R.g:437:26: EXPONENT
                             {
                             mEXPONENT(); 
-
 
                             }
                             break;
@@ -2203,14 +1997,11 @@ public class RLexer extends Lexer {
                     }
                     break;
                 case 3 :
-                    // R.g:435:7: '0x' HEX_DIGIT
+                    // R.g:438:7: '0x' HEX_DIGIT
                     {
                     match("0x"); 
 
-
-
                     mHEX_DIGIT(); 
-
 
                     }
                     break;
@@ -2220,7 +2011,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "DOUBLE"
@@ -2230,38 +2020,28 @@ public class RLexer extends Lexer {
         try {
             int _type = DD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:437:4: ( '..' ( '0' .. '9' )+ )
-            // R.g:437:6: '..' ( '0' .. '9' )+
+            // R.g:440:4: ( '..' ( '0' .. '9' )+ )
+            // R.g:440:6: '..' ( '0' .. '9' )+
             {
             match(".."); 
 
-
-
-            // R.g:437:11: ( '0' .. '9' )+
+            // R.g:440:11: ( '0' .. '9' )+
             int cnt27=0;
             loop27:
             do {
                 int alt27=2;
                 int LA27_0 = input.LA(1);
 
-                if ( ((LA27_0 >= '0' && LA27_0 <= '9')) ) {
+                if ( ((LA27_0>='0' && LA27_0<='9')) ) {
                     alt27=1;
                 }
 
 
                 switch (alt27) {
             	case 1 :
-            	    // R.g:
+            	    // R.g:440:12: '0' .. '9'
             	    {
-            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-            	        input.consume();
-            	    }
-            	    else {
-            	        MismatchedSetException mse = new MismatchedSetException(null,input);
-            	        recover(mse);
-            	        throw mse;
-            	    }
-
+            	    matchRange('0','9'); 
 
             	    }
             	    break;
@@ -2282,7 +2062,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "DD"
@@ -2292,19 +2071,18 @@ public class RLexer extends Lexer {
         try {
             int _type = ID;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:439:5: ( ( '.' )* ID_NAME | '.' | '`' ( ESC_SEQ |~ ( '\\\\' | '`' ) )* '`' )
+            // R.g:442:5: ( ( '.' )* ID_NAME | '.' | '`' ( ESC_SEQ | ~ ( '\\\\' | '`' ) )* '`' )
             int alt30=3;
             switch ( input.LA(1) ) {
             case '.':
                 {
                 int LA30_1 = input.LA(2);
 
-                if ( (LA30_1=='.'||(LA30_1 >= 'A' && LA30_1 <= 'Z')||LA30_1=='_'||(LA30_1 >= 'a' && LA30_1 <= 'z')) ) {
+                if ( (LA30_1=='.'||(LA30_1>='A' && LA30_1<='Z')||LA30_1=='_'||(LA30_1>='a' && LA30_1<='z')) ) {
                     alt30=1;
                 }
                 else {
-                    alt30=2;
-                }
+                    alt30=2;}
                 }
                 break;
             case 'A':
@@ -2374,14 +2152,13 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 30, 0, input);
 
                 throw nvae;
-
             }
 
             switch (alt30) {
                 case 1 :
-                    // R.g:439:7: ( '.' )* ID_NAME
+                    // R.g:442:7: ( '.' )* ID_NAME
                     {
-                    // R.g:439:7: ( '.' )*
+                    // R.g:442:7: ( '.' )*
                     loop28:
                     do {
                         int alt28=2;
@@ -2394,7 +2171,7 @@ public class RLexer extends Lexer {
 
                         switch (alt28) {
                     	case 1 :
-                    	    // R.g:439:7: '.'
+                    	    // R.g:442:7: '.'
                     	    {
                     	    match('.'); 
 
@@ -2406,25 +2183,22 @@ public class RLexer extends Lexer {
                         }
                     } while (true);
 
-
                     mID_NAME(); 
-
 
                     }
                     break;
                 case 2 :
-                    // R.g:440:4: '.'
+                    // R.g:443:4: '.'
                     {
                     match('.'); 
 
                     }
                     break;
                 case 3 :
-                    // R.g:441:4: '`' ( ESC_SEQ |~ ( '\\\\' | '`' ) )* '`'
+                    // R.g:444:4: '`' ( ESC_SEQ | ~ ( '\\\\' | '`' ) )* '`'
                     {
                     match('`'); 
-
-                    // R.g:441:8: ( ESC_SEQ |~ ( '\\\\' | '`' ) )*
+                    // R.g:444:8: ( ESC_SEQ | ~ ( '\\\\' | '`' ) )*
                     loop29:
                     do {
                         int alt29=3;
@@ -2433,31 +2207,30 @@ public class RLexer extends Lexer {
                         if ( (LA29_0=='\\') ) {
                             alt29=1;
                         }
-                        else if ( ((LA29_0 >= '\u0000' && LA29_0 <= '[')||(LA29_0 >= ']' && LA29_0 <= '_')||(LA29_0 >= 'a' && LA29_0 <= '\uFFFF')) ) {
+                        else if ( ((LA29_0>='\u0000' && LA29_0<='[')||(LA29_0>=']' && LA29_0<='_')||(LA29_0>='a' && LA29_0<='\uFFFF')) ) {
                             alt29=2;
                         }
 
 
                         switch (alt29) {
                     	case 1 :
-                    	    // R.g:441:10: ESC_SEQ
+                    	    // R.g:444:10: ESC_SEQ
                     	    {
                     	    mESC_SEQ(); 
-
 
                     	    }
                     	    break;
                     	case 2 :
-                    	    // R.g:441:20: ~ ( '\\\\' | '`' )
+                    	    // R.g:444:20: ~ ( '\\\\' | '`' )
                     	    {
-                    	    if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '[')||(input.LA(1) >= ']' && input.LA(1) <= '_')||(input.LA(1) >= 'a' && input.LA(1) <= '\uFFFF') ) {
+                    	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='[')||(input.LA(1)>=']' && input.LA(1)<='_')||(input.LA(1)>='a' && input.LA(1)<='\uFFFF') ) {
                     	        input.consume();
+
                     	    }
                     	    else {
                     	        MismatchedSetException mse = new MismatchedSetException(null,input);
                     	        recover(mse);
-                    	        throw mse;
-                    	    }
+                    	        throw mse;}
 
 
                     	    }
@@ -2468,9 +2241,7 @@ public class RLexer extends Lexer {
                         }
                     } while (true);
 
-
                     match('`'); 
-
                     setText(getText().substring(1, getText().length()-1));
 
                     }
@@ -2481,7 +2252,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ID"
@@ -2491,29 +2261,27 @@ public class RLexer extends Lexer {
         try {
             int _type = OP;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // R.g:443:4: ( '%' ( OP_NAME )+ '%' )
-            // R.g:443:6: '%' ( OP_NAME )+ '%'
+            // R.g:446:4: ( '%' ( OP_NAME )+ '%' )
+            // R.g:446:6: '%' ( OP_NAME )+ '%'
             {
             match('%'); 
-
-            // R.g:443:10: ( OP_NAME )+
+            // R.g:446:10: ( OP_NAME )+
             int cnt31=0;
             loop31:
             do {
                 int alt31=2;
                 int LA31_0 = input.LA(1);
 
-                if ( (LA31_0=='&'||(LA31_0 >= '*' && LA31_0 <= '/')||LA31_0==':'||(LA31_0 >= '<' && LA31_0 <= '>')||(LA31_0 >= 'A' && LA31_0 <= 'Z')||(LA31_0 >= '^' && LA31_0 <= '_')||(LA31_0 >= 'a' && LA31_0 <= 'z')||LA31_0=='|'||LA31_0=='~') ) {
+                if ( (LA31_0=='&'||(LA31_0>='*' && LA31_0<='/')||LA31_0==':'||(LA31_0>='<' && LA31_0<='>')||(LA31_0>='A' && LA31_0<='Z')||(LA31_0>='^' && LA31_0<='_')||(LA31_0>='a' && LA31_0<='z')||LA31_0=='|'||LA31_0=='~') ) {
                     alt31=1;
                 }
 
 
                 switch (alt31) {
             	case 1 :
-            	    // R.g:443:10: OP_NAME
+            	    // R.g:446:10: OP_NAME
             	    {
             	    mOP_NAME(); 
-
 
             	    }
             	    break;
@@ -2527,7 +2295,6 @@ public class RLexer extends Lexer {
                 cnt31++;
             } while (true);
 
-
             match('%'); 
 
             }
@@ -2536,7 +2303,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "OP"
@@ -2549,12 +2315,11 @@ public class RLexer extends Lexer {
             int i;
 
              final StringBuilder buf = new StringBuilder(); 
-            // R.g:455:5: ( '\"' ( ESCAPE[buf] |i=~ ( '\\\\' | '\"' ) )* '\"' )
-            // R.g:456:5: '\"' ( ESCAPE[buf] |i=~ ( '\\\\' | '\"' ) )* '\"'
+            // R.g:458:1: ( '\"' ( ESCAPE[buf] | i=~ ( '\\\\' | '\"' ) )* '\"' )
+            // R.g:459:5: '\"' ( ESCAPE[buf] | i=~ ( '\\\\' | '\"' ) )* '\"'
             {
             match('\"'); 
-
-            // R.g:457:5: ( ESCAPE[buf] |i=~ ( '\\\\' | '\"' ) )*
+            // R.g:460:5: ( ESCAPE[buf] | i=~ ( '\\\\' | '\"' ) )*
             loop32:
             do {
                 int alt32=3;
@@ -2563,34 +2328,31 @@ public class RLexer extends Lexer {
                 if ( (LA32_0=='\\') ) {
                     alt32=1;
                 }
-                else if ( ((LA32_0 >= '\u0000' && LA32_0 <= '!')||(LA32_0 >= '#' && LA32_0 <= '[')||(LA32_0 >= ']' && LA32_0 <= '\uFFFF')) ) {
+                else if ( ((LA32_0>='\u0000' && LA32_0<='!')||(LA32_0>='#' && LA32_0<='[')||(LA32_0>=']' && LA32_0<='\uFFFF')) ) {
                     alt32=2;
                 }
 
 
                 switch (alt32) {
             	case 1 :
-            	    // R.g:458:5: ESCAPE[buf]
+            	    // R.g:461:5: ESCAPE[buf]
             	    {
             	    mESCAPE(buf); 
-
 
             	    }
             	    break;
             	case 2 :
-            	    // R.g:459:7: i=~ ( '\\\\' | '\"' )
+            	    // R.g:462:7: i=~ ( '\\\\' | '\"' )
             	    {
             	    i= input.LA(1);
-
-            	    if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '!')||(input.LA(1) >= '#' && input.LA(1) <= '[')||(input.LA(1) >= ']' && input.LA(1) <= '\uFFFF') ) {
+            	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='!')||(input.LA(1)>='#' && input.LA(1)<='[')||(input.LA(1)>=']' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
+
             	    }
             	    else {
             	        MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
-            	        throw mse;
-            	    }
-
+            	        throw mse;}
 
             	     buf.appendCodePoint(i); 
 
@@ -2602,9 +2364,7 @@ public class RLexer extends Lexer {
                 }
             } while (true);
 
-
             match('\"'); 
-
              setText(buf.toString()); 
 
             }
@@ -2613,7 +2373,6 @@ public class RLexer extends Lexer {
             state.channel = _channel;
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "STRING"
@@ -2630,12 +2389,11 @@ public class RLexer extends Lexer {
             CommonToken g=null;
             CommonToken h=null;
 
-            // R.g:465:36: ( '\\\\' ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT ) )
-            // R.g:466:5: '\\\\' ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT )
+            // R.g:468:36: ( '\\\\' ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT ) )
+            // R.g:469:5: '\\\\' ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT )
             {
             match('\\'); 
-
-            // R.g:467:5: ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT )
+            // R.g:470:5: ( 't' | 'n' | 'r' | 'b' | 'f' | '\"' | '\\\\' | 'x' a= HEX_DIGIT b= HEX_DIGIT | 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT | 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT )
             int alt33=10;
             switch ( input.LA(1) ) {
             case 't':
@@ -2693,222 +2451,127 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 33, 0, input);
 
                 throw nvae;
-
             }
 
             switch (alt33) {
                 case 1 :
-                    // R.g:467:7: 't'
+                    // R.g:470:7: 't'
                     {
                     match('t'); 
-
                      buf.append('\t'); 
 
                     }
                     break;
                 case 2 :
-                    // R.g:468:7: 'n'
+                    // R.g:471:7: 'n'
                     {
                     match('n'); 
-
                      buf.append('\n'); 
 
                     }
                     break;
                 case 3 :
-                    // R.g:469:7: 'r'
+                    // R.g:472:7: 'r'
                     {
                     match('r'); 
-
                      buf.append('\r'); 
 
                     }
                     break;
                 case 4 :
-                    // R.g:470:7: 'b'
+                    // R.g:473:7: 'b'
                     {
                     match('b'); 
-
                      buf.append('\b'); 
 
                     }
                     break;
                 case 5 :
-                    // R.g:471:7: 'f'
+                    // R.g:474:7: 'f'
                     {
                     match('f'); 
-
                      buf.append('\f'); 
 
                     }
                     break;
                 case 6 :
-                    // R.g:472:7: '\"'
+                    // R.g:475:7: '\"'
                     {
                     match('\"'); 
-
                      buf.append('\"'); 
 
                     }
                     break;
                 case 7 :
-                    // R.g:473:7: '\\\\'
+                    // R.g:476:7: '\\\\'
                     {
                     match('\\'); 
-
                      buf.append('\\'); 
 
                     }
                     break;
                 case 8 :
-                    // R.g:474:7: 'x' a= HEX_DIGIT b= HEX_DIGIT
+                    // R.g:477:7: 'x' a= HEX_DIGIT b= HEX_DIGIT
                     {
                     match('x'); 
-
-                    int aStart1062 = getCharIndex();
-                    int aStartLine1062 = getLine();
-                    int aStartCharPos1062 = getCharPositionInLine();
+                    int aStart1154 = getCharIndex();
                     mHEX_DIGIT(); 
-                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1062, getCharIndex()-1);
-                    a.setLine(aStartLine1062);
-                    a.setCharPositionInLine(aStartCharPos1062);
-
-
-                    int bStart1068 = getCharIndex();
-                    int bStartLine1068 = getLine();
-                    int bStartCharPos1068 = getCharPositionInLine();
+                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1154, getCharIndex()-1);
+                    int bStart1160 = getCharIndex();
                     mHEX_DIGIT(); 
-                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1068, getCharIndex()-1);
-                    b.setLine(bStartLine1068);
-                    b.setCharPositionInLine(bStartCharPos1068);
-
-
+                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1160, getCharIndex()-1);
                      buf.append(ParseUtil.hexChar((a!=null?a.getText():null), (b!=null?b.getText():null))); 
 
                     }
                     break;
                 case 9 :
-                    // R.g:475:7: 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT
+                    // R.g:478:7: 'u' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT
                     {
                     match('u'); 
-
-                    int aStart1084 = getCharIndex();
-                    int aStartLine1084 = getLine();
-                    int aStartCharPos1084 = getCharPositionInLine();
+                    int aStart1176 = getCharIndex();
                     mHEX_DIGIT(); 
-                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1084, getCharIndex()-1);
-                    a.setLine(aStartLine1084);
-                    a.setCharPositionInLine(aStartCharPos1084);
-
-
-                    int bStart1090 = getCharIndex();
-                    int bStartLine1090 = getLine();
-                    int bStartCharPos1090 = getCharPositionInLine();
+                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1176, getCharIndex()-1);
+                    int bStart1182 = getCharIndex();
                     mHEX_DIGIT(); 
-                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1090, getCharIndex()-1);
-                    b.setLine(bStartLine1090);
-                    b.setCharPositionInLine(bStartCharPos1090);
-
-
-                    int cStart1096 = getCharIndex();
-                    int cStartLine1096 = getLine();
-                    int cStartCharPos1096 = getCharPositionInLine();
+                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1182, getCharIndex()-1);
+                    int cStart1188 = getCharIndex();
                     mHEX_DIGIT(); 
-                    c = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, cStart1096, getCharIndex()-1);
-                    c.setLine(cStartLine1096);
-                    c.setCharPositionInLine(cStartCharPos1096);
-
-
-                    int dStart1102 = getCharIndex();
-                    int dStartLine1102 = getLine();
-                    int dStartCharPos1102 = getCharPositionInLine();
+                    c = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, cStart1188, getCharIndex()-1);
+                    int dStart1194 = getCharIndex();
                     mHEX_DIGIT(); 
-                    d = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, dStart1102, getCharIndex()-1);
-                    d.setLine(dStartLine1102);
-                    d.setCharPositionInLine(dStartCharPos1102);
-
-
+                    d = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, dStart1194, getCharIndex()-1);
                      buf.append(ParseUtil.hexChar((a!=null?a.getText():null), (b!=null?b.getText():null), (c!=null?c.getText():null), (d!=null?d.getText():null))); 
 
                     }
                     break;
                 case 10 :
-                    // R.g:476:7: 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT
+                    // R.g:479:7: 'U' a= HEX_DIGIT b= HEX_DIGIT c= HEX_DIGIT d= HEX_DIGIT e= HEX_DIGIT f= HEX_DIGIT g= HEX_DIGIT h= HEX_DIGIT
                     {
                     match('U'); 
-
-                    int aStart1118 = getCharIndex();
-                    int aStartLine1118 = getLine();
-                    int aStartCharPos1118 = getCharPositionInLine();
+                    int aStart1210 = getCharIndex();
                     mHEX_DIGIT(); 
-                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1118, getCharIndex()-1);
-                    a.setLine(aStartLine1118);
-                    a.setCharPositionInLine(aStartCharPos1118);
-
-
-                    int bStart1124 = getCharIndex();
-                    int bStartLine1124 = getLine();
-                    int bStartCharPos1124 = getCharPositionInLine();
+                    a = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, aStart1210, getCharIndex()-1);
+                    int bStart1216 = getCharIndex();
                     mHEX_DIGIT(); 
-                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1124, getCharIndex()-1);
-                    b.setLine(bStartLine1124);
-                    b.setCharPositionInLine(bStartCharPos1124);
-
-
-                    int cStart1130 = getCharIndex();
-                    int cStartLine1130 = getLine();
-                    int cStartCharPos1130 = getCharPositionInLine();
+                    b = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, bStart1216, getCharIndex()-1);
+                    int cStart1222 = getCharIndex();
                     mHEX_DIGIT(); 
-                    c = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, cStart1130, getCharIndex()-1);
-                    c.setLine(cStartLine1130);
-                    c.setCharPositionInLine(cStartCharPos1130);
-
-
-                    int dStart1136 = getCharIndex();
-                    int dStartLine1136 = getLine();
-                    int dStartCharPos1136 = getCharPositionInLine();
+                    c = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, cStart1222, getCharIndex()-1);
+                    int dStart1228 = getCharIndex();
                     mHEX_DIGIT(); 
-                    d = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, dStart1136, getCharIndex()-1);
-                    d.setLine(dStartLine1136);
-                    d.setCharPositionInLine(dStartCharPos1136);
-
-
-                    int eStart1142 = getCharIndex();
-                    int eStartLine1142 = getLine();
-                    int eStartCharPos1142 = getCharPositionInLine();
+                    d = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, dStart1228, getCharIndex()-1);
+                    int eStart1234 = getCharIndex();
                     mHEX_DIGIT(); 
-                    e = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, eStart1142, getCharIndex()-1);
-                    e.setLine(eStartLine1142);
-                    e.setCharPositionInLine(eStartCharPos1142);
-
-
-                    int fStart1148 = getCharIndex();
-                    int fStartLine1148 = getLine();
-                    int fStartCharPos1148 = getCharPositionInLine();
+                    e = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, eStart1234, getCharIndex()-1);
+                    int fStart1240 = getCharIndex();
                     mHEX_DIGIT(); 
-                    f = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, fStart1148, getCharIndex()-1);
-                    f.setLine(fStartLine1148);
-                    f.setCharPositionInLine(fStartCharPos1148);
-
-
-                    int gStart1154 = getCharIndex();
-                    int gStartLine1154 = getLine();
-                    int gStartCharPos1154 = getCharPositionInLine();
+                    f = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, fStart1240, getCharIndex()-1);
+                    int gStart1246 = getCharIndex();
                     mHEX_DIGIT(); 
-                    g = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, gStart1154, getCharIndex()-1);
-                    g.setLine(gStartLine1154);
-                    g.setCharPositionInLine(gStartCharPos1154);
-
-
-                    int hStart1160 = getCharIndex();
-                    int hStartLine1160 = getLine();
-                    int hStartCharPos1160 = getCharPositionInLine();
+                    g = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, gStart1246, getCharIndex()-1);
+                    int hStart1252 = getCharIndex();
                     mHEX_DIGIT(); 
-                    h = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, hStart1160, getCharIndex()-1);
-                    h.setLine(hStartLine1160);
-                    h.setCharPositionInLine(hStartCharPos1160);
-
-
+                    h = new CommonToken(input, Token.INVALID_TOKEN_TYPE, Token.DEFAULT_CHANNEL, hStart1252, getCharIndex()-1);
                      buf.append(ParseUtil.hexChar((a!=null?a.getText():null), (b!=null?b.getText():null), (c!=null?c.getText():null), (d!=null?d.getText():null), (e!=null?e.getText():null), (f!=null?f.getText():null), (g!=null?g.getText():null), (h!=null?h.getText():null))); 
 
                     }
@@ -2919,10 +2582,8 @@ public class RLexer extends Lexer {
 
             }
 
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ESCAPE"
@@ -2930,70 +2591,66 @@ public class RLexer extends Lexer {
     // $ANTLR start "LINE_BREAK"
     public final void mLINE_BREAK() throws RecognitionException {
         try {
-            // R.g:481:2: ( ( ( '\\f' | '\\r' )? '\\n' ) | ( ( '\\n' )? ( '\\r' | '\\f' ) ) )
+            // R.g:483:2: ( ( ( '\\f' | '\\r' )? '\\n' ) | ( ( '\\n' )? ( '\\r' | '\\f' ) ) )
             int alt36=2;
             int LA36_0 = input.LA(1);
 
-            if ( ((LA36_0 >= '\f' && LA36_0 <= '\r')) ) {
+            if ( ((LA36_0>='\f' && LA36_0<='\r')) ) {
                 int LA36_1 = input.LA(2);
 
                 if ( (LA36_1=='\n') ) {
                     alt36=1;
                 }
                 else {
-                    alt36=2;
-                }
+                    alt36=2;}
             }
             else if ( (LA36_0=='\n') ) {
                 int LA36_2 = input.LA(2);
 
-                if ( ((LA36_2 >= '\f' && LA36_2 <= '\r')) ) {
+                if ( ((LA36_2>='\f' && LA36_2<='\r')) ) {
                     alt36=2;
                 }
                 else {
-                    alt36=1;
-                }
+                    alt36=1;}
             }
             else {
                 NoViableAltException nvae =
                     new NoViableAltException("", 36, 0, input);
 
                 throw nvae;
-
             }
             switch (alt36) {
                 case 1 :
-                    // R.g:482:3: ( ( '\\f' | '\\r' )? '\\n' )
+                    // R.g:484:3: ( ( '\\f' | '\\r' )? '\\n' )
                     {
-                    // R.g:482:3: ( ( '\\f' | '\\r' )? '\\n' )
-                    // R.g:482:4: ( '\\f' | '\\r' )? '\\n'
+                    // R.g:484:3: ( ( '\\f' | '\\r' )? '\\n' )
+                    // R.g:484:4: ( '\\f' | '\\r' )? '\\n'
                     {
-                    // R.g:482:4: ( '\\f' | '\\r' )?
+                    // R.g:484:4: ( '\\f' | '\\r' )?
                     int alt34=2;
                     int LA34_0 = input.LA(1);
 
-                    if ( ((LA34_0 >= '\f' && LA34_0 <= '\r')) ) {
+                    if ( ((LA34_0>='\f' && LA34_0<='\r')) ) {
                         alt34=1;
                     }
                     switch (alt34) {
                         case 1 :
                             // R.g:
                             {
-                            if ( (input.LA(1) >= '\f' && input.LA(1) <= '\r') ) {
+                            if ( (input.LA(1)>='\f' && input.LA(1)<='\r') ) {
                                 input.consume();
+
                             }
                             else {
                                 MismatchedSetException mse = new MismatchedSetException(null,input);
                                 recover(mse);
-                                throw mse;
-                            }
+                                throw mse;}
 
 
                             }
                             break;
 
                     }
-
 
                     match('\n'); 
 
@@ -3003,12 +2660,12 @@ public class RLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // R.g:483:4: ( ( '\\n' )? ( '\\r' | '\\f' ) )
+                    // R.g:485:4: ( ( '\\n' )? ( '\\r' | '\\f' ) )
                     {
-                    // R.g:483:4: ( ( '\\n' )? ( '\\r' | '\\f' ) )
-                    // R.g:483:5: ( '\\n' )? ( '\\r' | '\\f' )
+                    // R.g:485:4: ( ( '\\n' )? ( '\\r' | '\\f' ) )
+                    // R.g:485:5: ( '\\n' )? ( '\\r' | '\\f' )
                     {
-                    // R.g:483:5: ( '\\n' )?
+                    // R.g:485:5: ( '\\n' )?
                     int alt35=2;
                     int LA35_0 = input.LA(1);
 
@@ -3017,7 +2674,7 @@ public class RLexer extends Lexer {
                     }
                     switch (alt35) {
                         case 1 :
-                            // R.g:483:5: '\\n'
+                            // R.g:485:5: '\\n'
                             {
                             match('\n'); 
 
@@ -3026,15 +2683,14 @@ public class RLexer extends Lexer {
 
                     }
 
-
-                    if ( (input.LA(1) >= '\f' && input.LA(1) <= '\r') ) {
+                    if ( (input.LA(1)>='\f' && input.LA(1)<='\r') ) {
                         input.consume();
+
                     }
                     else {
                         MismatchedSetException mse = new MismatchedSetException(null,input);
                         recover(mse);
-                        throw mse;
-                    }
+                        throw mse;}
 
 
                     }
@@ -3044,10 +2700,8 @@ public class RLexer extends Lexer {
                     break;
 
             }
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "LINE_BREAK"
@@ -3055,20 +2709,19 @@ public class RLexer extends Lexer {
     // $ANTLR start "EXPONENT"
     public final void mEXPONENT() throws RecognitionException {
         try {
-            // R.g:487:2: ( ( 'e' | 'E' ) ( '+' | '-' )? ( '0' .. '9' )+ )
-            // R.g:487:4: ( 'e' | 'E' ) ( '+' | '-' )? ( '0' .. '9' )+
+            // R.g:489:2: ( ( 'e' | 'E' ) ( '+' | '-' )? ( '0' .. '9' )+ )
+            // R.g:489:4: ( 'e' | 'E' ) ( '+' | '-' )? ( '0' .. '9' )+
             {
             if ( input.LA(1)=='E'||input.LA(1)=='e' ) {
                 input.consume();
+
             }
             else {
                 MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
-                throw mse;
-            }
+                throw mse;}
 
-
-            // R.g:487:14: ( '+' | '-' )?
+            // R.g:489:14: ( '+' | '-' )?
             int alt37=2;
             int LA37_0 = input.LA(1);
 
@@ -3081,12 +2734,12 @@ public class RLexer extends Lexer {
                     {
                     if ( input.LA(1)=='+'||input.LA(1)=='-' ) {
                         input.consume();
+
                     }
                     else {
                         MismatchedSetException mse = new MismatchedSetException(null,input);
                         recover(mse);
-                        throw mse;
-                    }
+                        throw mse;}
 
 
                     }
@@ -3094,32 +2747,23 @@ public class RLexer extends Lexer {
 
             }
 
-
-            // R.g:487:25: ( '0' .. '9' )+
+            // R.g:489:25: ( '0' .. '9' )+
             int cnt38=0;
             loop38:
             do {
                 int alt38=2;
                 int LA38_0 = input.LA(1);
 
-                if ( ((LA38_0 >= '0' && LA38_0 <= '9')) ) {
+                if ( ((LA38_0>='0' && LA38_0<='9')) ) {
                     alt38=1;
                 }
 
 
                 switch (alt38) {
             	case 1 :
-            	    // R.g:
+            	    // R.g:489:26: '0' .. '9'
             	    {
-            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-            	        input.consume();
-            	    }
-            	    else {
-            	        MismatchedSetException mse = new MismatchedSetException(null,input);
-            	        recover(mse);
-            	        throw mse;
-            	    }
-
+            	    matchRange('0','9'); 
 
             	    }
             	    break;
@@ -3136,10 +2780,8 @@ public class RLexer extends Lexer {
 
             }
 
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "EXPONENT"
@@ -3147,14 +2789,14 @@ public class RLexer extends Lexer {
     // $ANTLR start "OP_NAME"
     public final void mOP_NAME() throws RecognitionException {
         try {
-            // R.g:491:2: ( ID_NAME | ( '*' | '/' | '+' | '-' | '>' | '<' | '=' | '|' | '&' | ':' | '^' | '.' | '~' | ',' ) )
+            // R.g:493:2: ( ID_NAME | ( '*' | '/' | '+' | '-' | '>' | '<' | '=' | '|' | '&' | ':' | '^' | '.' | '~' | ',' ) )
             int alt39=2;
             int LA39_0 = input.LA(1);
 
-            if ( ((LA39_0 >= 'A' && LA39_0 <= 'Z')||LA39_0=='_'||(LA39_0 >= 'a' && LA39_0 <= 'z')) ) {
+            if ( ((LA39_0>='A' && LA39_0<='Z')||LA39_0=='_'||(LA39_0>='a' && LA39_0<='z')) ) {
                 alt39=1;
             }
-            else if ( (LA39_0=='&'||(LA39_0 >= '*' && LA39_0 <= '/')||LA39_0==':'||(LA39_0 >= '<' && LA39_0 <= '>')||LA39_0=='^'||LA39_0=='|'||LA39_0=='~') ) {
+            else if ( (LA39_0=='&'||(LA39_0>='*' && LA39_0<='/')||LA39_0==':'||(LA39_0>='<' && LA39_0<='>')||LA39_0=='^'||LA39_0=='|'||LA39_0=='~') ) {
                 alt39=2;
             }
             else {
@@ -3162,38 +2804,34 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 39, 0, input);
 
                 throw nvae;
-
             }
             switch (alt39) {
                 case 1 :
-                    // R.g:491:4: ID_NAME
+                    // R.g:493:4: ID_NAME
                     {
                     mID_NAME(); 
-
 
                     }
                     break;
                 case 2 :
-                    // R.g:492:4: ( '*' | '/' | '+' | '-' | '>' | '<' | '=' | '|' | '&' | ':' | '^' | '.' | '~' | ',' )
+                    // R.g:494:4: ( '*' | '/' | '+' | '-' | '>' | '<' | '=' | '|' | '&' | ':' | '^' | '.' | '~' | ',' )
                     {
-                    if ( input.LA(1)=='&'||(input.LA(1) >= '*' && input.LA(1) <= '/')||input.LA(1)==':'||(input.LA(1) >= '<' && input.LA(1) <= '>')||input.LA(1)=='^'||input.LA(1)=='|'||input.LA(1)=='~' ) {
+                    if ( input.LA(1)=='&'||(input.LA(1)>='*' && input.LA(1)<='/')||input.LA(1)==':'||(input.LA(1)>='<' && input.LA(1)<='>')||input.LA(1)=='^'||input.LA(1)=='|'||input.LA(1)=='~' ) {
                         input.consume();
+
                     }
                     else {
                         MismatchedSetException mse = new MismatchedSetException(null,input);
                         recover(mse);
-                        throw mse;
-                    }
+                        throw mse;}
 
 
                     }
                     break;
 
             }
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "OP_NAME"
@@ -3201,26 +2839,25 @@ public class RLexer extends Lexer {
     // $ANTLR start "ID_NAME"
     public final void mID_NAME() throws RecognitionException {
         try {
-            // R.g:496:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )* )
-            // R.g:496:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )*
+            // R.g:498:2: ( ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )* )
+            // R.g:498:4: ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )*
             {
-            if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
+            if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
                 input.consume();
+
             }
             else {
                 MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
-                throw mse;
-            }
+                throw mse;}
 
-
-            // R.g:496:28: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )*
+            // R.g:498:28: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '.' )*
             loop40:
             do {
                 int alt40=2;
                 int LA40_0 = input.LA(1);
 
-                if ( (LA40_0=='.'||(LA40_0 >= '0' && LA40_0 <= '9')||(LA40_0 >= 'A' && LA40_0 <= 'Z')||LA40_0=='_'||(LA40_0 >= 'a' && LA40_0 <= 'z')) ) {
+                if ( (LA40_0=='.'||(LA40_0>='0' && LA40_0<='9')||(LA40_0>='A' && LA40_0<='Z')||LA40_0=='_'||(LA40_0>='a' && LA40_0<='z')) ) {
                     alt40=1;
                 }
 
@@ -3229,14 +2866,14 @@ public class RLexer extends Lexer {
             	case 1 :
             	    // R.g:
             	    {
-            	    if ( input.LA(1)=='.'||(input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
+            	    if ( input.LA(1)=='.'||(input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
             	        input.consume();
+
             	    }
             	    else {
             	        MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
-            	        throw mse;
-            	    }
+            	        throw mse;}
 
 
             	    }
@@ -3250,10 +2887,8 @@ public class RLexer extends Lexer {
 
             }
 
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ID_NAME"
@@ -3261,7 +2896,7 @@ public class RLexer extends Lexer {
     // $ANTLR start "ESC_SEQ"
     public final void mESC_SEQ() throws RecognitionException {
         try {
-            // R.g:500:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\"' | '\\'' | '`' | '\\\\' | ' ' | 'a' | 'v' ) | '\\\\' LINE_BREAK | UNICODE_ESC | OCTAL_ESC | HEX_ESC )
+            // R.g:502:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\"' | '\\'' | '`' | '\\\\' | ' ' | 'a' | 'v' ) | '\\\\' LINE_BREAK | UNICODE_ESC | OCTAL_ESC | HEX_ESC )
             int alt41=5;
             int LA41_0 = input.LA(1);
 
@@ -3288,6 +2923,11 @@ public class RLexer extends Lexer {
                     alt41=3;
                     }
                     break;
+                case 'x':
+                    {
+                    alt41=5;
+                    }
+                    break;
                 case '0':
                 case '1':
                 case '2':
@@ -3298,11 +2938,6 @@ public class RLexer extends Lexer {
                 case '7':
                     {
                     alt41=4;
-                    }
-                    break;
-                case 'x':
-                    {
-                    alt41=5;
                     }
                     break;
                 case '\n':
@@ -3317,7 +2952,6 @@ public class RLexer extends Lexer {
                         new NoViableAltException("", 41, 1, input);
 
                     throw nvae;
-
                 }
 
             }
@@ -3326,66 +2960,57 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 41, 0, input);
 
                 throw nvae;
-
             }
             switch (alt41) {
                 case 1 :
-                    // R.g:500:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\"' | '\\'' | '`' | '\\\\' | ' ' | 'a' | 'v' )
+                    // R.g:502:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\"' | '\\'' | '`' | '\\\\' | ' ' | 'a' | 'v' )
                     {
                     match('\\'); 
-
-                    if ( input.LA(1)==' '||input.LA(1)=='\"'||input.LA(1)=='\''||input.LA(1)=='\\'||(input.LA(1) >= '`' && input.LA(1) <= 'b')||input.LA(1)=='f'||input.LA(1)=='n'||input.LA(1)=='r'||input.LA(1)=='t'||input.LA(1)=='v' ) {
+                    if ( input.LA(1)==' '||input.LA(1)=='\"'||input.LA(1)=='\''||input.LA(1)=='\\'||(input.LA(1)>='`' && input.LA(1)<='b')||input.LA(1)=='f'||input.LA(1)=='n'||input.LA(1)=='r'||input.LA(1)=='t'||input.LA(1)=='v' ) {
                         input.consume();
+
                     }
                     else {
                         MismatchedSetException mse = new MismatchedSetException(null,input);
                         recover(mse);
-                        throw mse;
-                    }
+                        throw mse;}
 
 
                     }
                     break;
                 case 2 :
-                    // R.g:501:7: '\\\\' LINE_BREAK
+                    // R.g:503:7: '\\\\' LINE_BREAK
                     {
                     match('\\'); 
-
                     mLINE_BREAK(); 
-
 
                     }
                     break;
                 case 3 :
-                    // R.g:502:9: UNICODE_ESC
+                    // R.g:504:9: UNICODE_ESC
                     {
                     mUNICODE_ESC(); 
-
 
                     }
                     break;
                 case 4 :
-                    // R.g:503:9: OCTAL_ESC
+                    // R.g:505:9: OCTAL_ESC
                     {
                     mOCTAL_ESC(); 
-
 
                     }
                     break;
                 case 5 :
-                    // R.g:504:7: HEX_ESC
+                    // R.g:506:7: HEX_ESC
                     {
                     mHEX_ESC(); 
-
 
                     }
                     break;
 
             }
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "ESC_SEQ"
@@ -3393,31 +3018,20 @@ public class RLexer extends Lexer {
     // $ANTLR start "UNICODE_ESC"
     public final void mUNICODE_ESC() throws RecognitionException {
         try {
-            // R.g:508:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
-            // R.g:508:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+            // R.g:510:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            // R.g:510:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
             {
             match('\\'); 
-
             match('u'); 
-
             mHEX_DIGIT(); 
-
-
             mHEX_DIGIT(); 
-
-
             mHEX_DIGIT(); 
-
-
             mHEX_DIGIT(); 
-
 
             }
 
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "UNICODE_ESC"
@@ -3425,36 +3039,24 @@ public class RLexer extends Lexer {
     // $ANTLR start "HEX_ESC"
     public final void mHEX_ESC() throws RecognitionException {
         try {
-            // R.g:512:2: ( '\\\\x' HEX_DIGIT ( HEX_DIGIT )? )
-            // R.g:512:4: '\\\\x' HEX_DIGIT ( HEX_DIGIT )?
+            // R.g:514:2: ( '\\\\x' HEX_DIGIT ( HEX_DIGIT )? )
+            // R.g:514:4: '\\\\x' HEX_DIGIT ( HEX_DIGIT )?
             {
             match("\\x"); 
 
-
-
             mHEX_DIGIT(); 
-
-
-            // R.g:512:20: ( HEX_DIGIT )?
+            // R.g:514:20: ( HEX_DIGIT )?
             int alt42=2;
             int LA42_0 = input.LA(1);
 
-            if ( ((LA42_0 >= '0' && LA42_0 <= '9')||(LA42_0 >= 'A' && LA42_0 <= 'F')||(LA42_0 >= 'a' && LA42_0 <= 'f')) ) {
+            if ( ((LA42_0>='0' && LA42_0<='9')||(LA42_0>='A' && LA42_0<='F')||(LA42_0>='a' && LA42_0<='f')) ) {
                 alt42=1;
             }
             switch (alt42) {
                 case 1 :
-                    // R.g:
+                    // R.g:514:20: HEX_DIGIT
                     {
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'F')||(input.LA(1) >= 'a' && input.LA(1) <= 'f') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
-                    }
-
+                    mHEX_DIGIT(); 
 
                     }
                     break;
@@ -3464,10 +3066,8 @@ public class RLexer extends Lexer {
 
             }
 
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "HEX_ESC"
@@ -3475,25 +3075,23 @@ public class RLexer extends Lexer {
     // $ANTLR start "HEX_DIGIT"
     public final void mHEX_DIGIT() throws RecognitionException {
         try {
-            // R.g:516:2: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
-            // R.g:
+            // R.g:518:2: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
+            // R.g:518:4: ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' )
             {
-            if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'F')||(input.LA(1) >= 'a' && input.LA(1) <= 'f') ) {
+            if ( (input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='F')||(input.LA(1)>='a' && input.LA(1)<='f') ) {
                 input.consume();
+
             }
             else {
                 MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
-                throw mse;
-            }
+                throw mse;}
 
 
             }
-
 
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "HEX_DIGIT"
@@ -3501,46 +3099,42 @@ public class RLexer extends Lexer {
     // $ANTLR start "OCTAL_ESC"
     public final void mOCTAL_ESC() throws RecognitionException {
         try {
-            // R.g:520:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
+            // R.g:522:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
             int alt43=3;
             int LA43_0 = input.LA(1);
 
             if ( (LA43_0=='\\') ) {
                 int LA43_1 = input.LA(2);
 
-                if ( ((LA43_1 >= '0' && LA43_1 <= '3')) ) {
+                if ( ((LA43_1>='0' && LA43_1<='3')) ) {
                     int LA43_2 = input.LA(3);
 
-                    if ( ((LA43_2 >= '0' && LA43_2 <= '7')) ) {
+                    if ( ((LA43_2>='0' && LA43_2<='7')) ) {
                         int LA43_4 = input.LA(4);
 
-                        if ( ((LA43_4 >= '0' && LA43_4 <= '7')) ) {
+                        if ( ((LA43_4>='0' && LA43_4<='7')) ) {
                             alt43=1;
                         }
                         else {
-                            alt43=2;
-                        }
+                            alt43=2;}
                     }
                     else {
-                        alt43=3;
-                    }
+                        alt43=3;}
                 }
-                else if ( ((LA43_1 >= '4' && LA43_1 <= '7')) ) {
+                else if ( ((LA43_1>='4' && LA43_1<='7')) ) {
                     int LA43_3 = input.LA(3);
 
-                    if ( ((LA43_3 >= '0' && LA43_3 <= '7')) ) {
+                    if ( ((LA43_3>='0' && LA43_3<='7')) ) {
                         alt43=2;
                     }
                     else {
-                        alt43=3;
-                    }
+                        alt43=3;}
                 }
                 else {
                     NoViableAltException nvae =
                         new NoViableAltException("", 43, 1, input);
 
                     throw nvae;
-
                 }
             }
             else {
@@ -3548,85 +3142,66 @@ public class RLexer extends Lexer {
                     new NoViableAltException("", 43, 0, input);
 
                 throw nvae;
-
             }
             switch (alt43) {
                 case 1 :
-                    // R.g:520:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
+                    // R.g:522:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
                     {
                     match('\\'); 
+                    // R.g:522:14: ( '0' .. '3' )
+                    // R.g:522:15: '0' .. '3'
+                    {
+                    matchRange('0','3'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '3') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
+                    // R.g:522:25: ( '0' .. '7' )
+                    // R.g:522:26: '0' .. '7'
+                    {
+                    matchRange('0','7'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '7') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
+                    // R.g:522:36: ( '0' .. '7' )
+                    // R.g:522:37: '0' .. '7'
+                    {
+                    matchRange('0','7'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '7') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
 
                     }
                     break;
                 case 2 :
-                    // R.g:521:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
+                    // R.g:523:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
                     {
                     match('\\'); 
+                    // R.g:523:14: ( '0' .. '7' )
+                    // R.g:523:15: '0' .. '7'
+                    {
+                    matchRange('0','7'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '7') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
+                    // R.g:523:25: ( '0' .. '7' )
+                    // R.g:523:26: '0' .. '7'
+                    {
+                    matchRange('0','7'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '7') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
 
                     }
                     break;
                 case 3 :
-                    // R.g:522:9: '\\\\' ( '0' .. '7' )
+                    // R.g:524:9: '\\\\' ( '0' .. '7' )
                     {
                     match('\\'); 
+                    // R.g:524:14: ( '0' .. '7' )
+                    // R.g:524:15: '0' .. '7'
+                    {
+                    matchRange('0','7'); 
 
-                    if ( (input.LA(1) >= '0' && input.LA(1) <= '7') ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
-                        recover(mse);
-                        throw mse;
                     }
 
 
@@ -3634,25 +3209,22 @@ public class RLexer extends Lexer {
                     break;
 
             }
-
         }
         finally {
-        	// do for sure before leaving
         }
     }
     // $ANTLR end "OCTAL_ESC"
 
     @Override
     public void mTokens() throws RecognitionException {
-        // R.g:1:8: ( T__85 | COMMENT | ARROW | SUPER_ARROW | RIGHT_ARROW | SUPER_RIGHT_ARROW | VARIATIC | EQ | NE | GE | LE | GT | LT | ASSIGN | NS_GET_INT | NS_GET | COLON | SEMICOLON | COMMA | AND | BITWISEAND | OR | BITWISEOR | LBRACE | RBRACE | LPAR | RPAR | LBB | LBRAKET | RBRAKET | CARRET | TILDE | MOD | NOT | PLUS | MULT | MAT_MULT | DIV | MINUS | FIELD | AT | FUNCTION | NULL | NA | TRUE | FALSE | WHILE | FOR | REPEAT | IN | IF | ELSE | NEXT | BREAK | WS | NEWLINE | INTEGER | COMPLEX | DOUBLE | DD | ID | OP | STRING )
-        int alt44=63;
+        // R.g:1:8: ( T__86 | COMMENT | ARROW | SUPER_ARROW | RIGHT_ARROW | SUPER_RIGHT_ARROW | VARIATIC | EQ | NE | GE | LE | GT | LT | ASSIGN | NS_GET_INT | NS_GET | COLON | SEMICOLON | COMMA | AND | BITWISEAND | OR | BITWISEOR | LBRACE | RBRACE | LPAR | RPAR | LBB | LBRAKET | RBRAKET | CARRET | TILDE | MOD | NOT | PLUS | MULT | MAT_MULT | OUTER_MULT | DIV | MINUS | FIELD | AT | FUNCTION | NULL | NA | TRUE | FALSE | WHILE | FOR | REPEAT | IN | IF | ELSE | NEXT | BREAK | WS | NEWLINE | INTEGER | COMPLEX | DOUBLE | DD | ID | OP | STRING )
+        int alt44=64;
         alt44 = dfa44.predict(input);
         switch (alt44) {
             case 1 :
-                // R.g:1:10: T__85
+                // R.g:1:10: T__86
                 {
-                mT__85(); 
-
+                mT__86(); 
 
                 }
                 break;
@@ -3661,14 +3233,12 @@ public class RLexer extends Lexer {
                 {
                 mCOMMENT(); 
 
-
                 }
                 break;
             case 3 :
                 // R.g:1:24: ARROW
                 {
                 mARROW(); 
-
 
                 }
                 break;
@@ -3677,14 +3247,12 @@ public class RLexer extends Lexer {
                 {
                 mSUPER_ARROW(); 
 
-
                 }
                 break;
             case 5 :
                 // R.g:1:42: RIGHT_ARROW
                 {
                 mRIGHT_ARROW(); 
-
 
                 }
                 break;
@@ -3693,14 +3261,12 @@ public class RLexer extends Lexer {
                 {
                 mSUPER_RIGHT_ARROW(); 
 
-
                 }
                 break;
             case 7 :
                 // R.g:1:72: VARIATIC
                 {
                 mVARIATIC(); 
-
 
                 }
                 break;
@@ -3709,14 +3275,12 @@ public class RLexer extends Lexer {
                 {
                 mEQ(); 
 
-
                 }
                 break;
             case 9 :
                 // R.g:1:84: NE
                 {
                 mNE(); 
-
 
                 }
                 break;
@@ -3725,14 +3289,12 @@ public class RLexer extends Lexer {
                 {
                 mGE(); 
 
-
                 }
                 break;
             case 11 :
                 // R.g:1:90: LE
                 {
                 mLE(); 
-
 
                 }
                 break;
@@ -3741,14 +3303,12 @@ public class RLexer extends Lexer {
                 {
                 mGT(); 
 
-
                 }
                 break;
             case 13 :
                 // R.g:1:96: LT
                 {
                 mLT(); 
-
 
                 }
                 break;
@@ -3757,14 +3317,12 @@ public class RLexer extends Lexer {
                 {
                 mASSIGN(); 
 
-
                 }
                 break;
             case 15 :
                 // R.g:1:106: NS_GET_INT
                 {
                 mNS_GET_INT(); 
-
 
                 }
                 break;
@@ -3773,14 +3331,12 @@ public class RLexer extends Lexer {
                 {
                 mNS_GET(); 
 
-
                 }
                 break;
             case 17 :
                 // R.g:1:124: COLON
                 {
                 mCOLON(); 
-
 
                 }
                 break;
@@ -3789,14 +3345,12 @@ public class RLexer extends Lexer {
                 {
                 mSEMICOLON(); 
 
-
                 }
                 break;
             case 19 :
                 // R.g:1:140: COMMA
                 {
                 mCOMMA(); 
-
 
                 }
                 break;
@@ -3805,14 +3359,12 @@ public class RLexer extends Lexer {
                 {
                 mAND(); 
 
-
                 }
                 break;
             case 21 :
                 // R.g:1:150: BITWISEAND
                 {
                 mBITWISEAND(); 
-
 
                 }
                 break;
@@ -3821,14 +3373,12 @@ public class RLexer extends Lexer {
                 {
                 mOR(); 
 
-
                 }
                 break;
             case 23 :
                 // R.g:1:164: BITWISEOR
                 {
                 mBITWISEOR(); 
-
 
                 }
                 break;
@@ -3837,14 +3387,12 @@ public class RLexer extends Lexer {
                 {
                 mLBRACE(); 
 
-
                 }
                 break;
             case 25 :
                 // R.g:1:181: RBRACE
                 {
                 mRBRACE(); 
-
 
                 }
                 break;
@@ -3853,14 +3401,12 @@ public class RLexer extends Lexer {
                 {
                 mLPAR(); 
 
-
                 }
                 break;
             case 27 :
                 // R.g:1:193: RPAR
                 {
                 mRPAR(); 
-
 
                 }
                 break;
@@ -3869,14 +3415,12 @@ public class RLexer extends Lexer {
                 {
                 mLBB(); 
 
-
                 }
                 break;
             case 29 :
                 // R.g:1:202: LBRAKET
                 {
                 mLBRAKET(); 
-
 
                 }
                 break;
@@ -3885,14 +3429,12 @@ public class RLexer extends Lexer {
                 {
                 mRBRAKET(); 
 
-
                 }
                 break;
             case 31 :
                 // R.g:1:218: CARRET
                 {
                 mCARRET(); 
-
 
                 }
                 break;
@@ -3901,14 +3443,12 @@ public class RLexer extends Lexer {
                 {
                 mTILDE(); 
 
-
                 }
                 break;
             case 33 :
                 // R.g:1:231: MOD
                 {
                 mMOD(); 
-
 
                 }
                 break;
@@ -3917,14 +3457,12 @@ public class RLexer extends Lexer {
                 {
                 mNOT(); 
 
-
                 }
                 break;
             case 35 :
                 // R.g:1:239: PLUS
                 {
                 mPLUS(); 
-
 
                 }
                 break;
@@ -3933,7 +3471,6 @@ public class RLexer extends Lexer {
                 {
                 mMULT(); 
 
-
                 }
                 break;
             case 37 :
@@ -3941,214 +3478,194 @@ public class RLexer extends Lexer {
                 {
                 mMAT_MULT(); 
 
-
                 }
                 break;
             case 38 :
-                // R.g:1:258: DIV
+                // R.g:1:258: OUTER_MULT
                 {
-                mDIV(); 
-
+                mOUTER_MULT(); 
 
                 }
                 break;
             case 39 :
-                // R.g:1:262: MINUS
+                // R.g:1:269: DIV
                 {
-                mMINUS(); 
-
+                mDIV(); 
 
                 }
                 break;
             case 40 :
-                // R.g:1:268: FIELD
+                // R.g:1:273: MINUS
                 {
-                mFIELD(); 
-
+                mMINUS(); 
 
                 }
                 break;
             case 41 :
-                // R.g:1:274: AT
+                // R.g:1:279: FIELD
                 {
-                mAT(); 
-
+                mFIELD(); 
 
                 }
                 break;
             case 42 :
-                // R.g:1:277: FUNCTION
+                // R.g:1:285: AT
                 {
-                mFUNCTION(); 
-
+                mAT(); 
 
                 }
                 break;
             case 43 :
-                // R.g:1:286: NULL
+                // R.g:1:288: FUNCTION
                 {
-                mNULL(); 
-
+                mFUNCTION(); 
 
                 }
                 break;
             case 44 :
-                // R.g:1:291: NA
+                // R.g:1:297: NULL
                 {
-                mNA(); 
-
+                mNULL(); 
 
                 }
                 break;
             case 45 :
-                // R.g:1:294: TRUE
+                // R.g:1:302: NA
                 {
-                mTRUE(); 
-
+                mNA(); 
 
                 }
                 break;
             case 46 :
-                // R.g:1:299: FALSE
+                // R.g:1:305: TRUE
                 {
-                mFALSE(); 
-
+                mTRUE(); 
 
                 }
                 break;
             case 47 :
-                // R.g:1:305: WHILE
+                // R.g:1:310: FALSE
                 {
-                mWHILE(); 
-
+                mFALSE(); 
 
                 }
                 break;
             case 48 :
-                // R.g:1:311: FOR
+                // R.g:1:316: WHILE
                 {
-                mFOR(); 
-
+                mWHILE(); 
 
                 }
                 break;
             case 49 :
-                // R.g:1:315: REPEAT
+                // R.g:1:322: FOR
                 {
-                mREPEAT(); 
-
+                mFOR(); 
 
                 }
                 break;
             case 50 :
-                // R.g:1:322: IN
+                // R.g:1:326: REPEAT
                 {
-                mIN(); 
-
+                mREPEAT(); 
 
                 }
                 break;
             case 51 :
-                // R.g:1:325: IF
+                // R.g:1:333: IN
                 {
-                mIF(); 
-
+                mIN(); 
 
                 }
                 break;
             case 52 :
-                // R.g:1:328: ELSE
+                // R.g:1:336: IF
                 {
-                mELSE(); 
-
+                mIF(); 
 
                 }
                 break;
             case 53 :
-                // R.g:1:333: NEXT
+                // R.g:1:339: ELSE
                 {
-                mNEXT(); 
-
+                mELSE(); 
 
                 }
                 break;
             case 54 :
-                // R.g:1:338: BREAK
+                // R.g:1:344: NEXT
                 {
-                mBREAK(); 
-
+                mNEXT(); 
 
                 }
                 break;
             case 55 :
-                // R.g:1:344: WS
+                // R.g:1:349: BREAK
                 {
-                mWS(); 
-
+                mBREAK(); 
 
                 }
                 break;
             case 56 :
-                // R.g:1:347: NEWLINE
+                // R.g:1:355: WS
                 {
-                mNEWLINE(); 
-
+                mWS(); 
 
                 }
                 break;
             case 57 :
-                // R.g:1:355: INTEGER
+                // R.g:1:358: NEWLINE
                 {
-                mINTEGER(); 
-
+                mNEWLINE(); 
 
                 }
                 break;
             case 58 :
-                // R.g:1:363: COMPLEX
+                // R.g:1:366: INTEGER
                 {
-                mCOMPLEX(); 
-
+                mINTEGER(); 
 
                 }
                 break;
             case 59 :
-                // R.g:1:371: DOUBLE
+                // R.g:1:374: COMPLEX
                 {
-                mDOUBLE(); 
-
+                mCOMPLEX(); 
 
                 }
                 break;
             case 60 :
-                // R.g:1:378: DD
+                // R.g:1:382: DOUBLE
                 {
-                mDD(); 
-
+                mDOUBLE(); 
 
                 }
                 break;
             case 61 :
-                // R.g:1:381: ID
+                // R.g:1:389: DD
                 {
-                mID(); 
-
+                mDD(); 
 
                 }
                 break;
             case 62 :
-                // R.g:1:384: OP
+                // R.g:1:392: ID
                 {
-                mOP(); 
-
+                mID(); 
 
                 }
                 break;
             case 63 :
-                // R.g:1:387: STRING
+                // R.g:1:395: OP
+                {
+                mOP(); 
+
+                }
+                break;
+            case 64 :
+                // R.g:1:398: STRING
                 {
                 mSTRING(); 
-
 
                 }
                 break;
@@ -4215,7 +3732,7 @@ public class RLexer extends Lexer {
         }
         @Override
         public String getDescription() {
-            return "422:1: INTEGER : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L' | '0x' ( HEX_DIGIT )+ 'L' );";
+            return "425:1: INTEGER : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* 'L' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'L' | '0x' ( HEX_DIGIT )+ 'L' );";
         }
     }
     static final String DFA19_eotS =
@@ -4271,7 +3788,7 @@ public class RLexer extends Lexer {
         }
         @Override
         public String getDescription() {
-            return "427:1: COMPLEX : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i' | '0x' HEX_DIGIT 'i' );";
+            return "430:1: COMPLEX : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? 'i' | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? 'i' | '0x' HEX_DIGIT 'i' );";
         }
     }
     static final String DFA26_eotS =
@@ -4326,28 +3843,28 @@ public class RLexer extends Lexer {
         }
         @Override
         public String getDescription() {
-            return "432:1: DOUBLE : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? | '0x' HEX_DIGIT );";
+            return "435:1: DOUBLE : ( ( '0' .. '9' )+ '.' ( '0' .. '9' )* ( EXPONENT )? | ( '.' )? ( '0' .. '9' )+ ( EXPONENT )? | '0x' HEX_DIGIT );";
         }
     }
     static final String DFA44_eotS =
         "\1\uffff\1\55\1\uffff\1\61\1\63\1\51\1\67\1\71\1\73\2\uffff\1\75"+
-        "\1\77\4\uffff\1\101\2\uffff\1\102\6\uffff\12\51\2\uffff\2\130\3"+
-        "\uffff\1\132\5\uffff\1\134\2\uffff\1\130\20\uffff\3\51\1\143\4\51"+
-        "\1\150\1\151\3\51\1\uffff\1\130\10\uffff\1\162\2\uffff\1\51\1\165"+
-        "\1\51\1\uffff\4\51\2\uffff\3\51\2\130\2\uffff\1\130\2\uffff\1\51"+
-        "\1\uffff\1\u0081\1\u0082\3\51\1\u0086\1\u0087\1\51\1\uffff\1\130"+
-        "\1\51\2\uffff\1\u008a\1\u008b\1\51\2\uffff\1\u008d\1\51\2\uffff"+
-        "\1\u008f\1\uffff\1\51\1\uffff\1\u0091\1\uffff";
+        "\1\77\4\uffff\1\101\2\uffff\1\102\6\uffff\12\51\2\uffff\2\127\3"+
+        "\uffff\1\133\5\uffff\1\135\2\uffff\1\127\21\uffff\3\51\1\145\4\51"+
+        "\1\152\1\153\3\51\1\uffff\1\127\10\uffff\1\164\3\uffff\1\51\1\170"+
+        "\1\51\1\uffff\4\51\2\uffff\3\51\2\127\2\uffff\1\127\3\uffff\1\51"+
+        "\1\uffff\1\u0084\1\u0085\3\51\1\u0089\1\u008a\1\51\1\uffff\1\127"+
+        "\1\51\2\uffff\1\u008d\1\u008e\1\51\2\uffff\1\u0090\1\51\2\uffff"+
+        "\1\u0092\1\uffff\1\51\1\uffff\1\u0094\1\uffff";
     static final String DFA44_eofS =
-        "\u0092\uffff";
+        "\u0095\uffff";
     static final String DFA44_minS =
         "\1\11\1\55\1\uffff\1\55\1\72\1\56\3\75\2\uffff\1\46\1\174\4\uffff"+
         "\1\133\2\uffff\1\52\1\uffff\1\45\4\uffff\1\157\1\101\1\122\1\101"+
         "\1\150\1\145\1\146\1\154\1\145\1\162\2\uffff\2\56\3\uffff\1\76\5"+
-        "\uffff\1\72\1\uffff\1\56\1\60\16\uffff\1\45\1\uffff\1\156\1\162"+
+        "\uffff\1\72\1\uffff\1\56\1\60\16\uffff\2\45\1\uffff\1\156\1\162"+
         "\1\114\1\56\1\125\1\114\1\151\1\160\2\56\1\163\1\170\1\145\2\60"+
-        "\1\53\7\uffff\1\56\2\uffff\1\143\1\56\1\114\1\uffff\1\105\1\123"+
-        "\1\154\1\145\2\uffff\1\145\1\164\1\141\2\60\1\53\2\60\2\uffff\1"+
+        "\1\53\7\uffff\1\56\3\uffff\1\143\1\56\1\114\1\uffff\1\105\1\123"+
+        "\1\154\1\145\2\uffff\1\145\1\164\1\141\2\60\1\53\2\60\3\uffff\1"+
         "\164\1\uffff\2\56\1\105\1\145\1\141\2\56\1\153\2\60\1\151\2\uffff"+
         "\2\56\1\164\2\uffff\1\56\1\157\2\uffff\1\56\1\uffff\1\156\1\uffff"+
         "\1\56\1\uffff";
@@ -4355,24 +3872,25 @@ public class RLexer extends Lexer {
         "\1\176\1\76\1\uffff\2\75\1\71\3\75\2\uffff\1\46\1\174\4\uffff\1"+
         "\133\2\uffff\1\52\1\uffff\1\176\4\uffff\1\165\1\125\1\122\1\101"+
         "\1\150\1\145\1\156\1\154\1\145\1\162\2\uffff\1\170\1\151\3\uffff"+
-        "\1\76\5\uffff\1\72\1\uffff\1\172\1\151\16\uffff\1\176\1\uffff\1"+
+        "\1\76\5\uffff\1\72\1\uffff\1\172\1\151\16\uffff\2\176\1\uffff\1"+
         "\156\1\162\1\114\1\172\1\125\1\114\1\151\1\160\2\172\1\163\1\170"+
-        "\1\145\1\146\1\151\1\71\7\uffff\1\172\2\uffff\1\143\1\172\1\114"+
+        "\1\145\1\146\1\151\1\71\7\uffff\1\172\3\uffff\1\143\1\172\1\114"+
         "\1\uffff\1\105\1\123\1\154\1\145\2\uffff\1\145\1\164\1\141\2\151"+
-        "\2\71\1\151\2\uffff\1\164\1\uffff\2\172\1\105\1\145\1\141\2\172"+
+        "\2\71\1\151\3\uffff\1\164\1\uffff\2\172\1\105\1\145\1\141\2\172"+
         "\1\153\1\71\2\151\2\uffff\2\172\1\164\2\uffff\1\172\1\157\2\uffff"+
         "\1\172\1\uffff\1\156\1\uffff\1\172\1\uffff";
     static final String DFA44_acceptS =
         "\2\uffff\1\2\6\uffff\1\22\1\23\2\uffff\1\30\1\31\1\32\1\33\1\uffff"+
-        "\1\36\1\37\1\uffff\1\40\1\uffff\1\43\1\46\1\50\1\51\12\uffff\1\67"+
-        "\1\70\2\uffff\1\75\1\77\1\1\1\uffff\1\47\1\3\1\4\1\13\1\15\1\uffff"+
+        "\1\36\1\37\1\uffff\1\40\1\uffff\1\43\1\47\1\51\1\52\12\uffff\1\70"+
+        "\1\71\2\uffff\1\76\1\100\1\1\1\uffff\1\50\1\3\1\4\1\13\1\15\1\uffff"+
         "\1\21\2\uffff\1\10\1\16\1\11\1\42\1\12\1\14\1\24\1\25\1\26\1\27"+
-        "\1\34\1\35\1\44\1\41\1\uffff\1\76\20\uffff\1\71\1\72\1\73\1\6\1"+
-        "\5\1\17\1\20\1\uffff\1\74\1\45\3\uffff\1\54\4\uffff\1\62\1\63\10"+
-        "\uffff\1\7\1\45\1\uffff\1\60\13\uffff\1\53\1\55\3\uffff\1\64\1\65"+
-        "\2\uffff\1\56\1\57\1\uffff\1\66\1\uffff\1\61\1\uffff\1\52";
+        "\1\34\1\35\1\44\1\41\2\uffff\1\77\20\uffff\1\74\1\73\1\72\1\6\1"+
+        "\5\1\17\1\20\1\uffff\1\75\1\45\1\46\3\uffff\1\55\4\uffff\1\63\1"+
+        "\64\10\uffff\1\7\1\45\1\46\1\uffff\1\61\13\uffff\1\54\1\56\3\uffff"+
+        "\1\65\1\66\2\uffff\1\57\1\60\1\uffff\1\67\1\uffff\1\62\1\uffff\1"+
+        "\53";
     static final String DFA44_specialS =
-        "\u0092\uffff}>";
+        "\u0095\uffff}>";
     static final String[] DFA44_transitionS = {
             "\1\45\1\46\1\uffff\2\46\22\uffff\1\45\1\7\1\52\1\2\1\31\1\26"+
             "\1\13\1\uffff\1\17\1\20\1\24\1\27\1\12\1\1\1\5\1\30\1\47\11"+
@@ -4401,44 +3919,44 @@ public class RLexer extends Lexer {
             "",
             "\1\23",
             "",
-            "\1\103\1\105\3\uffff\1\104\5\105\12\uffff\1\105\1\uffff\3\105"+
-            "\2\uffff\32\105\3\uffff\2\105\1\uffff\32\105\1\uffff\1\105\1"+
-            "\uffff\1\105",
+            "\1\103\1\106\3\uffff\1\104\5\106\12\uffff\1\106\1\uffff\3\106"+
+            "\2\uffff\32\106\3\uffff\2\106\1\uffff\16\106\1\105\13\106\1"+
+            "\uffff\1\106\1\uffff\1\106",
             "",
             "",
             "",
             "",
-            "\1\107\5\uffff\1\106",
-            "\1\111\23\uffff\1\110",
-            "\1\112",
+            "\1\110\5\uffff\1\107",
+            "\1\112\23\uffff\1\111",
             "\1\113",
             "\1\114",
             "\1\115",
-            "\1\117\7\uffff\1\116",
-            "\1\120",
+            "\1\116",
+            "\1\120\7\uffff\1\117",
             "\1\121",
             "\1\122",
+            "\1\123",
             "",
             "",
-            "\1\124\1\uffff\12\50\13\uffff\1\125\6\uffff\1\126\30\uffff"+
-            "\1\125\3\uffff\1\127\16\uffff\1\123",
-            "\1\124\1\uffff\12\50\13\uffff\1\125\6\uffff\1\126\30\uffff"+
-            "\1\125\3\uffff\1\127",
-            "",
-            "",
-            "",
-            "\1\131",
+            "\1\125\1\uffff\12\50\13\uffff\1\126\6\uffff\1\131\30\uffff"+
+            "\1\126\3\uffff\1\130\16\uffff\1\124",
+            "\1\125\1\uffff\12\50\13\uffff\1\126\6\uffff\1\131\30\uffff"+
+            "\1\126\3\uffff\1\130",
             "",
             "",
             "",
+            "\1\132",
             "",
             "",
-            "\1\133",
             "",
-            "\1\135\1\uffff\12\136\7\uffff\32\51\4\uffff\1\51\1\uffff\32"+
+            "",
+            "",
+            "\1\134",
+            "",
+            "\1\136\1\uffff\12\137\7\uffff\32\51\4\uffff\1\51\1\uffff\32"+
             "\51",
-            "\12\65\13\uffff\1\125\6\uffff\1\126\30\uffff\1\125\3\uffff"+
-            "\1\127",
+            "\12\65\13\uffff\1\126\6\uffff\1\131\30\uffff\1\126\3\uffff"+
+            "\1\130",
             "",
             "",
             "",
@@ -4453,27 +3971,29 @@ public class RLexer extends Lexer {
             "",
             "",
             "",
-            "\1\137\1\105\3\uffff\6\105\12\uffff\1\105\1\uffff\3\105\2\uffff"+
-            "\32\105\3\uffff\2\105\1\uffff\32\105\1\uffff\1\105\1\uffff\1"+
-            "\105",
+            "\1\140\1\106\3\uffff\6\106\12\uffff\1\106\1\uffff\3\106\2\uffff"+
+            "\32\106\3\uffff\2\106\1\uffff\32\106\1\uffff\1\106\1\uffff\1"+
+            "\106",
+            "\1\141\1\106\3\uffff\21\106\1\uffff\3\106\2\uffff\32\106\3"+
+            "\uffff\2\106\1\uffff\32\106\1\uffff\1\106\1\uffff\1\106",
             "",
-            "\1\140",
-            "\1\141",
             "\1\142",
-            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\143",
             "\1\144",
-            "\1\145",
+            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "\1\146",
             "\1\147",
+            "\1\150",
+            "\1\151",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
-            "\1\152",
-            "\1\153",
             "\1\154",
-            "\12\155\7\uffff\6\155\32\uffff\6\155",
-            "\12\156\13\uffff\1\157\6\uffff\1\126\30\uffff\1\157\3\uffff"+
-            "\1\127",
-            "\1\160\1\uffff\1\160\2\uffff\12\161",
+            "\1\155",
+            "\1\156",
+            "\12\157\7\uffff\6\157\32\uffff\6\157",
+            "\12\160\13\uffff\1\161\6\uffff\1\131\30\uffff\1\161\3\uffff"+
+            "\1\130",
+            "\1\162\1\uffff\1\162\2\uffff\12\163",
             "",
             "",
             "",
@@ -4481,58 +4001,60 @@ public class RLexer extends Lexer {
             "",
             "",
             "",
-            "\1\135\22\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\136\22\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "",
             "",
-            "\1\164",
-            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
-            "\1\166",
             "",
             "\1\167",
-            "\1\170",
+            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "\1\171",
+            "",
             "\1\172",
-            "",
-            "",
             "\1\173",
             "\1\174",
             "\1\175",
-            "\12\126\7\uffff\6\126\5\uffff\1\126\24\uffff\6\126\2\uffff"+
-            "\1\127",
-            "\12\156\13\uffff\1\157\6\uffff\1\126\30\uffff\1\157\3\uffff"+
-            "\1\127",
-            "\1\176\1\uffff\1\176\2\uffff\12\177",
-            "\12\161",
-            "\12\161\22\uffff\1\126\34\uffff\1\127",
             "",
             "",
+            "\1\176",
+            "\1\177",
             "\1\u0080",
+            "\12\131\7\uffff\6\131\5\uffff\1\131\24\uffff\6\131\2\uffff"+
+            "\1\130",
+            "\12\160\13\uffff\1\161\6\uffff\1\131\30\uffff\1\161\3\uffff"+
+            "\1\130",
+            "\1\u0081\1\uffff\1\u0081\2\uffff\12\u0082",
+            "\12\163",
+            "\12\163\22\uffff\1\131\34\uffff\1\130",
             "",
-            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
-            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "",
+            "",
             "\1\u0083",
-            "\1\u0084",
-            "\1\u0085",
+            "",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\u0086",
+            "\1\u0087",
             "\1\u0088",
-            "\12\177",
-            "\12\177\57\uffff\1\127",
-            "\1\u0089",
-            "",
-            "",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\u008b",
+            "\12\u0082",
+            "\12\u0082\57\uffff\1\130",
             "\1\u008c",
             "",
             "",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
-            "\1\u008e",
+            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\u008f",
+            "",
+            "",
+            "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
+            "\1\u0091",
             "",
             "",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             "",
-            "\1\u0090",
+            "\1\u0093",
             "",
             "\1\51\1\uffff\12\51\7\uffff\32\51\4\uffff\1\51\1\uffff\32\51",
             ""
@@ -4569,7 +4091,7 @@ public class RLexer extends Lexer {
         }
         @Override
         public String getDescription() {
-            return "1:1: Tokens : ( T__85 | COMMENT | ARROW | SUPER_ARROW | RIGHT_ARROW | SUPER_RIGHT_ARROW | VARIATIC | EQ | NE | GE | LE | GT | LT | ASSIGN | NS_GET_INT | NS_GET | COLON | SEMICOLON | COMMA | AND | BITWISEAND | OR | BITWISEOR | LBRACE | RBRACE | LPAR | RPAR | LBB | LBRAKET | RBRAKET | CARRET | TILDE | MOD | NOT | PLUS | MULT | MAT_MULT | DIV | MINUS | FIELD | AT | FUNCTION | NULL | NA | TRUE | FALSE | WHILE | FOR | REPEAT | IN | IF | ELSE | NEXT | BREAK | WS | NEWLINE | INTEGER | COMPLEX | DOUBLE | DD | ID | OP | STRING );";
+            return "1:1: Tokens : ( T__86 | COMMENT | ARROW | SUPER_ARROW | RIGHT_ARROW | SUPER_RIGHT_ARROW | VARIATIC | EQ | NE | GE | LE | GT | LT | ASSIGN | NS_GET_INT | NS_GET | COLON | SEMICOLON | COMMA | AND | BITWISEAND | OR | BITWISEOR | LBRACE | RBRACE | LPAR | RPAR | LBB | LBRAKET | RBRAKET | CARRET | TILDE | MOD | NOT | PLUS | MULT | MAT_MULT | OUTER_MULT | DIV | MINUS | FIELD | AT | FUNCTION | NULL | NA | TRUE | FALSE | WHILE | FOR | REPEAT | IN | IF | ELSE | NEXT | BREAK | WS | NEWLINE | INTEGER | COMPLEX | DOUBLE | DD | ID | OP | STRING );";
         }
     }
  

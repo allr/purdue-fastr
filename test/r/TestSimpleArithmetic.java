@@ -66,5 +66,7 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ m<-matrix(1:3, ncol=1) ; m %*% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
         assertEval("{ a<-matrix(1:6, ncol=2) ; b<-matrix(11:16, nrow=2) ; a %*% b }", "      [,1]  [,2]  [,3]\n[1,]  59.0  69.0  79.0\n[2,]  82.0  96.0 110.0\n[3,] 105.0 123.0 141.0");
 
+        // outer product
+        assertEval("{ 1:3 %o% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
     }
 }

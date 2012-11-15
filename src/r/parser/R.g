@@ -284,6 +284,7 @@ add_operator returns [BinaryOperator v]
 mult_operator returns [BinaryOperator v]
 	: MULT {$v = BinaryOperator.MULT; }
 	| MAT_MULT {$v = BinaryOperator.MAT_MULT; }
+	| OUTER_MULT {$v = BinaryOperator.OUTER_MULT; }
 	| DIV  {$v = BinaryOperator.DIV; }
 	| MOD  {$v = BinaryOperator.MOD; };
 power_operator returns [BinaryOperator v]
@@ -377,6 +378,8 @@ MULT
 	: '*';
 MAT_MULT
 	: '%*%';
+OUTER_MULT
+	: '%o%';
 
 DIV	: '/';
 MINUS
