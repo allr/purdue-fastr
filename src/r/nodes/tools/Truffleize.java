@@ -152,6 +152,13 @@ public class Truffleize implements Visitor {
         }
         // Truffle does not like Lazy...
         //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+
+        RSymbol sym = assign.getSymbol();
+        if (r.builtins.Primitives.get(sym) != null) {
+            Utils.nyi(sym.pretty() + ": we don't support variables over-shadowing primitives.");
+            // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
+            // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations
+        }
         result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createTree(assign.getExpr()));
     }
 
@@ -184,7 +191,7 @@ public class Truffleize implements Visitor {
     public void visit(Function function) {
         assert Utils.check(function.getRFunction() == null); // TODO the ast.Function must create the RFunction !
 
-        RFunction encf = getEnclosing(function);
+        RFunction encf = getEnclosingFunction(function);
 
         splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
 
@@ -195,7 +202,7 @@ public class Truffleize implements Visitor {
         result = functionNode;
     }
 
-    private static RFunction getEnclosing(ASTNode node) {
+    private static RFunction getEnclosingFunction(ASTNode node) {
         // find lexically enclosing function if exists
         Function enfunc = findParent(node, Function.class);
         if (enfunc == null) {
@@ -212,7 +219,8 @@ public class Truffleize implements Visitor {
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs(), true);
 
-        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(functionCall.getName(), getEnclosing(functionCall));
+
+        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(functionCall.getName(), getEnclosingFunction(functionCall));
         if (factory == null) {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }

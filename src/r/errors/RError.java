@@ -1,5 +1,6 @@
 package r.errors;
 
+import r.data.*;
 import r.nodes.*;
 
 public abstract class RError extends RuntimeException {
@@ -58,6 +59,7 @@ public abstract class RError extends RuntimeException {
     public static final String DATA_NOT_MULTIPLE_ROWS = "data length [%d] is not a sub-multiple or multiple of the number of rows [%d]";
     public static final String ARGUMENT_NOT_MATCH = "supplied argument name '%s' does not match '%s'";
     public static final String ARGUMENT_MISSING = "argument '%s' is missing, with no default";
+    public static final String UNKNOWN_FUNCTION = "could not find function '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -534,6 +536,10 @@ public abstract class RError extends RuntimeException {
                 return UNKNOW_VARIABLE;
             }
         };
+    }
+
+    public static RError getUnknownFunction(ASTNode ast, RSymbol symbol) {
+        return getGenericError(ast, String.format(RError.UNKNOWN_FUNCTION, symbol.pretty()));
     }
 
     public static RError getGenericError(ASTNode source, final String msg) {

@@ -258,8 +258,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
-            RNode fexp = r.nodes.truffle.ReadVariable.getUninitialized(call, fcall.getName()); // FIXME: ReadVariable CANNOT be used ! Function lookup are != from variable lookups
-
+            RNode fexp = r.nodes.truffle.MatchFunction.getUninitialized(call, fcall.getName());
             return getFunctionCall(fcall, fexp, names, exprs);
         }
     };

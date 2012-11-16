@@ -43,6 +43,9 @@ public class TestSimpleFunctions extends TestBase {
 
         assertEval("{ f<-function() { return() } ; f() }", "NULL");
         assertEval("{ f<-function() { return(2) ; 3 } ; f() }", "2.0");
+
+        // function matching
+        assertEval("{ x <- function(y) { sum(y) } ; f <- function() { x <- 1 ; x(1:10) } ; f() }", "55L");
     }
 
     @Rule

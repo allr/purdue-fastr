@@ -75,6 +75,15 @@ public final class RFrame  {
         return val;
     }
 
+    public static RClosure matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
+        assert Utils.check(hops != 0); // It was present in the writeSet
+        RClosure val = matchViaReadSet(getParent(f), hops - 1, pos, symbol, f);
+        if (val == null) {
+            val = matchFromTopLevel(symbol);
+        }
+        return val;
+    }
+
     public static RAny readViaWriteSet(Frame f, int pos, RSymbol symbol) {
         Object val;
 
@@ -83,6 +92,17 @@ public final class RFrame  {
             return Utils.cast(val);
         } else {
             return readViaWriteSetSlowPath(f, pos, symbol);
+        }
+    }
+
+    public static RClosure matchViaWriteSet(Frame f, int pos, RSymbol symbol) {
+        Object val;
+
+        val = f.getObject(pos + RESERVED_SLOTS);
+        if (val != null && val instanceof RClosure) {
+            return (RClosure) val;
+        } else {
+            return matchViaWriteSetSlowPath(f, pos, symbol);
         }
     }
 
@@ -100,6 +120,21 @@ public final class RFrame  {
             }
         }
         return Utils.cast(val);
+    }
+
+    public static RClosure matchViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
+        ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
+        if (rse == null) {
+            return matchFromTopLevel(symbol);
+        } else {
+            Frame pf = getParent(f);
+            RClosure val = matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
+            if (val == null) {
+                return matchFromTopLevel(symbol);
+            } else {
+                return val;
+            }
+        }
     }
 
     public static RAny readFromTopLevel(Frame f, RSymbol sym, int version) {
@@ -159,6 +194,15 @@ public final class RFrame  {
         return sym.value;
     }
 
+    private static RClosure matchFromTopLevel(RSymbol sym) {
+        RAny res = sym.value;
+        if (res instanceof RClosure) {
+            return (RClosure) res;
+        } else {
+            return null;
+        }
+    }
+
     private static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
         if (hops == 0) {
             Object val;
@@ -178,6 +222,27 @@ public final class RFrame  {
             return readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         } else {
             return readViaReadSet(getParent(f), hops - 1, pos, symbol, first);
+        }
+    }
+
+    private static RClosure matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
+        if (hops == 0) {
+            if (isDirty(f, pos)) {
+                RClosure res = matchFromExtension(first, symbol, f);
+                if (res != null) {
+                    return res;
+                }
+            }
+            Object val = f.getObject(pos + RESERVED_SLOTS);
+            if (val != null && val instanceof RClosure) {
+                return (RClosure) val;
+            }
+            ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
+            Frame pf = getParent(f);
+
+            return matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
+        } else {
+            return matchViaReadSet(getParent(f), hops - 1, pos, symbol, first);
         }
     }
 
@@ -215,6 +280,20 @@ public final class RFrame  {
             }
         }
         return readFromExtension(getParent(f), sym, stopFrame);
+    }
+
+    public static RClosure matchFromExtension(Frame f, RSymbol sym, Frame stopFrame) { // It's public because of ReadVariable
+        if (f == stopFrame) {
+            return null;
+        }
+        RFrameExtension ext = getExtension(f);
+        if (ext != null) {
+            RAny val = ext.get(sym);
+            if (val != null && val instanceof RClosure) {
+                return (RClosure) val;
+            }
+        }
+        return matchFromExtension(getParent(f), sym, stopFrame);
     }
 
     private static boolean isDirty(Frame f, int pos) {

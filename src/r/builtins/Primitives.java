@@ -63,8 +63,9 @@ public class Primitives {
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {
         PrimitiveEntry pe = get(name);
         if (pe != null && fun != null && fun.isInWriteSet(name)) {
-            Utils.nyi(); // TODO case were a primitive is shadowed by a local symbol
-        }
+            Utils.nyi(); // TODO case when a primitive is shadowed by a local symbol
+        }                // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
+                         // FIXME: also, what about reflections?
         return pe;
     }
 
