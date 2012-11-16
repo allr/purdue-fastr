@@ -4,8 +4,10 @@ import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.Frame;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.ReadSetEntry;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -18,6 +20,15 @@ public abstract class ReadVariable extends BaseR {
     public ReadVariable(ASTNode orig, RSymbol sym) {
         super(orig);
         symbol = sym;
+    }
+
+    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) {
+        // builtins
+        CallFactory callFactory = Primitives.getCallFactory(symbol, null);
+        if (callFactory != null) {
+            return new BuiltInImpl(callFactory);
+        }
+        throw RError.getUnknownVariable(ast, symbol);
     }
 
     public static ReadVariable getUninitialized(ASTNode orig, RSymbol sym) {
@@ -63,7 +74,7 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(RContext context, Frame frame) {
                 RAny val = RFrame.readViaWriteSet(frame, position, symbol);
                 if (val == null) {
-                    throw RError.getUnknownVariable(getAST());
+                    return readNonVariable(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from position "+position); }
                 return val;
@@ -78,7 +89,7 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(RContext context, Frame frame) {
                 RAny val = RFrame.readViaReadSet(frame, hops, position, symbol);
                 if (val == null) {
-                    throw RError.getUnknownVariable(getAST());
+                    return readNonVariable(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from position "+position+" hops "+hops); }
                 return val;
@@ -106,7 +117,7 @@ public abstract class ReadVariable extends BaseR {
                     val = symbol.getValue();
                 }
                 if (val == null) {
-                    throw RError.getUnknownVariable(getAST());
+                    return readNonVariable(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
                 return val;
@@ -122,7 +133,7 @@ public abstract class ReadVariable extends BaseR {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null) {
-                    throw RError.getUnknownVariable(getAST());
+                    return readNonVariable(ast, symbol);
                 }
                 return val;
             }

@@ -9,7 +9,6 @@ public abstract class RError extends RuntimeException {
     public static final String LENGTH_GT_1 = "the condition has length > 1 and only the first element will be used";
     public static final String LENGTH_0 = "argument is of length zero";
     public static final String NA_UNEXP = "missing value where TRUE/FALSE needed";
-    public static final String UNKNOW_VARIABLE = "object not found";
     public static final String UNUSED_ARGUMENT = "unused argument(s)";
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
     public static final String INTEGER_OVERFLOW = "NAs produced by integer overflow";
@@ -51,6 +50,7 @@ public abstract class RError extends RuntimeException {
     public static final String NEGATIVE_NROW = "invalid 'nrow' value (< 0)";
     public static final String NON_CONFORMABLE_ARRAYS = "non-conformable arrays";
     public static final String INVALID_MODE = "invalid 'mode' argument";
+    public static final String UNKNOWN_VARIABLE = "object not found";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -60,6 +60,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_NOT_MATCH = "supplied argument name '%s' does not match '%s'";
     public static final String ARGUMENT_MISSING = "argument '%s' is missing, with no default";
     public static final String UNKNOWN_FUNCTION = "could not find function '%s'";
+    public static final String UNKNOWN_OBJECT = "object '%s' not found";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -528,18 +529,22 @@ public abstract class RError extends RuntimeException {
         }
     }
 
+    public static RError getUnknownVariable(ASTNode ast, RSymbol symbol) {
+        return getGenericError(ast, String.format(RError.UNKNOWN_OBJECT, symbol.pretty()));
+    }
+
+    public static RError getUnknownFunction(ASTNode ast, RSymbol symbol) {
+        return getGenericError(ast, String.format(RError.UNKNOWN_FUNCTION, symbol.pretty()));
+    }
+
     public static RError getUnknownVariable(ASTNode source) {
         return new RErrorInExpr(source){
             private static final long serialVersionUID = 1L;
             @Override
             public String getMessage() {
-                return UNKNOW_VARIABLE;
+                return UNKNOWN_VARIABLE;
             }
         };
-    }
-
-    public static RError getUnknownFunction(ASTNode ast, RSymbol symbol) {
-        return getGenericError(ast, String.format(RError.UNKNOWN_FUNCTION, symbol.pretty()));
     }
 
     public static RError getGenericError(ASTNode source, final String msg) {

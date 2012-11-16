@@ -47,6 +47,11 @@ public class Primitives {
         return new CallFactory() {
 
             @Override
+            public RSymbol name() {
+                return name;
+            }
+
+            @Override
             public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
                 int minArgs = pe.getMinArgs();
                 int maxArgs = pe.getMaxArgs();

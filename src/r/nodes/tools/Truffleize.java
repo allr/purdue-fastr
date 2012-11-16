@@ -1,11 +1,14 @@
 package r.nodes.tools;
 
+import org.junit.experimental.runners.*;
+
 import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.Constant;
@@ -138,7 +141,8 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(SimpleAccessVariable readVariable) {
-        result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, readVariable.getSymbol());
+        RSymbol symbol = readVariable.getSymbol();
+        result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, symbol);
     }
 
     @Override
@@ -219,8 +223,8 @@ public class Truffleize implements Visitor {
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
         splitArgumentList(functionCall.getArgs(), true);
 
-
-        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(functionCall.getName(), getEnclosingFunction(functionCall));
+        RSymbol sym = functionCall.getName();
+        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
         if (factory == null) {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
@@ -350,8 +354,8 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(Colon col) {
-        // FIXME: this does not allow overriding when as operator, but maybe this should not be allowed anyway
-        result = r.builtins.Colon.FACTORY.create(col, createTree(col.getLHS()), createTree(col.getRHS()));
+        // FIXME: allow symbol override?
+        result = r.builtins.Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(col, createTree(col.getLHS()), createTree(col.getRHS()));
     }
 
     @Override
