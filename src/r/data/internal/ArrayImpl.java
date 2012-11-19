@@ -48,8 +48,9 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     }
 
     @Override
-    public void setDimensions(int[] dimensions) {
+    public RArray setDimensions(int[] dimensions) {
         Utils.nyi("not supported");
+        return null;
     }
 
     @Override

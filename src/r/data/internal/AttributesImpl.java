@@ -114,8 +114,9 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
-    public void setDimensions(int[] dimensions) {
+    public RArray setDimensions(int[] dimensions) {
         Utils.nyi();
+        return null;
     }
 
     @Override

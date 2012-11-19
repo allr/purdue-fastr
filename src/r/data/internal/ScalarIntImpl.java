@@ -48,6 +48,11 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public RInt setDimensions(int[] dimensions) {
+        return RInt.RIntFactory.getFor(new int[] {value}, dimensions);
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

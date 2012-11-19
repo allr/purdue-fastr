@@ -29,6 +29,12 @@ public interface RInt extends RNumber {
             }
             return new IntImpl(values);
         }
+        public static RInt getArray(int[] values, int[] dimensions) {
+            if (dimensions == null && values.length == 1) {
+                return new ScalarIntImpl(values[0]);
+            }
+            return new IntImpl(values, dimensions);
+        }
         public static RInt getUninitializedArray(int size) {
             if (size == 1) {
                 return new ScalarIntImpl(0);
@@ -39,7 +45,7 @@ public interface RInt extends RNumber {
             if (size == 1 && dimensions == null) {
                 return new ScalarIntImpl(0);
             }
-            return new IntImpl(new int[size], dimensions);
+            return new IntImpl(new int[size], dimensions, false);
         }
         public static RInt getNAArray(int size) {
             return getNAArray(size, null);
@@ -48,7 +54,7 @@ public interface RInt extends RNumber {
             if (size == 1 && dimensions == null) {
                 return new ScalarIntImpl(NA);
             }
-            int content[] = new int[size];
+            int[] content = new int[size];
             for (int i = 0; i < size; i++) {
                 content[i] = NA;
             }

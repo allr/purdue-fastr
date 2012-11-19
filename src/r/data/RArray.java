@@ -10,7 +10,7 @@ public interface RArray extends RAny {
     Object get(int i);
     RAny boxedGet(int i);
     RArray set(int i, Object val);
-    void setDimensions(int [] dimensions);
+    RArray setDimensions(int[] dimensions);
     boolean isNAorNaN(int i);
     int index(int i, int j);
 

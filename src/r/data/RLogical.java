@@ -42,6 +42,12 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return new LogicalImpl(values);
         }
+        public static RLogical getArray(int[] values, int[] dimensions) {
+            if (values.length == 1) {
+                return new ScalarLogicalImpl(values[0]);
+            }
+            return new LogicalImpl(values, dimensions);
+        }
         public static RLogical getUninitializedArray(int size) {
             if (size == 1) {
                 return new ScalarLogicalImpl(0);
@@ -52,7 +58,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (size == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(0);
             }
-            return new LogicalImpl(new int[size], dimensions);
+            return new LogicalImpl(new int[size], dimensions, false);
         }
         public static RLogical getNAArray(int size) {
             return getNAArray(size, null);

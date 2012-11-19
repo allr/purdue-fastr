@@ -48,6 +48,11 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public RDouble setDimensions(int[] dimensions) {
+        return RDouble.RDoubleFactory.getFor(new double[] {value}, dimensions);
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

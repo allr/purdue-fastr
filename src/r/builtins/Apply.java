@@ -112,7 +112,6 @@ public class Apply {
                 j++;
             }
 
-            // FIXME: this won't allow calling builtins or giving function by name
             final CallableProvider callableProvider = new CallableProvider(null);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
             return new Lapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);
@@ -145,7 +144,6 @@ public class Apply {
                 j++;
             }
 
-            // FIXME: this won't allow calling builtins or giving function by name
             final CallableProvider callableProvider = new CallableProvider(null);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
             return new Sapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);

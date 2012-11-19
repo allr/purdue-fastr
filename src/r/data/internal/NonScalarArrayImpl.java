@@ -28,8 +28,9 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
     }
 
     @Override
-    public void setDimensions(int[] dimensions) {
+    public NonScalarArrayImpl setDimensions(int[] dimensions) {
         this.dimensions = dimensions;
+        return this;
     }
 
     private static void strAppend(StringBuilder b, String s, int width) {

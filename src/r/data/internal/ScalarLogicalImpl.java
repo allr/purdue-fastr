@@ -48,6 +48,12 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public RLogical setDimensions(int[] dimensions) {
+        return RLogical.RLogicalFactory.getFor(new int[] {value}, dimensions);
+    }
+
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

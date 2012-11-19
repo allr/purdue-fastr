@@ -106,8 +106,9 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
-    public void setDimensions(int[] dimensions) {
+    public RArray setDimensions(int[] dimensions) {
         Utils.nyi();
+        return null;
     }
 
     @Override

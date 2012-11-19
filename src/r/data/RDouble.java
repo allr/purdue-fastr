@@ -42,6 +42,12 @@ public interface RDouble extends RNumber {
             }
             return new DoubleImpl(values);
         }
+        public static RDouble getArray(double[] values, int[] dimensions) {
+            if (dimensions == null && values.length == 1) {
+                return new ScalarDoubleImpl(values[0]);
+            }
+            return new DoubleImpl(values, dimensions);
+        }
         public static RDouble getUninitializedArray(int size) {
             if (size == 1) {
                 return new ScalarDoubleImpl(0);
@@ -52,7 +58,7 @@ public interface RDouble extends RNumber {
             if (size == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(0);
             }
-            return new DoubleImpl(new double[size], dimensions);
+            return new DoubleImpl(new double[size], dimensions, false);
         }
         public static RDouble getNAArray(int size) {
             return getNAArray(size, null);

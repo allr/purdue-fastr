@@ -176,7 +176,11 @@ public class Truffleize implements Visitor {
             ASTNode exp = e.getValue();
             if (exp != null) {
                 if (root) {
-                    expressions[i] = createLazyRootTree(exp);
+                    if (exp instanceof Constant) { // hack to make builtins see their constant arguments, constant won't rewrite anyway
+                        expressions[i] = createTree(exp);
+                    } else {
+                        expressions[i] = createLazyRootTree(exp);
+                    }
                 } else {
                     expressions[i] = createTree(exp);
                 }

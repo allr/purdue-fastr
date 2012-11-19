@@ -20,11 +20,14 @@ public interface RString extends RArray {
         public static StringImpl getArray(String... values) {
             return new StringImpl(values);
         }
+        public static StringImpl getArray(String[] values, int[] dimensions) {
+            return new StringImpl(values, dimensions);
+        }
         public static StringImpl getUninitializedArray(int size) {
             return new StringImpl(size);
         }
         public static StringImpl getUninitializedArray(int size, int[] dimensions) {
-            return new StringImpl(new String[size], dimensions);
+            return new StringImpl(new String[size], dimensions, false);
         }
         public static StringImpl getMatrixFor(String[] values, int m, int n) {
             return new StringImpl(values, new int[] {m, n}, false);

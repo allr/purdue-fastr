@@ -1,6 +1,7 @@
 package r;
 
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 
 public final class Utils {
@@ -159,7 +160,6 @@ public final class Utils {
         Utils.nyi("unuspported array type");
         return null;
     }
-
 
     public static void ref(RAny[] values) {
         for (RAny v : values) {
