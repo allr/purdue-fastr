@@ -132,6 +132,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ sapply(1:3, length) }", "1L, 1L, 1L");
         assertEval("{ f<-length; sapply(1:3, f) }", "1L, 1L, 1L");
         assertEval("{ sapply(1:3, `-`, 2) }", "-1.0, 0.0, 1.0");
+        assertEval("{ sapply(1:3, \"-\", 2) }", "-1.0, 0.0, 1.0");
     }
 
     @Test

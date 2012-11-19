@@ -1,8 +1,10 @@
 package r.nodes.truffle;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -21,8 +23,55 @@ public abstract class MatchCallable extends BaseR {
         this.symbol = symbol;
     }
 
-    // FIXME: if we support overriding of specials, then we would have to add here a fallback (like readNonVariable in ReadVariable)
-    // FIXME: the same for operators
+    public static RCallable matchNonVariable(ASTNode ast, RSymbol symbol) {
+        // builtins
+        CallFactory callFactory = Primitives.getCallFactory(symbol, null);
+        if (callFactory != null) {
+            return new BuiltInImpl(callFactory);
+        }
+        throw RError.getUnknownFunction(ast, symbol);
+    }
+
+    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {
+        RAny value = null;
+        if (frame == null) {
+            value = symbol.getValue();
+        } else {
+            int pos = RFrame.getPositionInWS(frame, symbol);
+            if (pos >= 0) {
+                RCallable cvalue = RFrame.matchViaWriteSet(frame, pos, symbol);
+                if (cvalue != null) {
+                    return cvalue;
+                } else {
+                    return matchNonVariable(ast, symbol);
+                }
+            } else {
+                ReadSetEntry rse = RFrame.getRSEntry(frame, symbol);
+                if (rse != null) {
+                    RCallable cvalue = RFrame.matchViaReadSet(frame, rse.frameHops, rse.framePos, symbol);
+                    if (cvalue != null) {
+                        return cvalue;
+                    } else {
+                        return matchNonVariable(ast, symbol);
+                    }
+                } else {
+                    RCallable cvalue = RFrame.matchFromExtension(frame, symbol, null);
+                    if (cvalue != null) {
+                        return cvalue;
+                    } else {
+                        value = symbol.getValue();
+                    }
+                }
+            }
+        }
+        if (value != null && value instanceof RCallable) {
+            return (RCallable) value;
+        } else {
+            return matchNonVariable(ast, symbol);
+        }
+    }
+
+    // FIXME: the matching below does not fall-back to builtins, because currently we compile built-in invocation statically, disallowing override
     public static MatchCallable getUninitialized(ASTNode ast, RSymbol sym) {
         return new MatchCallable(ast, sym) {
 
@@ -97,15 +146,17 @@ public abstract class MatchCallable extends BaseR {
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
                     val = RFrame.matchFromExtension(frame, symbol, null);
-                    if (val == null || !(val instanceof RCallable)) {
-                        version = symbol.getVersion();
-                        // oldFrame = frame;
-                        val = symbol.getValue();
+                    if (val != null) {
+                        return val;
                     }
+                    version = symbol.getVersion();
+                    // oldFrame = frame;
+                    val = symbol.getValue();
+
                 } else {
                     val = symbol.getValue();
                 }
-                if (!(val instanceof RCallable)) {
+                if (val == null || !(val instanceof RCallable)) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
                 return val;
