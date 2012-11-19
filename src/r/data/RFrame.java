@@ -75,9 +75,9 @@ public final class RFrame  {
         return val;
     }
 
-    public static RClosure matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
+    public static RCallable matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0); // It was present in the writeSet
-        RClosure val = matchViaReadSet(getParent(f), hops - 1, pos, symbol, f);
+        RCallable val = matchViaReadSet(getParent(f), hops - 1, pos, symbol, f);
         if (val == null) {
             val = matchFromTopLevel(symbol);
         }
@@ -95,12 +95,12 @@ public final class RFrame  {
         }
     }
 
-    public static RClosure matchViaWriteSet(Frame f, int pos, RSymbol symbol) {
+    public static RCallable matchViaWriteSet(Frame f, int pos, RSymbol symbol) {
         Object val;
 
         val = f.getObject(pos + RESERVED_SLOTS);
-        if (val != null && val instanceof RClosure) {
-            return (RClosure) val;
+        if (val != null && val instanceof RCallable) {
+            return (RCallable) val;
         } else {
             return matchViaWriteSetSlowPath(f, pos, symbol);
         }
@@ -122,13 +122,13 @@ public final class RFrame  {
         return Utils.cast(val);
     }
 
-    public static RClosure matchViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
+    public static RCallable matchViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
         if (rse == null) {
             return matchFromTopLevel(symbol);
         } else {
             Frame pf = getParent(f);
-            RClosure val = matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
+            RCallable val = matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
             if (val == null) {
                 return matchFromTopLevel(symbol);
             } else {
@@ -194,10 +194,10 @@ public final class RFrame  {
         return sym.value;
     }
 
-    private static RClosure matchFromTopLevel(RSymbol sym) {
+    private static RCallable matchFromTopLevel(RSymbol sym) {
         RAny res = sym.value;
-        if (res instanceof RClosure) {
-            return (RClosure) res;
+        if (res instanceof RCallable) {
+            return (RCallable) res;
         } else {
             return null;
         }
@@ -225,17 +225,17 @@ public final class RFrame  {
         }
     }
 
-    private static RClosure matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
+    private static RCallable matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
         if (hops == 0) {
             if (isDirty(f, pos)) {
-                RClosure res = matchFromExtension(first, symbol, f);
+                RCallable res = matchFromExtension(first, symbol, f);
                 if (res != null) {
                     return res;
                 }
             }
             Object val = f.getObject(pos + RESERVED_SLOTS);
-            if (val != null && val instanceof RClosure) {
-                return (RClosure) val;
+            if (val != null && val instanceof RCallable) {
+                return (RCallable) val;
             }
             ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
             Frame pf = getParent(f);
@@ -282,15 +282,15 @@ public final class RFrame  {
         return readFromExtension(getParent(f), sym, stopFrame);
     }
 
-    public static RClosure matchFromExtension(Frame f, RSymbol sym, Frame stopFrame) { // It's public because of ReadVariable
+    public static RCallable matchFromExtension(Frame f, RSymbol sym, Frame stopFrame) { // It's public because of ReadVariable
         if (f == stopFrame) {
             return null;
         }
         RFrameExtension ext = getExtension(f);
         if (ext != null) {
             RAny val = ext.get(sym);
-            if (val != null && val instanceof RClosure) {
-                return (RClosure) val;
+            if (val != null && val instanceof RCallable) {
+                return (RCallable) val;
             }
         }
         return matchFromExtension(getParent(f), sym, stopFrame);

@@ -12,19 +12,21 @@ import com.oracle.truffle.runtime.*;
 // this class is indeed very similar to ReadVariable
 // if there is a way to re-factor without incurring performance overhead, it might be worth trying (but unlikely, R has distinct code as well)
 
-public abstract class MatchFunction extends BaseR {
+public abstract class MatchCallable extends BaseR {
 
     final RSymbol symbol;
 
-    public MatchFunction(ASTNode ast, RSymbol symbol) {
+    public MatchCallable(ASTNode ast, RSymbol symbol) {
         super(ast);
         this.symbol = symbol;
     }
 
-    public static MatchFunction getUninitialized(ASTNode ast, RSymbol sym) {
-        return new MatchFunction(ast, sym) {
+    // FIXME: if we support overriding of specials, then we would have to add here a fallback (like readNonVariable in ReadVariable)
+    // FIXME: the same for operators
+    public static MatchCallable getUninitialized(ASTNode ast, RSymbol sym) {
+        return new MatchCallable(ast, sym) {
 
-            private Object replaceAndExecute(MatchFunction node, String reason, RContext context, Frame frame) {
+            private Object replaceAndExecute(MatchCallable node, String reason, RContext context, Frame frame) {
                 replace(node, reason);
                 return node.execute(context, frame);
             }
@@ -56,8 +58,8 @@ public abstract class MatchFunction extends BaseR {
         };
     }
 
-    public static MatchFunction getMatchLocal(ASTNode ast, RSymbol symbol, final int position) {
-        return new MatchFunction(ast, symbol) {
+    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final int position) {
+        return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
@@ -70,8 +72,8 @@ public abstract class MatchFunction extends BaseR {
         };
     }
 
-    public static MatchFunction getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final int position) {
-        return new MatchFunction(ast, symbol) {
+    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final int position) {
+        return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
@@ -84,8 +86,8 @@ public abstract class MatchFunction extends BaseR {
         };
     }
 
-    public static MatchFunction getMatchTopLevel(ASTNode ast, RSymbol symbol) {
-        return new MatchFunction(ast, symbol) {
+    public static MatchCallable getMatchTopLevel(ASTNode ast, RSymbol symbol) {
+        return new MatchCallable(ast, symbol) {
 
             int version;
 
@@ -95,7 +97,7 @@ public abstract class MatchFunction extends BaseR {
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
                     val = RFrame.matchFromExtension(frame, symbol, null);
-                    if (val == null || !(val instanceof RClosure)) {
+                    if (val == null || !(val instanceof RCallable)) {
                         version = symbol.getVersion();
                         // oldFrame = frame;
                         val = symbol.getValue();
@@ -103,7 +105,7 @@ public abstract class MatchFunction extends BaseR {
                 } else {
                     val = symbol.getValue();
                 }
-                if (!(val instanceof RClosure)) {
+                if (!(val instanceof RCallable)) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
                 return val;
@@ -111,14 +113,14 @@ public abstract class MatchFunction extends BaseR {
         };
     }
 
-    public static MatchFunction getMatchOnlyFromTopLevel(ASTNode ast, RSymbol symbol) {
-        return new MatchFunction(ast, symbol) {
+    public static MatchCallable getMatchOnlyFromTopLevel(ASTNode ast, RSymbol symbol) {
+        return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
-                if (val == null || !(val instanceof RClosure)) {
+                if (val == null || !(val instanceof RCallable)) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
                 return val;

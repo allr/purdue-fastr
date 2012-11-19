@@ -67,9 +67,9 @@ public class Apply {
             }
 
             // FIXME: this won't allow calling builtins or giving function by name
-            final ValueProvider closureProvider = new ValueProvider(null);
-            final FunctionCall callNode = FunctionCall.getFunctionCall(call, closureProvider, cnNames, cnExprs);
-            return new Lapply(call, names, exprs, callNode, firstArgProvider, closureProvider, paramPositions[IX], paramPositions[IFUN]);
+            final ValueProvider callableProvider = new ValueProvider(null);
+            final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+            return new Lapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);
         }
     };
 
@@ -100,23 +100,23 @@ public class Apply {
             }
 
             // FIXME: this won't allow calling builtins or giving function by name
-            final ValueProvider closureProvider = new ValueProvider(null);
-            final FunctionCall callNode = FunctionCall.getFunctionCall(call, closureProvider, cnNames, cnExprs);
-            return new Sapply(call, names, exprs, callNode, firstArgProvider, closureProvider, paramPositions[IX], paramPositions[IFUN]);
+            final ValueProvider callableProvider = new ValueProvider(null);
+            final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+            return new Sapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);
         }
     };
 
     public static class Lapply extends BuiltIn {
 
         @Stable ValueProvider firstArgProvider;
-        @Stable ValueProvider closureProvider;
+        @Stable ValueProvider callableProvider;
         @Stable FunctionCall callNode;
         final int xPosition;
         final int funPosition;
 
-        public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider closureProvider, int xPosition, int funPosition) {
+        public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.closureProvider = updateParent(closureProvider);
+            this.callableProvider = updateParent(callableProvider);
             this.firstArgProvider = updateParent(firstArgProvider);
             this.callNode = updateParent(callNode);
             this.xPosition = xPosition;
@@ -161,7 +161,7 @@ public class Apply {
                         return RList.RListFactory.getFor(content);
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, a);
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
             }
             if (argxTemplate instanceof RArray) {
                 ApplyFunc a = new ApplyFunc() {
@@ -179,7 +179,7 @@ public class Apply {
                         }
                         return RList.RListFactory.getFor(content);                    }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, a);
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
             }
             return null;
         }
@@ -191,7 +191,7 @@ public class Apply {
                     return generic(context, frame, argx, firstArgProvider, callNode);
                 }
             };
-            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, a);
+            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
         }
 
         public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
@@ -224,20 +224,19 @@ public class Apply {
         class Specialized extends Lapply {
             final ApplyFunc apply;
 
-            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider closureProvider, int xPosition, int funPosition, ApplyFunc apply) {
-                super(call, names, exprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition);
+            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider callableProvider, int xPosition, int funPosition, ApplyFunc apply) {
+                super(call, names, exprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition);
                 this.apply = apply;
             }
 
             @Override
             public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
                 try {
-                    if (!(argfun instanceof RClosure)) {
-                        // FIXME: add support for builtins, variables
+                    if (!(argfun instanceof RCallable)) { // FIXME: probably could get some performance by exploiting that we know that the callable won't change
                         throw RError.getNotFunction(ast);
                     }
-                    RClosure closure = (RClosure) argfun;
-                    closureProvider.setValue(closure);
+                    RCallable callable = (RCallable) argfun;
+                    callableProvider.setValue(callable);
                     return apply.apply(context, frame, argx, firstArgProvider, callNode);
                 } catch (UnexpectedResultException e) {
                     Specialized sn = createGeneric();
@@ -366,14 +365,14 @@ public class Apply {
     public static class Sapply extends BuiltIn {
 
         @Stable ValueProvider firstArgProvider;
-        @Stable ValueProvider closureProvider;
+        @Stable ValueProvider callableProvider;
         @Stable FunctionCall callNode;
         final int xPosition;
         final int funPosition;
 
-        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider closureProvider, int xPosition, int funPosition) {
+        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.closureProvider = updateParent(closureProvider);
+            this.callableProvider = updateParent(callableProvider);
             this.firstArgProvider = updateParent(firstArgProvider);
             this.callNode = updateParent(callNode);
             this.xPosition = xPosition;
@@ -533,7 +532,7 @@ public class Apply {
                         return RDouble.RDoubleFactory.getFor(content);
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
             }
             if (resTemplate instanceof RInt) {
                 ApplyFunc a = new ApplyFunc() {
@@ -553,7 +552,7 @@ public class Apply {
                         return RInt.RIntFactory.getFor(content);
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
             }
             if (resTemplate instanceof RLogical) {
                 ApplyFunc a = new ApplyFunc() {
@@ -573,7 +572,7 @@ public class Apply {
                         return RLogical.RLogicalFactory.getFor(content);
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
             }
             if (resTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
@@ -605,7 +604,7 @@ public class Apply {
                         return RList.RListFactory.getFor(content);
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<=RList>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
             }
             Utils.nyi("unsupported type");
             return null;
@@ -619,12 +618,11 @@ public class Apply {
                 if (!(argx instanceof RArray)) {
                     Utils.nyi("unsupported type");
                 }
-                if (!(argfun instanceof RClosure)) {
-                    // FIXME: add support for builtins, variables
+                if (!(argfun instanceof RCallable)) {
                     throw RError.getNotFunction(ast);
                 }
-                RClosure closure = (RClosure) argfun;
-                closureProvider.setValue(closure);
+                RCallable callable = (RCallable) argfun;
+                callableProvider.setValue(callable);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
@@ -654,7 +652,7 @@ public class Apply {
                     return generic(context, frame, argIterator, sapply, null);
                 }
             };
-            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, argIterator, a, "<Generic>");
+            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<Generic>");
         }
 
         abstract static class ApplyFunc {
@@ -666,8 +664,8 @@ public class Apply {
             final ArgIterator argIterator;
             final String dbg;
 
-            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider closureProvider, int xPosition, int funPosition, ArgIterator argIterator, ApplyFunc apply, String dbg) {
-                super(call, names, exprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition);
+            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, ValueProvider callableProvider, int xPosition, int funPosition, ArgIterator argIterator, ApplyFunc apply, String dbg) {
+                super(call, names, exprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition);
                 this.apply = apply;
                 this.argIterator = argIterator;
                 this.dbg = dbg;
@@ -675,17 +673,17 @@ public class Apply {
 
             @Override
             public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
-                if (!(argfun instanceof RClosure)) {
+                if (!(argfun instanceof RCallable)) {
                     // FIXME: add support for builtins, variables
                     throw RError.getNotFunction(ast);
                 }
-                RClosure closure = (RClosure) argfun;
-                closureProvider.setValue(closure);
+                RCallable callable = (RCallable) argfun;
+                callableProvider.setValue(callable);
                 try {
                     argIterator.reset(firstArgProvider, argx);
                 } catch (UnexpectedResultException e) {
                     ArgIterator ai = new ArgIterator.Generic();
-                    Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, closureProvider, xPosition, funPosition, ai, apply, dbg);
+                    Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, ai, apply, dbg);
                     if (DEBUG_AP) Utils.debug("apply - Specialized " + argIterator.toString() + " " + dbg  + " failed, rewriting to " + ai.toString() + dbg );
                     replace(sn, "install Specialized<Generic, ?> from Sapply.Specialized");
                     return sn.doApply(context, frame, argx, argfun);

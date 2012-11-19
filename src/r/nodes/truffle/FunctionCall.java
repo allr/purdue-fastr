@@ -10,30 +10,30 @@ import r.nodes.*;
 
 public abstract class FunctionCall extends AbstractCall {
 
-    final RNode closureExpr;
+    final RNode callableExpr;
 
     private static final boolean CAN_BYPASS_TRUFFLE = true;
       // this feature is experimental-only, to be correct it would have to implement caching
 
-    private FunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+    private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);
-        this.closureExpr = updateParent(closureExpr);
+        this.callableExpr = updateParent(callableExpr);
     }
 
-    public static FunctionCall getFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
+    public static FunctionCall getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         for (int i = 0; i < argNames.length; i++) { // FIXME this test is kind of inefficient, part of this job can be done by splitArguments
             if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are defaults args
-                return getCachedGenericFunctionCall(ast, closureExpr, argNames, argExprs);
+                return getCachedGenericFunctionCall(ast, callableExpr, argNames, argExprs);
             }
         }
-//        return getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
-        return new TrivialFunctionCall(ast, closureExpr, argNames, argExprs);
+//        return getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
+        return new TrivialFunctionCall(ast, callableExpr, argNames, argExprs);
     }
 
     // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
     @SuppressWarnings("unused")
-    public static FunctionCall getGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+    public static FunctionCall getGenericFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
 
             @Override
             protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
@@ -44,8 +44,8 @@ public abstract class FunctionCall extends AbstractCall {
         };
     }
 
-    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+    public static FunctionCall getCachedGenericFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
 
             RFunction lastCall;
             RSymbol[] names;
@@ -58,7 +58,7 @@ public abstract class FunctionCall extends AbstractCall {
                     names = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
                     positions = computePositions(context, func, names);
                 }
-                return placeArgs(context, callerFrame, positions, names, func.nparams());
+                return placeArgs(context, callerFrame, positions, names, func.nparams());  // fixme: cache also nparams?
 
             }
         };
@@ -66,8 +66,8 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static class TrivialFunctionCall extends FunctionCall {
 
-        public TrivialFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-            super(ast, closureExpr, argNames, argExprs);
+        public TrivialFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+            super(ast, callableExpr, argNames, argExprs);
         }
 
         @Override
@@ -90,7 +90,7 @@ public abstract class FunctionCall extends AbstractCall {
                     }
                 }
                 if (!trivial) {
-                    FunctionCall f = getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+                    FunctionCall f = getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
                     replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
                     return f.matchParams(context, func, parentFrame, callerFrame);
                 }
@@ -128,11 +128,11 @@ public abstract class FunctionCall extends AbstractCall {
                            }
                        }; break;
                    }
-                   FunctionCall f = new CachedNonTruffle(ast, closureExpr, argNames, argExprs, func, doCall);
+                   FunctionCall f = new CachedNonTruffle(ast, callableExpr, argNames, argExprs, func, doCall);
                    replace(f, "specialize TrivialFunctionCall");
                    return placeArgs(context, callerFrame, argExprs.length);
                 } else {
-                    // truffle version
+                    // Truffle version
                     FillArgs fillArgs = null;
                     // FIXME: with partial evaluation, these can probably be generated by a simple template, with a "final"
                     //        number of arguments and with explodeloop
@@ -175,7 +175,7 @@ public abstract class FunctionCall extends AbstractCall {
                             }
                         }; break;
                     }
-                    FunctionCall f = new CachedTruffle(ast, closureExpr, argNames, argExprs, func, fillArgs);
+                    FunctionCall f = new CachedTruffle(ast, callableExpr, argNames, argExprs, func, fillArgs);
                     replace(f, "specialize TrivialFunctionCall");
                     return f.matchParams(context, func, parentFrame, callerFrame);
                 }
@@ -190,8 +190,8 @@ public abstract class FunctionCall extends AbstractCall {
             final RFunction cachedFunction;
             final FillArgs fill;
 
-            public CachedTruffle(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function, FillArgs fill) {
-                super(ast, closureExpr, argNames, argExprs);
+            public CachedTruffle(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function, FillArgs fill) {
+                super(ast, callableExpr, argNames, argExprs);
                 this.cachedFunction = function;
                 this.fill = fill;
             }
@@ -204,7 +204,7 @@ public abstract class FunctionCall extends AbstractCall {
                     }
                     return fill.fill(context, callerFrame, argExprs);
                 } catch (UnexpectedResultException e) {
-                    FunctionCall f = getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
+                    FunctionCall f = getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
                     replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
                     return f.matchParams(context, func, parentFrame, callerFrame);
                 }
@@ -219,32 +219,43 @@ public abstract class FunctionCall extends AbstractCall {
             final RFunction cachedFunction;
             final DoCall doCall;
 
-            public CachedNonTruffle(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function, DoCall doCall) {
-                super(ast, closureExpr, argNames, argExprs);
+            public CachedNonTruffle(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function, DoCall doCall) {
+                super(ast, callableExpr, argNames, argExprs);
                 this.cachedFunction = function;
                 this.doCall = doCall;
             }
 
             @Override
             public Object execute(RContext context, Frame callerFrame) {
-                RClosure closure = (RClosure) closureExpr.execute(context, callerFrame);
+                RCallable callable = (RCallable) callableExpr.execute(context, callerFrame);
                 try {
+                    if (!(callable instanceof RClosure)) {  // FIXME: could get rid of this check through some node rewriting (trivial call could be done for builtins as well)
+                        throw new UnexpectedResultException(null);
+                    }
+                    RClosure closure = (RClosure) callable;
                     if (closure.function() != cachedFunction) {
                         throw new UnexpectedResultException(null);
                     }
                     return doCall.doCall(closure, context, callerFrame);
                 } catch (UnexpectedResultException e) {
-                    FunctionCall f = getSimpleFunctionCall(ast, closureExpr, argNames, argExprs);
-                    replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
-                    Object[] argValues = f.matchParams(context, closure.function(), closure.environment(), callerFrame);
-                    return closure.call(context, argValues);
+                    if (callable instanceof RClosure) {
+                        RClosure closure = (RClosure) callable;
+                        FunctionCall f = getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
+                        replace(f, "install SimpleFunctionCall from TrivialFunctionCall");
+                        Object[] argValues = f.matchParams(context, closure.function(), closure.environment(), callerFrame);
+                        return closure.call(context, argValues);
+                    } else {
+                        GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                        replace(n, "install GenericCall from FunctionCall");
+                        return n.execute(context, callerFrame, callable);
+                    }
                 }
             }
         }
     }
 
-    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode closureExpr, RSymbol[] argNames, RNode[] argExprs) {
-        return new FunctionCall(ast, closureExpr, argNames, argExprs) {
+    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
 
             @Override
             protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
@@ -258,16 +269,86 @@ public abstract class FunctionCall extends AbstractCall {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
-            RNode fexp = r.nodes.truffle.MatchFunction.getUninitialized(call, fcall.getName());
+            RNode fexp = r.nodes.truffle.MatchCallable.getUninitialized(call, fcall.getName());
             return getFunctionCall(fcall, fexp, names, exprs);
         }
     };
 
     @Override
     public Object execute(RContext context, Frame callerFrame) {
-        RClosure tgt = (RClosure) closureExpr.execute(context, callerFrame);
-        Object[] argValues = matchParams(context, tgt.function(), tgt.environment(), callerFrame);
-        return tgt.call(context, argValues);
+        RCallable tgt = (RCallable) callableExpr.execute(context, callerFrame);
+        try {
+            if (tgt instanceof RClosure) {
+                RClosure closure = (RClosure) tgt;
+                Object[] argValues = matchParams(context, closure.function(), closure.environment(), callerFrame);
+                return closure.call(context, argValues);
+            } else {
+                throw new UnexpectedResultException(null);
+            }
+        } catch (UnexpectedResultException e) {
+            GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
+            replace(n, "install GenericCall from FunctionCall");
+            return n.execute(context, callerFrame, tgt);
+        }
+    }
+
+    public static final class GenericCall extends FunctionCall {
+
+        RCallable lastCallable;
+        boolean lastWasFunction;
+
+            // for functions
+        RClosure lastClosure;  // null when last wasn't function
+        RFunction closureFunction;
+        RSymbol[] functionArgNames;
+        int[] functionArgPositions;
+
+            // for builtins
+        RBuiltIn lastBuiltIn; // null when last wasn't builtin
+        RSymbol builtInName;
+        RNode builtInNode;
+
+        GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+            super(ast, callableExpr, argNames, argExprs);
+        }
+
+        @Override
+        public Object execute(RContext context, Frame callerFrame) {
+            RCallable callable = (RCallable) callableExpr.execute(context, callerFrame);
+            return execute(context, callerFrame, callable);
+        }
+
+        public Object execute(RContext context, Frame callerFrame, RCallable callable) {
+            if (callable == lastClosure) {
+                return placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+            }
+            if (callable == lastBuiltIn) {
+                return builtInNode.execute(context, callerFrame);
+            }
+            if (callable instanceof RClosure) {
+                RClosure closure = (RClosure) callable;
+                RFunction function = closure.function();
+                if (function != closureFunction) {
+                    closureFunction = function;
+                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
+                    functionArgPositions = computePositions(context, closureFunction, functionArgNames);
+                }
+                lastClosure = closure;
+                lastBuiltIn = null;
+                return placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+            } else {
+                // callable instanceof RBuiltin
+                RBuiltIn builtIn = (RBuiltIn) callable;
+                RSymbol name = builtIn.name();
+                if (name != builtInName) {
+                    builtInName = name;
+                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                }
+                lastBuiltIn = builtIn;
+                lastClosure = null;
+                return builtInNode.execute(context, callerFrame);
+            }
+        }
     }
 
     protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
