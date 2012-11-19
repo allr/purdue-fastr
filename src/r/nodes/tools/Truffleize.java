@@ -1,14 +1,11 @@
 package r.nodes.tools;
 
-import org.junit.experimental.runners.*;
-
 import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
 
 import r.*;
 import r.data.*;
-import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.Constant;

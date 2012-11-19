@@ -131,7 +131,7 @@ public class TestSimpleBuiltins extends TestBase {
 
         assertEval("{ sapply(1:3, length) }", "1L, 1L, 1L");
         assertEval("{ f<-length; sapply(1:3, f) }", "1L, 1L, 1L");
-
+        assertEval("{ sapply(1:3, `-`, 2) }", "-1.0, 0.0, 1.0");
     }
 
     @Test
@@ -140,6 +140,18 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
         assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
         assertEval("{ cat(\"hi\",1[2],\"hello\",sep=\"-\") }", "hi-NA-hello", "NULL");
+    }
+
+    @Test
+    public void testOperators() throws RecognitionException {
+        assertEval("{ `+`(1,2) }", "3.0");
+        assertEval("{ `-`(1,2) }", "-1.0");
+        assertEval("{ `*`(1,2) }", "2.0");
+        assertEval("{ `/`(1,2) }", "0.5");
+        assertEval("{ `%o%`(3,5) }", "     [,1]\n[1,] 15.0");
+        assertEval("{ `%*%`(3,5) }", "     [,1]\n[1,] 15.0");
+        assertEval("{ x <- `+` ; x(2,3) }", "5.0");
+        assertEval("{ x <- `+` ; f <- function() { x <- 1 ; x(2,3) } ; f() }", "5.0");
     }
 
     @Test

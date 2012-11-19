@@ -33,10 +33,10 @@ public abstract class BinaryOperation extends Operation {
             case MOD: return new Add(left, right);
             case POW: return new Pow(left, right);
 
-            case OR: return new Add(left, right);
-            case AND: return new Add(left, right);
-            case BITWISEOR: return new Add(left, right);
-            case BITWISEAND: return new Add(left, right);
+            case OR: return new Add(left, right); // FIXME
+            case AND: return new Add(left, right); // FIXME
+            case BITWISEOR: return new Add(left, right); // FIXME
+            case BITWISEAND: return new Add(left, right); // FIXME
 
             case EQ: return new EQ(left, right);
             case GE: return new GE(left, right);
