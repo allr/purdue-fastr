@@ -61,6 +61,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_MISSING = "argument '%s' is missing, with no default";
     public static final String UNKNOWN_FUNCTION = "could not find function '%s'";
     public static final String UNKNOWN_OBJECT = "object '%s' not found";
+    public static final String INVALID_ARGUMENT = "invalid '%s' argument";  // non-R
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -103,6 +104,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return NA_UNEXP;
+            }
+        };
+    }
+
+    public static RError getUnusedArgument(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return UNUSED_ARGUMENT;
             }
         };
     }
@@ -535,6 +548,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getUnknownFunction(ASTNode ast, RSymbol symbol) {
         return getGenericError(ast, String.format(RError.UNKNOWN_FUNCTION, symbol.pretty()));
+    }
+
+    public static RError getInvalidArgument(ASTNode ast, String str) {
+        return getGenericError(ast, String.format(RError.INVALID_ARGUMENT, str));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

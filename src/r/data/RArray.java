@@ -4,6 +4,8 @@ import r.data.internal.*;
 
 
 public interface RArray extends RAny {
+    int[] SCALAR_DIMENSIONS = new int[] {1, 1};
+
     int size();
     int[] dimensions(); // the returned array shall not be modified
 

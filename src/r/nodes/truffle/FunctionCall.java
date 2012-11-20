@@ -6,6 +6,7 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.builtins.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 
 public abstract class FunctionCall extends AbstractCall {
@@ -392,7 +393,7 @@ public abstract class FunctionCall extends AbstractCall {
                 }
                 if (nextParam == nParams) {
                     // TODO either error or ``...''
-                    context.error(getAST(), "unused argument(s) (" + argExprs[i].getAST() + ")");
+                    context.error(getAST(), RError.UNUSED_ARGUMENT + " (" + argExprs[i].getAST() + ")");
                 }
                 if (argExprs[i] != null) {
                     usedArgNames[i] = paramNames[nextParam]; // This is for now useless but needed for ``...''
@@ -457,7 +458,7 @@ public abstract class FunctionCall extends AbstractCall {
                 argValues[i] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
             } else {
                 // TODO either error or ``...''
-                context.error(argExprs[i].getAST(), "unused argument(s)");
+                context.error(argExprs[i].getAST(), RError.UNUSED_ARGUMENT);
             }
         }
         return argValues;

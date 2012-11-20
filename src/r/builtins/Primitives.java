@@ -32,6 +32,7 @@ public class Primitives {
         add("length", 1, 1, Length.FACTORY);
         add("list", 0, -1, List.FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
+        add("lower.tri", 1, 2, TriangularPart.LOWER_FACTORY);
         add("matrix", 0, 5, Matrix.FACTORY);
         add("max", 0, -1, Max.FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
@@ -43,6 +44,7 @@ public class Primitives {
         add("seq.default", 0, -1, Seq.FACTORY);
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
+        add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
     }
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {
