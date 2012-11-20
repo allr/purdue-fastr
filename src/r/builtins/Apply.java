@@ -43,13 +43,16 @@ public class Apply {
 
     public static class CallableProvider extends BaseR {
         RCallable value;
+        final RSymbol callsiteSymbol;
 
-        RAny lastString;
-        RSymbol lastSymbol;
-        RCallable lastNamedCallable;
-
-        public CallableProvider(ASTNode ast) {
+        public CallableProvider(ASTNode ast, RNode functionExpr) {
             super(ast);
+            ASTNode feAST = functionExpr.getAST();
+            if (feAST instanceof SimpleAccessVariable) {
+                callsiteSymbol = ((SimpleAccessVariable) feAST).getSymbol();
+            } else {
+                callsiteSymbol = null;
+            }
         }
 
         @Override
@@ -62,25 +65,17 @@ public class Apply {
                 value = (RCallable) arg;
                 return;
             }
-            if (arg == lastString) {
-                value = lastNamedCallable;
-                return;
-            }
             if (arg instanceof RString) { // FIXME: could save some performance through node-rewriting and/or caching, argument will often be a constant
                 RString svalue = (RString) arg;
                 if (svalue.size() != 1) {
                     throw RError.getNotFunction(ast);
                 }
                 RSymbol symbol = RSymbol.getSymbol(svalue.getString(0));
-                if (symbol == lastSymbol) {
-                    lastString = svalue;
-                    value = lastNamedCallable;
-                    return;
-                }
                 value = MatchCallable.matchGeneric(ast, context, frame, symbol); // will produce different error message from GNU-R
-                lastNamedCallable = value;
-                lastString = svalue;
-                lastSymbol = symbol;
+                return;
+            }
+            if (callsiteSymbol != null) {
+                value = MatchCallable.matchGeneric(ast, context, frame, callsiteSymbol);
                 return;
             }
             throw RError.getNotFunction(setAst);
@@ -112,7 +107,7 @@ public class Apply {
                 j++;
             }
 
-            final CallableProvider callableProvider = new CallableProvider(null);
+            final CallableProvider callableProvider = new CallableProvider(call, exprs[paramPositions[IFUN]]);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
             return new Lapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);
         }
@@ -144,7 +139,7 @@ public class Apply {
                 j++;
             }
 
-            final CallableProvider callableProvider = new CallableProvider(null);
+            final CallableProvider callableProvider = new CallableProvider(call, exprs[paramPositions[IFUN]]);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
             return new Sapply(call, names, exprs, callNode, firstArgProvider, callableProvider, paramPositions[IX], paramPositions[IFUN]);
         }

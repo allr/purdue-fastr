@@ -76,7 +76,7 @@ public class Outer {
                 j++;
             }
 
-            final CallableProvider callableProvider = new CallableProvider(null);
+            final CallableProvider callableProvider = new CallableProvider(call, exprs[paramPositions[IFUN]]);
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
 
             return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
