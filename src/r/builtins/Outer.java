@@ -35,8 +35,8 @@ public class Outer {
             if (!provided[IY]) {
                 BuiltIn.missingArg(call, paramNames[IY]);
             }
-            boolean product = false;
 
+            boolean product = false;
             if (provided[IFUN]) {
                 RNode fnode = exprs[paramPositions[IFUN]];
                 if (fnode instanceof Constant) {
@@ -49,7 +49,6 @@ public class Outer {
                             }
                         }
                     }
-
                 }
             } else {
                 product = true;
@@ -121,7 +120,7 @@ public class Outer {
             RArray expy = expandYVector(y, ysize, xsize);
             RArray expx = null;
             if (xsize > 0) {
-                int count =  (int) Math.ceil((double) ysize / (double) xsize);
+                int count = (int) Math.ceil((double) ysize / (double) xsize);
                 expx = expandXVector(x, xsize, count);
             } else {
                 expx = x;

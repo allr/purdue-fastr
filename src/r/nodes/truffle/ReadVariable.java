@@ -83,6 +83,7 @@ public abstract class ReadVariable extends BaseR {
     }
 
     public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final int position) {
+        // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 
             @Override
@@ -104,8 +105,12 @@ public abstract class ReadVariable extends BaseR {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
-                RAny val; // TODO check if 'version' is enough, I think the good test has to be:
+                RAny val;
+
+                // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
+                // (same as SuperWriteVariable)
+
                 if (version != symbol.getVersion()) {
                     val = RFrame.readFromExtension(frame, symbol, null);
                     if (val == null) {

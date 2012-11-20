@@ -8,7 +8,7 @@ import com.oracle.truffle.runtime.*;
 
 public final class RFrame  {
 
-    public static final int PARENT_SLOT = 0;
+    public static final int PARENT_SLOT = 0; // frame of lexically enclosing function (not caller frame), must match Frame.PARENT_FRAME_SLOT
     public static final int FUNCTION_SLOT = 1;
     public static final int EXTENSION_SLOT = 2;
     public static final int RETURN_VALUE_SLOT = 3;
@@ -69,7 +69,8 @@ public final class RFrame  {
     public static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0); // It was present in the writeSet
         RAny val = readViaReadSet(getParent(f), hops - 1, pos, symbol, f);
-        if (val == null) {
+        if (val == null) { // FIXME: as of current implementation of readViaReadSet, we'd never get null - but that does not seem correct
+            Utils.check(false, "fix comment above");
             val = readFromTopLevel(symbol);
         }
         return val;
@@ -82,6 +83,15 @@ public final class RFrame  {
             val = matchFromTopLevel(symbol);
         }
         return val;
+    }
+
+    public static boolean superWriteViaReadSet(Frame f, int hops, int pos, RSymbol symbol, RAny value) {
+        assert Utils.check(hops != 0); // It was present in the writeSet
+        if (superWriteViaReadSet(getParent(f), hops - 1, pos, symbol, value, f)) {
+            return true;
+        } else {
+            return superWriteToTopLevel(symbol, value);
+        }
     }
 
     public static RAny readViaWriteSet(Frame f, int pos, RSymbol symbol) {
@@ -111,7 +121,7 @@ public final class RFrame  {
 
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
         if (rse == null) {
-            val = readFromTopLevel(symbol);
+            val = readFromTopLevel(symbol); // FIXME: this seems incorrect, should first read from extension
         } else {
             Frame pf = getParent(f);
             val = readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
@@ -125,7 +135,7 @@ public final class RFrame  {
     public static RCallable matchViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
         if (rse == null) {
-            return matchFromTopLevel(symbol);
+            return matchFromTopLevel(symbol);  // FIXME: this seems incorrect, should first read from extension
         } else {
             Frame pf = getParent(f);
             RCallable val = matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
@@ -135,6 +145,28 @@ public final class RFrame  {
                 return val;
             }
         }
+    }
+
+    public static boolean superWriteViaWriteSet(Frame parentFrame, int pos, RSymbol symbol, RAny value) {
+        Object oldVal = parentFrame.getObject(pos + RFrame.RESERVED_SLOTS);
+        if (oldVal != null) {
+            RFrame.writeAt(parentFrame, pos, value);
+            return true;
+        } else {
+            return superWriteViaWriteSetSlowPath(parentFrame, pos, symbol, value);
+        }
+    }
+
+    public static boolean superWriteViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol, RAny value) {
+        ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
+        if (rse == null) {
+            return superWriteToTopLevel(symbol, value);
+        }
+        Frame pf = getParent(f);
+        if (superWriteViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, value, pf)) {
+            return true;
+        }
+        return superWriteToTopLevel(symbol, value);
     }
 
     public static RAny readFromTopLevel(Frame f, RSymbol sym, int version) {
@@ -190,6 +222,12 @@ public final class RFrame  {
         value.ref();
     }
 
+    public static boolean superWriteToTopLevel(RSymbol symbol, RAny value) {
+        // FIXME: allow modification of builtins
+        symbol.setValue(value); // FIXME: this seems incorrect, should first check extension
+        return true;
+    }
+
     private static RAny readFromTopLevel(RSymbol sym) {
         return sym.value;
     }
@@ -215,7 +253,7 @@ public final class RFrame  {
             val = f.getObject(pos + RESERVED_SLOTS);
             if (val != null) {
                 return Utils.cast(val);
-            }
+            }  // FIXME: check termination when variable does not exist
             ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
             Frame pf = getParent(f);
 
@@ -243,6 +281,28 @@ public final class RFrame  {
             return matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         } else {
             return matchViaReadSet(getParent(f), hops - 1, pos, symbol, first);
+        }
+    }
+
+    private static boolean superWriteViaReadSet(Frame f, int hops, int pos, RSymbol symbol, RAny value, Frame first) {
+        if (hops == 0) {
+            Object val;
+            if (isDirty(f, pos)) {
+                if (superWriteToExtension(first, symbol, value, f)) {
+                    return true;
+                }
+            }
+            val = f.getObject(pos + RESERVED_SLOTS);
+            if (val != null) {
+                RFrame.writeAt(f, pos, value);
+                return true;
+            }
+            ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
+            Frame pf = getParent(f);
+
+            return superWriteViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, value,  pf);
+        } else {
+            return superWriteViaReadSet(getParent(f), hops - 1, pos, symbol, value, first);
         }
     }
 
@@ -294,6 +354,21 @@ public final class RFrame  {
             }
         }
         return matchFromExtension(getParent(f), sym, stopFrame);
+    }
+
+    public static boolean superWriteToExtension(Frame f, RSymbol sym, RAny value, Frame stopFrame) {
+        if (f == stopFrame) {
+            return false;
+        }
+        RFrameExtension ext = getExtension(f);
+        if (ext != null) {
+            int epos = ext.getPosition(sym);
+            if (epos != -1) {
+                ext.writeAt(epos, value);
+                return true;
+            }
+        }
+        return superWriteToExtension(getParent(f), sym, value, stopFrame);
     }
 
     private static boolean isDirty(Frame f, int pos) {

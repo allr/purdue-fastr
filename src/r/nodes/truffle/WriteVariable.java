@@ -9,7 +9,7 @@ import r.nodes.*;
 
 public abstract class WriteVariable extends BaseR {
 
-    // TODO: All BaseRNode are useless EXCEPT for uninitialized version (since truffle keep track of the original)
+    // TODO: All BaseRNode are useless EXCEPT for the uninitialized version (since Truffle keeps track of the original)
     final RSymbol symbol;
     @Stable RNode expr;
 

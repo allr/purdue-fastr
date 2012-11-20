@@ -32,7 +32,7 @@ public abstract class MatchCallable extends BaseR {
         throw RError.getUnknownFunction(ast, symbol);
     }
 
-    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {
+    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) { // FIXME: does this belong to RFrame like read, write ?
         RAny value = null;
         if (frame == null) {
             value = symbol.getValue();

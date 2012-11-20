@@ -148,19 +148,20 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(SimpleAssignVariable assign) {
-        if (assign.isSuper()) {
-            Utils.nyi();
-        }
-        // Truffle does not like Lazy...
-        //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
-
-        RSymbol sym = assign.getSymbol();
-        if (r.builtins.Primitives.get(sym) != null) {
-            Utils.nyi(sym.pretty() + ": we don't support variables over-shadowing primitives.");
+        RSymbol symbol = assign.getSymbol();
+        if (r.builtins.Primitives.get(symbol) != null) {
+            Utils.nyi(symbol.pretty() + ": we don't support variables over-shadowing primitives.");
             // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
             // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations
         }
-        result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createTree(assign.getExpr()));
+        if (assign.isSuper()) {
+            result = r.nodes.truffle.SuperWriteVariable.getUninitialized(assign, symbol, createTree(assign.getExpr()));
+        } else {
+            // Truffle does not like Lazy...
+            //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+            result = r.nodes.truffle.WriteVariable.getUninitialized(assign, symbol, createTree(assign.getExpr()));
+        }
+
     }
 
     private RSymbol[] convertedNames;
