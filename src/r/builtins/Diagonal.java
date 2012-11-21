@@ -25,6 +25,7 @@ public class Diagonal {
                     RArray a = (RArray) x;
                     int[] dim = a.dimensions();
                     if (dim == null || dim.length != 2) {
+                        Utils.debug("DIMENSIONS ARE" + dim);
                         throw RError.getOnlyMatrixDiagonals(ast);
                     }
                     int m = dim[0];

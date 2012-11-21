@@ -32,6 +32,7 @@ public class Sqrt {
                         throw RError.getNonNumericMath(ast);
                     }
 
+                    final int[] dim = typedArg.dimensions();
                     final int size = typedArg.size();
                     final RDouble orig = typedArg;
 
@@ -64,6 +65,11 @@ public class Sqrt {
                         @Override
                         public void ref() {
                             orig.ref();
+                        }
+
+                        @Override
+                        public int[] dimensions() {
+                            return dim;
                         }
                     };
                 }

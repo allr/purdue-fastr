@@ -18,6 +18,7 @@ def mx_init():
       'rgfannkuch': [rfannkuchGraal, '[size]'],
       'rbinarytrees': [rbinarytreesServer, '[size]'],
       'rspectralnorm': [rspectralnormServer, '[size]'],      
+      'rnbody': [rnbodyServer, '[size]'],
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, '']
   }
@@ -75,6 +76,10 @@ def rspectralnormServer(args):
   """Run Spectral Norm with the HotSpot server VM"""  
   rspectralnorm(args, [], 'server')
 
+def rnbodyServer(args):
+  """Run NBody with the HotSpot server VM"""  
+  rnbody(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -84,10 +89,6 @@ def runittestGraal(args):
   runittest(args, ['-XX:-BootstrapGraal'], 'graal')
 
 # ------------------
-  
-def rconsole(vmArgs, vm, cArgs):
-  """Run R Console with the given VM"""
-  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm ); 
 
 def rfannkuch(args, vmArgs, vm):
   """Run Fannkuch benchmark using the given VM"""
@@ -101,7 +102,20 @@ def rspectralnorm(args, vmArgs, vm):
   """Run Spectral Norm benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "800L");
 
-# generic shootout runner
+def rspectralnorm(args, vmArgs, vm):
+  """Run Spectral Norm benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "800L");
+
+def rnbody(args, vmArgs, vm):
+  """Run NBody benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "nbody", "nbody.r", "1000L");
+
+# ------------------
+  
+def rconsole(vmArgs, vm, cArgs):
+  """Run R Console with the given VM"""
+  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm ); 
+
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   """Run given shootout benchmark using given VM"""
   if (len(args)==0):
@@ -120,11 +134,8 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   print("Input file "+tmp);
   
 #  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey',tmp]);
-  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
-#  rconsole(vmArgs, vm, [tmp]);
-
-# TODO: a generic function to run a shootout benchmark
-
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
+  rconsole(vmArgs, vm, ['-f', tmp]);
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 

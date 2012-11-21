@@ -184,6 +184,13 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testDim() throws RecognitionException {
+        assertEval("{ dim(1) }", "NULL");
+        assertEval("{ dim(1:3) }", "NULL");
+        assertEval("{ m <- matrix(1:6, nrow=3) ; dim(m) }", "3L, 2L");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
