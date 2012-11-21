@@ -208,4 +208,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <-2L ; y <- x; x[1] <- 211L ; y }", "2L");
         assertEval("{ f <- function() { l[1:2] <- x ; x[1] <- 211L  ; l[1] } ; l <- 1:3 ; x <- 10L ; f() }", "10L");
     }
+
+    @Test
+    public void testSuperUpdate() throws RecognitionException {
+        assertEval("{ x <- 1:3 ; f <- function() { x[2] <<- 100 } ; f() ; x }", "1.0, 100.0, 3.0");
+        assertEval("{ x <- 1:3 ; f <- function() { x[2] <- 10 ; x[2] <<- 100 ; x[2] <- 1000 } ; f() ; x }", "1.0, 100.0, 3.0");
+    }
 }

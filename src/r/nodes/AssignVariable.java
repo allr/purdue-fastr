@@ -31,7 +31,7 @@ public abstract class AssignVariable extends ASTNode {
         if (lhs instanceof SimpleAccessVariable) {
             return writeVariable(isSuper, ((SimpleAccessVariable) lhs).symbol, rhs);
         } else if (lhs instanceof AccessVector) {
-            return writeVector((AccessVector) lhs, rhs);
+            return writeVector(isSuper, (AccessVector) lhs, rhs);
         } else if (lhs instanceof FunctionCall) {
             return writeFunction((FunctionCall) lhs, rhs);
         } else if (lhs instanceof Constant) {
@@ -45,8 +45,8 @@ public abstract class AssignVariable extends ASTNode {
         return new SimpleAssignVariable(isSuper, name, rhs);
     }
 
-    public static ASTNode writeVector(AccessVector lhs, ASTNode rhs) {
-        return new UpdateVector(lhs, rhs);
+    public static ASTNode writeVector(boolean isSuper, AccessVector lhs, ASTNode rhs) {
+        return new UpdateVector(isSuper, lhs, rhs);
     }
 
     public static ASTNode writeFunction(FunctionCall lhs, ASTNode rhs) {

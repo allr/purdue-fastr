@@ -4,10 +4,12 @@ public class UpdateVector extends ASTNode {
 
     AccessVector vector;
     ASTNode rhs;
+    final boolean isSuper;
 
-    public UpdateVector(AccessVector vector, ASTNode rhs) {
+    public UpdateVector(boolean isSuper, AccessVector vector, ASTNode rhs) {
         this.vector = updateParent(vector);
         this.rhs = updateParent(rhs);
+        this.isSuper = isSuper;
     }
 
     public AccessVector getVector() {
@@ -16,6 +18,10 @@ public class UpdateVector extends ASTNode {
 
     public ASTNode getRHS() {
         return rhs;
+    }
+
+    public boolean isSuper() {
+        return isSuper;
     }
 
     @Override

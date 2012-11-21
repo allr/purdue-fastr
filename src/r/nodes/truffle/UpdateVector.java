@@ -23,30 +23,36 @@ public abstract class UpdateVector extends BaseR {
     @Stable RNode rhs;
     final boolean subset;
 
-//    @Stable RNode assign;  // node which will assign the whole new vector to var
-//    RAny newVector;
+    @Stable RNode assign;  // node which will assign the whole new vector to var
+    RAny newVector;
+    final boolean isSuper;
 
     int framePosition = -1;
     boolean positionInitialized = false;
 
     private static final boolean DEBUG_UP = false;
 
-    UpdateVector(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+    UpdateVector(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
         this.var = var;
         this.lhs = updateParent(lhs);  // lhs is always SimpleAccessVariable of var
         this.indexes = updateParent(indexes);
         this.rhs = updateParent(rhs);
         this.subset = subset;
+        this.isSuper = isSuper;
 
-//        RNode node = updateParent(new BaseR(ast) {
-//            @Override
-//            public final Object execute(RContext context, Frame frame) {
-//                return newVector;
-//            }
-//        });
-//
-//        this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
+        if (isSuper) { // FIXME: turn this switch into node rewriting?
+            RNode node = updateParent(new BaseR(ast) {
+                @Override
+                public final Object execute(RContext context, Frame frame) {
+                    return newVector;
+                }
+            });
+            this.assign = updateParent(SuperWriteVariable.getUninitialized(ast, var, node));
+        } else {
+//            this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
+            this.assign = null;
+        }
     }
 
     enum Failure {
@@ -65,21 +71,27 @@ public abstract class UpdateVector extends BaseR {
         NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
     }
 
-//    @Override
-//    public final Object execute0(RContext context, Frame frame) {
-//        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
-//        RAny index = (RAny) indexes[0].execute(context, frame);
-//        RAny base = (RAny) lhs.execute(context, frame);
-//
-//        newVector = execute(context, base, index, value);
-//        if (base != newVector) { // assignment if equal would increase reference count
-//            assign.execute(context, frame);
-//        }
-//        return value;
-//    }
+    public final Object executeSuper(RContext context, Frame frame) {
+        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
+        RAny index = (RAny) indexes[0].execute(context, frame);
+
+        RAny base;
+        if (frame != null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
+            base = (RAny) lhs.execute(context, RFrame.getParent(frame));
+        } else {
+            throw RError.getUnknownVariable(ast, var);
+        }
+
+        newVector = execute(context, base, index, value);
+        assign.execute(context, frame);  // FIXME: may ref unnecessarily
+        return value;
+    }
 
     @Override
     public final Object execute(RContext context, Frame frame) {
+        if (isSuper) {
+            return executeSuper(context, frame);
+        }
         RAny value = (RAny) rhs.execute(context, frame); // note: order is important
         RAny index = (RAny) indexes[0].execute(context, frame);
 
@@ -132,8 +144,8 @@ public abstract class UpdateVector extends BaseR {
     //   rewrites to GenericScalarSelection when types change or otherwise needed
     public static class ScalarNumericSelection extends UpdateVector {
 
-        public ScalarNumericSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public ScalarNumericSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
         }
 
         @Override
@@ -192,7 +204,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarInt>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarInt>");
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
@@ -223,7 +235,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,ScalarLogical>");
                 }
                 return null;
             }
@@ -257,7 +269,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarDouble>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarDouble>");
                 }
                 if (valueTemplate instanceof ScalarIntImpl) {
                     ValueCopy cpy = new ValueCopy() {
@@ -288,7 +300,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarInt>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarInt>");
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
@@ -319,7 +331,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,ScalarLogical>");
                 }
                 return null;
             }
@@ -353,7 +365,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,ScalarLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,ScalarLogical>");
                 }
             }
             if (baseTemplate instanceof RList && !subset && !(valueTemplate instanceof RNull)) {
@@ -386,7 +398,7 @@ public abstract class UpdateVector extends BaseR {
                         }
                     }
                 };
-                return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RList,?>");
+                return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,?>");
             }
             return null;
         }
@@ -499,7 +511,7 @@ public abstract class UpdateVector extends BaseR {
                     return genericUpdate(base, pos, value, subset, ast);
                 }
             };
-            return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<Generic>");
+            return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Generic>");
         }
 
 
@@ -507,8 +519,8 @@ public abstract class UpdateVector extends BaseR {
             final ValueCopy copy;
             final String dbg;
 
-            Specialized(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
-                super(ast, var, lhs, indexes, rhs, subset);
+            Specialized(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
                 this.copy = copy;
                 this.dbg = dbg;
             }
@@ -551,7 +563,7 @@ public abstract class UpdateVector extends BaseR {
 
                         case NOT_ONE_ELEMENT_INDEX:
                             if (!subset) {
-                                Subscript s = new Subscript(ast, var, lhs, indexes, rhs, subset);
+                                Subscript s = new Subscript(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(s, "install Subscript from ScalarNumericSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
                                 return s.execute(context, base, index, value);
@@ -559,7 +571,7 @@ public abstract class UpdateVector extends BaseR {
                             // propagate below
 
                         default:
-                            GenericScalarSelection gs = new GenericScalarSelection(ast, var, lhs, indexes, rhs, subset);
+                            GenericScalarSelection gs = new GenericScalarSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericScalarSelection from ScalarNumericSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
                             return gs.execute(context, base, index, value);
@@ -576,8 +588,8 @@ public abstract class UpdateVector extends BaseR {
     //   so the contract is that this can handle any subscript with a single-value index
     public static class GenericScalarSelection extends UpdateVector {
 
-        public GenericScalarSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public GenericScalarSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
         }
 
         public static RAny deleteElement(RList base, int i, ASTNode ast, boolean subset) {
@@ -738,25 +750,25 @@ public abstract class UpdateVector extends BaseR {
                     case NOT_ONE_ELEMENT_INDEX:
                         if (subset) {
                             if (index instanceof IntImpl.RIntSequence) {
-                                IntSequenceSelection is = new IntSequenceSelection(ast, var, lhs, indexes, rhs, subset);
+                                IntSequenceSelection is = new IntSequenceSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(is, "install IntSequenceSelection from GenericScalarSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
                                 return is.execute(context, base, index, value);
                             }
                             if (index instanceof RInt || index instanceof RDouble) {
-                                NumericSelection ns = new NumericSelection(ast, var, lhs, indexes, rhs, subset);
+                                NumericSelection ns = new NumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(ns, "install NumericSelection from GenericScalarSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
                                 return ns.execute(context, base, index, value);
                             }
                             if (index instanceof RLogical) {
-                                LogicalSelection ls = new LogicalSelection(ast, var, lhs, indexes, rhs, subset);
+                                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(ls, "install LogicalSelection from GenericScalarSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
                                 return ls.execute(context, base, index, value);
                             }
                         } else {
-                            Subscript s = new Subscript(ast, var, lhs, indexes, rhs, subset);
+                            Subscript s = new Subscript(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(s, "install Subscript from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
                             return s.execute(context, base, index, value);
@@ -764,7 +776,7 @@ public abstract class UpdateVector extends BaseR {
                         // propagate below
 
                     default:
-                        GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
+                        GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
                         if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
                         return gs.execute(context, base, index, value);
@@ -779,8 +791,8 @@ public abstract class UpdateVector extends BaseR {
     //   rewrites itself for more complicated cases
     public static class IntSequenceSelection extends UpdateVector {
 
-        public IntSequenceSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public IntSequenceSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
             Utils.check(subset);
         }
 
@@ -871,7 +883,7 @@ public abstract class UpdateVector extends BaseR {
                             return RList.RListFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
                 }
                 return null;
             }
@@ -935,7 +947,7 @@ public abstract class UpdateVector extends BaseR {
                             return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
                 }
                 return null;
             }
@@ -999,7 +1011,7 @@ public abstract class UpdateVector extends BaseR {
                             return RInt.RIntFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
                 }
                 return null;
             }
@@ -1056,7 +1068,7 @@ public abstract class UpdateVector extends BaseR {
                             return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
                 }
                 return null;
             }
@@ -1155,7 +1167,7 @@ public abstract class UpdateVector extends BaseR {
                     return res;
                 }
             };
-            return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<Extended>");
+            return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Extended>");
         }
 
 
@@ -1163,8 +1175,8 @@ public abstract class UpdateVector extends BaseR {
             final ValueCopy copy;
             final String dbg;
 
-            Specialized(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
-                super(ast, var, lhs, indexes, rhs, subset);
+            Specialized(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
                 this.copy = copy;
                 this.dbg = dbg;
             }
@@ -1197,7 +1209,7 @@ public abstract class UpdateVector extends BaseR {
                             return sn.execute(context, base, index, value);
 
                         default:
-                            NumericSelection ns = new NumericSelection(ast, var, lhs, indexes, rhs, subset);
+                            NumericSelection ns = new NumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(ns, "install NumericSelection from IntSequenceSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
                             return ns.execute(context, base, index, value);
@@ -1210,8 +1222,8 @@ public abstract class UpdateVector extends BaseR {
     // for updates where the index is a numeric (int, double) vector
     public static class NumericSelection extends UpdateVector {
 
-        public NumericSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public NumericSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
             Utils.check(subset);
         }
 
@@ -1469,7 +1481,7 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
-                GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
+                GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                 replace(gs, "install GenericSelection from NumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                 return gs.execute(context, base, index, value);
@@ -1482,8 +1494,8 @@ public abstract class UpdateVector extends BaseR {
     //   handles also corner cases and when the type of the base changes
     public static class LogicalSelection extends UpdateVector {
 
-        public LogicalSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public LogicalSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
             Utils.check(subset);
         }
 
@@ -1567,7 +1579,7 @@ public abstract class UpdateVector extends BaseR {
                             return RList.RListFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
                 }
                 return null;
             }
@@ -1626,7 +1638,7 @@ public abstract class UpdateVector extends BaseR {
                             return RDouble.RDoubleFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
                 }
                 return null;
             }
@@ -1685,7 +1697,7 @@ public abstract class UpdateVector extends BaseR {
                             return RInt.RIntFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
                 }
                 return null;
             }
@@ -1742,7 +1754,7 @@ public abstract class UpdateVector extends BaseR {
                             return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
                 }
                 return null;
             }
@@ -1900,15 +1912,15 @@ public abstract class UpdateVector extends BaseR {
                     return genericUpdate(base, index, value, context, ast);
                 }
             };
-            return new Specialized(ast, var, lhs, indexes, rhs, subset, cpy, "<Generic>");
+            return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Generic>");
         }
 
         class Specialized extends LogicalSelection {
             final ValueCopy copy;
             final String dbg;
 
-            Specialized(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
-                super(ast, var, lhs, indexes, rhs, subset);
+            Specialized(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
                 this.copy = copy;
                 this.dbg = dbg;
             }
@@ -1942,7 +1954,7 @@ public abstract class UpdateVector extends BaseR {
                             return sn.execute(context, base, index, value);
 
                         default:
-                            GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
+                            GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericSelection from LogicalSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                             return gs.execute(context, base, index, value);
@@ -1956,8 +1968,8 @@ public abstract class UpdateVector extends BaseR {
     //   and the base can be recursive
     //   and the mode is subscript ([[.]])
     public static class Subscript extends UpdateVector {
-        public Subscript(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public Subscript(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
             Utils.check(!subset);
         }
 
@@ -2055,7 +2067,7 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - Subscript failed: " + f);
-                GenericSelection gs = new GenericSelection(ast, var, lhs, indexes, rhs, subset);
+                GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                   // rewriting itself only to handle the error, there is no way to recover
                 replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
@@ -2067,8 +2079,8 @@ public abstract class UpdateVector extends BaseR {
     // handles any update, won't rewrite itself
     public static class GenericSelection extends UpdateVector {
 
-        public GenericSelection(ASTNode ast, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
-            super(ast, var, lhs, indexes, rhs, subset);
+        public GenericSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
         }
 
         @Override

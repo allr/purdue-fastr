@@ -11,8 +11,13 @@ public class TestSimpleMatrices extends TestBase {
         assertEval("{ m <- matrix(1:6, ncol=3, byrow=TRUE) ; m }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
         assertEval("{ m <- matrix(1:6, nrow=2, byrow=TRUE) ; m }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
         assertEval("{ m <- matrix() ; m }", "     [,1]\n[1,]   NA");
+    }
+
+    @Test
+    public void testSelection() throws RecognitionException {
         assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=3) ; m[0] }", "numeric(0)");
         assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[0] }", "list()");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[upper.tri(m)] }", "3L, 5L, 6L");
     }
 
     @Test
