@@ -33,7 +33,7 @@ public abstract class AssignVariable extends ASTNode {
         } else if (lhs instanceof AccessVector) {
             return writeVector(isSuper, (AccessVector) lhs, rhs);
         } else if (lhs instanceof FunctionCall) {
-            return writeFunction((FunctionCall) lhs, rhs);
+            return writeFunction(isSuper, (FunctionCall) lhs, rhs);
         } else if (lhs instanceof Constant) {
             throw RError.getUnknownVariable(rhs); // TODO it's own exception
         }
@@ -49,7 +49,7 @@ public abstract class AssignVariable extends ASTNode {
         return new UpdateVector(isSuper, lhs, rhs);
     }
 
-    public static ASTNode writeFunction(FunctionCall lhs, ASTNode rhs) {
+    public static ASTNode writeFunction(boolean isSuper, FunctionCall lhs, ASTNode rhs) {
         // FIXME Probably we need a special node, for now all assign function should return value
         lhs.name = RSymbol.getSymbol(lhs.name.pretty() + "<-");
         if (lhs.args.size() > 0) {
@@ -60,6 +60,8 @@ public abstract class AssignVariable extends ASTNode {
                 lhs.args.add("value", rhs);
             }
         }
+        lhs.isAssignment(true);
+        lhs.isSuper(isSuper);
         return lhs;
     }
 }

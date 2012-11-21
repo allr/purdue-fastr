@@ -135,4 +135,9 @@ public final class RNull implements RAny, RAttributes {
     public RNull stripAttributes() {
         return this;
     }
+
+    @Override
+    public Object getRef(int i) {
+        return get(i);
+    }
 }

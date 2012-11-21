@@ -11,7 +11,10 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
-// FIXME: can we avoid copying in some cases? E.g. when representation of a vector is explicit.
+// TODO: clean-up generic code using .getRef
+
+// FIXME: the code handling the replacement of a variable could be replaced via ReplacementCall
+
 // FIXME: could reduce code size by some refactoring, e.g. subclassing on copiers that use double, int, logical
 // FIXME: some of the guards from common "exec" methods could be elided - type checking for RArray and then again in specialized functions for RArray subclasses
 
@@ -108,7 +111,7 @@ public abstract class UpdateVector extends BaseR {
             if (base != null) {
                 RAny newBase = execute(context, base, index, value);
                 if (newBase != base) {
-                    RFrame.writeAt(frame, framePosition, newBase);
+                    RFrame.writeAtRef(frame, framePosition, newBase);
                 }
             } else {
                 base = RFrame.readViaWriteSetSlowPath(frame, framePosition, var);
@@ -119,7 +122,7 @@ public abstract class UpdateVector extends BaseR {
                             // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(context, base, index, value);
                 Utils.check(base != newBase);
-                RFrame.writeAt(frame, framePosition, newBase);
+                RFrame.writeAtRef(frame, framePosition, newBase);
             }
         } else {
             // variable is top-level
@@ -129,7 +132,7 @@ public abstract class UpdateVector extends BaseR {
             }
             RAny newBase = execute(context, base, index, value);
             if (newBase != base) {
-                RFrame.writeInTopLevel(var, newBase);
+                RFrame.writeInTopLevelRef(var, newBase);
             }
         }
         return value;

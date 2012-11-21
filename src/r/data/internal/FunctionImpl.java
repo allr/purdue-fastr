@@ -33,17 +33,17 @@ public class FunctionImpl extends BaseObject implements RFunction {
         this.writeSet = writeSet;
         this.readSet = readSet;
 
-        // calculate blossom masks
-        int wsBlossom = 0;
-        int rsBlossom = 0;
+        // calculate bloom masks
+        int wsBloom = 0;
+        int rsBloom = 0;
         for (RSymbol sym : writeSet) {
-            wsBlossom |= sym.hash();
+            wsBloom |= sym.hash();
         }
         for (ReadSetEntry rse : readSet) {
-            rsBlossom |= rse.symbol.hash();
+            rsBloom |= rse.symbol.hash();
         }
-        this.readSetBloom = rsBlossom;
-        this.writeSetBloom = wsBlossom;
+        this.readSetBloom = rsBloom;
+        this.writeSetBloom = wsBloom;
 
         if (DEBUG_CALLS) {
             Utils.debug("creating function with");

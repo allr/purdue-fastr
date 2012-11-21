@@ -60,7 +60,7 @@ public final class RFrame  {
     public static void write(Frame f, RSymbol sym, RAny value) {
         int pos = getPositionInWS(f, sym);
         if (pos >= 0) {
-            writeAt(f, pos, value);
+            writeAtRef(f, pos, value);
         } else {
             writeInExtension(f, sym, value);
         }
@@ -150,7 +150,10 @@ public final class RFrame  {
     public static boolean superWriteViaWriteSet(Frame parentFrame, int pos, RSymbol symbol, RAny value) {
         Object oldVal = parentFrame.getObject(pos + RFrame.RESERVED_SLOTS);
         if (oldVal != null) {
-            RFrame.writeAt(parentFrame, pos, value);
+            if (oldVal != value) {
+                RFrame.writeAtNoRef(parentFrame, pos, value);
+                value.ref();
+            }
             return true;
         } else {
             return superWriteViaWriteSetSlowPath(parentFrame, pos, symbol, value);
@@ -179,7 +182,7 @@ public final class RFrame  {
         return sym.getValue();
     }
 
-    public static void writeAt(Frame f, int pos, Object value) {
+    public static void writeAtRef(Frame f, int pos, Object value) {
         // Put an assertion or not ?
         f.setObject(pos + RESERVED_SLOTS, value);
         if (value instanceof RAny) {
@@ -187,16 +190,20 @@ public final class RFrame  {
         }
     }
 
-    public static void writeParamAt(Frame f, int pos, Object value) {
-        // Put an assertion or not ?
+    public static void writeAtNoRef(Frame f, int pos, RAny value) {
         f.setObject(pos + RESERVED_SLOTS, value);
-        if (value instanceof RAny) {
-            ((RAny) value).ref();
-            ((RAny) value).ref();  // function parameter has to become shared
+    }
+
+    public static void writeAtCondRef(Frame f, int pos, RAny value) {
+        final int rawPos = pos + RESERVED_SLOTS;
+        Object oldContent = f.getObject(rawPos);
+        if (value != oldContent) {
+            f.setObject(rawPos, value);
+            value.ref();
         }
     }
 
-    public static void writeAt(Frame f, int pos, RAny value) { // FIXME: should find a fast way to avoid .ref() calls when the variable in fact did not change
+    public static void writeAtRef(Frame f, int pos, RAny value) { // FIXME: should find a fast way to avoid .ref() calls when the variable in fact did not change
         // Put an assertion or not ?
         f.setObject(pos + RESERVED_SLOTS, value);
         value.ref();
@@ -217,14 +224,27 @@ public final class RFrame  {
         }
     }
 
-    public static void writeInTopLevel(RSymbol sym, RAny value) {
+    public static void writeInTopLevelRef(RSymbol sym, RAny value) {
         sym.setValue(value);
         value.ref();
     }
 
+    public static void writeInTopLevelNoRef(RSymbol sym, RAny value) {
+        sym.setValue(value);
+    }
+
+    public static void writeInTopLevelCondRef(RSymbol sym, RAny value) {
+        RAny oldValue = sym.getValue();
+        if (oldValue != value) {
+            sym.setValue(value);
+            value.ref();
+        }
+    }
+
     public static boolean superWriteToTopLevel(RSymbol symbol, RAny value) {
         // FIXME: allow modification of builtins
-        symbol.setValue(value); // FIXME: this seems incorrect, should first check extension
+        // FIXME: this seems incorrect, should first check extension
+        writeInTopLevelCondRef(symbol, value);
         return true;
     }
 
@@ -294,7 +314,7 @@ public final class RFrame  {
             }
             val = f.getObject(pos + RESERVED_SLOTS);
             if (val != null) {
-                RFrame.writeAt(f, pos, value);
+                RFrame.writeAtRef(f, pos, value);
                 return true;
             }
             ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
@@ -460,6 +480,7 @@ public final class RFrame  {
             used++;
             names[pos] = sym;
             values[pos] = val;
+            val.ref();
 
             markDirty(enclosing, sym);
             bloom |= sym.id();
@@ -467,7 +488,10 @@ public final class RFrame  {
 
         private void writeAt(int pos, RAny value) { // TODO or not TODO assert that the good name is still here
             assert Utils.check(pos < used);
-            values[pos] = value;
+            if (values[pos] != value) {
+                values[pos] = value;
+                value.ref();
+            }
         }
 
         private void expand(int newCap) {

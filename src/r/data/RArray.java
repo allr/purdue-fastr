@@ -10,6 +10,7 @@ public interface RArray extends RAny {
     int[] dimensions(); // the returned array shall not be modified
 
     Object get(int i);
+    Object getRef(int i);
     RAny boxedGet(int i);
     RArray set(int i, Object val);
     RArray setDimensions(int[] dimensions);

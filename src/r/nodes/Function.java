@@ -133,6 +133,11 @@ public class Function extends ASTNode {
     private static ReadSetEntry[] buildReadSet(RFunction parent, Set<RSymbol> origRSet) {
         // build read set
         if (parent == null || origRSet.isEmpty()) {
+            if (DEBUG_FUNCTIONS) {
+                if (parent == null) {
+                    Utils.debug("Read-set is empty because there is no lexically enclosing (parent) function");
+                }
+            }
             return emptyReadSet;
         }
         ArrayList<ReadSetEntry> rsl = new ArrayList<>();
@@ -142,8 +147,7 @@ public class Function extends ASTNode {
             while (p != null) {
                 int pos = p.positionInLocalWriteSet(s);
                 if (pos >= 0) {
-                    rsl.add(new ReadSetEntry(s, hops, pos)); // FIXME: why not remember the RFunction reference instead of hops?
-                    // FIXME: answer: The RFunction Reference will need and extra indirection to be tested (RFrame => RFunction)
+                    rsl.add(new ReadSetEntry(s, hops, pos));
                     break;
                 }
                 p = p.enclosing();
@@ -245,7 +249,11 @@ public class Function extends ASTNode {
         @Override
         public void visit(FunctionCall functionCall) {
             read.add(functionCall.getName());
-            functionCall.visit_all(this); // visit default value expressions if any
+            functionCall.visit_all(this); // visit the arguments passed (simple access variable)
+            if (functionCall.isAssignment()) {
+                SimpleAccessVariable varAccess = (SimpleAccessVariable) functionCall.getArgs().first().getValue();
+                written.add(varAccess.getSymbol());
+            }
         }
 
         @Override

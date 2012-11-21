@@ -139,4 +139,9 @@ public class AttributesImpl extends BaseObject implements RAttributes {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public Object getRef(int i) {
+        return get(i);
+    }
 }

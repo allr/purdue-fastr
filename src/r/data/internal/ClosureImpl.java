@@ -117,9 +117,9 @@ public class ClosureImpl extends BaseObject implements RClosure {
         }
 
         frame.setObject(RFrame.FUNCTION_SLOT, function);
-        RFrame.writeAt(frame, 0, arg0);
-        RFrame.writeAt(frame, 1, arg1);
-        RFrame.writeAt(frame, 2, arg2);
+        RFrame.writeAtRef(frame, 0, arg0);
+        RFrame.writeAtRef(frame, 1, arg1);
+        RFrame.writeAtRef(frame, 2, arg2);
         Object res;
         try {
             res = body.execute(context, frame);
@@ -150,8 +150,8 @@ public class ClosureImpl extends BaseObject implements RClosure {
         }
 
         frame.setObject(RFrame.FUNCTION_SLOT, function);
-        RFrame.writeAt(frame, 0, arg0);
-        RFrame.writeAt(frame, 1, arg1);
+        RFrame.writeAtRef(frame, 0, arg0);
+        RFrame.writeAtRef(frame, 1, arg1);
         Object res;
         try {
             res = body.execute(context, frame);
@@ -181,7 +181,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
         }
 
         frame.setObject(RFrame.FUNCTION_SLOT, function);
-        RFrame.writeAt(frame, 0, arg0);
+        RFrame.writeAtRef(frame, 0, arg0);
         Object res;
         try {
             res = body.execute(context, frame);
@@ -271,7 +271,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
                     value = n.execute(context, frame);
                 }
             }
-            RFrame.writeAt(frame, i, value);
+            RFrame.writeAtRef(frame, i, value);
         }
     }
 

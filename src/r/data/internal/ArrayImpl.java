@@ -72,4 +72,9 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     public RArray stripAttributes() {
         return this;
     }
+
+    @Override
+    public Object getRef(int i) {
+        return get(i);
+    }
 }

@@ -69,6 +69,13 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     @Override
+    public Object getRef(int i) {
+        RAny v = content[i];
+        v.ref();
+        return v;
+    }
+
+    @Override
     public RAny boxedGet(int i) {
         return RListFactory.getScalar(getRAny(i));
     }

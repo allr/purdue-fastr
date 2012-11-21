@@ -51,6 +51,8 @@ public abstract class RError extends RuntimeException {
     public static final String NON_CONFORMABLE_ARRAYS = "non-conformable arrays";
     public static final String INVALID_MODE = "invalid 'mode' argument";
     public static final String UNKNOWN_VARIABLE = "object not found";
+    public static final String ONLY_MATRIX_DIAGONALS = "only matrix diagonals can be replaced";
+    public static final String REPLACEMENT_DIAGONAL_LENGTH = "replacement diagonal has wrong length";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -525,6 +527,30 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.INVALID_MODE;
+            }
+        };
+    }
+
+    public static RError getOnlyMatrixDiagonals(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ONLY_MATRIX_DIAGONALS;
+            }
+        };
+    }
+
+    public static RError getReplacementDiagonalLength(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.REPLACEMENT_DIAGONAL_LENGTH;
             }
         };
     }

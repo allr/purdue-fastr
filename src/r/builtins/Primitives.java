@@ -25,6 +25,7 @@ public class Primitives {
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
+        add("diag<-", 2, 2, Diagonal.REPLACEMENT_FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);

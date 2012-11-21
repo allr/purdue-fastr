@@ -17,6 +17,7 @@ import r.nodes.Sequence;
 import r.nodes.UpdateVector;
 import r.nodes.UnaryMinus;
 import r.nodes.truffle.*;
+import r.nodes.truffle.ReplacementCall.RememberLast;
 
 public class Truffleize implements Visitor {
 
@@ -230,7 +231,20 @@ public class Truffleize implements Visitor {
         if (factory == null) {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
-        result = factory.create(functionCall, convertedNames, convertedExpressions);
+
+        RNode rCall = factory.create(functionCall, convertedNames, convertedExpressions);
+
+        if (!functionCall.isAssignment()) {
+            result = rCall;
+            return;
+        }
+
+        // replacement assignment
+        RNode valueExpr = convertedExpressions[convertedExpressions.length - 1];
+        RememberLast remValueExpr = new RememberLast(valueExpr.getAST(), valueExpr);
+        SimpleAccessVariable xAST = (SimpleAccessVariable) convertedExpressions[0].getAST();
+
+        result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), rCall, remValueExpr);
     }
 
     @Override

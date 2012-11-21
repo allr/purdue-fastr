@@ -12,17 +12,13 @@ public interface RAny {
     String prettyMatrixElement();
 
     RLogical asLogical();
-
     RInt asInt();
-
     RDouble asDouble();
-
     RString asString();
-
     RList asList();
 
     void ref();
-    boolean isShared(); // FIXME: at some point will probably neet do distinguish "1" and "2"
+    boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 }

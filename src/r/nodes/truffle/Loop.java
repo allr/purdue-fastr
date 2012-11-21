@@ -189,7 +189,7 @@ public abstract class Loop extends BaseR {
                         final int step = sval.step();
                         try {
                             for (int i = from;; i += step) {
-                                RFrame.writeInTopLevel(cvar, RInt.RIntFactory.getScalar(i));
+                                RFrame.writeInTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -212,7 +212,8 @@ public abstract class Loop extends BaseR {
                         final int step = sval.step();
                         try {
                             for (int i = from;; i += step) {
-                                RFrame.writeAt(frame, position, RInt.RIntFactory.getScalar(i));
+                                // no ref needed because scalars do not have reference counts
+                                RFrame.writeAtNoRef(frame, position, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -270,7 +271,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeInTopLevel(cvar, vvalue);
+                                RFrame.writeInTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -293,7 +294,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeAt(frame, position, vvalue);
+                                RFrame.writeAtRef(frame, position, vvalue);
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
