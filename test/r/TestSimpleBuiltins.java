@@ -194,10 +194,18 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
-    public void testDim() throws RecognitionException {
+    public void testDimensions() throws RecognitionException {
         assertEval("{ dim(1) }", "NULL");
         assertEval("{ dim(1:3) }", "NULL");
         assertEval("{ m <- matrix(1:6, nrow=3) ; dim(m) }", "3L, 2L");
+
+        assertEval("{ nrow(1) }", "NULL");
+        assertEval("{ nrow(1:3) }", "NULL");
+        assertEval("{ m <- matrix(1:6, nrow=3) ; nrow(m) }", "3L");
+
+        assertEval("{ ncol(1) }", "NULL");
+        assertEval("{ ncol(1:3) }", "NULL");
+        assertEval("{ m <- matrix(1:6, nrow=3) ; ncol(m) }", "2L");
     }
 
     @Test

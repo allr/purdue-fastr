@@ -19,7 +19,7 @@ public class Extreme {
         public abstract RDouble emptySetExtreme();
     }
 
-    public static class ExtremeCallFactory extends CallFactory {
+    public static final class ExtremeCallFactory extends CallFactory {
         final Operation op;
 
         public ExtremeCallFactory(Operation op) {
@@ -27,7 +27,7 @@ public class Extreme {
         }
 
         // result is RDouble scalar
-        public final RDouble extreme(RDouble arg, RContext context, ASTNode ast) {
+        public RDouble extreme(RDouble arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
                 context.warning(ast, RError.NO_NONMISSING_MAX);
@@ -47,7 +47,7 @@ public class Extreme {
         }
 
         // result is RDouble or RInt scalar
-        public final RAny extreme(RInt arg, RContext context, ASTNode ast) {
+        public RAny extreme(RInt arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
                 context.warning(ast, RError.NO_NONMISSING_MAX);
@@ -67,7 +67,7 @@ public class Extreme {
         }
 
         // result is RDouble or RInt scalar
-        public final RAny extreme(RLogical arg, RContext context, ASTNode ast) {
+        public RAny extreme(RLogical arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
                 context.warning(ast, RError.NO_NONMISSING_MAX);
@@ -87,7 +87,7 @@ public class Extreme {
         }
 
         // result is RDouble or RInt scalar
-        public final RAny extreme(RAny arg, RContext context, ASTNode ast) {
+        public RAny extreme(RAny arg, RContext context, ASTNode ast) {
             if (arg instanceof RDouble) {
                 return extreme((RDouble) arg, context, ast);
             }
@@ -103,7 +103,7 @@ public class Extreme {
 
         // takes RDouble and RInt scalars
         // returns RDouble or RInt scalar
-        public final RAny extreme(RAny scalar0, RAny scalar1) { // FIXME: does this preserve NA's ?
+        public RAny extreme(RAny scalar0, RAny scalar1) { // FIXME: does this preserve NA's ?
             if (scalar0 instanceof RDouble) {
                 if (scalar1 instanceof RDouble) {
                     return RDouble.RDoubleFactory.getScalar(op.extreme(((RDouble) scalar0).getDouble(0), ((RDouble) scalar1).getDouble(0)));
@@ -120,7 +120,7 @@ public class Extreme {
         }
 
         // args has length at least 2
-        public final RAny extreme(RAny[] args, RContext context, ASTNode ast) {
+        public RAny extreme(RAny[] args, RContext context, ASTNode ast) {
             int size = args.length;
             RAny res = extreme(args[0], context, ast);
             for (int i = 1; i < size; i++) {
