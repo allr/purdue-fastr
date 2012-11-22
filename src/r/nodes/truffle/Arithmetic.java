@@ -17,6 +17,11 @@ public class Arithmetic extends BaseR {
     final ValueArithmetic arit;
 
     private static final boolean EAGER = false;
+    private static final boolean LIMIT_VIEW_DEPTH = true;
+    private static final int MAX_VIEW_DEPTH = 5;
+
+    private static final boolean DEBUG_AR = false;
+    private static final boolean PROFILE_DOUBLE_VIEWS = false;  // only works with EAGER == false and best with LIMIT_VIEW_DEPTH == false
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
         super(ast);
@@ -44,10 +49,12 @@ public class Arithmetic extends BaseR {
             if (left instanceof Constant || right instanceof Constant) {
                 SpecializedConst sc = SpecializedConst.createSpecialized(lexpr, rexpr, ast, left, right, arit);
                 replace(sc, "install Specialized from Uninitialized");
+                if (DEBUG_AR) Utils.debug("Installed " + sc.dbg + " for expressions " + lexpr + "(" + lexpr.pretty() + ") and " + rexpr + "(" + rexpr.pretty() + ")");
                 return sc.execute(context,  lexpr, rexpr);
             } else {
                 Specialized sn = Specialized.createSpecialized(lexpr, rexpr, ast, left, right, arit);
                 replace(sn, "install Specialized from Uninitialized");
+                if (DEBUG_AR) Utils.debug("Installed " + sn.dbg);
                 return sn.execute(context,  lexpr, rexpr);
             }
         }
@@ -171,12 +178,7 @@ public class Arithmetic extends BaseR {
                     public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                         RDouble ldbl = lexpr.asDouble();
                         RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                        RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                        if (!EAGER) {
-                            return res;
-                        } else {
-                            return RDouble.RDoubleFactory.copy(res);
-                        }
+                        return DoubleView.create(ldbl, rdbl, context, arit, ast);
                     }
                 };
             } else {
@@ -186,23 +188,12 @@ public class Arithmetic extends BaseR {
                         if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                             RDouble ldbl = lexpr.asDouble();
                             RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                            if (!EAGER) {
-                                return res;
-                            } else {
-                                return RDouble.RDoubleFactory.copy(res);
-                            }
-
+                            return DoubleView.create(ldbl, rdbl, context, arit, ast);
                         }
                         if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt lint = lexpr.asInt();
                             RInt rint = rexpr.asInt();
-                            RInt res = IntView.create(lint, rint, context, arit, ast);
-                            if (!EAGER) {
-                                return res;
-                            } else {
-                                return RInt.RIntFactory.copy(res);
-                            }
+                            return IntView.create(lint, rint, context, arit, ast);
                         }
                         Utils.nyi("unsupported case for binary arithmetic operation");
                         return null;
@@ -404,12 +395,7 @@ public class Arithmetic extends BaseR {
                         @Override
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                            if (!EAGER) {
-                                return res;
-                            } else {
-                                return RDouble.RDoubleFactory.copy(res);
-                            }
+                            return DoubleView.create(ldbl, rdbl, context, arit, ast);
                         }
                     };
                 }
@@ -419,12 +405,7 @@ public class Arithmetic extends BaseR {
                         @Override
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                            if (!EAGER) {
-                                return res;
-                            } else {
-                                return RDouble.RDoubleFactory.copy(res);
-                            }
+                            return DoubleView.create(ldbl, rdbl, context, arit, ast);
                         }
                     };
                 }
@@ -439,22 +420,11 @@ public class Arithmetic extends BaseR {
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             if (leftDouble || rexpr instanceof RDouble) {
                                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                                if (!EAGER) {
-                                    return res;
-                                } else {
-                                    return RDouble.RDoubleFactory.copy(res);
-                                }
-
+                                return DoubleView.create(ldbl, rdbl, context, arit, ast);
                             }
                             if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                                 RInt rint = rexpr.asInt();
-                                RInt res = IntView.create(lint, rint, context, arit, ast);
-                                if (!EAGER) {
-                                    return res;
-                                } else {
-                                    return RInt.RIntFactory.copy(res);
-                                }
+                                return IntView.create(lint, rint, context, arit, ast);
                             }
                             Utils.nyi("unsupported case for binary arithmetic operation");
                             return null;
@@ -471,22 +441,11 @@ public class Arithmetic extends BaseR {
                         public Object calc(RContext context, RAny lexpr, RAny rexpr) {
                             if (rightDouble || lexpr instanceof RDouble) {
                                 RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                RDouble res = DoubleView.create(ldbl, rdbl, context, arit, ast);
-                                if (!EAGER) {
-                                    return res;
-                                } else {
-                                    return RDouble.RDoubleFactory.copy(res);
-                                }
-
+                                return DoubleView.create(ldbl, rdbl, context, arit, ast);
                             }
                             if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
                                 RInt lint = lexpr.asInt();
-                                RInt res = IntView.create(lint, rint, context, arit, ast);
-                                if (!EAGER) {
-                                    return res;
-                                } else {
-                                    return RInt.RIntFactory.copy(res);
-                                }
+                                return IntView.create(lint, rint, context, arit, ast);
                             }
                             Utils.nyi("unsupported case for binary arithmetic operation");
                             return null;
@@ -542,6 +501,7 @@ public class Arithmetic extends BaseR {
                 RAny rightTemplate = getExpr(right, rexpr);
                 SpecializedConst gn = createGeneric(leftTemplate, rightTemplate, ast, left, right, arit);
                 replace(gn, "install SpecializedConst<Generic, Generic> from SpecializedConst");
+                if (DEBUG_AR) Utils.debug("Rewrote Const" + dbg + " to " + gn.dbg);
                 return gn.execute(context, leftTemplate, rightTemplate);
             }
         }
@@ -655,17 +615,61 @@ public class Arithmetic extends BaseR {
         final ValueArithmetic arit;
         final ASTNode ast;
 
-        public static DoubleView create(RDouble a, RDouble b, RContext context, ValueArithmetic arit, ASTNode ast) {
+        // limiting view depth
+        private int depth;  // total views involved
+
+        // profiling
+        private int profileUsage; // at creation time, what was the total usage of both children  PLUS all local calls to getDouble
+        private int profileDepth; // max of child depths at creation time
+
+        public static RDouble create(RDouble a, RDouble b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            int depth = 0;
+            if (LIMIT_VIEW_DEPTH) {
+                int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth : 0;
+                int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth : 0;
+                depth = adepth + bdepth + 1;
+            }
             int[] dim = resultDimensions(ast, a, b);
-            return new DoubleView(a, b, dim, context, arit, ast);
+            DoubleView res = new DoubleView(a, b, dim, depth, context, arit, ast);
+            if (PROFILE_DOUBLE_VIEWS) {
+                int d = 1;
+                int ausa = 0;
+                int busa = 0;
+                if (a instanceof DoubleView) {
+                    d = ((DoubleView) a).profileDepth + 1;
+                    ausa = ((DoubleView) a).profileUsage;
+                }
+                if (b instanceof DoubleView) {
+                    int bd = ((DoubleView) b).profileDepth + 1;
+                    if (bd > d) {
+                        d = bd;
+                    }
+                    busa = ((DoubleView) b).profileUsage;
+                }
+                res.profileDepth = d;
+                res.profileUsage = ausa + busa;
+                int asize = a.size();
+                int bsize = b.size();
+                int size = (asize > bsize) ? asize : bsize;
+                Utils.debug("CREATED DOUBLE VIEW DEPTH " + d + " SIZE " + size + " USAGE " + (ausa + busa) + " A-USAGE " + ausa + " B-USAGE " + busa);
+
+                if (size == 1) {
+                    throw new RuntimeException("How come the view has only size 1?");
+                }
+            }
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+                return RDoubleFactory.copy(res);
+            }
+            return res;
         }
 
-        public DoubleView(RDouble a, RDouble b, int[] dimensions, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public DoubleView(RDouble a, RDouble b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
             na = a.size();
             nb = b.size();
+            this.depth = depth;
 
             this.arit = arit;
             this.ast = ast;
@@ -691,6 +695,11 @@ public class Arithmetic extends BaseR {
 
         @Override
         public double getDouble(int i) {
+
+            if (PROFILE_DOUBLE_VIEWS) {
+                profileUsage++;
+            }
+
             int ai;
             int bi;
             if (i >= na) {
@@ -742,12 +751,25 @@ public class Arithmetic extends BaseR {
         final ValueArithmetic arit;
         final ASTNode ast;
 
-        public static IntView create(RInt a, RInt b, RContext context, ValueArithmetic arit, ASTNode ast) {
+        // limiting view depth
+        private int depth;  // total views involved
+
+        public static RInt create(RInt a, RInt b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            int depth = 0;
+            if (LIMIT_VIEW_DEPTH) {
+                int adepth = (a instanceof IntView) ? ((IntView) a).depth : 0;
+                int bdepth = (b instanceof IntView) ? ((IntView) b).depth : 0;
+                depth = adepth + bdepth + 1;
+            }
             int[] dim = resultDimensions(ast, a, b);
-            return new IntView(a, b, dim, context, arit, ast);
+            IntView res = new IntView(a, b, dim, depth, context, arit, ast);
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+                return RIntFactory.copy(res);
+            }
+            return res;
         }
 
-        public IntView(RInt a, RInt b, int[] dimensions, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public IntView(RInt a, RInt b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -756,6 +778,7 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
             this.arit = arit;
             this.dimensions = dimensions;
+            this.depth = depth;
 
             if (na > nb) {
                 n = na;
