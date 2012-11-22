@@ -209,6 +209,17 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testCumulativeSum() throws RecognitionException {
+        assertEval("{ cumsum(1:10) }", "1L, 3L, 6L, 10L, 15L, 21L, 28L, 36L, 45L, 55L");
+        assertEval("{ cumsum(c(1,2,3)) }", "1.0, 3.0, 6.0");
+        assertEval("{ cumsum(rep(1e308, 3) ) }", "1.0E308, Infinity, Infinity");
+        assertEval("{ cumsum(NA) }", "NA");
+        assertEval("{ cumsum(c(1e308, 1e308, NA, 1, 2)) }", "1.0E308, Infinity, NA, NA, NA");
+        assertEval("{ cumsum(c(2000000000L, 2000000000L)) }", "2000000000L, NA");
+        assertEval("{ cumsum(c(2000000000L, NA, 2000000000L)) }", "2000000000L, NA, NA");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

@@ -25,6 +25,7 @@ public class Primitives {
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
+        add("cumsum", 1, 1, CumulativeSum.FACTORY);
         add("diag<-", 2, 2, Diagonal.REPLACEMENT_FACTORY);
         add("dim", 1, 1, Dimensions.DIM_FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
