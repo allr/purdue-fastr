@@ -51,6 +51,7 @@ public class Primitives {
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
+        add("which", 1, 3, Which.FACTORY);
     }
 
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {

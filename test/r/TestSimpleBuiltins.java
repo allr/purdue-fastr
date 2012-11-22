@@ -220,6 +220,12 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testWhich() throws RecognitionException {
+        assertEval("{ which(c(TRUE, FALSE, NA, TRUE)) }", "1L, 4L");
+        assertEval("{ which(logical()) }", "integer(0)");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

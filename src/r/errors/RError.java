@@ -54,6 +54,7 @@ public abstract class RError extends RuntimeException {
     public static final String ONLY_MATRIX_DIAGONALS = "only matrix diagonals can be replaced";
     public static final String REPLACEMENT_DIAGONAL_LENGTH = "replacement diagonal has wrong length";
     public static final String NA_INTRODUCED_COERCION = "NAs introduced by coercion";
+    public static final String ARGUMENT_WHICH_NOT_LOGICAL = "argument to 'which' is not logical";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -552,6 +553,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.REPLACEMENT_DIAGONAL_LENGTH;
+            }
+        };
+    }
+
+    public static RError getArgumentWhichNotLogical(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ARGUMENT_WHICH_NOT_LOGICAL;
             }
         };
     }
