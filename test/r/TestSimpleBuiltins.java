@@ -58,6 +58,16 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0)) }", "200.0");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
         assertEval("{ max(2L, 4L) }", "4L");
+        assertEval("{ max() }", "-Infinity");
+    }
+
+    @Test
+    public void testMinimum() throws RecognitionException {
+        assertEval("{ min((-1):100) }", "-1L");
+        assertEval("{ min(1:10, 100:200, c(4.0, -5.0)) }", "-5.0");
+        assertEval("{ min(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
+        assertEval("{ min(2L, 4L) }", "2L");
+        assertEval("{ min() }", "Infinity");
     }
 
     @Test

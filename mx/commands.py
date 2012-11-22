@@ -133,7 +133,7 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   print("Argument "+ arg);
   print("Input file "+tmp);
   
-#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey',tmp]);
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
 #  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
   rconsole(vmArgs, vm, ['-f', tmp]);
 

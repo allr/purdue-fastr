@@ -13,6 +13,7 @@ public interface RDouble extends RNumber {
     DoubleImpl EMPTY = (DoubleImpl) RDoubleFactory.getUninitializedArray(0);
     ScalarDoubleImpl BOXED_NA = RDoubleFactory.getScalar(NA);
     ScalarDoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
+    ScalarDoubleImpl BOXED_POS_INF = RDoubleFactory.getScalar(Double.POSITIVE_INFINITY);
 
     RDouble set(int i, double val);
     double getDouble(int i);
