@@ -501,7 +501,7 @@ public class Arithmetic extends BaseR {
             if (rightConst) {
                 return createRightConst(ast, left, right, arit, c, "<Generic, ConstGeneric>");
             } else {
-                return createLeftConst(ast, right, left, arit, c, "<ConstGeneric, Generic>");
+                return createLeftConst(ast, left, right, arit, c, "<ConstGeneric, Generic>");
             }
         }
 
