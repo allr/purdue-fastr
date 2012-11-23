@@ -78,6 +78,7 @@ public abstract class BuiltIn extends AbstractCall {
     public static void missingArg(ASTNode ast, String paramName) {
         throw RError.getGenericError(ast, String.format(RError.ARGUMENT_MISSING, paramName));
     }
+
     public static void ensureArgName(ASTNode ast, String expectedName, RSymbol actualName) {
         if (actualName == null) {
             return;
@@ -86,6 +87,24 @@ public abstract class BuiltIn extends AbstractCall {
         if (actualName != expected) {
             throw RError.getGenericError(ast, String.format(RError.ARGUMENT_NOT_MATCH, actualName.pretty(), expectedName));
         }
+    }
+
+    public static RAny getConstantValue(RNode node) {
+        if (node.getAST() instanceof r.nodes.Constant) {
+            return (RAny) node.execute(null, null);
+        }
+        return null;
+    }
+
+    public static boolean isLogicalConstant(RNode node, int cvalue) {
+        RAny value = getConstantValue(node);
+        if (value != null && value instanceof RLogical) {
+            RLogical lv = (RLogical) value;
+            if (lv.size() == 1) {
+                return lv.getLogical(0) == cvalue;
+            }
+        }
+        return false;
     }
 
     abstract static class NamedArgsBuiltIn extends BuiltIn {
