@@ -1,42 +1,125 @@
 package r.data;
 
+import r.*;
 import r.data.internal.*;
 
 public interface RString extends RArray {
 
     String TYPE_STRING = "character";
 
-    StringImpl EMPTY = RStringFactory.getScalar("");
+    ScalarStringImpl EMPTY = RStringFactory.getScalar("");
     String NA = null;
+    ScalarStringImpl BOXED_NA = RStringFactory.getScalar(NA);
 
     String getString(int i);
-    RArray set(int i, String val);
+    RString set(int i, String val);
     RString materialize();
 
     public class RStringFactory {
-        public static StringImpl getScalar(String value) {
-            return new StringImpl(new String[]{value}, null, false);
+        public static ScalarStringImpl getScalar(String value) {
+            return new ScalarStringImpl(value);
         }
-        public static StringImpl getArray(String... values) {
+        public static RString getArray(String... values) {
+            if (values.length == 1) {
+                return new ScalarStringImpl(values[0]);
+            }
             return new StringImpl(values);
         }
-        public static StringImpl getArray(String[] values, int[] dimensions) {
+        public static RString getArray(String[] values, int[] dimensions) {
+            if (dimensions == null && values.length == 1) {
+                return new ScalarStringImpl(values[0]);
+            }
             return new StringImpl(values, dimensions);
         }
-        public static StringImpl getUninitializedArray(int size) {
+        public static RString getUninitializedArray(int size) {
+            if (size == 1) {
+                return new ScalarStringImpl(NA);
+            }
             return new StringImpl(size);
         }
-        public static StringImpl getUninitializedArray(int size, int[] dimensions) {
+        public static RString getUninitializedArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
+                return new ScalarStringImpl(NA);
+            }
             return new StringImpl(new String[size], dimensions, false);
+        }
+        public static RString getNAArray(int size) {
+            return getNAArray(size, null);
+        }
+        public static RString getNAArray(int size, int[] dimensions) {
+            if (size == 1 && dimensions == null) {
+                return new ScalarStringImpl(NA);
+            }
+            String[] content = new String[size];
+            for (int i = 0; i < size; i++) {
+                content[i] = NA;
+            }
+            return new StringImpl(content, dimensions, false);
         }
         public static StringImpl getMatrixFor(String[] values, int m, int n) {
             return new StringImpl(values, new int[] {m, n}, false);
         }
-        public static StringImpl copy(RString v) {
-            return new StringImpl(v);
+        public static RString copy(RString s) {
+            if (s.size() == 1 && s.dimensions() == null) {
+                return new ScalarStringImpl(s.getString(0));
+            }
+            return new StringImpl(s, false);
+        }
+        public static RString getFor(String[] values) { // re-uses values!
+            return getFor(values, null);
+
+        }
+        public static RString getFor(String[] values, int[] dimensions) {  // re-uses values!
+            if (values.length == 1 && dimensions == null) {
+                return new ScalarStringImpl(values[0]);
+            }
+            return new StringImpl(values, dimensions, false);
+        }
+        public static RString exclude(int excludeIndex, RString orig) {
+            return new RStringExclusion(excludeIndex, orig);
         }
         public static RString subset(RString value, RInt index) {
             return new RStringSubset(value, index);
+        }
+    }
+
+    public static class RStringExclusion extends View.RStringView implements RString {
+
+        final RString orig;
+        final int excludeIndex;
+        final int size;
+
+        public RStringExclusion(int excludeIndex, RString orig) {
+            this.orig = orig;
+            this.excludeIndex = excludeIndex;
+            this.size = orig.size() - 1;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public String getString(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getString(i);
+            } else {
+                return orig.getString(i + 1);
+            }
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
         }
     }
 

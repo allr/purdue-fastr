@@ -106,8 +106,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RString asString() {
-        Utils.nyi();
-        return null;
+        return new RLogical.RStringView(this);
     }
 
     @Override

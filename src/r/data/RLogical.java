@@ -112,13 +112,23 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public RInt asInt() {
-            return l.asInt();
+        public RAttributes getAttributes() {
+            return l.getAttributes();
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return l.getAttributes();
+        public RList asList() {
+            return l.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return l.asString();
+        }
+
+        @Override
+        public RInt asInt() {
+            return l.asInt();
         }
 
         @Override
@@ -156,13 +166,18 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public RDouble asDouble() {
-            return l.asDouble();
+        public RList asList() {
+            return l.asList();
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return l.getAttributes();
+        public RString asString() {
+            return l.asString();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return l.asDouble();
         }
 
         @Override
@@ -171,8 +186,67 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
         public int getInt(int i) {
             return l.getLogical(i);
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return l.isShared();
+        }
+
+        @Override
+        public void ref() {
+            l.ref();
+        }
+    }
+
+    public static class RStringView extends View.RStringView implements RString {
+
+        final RLogical l;
+        public RStringView(RLogical l) {
+            this.l = l;
+        }
+
+        @Override
+        public int size() {
+            return l.size();
+        }
+
+        @Override
+        public RList asList() {
+            return l.asList();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return l.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return l.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
+        public String getString(int i) {
+            int v = l.getLogical(i);
+            return Convert.logical2string(v);
         }
 
         @Override

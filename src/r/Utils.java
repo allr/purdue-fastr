@@ -1,7 +1,6 @@
 package r;
 
 import r.data.*;
-import r.data.internal.*;
 import r.errors.*;
 
 public final class Utils {
@@ -66,6 +65,9 @@ public final class Utils {
         if (type instanceof RList) {
             return RList.RListFactory.getUninitializedArray(size);
         }
+        if (type instanceof RString) {
+            return RString.RStringFactory.getUninitializedArray(size);
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -82,6 +84,9 @@ public final class Utils {
         }
         if (type instanceof RList) {
             return RList.RListFactory.getUninitializedArray(size, dimensions);
+        }
+        if (type instanceof RString) {
+            return RString.RStringFactory.getUninitializedArray(size, dimensions);
         }
         Utils.nyi("unsupported array type");
         return null;
@@ -100,6 +105,9 @@ public final class Utils {
         if (type instanceof RList) {
             return RList.EMPTY;
         }
+        if (type instanceof RString) {
+            return RString.EMPTY;
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -113,6 +121,8 @@ public final class Utils {
             return RLogical.BOXED_NA;
         } else if (arr instanceof RList) {
             return RList.NULL;
+        } else if (arr instanceof RString) {
+            return RString.BOXED_NA;
         } else {
             Utils.nyi("unsupported array type");
             return null;
@@ -127,7 +137,9 @@ public final class Utils {
         } else if (arr instanceof RLogical) {
             arr.set(index, RLogical.NA);
         } else if (arr instanceof RList) {
-            arr.set(index,  RList.NULL);
+            arr.set(index, RList.NULL);
+        } else if (arr instanceof RString) {
+            arr.set(index, RString.NA);
         } else {
             Utils.nyi("unsupported array type");
         }
@@ -156,6 +168,9 @@ public final class Utils {
         }
         if (arr instanceof RList) {
             return RList.RListFactory.copy((RList) arr);
+        }
+        if (arr instanceof RString) {
+            return RString.RStringFactory.copy((RString) arr);
         }
         Utils.nyi("unuspported array type");
         return null;

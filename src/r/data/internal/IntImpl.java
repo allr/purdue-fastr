@@ -134,8 +134,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RString asString() {
-        Utils.nyi();
-        return null;
+        return new RInt.RStringView(this);
     }
 
     @Override

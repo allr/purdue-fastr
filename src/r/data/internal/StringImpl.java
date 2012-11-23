@@ -32,12 +32,14 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         content = new String[size];
     }
 
-    public StringImpl(RString v) {
+    public StringImpl(RString v, boolean valuesOnly) {
         content = new String[v.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = v.getString(i);
         }
-        dimensions = v.dimensions();
+        if (!valuesOnly) {
+            dimensions = v.dimensions();
+        }
     }
 
     @Override
@@ -80,7 +82,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RArray set(int i, String val) {
+    public StringImpl set(int i, String val) {
         content[i] = val;
         return this;
     }

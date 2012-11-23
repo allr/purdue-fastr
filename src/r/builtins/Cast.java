@@ -3,12 +3,13 @@ package r.builtins;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
-import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+// FIXME: There is no warning when NAs are introduced; this could be fixed in case of lists (below), but not with lazy casts (views)
 
 // FIXME: Truffle can't handle BuiltIn1
 public class Cast {
@@ -27,7 +28,7 @@ public class Cast {
                     if (a instanceof RList) {
                         content[i] = RInt.NA;
                     } else {
-                        content[i] = Convert.scalar2int(a);
+                        content[i] = a.asInt().getInt(0); // FIXME error handling - NA + warning
                     }
                 } else {
                     if (asize > 1 || a instanceof RList) {
@@ -42,7 +43,18 @@ public class Cast {
             return arg.asInt().stripAttributes();
         }
     }
-    public static final CallFactory INT_FACTORY = new CallFactory() {
+
+    public abstract static class Operation {
+        public abstract RAny genericCast(ASTNode ast, RAny arg);
+        public abstract RAny getEmpty();
+    }
+
+    public static final class SimpleCastFactory extends CallFactory {
+        private final Operation op;
+
+        public SimpleCastFactory(Operation op) {
+            this.op = op;
+        }
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -50,8 +62,8 @@ public class Cast {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
-                        return RInt.EMPTY;
+                    public RAny doBuiltIn(RContext context, Frame frame) {
+                        return op.getEmpty();
                     }
 
                 };
@@ -59,17 +71,71 @@ public class Cast {
             BuiltIn.ensureArgName(call, "x", names[0]);
             return new BuiltIn.BuiltIn1(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                    return genericAsInt(ast, arg);
+                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                    return op.genericCast(ast, arg);
                 }
             };
         }
-    };
+    }
+
+    public static final CallFactory INT_FACTORY = new SimpleCastFactory(
+                    new Operation() {
+
+                        @Override
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsInt(ast, arg);
+                        }
+
+                        @Override
+                        public RAny getEmpty() {
+                            return RInt.EMPTY;
+                        }
+                    });
 
     public static RAny genericAsDouble(ASTNode ast, RAny arg) {
-        Utils.nyi();
-        return null;
+        if (arg instanceof RList) {
+            RList l = (RList) arg;
+            int size = l.size();
+            double[] content = new double[size];
+            for (int i = 0; i < size; i++) {
+                RAny v = l.getRAny(i);
+                RArray a = (RArray) v;
+                int asize = a.size();
+
+                if (asize == 1) {
+                    if (a instanceof RList) {
+                        content[i] = RDouble.NA;
+                    } else {
+                        content[i] =  a.asDouble().getDouble(0); // FIXME error handling - NA + warning
+                    }
+                } else {
+                    if (asize > 1 || a instanceof RList) {
+                        throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "numeric"));
+                    }
+                    // asize == 0
+                    content[i] = RDouble.NA;
+                }
+            }
+            return RDouble.RDoubleFactory.getFor(content); // drop attributes
+        } else {
+            return arg.asDouble().stripAttributes();
+        }
     }
+
+    public static final CallFactory DOUBLE_FACTORY = new SimpleCastFactory(
+                    new Operation() {
+
+                        @Override
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsDouble(ast, arg);
+                        }
+
+                        @Override
+                        public RAny getEmpty() {
+                            return RDouble.EMPTY;
+                        }
+                    });
+
 
     public static RAny genericAsLogical(ASTNode ast, RAny arg) {
         Utils.nyi();
@@ -94,7 +160,6 @@ public class Cast {
         }
         return arg.stripAttributes();
     }
-
 
     public static RAny genericAsVector(ASTNode ast, RAny arg0, RAny arg1) {
         if (!(arg1 instanceof RString)) {

@@ -109,6 +109,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ m<-matrix(1:6, nrow=3) ; as.vector(m, \"any\") }", "1L, 2L, 3L, 4L, 5L, 6L");
         assertEval("{ m<-matrix(1:6, nrow=3) ; as.vector(mode = \"integer\", x=m) }", "1L, 2L, 3L, 4L, 5L, 6L");
         assertEval("{ as.vector(list(1,2,3), mode=\"integer\") }", "1L, 2L, 3L");
+
+        assertEval("{ as.double(\"1.27\") }", "1.27");
+        assertEval("{ as.double(1L) }", "1.0");
+        assertEval("{ as.double(\"TRUE\") }", "NA");
     }
 
     @Test

@@ -89,8 +89,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RString asString() {
-        Utils.nyi();
-        return null;
+        return RString.RStringFactory.getScalar(Convert.int2string(value));
     }
 
     @Override

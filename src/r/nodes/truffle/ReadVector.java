@@ -433,6 +433,22 @@ public abstract class ReadVector extends BaseR {
                 // i > size
                 return RList.NULL;
             }
+            if (base instanceof RString) {
+                if (i == RInt.NA) {
+                    return RString.RStringFactory.getNAArray(size);
+                }
+                if (i < 0) {
+                    if (-i > size) {
+                        return base;
+                    }
+                    return RString.RStringFactory.exclude(-i - 1, (RString) base);
+                }
+                if (i == 0) {
+                    return RString.EMPTY;
+                }
+                // i > size
+                return RString.BOXED_NA;
+            }
             Utils.nyi("unsupported vector type for subscript");
             return null;
         }
@@ -508,7 +524,7 @@ public abstract class ReadVector extends BaseR {
                 if (sindex.max() > size) {
                     throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
                 }
-                // FIXME: should specialize for a particular base type
+                // FIXME: should specialize for a particular base type, or have a type hierarchy on factories
                 if (abase instanceof RDouble) {
                     return new RDoubleView((RDouble) abase, sindex.from(), sindex.to(), sindex.step());
                 }
@@ -520,6 +536,9 @@ public abstract class ReadVector extends BaseR {
                 }
                 if (abase instanceof RList) {
                     return new RListView((RList) abase, sindex.from(), sindex.to(), sindex.step());
+                }
+                if (abase instanceof RString) {
+                    return new RStringView((RString) abase, sindex.from(), sindex.to(), sindex.step());
                 }
                 Utils.nyi("unsupported base vector type");
                 return null;
@@ -723,6 +742,52 @@ public abstract class ReadVector extends BaseR {
                 base.ref();
             }
         }
+
+        static class RStringView extends View.RStringView implements RString {
+            final RString base;
+            final int from;
+            final int to;
+            final int step;
+
+            final int size;
+
+            public RStringView(RString base, int from, int to, int step) {
+                this.base = base;
+                this.from = from;
+                this.to = to;
+                this.step = step;
+
+                int absstep = (step > 0) ? step : -step;
+                if (from <= to) {
+                    size = (to - from + 1) / absstep;
+                } else {
+                    size = (from - to + 1) / absstep;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public String getString(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return base.getString(from + i * step - 1);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return base.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
+            }
+        }
+
     }
 
     // when the index is a vector of integers (selection by index)

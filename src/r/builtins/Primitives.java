@@ -21,6 +21,7 @@ public class Primitives {
         add("/", 2, 2, Operators.DIV_FACTORY);
         add("%*%", 2, 2, Operators.MAT_MULT_FACTORY);
         add("%o%", 2, 2, Operators.OUTER_MULT_FACTORY);
+        add("as.double", 0, -1, Cast.DOUBLE_FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);

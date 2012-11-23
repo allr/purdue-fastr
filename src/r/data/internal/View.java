@@ -88,8 +88,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            Utils.nyi();
-            return null;
+            return new RInt.RStringView(this);
         }
 
         @Override
@@ -161,8 +160,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            Utils.nyi();
-            return null;
+            return new RDouble.RStringView(this);
         }
 
         @Override
@@ -204,8 +202,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            Utils.nyi();
-            return null;
+            return new RLogical.RStringView(this);
         }
 
         @Override
@@ -279,7 +276,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RArray set(int i, String val) {
+        public RString set(int i, String val) {
             return materialize().set(i, val);
         }
 

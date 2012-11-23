@@ -90,8 +90,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
 
     @Override
     public RString asString() {
-        Utils.nyi();
-        return null;
+        return RString.RStringFactory.getScalar(Convert.logical2string(value));
     }
 
     @Override

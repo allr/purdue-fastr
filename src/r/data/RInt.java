@@ -109,18 +109,28 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RList asList() {
+            return rint.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return rint.asString();
+        }
+
+        @Override
         public RInt asInt() {
             return rint;
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return rint.getAttributes();
+        public RLogical asLogical() {
+            return rint.asLogical();
         }
 
         @Override
-        public RLogical asLogical() {
-            return rint.asLogical();
+        public RAttributes getAttributes() {
+            return rint.getAttributes();
         }
 
         @Override
@@ -158,6 +168,21 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RList asList() {
+            return rint.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return rint.asString();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rint.asDouble();
+        }
+
+        @Override
         public RInt asInt() {
             return rint;
         }
@@ -168,14 +193,68 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public int getLogical(int i) {
+            int v = rint.getInt(i);
+            return Convert.int2logical(v);
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return rint.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rint.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rint.dimensions();
+        }
+    }
+
+    public static class RStringView extends View.RStringView implements RString {
+
+        final RInt rint;
+        public RStringView(RInt rint) {
+            this.rint = rint;
+        }
+
+        @Override
+        public int size() {
+            return rint.size();
+        }
+
+        @Override
+        public RList asList() {
+            return rint.asList();
+        }
+
+        @Override
         public RDouble asDouble() {
             return rint.asDouble();
         }
 
         @Override
-        public int getLogical(int i) {
+        public RInt asInt() {
+            return rint;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rint.asLogical();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rint.getAttributes();
+        }
+
+        @Override
+        public String getString(int i) {
             int v = rint.getInt(i);
-            return Convert.int2logical(v);
+            return Convert.int2string(v);
         }
 
         @Override

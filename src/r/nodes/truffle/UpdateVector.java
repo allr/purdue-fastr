@@ -403,6 +403,37 @@ public abstract class UpdateVector extends BaseR {
                 };
                 return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,?>");
             }
+            if (baseTemplate instanceof RString && valueTemplate instanceof ScalarStringImpl) {
+                ValueCopy cpy = new ValueCopy() {
+                    @Override
+                    RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
+                        if (!(base instanceof RString) || !(value instanceof ScalarStringImpl)) {
+                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                        }
+                        RString sbase = (RString) base;
+                        int bsize = sbase.size();
+                        if (pos < 1 || pos > bsize) {
+                            throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                        }
+                        int zpos = pos - 1;
+                        if (!sbase.isShared()) {
+                            return sbase.set(zpos, ((ScalarStringImpl) value).getString());
+                        } else {
+                            String[] content = new String[bsize];
+                            int i = 0;
+                            for (; i < zpos; i++) {
+                                content[i] = sbase.getString(i);
+                            }
+                            content[i++] = ((ScalarStringImpl) value).getString();
+                            for (; i < bsize; i++) {
+                                content[i] = sbase.getString(i);
+                            }
+                            return RString.RStringFactory.getFor(content, base.dimensions());
+                        }
+                    }
+                };
+                return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,ScalarString>");
+            }
             return null;
         }
 
@@ -426,6 +457,9 @@ public abstract class UpdateVector extends BaseR {
                 typedBase = base;
                 rawValue = value;
                 value.ref();
+            } else if (base instanceof RString || value instanceof RString) {
+                typedBase = base.asString();
+                rawValue = value.asString().get(0);
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 rawValue = value.asDouble().get(0);
@@ -1071,7 +1105,64 @@ public abstract class UpdateVector extends BaseR {
                             return RLogical.RLogicalFactory.getFor(content, base.dimensions());
                         }
                     };
-                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RString) {
+                if (valueTemplate instanceof RString) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                            if (!(base instanceof RString && value instanceof RString)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RString typedBase = (RString) base;
+                            RString typedValue = (RString) value;
+                            int bsize = base.size();
+                            int imin = index.min();
+                            int imax = index.max();
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            imin--;
+                            imax--;  // convert to 0-based
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+                            if (isize != vsize) {
+                                throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
+                            }
+                            String[] content = new String[bsize];
+                            int i = 0;
+                            for (; i < imin; i++) {
+                                content[i] = typedBase.getString(i);
+                            }
+                            i = index.from() - 1;  // -1 for 0-based
+                            int step = index.step();
+                            int astep;
+                            int delta;
+                            if (step > 0) {
+                                astep = step;
+                                delta = 1;
+                            } else {
+                                astep = -step;
+                                delta = -1;
+                            }
+                            for (int steps = 0; steps < isize; steps++) {
+                                content[i] = typedValue.getString(steps);
+                                i += delta;
+                                for (int j = 1; j < astep; j++) {
+                                    content[i] = typedBase.getString(i);
+                                    i += delta;
+                                }
+                            }
+                            for (i = imax + 1; i < bsize; i++) {
+                                content[i] = typedBase.getString(i);
+                            }
+                            return RString.RStringFactory.getFor(content, base.dimensions());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");
                 }
                 return null;
             }
@@ -1101,6 +1192,9 @@ public abstract class UpdateVector extends BaseR {
                         if (base instanceof RList) {
                             typedBase = base;
                             typedValue = value.asList();
+                        } else if (base instanceof RString || value instanceof RString) {
+                            typedBase = base.asString();
+                            typedValue = value.asString();
                         } else if (base instanceof RDouble || value instanceof RDouble) {
                             typedBase = base.asDouble();
                             typedValue = value.asDouble();
@@ -1172,7 +1266,6 @@ public abstract class UpdateVector extends BaseR {
             };
             return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Extended>");
         }
-
 
         class Specialized extends IntSequenceSelection {
             final ValueCopy copy;
@@ -1351,6 +1444,9 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base;
                     listValue = value.asList();
                     typedValue = null;
+                } else if (base instanceof RString || value instanceof RString) {
+                    typedBase = base.asString();
+                    typedValue = value.asString();
                 } else if (base instanceof RDouble || value instanceof RDouble) {
                     typedBase = base.asDouble();
                     typedValue = value.asDouble();
@@ -1761,6 +1857,63 @@ public abstract class UpdateVector extends BaseR {
                 }
                 return null;
             }
+            if (baseTemplate instanceof RString) {
+                if (valueTemplate instanceof RString) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override
+                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                            if (!(base instanceof RString)) {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RString typedBase = (RString) base;
+                            RString typedValue;
+                            if (value instanceof RString) {
+                                typedValue = (RString) value;
+                            } else {
+                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int isize = index.size();
+                            if (isize > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
+                            int vsize = typedValue.size();
+                            String[] content = new String[bsize];
+                            int ii = 0;
+                            int vi = 0;
+                            boolean hasNA = false;
+                            for (int bi = 0; bi < bsize; bi++) {
+                                int v = index.getLogical(ii);
+                                ii++;
+                                if (ii == isize) {
+                                    ii = 0;
+                                }
+                                if (v == RLogical.TRUE) {
+                                    content[bi] = typedValue.getString(vi);
+                                    vi++;
+                                    if (vi == vsize) {
+                                        vi = 0;
+                                    }
+                                    continue;
+                                }
+                                if (v == RLogical.NA) {
+                                    hasNA = true;
+                                }
+                                content[bi] = typedBase.getString(bi);
+                            }
+                            if (hasNA && vsize >= 2) {
+                                throw RError.getNASubscripted(ast);
+                            }
+                            if (vi != 0) {
+                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return RString.RStringFactory.getFor(content, base.dimensions());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");
+                }
+                return null;
+            }
             return null;
         }
 
@@ -1849,6 +2002,9 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base;
                     listValue = value.asList();
                     typedValue = null;
+                } else if (base instanceof RString || value instanceof RString) {
+                    typedBase = base.asString();
+                    typedValue = value.asString();
                 } else if (base instanceof RDouble || value instanceof RDouble) {
                     typedBase = base.asDouble();
                     typedValue = value.asDouble();

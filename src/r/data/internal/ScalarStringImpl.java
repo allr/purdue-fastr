@@ -4,11 +4,11 @@ import r.*;
 import r.data.*;
 
 
-public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
+public class ScalarStringImpl extends ArrayImpl implements RString {
 
-    double value;
+    String value;
 
-    public ScalarDoubleImpl(double value) {
+    public ScalarStringImpl(String value) {
         this.value = value;
     }
 
@@ -20,7 +20,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     @Override
     public Object get(int i) {
         Utils.check(i == 0);
-        return  get();
+        return get();
     }
 
     public Object get() {
@@ -44,12 +44,12 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     public RArray set(Object val) {
-        return set(((Double) val).doubleValue());
+        return set((String) val);
     }
 
     @Override
-    public RDouble setDimensions(int[] dimensions) {
-        return RDouble.RDoubleFactory.getFor(new double[] {value}, dimensions);
+    public RString setDimensions(int[] dimensions) {
+        return RString.RStringFactory.getFor(new String[] {value}, dimensions);
     }
 
     @Override
@@ -59,61 +59,57 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     public boolean isNAorNaN() {
-        return RDouble.RDoubleUtils.isNAorNaN(value);
+        return value == RString.NA;
     }
 
-    public boolean isNA() {
-        return RDouble.RDoubleUtils.isNA(value);
+    @Override
+    public ScalarStringImpl materialize() {
+        return this;
     }
 
     @Override
     public String pretty() {
-        return Convert.double2string(value);
+        return value;
     }
 
     @Override
     public RLogical asLogical() {
-        return RLogical.RLogicalFactory.getScalar(Convert.double2logical(value));
+        return RLogical.RLogicalFactory.getScalar(Convert.string2logical(value));
     }
 
     @Override
     public RInt asInt() {
-        return RInt.RIntFactory.getScalar(Convert.double2int(value));
+        return  RInt.RIntFactory.getScalar(Convert.string2int(value));
     }
 
     @Override
     public RDouble asDouble() {
-        return this;
-    }
-
-    @Override
-    public ScalarDoubleImpl materialize() {
-        return this;
+        return RDouble.RDoubleFactory.getScalar(Convert.string2double(value));
     }
 
     @Override
     public RString asString() {
-        return RString.RStringFactory.getScalar(Convert.double2string(value));
-    }
-
-    @Override
-    public RDouble set(int i, double val) {
-        Utils.check(i == 0);
-        return set(val);
-    }
-
-    public RDouble set(double val) {
-        value = val;
         return this;
     }
 
     @Override
-    public double getDouble(int i) {
+    public String getString(int i) {
         Utils.check(i == 0);
-        return getDouble();
+        return getString();
     }
 
-    public double getDouble() {
+    public String getString() {
         return value;
+    }
+
+    @Override
+    public RString set(int i, String val) {
+        Utils.check(i == 0);
+        return set(val);
+    }
+
+    public RString set(String val) {
+        value = val;
+        return this;
     }
 }

@@ -119,13 +119,23 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public RLogical asLogical() {
-            return rdbl.asLogical();
+        public RList asList() {
+            return rdbl.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return rdbl.asString();
         }
 
         @Override
         public RDouble asDouble() {
             return rdbl;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rdbl.asLogical();
         }
 
         @Override
@@ -168,8 +178,13 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public RInt asInt() {
-            return rdbl.asInt();
+        public RList asList() {
+            return rdbl.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return rdbl.asString();
         }
 
         @Override
@@ -178,8 +193,72 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RInt asInt() {
+            return rdbl.asInt();
+        }
+
+        @Override
         public int getLogical(int i) {
             return Convert.double2logical(rdbl.getDouble(i));
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return rdbl.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rdbl.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rdbl.dimensions();
+        }
+    }
+
+    public static class RStringView extends View.RStringView implements RString {
+
+        RDouble rdbl;
+
+        public RStringView(RDouble rdbl) {
+            this.rdbl = rdbl;
+        }
+
+        @Override
+        public int size() {
+            return rdbl.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rdbl.getAttributes();
+        }
+
+        @Override
+        public RList asList() {
+            return rdbl.asList();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rdbl;
+        }
+
+        @Override
+        public RInt asInt() {
+            return rdbl.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rdbl.asLogical();
+        }
+
+        @Override
+        public String getString(int i) {
+            return Convert.double2string(rdbl.getDouble(i));
         }
 
         @Override

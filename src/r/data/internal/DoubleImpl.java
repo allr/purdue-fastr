@@ -129,8 +129,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RString asString() {
-        Utils.nyi();
-        return null;
+        return new RDouble.RStringView(this);
     }
 
     @Override
