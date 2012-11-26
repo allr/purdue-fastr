@@ -74,7 +74,7 @@ public class Arithmetic extends BaseR {
             public abstract Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
         }
 
-        public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+        public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
                     @Override
@@ -87,7 +87,7 @@ public class Arithmetic extends BaseR {
                         if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rdbl));
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarDouble>");
@@ -104,7 +104,7 @@ public class Arithmetic extends BaseR {
                         if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rint));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rint));
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarInt>");
@@ -126,7 +126,7 @@ public class Arithmetic extends BaseR {
                         if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(lint, rdbl));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, lint, rdbl));
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarDouble>");
@@ -144,7 +144,7 @@ public class Arithmetic extends BaseR {
                             if (lint == RInt.NA || rint == RInt.NA) {
                                 return RDouble.BOXED_NA;
                             }
-                            return RDouble.RDoubleFactory.getScalar(arit.op((double) lint, (double) rint));
+                            return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, (double) lint, (double) rint));
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
@@ -160,7 +160,7 @@ public class Arithmetic extends BaseR {
                             if (lint == RInt.NA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.op(context, ast, lint, rint));
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
@@ -229,7 +229,7 @@ public class Arithmetic extends BaseR {
             public abstract Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
         }
 
-        public static SpecializedConst createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+        public static SpecializedConst createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
             // non-const is double
@@ -246,7 +246,7 @@ public class Arithmetic extends BaseR {
                         if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rdbl));
                     }
                 };
                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarDouble, Number>");
@@ -264,7 +264,7 @@ public class Arithmetic extends BaseR {
                         if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rdbl));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rdbl));
                     }
                 };
                 return createRightConst(ast, left, right, arit, c, "<Number, ConstScalarDouble>");
@@ -284,7 +284,7 @@ public class Arithmetic extends BaseR {
                         if (isLeftNA || rint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, rint));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rint));
                     }
                 };
                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarDouble, ScalarInt>");
@@ -302,7 +302,7 @@ public class Arithmetic extends BaseR {
                         if (isRightNA || lint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
-                        return RDouble.RDoubleFactory.getScalar(arit.op(lint, rdbl));
+                        return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, lint, rdbl));
                     }
                 };
                 return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarDouble>");
@@ -323,7 +323,7 @@ public class Arithmetic extends BaseR {
                             if (isLeftNA || rint == RInt.NA) {
                                 return RDouble.BOXED_NA;
                             }
-                            return RDouble.RDoubleFactory.getScalar(arit.op(ldbl, (double) rint));
+                            return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, (double) rint));
                         }
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
@@ -338,7 +338,7 @@ public class Arithmetic extends BaseR {
                             if (isLeftNA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.op(context, ast, lint, rint));
                         }
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
@@ -359,7 +359,7 @@ public class Arithmetic extends BaseR {
                             if (isRightNA || lint == RInt.NA) {
                                 return RDouble.BOXED_NA;
                             }
-                            return RDouble.RDoubleFactory.getScalar(arit.op((double) lint, rdbl));
+                            return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, (double) lint, rdbl));
                         }
                     };
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
@@ -374,7 +374,7 @@ public class Arithmetic extends BaseR {
                             if (isRightNA || lint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.op(context, ast, lint, rint));
                         }
                     };
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
@@ -508,24 +508,24 @@ public class Arithmetic extends BaseR {
     }
 
     public abstract static class ValueArithmetic {
-        public abstract double op(double a, double b);
-        public abstract int op(int a, int b);
+        public abstract double op(RContext context, ASTNode ast, double a, double b);
+        public abstract int op(RContext context, ASTNode ast, int a, int b);
 
-        public double op(double a, int b) {
-            return op(a, (double) b);
+        public double op(RContext context, ASTNode ast, double a, int b) {
+            return op(context, ast, a, (double) b);
         }
-        public double op(int a, double b) {
-            return op((double) a, b);
+        public double op(RContext context, ASTNode ast, int a, double b) {
+            return op(context, ast, (double) a, b);
         }
     }
 
     public static final class Add extends ValueArithmetic {
         @Override
-        public double op(double a, double b) {
+        public double op(RContext context, ASTNode ast, double a, double b) {
             return a + b;
         }
         @Override
-        public int op(int a, int b) {
+        public int op(RContext context, ASTNode ast, int a, int b) {
             int r = a + b;
             boolean bLTr = b < r;
             if (a > 0) {
@@ -543,11 +543,11 @@ public class Arithmetic extends BaseR {
 
     public static final class Sub extends ValueArithmetic {
         @Override
-        public double op(double a, double b) {
+        public double op(RContext context, ASTNode ast, double a, double b) {
             return a - b;
         }
         @Override
-        public int op(int a, int b) {
+        public int op(RContext context, ASTNode ast, int a, int b) {
             int r = a - b;
             if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
                 return r;
@@ -559,11 +559,11 @@ public class Arithmetic extends BaseR {
 
     public static final class Mult extends ValueArithmetic {
         @Override
-        public double op(double a, double b) {
+        public double op(RContext context, ASTNode ast, double a, double b) {
             return a * b;
         }
         @Override
-        public int op(int a, int b) {
+        public int op(RContext context, ASTNode ast, int a, int b) {
             long l = (long) a * (long) b;
             if (!(l < Integer.MIN_VALUE || l > Integer.MAX_VALUE)) {
                 return (int) l;
@@ -575,11 +575,11 @@ public class Arithmetic extends BaseR {
 
     public static final class Pow extends ValueArithmetic {
         @Override
-        public double op(double a, double b) {
+        public double op(RContext context, ASTNode ast, double a, double b) {
             return Math.pow(a, b); // FIXME: check that the R rules correspond to Java
         }
         @Override
-        public int op(int a, int b) {
+        public int op(RContext context, ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
         }
@@ -587,13 +587,69 @@ public class Arithmetic extends BaseR {
 
     public static final class Div extends ValueArithmetic {
         @Override
-        public double op(double a, double b) {
+        public double op(RContext context, ASTNode ast, double a, double b) {
             return a / b; // FIXME: check that the R rules correspond to Java
         }
         @Override
-        public int op(int a, int b) {
+        public int op(RContext context, ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
+        }
+    }
+
+    public static final class IntegerDiv extends ValueArithmetic {
+        @Override
+        public double op(RContext context, ASTNode ast, double a, double b) {
+            double q = a / b;
+            if (b != 0) {
+                double qfloor = Math.floor(q);
+                double tmp = a - qfloor * b; // FIXME: this is R implementation, check if we can avoid this in Java
+                return qfloor + Math.floor(tmp / b);
+
+            } else {
+                return q;
+            }
+        }
+        @Override
+        public int op(RContext context, ASTNode ast, int a, int b) {
+            if (b != 0) {
+                return (int) Math.floor((double) a / (double) b); // FIXME: this is R implementation, can we do faster without floating point?
+            } else {
+                return RInt.NA;
+            }
+        }
+    }
+
+    public static double fmod(RContext context, ASTNode ast, double a, double b) { // FIXME: this is R implementation, can we do faster in Java?
+        double q = a / b;
+        if (b != 0) {
+            double tmp = a - Math.floor(q) * b;
+            if (RDouble.RDoubleUtils.isFinite(q) && Math.abs(q) > 1 / RDouble.EPSILON) {
+                // FIXME: warning: probable complete loss of accuracy in modulus
+                context.warning(ast, RError.ACCURACY_MODULUS);
+            }
+            return tmp - Math.floor(tmp / b) * b;
+        } else {
+            return RDouble.NaN;
+        }
+    }
+
+    public static final class Mod extends ValueArithmetic {
+        @Override
+        public double op(RContext context, ASTNode ast, double a, double b) {
+            return fmod(context, ast, a, b);
+        }
+        @Override
+        public int op(RContext context, ASTNode ast, int a, int b) {
+            if (b != 0) {
+                if (a >= 0 && b > 0) {
+                    return a % b;
+                } else {
+                    return (int) fmod(context, ast, a, b);
+                }
+            } else {
+                return RInt.NA;
+            }
         }
     }
 
@@ -602,6 +658,8 @@ public class Arithmetic extends BaseR {
     public static final Mult MULT = new Mult();
     public static final Pow POW = new Pow();
     public static final Div DIV = new Div();
+    public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
+    public static final Mod MOD = new Mod();
 
     static class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;
@@ -717,7 +775,7 @@ public class Arithmetic extends BaseR {
             if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
                 return RDouble.NA;
             } else {
-                return arit.op(adbl, bdbl);
+                return arit.op(context, ast, adbl, bdbl);
             }
          }
 
@@ -817,7 +875,7 @@ public class Arithmetic extends BaseR {
             if (aint == RInt.NA || bint == RInt.NA) {
                 return RInt.NA;
             } else {
-                int res = arit.op(aint, bint);
+                int res = arit.op(context, ast, aint, bint);
                 if (res == RInt.NA && !overflown) {
                     overflown = true;
                     context.warning(ast, RError.INTEGER_OVERFLOW);

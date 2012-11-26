@@ -7,6 +7,7 @@ public interface RDouble extends RNumber {
     String TYPE_STRING = "numeric";
     long NA_LONGBITS = 0x7ff00000000007a2L; // R's NA is a special instance of IEEE's NaN
     double NA = Double.longBitsToDouble(NA_LONGBITS);
+    double NaN = Double.NaN;
     double EPSILON = Math.pow(2.0, -52.0);
     double NEG_INF = Double.NEGATIVE_INFINITY;
 

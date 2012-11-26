@@ -114,6 +114,15 @@ public class BasicVisitor implements Visitor {
         visit((BinaryOperation) op);
     }
 
+    @Override
+    public void visit(IntegerDiv op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
+    public void visit(Mod op) {
+        visit((BinaryOperation) op);
+    }
 
     @Override
     public void visit(Pow op) {

@@ -354,6 +354,16 @@ public class Truffleize implements Visitor {
     }
 
     @Override
+    public void visit(IntegerDiv div) {
+        result = new r.nodes.truffle.Arithmetic(div, createTree(div.getLHS()), createTree(div.getRHS()), r.nodes.truffle.Arithmetic.INTEGER_DIV);
+    }
+
+    @Override
+    public void visit(Mod mod) {
+        result = new r.nodes.truffle.Arithmetic(mod, createTree(mod.getLHS()), createTree(mod.getRHS()), r.nodes.truffle.Arithmetic.MOD);
+    }
+
+    @Override
     public void visit(Pow pow) {
         result = new r.nodes.truffle.Arithmetic(pow, createTree(pow.getLHS()), createTree(pow.getRHS()), r.nodes.truffle.Arithmetic.POW);
     }

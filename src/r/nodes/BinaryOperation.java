@@ -29,8 +29,9 @@ public abstract class BinaryOperation extends Operation {
             case MULT: return new Mult(left, right);
             case MAT_MULT: return new MatMult(left, right);
             case OUTER_MULT: return new OuterMult(left, right);
+            case INTEGER_DIV: return new IntegerDiv(left, right);
             case DIV: return new Div(left, right);
-            case MOD: return new Add(left, right);
+            case MOD: return new Mod(left, right);
             case POW: return new Pow(left, right);
 
             case OR: return new Add(left, right); // FIXME
@@ -65,6 +66,7 @@ public abstract class BinaryOperation extends Operation {
         MAT_MULT,
         OUTER_MULT,
         DIV,
+        INTEGER_DIV,
         MOD,
 
         POW,

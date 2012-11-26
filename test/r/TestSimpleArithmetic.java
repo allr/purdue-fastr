@@ -21,6 +21,20 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ 1L*NA }", "NA");
         assertEval("{ 1+NA }", "NA");
         assertEval("{ 2L^10L }", "1024.0");
+
+        assertEval("{ 3 %/% 2 }", "1.0");
+        assertEval("{ 3L %/% 2L }", "1L");
+        assertEval("{ 3L %/% -2L }", "-2L");
+        assertEval("{ 3 %/% -2 }", "-2.0");
+        assertEval("{ 3 %/% 0 }", "Infinity");
+        assertEval("{ 3L %/% 0L }", "NA"); // note this would return 0L in earlier versions of R
+
+        assertEval("{ 3 %% 2 }", "1.0");
+        assertEval("{ 3L %% 2L }", "1L");
+        assertEval("{ 3L %% -2L }", "-1L");
+        assertEval("{ 3 %% -2 }", "-1.0");
+        assertEval("{ 3 %% 0 }", "NaN");
+        assertEval("{ 3L %% 0L }", "NA");
     }
 
     @Test
@@ -68,5 +82,8 @@ public class TestSimpleArithmetic extends TestBase {
 
         // outer product
         assertEval("{ 1:3 %o% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
+
+        // precedence
+        assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");
     }
 }

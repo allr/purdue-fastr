@@ -57,6 +57,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_WHICH_NOT_LOGICAL = "argument to 'which' is not logical";
     public static final String X_NUMERIC = "'x' must be numeric";
     public static final String X_ARRAY_TWO = "'x' must be an array of at least two dimensions";
+    public static final String ACCURACY_MODULUS = "probable complete loss of accuracy in modulus";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";

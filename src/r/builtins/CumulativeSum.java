@@ -54,7 +54,7 @@ public class CumulativeSum {
                 if (value == RInt.NA) {
                     return finishWithNAs(content, i);
                 }
-                accum = Arithmetic.ADD.op(accum, value);
+                accum = Arithmetic.ADD.op(context, ast, accum, value);
                 if (accum == RInt.NA) {
                     context.warning(ast, RError.INTEGER_OVERFLOW);
                     return finishWithNAs(content, i);

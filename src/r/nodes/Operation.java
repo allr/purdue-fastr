@@ -12,6 +12,8 @@ public abstract class Operation extends ASTNode {
 
     public static final int MAT_MULT_PRECEDENCE = MULT_PRECEDENCE + 1;
     public static final int OUTER_MULT_PRECEDENCE = MAT_MULT_PRECEDENCE;
+    public static final int INTEGER_DIV_PRECEDENCE = MAT_MULT_PRECEDENCE;
+    public static final int MOD_PRECEDENCE = MAT_MULT_PRECEDENCE;
 
     public static final int COLON_PRECEDENCE = MAT_MULT_PRECEDENCE + 1;
     public static final int SIGN_PRECEDENCE = COLON_PRECEDENCE + 1;
