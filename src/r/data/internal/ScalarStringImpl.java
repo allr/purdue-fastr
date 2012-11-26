@@ -69,7 +69,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public String pretty() {
-        return value;
+        return "\"" + value + "\"";
     }
 
     @Override

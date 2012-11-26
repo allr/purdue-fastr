@@ -260,6 +260,15 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testStrSplit() throws RecognitionException {
+        assertEval("{ strsplit(\"helloh\", \"h\", fixed=TRUE) }", "[[1]]\n\"\", \"ello\"");
+        assertEval("{ strsplit( c(\"helloh\", \"hi\"), c(\"h\",\"\"), fixed=TRUE) }", "[[1]]\n\"\", \"ello\"\n\n[[2]]\n\"h\", \"i\"");
+        assertEval("{ strsplit(\"helloh\", \"\", fixed=TRUE) }", "[[1]]\n\"h\", \"e\", \"l\", \"l\", \"o\", \"h\"");
+        assertEval("{ strsplit(\"helloh\", \"h\") }", "[[1]]\n\"\", \"ello\"");
+        assertEval("{ strsplit( c(\"helloh\", \"hi\"), c(\"h\",\"\")) }", "[[1]]\n\"\", \"ello\"\n\n[[2]]\n\"h\", \"i\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

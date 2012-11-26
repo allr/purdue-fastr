@@ -54,6 +54,7 @@ public class Primitives {
         add("sapply", 2, -1, Apply.SAPPLY_FACTORY);
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);
+        add("strsplit", 1, 5, StrSplit.FACTORY);
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
