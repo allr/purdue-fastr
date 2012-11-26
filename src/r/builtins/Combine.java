@@ -28,6 +28,7 @@ public class Combine {
         boolean hasLogical = false;
         boolean hasInt = false;
         boolean hasList = false;
+        boolean hasString = false;
         for (int i = 0; i < params.length; i++) {
             RAny v = params[i];
 
@@ -37,6 +38,8 @@ public class Combine {
             }
             if (v instanceof RList) {
                 hasList = true;
+            } else if (v instanceof RString) {
+                hasString = true;
             } else if (v instanceof RDouble) {
                 hasDouble = true;
             } else if (v instanceof RInt) {
@@ -70,6 +73,16 @@ public class Combine {
                     }
                 }
                 offset += asize;
+            }
+            return res;
+        }
+        if (hasString) {
+            RString res = RString.RStringFactory.getUninitializedArray(len);
+            for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
+                offset = fillIn(res, v instanceof RString ? (RString) v : v.asString(), offset);
             }
             return res;
         }
@@ -154,6 +167,24 @@ public class Combine {
         }
 
         public static Specialized createSimpleScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
+            if (typeTemplate instanceof ScalarStringImpl) {
+                CombineAction a = new CombineAction() {
+                    @Override
+                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                        int size = params.length;
+                        String[] content = new String[size];
+                        for (int i = 0; i < size; i++) {
+                            RAny v = params[i];
+                            if (!(v instanceof ScalarStringImpl)) {
+                                throw new UnexpectedResultException(Transition.CASTING_SCALARS);
+                            }
+                            content[i] = ((ScalarStringImpl) v).getString();
+                        }
+                        return RString.RStringFactory.getFor(content);
+                    }
+                };
+                return new Specialized(ast, names, exprs, a);
+            }
             if (typeTemplate instanceof ScalarDoubleImpl) {
                 CombineAction a = new CombineAction() {
                     @Override

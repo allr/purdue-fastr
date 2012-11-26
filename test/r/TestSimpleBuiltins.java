@@ -88,6 +88,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ c(NULL,1,2,3) }", "1.0, 2.0, 3.0");
         assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) }", "1.0, 1.0");
         assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) ; f(NULL, NULL) }", "NULL");
+        assertEval("{ c(\"hello\", \"hi\") }", "\"hello\", \"hi\"");
     }
 
     @Test
@@ -249,6 +250,13 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ m <- matrix(c(NA,2,3,4,NA,6), nrow=2) ; colSums(na.rm = TRUE, m) }", "2.0, 7.0, 6.0");
         assertEval("{ m <- matrix(c(NA,2,3,4,NA,6), nrow=2) ; colMeans(m) }", "NA, 3.5, NA");
         assertEval("{ m <- matrix(c(NA,2,3,4,NA,6), nrow=2) ; colMeans(m, na.rm = TRUE) }", "2.0, 3.5, 6.0");
+    }
+
+    @Test
+    public void testNChar() throws RecognitionException {
+        assertEval("{ nchar(c(\"hello\", \"hi\")) }", "5L, 2L");
+        assertEval("{ nchar(c(\"hello\", \"hi\", 10, 130)) }", "5L, 2L, 4L, 5L"); // incompatible with R because of different number printing
+        assertEval("{ nchar(c(10,130)) }", "4L, 5L"); // incompatible with R because of different number printing
     }
 
     @Test
