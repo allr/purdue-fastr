@@ -114,6 +114,16 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.double(\"1.27\") }", "1.27");
         assertEval("{ as.double(1L) }", "1.0");
         assertEval("{ as.double(\"TRUE\") }", "NA");
+
+        assertEval("{ as.character(1L) }", "\"1L\"");
+        assertEval("{ as.character(TRUE) }", "\"TRUE\"");
+        assertEval("{ as.character(1:3) }", "\"1L\", \"2L\", \"3L\"");
+        assertEval("{ as.character(NULL) }", "character(0)");
+        assertEval("{ as.character(list(c(\"hello\", \"hi\"))) }", "\"c(\\\"hello\\\", \\\"hi\\\")\"");
+        assertEval("{ as.character(list(list(c(\"hello\", \"hi\")))) }", "\"list(c(\\\"hello\\\", \\\"hi\\\"))\"");
+        assertEval("{ as.character(list(1,2,3)) }", "\"1.0\", \"2.0\", \"3.0\"");
+        assertEval("{ as.character(list(c(2L, 3L))) }", "\"2:3\"");
+        assertEval("{ as.character(list(c(2L, 3L, 5L))) }", "\"c(2L, 3L, 5L)\"");
     }
 
     @Test

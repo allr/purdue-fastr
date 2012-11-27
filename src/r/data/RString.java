@@ -7,7 +7,7 @@ public interface RString extends RArray {
 
     String TYPE_STRING = "character";
 
-    ScalarStringImpl EMPTY = RStringFactory.getScalar("");
+    StringImpl EMPTY = (StringImpl) RStringFactory.getUninitializedArray(0);
     String NA = null;
     ScalarStringImpl BOXED_NA = RStringFactory.getScalar(NA);
 

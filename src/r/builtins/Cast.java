@@ -9,6 +9,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// FIXME: only partial implementation, particularly of as.character (as.character in R deparses lists, etc)
 // FIXME: There is no warning when NAs are introduced; this could be fixed in case of lists (below), but not with lazy casts (views)
 
 // FIXME: Truffle can't handle BuiltIn1
@@ -147,10 +148,136 @@ public class Cast {
         return null;
     }
 
-    public static RAny genericAsCharacter(ASTNode ast, RAny arg) {
-        Utils.nyi();
+    public static boolean isRecursive(RList list) {
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+            if (list.getRAny(i) instanceof RList) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String deparse(RAny v, boolean quote) {
+        if (v instanceof RNull) {
+            return "NULL";
+        }
+        if (v instanceof RArray) {
+            RArray a = (RArray) v;
+            int size = a.size();
+            if (size == 0) {
+                return v.pretty(); // e.g. "character(0)"
+            } else if (size == 1) {
+                if (!quote || !(a instanceof RString)) {
+                    return v.pretty(); // e.g. 1L
+                } else {
+                    return "\\\"" + ((RString) a).getString(0) + "\\\""; // FIXME: quote also the string content
+                }
+            } else {
+                if (v instanceof RInt) {
+                    RInt ival = (RInt) v;
+                    int from = ival.getInt(0);
+                    int last = from;
+                    boolean isSequence = true;
+                    for (int i = 1; i < size; i++) {
+                        int n = ival.getInt(i);
+                        if (n - 1 == last) {
+                            last = n;
+                        } else {
+                            isSequence = false;
+                            break;
+                        }
+                    }
+                    if (isSequence) {
+                        return Integer.toString(from) + ":" + Integer.toString(last);
+                    }
+                }
+                StringBuilder str = new StringBuilder();
+                str.append("c(");
+                for (int i = 0; i < size; i++) {
+                    if (i > 0) {
+                        str.append(", ");
+                    }
+                    RAny e = ((RArray) v).boxedGet(i); // FIXME: boxing
+                    if (!(e instanceof RString)) {
+                        str.append(e.pretty());
+                    } else {
+                        str.append("\\\"");
+                        str.append(((RString) e).getString(0));
+                        str.append("\\\"");
+                    }
+                }
+                str.append(")");
+                return str.toString();
+            }
+        }
+        Utils.nyi("unsupported type");
         return null;
     }
+
+    public static void listAsString(ASTNode ast, StringBuilder str, RList list, boolean isRecursive) {
+        int size = list.size();
+        if (!isRecursive) {
+            for (int i = 0; i < size; i++) {
+                if (i > 0) {
+                    str.append(", ");
+                }
+                RAny e = list.getRAny(i);
+                str.append(deparse(e, true));
+            }
+        } else {
+            str.append("list(");
+            for (int i = 0; i < size; i++) {
+                if (i > 0) {
+                    str.append(", ");
+                }
+                RAny e = list.getRAny(i);
+                if (e instanceof RList) {
+                    RList child = (RList) e;
+                    listAsString(ast, str, child, isRecursive(child));
+                } else {
+                    str.append(deparse(e, true));
+                }
+            }
+            str.append(")");
+        }
+    }
+
+    public static RAny genericAsString(ASTNode ast, RAny arg) {
+        if (!(arg instanceof RList)) {
+            return arg.asString().stripAttributes();
+        } else {
+            RList list = (RList) arg;
+            if (!isRecursive(list)) {
+                int size = list.size();
+                String[] content = new String[size];
+                for (int i = 0; i < size; i++) {
+                    RAny e = list.getRAny(i);
+                    content[i] = deparse(e, false);
+                }
+                return RString.RStringFactory.getFor(content);
+            } else {
+                StringBuilder str = new StringBuilder();
+                listAsString(ast, str, list, true);
+                return RString.RStringFactory.getScalar(str.toString());
+            }
+        }
+    }
+
+    public static final CallFactory STRING_FACTORY = new SimpleCastFactory(
+                    new Operation() {
+
+                        @Override
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsString(ast, arg);
+                        }
+
+                        @Override
+                        public RAny getEmpty() {
+                            return RString.EMPTY;
+                        }
+                    });
+
 
     private static final String[] asVectorParamNames = new String[]{"x", "mode"};
 
@@ -184,7 +311,7 @@ public class Cast {
             return genericAsList(ast, arg0);
         }
         if (mode.equals("character")) {
-            return genericAsCharacter(ast, arg0);
+            return genericAsString(ast, arg0);
         }
         Utils.nyi("unsupported mode");
         return null;
