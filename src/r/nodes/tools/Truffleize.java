@@ -165,10 +165,17 @@ public class Truffleize implements Visitor {
 
     }
 
-    private RSymbol[] convertedNames;
-    private RNode[] convertedExpressions;
+    private static class SplitArgumentList {
+        RSymbol[] convertedNames;
+        RNode[] convertedExpressions;
 
-    private void splitArgumentList(ArgumentList alist, boolean root) {
+        SplitArgumentList(RSymbol[] convertedNames, RNode[] convertedExpressions) {
+            this.convertedNames = convertedNames;
+            this.convertedExpressions = convertedExpressions;
+        }
+    }
+
+    private SplitArgumentList splitArgumentList(ArgumentList alist, boolean root) {
         int args = alist.size();
         RSymbol[] names = new RSymbol[args];
         RNode[] expressions = new RNode[args];
@@ -190,8 +197,7 @@ public class Truffleize implements Visitor {
             i++;
         }
         assert Utils.check(i == args);
-        convertedNames = names;
-        convertedExpressions = expressions;
+        return new SplitArgumentList(names, expressions);
     }
 
     @Override
@@ -200,10 +206,10 @@ public class Truffleize implements Visitor {
 
         RFunction encf = getEnclosingFunction(function);
 
-        splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
+        SplitArgumentList a = splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
 
             // note: body has to be built lazily, otherwise nested functions won't work correctly
-        RFunction impl = function.createImpl(convertedNames, convertedExpressions, createLazyRootTree(function.getBody()), encf);
+        RFunction impl = function.createImpl(a.convertedNames, a.convertedExpressions, createLazyRootTree(function.getBody()), encf);
         r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
 
         result = functionNode;
@@ -224,7 +230,7 @@ public class Truffleize implements Visitor {
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
-        splitArgumentList(functionCall.getArgs(), true);
+        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), true);
 
         RSymbol sym = functionCall.getName();
         r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
@@ -232,7 +238,7 @@ public class Truffleize implements Visitor {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
 
-        RNode rCall = factory.create(functionCall, convertedNames, convertedExpressions);
+        RNode rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
 
         if (!functionCall.isAssignment()) {
             result = rCall;
@@ -240,21 +246,22 @@ public class Truffleize implements Visitor {
         }
 
         // replacement assignment
-        RNode valueExpr = convertedExpressions[convertedExpressions.length - 1];
+        RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
         RememberLast remValueExpr = new RememberLast(valueExpr.getAST(), valueExpr);
-        SimpleAccessVariable xAST = (SimpleAccessVariable) convertedExpressions[0].getAST();
+        SimpleAccessVariable xAST = (SimpleAccessVariable) a.convertedExpressions[0].getAST();
 
         result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), rCall, remValueExpr);
     }
 
     @Override
     public void visit(AccessVector a) {
-        splitArgumentList(a.getArgs(), false);
-        if (convertedExpressions.length == 1) {
+        SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
+
+        if (sa.convertedExpressions.length == 1) {
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-              result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+              result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
-              RNode e = convertedExpressions[0];
+              RNode e = sa.convertedExpressions[0];
               if (e instanceof r.nodes.truffle.Constant) {
                   RAny v = (RAny) e.execute(null, null);
                   if (v instanceof RDouble || v instanceof RInt) {
@@ -262,13 +269,13 @@ public class Truffleize implements Visitor {
                       if (iv.size() == 1) {
                           int index = v.asInt().getInt(0);
                           if (index > 0) {
-                              result = new ReadVector.SimpleConstantScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, index, a.isSubset());
+                              result = new ReadVector.SimpleConstantScalarIntSelection(a, createTree(a.getVector()), sa.convertedExpressions, index, a.isSubset());
                               return;
                           }
                       }
                   }
               }
-              result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), convertedExpressions, a.isSubset());
+              result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             }
         }
     }
@@ -276,18 +283,18 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(UpdateVector u) {
         AccessVector a = u.getVector();
-        splitArgumentList(a.getArgs(), false);
+        SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
 
-        if (convertedExpressions.length == 1) {
+        if (sa.convertedExpressions.length == 1) {
             ASTNode varAccess = a.getVector();
             if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expecting vector name for vector update");
             }
             RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-                result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
-                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         }
     }
