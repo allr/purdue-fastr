@@ -120,8 +120,8 @@ public class Outer {
             RArray expy = expandYVector(y, ysize, xsize);
             RArray expx = null;
             if (xsize > 0) {
-                int count = (int) Math.ceil((double) ysize / (double) xsize);
-                expx = expandXVector(x, xsize, count);
+//                int count = (int) Math.ceil((double) expy.size() / (double) xsize);
+                expx = expandXVector(x, xsize, ysize);
             } else {
                 expx = x;
             }

@@ -174,6 +174,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ outer(1:3,1:2,\"*\") }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
         assertEval("{ outer(1, 3, \"-\") }", "     [,1]\n[1,] -2.0");
         assertEval("{ outer(1:3,1:2, function(x,y,z) { x*y*z }, 10) }", "     [,1] [,2]\n[1,] 10.0 20.0\n[2,] 20.0 40.0\n[3,] 30.0 60.0");
+        assertEval("{ outer(1:2, 1:3, \"<\") }", "      [,1]  [,2] [,3]\n[1,] FALSE  TRUE TRUE\n[2,] FALSE FALSE TRUE");
     }
 
     @Test

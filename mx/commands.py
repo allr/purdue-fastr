@@ -19,6 +19,7 @@ def mx_init():
       'rbinarytrees': [rbinarytreesServer, '[size]'],
       'rspectralnorm': [rspectralnormServer, '[size]'],      
       'rnbody': [rnbodyServer, '[size]'],
+      'rfasta': [rfastaServer, '[size]'],
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, '']
   }
@@ -80,6 +81,10 @@ def rnbodyServer(args):
   """Run NBody with the HotSpot server VM"""  
   rnbody(args, [], 'server')
 
+def rfastaServer(args):
+  """Run Fasta with the HotSpot server VM"""  
+  rfasta(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -109,6 +114,10 @@ def rspectralnorm(args, vmArgs, vm):
 def rnbody(args, vmArgs, vm):
   """Run NBody benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "nbody", "nbody.r", "1000L");
+
+def rfasta(args, vmArgs, vm):
+  """Run Fasta benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "fasta", "fasta.r", "10000L");
 
 # ------------------
   

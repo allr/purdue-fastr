@@ -525,6 +525,7 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
+                Utils.debug("XXX");
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions);

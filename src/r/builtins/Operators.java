@@ -83,4 +83,26 @@ public class Operators {
             return new MatrixOperation.OuterProduct(ast, exprs[0], exprs[1]);
         }
     };
+
+    public static final class ComparisonCallFactory extends CallFactory {
+        final Comparison.ValueComparison cmp;
+
+        ComparisonCallFactory(Comparison.ValueComparison cmp) {
+            this.cmp = cmp;
+        }
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 2
+            return new Comparison(ast, exprs[0], exprs[1], cmp);
+        }
+    }
+
+    public static final CallFactory EQ_FACTORY = new ComparisonCallFactory(Comparison.getEQ());
+    public static final CallFactory NE_FACTORY = new ComparisonCallFactory(Comparison.getNE());
+    public static final CallFactory GT_FACTORY = new ComparisonCallFactory(Comparison.getGT());
+    public static final CallFactory LT_FACTORY = new ComparisonCallFactory(Comparison.getLT());
+    public static final CallFactory GE_FACTORY = new ComparisonCallFactory(Comparison.getGE());
+    public static final CallFactory LE_FACTORY = new ComparisonCallFactory(Comparison.getLE());
+
 }

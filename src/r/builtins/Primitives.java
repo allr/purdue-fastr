@@ -19,6 +19,12 @@ public class Primitives {
         add("-", 1, 2, Operators.SUB_FACTORY);
         add("*", 2, 2, Operators.MULT_FACTORY);
         add("/", 2, 2, Operators.DIV_FACTORY);
+        add("==", 2, 2, Operators.EQ_FACTORY);
+        add("!=", 2, 2, Operators.NE_FACTORY);
+        add(">", 2, 2, Operators.GT_FACTORY);
+        add("<", 2, 2, Operators.LT_FACTORY);
+        add("<=", 2, 2, Operators.LE_FACTORY);
+        add(">=", 2, 2, Operators.GE_FACTORY);
         add("%*%", 2, 2, Operators.MAT_MULT_FACTORY);
         add("%o%", 2, 2, Operators.OUTER_MULT_FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
