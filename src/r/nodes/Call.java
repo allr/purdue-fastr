@@ -1,6 +1,5 @@
 package r.nodes;
 
-import r.*;
 import r.data.*;
 import r.nodes.ArgumentList.Entry;
 

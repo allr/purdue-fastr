@@ -234,7 +234,7 @@ expr_subset [ASTNode i] returns [ASTNode v]
     | (AT n_ name=id)  { v = FieldAccess.create(FieldOperator.AT, i, name.getText()); } 
     | (LBRAKET subset=args RBRAKET) { v = Call.create(CallOperator.SUBSET, i, subset); ArgumentList.Default.updateParent(v, subset); }
     | (LBB subscript=args RBRAKET RBRAKET) { v = Call.create(CallOperator.SUBSCRIPT, i, subscript); ArgumentList.Default.updateParent(v, subscript); }
-    // Must use RBRAKET in`stead of RBB beacause of : a[b[1]]
+    // Must use RBRAKET instead of RBB beacause of : a[b[1]]
     | (LPAR a=args RPAR)  { v = Call.create(i, a);  ArgumentList.Default.updateParent(v, a); } 
     //| { v = i; }
     ;
@@ -248,7 +248,7 @@ simple_expr returns [ASTNode v]
 	| id NS_GET n_ id
 	| id NS_GET_INT n_ id
 	| LPAR n_ ea = expr_or_assign n_ RPAR { $v = ea; }
-	| s = sequence { $v = s;}
+	| s = sequence { $v = s; }
 	| e = expr_wo_assign { $v = e; }
 	;
 number returns [ASTNode n]

@@ -151,6 +151,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public void ref() {
             l.ref();
         }
+
+        @Override
+        public int[] dimensions() {
+            return l.dimensions();
+        }
     }
 
     public static class RIntView extends View.RIntView implements RInt {
@@ -203,6 +208,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public void ref() {
             l.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return l.dimensions();
         }
     }
 
@@ -257,6 +267,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public void ref() {
             l.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return l.dimensions();
         }
     }
 

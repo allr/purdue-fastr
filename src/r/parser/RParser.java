@@ -1,4 +1,4 @@
-// $ANTLR !Unknown version! R.g 2012-11-27 15:43:59
+// $ANTLR !Unknown version! R.g 2012-11-27 16:32:18
 
 package r.parser;
 
@@ -3727,7 +3727,7 @@ public class RParser extends Parser {
                     state._fsp--;
                     if (state.failed) return v;
                     if ( state.backtracking==0 ) {
-                       v = s;
+                       v = s; 
                     }
 
                     }

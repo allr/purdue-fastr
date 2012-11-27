@@ -275,12 +275,7 @@ public class Function extends ASTNode {
 
         @Override
         public void visit(AccessVector n) {
-            ASTNode v = n.getVector();
-            if (!(v instanceof SimpleAccessVariable)) {
-                Utils.nyi("unsupported");
-            }
-            read.add(((SimpleAccessVariable) v).getSymbol());
-            n.visit_all(this);
+            n.visit_all(this); // includes a visit of the base of the vector
         }
     }
 }
