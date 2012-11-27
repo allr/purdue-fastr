@@ -464,13 +464,25 @@ STRING
 STRING
 @init { final StringBuilder buf = new StringBuilder(); }
 :
-    '"'
+    ('\"'
     (
     ESCAPE[buf]
     | i = ~( '\\' | '"' ) { buf.appendCodePoint(i); }
     )*
-    '"'
-    { setText(buf.toString()); };
+    '\"'
+    { setText(buf.toString()); }
+    )
+    |
+    (
+    '\''
+    (
+    ESCAPE[buf]
+    | i = ~( '\\' | '\'' ) { buf.appendCodePoint(i); }
+    )*
+    '\''
+    { setText(buf.toString()); }
+    )
+    ;
 
 /* not supporting \v and \a */
 fragment ESCAPE[StringBuilder buf] :
@@ -481,6 +493,7 @@ fragment ESCAPE[StringBuilder buf] :
     | 'b' { buf.append('\b'); }
     | 'f' { buf.append('\f'); }
     | '"' { buf.append('\"'); }
+    | '\'' { buf.append('\''); }
     | '\\' { buf.append('\\'); }
     | 'x' a = HEX_DIGIT b = HEX_DIGIT { buf.append(ParseUtil.hexChar($a.text, $b.text)); }
     | 'u' a = HEX_DIGIT b = HEX_DIGIT c = HEX_DIGIT d = HEX_DIGIT { buf.append(ParseUtil.hexChar($a.text, $b.text, $c.text, $d.text)); }
