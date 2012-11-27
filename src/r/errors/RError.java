@@ -58,6 +58,7 @@ public abstract class RError extends RuntimeException {
     public static final String X_NUMERIC = "'x' must be numeric";
     public static final String X_ARRAY_TWO = "'x' must be an array of at least two dimensions";
     public static final String ACCURACY_MODULUS = "probable complete loss of accuracy in modulus";
+    public static final String INVALID_SEPARATOR = "invalid separator";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -68,7 +69,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_MISSING = "argument '%s' is missing, with no default";
     public static final String UNKNOWN_FUNCTION = "could not find function '%s'";
     public static final String UNKNOWN_OBJECT = "object '%s' not found";
-    public static final String INVALID_ARGUMENT = "invalid '%s' argument";  // non-R
+    public static final String INVALID_ARGUMENT = "invalid '%s' argument";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -592,6 +593,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.X_ARRAY_TWO;
+            }
+        };
+    }
+
+    public static RError getInvalidSeparator(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_SEPARATOR;
             }
         };
     }

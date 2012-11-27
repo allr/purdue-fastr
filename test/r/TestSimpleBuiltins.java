@@ -279,6 +279,14 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testPaste() throws RecognitionException {
+        assertEval("{ paste(1:2, 1:3, FALSE, collapse=NULL) }", "\"1L 1L FALSE\", \"2L 2L FALSE\", \"1L 3L FALSE\"");
+        assertEval("{ paste(1:2, 1:3, FALSE, collapse=\"-\", sep=\"+\") }", "\"1L+1L+FALSE-2L+2L+FALSE-1L+3L+FALSE\"");
+        assertEval("{ paste() }", "character(0)");
+        assertEval("{ paste(sep=\"\") }", "character(0)");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

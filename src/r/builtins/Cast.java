@@ -243,9 +243,9 @@ public class Cast {
         }
     }
 
-    public static RAny genericAsString(ASTNode ast, RAny arg) {
+    public static RString genericAsString(ASTNode ast, RAny arg) {
         if (!(arg instanceof RList)) {
-            return arg.asString().stripAttributes();
+            return (RString) arg.asString().stripAttributes();
         } else {
             RList list = (RList) arg;
             if (!isRecursive(list)) {

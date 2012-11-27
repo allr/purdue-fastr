@@ -47,6 +47,7 @@ public class Primitives {
         add("ncol", 1, 1, Dimensions.NCOL_FACTORY);
         add("nrow", 1, 1, Dimensions.NROW_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
+        add("paste", 0, -1, Paste.FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
         add("rep.int", 2, 2, Rep.FACTORY);
         add("return", 0, 1, Return.FACTORY);
