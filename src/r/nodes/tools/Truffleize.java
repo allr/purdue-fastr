@@ -253,11 +253,14 @@ public class Truffleize implements Visitor {
         result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), rCall, remValueExpr);
     }
 
+    final RSymbol dropName = RSymbol.getSymbol("drop");
+    final RSymbol exactName = RSymbol.getSymbol("exact");
+
     @Override
     public void visit(AccessVector a) {
         SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
 
-        if (sa.convertedExpressions.length == 1) {
+        if (sa.convertedExpressions.length == 1) { // vector
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
@@ -277,7 +280,53 @@ public class Truffleize implements Visitor {
               }
               result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             }
+            return;
         }
+        if (sa.convertedExpressions.length >= 2) { // matrix ?
+            RNode drop = null;
+            RNode exact = null;
+            RNode isel = null;
+            RNode jsel = null;
+
+            RNode[] nodes = sa.convertedExpressions;
+            RSymbol[] names = sa.convertedNames;
+            int dims = 0;
+
+            for (int i = 0; i < nodes.length; i++) {
+                if (names[i] == dropName) {
+                    if (drop != null) {
+                        throw RError.getIncorrectSubscripts(a);
+                    }
+                    drop = nodes[i];
+                    continue;
+                }
+                if (names[i] == exactName) {
+                    if (exact != null) {
+                        throw RError.getIncorrectSubscripts(a);
+                    }
+                    exact = nodes[i];
+                    continue;
+                }
+                if (dims == 0) {
+                    isel = nodes[i]; // NOTE: nodes[i] can be legally null, e.g. in m[,1], isel is null
+                    dims++;
+                    continue;
+                }
+                if (dims == 1) {
+                    jsel = nodes[i];
+                    dims++;
+                    continue;
+                }
+                Utils.nyi("array indexing unsupported");
+            }
+            if (dims == 1) {
+                Utils.nyi("unsupported indexing style");
+            }
+            result = new ReadMatrix(a, a.isSubset(), createTree(a.getVector()), ReadMatrix.createSelectorNode(a, isel), ReadMatrix.createSelectorNode(a, jsel),
+                            ReadMatrix.createDropOptionNode(a, drop), ReadMatrix.createExactOptionNode(a, exact));
+            return;
+        }
+        Utils.nyi("unsupported indexing style");
     }
 
     @Override

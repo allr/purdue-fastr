@@ -218,4 +218,13 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- 1:3 ; f <- function() { x[2] <<- 100 } ; f() ; x }", "1.0, 100.0, 3.0");
         assertEval("{ x <- 1:3 ; f <- function() { x[2] <- 10 ; x[2] <<- 100 ; x[2] <- 1000 } ; f() ; x }", "1.0, 100.0, 3.0");
     }
+
+    @Test
+    public void testMatrixIndex() throws RecognitionException {
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[1,2] }", "3L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[1,] }", "1L, 3L, 5L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[1,,drop=FALSE] }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[,1] }", "1L, 2L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[,] }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
+    }
 }

@@ -297,7 +297,9 @@ power_operator returns [BinaryOperator v]
 	;
 args returns [ArgumentList v]
 @init { $v = new ArgumentList.Default(); }
-    : (n_ arg_expr[v])? n_ (COMMA ( { $v.add((ASTNode)null); } | n_ arg_expr[v]) n_)* 
+        : (n_ arg_expr[v]) n_ (COMMA ( { $v.add((ASTNode)null); } | n_ arg_expr[v]) n_)* 
+        | {$v.add((ASTNode)null);} n_ (COMMA ({$v.add((ASTNode)null);} | n_ arg_expr[v]) n_)+
+        | n_
 	;
 arg_expr [ArgumentList l]
 	: e=expr { $l.add(e); }
