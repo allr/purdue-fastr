@@ -20,6 +20,7 @@ def mx_init():
       'rspectralnorm': [rspectralnormServer, '[size]'],      
       'rnbody': [rnbodyServer, '[size]'],
       'rfasta': [rfastaServer, '[size]'],
+      'rfastaredux': [rfastareduxServer, '[size]'],      
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, '']
   }
@@ -85,6 +86,10 @@ def rfastaServer(args):
   """Run Fasta with the HotSpot server VM"""  
   rfasta(args, [], 'server')
 
+def rfastareduxServer(args):
+  """Run Fastaredux with the HotSpot server VM"""  
+  rfastaredux(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -118,6 +123,10 @@ def rnbody(args, vmArgs, vm):
 def rfasta(args, vmArgs, vm):
   """Run Fasta benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "fasta", "fasta.r", "10000L");
+
+def rfastaredux(args, vmArgs, vm):
+  """Run Fastaredux benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "fastaredux", "fastaredux.r", "10000L");
 
 # ------------------
   
