@@ -14,7 +14,10 @@ public abstract class Call extends ASTNode {
     @Override
     public void visit_all(Visitor v) {
         for (Entry e : args) {
-            e.getValue().accept(v);
+            ASTNode n = e.getValue();
+            if (n != null) {
+                n.accept(v);
+            }
         }
     }
 
