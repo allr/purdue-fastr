@@ -30,6 +30,15 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return ntrue;
         }
+        public static int nonFalsesInRange(RLogical l, int from, int to) {
+            int nnonfalse = 0;
+            for (int i = from; i < to; i++) {
+                if (l.getLogical(i) != FALSE) {
+                   nnonfalse++;
+                }
+            }
+            return nnonfalse;
+        }
     }
 
     public class RLogicalFactory {

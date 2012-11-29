@@ -226,6 +226,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[1,,drop=FALSE] }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,1] }", "1L, 2L");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,] }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
+
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[1:2,2:3] }", "     [,1] [,2]\n[1,]   3L   5L\n[2,]   4L   6L");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[1:2,-1] }", "     [,1] [,2]\n[1,]   3L   5L\n[2,]   4L   6L");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,-1] }", "     [,1] [,2]\n[1,]   3L   5L\n[2,]   4L   6L");
@@ -233,5 +234,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,c(1,NA,1,NA)] }", "     [,1] [,2] [,3] [,4]\n[1,]   1L   NA   1L   NA\n[2,]   2L   NA   2L   NA");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,1[2],drop=FALSE] }", "     [,1]\n[1,]   NA\n[2,]   NA");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[,c(NA,1,0)] }", "     [,1] [,2]\n[1,]   NA   1L\n[2,]   NA   2L");
+
+        assertEval("{ m <- matrix(1:16, nrow=8) ; m[c(TRUE,FALSE,FALSE),c(FALSE,NA), drop=FALSE]}", "     [,1]\n[1,]   NA\n[2,]   NA\n[3,]   NA");
+        assertEval("{ m <- matrix(1:16, nrow=8) ; m[c(TRUE,FALSE),c(FALSE,TRUE), drop=TRUE]}", "9L, 11L, 13L, 15L");
+        assertEval("{ m <- matrix(1:16, nrow=8) ; m[c(TRUE,FALSE,FALSE),c(FALSE,TRUE), drop=TRUE]}", "9L, 12L, 15L");
     }
 }

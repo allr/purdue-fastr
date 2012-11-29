@@ -60,6 +60,7 @@ public abstract class RError extends RuntimeException {
     public static final String ACCURACY_MODULUS = "probable complete loss of accuracy in modulus";
     public static final String INVALID_SEPARATOR = "invalid separator";
     public static final String INCORRECT_DIMENSIONS = "incorrect number of dimensions";
+    public static final String LOGICAL_SUBSCRIPT_LONG = "(subscript) logical subscript too long";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -618,6 +619,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.INCORRECT_DIMENSIONS;
+            }
+        };
+    }
+
+    public static RError getLogicalSubscriptLong(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.LOGICAL_SUBSCRIPT_LONG;
             }
         };
     }

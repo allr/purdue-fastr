@@ -294,38 +294,90 @@ public class ReadMatrix extends BaseR {
     public static final class GenericLogicalSelector extends Selector {
 
         RLogical index;
+        int indexSize;
+        int size;
+        int offset;
+        int indexOffset;
+
+        boolean reuse;
 
         public void setIndex(RLogical index) {
             this.index = index;
-            // TODO: reanalyze index
+            indexSize = index.size();
         }
 
         @Override
         public void start(int dataSize, RContext context, ASTNode ast) {
-            // TODO Auto-generated method stub
+            offset = 0;
+            indexOffset = 0;
 
+            int isize = indexSize;
+            int nnonfalse = RLogical.RLogicalUtils.nonFalsesInRange(index, 0, isize);
+
+            if (isize == dataSize) {
+                size = nnonfalse;
+                reuse = false;
+                return;
+            }
+            if (isize > dataSize) {
+                throw RError.getLogicalSubscriptLong(ast);
+            }
+            reuse = true;
+            int times = dataSize / isize;
+            int extra = dataSize - times * isize;
+
+            if (extra == 0) {
+                size = nnonfalse * times;
+            } else {
+                size = nnonfalse * times + RLogical.RLogicalUtils.nonFalsesInRange(index, 0, extra);
+            }
         }
 
         @Override
         public void restart() {
-            // TODO
+            offset = 0;
+            indexOffset = 0;
         }
 
         @Override
         public int size() {
-            // TODO Auto-generated method stub
-            return 0;
+            return size;
         }
 
         @Override
         public int nextIndex(RContext context, ASTNode ast) {
-            // TODO Auto-generated method stub
-            return 0;
+            for (;;) {
+                int v = index.getLogical(indexOffset);
+                if (!reuse) {
+                    if (v == RLogical.TRUE) {
+                        return indexOffset++;
+                    }
+                    indexOffset++;
+                    if (v == RLogical.FALSE) {
+                        continue;
+                    } else {
+                        return RLogical.NA;
+                    }
+                } else {
+                    indexOffset++;
+                    if (indexOffset == indexSize) {
+                        indexOffset = 0;
+                    }
+                    if (v == RLogical.TRUE) {
+                        return offset++;
+                    }
+                    offset++;
+                    if (v == RLogical.FALSE) {
+                        continue;
+                    } else {
+                        return RLogical.NA;
+                    }
+                }
+            }
         }
 
         @Override
         public boolean isConstant() {
-            // TODO Auto-generated method stub
             return false;
         }
 
