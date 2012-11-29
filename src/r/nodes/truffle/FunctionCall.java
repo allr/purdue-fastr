@@ -368,7 +368,7 @@ public abstract class FunctionCall extends AbstractCall {
         int nArgs = argExprs.length;
         int nParams = paramNames.length;
 
-        boolean[] provided = new boolean[nParams]; // Alloc in stack if we are lucky !
+        boolean[] provided = new boolean[nParams]; // Alloc in stack if the VM is not a shitty one (i.e. trivial escape analysis)
 
         boolean has3dots = false;
         int[] positions = new int[has3dots ? (nArgs + nParams) : nParams]; // The right size is unknown in presence of ``...'' !
