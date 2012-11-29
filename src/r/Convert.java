@@ -1,6 +1,8 @@
 package r;
 
 import r.data.*;
+import r.errors.*;
+import r.nodes.*;
 
 public class Convert {
 
@@ -14,6 +16,30 @@ public class Convert {
         } catch (NumberFormatException e) {
             return RDouble.NA;
         }
+    }
+
+    // FIXME: put this into values, e.g. RString.asDouble(context, ast)
+    public static RDouble string2double(RString s, RContext context, ASTNode ast) {
+        boolean introducedNA = false;
+        int size = s.size();
+        double[] content = new double[size];
+        for (int i = 0; i < size; i++) {
+            String str = s.getString(i);
+            if (str != RString.NA) {
+                try {
+                    content[i] = Double.parseDouble(str);  // FIXME: use R rules
+                } catch (NumberFormatException e) {
+                    content[i] = RDouble.NA;
+                    introducedNA = true;
+                }
+            } else {
+                content[i] = RDouble.NA;
+            }
+        }
+        if (introducedNA) {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+        }
+        return RDouble.RDoubleFactory.getFor(content); // drops dimensions
     }
 
     public static String double2string(double d) {
