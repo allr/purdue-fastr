@@ -1,5 +1,7 @@
 package r.nodes.truffle;
 
+import java.util.*;
+
 import r.*;
 import r.data.*;
 import r.errors.*;
@@ -70,10 +72,10 @@ public class ReadMatrix extends BaseR {
         for (int ni = 0; ni < nm; ni++) {
             int i = selI.nextIndex(context, ast);
             if (i != RInt.NA) {
-                selJ.start(n, context, ast);
+                selJ.restart();
                 for (int nj = 0; nj < nn; nj++) {
-                    int j = selJ.nextIndex(context, ast);
                     int offset = nj * nm + ni;
+                    int j = selJ.nextIndex(context, ast);
                     if (j != RInt.NA) {
                         Object value;
                         value = base.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
@@ -94,6 +96,7 @@ public class ReadMatrix extends BaseR {
 
     public abstract static class Selector {
         public abstract void start(int dataSize, RContext context, ASTNode ast);
+        public abstract void restart();
         public abstract int size();
         public abstract int nextIndex(RContext context, ASTNode ast);
         public abstract boolean isConstant();
@@ -106,6 +109,11 @@ public class ReadMatrix extends BaseR {
         @Override
         public void start(int dataSize, RContext context, ASTNode ast) {
             size = dataSize;
+            last = 0;
+        }
+
+        @Override
+        public void restart() {
             last = 0;
         }
 
@@ -140,6 +148,9 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
+        public void restart() { }
+
+        @Override
         public int size() {
             return 1;
         }
@@ -159,81 +170,123 @@ public class ReadMatrix extends BaseR {
 
         RInt index;
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
+        boolean positiveSelection;  // positive indexes and NA and zeros
 
-        boolean positiveSelection;
-        boolean negativeSelection;
-        boolean emptySelection;
+        int offset;
+        boolean[] omit;
 
-        public void setIndex(RInt index) {
+        public void setIndex(RInt index, RContext context, ASTNode ast) {
             this.index = index;
+        }
+
+        @Override
+        public void start(int dataSize, RContext context, ASTNode ast) {
 
             boolean hasNA = false;
             boolean hasNegative = false;
             boolean hasPositive = false;
-            boolean hasZero = false;
+
             int nzero = 0;
             int isize = index.size();
             for (int i = 0; i < isize; i++) {
                 int value = index.getInt(i);
                 if (value > 0) {
                     hasPositive = true;
+                    if (value - 1 > dataSize) {
+                        throw RError.getSubscriptBounds(ast);
+                    }
                     continue;
                 }
                 if (value == 0) {
-                    hasZero = true;
-                    nzero ++;
+                    nzero++;
                     continue;
                 }
                 if (value == RInt.NA) {
                     hasNA = true;
                     continue;
                 }
-                hasNegative = true;
-                continue;
+                // value < 0
+                if (!hasNegative) {
+                    hasNegative = true;
+                    size = dataSize;
+                    if (omit != null) {
+                        if (omit.length < dataSize) {
+                            omit = new boolean[dataSize];
+                        } else {
+                            Arrays.fill(omit, false);
+                        }
+                    } else {
+                        omit = new boolean[dataSize];
+                    }
+                }
+                int e = -value - 1;
+                if (e < dataSize && !omit[e]) {
+                    omit[e] = true;
+                    size--;
+                }
             }
-
             if (hasPositive) {
                 if (!hasNegative) {
                     size = isize - nzero;
+                    positiveSelection = true;
                 } else {
-                    // TODO: ERROR "only 0's may be mixed with negative subscripts"
+                    throw RError.getOnlyZeroMixed(ast);
                 }
             } else {
                 // no positive values
                 if (hasNegative) {
                     if (!hasNA) {
-                        negativeSelection = true;
-                        size = nzero;
+                        positiveSelection = false;
                         // all elements are negative, selection size will depend on the data size
                     } else {
-                        // TODO: ERROR "only 0's may be mixed with negative subscripts"
+                        throw RError.getOnlyZeroMixed(ast);
+                    }
+                } else {
+                    if (hasNA) {
+                        positiveSelection = true;
+                        size = isize;
+                    } else {
+                        // empty
+                        size = 0;
                     }
                 }
             }
-
+            offset = 0;
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
-            // TODO Auto-generated method stub
-
+        public void restart() {
+            offset = 0;
         }
 
         @Override
         public int size() {
-            // TODO Auto-generated method stub
-            return 0;
+            return size;
         }
 
         @Override
         public int nextIndex(RContext context, ASTNode ast) {
-            // TODO Auto-generated method stub
-            return 0;
+            if (positiveSelection) {
+                int i = index.getInt(offset++);
+                while (i == 0) {
+                    i = index.getInt(offset++);
+                }
+                if (i != RInt.NA) { // FIXME: double-checking for NA, the outer loop checks again
+                    return i - 1;
+                } else {
+                    return RInt.NA;
+                }
+            } else {
+                // negative selection
+                while (omit[offset]) {
+                    offset++;
+                }
+                return offset++;
+            }
         }
 
         @Override
         public boolean isConstant() {
-            // TODO Auto-generated method stub
             return false;
         }
     }
@@ -251,6 +304,11 @@ public class ReadMatrix extends BaseR {
         public void start(int dataSize, RContext context, ASTNode ast) {
             // TODO Auto-generated method stub
 
+        }
+
+        @Override
+        public void restart() {
+            // TODO
         }
 
         @Override
@@ -371,8 +429,7 @@ public class ReadMatrix extends BaseR {
         if (template instanceof RLogical) {
             // TODO
         }
-        Utils.nyi();
-        return null;
+        return createGenericSelectorNode(ast, child);
     }
 
     public static SelectorNode createGenericSelectorNode(ASTNode ast, RNode child) {
@@ -384,7 +441,7 @@ public class ReadMatrix extends BaseR {
             @Override
             public Selector executeSelector(RContext context, RAny index) {
                 if (index instanceof RInt || index instanceof RDouble) {
-                    numericSelector.setIndex(index.asInt());
+                    numericSelector.setIndex(index.asInt(), context, ast);
                     return numericSelector;
                 }
                 if (index instanceof RLogical) {
