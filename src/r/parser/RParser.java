@@ -1,4 +1,4 @@
-// $ANTLR 3.4 R.g 2012-11-29 18:41:01
+// $ANTLR 3.4 R.g 2012-11-29 18:54:04
 
 package r.parser;
 
@@ -21,11 +21,11 @@ import java.util.HashMap;
 @SuppressWarnings({"all"})
 public class RParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "AND", "ARROW", "ASSIGN", "AT", "BITWISEAND", "BITWISEOR", "BRAKET", "BREAK", "CALL", "CARRET", "COLON", "COMMA", "COMMENT", "COMPLEX", "DD", "DIV", "DOUBLE", "ELSE", "EQ", "ESCAPE", "ESC_SEQ", "EXPONENT", "FALSE", "FIELD", "FOR", "FUNCTION", "GE", "GT", "HEX_DIGIT", "HEX_ESC", "ID", "ID_NAME", "IF", "IN", "INTEGER", "INTEGER_DIV", "KW", "LBB", "LBRACE", "LBRAKET", "LE", "LINE_BREAK", "LPAR", "LT", "MAT_MULT", "MINUS", "MISSING_VAL", "MOD", "MULT", "NA", "NE", "NEWLINE", "NEXT", "NOT", "NS_GET", "NS_GET_INT", "NULL", "OCTAL_ESC", "OP", "OP_NAME", "OR", "OUTER_MULT", "PARMS", "PLUS", "RBRACE", "RBRAKET", "REPEAT", "RIGHT_ARROW", "RPAR", "SEMICOLON", "SEQUENCE", "STRING", "SUPER_ARROW", "SUPER_RIGHT_ARROW", "TILDE", "TRUE", "UMINUS", "UNICODE_ESC", "UPLUS", "UTILDE", "VARIATIC", "WHILE", "WS", "'--EOF--'"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "AND", "ARROW", "ASSIGN", "AT", "BITWISEAND", "BITWISEOR", "BRAKET", "BREAK", "CALL", "CARRET", "COLON", "COMMA", "COMMENT", "COMPLEX", "DD", "DIV", "DOUBLE", "ELSE", "EQ", "ESCAPE", "ESC_SEQ", "EXPONENT", "FALSE", "FIELD", "FOR", "FUNCTION", "GE", "GT", "HEX_DIGIT", "HEX_ESC", "ID", "ID_NAME", "IF", "IN", "INTEGER", "KW", "LBB", "LBRACE", "LBRAKET", "LE", "LINE_BREAK", "LPAR", "LT", "MINUS", "MISSING_VAL", "MOD", "MULT", "NA", "NE", "NEWLINE", "NEXT", "NOT", "NS_GET", "NS_GET_INT", "NULL", "OCTAL_ESC", "OP", "OP_NAME", "OR", "PARMS", "PLUS", "RBRACE", "RBRAKET", "REPEAT", "RIGHT_ARROW", "RPAR", "SEMICOLON", "SEQUENCE", "STRING", "SUPER_ARROW", "SUPER_RIGHT_ARROW", "TILDE", "TRUE", "UMINUS", "UNICODE_ESC", "UPLUS", "UTILDE", "VARIATIC", "WHILE", "WS", "'--EOF--'"
     };
 
     public static final int EOF=-1;
-    public static final int T__87=87;
+    public static final int T__84=84;
     public static final int AND=4;
     public static final int ARROW=5;
     public static final int ASSIGN=6;
@@ -61,54 +61,51 @@ public class RParser extends Parser {
     public static final int IF=36;
     public static final int IN=37;
     public static final int INTEGER=38;
-    public static final int INTEGER_DIV=39;
-    public static final int KW=40;
-    public static final int LBB=41;
-    public static final int LBRACE=42;
-    public static final int LBRAKET=43;
-    public static final int LE=44;
-    public static final int LINE_BREAK=45;
-    public static final int LPAR=46;
-    public static final int LT=47;
-    public static final int MAT_MULT=48;
-    public static final int MINUS=49;
-    public static final int MISSING_VAL=50;
-    public static final int MOD=51;
-    public static final int MULT=52;
-    public static final int NA=53;
-    public static final int NE=54;
-    public static final int NEWLINE=55;
-    public static final int NEXT=56;
-    public static final int NOT=57;
-    public static final int NS_GET=58;
-    public static final int NS_GET_INT=59;
-    public static final int NULL=60;
-    public static final int OCTAL_ESC=61;
-    public static final int OP=62;
-    public static final int OP_NAME=63;
-    public static final int OR=64;
-    public static final int OUTER_MULT=65;
-    public static final int PARMS=66;
-    public static final int PLUS=67;
-    public static final int RBRACE=68;
-    public static final int RBRAKET=69;
-    public static final int REPEAT=70;
-    public static final int RIGHT_ARROW=71;
-    public static final int RPAR=72;
-    public static final int SEMICOLON=73;
-    public static final int SEQUENCE=74;
-    public static final int STRING=75;
-    public static final int SUPER_ARROW=76;
-    public static final int SUPER_RIGHT_ARROW=77;
-    public static final int TILDE=78;
-    public static final int TRUE=79;
-    public static final int UMINUS=80;
-    public static final int UNICODE_ESC=81;
-    public static final int UPLUS=82;
-    public static final int UTILDE=83;
-    public static final int VARIATIC=84;
-    public static final int WHILE=85;
-    public static final int WS=86;
+    public static final int KW=39;
+    public static final int LBB=40;
+    public static final int LBRACE=41;
+    public static final int LBRAKET=42;
+    public static final int LE=43;
+    public static final int LINE_BREAK=44;
+    public static final int LPAR=45;
+    public static final int LT=46;
+    public static final int MINUS=47;
+    public static final int MISSING_VAL=48;
+    public static final int MOD=49;
+    public static final int MULT=50;
+    public static final int NA=51;
+    public static final int NE=52;
+    public static final int NEWLINE=53;
+    public static final int NEXT=54;
+    public static final int NOT=55;
+    public static final int NS_GET=56;
+    public static final int NS_GET_INT=57;
+    public static final int NULL=58;
+    public static final int OCTAL_ESC=59;
+    public static final int OP=60;
+    public static final int OP_NAME=61;
+    public static final int OR=62;
+    public static final int PARMS=63;
+    public static final int PLUS=64;
+    public static final int RBRACE=65;
+    public static final int RBRAKET=66;
+    public static final int REPEAT=67;
+    public static final int RIGHT_ARROW=68;
+    public static final int RPAR=69;
+    public static final int SEMICOLON=70;
+    public static final int SEQUENCE=71;
+    public static final int STRING=72;
+    public static final int SUPER_ARROW=73;
+    public static final int SUPER_RIGHT_ARROW=74;
+    public static final int TILDE=75;
+    public static final int TRUE=76;
+    public static final int UMINUS=77;
+    public static final int UNICODE_ESC=78;
+    public static final int UPLUS=79;
+    public static final int UTILDE=80;
+    public static final int VARIATIC=81;
+    public static final int WHILE=82;
+    public static final int WS=83;
 
     // delegates
     public Parser[] getDelegates() {
@@ -123,7 +120,7 @@ public class RParser extends Parser {
     }
     public RParser(TokenStream input, RecognizerSharedState state) {
         super(input, state);
-        this.state.ruleMemo = new HashMap[63+1];
+        this.state.ruleMemo = new HashMap[61+1];
          
 
     }
@@ -177,7 +174,7 @@ public class RParser extends Parser {
                 int alt1=2;
                 int LA1_0 = input.LA(1);
 
-                if ( (LA1_0==BREAK||(LA1_0 >= COMPLEX && LA1_0 <= DD)||LA1_0==DOUBLE||LA1_0==FALSE||(LA1_0 >= FOR && LA1_0 <= FUNCTION)||LA1_0==ID||LA1_0==IF||LA1_0==INTEGER||LA1_0==LBRACE||LA1_0==LPAR||LA1_0==MINUS||LA1_0==NA||(LA1_0 >= NEXT && LA1_0 <= NOT)||LA1_0==NULL||LA1_0==PLUS||LA1_0==REPEAT||LA1_0==STRING||(LA1_0 >= TILDE && LA1_0 <= TRUE)||(LA1_0 >= VARIATIC && LA1_0 <= WHILE)||LA1_0==87) ) {
+                if ( (LA1_0==BREAK||(LA1_0 >= COMPLEX && LA1_0 <= DD)||LA1_0==DOUBLE||LA1_0==FALSE||(LA1_0 >= FOR && LA1_0 <= FUNCTION)||LA1_0==ID||LA1_0==IF||LA1_0==INTEGER||LA1_0==LBRACE||LA1_0==LPAR||LA1_0==MINUS||LA1_0==NA||(LA1_0 >= NEXT && LA1_0 <= NOT)||LA1_0==NULL||LA1_0==PLUS||LA1_0==REPEAT||LA1_0==STRING||(LA1_0 >= TILDE && LA1_0 <= TRUE)||(LA1_0 >= VARIATIC && LA1_0 <= WHILE)||LA1_0==84) ) {
                     alt1=1;
                 }
 
@@ -252,7 +249,7 @@ public class RParser extends Parser {
                 int alt2=2;
                 int LA2_0 = input.LA(1);
 
-                if ( (LA2_0==BREAK||(LA2_0 >= COMPLEX && LA2_0 <= DD)||LA2_0==DOUBLE||LA2_0==FALSE||(LA2_0 >= FOR && LA2_0 <= FUNCTION)||LA2_0==ID||LA2_0==IF||LA2_0==INTEGER||LA2_0==LBRACE||LA2_0==LPAR||LA2_0==MINUS||LA2_0==NA||(LA2_0 >= NEXT && LA2_0 <= NOT)||LA2_0==NULL||LA2_0==PLUS||LA2_0==REPEAT||LA2_0==STRING||(LA2_0 >= TILDE && LA2_0 <= TRUE)||(LA2_0 >= VARIATIC && LA2_0 <= WHILE)||LA2_0==87) ) {
+                if ( (LA2_0==BREAK||(LA2_0 >= COMPLEX && LA2_0 <= DD)||LA2_0==DOUBLE||LA2_0==FALSE||(LA2_0 >= FOR && LA2_0 <= FUNCTION)||LA2_0==ID||LA2_0==IF||LA2_0==INTEGER||LA2_0==LBRACE||LA2_0==LPAR||LA2_0==MINUS||LA2_0==NA||(LA2_0 >= NEXT && LA2_0 <= NOT)||LA2_0==NULL||LA2_0==PLUS||LA2_0==REPEAT||LA2_0==STRING||(LA2_0 >= TILDE && LA2_0 <= TRUE)||(LA2_0 >= VARIATIC && LA2_0 <= WHILE)||LA2_0==84) ) {
                     alt2=1;
                 }
 
@@ -318,7 +315,7 @@ public class RParser extends Parser {
             if ( (LA4_0==BREAK||(LA4_0 >= COMPLEX && LA4_0 <= DD)||LA4_0==DOUBLE||LA4_0==FALSE||(LA4_0 >= FOR && LA4_0 <= FUNCTION)||LA4_0==ID||LA4_0==IF||LA4_0==INTEGER||LA4_0==LBRACE||LA4_0==LPAR||LA4_0==MINUS||LA4_0==NA||(LA4_0 >= NEXT && LA4_0 <= NOT)||LA4_0==NULL||LA4_0==PLUS||LA4_0==REPEAT||LA4_0==STRING||(LA4_0 >= TILDE && LA4_0 <= TRUE)||(LA4_0 >= VARIATIC && LA4_0 <= WHILE)) ) {
                 alt4=1;
             }
-            else if ( (LA4_0==87) ) {
+            else if ( (LA4_0==84) ) {
                 alt4=2;
             }
             else {
@@ -352,7 +349,7 @@ public class RParser extends Parser {
                 case 2 :
                     // R.g:99:4: '--EOF--' ( . )* EOF
                     {
-                    match(input,87,FOLLOW_87_in_statement226); if (state.failed) return v;
+                    match(input,84,FOLLOW_84_in_statement226); if (state.failed) return v;
 
                     // R.g:99:14: ( . )*
                     loop3:
@@ -360,7 +357,7 @@ public class RParser extends Parser {
                         int alt3=2;
                         int LA3_0 = input.LA(1);
 
-                        if ( ((LA3_0 >= AND && LA3_0 <= 87)) ) {
+                        if ( ((LA3_0 >= AND && LA3_0 <= 84)) ) {
                             alt3=1;
                         }
                         else if ( (LA3_0==EOF) ) {
@@ -1061,7 +1058,7 @@ public class RParser extends Parser {
             case TRUE:
             case VARIATIC:
             case WHILE:
-            case 87:
+            case 84:
                 {
                 alt12=5;
                 }
@@ -1333,13 +1330,11 @@ public class RParser extends Parser {
             case FIELD:
             case GE:
             case GT:
-            case INTEGER_DIV:
             case LBB:
             case LBRAKET:
             case LE:
             case LPAR:
             case LT:
-            case MAT_MULT:
             case MINUS:
             case MOD:
             case MULT:
@@ -1347,7 +1342,6 @@ public class RParser extends Parser {
             case NEWLINE:
             case OP:
             case OR:
-            case OUTER_MULT:
             case PLUS:
             case RBRACE:
             case RBRAKET:
@@ -1624,20 +1618,17 @@ public class RParser extends Parser {
             case FIELD:
             case GE:
             case GT:
-            case INTEGER_DIV:
             case LBB:
             case LBRAKET:
             case LE:
             case LPAR:
             case LT:
-            case MAT_MULT:
             case MINUS:
             case MOD:
             case MULT:
             case NE:
             case OP:
             case OR:
-            case OUTER_MULT:
             case PLUS:
             case RBRACE:
             case RBRAKET:
@@ -3030,9 +3021,9 @@ public class RParser extends Parser {
             loop25:
             do {
                 int alt25=2;
-                int LA25_0 = input.LA(1);
-
-                if ( (LA25_0==MULT) ) {
+                switch ( input.LA(1) ) {
+                case MULT:
+                    {
                     int LA25_2 = input.LA(2);
 
                     if ( (synpred12_R()) ) {
@@ -3040,8 +3031,10 @@ public class RParser extends Parser {
                     }
 
 
-                }
-                else if ( (LA25_0==DIV) ) {
+                    }
+                    break;
+                case DIV:
+                    {
                     int LA25_3 = input.LA(2);
 
                     if ( (synpred12_R()) ) {
@@ -3049,8 +3042,21 @@ public class RParser extends Parser {
                     }
 
 
-                }
+                    }
+                    break;
+                case MOD:
+                    {
+                    int LA25_4 = input.LA(2);
 
+                    if ( (synpred12_R()) ) {
+                        alt25=1;
+                    }
+
+
+                    }
+                    break;
+
+                }
 
                 switch (alt25) {
             	case 1 :
@@ -3111,7 +3117,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "operator_expr"
-    // R.g:207:1: operator_expr returns [ASTNode v] : l= colon_expr ( ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr ) | ( ( OP )=>opc= OP n_ r= colon_expr ) )* ;
+    // R.g:207:1: operator_expr returns [ASTNode v] : l= colon_expr ( ( OP )=>opc= OP n_ r= colon_expr )* ;
     public final ASTNode operator_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3120,16 +3126,14 @@ public class RParser extends Parser {
         Token opc=null;
         ASTNode l =null;
 
-        BinaryOperator opp =null;
-
         ASTNode r =null;
 
 
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 26) ) { return v; }
 
-            // R.g:208:2: (l= colon_expr ( ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr ) | ( ( OP )=>opc= OP n_ r= colon_expr ) )* )
-            // R.g:208:4: l= colon_expr ( ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr ) | ( ( OP )=>opc= OP n_ r= colon_expr ) )*
+            // R.g:208:2: (l= colon_expr ( ( OP )=>opc= OP n_ r= colon_expr )* )
+            // R.g:208:4: l= colon_expr ( ( OP )=>opc= OP n_ r= colon_expr )*
             {
             pushFollow(FOLLOW_colon_expr_in_operator_expr1348);
             l=colon_expr();
@@ -3139,13 +3143,13 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) { v = l ;}
 
-            // R.g:209:9: ( ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr ) | ( ( OP )=>opc= OP n_ r= colon_expr ) )*
+            // R.g:209:2: ( ( OP )=>opc= OP n_ r= colon_expr )*
             loop26:
             do {
-                int alt26=3;
-                switch ( input.LA(1) ) {
-                case MOD:
-                    {
+                int alt26=2;
+                int LA26_0 = input.LA(1);
+
+                if ( (LA26_0==OP) ) {
                     int LA26_2 = input.LA(2);
 
                     if ( (synpred13_R()) ) {
@@ -3153,111 +3157,28 @@ public class RParser extends Parser {
                     }
 
 
-                    }
-                    break;
-                case INTEGER_DIV:
-                    {
-                    int LA26_3 = input.LA(2);
-
-                    if ( (synpred13_R()) ) {
-                        alt26=1;
-                    }
-
-
-                    }
-                    break;
-                case MAT_MULT:
-                    {
-                    int LA26_4 = input.LA(2);
-
-                    if ( (synpred13_R()) ) {
-                        alt26=1;
-                    }
-
-
-                    }
-                    break;
-                case OUTER_MULT:
-                    {
-                    int LA26_5 = input.LA(2);
-
-                    if ( (synpred13_R()) ) {
-                        alt26=1;
-                    }
-
-
-                    }
-                    break;
-                case OP:
-                    {
-                    int LA26_6 = input.LA(2);
-
-                    if ( (synpred14_R()) ) {
-                        alt26=2;
-                    }
-
-
-                    }
-                    break;
-
                 }
+
 
                 switch (alt26) {
             	case 1 :
-            	    // R.g:210:9: ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr )
+            	    // R.g:209:3: ( OP )=>opc= OP n_ r= colon_expr
             	    {
-            	    // R.g:210:9: ( ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr )
-            	    // R.g:210:10: ( predefined_percent_operator )=>opp= predefined_percent_operator n_ r= colon_expr
-            	    {
-            	    pushFollow(FOLLOW_predefined_percent_operator_in_operator_expr1377);
-            	    opp=predefined_percent_operator();
+            	    opc=(Token)match(input,OP,FOLLOW_OP_in_operator_expr1360); if (state.failed) return v;
 
-            	    state._fsp--;
-            	    if (state.failed) return v;
-
-            	    pushFollow(FOLLOW_n__in_operator_expr1379);
+            	    pushFollow(FOLLOW_n__in_operator_expr1362);
             	    n_();
 
             	    state._fsp--;
             	    if (state.failed) return v;
 
-            	    pushFollow(FOLLOW_colon_expr_in_operator_expr1383);
-            	    r=colon_expr();
-
-            	    state._fsp--;
-            	    if (state.failed) return v;
-
-            	    if ( state.backtracking==0 ) { v = BinaryOperation.create(opp, v, r); }
-
-            	    }
-
-
-            	    }
-            	    break;
-            	case 2 :
-            	    // R.g:211:11: ( ( OP )=>opc= OP n_ r= colon_expr )
-            	    {
-            	    // R.g:211:11: ( ( OP )=>opc= OP n_ r= colon_expr )
-            	    // R.g:211:12: ( OP )=>opc= OP n_ r= colon_expr
-            	    {
-            	    opc=(Token)match(input,OP,FOLLOW_OP_in_operator_expr1406); if (state.failed) return v;
-
-            	    pushFollow(FOLLOW_n__in_operator_expr1408);
-            	    n_();
-
-            	    state._fsp--;
-            	    if (state.failed) return v;
-
-            	    pushFollow(FOLLOW_colon_expr_in_operator_expr1412);
+            	    pushFollow(FOLLOW_colon_expr_in_operator_expr1366);
             	    r=colon_expr();
 
             	    state._fsp--;
             	    if (state.failed) return v;
 
             	    if ( state.backtracking==0 ) { v = BinaryOperation.create((opc!=null?opc.getText():null), v, r); }
-
-            	    }
-
 
             	    }
             	    break;
@@ -3288,7 +3209,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "colon_expr"
-    // R.g:214:1: colon_expr returns [ASTNode v] : l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* ;
+    // R.g:211:1: colon_expr returns [ASTNode v] : l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* ;
     public final ASTNode colon_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3303,10 +3224,10 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 27) ) { return v; }
 
-            // R.g:215:2: (l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* )
-            // R.g:215:4: l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
+            // R.g:212:2: (l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )* )
+            // R.g:212:4: l= unary_expression ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
             {
-            pushFollow(FOLLOW_unary_expression_in_colon_expr1451);
+            pushFollow(FOLLOW_unary_expression_in_colon_expr1388);
             l=unary_expression();
 
             state._fsp--;
@@ -3314,7 +3235,7 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) { v = l ;}
 
-            // R.g:216:2: ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
+            // R.g:213:2: ( ( ( COLON )=>op= COLON n_ r= unary_expression ) )*
             loop27:
             do {
                 int alt27=2;
@@ -3323,7 +3244,7 @@ public class RParser extends Parser {
                 if ( (LA27_0==COLON) ) {
                     int LA27_2 = input.LA(2);
 
-                    if ( (synpred15_R()) ) {
+                    if ( (synpred14_R()) ) {
                         alt27=1;
                     }
 
@@ -3333,20 +3254,20 @@ public class RParser extends Parser {
 
                 switch (alt27) {
             	case 1 :
-            	    // R.g:216:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
+            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
             	    {
-            	    // R.g:216:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
-            	    // R.g:216:4: ( COLON )=>op= COLON n_ r= unary_expression
+            	    // R.g:213:3: ( ( COLON )=>op= COLON n_ r= unary_expression )
+            	    // R.g:213:4: ( COLON )=>op= COLON n_ r= unary_expression
             	    {
-            	    op=(Token)match(input,COLON,FOLLOW_COLON_in_colon_expr1464); if (state.failed) return v;
+            	    op=(Token)match(input,COLON,FOLLOW_COLON_in_colon_expr1401); if (state.failed) return v;
 
-            	    pushFollow(FOLLOW_n__in_colon_expr1466);
+            	    pushFollow(FOLLOW_n__in_colon_expr1403);
             	    n_();
 
             	    state._fsp--;
             	    if (state.failed) return v;
 
-            	    pushFollow(FOLLOW_unary_expression_in_colon_expr1470);
+            	    pushFollow(FOLLOW_unary_expression_in_colon_expr1407);
             	    r=unary_expression();
 
             	    state._fsp--;
@@ -3386,7 +3307,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "unary_expression"
-    // R.g:218:1: unary_expression returns [ASTNode v] : ( PLUS n_ l= unary_expression | MINUS n_ l= unary_expression |b= power_expr );
+    // R.g:215:1: unary_expression returns [ASTNode v] : ( PLUS n_ l= unary_expression | MINUS n_ l= unary_expression |b= power_expr );
     public final ASTNode unary_expression() throws RecognitionException {
         ASTNode v = null;
 
@@ -3400,7 +3321,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 28) ) { return v; }
 
-            // R.g:219:2: ( PLUS n_ l= unary_expression | MINUS n_ l= unary_expression |b= power_expr )
+            // R.g:216:2: ( PLUS n_ l= unary_expression | MINUS n_ l= unary_expression |b= power_expr )
             int alt28=3;
             switch ( input.LA(1) ) {
             case PLUS:
@@ -3448,17 +3369,17 @@ public class RParser extends Parser {
 
             switch (alt28) {
                 case 1 :
-                    // R.g:219:4: PLUS n_ l= unary_expression
+                    // R.g:216:4: PLUS n_ l= unary_expression
                     {
-                    match(input,PLUS,FOLLOW_PLUS_in_unary_expression1490); if (state.failed) return v;
+                    match(input,PLUS,FOLLOW_PLUS_in_unary_expression1427); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_unary_expression1492);
+                    pushFollow(FOLLOW_n__in_unary_expression1429);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_unary_expression_in_unary_expression1496);
+                    pushFollow(FOLLOW_unary_expression_in_unary_expression1433);
                     l=unary_expression();
 
                     state._fsp--;
@@ -3469,17 +3390,17 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:220:4: MINUS n_ l= unary_expression
+                    // R.g:217:4: MINUS n_ l= unary_expression
                     {
-                    match(input,MINUS,FOLLOW_MINUS_in_unary_expression1503); if (state.failed) return v;
+                    match(input,MINUS,FOLLOW_MINUS_in_unary_expression1440); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_unary_expression1505);
+                    pushFollow(FOLLOW_n__in_unary_expression1442);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_unary_expression_in_unary_expression1509);
+                    pushFollow(FOLLOW_unary_expression_in_unary_expression1446);
                     l=unary_expression();
 
                     state._fsp--;
@@ -3490,9 +3411,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:221:4: b= power_expr
+                    // R.g:218:4: b= power_expr
                     {
-                    pushFollow(FOLLOW_power_expr_in_unary_expression1518);
+                    pushFollow(FOLLOW_power_expr_in_unary_expression1455);
                     b=power_expr();
 
                     state._fsp--;
@@ -3522,7 +3443,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "power_expr"
-    // R.g:223:1: power_expr returns [ASTNode v] : l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
+    // R.g:220:1: power_expr returns [ASTNode v] : l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) ;
     public final ASTNode power_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3538,10 +3459,10 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 29) ) { return v; }
 
-            // R.g:224:2: (l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) )
-            // R.g:224:4: l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
+            // R.g:221:2: (l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |) )
+            // R.g:221:4: l= basic_expr ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
             {
-            pushFollow(FOLLOW_basic_expr_in_power_expr1536);
+            pushFollow(FOLLOW_basic_expr_in_power_expr1473);
             l=basic_expr();
 
             state._fsp--;
@@ -3549,14 +3470,14 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) {v =l;}
 
-            // R.g:225:5: ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
+            // R.g:222:5: ( ( ( power_operator )=>op= power_operator n_ r= power_expr ) |)
             int alt29=2;
             int LA29_0 = input.LA(1);
 
             if ( (LA29_0==CARRET) ) {
                 int LA29_1 = input.LA(2);
 
-                if ( (synpred16_R()) ) {
+                if ( (synpred15_R()) ) {
                     alt29=1;
                 }
                 else if ( (true) ) {
@@ -3571,7 +3492,7 @@ public class RParser extends Parser {
 
                 }
             }
-            else if ( (LA29_0==EOF||(LA29_0 >= AND && LA29_0 <= BITWISEOR)||(LA29_0 >= COLON && LA29_0 <= COMMENT)||LA29_0==DIV||(LA29_0 >= ELSE && LA29_0 <= EQ)||LA29_0==FIELD||(LA29_0 >= GE && LA29_0 <= GT)||LA29_0==INTEGER_DIV||LA29_0==LBB||(LA29_0 >= LBRAKET && LA29_0 <= LE)||(LA29_0 >= LPAR && LA29_0 <= MINUS)||(LA29_0 >= MOD && LA29_0 <= MULT)||(LA29_0 >= NE && LA29_0 <= NEWLINE)||LA29_0==OP||(LA29_0 >= OR && LA29_0 <= OUTER_MULT)||(LA29_0 >= PLUS && LA29_0 <= RBRAKET)||(LA29_0 >= RIGHT_ARROW && LA29_0 <= SEMICOLON)||(LA29_0 >= SUPER_ARROW && LA29_0 <= TILDE)) ) {
+            else if ( (LA29_0==EOF||(LA29_0 >= AND && LA29_0 <= BITWISEOR)||(LA29_0 >= COLON && LA29_0 <= COMMENT)||LA29_0==DIV||(LA29_0 >= ELSE && LA29_0 <= EQ)||LA29_0==FIELD||(LA29_0 >= GE && LA29_0 <= GT)||LA29_0==LBB||(LA29_0 >= LBRAKET && LA29_0 <= LE)||(LA29_0 >= LPAR && LA29_0 <= MINUS)||(LA29_0 >= MOD && LA29_0 <= MULT)||(LA29_0 >= NE && LA29_0 <= NEWLINE)||LA29_0==OP||LA29_0==OR||(LA29_0 >= PLUS && LA29_0 <= RBRAKET)||(LA29_0 >= RIGHT_ARROW && LA29_0 <= SEMICOLON)||(LA29_0 >= SUPER_ARROW && LA29_0 <= TILDE)) ) {
                 alt29=2;
             }
             else {
@@ -3584,24 +3505,24 @@ public class RParser extends Parser {
             }
             switch (alt29) {
                 case 1 :
-                    // R.g:225:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
+                    // R.g:222:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
                     {
-                    // R.g:225:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
-                    // R.g:225:7: ( power_operator )=>op= power_operator n_ r= power_expr
+                    // R.g:222:6: ( ( power_operator )=>op= power_operator n_ r= power_expr )
+                    // R.g:222:7: ( power_operator )=>op= power_operator n_ r= power_expr
                     {
-                    pushFollow(FOLLOW_power_operator_in_power_expr1552);
+                    pushFollow(FOLLOW_power_operator_in_power_expr1489);
                     op=power_operator();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_power_expr1554);
+                    pushFollow(FOLLOW_n__in_power_expr1491);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_power_expr_in_power_expr1558);
+                    pushFollow(FOLLOW_power_expr_in_power_expr1495);
                     r=power_expr();
 
                     state._fsp--;
@@ -3615,7 +3536,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:226:6: 
+                    // R.g:223:6: 
                     {
                     }
                     break;
@@ -3643,7 +3564,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "basic_expr"
-    // R.g:228:1: basic_expr returns [ASTNode v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
+    // R.g:225:1: basic_expr returns [ASTNode v] : lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) ;
     public final ASTNode basic_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -3657,10 +3578,10 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 30) ) { return v; }
 
-            // R.g:229:2: (lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) )
-            // R.g:229:4: lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
+            // R.g:226:2: (lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>) )
+            // R.g:226:4: lhs= simple_expr ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
             {
-            pushFollow(FOLLOW_simple_expr_in_basic_expr1588);
+            pushFollow(FOLLOW_simple_expr_in_basic_expr1525);
             lhs=simple_expr();
 
             state._fsp--;
@@ -3668,7 +3589,7 @@ public class RParser extends Parser {
 
             if ( state.backtracking==0 ) { v = lhs; }
 
-            // R.g:230:2: ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
+            // R.g:227:2: ( ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+ | ( n_ )=>)
             int alt31=2;
             int LA31_0 = input.LA(1);
 
@@ -3678,7 +3599,7 @@ public class RParser extends Parser {
                 if ( (true) ) {
                     alt31=1;
                 }
-                else if ( (synpred18_R()) ) {
+                else if ( (synpred17_R()) ) {
                     alt31=2;
                 }
                 else {
@@ -3696,7 +3617,7 @@ public class RParser extends Parser {
                 if ( (true) ) {
                     alt31=1;
                 }
-                else if ( (synpred18_R()) ) {
+                else if ( (synpred17_R()) ) {
                     alt31=2;
                 }
                 else {
@@ -3714,7 +3635,7 @@ public class RParser extends Parser {
                 if ( (true) ) {
                     alt31=1;
                 }
-                else if ( (synpred18_R()) ) {
+                else if ( (synpred17_R()) ) {
                     alt31=2;
                 }
                 else {
@@ -3732,7 +3653,7 @@ public class RParser extends Parser {
                 if ( (true) ) {
                     alt31=1;
                 }
-                else if ( (synpred18_R()) ) {
+                else if ( (synpred17_R()) ) {
                     alt31=2;
                 }
                 else {
@@ -3750,7 +3671,7 @@ public class RParser extends Parser {
                 if ( (true) ) {
                     alt31=1;
                 }
-                else if ( (synpred18_R()) ) {
+                else if ( (synpred17_R()) ) {
                     alt31=2;
                 }
                 else {
@@ -3762,109 +3683,100 @@ public class RParser extends Parser {
 
                 }
             }
-            else if ( (LA31_0==CARRET) && (synpred18_R())) {
+            else if ( (LA31_0==CARRET) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==COLON) && (synpred18_R())) {
+            else if ( (LA31_0==COLON) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==MOD) && (synpred18_R())) {
+            else if ( (LA31_0==OP) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==INTEGER_DIV) && (synpred18_R())) {
+            else if ( (LA31_0==MULT) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==MAT_MULT) && (synpred18_R())) {
+            else if ( (LA31_0==DIV) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==OUTER_MULT) && (synpred18_R())) {
+            else if ( (LA31_0==MOD) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==OP) && (synpred18_R())) {
+            else if ( (LA31_0==PLUS) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==MULT) && (synpred18_R())) {
+            else if ( (LA31_0==MINUS) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==DIV) && (synpred18_R())) {
+            else if ( (LA31_0==GT) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==PLUS) && (synpred18_R())) {
+            else if ( (LA31_0==GE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==MINUS) && (synpred18_R())) {
+            else if ( (LA31_0==LT) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==GT) && (synpred18_R())) {
+            else if ( (LA31_0==LE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==GE) && (synpred18_R())) {
+            else if ( (LA31_0==EQ) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==LT) && (synpred18_R())) {
+            else if ( (LA31_0==NE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==LE) && (synpred18_R())) {
+            else if ( (LA31_0==AND) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==EQ) && (synpred18_R())) {
+            else if ( (LA31_0==BITWISEAND) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==NE) && (synpred18_R())) {
+            else if ( (LA31_0==OR) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==AND) && (synpred18_R())) {
+            else if ( (LA31_0==BITWISEOR) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==BITWISEAND) && (synpred18_R())) {
+            else if ( (LA31_0==TILDE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==OR) && (synpred18_R())) {
+            else if ( (LA31_0==ARROW) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==BITWISEOR) && (synpred18_R())) {
+            else if ( (LA31_0==SUPER_ARROW) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==TILDE) && (synpred18_R())) {
+            else if ( (LA31_0==RIGHT_ARROW) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==ARROW) && (synpred18_R())) {
+            else if ( (LA31_0==SUPER_RIGHT_ARROW) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==SUPER_ARROW) && (synpred18_R())) {
+            else if ( (LA31_0==COMMENT||LA31_0==NEWLINE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==RIGHT_ARROW) && (synpred18_R())) {
+            else if ( (LA31_0==COMMA) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==SUPER_RIGHT_ARROW) && (synpred18_R())) {
+            else if ( (LA31_0==RPAR) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==COMMENT||LA31_0==NEWLINE) && (synpred18_R())) {
+            else if ( (LA31_0==RBRAKET) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==COMMA) && (synpred18_R())) {
+            else if ( (LA31_0==ASSIGN) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==RPAR) && (synpred18_R())) {
+            else if ( (LA31_0==EOF) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==RBRAKET) && (synpred18_R())) {
+            else if ( (LA31_0==SEMICOLON) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==ASSIGN) && (synpred18_R())) {
+            else if ( (LA31_0==RBRACE) && (synpred17_R())) {
                 alt31=2;
             }
-            else if ( (LA31_0==EOF) && (synpred18_R())) {
-                alt31=2;
-            }
-            else if ( (LA31_0==SEMICOLON) && (synpred18_R())) {
-                alt31=2;
-            }
-            else if ( (LA31_0==RBRACE) && (synpred18_R())) {
-                alt31=2;
-            }
-            else if ( (LA31_0==ELSE) && (synpred18_R())) {
+            else if ( (LA31_0==ELSE) && (synpred17_R())) {
                 alt31=2;
             }
             else {
@@ -3877,9 +3789,9 @@ public class RParser extends Parser {
             }
             switch (alt31) {
                 case 1 :
-                    // R.g:230:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
+                    // R.g:227:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
                     {
-                    // R.g:230:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
+                    // R.g:227:3: ( ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v] )+
                     int cnt30=0;
                     loop30:
                     do {
@@ -3889,7 +3801,7 @@ public class RParser extends Parser {
                             {
                             int LA30_2 = input.LA(2);
 
-                            if ( (synpred17_R()) ) {
+                            if ( (synpred16_R()) ) {
                                 alt30=1;
                             }
 
@@ -3900,7 +3812,7 @@ public class RParser extends Parser {
                             {
                             int LA30_3 = input.LA(2);
 
-                            if ( (synpred17_R()) ) {
+                            if ( (synpred16_R()) ) {
                                 alt30=1;
                             }
 
@@ -3911,7 +3823,7 @@ public class RParser extends Parser {
                             {
                             int LA30_4 = input.LA(2);
 
-                            if ( (synpred17_R()) ) {
+                            if ( (synpred16_R()) ) {
                                 alt30=1;
                             }
 
@@ -3922,7 +3834,7 @@ public class RParser extends Parser {
                             {
                             int LA30_5 = input.LA(2);
 
-                            if ( (synpred17_R()) ) {
+                            if ( (synpred16_R()) ) {
                                 alt30=1;
                             }
 
@@ -3933,7 +3845,7 @@ public class RParser extends Parser {
                             {
                             int LA30_6 = input.LA(2);
 
-                            if ( (synpred17_R()) ) {
+                            if ( (synpred16_R()) ) {
                                 alt30=1;
                             }
 
@@ -3945,9 +3857,9 @@ public class RParser extends Parser {
 
                         switch (alt30) {
                     	case 1 :
-                    	    // R.g:230:4: ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v]
+                    	    // R.g:227:4: ( FIELD | AT | LBRAKET | LBB | LPAR )=>subset= expr_subset[v]
                     	    {
-                    	    pushFollow(FOLLOW_expr_subset_in_basic_expr1609);
+                    	    pushFollow(FOLLOW_expr_subset_in_basic_expr1546);
                     	    subset=expr_subset(v);
 
                     	    state._fsp--;
@@ -3972,7 +3884,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:230:76: ( n_ )=>
+                    // R.g:227:76: ( n_ )=>
                     {
                     }
                     break;
@@ -4000,7 +3912,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "expr_subset"
-    // R.g:232:1: expr_subset[ASTNode i] returns [ASTNode v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
+    // R.g:229:1: expr_subset[ASTNode i] returns [ASTNode v] : ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) );
     public final ASTNode expr_subset(ASTNode i) throws RecognitionException {
         ASTNode v = null;
 
@@ -4018,7 +3930,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 31) ) { return v; }
 
-            // R.g:233:5: ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) )
+            // R.g:230:5: ( ( FIELD n_ name= id ) | ( AT n_ name= id ) | ( LBRAKET subset= args RBRAKET ) | ( LBB subscript= args RBRAKET RBRAKET ) | ( LPAR a= args RPAR ) )
             int alt32=5;
             switch ( input.LA(1) ) {
             case FIELD:
@@ -4057,20 +3969,20 @@ public class RParser extends Parser {
 
             switch (alt32) {
                 case 1 :
-                    // R.g:233:7: ( FIELD n_ name= id )
+                    // R.g:230:7: ( FIELD n_ name= id )
                     {
-                    // R.g:233:7: ( FIELD n_ name= id )
-                    // R.g:233:8: FIELD n_ name= id
+                    // R.g:230:7: ( FIELD n_ name= id )
+                    // R.g:230:8: FIELD n_ name= id
                     {
-                    match(input,FIELD,FOLLOW_FIELD_in_expr_subset1642); if (state.failed) return v;
+                    match(input,FIELD,FOLLOW_FIELD_in_expr_subset1579); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_expr_subset1644);
+                    pushFollow(FOLLOW_n__in_expr_subset1581);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_id_in_expr_subset1648);
+                    pushFollow(FOLLOW_id_in_expr_subset1585);
                     name=id();
 
                     state._fsp--;
@@ -4084,20 +3996,20 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:234:7: ( AT n_ name= id )
+                    // R.g:231:7: ( AT n_ name= id )
                     {
-                    // R.g:234:7: ( AT n_ name= id )
-                    // R.g:234:8: AT n_ name= id
+                    // R.g:231:7: ( AT n_ name= id )
+                    // R.g:231:8: AT n_ name= id
                     {
-                    match(input,AT,FOLLOW_AT_in_expr_subset1661); if (state.failed) return v;
+                    match(input,AT,FOLLOW_AT_in_expr_subset1598); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_expr_subset1663);
+                    pushFollow(FOLLOW_n__in_expr_subset1600);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_id_in_expr_subset1667);
+                    pushFollow(FOLLOW_id_in_expr_subset1604);
                     name=id();
 
                     state._fsp--;
@@ -4111,20 +4023,20 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:235:7: ( LBRAKET subset= args RBRAKET )
+                    // R.g:232:7: ( LBRAKET subset= args RBRAKET )
                     {
-                    // R.g:235:7: ( LBRAKET subset= args RBRAKET )
-                    // R.g:235:8: LBRAKET subset= args RBRAKET
+                    // R.g:232:7: ( LBRAKET subset= args RBRAKET )
+                    // R.g:232:8: LBRAKET subset= args RBRAKET
                     {
-                    match(input,LBRAKET,FOLLOW_LBRAKET_in_expr_subset1681); if (state.failed) return v;
+                    match(input,LBRAKET,FOLLOW_LBRAKET_in_expr_subset1618); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_args_in_expr_subset1685);
+                    pushFollow(FOLLOW_args_in_expr_subset1622);
                     subset=args();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1687); if (state.failed) return v;
+                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1624); if (state.failed) return v;
 
                     }
 
@@ -4134,22 +4046,22 @@ public class RParser extends Parser {
                     }
                     break;
                 case 4 :
-                    // R.g:236:7: ( LBB subscript= args RBRAKET RBRAKET )
+                    // R.g:233:7: ( LBB subscript= args RBRAKET RBRAKET )
                     {
-                    // R.g:236:7: ( LBB subscript= args RBRAKET RBRAKET )
-                    // R.g:236:8: LBB subscript= args RBRAKET RBRAKET
+                    // R.g:233:7: ( LBB subscript= args RBRAKET RBRAKET )
+                    // R.g:233:8: LBB subscript= args RBRAKET RBRAKET
                     {
-                    match(input,LBB,FOLLOW_LBB_in_expr_subset1699); if (state.failed) return v;
+                    match(input,LBB,FOLLOW_LBB_in_expr_subset1636); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_args_in_expr_subset1703);
+                    pushFollow(FOLLOW_args_in_expr_subset1640);
                     subscript=args();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1705); if (state.failed) return v;
+                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1642); if (state.failed) return v;
 
-                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1707); if (state.failed) return v;
+                    match(input,RBRAKET,FOLLOW_RBRAKET_in_expr_subset1644); if (state.failed) return v;
 
                     }
 
@@ -4159,20 +4071,20 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:238:7: ( LPAR a= args RPAR )
+                    // R.g:235:7: ( LPAR a= args RPAR )
                     {
-                    // R.g:238:7: ( LPAR a= args RPAR )
-                    // R.g:238:8: LPAR a= args RPAR
+                    // R.g:235:7: ( LPAR a= args RPAR )
+                    // R.g:235:8: LPAR a= args RPAR
                     {
-                    match(input,LPAR,FOLLOW_LPAR_in_expr_subset1724); if (state.failed) return v;
+                    match(input,LPAR,FOLLOW_LPAR_in_expr_subset1661); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_args_in_expr_subset1728);
+                    pushFollow(FOLLOW_args_in_expr_subset1665);
                     a=args();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,RPAR,FOLLOW_RPAR_in_expr_subset1730); if (state.failed) return v;
+                    match(input,RPAR,FOLLOW_RPAR_in_expr_subset1667); if (state.failed) return v;
 
                     }
 
@@ -4201,7 +4113,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "simple_expr"
-    // R.g:241:1: simple_expr returns [ASTNode v] : (i= id |b= bool | DD | NULL |num= number |cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
+    // R.g:238:1: simple_expr returns [ASTNode v] : (i= id |b= bool | DD | NULL |num= number |cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign );
     public final ASTNode simple_expr() throws RecognitionException {
         ASTNode v = null;
 
@@ -4225,7 +4137,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 32) ) { return v; }
 
-            // R.g:242:2: (i= id |b= bool | DD | NULL |num= number |cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign )
+            // R.g:239:2: (i= id |b= bool | DD | NULL |num= number |cstr= conststring | id NS_GET n_ id | id NS_GET_INT n_ id | LPAR n_ ea= expr_or_assign n_ RPAR |s= sequence |e= expr_wo_assign )
             int alt33=11;
             switch ( input.LA(1) ) {
             case ID:
@@ -4248,13 +4160,11 @@ public class RParser extends Parser {
                 case FIELD:
                 case GE:
                 case GT:
-                case INTEGER_DIV:
                 case LBB:
                 case LBRAKET:
                 case LE:
                 case LPAR:
                 case LT:
-                case MAT_MULT:
                 case MINUS:
                 case MOD:
                 case MULT:
@@ -4262,7 +4172,6 @@ public class RParser extends Parser {
                 case NEWLINE:
                 case OP:
                 case OR:
-                case OUTER_MULT:
                 case PLUS:
                 case RBRACE:
                 case RBRAKET:
@@ -4317,13 +4226,11 @@ public class RParser extends Parser {
                 case FIELD:
                 case GE:
                 case GT:
-                case INTEGER_DIV:
                 case LBB:
                 case LBRAKET:
                 case LE:
                 case LPAR:
                 case LT:
-                case MAT_MULT:
                 case MINUS:
                 case MOD:
                 case MULT:
@@ -4331,7 +4238,6 @@ public class RParser extends Parser {
                 case NEWLINE:
                 case OP:
                 case OR:
-                case OUTER_MULT:
                 case PLUS:
                 case RBRACE:
                 case RBRAKET:
@@ -4427,9 +4333,9 @@ public class RParser extends Parser {
 
             switch (alt33) {
                 case 1 :
-                    // R.g:242:4: i= id
+                    // R.g:239:4: i= id
                     {
-                    pushFollow(FOLLOW_id_in_simple_expr1759);
+                    pushFollow(FOLLOW_id_in_simple_expr1696);
                     i=id();
 
                     state._fsp--;
@@ -4440,9 +4346,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:243:4: b= bool
+                    // R.g:240:4: b= bool
                     {
-                    pushFollow(FOLLOW_bool_in_simple_expr1768);
+                    pushFollow(FOLLOW_bool_in_simple_expr1705);
                     b=bool();
 
                     state._fsp--;
@@ -4453,25 +4359,25 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:244:4: DD
+                    // R.g:241:4: DD
                     {
-                    match(input,DD,FOLLOW_DD_in_simple_expr1775); if (state.failed) return v;
+                    match(input,DD,FOLLOW_DD_in_simple_expr1712); if (state.failed) return v;
 
                     }
                     break;
                 case 4 :
-                    // R.g:245:4: NULL
+                    // R.g:242:4: NULL
                     {
-                    match(input,NULL,FOLLOW_NULL_in_simple_expr1780); if (state.failed) return v;
+                    match(input,NULL,FOLLOW_NULL_in_simple_expr1717); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) { v = Constant.getNull(); }
 
                     }
                     break;
                 case 5 :
-                    // R.g:246:4: num= number
+                    // R.g:243:4: num= number
                     {
-                    pushFollow(FOLLOW_number_in_simple_expr1789);
+                    pushFollow(FOLLOW_number_in_simple_expr1726);
                     num=number();
 
                     state._fsp--;
@@ -4482,9 +4388,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 6 :
-                    // R.g:247:4: cstr= conststring
+                    // R.g:244:4: cstr= conststring
                     {
-                    pushFollow(FOLLOW_conststring_in_simple_expr1798);
+                    pushFollow(FOLLOW_conststring_in_simple_expr1735);
                     cstr=conststring();
 
                     state._fsp--;
@@ -4495,23 +4401,23 @@ public class RParser extends Parser {
                     }
                     break;
                 case 7 :
-                    // R.g:248:4: id NS_GET n_ id
+                    // R.g:245:4: id NS_GET n_ id
                     {
-                    pushFollow(FOLLOW_id_in_simple_expr1805);
+                    pushFollow(FOLLOW_id_in_simple_expr1742);
                     id();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,NS_GET,FOLLOW_NS_GET_in_simple_expr1807); if (state.failed) return v;
+                    match(input,NS_GET,FOLLOW_NS_GET_in_simple_expr1744); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_simple_expr1809);
+                    pushFollow(FOLLOW_n__in_simple_expr1746);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_id_in_simple_expr1811);
+                    pushFollow(FOLLOW_id_in_simple_expr1748);
                     id();
 
                     state._fsp--;
@@ -4520,23 +4426,23 @@ public class RParser extends Parser {
                     }
                     break;
                 case 8 :
-                    // R.g:249:4: id NS_GET_INT n_ id
+                    // R.g:246:4: id NS_GET_INT n_ id
                     {
-                    pushFollow(FOLLOW_id_in_simple_expr1816);
+                    pushFollow(FOLLOW_id_in_simple_expr1753);
                     id();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,NS_GET_INT,FOLLOW_NS_GET_INT_in_simple_expr1818); if (state.failed) return v;
+                    match(input,NS_GET_INT,FOLLOW_NS_GET_INT_in_simple_expr1755); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_simple_expr1820);
+                    pushFollow(FOLLOW_n__in_simple_expr1757);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_id_in_simple_expr1822);
+                    pushFollow(FOLLOW_id_in_simple_expr1759);
                     id();
 
                     state._fsp--;
@@ -4545,38 +4451,38 @@ public class RParser extends Parser {
                     }
                     break;
                 case 9 :
-                    // R.g:250:4: LPAR n_ ea= expr_or_assign n_ RPAR
+                    // R.g:247:4: LPAR n_ ea= expr_or_assign n_ RPAR
                     {
-                    match(input,LPAR,FOLLOW_LPAR_in_simple_expr1827); if (state.failed) return v;
+                    match(input,LPAR,FOLLOW_LPAR_in_simple_expr1764); if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_simple_expr1829);
+                    pushFollow(FOLLOW_n__in_simple_expr1766);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_expr_or_assign_in_simple_expr1835);
+                    pushFollow(FOLLOW_expr_or_assign_in_simple_expr1772);
                     ea=expr_or_assign();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    pushFollow(FOLLOW_n__in_simple_expr1837);
+                    pushFollow(FOLLOW_n__in_simple_expr1774);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return v;
 
-                    match(input,RPAR,FOLLOW_RPAR_in_simple_expr1839); if (state.failed) return v;
+                    match(input,RPAR,FOLLOW_RPAR_in_simple_expr1776); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) { v = ea; }
 
                     }
                     break;
                 case 10 :
-                    // R.g:251:4: s= sequence
+                    // R.g:248:4: s= sequence
                     {
-                    pushFollow(FOLLOW_sequence_in_simple_expr1850);
+                    pushFollow(FOLLOW_sequence_in_simple_expr1787);
                     s=sequence();
 
                     state._fsp--;
@@ -4587,9 +4493,9 @@ public class RParser extends Parser {
                     }
                     break;
                 case 11 :
-                    // R.g:252:4: e= expr_wo_assign
+                    // R.g:249:4: e= expr_wo_assign
                     {
-                    pushFollow(FOLLOW_expr_wo_assign_in_simple_expr1861);
+                    pushFollow(FOLLOW_expr_wo_assign_in_simple_expr1798);
                     e=expr_wo_assign();
 
                     state._fsp--;
@@ -4619,7 +4525,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "number"
-    // R.g:254:1: number returns [ASTNode n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
+    // R.g:251:1: number returns [ASTNode n] : (i= INTEGER |d= DOUBLE |c= COMPLEX );
     public final ASTNode number() throws RecognitionException {
         ASTNode n = null;
 
@@ -4632,7 +4538,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 33) ) { return n; }
 
-            // R.g:255:5: (i= INTEGER |d= DOUBLE |c= COMPLEX )
+            // R.g:252:5: (i= INTEGER |d= DOUBLE |c= COMPLEX )
             int alt34=3;
             switch ( input.LA(1) ) {
             case INTEGER:
@@ -4661,27 +4567,27 @@ public class RParser extends Parser {
 
             switch (alt34) {
                 case 1 :
-                    // R.g:255:7: i= INTEGER
+                    // R.g:252:7: i= INTEGER
                     {
-                    i=(Token)match(input,INTEGER,FOLLOW_INTEGER_in_number1882); if (state.failed) return n;
+                    i=(Token)match(input,INTEGER,FOLLOW_INTEGER_in_number1819); if (state.failed) return n;
 
                     if ( state.backtracking==0 ) { n = Constant.createIntConstant((i!=null?i.getText():null)); }
 
                     }
                     break;
                 case 2 :
-                    // R.g:256:7: d= DOUBLE
+                    // R.g:253:7: d= DOUBLE
                     {
-                    d=(Token)match(input,DOUBLE,FOLLOW_DOUBLE_in_number1894); if (state.failed) return n;
+                    d=(Token)match(input,DOUBLE,FOLLOW_DOUBLE_in_number1831); if (state.failed) return n;
 
                     if ( state.backtracking==0 ) { n = Constant.createDoubleConstant((d!=null?d.getText():null)); }
 
                     }
                     break;
                 case 3 :
-                    // R.g:257:7: c= COMPLEX
+                    // R.g:254:7: c= COMPLEX
                     {
-                    c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1906); if (state.failed) return n;
+                    c=(Token)match(input,COMPLEX,FOLLOW_COMPLEX_in_number1843); if (state.failed) return n;
 
                     if ( state.backtracking==0 ) { n = Constant.createComplexConstant((c!=null?c.getText():null)); }
 
@@ -4707,7 +4613,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "conststring"
-    // R.g:259:1: conststring returns [ASTNode n] : s= STRING ;
+    // R.g:256:1: conststring returns [ASTNode n] : s= STRING ;
     public final ASTNode conststring() throws RecognitionException {
         ASTNode n = null;
 
@@ -4718,10 +4624,10 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 34) ) { return n; }
 
-            // R.g:260:5: (s= STRING )
-            // R.g:260:7: s= STRING
+            // R.g:257:5: (s= STRING )
+            // R.g:257:7: s= STRING
             {
-            s=(Token)match(input,STRING,FOLLOW_STRING_in_conststring1930); if (state.failed) return n;
+            s=(Token)match(input,STRING,FOLLOW_STRING_in_conststring1867); if (state.failed) return n;
 
             if ( state.backtracking==0 ) { n = Constant.createStringConstant((s!=null?s.getText():null)); }
 
@@ -4745,7 +4651,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "id"
-    // R.g:262:1: id returns [Token t] : (i= ID |v= VARIATIC );
+    // R.g:259:1: id returns [Token t] : (i= ID |v= VARIATIC );
     public final Token id() throws RecognitionException {
         Token t = null;
 
@@ -4757,7 +4663,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 35) ) { return t; }
 
-            // R.g:263:5: (i= ID |v= VARIATIC )
+            // R.g:260:5: (i= ID |v= VARIATIC )
             int alt35=2;
             int LA35_0 = input.LA(1);
 
@@ -4777,18 +4683,18 @@ public class RParser extends Parser {
             }
             switch (alt35) {
                 case 1 :
-                    // R.g:263:7: i= ID
+                    // R.g:260:7: i= ID
                     {
-                    i=(Token)match(input,ID,FOLLOW_ID_in_id1954); if (state.failed) return t;
+                    i=(Token)match(input,ID,FOLLOW_ID_in_id1891); if (state.failed) return t;
 
                     if ( state.backtracking==0 ) { t = i; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:264:7: v= VARIATIC
+                    // R.g:261:7: v= VARIATIC
                     {
-                    v=(Token)match(input,VARIATIC,FOLLOW_VARIATIC_in_id1966); if (state.failed) return t;
+                    v=(Token)match(input,VARIATIC,FOLLOW_VARIATIC_in_id1903); if (state.failed) return t;
 
                     if ( state.backtracking==0 ) { t = v; }
 
@@ -4814,7 +4720,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "bool"
-    // R.g:266:1: bool returns [ASTNode v] : ( TRUE | FALSE | NA );
+    // R.g:263:1: bool returns [ASTNode v] : ( TRUE | FALSE | NA );
     public final ASTNode bool() throws RecognitionException {
         ASTNode v = null;
 
@@ -4823,7 +4729,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 36) ) { return v; }
 
-            // R.g:267:5: ( TRUE | FALSE | NA )
+            // R.g:264:5: ( TRUE | FALSE | NA )
             int alt36=3;
             switch ( input.LA(1) ) {
             case TRUE:
@@ -4852,27 +4758,27 @@ public class RParser extends Parser {
 
             switch (alt36) {
                 case 1 :
-                    // R.g:267:7: TRUE
+                    // R.g:264:7: TRUE
                     {
-                    match(input,TRUE,FOLLOW_TRUE_in_bool1988); if (state.failed) return v;
+                    match(input,TRUE,FOLLOW_TRUE_in_bool1925); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = Constant.createBoolConstant(1); }
 
                     }
                     break;
                 case 2 :
-                    // R.g:268:7: FALSE
+                    // R.g:265:7: FALSE
                     {
-                    match(input,FALSE,FOLLOW_FALSE_in_bool1998); if (state.failed) return v;
+                    match(input,FALSE,FOLLOW_FALSE_in_bool1935); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = Constant.createBoolConstant(0); }
 
                     }
                     break;
                 case 3 :
-                    // R.g:269:7: NA
+                    // R.g:266:7: NA
                     {
-                    match(input,NA,FOLLOW_NA_in_bool2008); if (state.failed) return v;
+                    match(input,NA,FOLLOW_NA_in_bool1945); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = Constant.createBoolConstant(RLogical.NA); }
 
@@ -4898,7 +4804,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "or_operator"
-    // R.g:271:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
+    // R.g:268:1: or_operator returns [BinaryOperator v] : ( OR | BITWISEOR );
     public final BinaryOperator or_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -4907,7 +4813,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 37) ) { return v; }
 
-            // R.g:272:2: ( OR | BITWISEOR )
+            // R.g:269:2: ( OR | BITWISEOR )
             int alt37=2;
             int LA37_0 = input.LA(1);
 
@@ -4927,18 +4833,18 @@ public class RParser extends Parser {
             }
             switch (alt37) {
                 case 1 :
-                    // R.g:272:4: OR
+                    // R.g:269:4: OR
                     {
-                    match(input,OR,FOLLOW_OR_in_or_operator2027); if (state.failed) return v;
+                    match(input,OR,FOLLOW_OR_in_or_operator1964); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.OR; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:273:5: BITWISEOR
+                    // R.g:270:5: BITWISEOR
                     {
-                    match(input,BITWISEOR,FOLLOW_BITWISEOR_in_or_operator2044); if (state.failed) return v;
+                    match(input,BITWISEOR,FOLLOW_BITWISEOR_in_or_operator1981); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.BITWISEOR; }
 
@@ -4964,7 +4870,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "and_operator"
-    // R.g:274:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
+    // R.g:271:1: and_operator returns [BinaryOperator v] : ( AND | BITWISEAND );
     public final BinaryOperator and_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -4973,7 +4879,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 38) ) { return v; }
 
-            // R.g:275:2: ( AND | BITWISEAND )
+            // R.g:272:2: ( AND | BITWISEAND )
             int alt38=2;
             int LA38_0 = input.LA(1);
 
@@ -4993,18 +4899,18 @@ public class RParser extends Parser {
             }
             switch (alt38) {
                 case 1 :
-                    // R.g:275:4: AND
+                    // R.g:272:4: AND
                     {
-                    match(input,AND,FOLLOW_AND_in_and_operator2060); if (state.failed) return v;
+                    match(input,AND,FOLLOW_AND_in_and_operator1997); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.AND; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:276:4: BITWISEAND
+                    // R.g:273:4: BITWISEAND
                     {
-                    match(input,BITWISEAND,FOLLOW_BITWISEAND_in_and_operator2076); if (state.failed) return v;
+                    match(input,BITWISEAND,FOLLOW_BITWISEAND_in_and_operator2013); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.BITWISEAND; }
 
@@ -5030,7 +4936,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "comp_operator"
-    // R.g:277:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
+    // R.g:274:1: comp_operator returns [BinaryOperator v] : ( GT | GE | LT | LE | EQ | NE );
     public final BinaryOperator comp_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5039,7 +4945,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 39) ) { return v; }
 
-            // R.g:278:2: ( GT | GE | LT | LE | EQ | NE )
+            // R.g:275:2: ( GT | GE | LT | LE | EQ | NE )
             int alt39=6;
             switch ( input.LA(1) ) {
             case GT:
@@ -5083,54 +4989,54 @@ public class RParser extends Parser {
 
             switch (alt39) {
                 case 1 :
-                    // R.g:278:4: GT
+                    // R.g:275:4: GT
                     {
-                    match(input,GT,FOLLOW_GT_in_comp_operator2092); if (state.failed) return v;
+                    match(input,GT,FOLLOW_GT_in_comp_operator2029); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.GT; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:279:4: GE
+                    // R.g:276:4: GE
                     {
-                    match(input,GE,FOLLOW_GE_in_comp_operator2099); if (state.failed) return v;
+                    match(input,GE,FOLLOW_GE_in_comp_operator2036); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.GE; }
 
                     }
                     break;
                 case 3 :
-                    // R.g:280:4: LT
+                    // R.g:277:4: LT
                     {
-                    match(input,LT,FOLLOW_LT_in_comp_operator2106); if (state.failed) return v;
+                    match(input,LT,FOLLOW_LT_in_comp_operator2043); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.LT; }
 
                     }
                     break;
                 case 4 :
-                    // R.g:281:4: LE
+                    // R.g:278:4: LE
                     {
-                    match(input,LE,FOLLOW_LE_in_comp_operator2113); if (state.failed) return v;
+                    match(input,LE,FOLLOW_LE_in_comp_operator2050); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.LE; }
 
                     }
                     break;
                 case 5 :
-                    // R.g:282:4: EQ
+                    // R.g:279:4: EQ
                     {
-                    match(input,EQ,FOLLOW_EQ_in_comp_operator2120); if (state.failed) return v;
+                    match(input,EQ,FOLLOW_EQ_in_comp_operator2057); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.EQ; }
 
                     }
                     break;
                 case 6 :
-                    // R.g:283:4: NE
+                    // R.g:280:4: NE
                     {
-                    match(input,NE,FOLLOW_NE_in_comp_operator2127); if (state.failed) return v;
+                    match(input,NE,FOLLOW_NE_in_comp_operator2064); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.NE; }
 
@@ -5156,7 +5062,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "add_operator"
-    // R.g:284:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
+    // R.g:281:1: add_operator returns [BinaryOperator v] : ( PLUS | MINUS );
     public final BinaryOperator add_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5165,7 +5071,7 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 40) ) { return v; }
 
-            // R.g:285:2: ( PLUS | MINUS )
+            // R.g:282:2: ( PLUS | MINUS )
             int alt40=2;
             int LA40_0 = input.LA(1);
 
@@ -5185,18 +5091,18 @@ public class RParser extends Parser {
             }
             switch (alt40) {
                 case 1 :
-                    // R.g:285:4: PLUS
+                    // R.g:282:4: PLUS
                     {
-                    match(input,PLUS,FOLLOW_PLUS_in_add_operator2141); if (state.failed) return v;
+                    match(input,PLUS,FOLLOW_PLUS_in_add_operator2078); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.ADD; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:286:4: MINUS
+                    // R.g:283:4: MINUS
                     {
-                    match(input,MINUS,FOLLOW_MINUS_in_add_operator2148); if (state.failed) return v;
+                    match(input,MINUS,FOLLOW_MINUS_in_add_operator2085); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.SUB; }
 
@@ -5222,7 +5128,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "mult_operator"
-    // R.g:287:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV );
+    // R.g:284:1: mult_operator returns [BinaryOperator v] : ( MULT | DIV | MOD );
     public final BinaryOperator mult_operator() throws RecognitionException {
         BinaryOperator v = null;
 
@@ -5231,17 +5137,25 @@ public class RParser extends Parser {
         try {
             if ( state.backtracking>0 && alreadyParsedRule(input, 41) ) { return v; }
 
-            // R.g:288:2: ( MULT | DIV )
-            int alt41=2;
-            int LA41_0 = input.LA(1);
-
-            if ( (LA41_0==MULT) ) {
+            // R.g:285:2: ( MULT | DIV | MOD )
+            int alt41=3;
+            switch ( input.LA(1) ) {
+            case MULT:
+                {
                 alt41=1;
-            }
-            else if ( (LA41_0==DIV) ) {
+                }
+                break;
+            case DIV:
+                {
                 alt41=2;
-            }
-            else {
+                }
+                break;
+            case MOD:
+                {
+                alt41=3;
+                }
+                break;
+            default:
                 if (state.backtracking>0) {state.failed=true; return v;}
                 NoViableAltException nvae =
                     new NoViableAltException("", 41, 0, input);
@@ -5249,22 +5163,32 @@ public class RParser extends Parser {
                 throw nvae;
 
             }
+
             switch (alt41) {
                 case 1 :
-                    // R.g:288:4: MULT
+                    // R.g:285:4: MULT
                     {
-                    match(input,MULT,FOLLOW_MULT_in_mult_operator2163); if (state.failed) return v;
+                    match(input,MULT,FOLLOW_MULT_in_mult_operator2100); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.MULT; }
 
                     }
                     break;
                 case 2 :
-                    // R.g:289:4: DIV
+                    // R.g:286:4: DIV
                     {
-                    match(input,DIV,FOLLOW_DIV_in_mult_operator2170); if (state.failed) return v;
+                    match(input,DIV,FOLLOW_DIV_in_mult_operator2107); if (state.failed) return v;
 
                     if ( state.backtracking==0 ) {v = BinaryOperator.DIV; }
+
+                    }
+                    break;
+                case 3 :
+                    // R.g:287:4: MOD
+                    {
+                    match(input,MOD,FOLLOW_MOD_in_mult_operator2115); if (state.failed) return v;
+
+                    if ( state.backtracking==0 ) {v = BinaryOperator.MOD; }
 
                     }
                     break;
@@ -5287,118 +5211,20 @@ public class RParser extends Parser {
 
 
 
-    // $ANTLR start "predefined_percent_operator"
-    // R.g:290:1: predefined_percent_operator returns [BinaryOperator v] : ( MOD | INTEGER_DIV | MAT_MULT | OUTER_MULT );
-    public final BinaryOperator predefined_percent_operator() throws RecognitionException {
-        BinaryOperator v = null;
-
-        int predefined_percent_operator_StartIndex = input.index();
-
-        try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 42) ) { return v; }
-
-            // R.g:291:2: ( MOD | INTEGER_DIV | MAT_MULT | OUTER_MULT )
-            int alt42=4;
-            switch ( input.LA(1) ) {
-            case MOD:
-                {
-                alt42=1;
-                }
-                break;
-            case INTEGER_DIV:
-                {
-                alt42=2;
-                }
-                break;
-            case MAT_MULT:
-                {
-                alt42=3;
-                }
-                break;
-            case OUTER_MULT:
-                {
-                alt42=4;
-                }
-                break;
-            default:
-                if (state.backtracking>0) {state.failed=true; return v;}
-                NoViableAltException nvae =
-                    new NoViableAltException("", 42, 0, input);
-
-                throw nvae;
-
-            }
-
-            switch (alt42) {
-                case 1 :
-                    // R.g:291:4: MOD
-                    {
-                    match(input,MOD,FOLLOW_MOD_in_predefined_percent_operator2185); if (state.failed) return v;
-
-                    if ( state.backtracking==0 ) {v = BinaryOperator.MOD; }
-
-                    }
-                    break;
-                case 2 :
-                    // R.g:292:4: INTEGER_DIV
-                    {
-                    match(input,INTEGER_DIV,FOLLOW_INTEGER_DIV_in_predefined_percent_operator2193); if (state.failed) return v;
-
-                    if ( state.backtracking==0 ) { v = BinaryOperator.INTEGER_DIV; }
-
-                    }
-                    break;
-                case 3 :
-                    // R.g:293:4: MAT_MULT
-                    {
-                    match(input,MAT_MULT,FOLLOW_MAT_MULT_in_predefined_percent_operator2200); if (state.failed) return v;
-
-                    if ( state.backtracking==0 ) {v = BinaryOperator.MAT_MULT; }
-
-                    }
-                    break;
-                case 4 :
-                    // R.g:294:4: OUTER_MULT
-                    {
-                    match(input,OUTER_MULT,FOLLOW_OUTER_MULT_in_predefined_percent_operator2207); if (state.failed) return v;
-
-                    if ( state.backtracking==0 ) {v = BinaryOperator.OUTER_MULT; }
-
-                    }
-                    break;
-
-            }
-        }
-
-            catch(RecognitionException re){
-                throw re; // Stop at first error
-            }
-
-        finally {
-        	// do for sure before leaving
-            if ( state.backtracking>0 ) { memoize(input, 42, predefined_percent_operator_StartIndex); }
-
-        }
-        return v;
-    }
-    // $ANTLR end "predefined_percent_operator"
-
-
-
     // $ANTLR start "power_operator"
-    // R.g:295:1: power_operator returns [BinaryOperator v] : CARRET ;
+    // R.g:289:1: power_operator returns [BinaryOperator v] : CARRET ;
     public final BinaryOperator power_operator() throws RecognitionException {
         BinaryOperator v = null;
 
         int power_operator_StartIndex = input.index();
 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 43) ) { return v; }
+            if ( state.backtracking>0 && alreadyParsedRule(input, 42) ) { return v; }
 
-            // R.g:296:2: ( CARRET )
-            // R.g:296:4: CARRET
+            // R.g:290:2: ( CARRET )
+            // R.g:290:4: CARRET
             {
-            match(input,CARRET,FOLLOW_CARRET_in_power_operator2221); if (state.failed) return v;
+            match(input,CARRET,FOLLOW_CARRET_in_power_operator2132); if (state.failed) return v;
 
             if ( state.backtracking==0 ) {v = BinaryOperator.POW; }
 
@@ -5412,7 +5238,7 @@ public class RParser extends Parser {
 
         finally {
         	// do for sure before leaving
-            if ( state.backtracking>0 ) { memoize(input, 43, power_operator_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 42, power_operator_StartIndex); }
 
         }
         return v;
@@ -5422,7 +5248,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "args"
-    // R.g:298:1: args returns [ArgumentList v] : n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )* ;
+    // R.g:292:1: args returns [ArgumentList v] : n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )* ;
     public final ArgumentList args() throws RecognitionException {
         ArgumentList v = null;
 
@@ -5430,43 +5256,43 @@ public class RParser extends Parser {
 
          v = new ArgumentList.Default(); 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 44) ) { return v; }
+            if ( state.backtracking>0 && alreadyParsedRule(input, 43) ) { return v; }
 
-            // R.g:300:9: ( n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )* )
-            // R.g:300:11: n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )*
+            // R.g:294:9: ( n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )* )
+            // R.g:294:11: n_ ( ( arg_expr[v] ) |) ( COMMA (| n_ arg_expr[v] ) n_ )*
             {
-            pushFollow(FOLLOW_n__in_args2249);
+            pushFollow(FOLLOW_n__in_args2160);
             n_();
 
             state._fsp--;
             if (state.failed) return v;
 
-            // R.g:300:14: ( ( arg_expr[v] ) |)
-            int alt43=2;
-            int LA43_0 = input.LA(1);
+            // R.g:294:14: ( ( arg_expr[v] ) |)
+            int alt42=2;
+            int LA42_0 = input.LA(1);
 
-            if ( (LA43_0==BREAK||(LA43_0 >= COMPLEX && LA43_0 <= DD)||LA43_0==DOUBLE||LA43_0==FALSE||(LA43_0 >= FOR && LA43_0 <= FUNCTION)||LA43_0==ID||LA43_0==IF||LA43_0==INTEGER||LA43_0==LBRACE||LA43_0==LPAR||LA43_0==MINUS||LA43_0==NA||(LA43_0 >= NEXT && LA43_0 <= NOT)||LA43_0==NULL||LA43_0==PLUS||LA43_0==REPEAT||LA43_0==STRING||(LA43_0 >= TILDE && LA43_0 <= TRUE)||(LA43_0 >= VARIATIC && LA43_0 <= WHILE)) ) {
-                alt43=1;
+            if ( (LA42_0==BREAK||(LA42_0 >= COMPLEX && LA42_0 <= DD)||LA42_0==DOUBLE||LA42_0==FALSE||(LA42_0 >= FOR && LA42_0 <= FUNCTION)||LA42_0==ID||LA42_0==IF||LA42_0==INTEGER||LA42_0==LBRACE||LA42_0==LPAR||LA42_0==MINUS||LA42_0==NA||(LA42_0 >= NEXT && LA42_0 <= NOT)||LA42_0==NULL||LA42_0==PLUS||LA42_0==REPEAT||LA42_0==STRING||(LA42_0 >= TILDE && LA42_0 <= TRUE)||(LA42_0 >= VARIATIC && LA42_0 <= WHILE)) ) {
+                alt42=1;
             }
-            else if ( (LA43_0==COMMA||LA43_0==RBRAKET||LA43_0==RPAR) ) {
-                alt43=2;
+            else if ( (LA42_0==COMMA||LA42_0==RBRAKET||LA42_0==RPAR) ) {
+                alt42=2;
             }
             else {
                 if (state.backtracking>0) {state.failed=true; return v;}
                 NoViableAltException nvae =
-                    new NoViableAltException("", 43, 0, input);
+                    new NoViableAltException("", 42, 0, input);
 
                 throw nvae;
 
             }
-            switch (alt43) {
+            switch (alt42) {
                 case 1 :
-                    // R.g:300:15: ( arg_expr[v] )
+                    // R.g:294:15: ( arg_expr[v] )
                     {
-                    // R.g:300:15: ( arg_expr[v] )
-                    // R.g:300:16: arg_expr[v]
+                    // R.g:294:15: ( arg_expr[v] )
+                    // R.g:294:16: arg_expr[v]
                     {
-                    pushFollow(FOLLOW_arg_expr_in_args2253);
+                    pushFollow(FOLLOW_arg_expr_in_args2164);
                     arg_expr(v);
 
                     state._fsp--;
@@ -5478,7 +5304,7 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:300:31: 
+                    // R.g:294:31: 
                     {
                     if ( state.backtracking==0 ) {v.add((ASTNode)null); }
 
@@ -5488,44 +5314,44 @@ public class RParser extends Parser {
             }
 
 
-            // R.g:300:58: ( COMMA (| n_ arg_expr[v] ) n_ )*
-            loop45:
+            // R.g:294:58: ( COMMA (| n_ arg_expr[v] ) n_ )*
+            loop44:
             do {
-                int alt45=2;
-                int LA45_0 = input.LA(1);
+                int alt44=2;
+                int LA44_0 = input.LA(1);
 
-                if ( (LA45_0==COMMA) ) {
-                    alt45=1;
+                if ( (LA44_0==COMMA) ) {
+                    alt44=1;
                 }
 
 
-                switch (alt45) {
+                switch (alt44) {
             	case 1 :
-            	    // R.g:300:59: COMMA (| n_ arg_expr[v] ) n_
+            	    // R.g:294:59: COMMA (| n_ arg_expr[v] ) n_
             	    {
-            	    match(input,COMMA,FOLLOW_COMMA_in_args2263); if (state.failed) return v;
+            	    match(input,COMMA,FOLLOW_COMMA_in_args2174); if (state.failed) return v;
 
-            	    // R.g:300:65: (| n_ arg_expr[v] )
-            	    int alt44=2;
-            	    alt44 = dfa44.predict(input);
-            	    switch (alt44) {
+            	    // R.g:294:65: (| n_ arg_expr[v] )
+            	    int alt43=2;
+            	    alt43 = dfa43.predict(input);
+            	    switch (alt43) {
             	        case 1 :
-            	            // R.g:300:67: 
+            	            // R.g:294:67: 
             	            {
             	            if ( state.backtracking==0 ) { v.add((ASTNode)null); }
 
             	            }
             	            break;
             	        case 2 :
-            	            // R.g:300:96: n_ arg_expr[v]
+            	            // R.g:294:96: n_ arg_expr[v]
             	            {
-            	            pushFollow(FOLLOW_n__in_args2271);
+            	            pushFollow(FOLLOW_n__in_args2182);
             	            n_();
 
             	            state._fsp--;
             	            if (state.failed) return v;
 
-            	            pushFollow(FOLLOW_arg_expr_in_args2273);
+            	            pushFollow(FOLLOW_arg_expr_in_args2184);
             	            arg_expr(v);
 
             	            state._fsp--;
@@ -5537,7 +5363,7 @@ public class RParser extends Parser {
             	    }
 
 
-            	    pushFollow(FOLLOW_n__in_args2277);
+            	    pushFollow(FOLLOW_n__in_args2188);
             	    n_();
 
             	    state._fsp--;
@@ -5547,7 +5373,7 @@ public class RParser extends Parser {
             	    break;
 
             	default :
-            	    break loop45;
+            	    break loop44;
                 }
             } while (true);
 
@@ -5562,7 +5388,7 @@ public class RParser extends Parser {
 
         finally {
         	// do for sure before leaving
-            if ( state.backtracking>0 ) { memoize(input, 44, args_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 43, args_StartIndex); }
 
         }
         return v;
@@ -5572,7 +5398,7 @@ public class RParser extends Parser {
 
 
     // $ANTLR start "arg_expr"
-    // R.g:302:1: arg_expr[ArgumentList l] : (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
+    // R.g:296:1: arg_expr[ArgumentList l] : (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );
     public final void arg_expr(ArgumentList l) throws RecognitionException {
         int arg_expr_StartIndex = input.index();
 
@@ -5584,16 +5410,16 @@ public class RParser extends Parser {
 
 
         try {
-            if ( state.backtracking>0 && alreadyParsedRule(input, 45) ) { return ; }
+            if ( state.backtracking>0 && alreadyParsedRule(input, 44) ) { return ; }
 
-            // R.g:303:2: (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
-            int alt46=5;
-            alt46 = dfa46.predict(input);
-            switch (alt46) {
+            // R.g:297:2: (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN )
+            int alt45=5;
+            alt45 = dfa45.predict(input);
+            switch (alt45) {
                 case 1 :
-                    // R.g:303:4: e= expr
+                    // R.g:297:4: e= expr
                     {
-                    pushFollow(FOLLOW_expr_in_arg_expr2294);
+                    pushFollow(FOLLOW_expr_in_arg_expr2205);
                     e=expr();
 
                     state._fsp--;
@@ -5604,29 +5430,29 @@ public class RParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // R.g:304:4: name= id n_ ASSIGN n_ val= expr
+                    // R.g:298:4: name= id n_ ASSIGN n_ val= expr
                     {
-                    pushFollow(FOLLOW_id_in_arg_expr2303);
+                    pushFollow(FOLLOW_id_in_arg_expr2214);
                     name=id();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2305);
+                    pushFollow(FOLLOW_n__in_arg_expr2216);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2307); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2218); if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2309);
+                    pushFollow(FOLLOW_n__in_arg_expr2220);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    pushFollow(FOLLOW_expr_in_arg_expr2313);
+                    pushFollow(FOLLOW_expr_in_arg_expr2224);
                     val=expr();
 
                     state._fsp--;
@@ -5637,46 +5463,46 @@ public class RParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // R.g:305:4: name= id n_ ASSIGN
+                    // R.g:299:4: name= id n_ ASSIGN
                     {
-                    pushFollow(FOLLOW_id_in_arg_expr2322);
+                    pushFollow(FOLLOW_id_in_arg_expr2233);
                     name=id();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2324);
+                    pushFollow(FOLLOW_n__in_arg_expr2235);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2326); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2237); if (state.failed) return ;
 
                     if ( state.backtracking==0 ) { l.add(name.getText(), null); }
 
                     }
                     break;
                 case 4 :
-                    // R.g:306:4: NULL n_ ASSIGN n_ val= expr
+                    // R.g:300:4: NULL n_ ASSIGN n_ val= expr
                     {
-                    match(input,NULL,FOLLOW_NULL_in_arg_expr2334); if (state.failed) return ;
+                    match(input,NULL,FOLLOW_NULL_in_arg_expr2245); if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2336);
+                    pushFollow(FOLLOW_n__in_arg_expr2247);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2338); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2249); if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2340);
+                    pushFollow(FOLLOW_n__in_arg_expr2251);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    pushFollow(FOLLOW_expr_in_arg_expr2344);
+                    pushFollow(FOLLOW_expr_in_arg_expr2255);
                     val=expr();
 
                     state._fsp--;
@@ -5687,17 +5513,17 @@ public class RParser extends Parser {
                     }
                     break;
                 case 5 :
-                    // R.g:307:4: NULL n_ ASSIGN
+                    // R.g:301:4: NULL n_ ASSIGN
                     {
-                    match(input,NULL,FOLLOW_NULL_in_arg_expr2351); if (state.failed) return ;
+                    match(input,NULL,FOLLOW_NULL_in_arg_expr2262); if (state.failed) return ;
 
-                    pushFollow(FOLLOW_n__in_arg_expr2353);
+                    pushFollow(FOLLOW_n__in_arg_expr2264);
                     n_();
 
                     state._fsp--;
                     if (state.failed) return ;
 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2355); if (state.failed) return ;
+                    match(input,ASSIGN,FOLLOW_ASSIGN_in_arg_expr2266); if (state.failed) return ;
 
                     if ( state.backtracking==0 ) { Utils.nyi(); }
 
@@ -5713,7 +5539,7 @@ public class RParser extends Parser {
 
         finally {
         	// do for sure before leaving
-            if ( state.backtracking>0 ) { memoize(input, 45, arg_expr_StartIndex); }
+            if ( state.backtracking>0 ) { memoize(input, 44, arg_expr_StartIndex); }
 
         }
         return ;
@@ -5892,14 +5718,10 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred13_R
     public final void synpred13_R_fragment() throws RecognitionException {
-        // R.g:210:10: ( predefined_percent_operator )
-        // R.g:210:11: predefined_percent_operator
+        // R.g:209:3: ( OP )
+        // R.g:209:4: OP
         {
-        pushFollow(FOLLOW_predefined_percent_operator_in_synpred13_R1372);
-        predefined_percent_operator();
-
-        state._fsp--;
-        if (state.failed) return ;
+        match(input,OP,FOLLOW_OP_in_synpred13_R1355); if (state.failed) return ;
 
         }
 
@@ -5908,10 +5730,10 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred14_R
     public final void synpred14_R_fragment() throws RecognitionException {
-        // R.g:211:12: ( OP )
-        // R.g:211:13: OP
+        // R.g:213:4: ( COLON )
+        // R.g:213:5: COLON
         {
-        match(input,OP,FOLLOW_OP_in_synpred14_R1401); if (state.failed) return ;
+        match(input,COLON,FOLLOW_COLON_in_synpred14_R1396); if (state.failed) return ;
 
         }
 
@@ -5920,22 +5742,10 @@ public class RParser extends Parser {
 
     // $ANTLR start synpred15_R
     public final void synpred15_R_fragment() throws RecognitionException {
-        // R.g:216:4: ( COLON )
-        // R.g:216:5: COLON
+        // R.g:222:7: ( power_operator )
+        // R.g:222:8: power_operator
         {
-        match(input,COLON,FOLLOW_COLON_in_synpred15_R1459); if (state.failed) return ;
-
-        }
-
-    }
-    // $ANTLR end synpred15_R
-
-    // $ANTLR start synpred16_R
-    public final void synpred16_R_fragment() throws RecognitionException {
-        // R.g:225:7: ( power_operator )
-        // R.g:225:8: power_operator
-        {
-        pushFollow(FOLLOW_power_operator_in_synpred16_R1547);
+        pushFollow(FOLLOW_power_operator_in_synpred15_R1484);
         power_operator();
 
         state._fsp--;
@@ -5944,11 +5754,11 @@ public class RParser extends Parser {
         }
 
     }
-    // $ANTLR end synpred16_R
+    // $ANTLR end synpred15_R
 
-    // $ANTLR start synpred17_R
-    public final void synpred17_R_fragment() throws RecognitionException {
-        // R.g:230:4: ( FIELD | AT | LBRAKET | LBB | LPAR )
+    // $ANTLR start synpred16_R
+    public final void synpred16_R_fragment() throws RecognitionException {
+        // R.g:227:4: ( FIELD | AT | LBRAKET | LBB | LPAR )
         // R.g:
         {
         if ( input.LA(1)==AT||input.LA(1)==FIELD||input.LA(1)==LBB||input.LA(1)==LBRAKET||input.LA(1)==LPAR ) {
@@ -5966,14 +5776,14 @@ public class RParser extends Parser {
         }
 
     }
-    // $ANTLR end synpred17_R
+    // $ANTLR end synpred16_R
 
-    // $ANTLR start synpred18_R
-    public final void synpred18_R_fragment() throws RecognitionException {
-        // R.g:230:76: ( n_ )
-        // R.g:230:77: n_
+    // $ANTLR start synpred17_R
+    public final void synpred17_R_fragment() throws RecognitionException {
+        // R.g:227:76: ( n_ )
+        // R.g:227:77: n_
         {
-        pushFollow(FOLLOW_n__in_synpred18_R1619);
+        pushFollow(FOLLOW_n__in_synpred17_R1556);
         n_();
 
         state._fsp--;
@@ -5982,7 +5792,7 @@ public class RParser extends Parser {
         }
 
     }
-    // $ANTLR end synpred18_R
+    // $ANTLR end synpred17_R
 
     // Delegated rules
 
@@ -6126,20 +5936,6 @@ public class RParser extends Parser {
         state.failed=false;
         return success;
     }
-    public final boolean synpred18_R() {
-        state.backtracking++;
-        int start = input.mark();
-        try {
-            synpred18_R_fragment(); // can never throw exception
-        } catch (RecognitionException re) {
-            System.err.println("impossible: "+re);
-        }
-        boolean success = !state.failed;
-        input.rewind(start);
-        state.backtracking--;
-        state.failed=false;
-        return success;
-    }
     public final boolean synpred4_R() {
         state.backtracking++;
         int start = input.mark();
@@ -6243,8 +6039,8 @@ public class RParser extends Parser {
     protected DFA9 dfa9 = new DFA9(this);
     protected DFA15 dfa15 = new DFA15(this);
     protected DFA17 dfa17 = new DFA17(this);
-    protected DFA44 dfa44 = new DFA44(this);
-    protected DFA46 dfa46 = new DFA46(this);
+    protected DFA43 dfa43 = new DFA43(this);
+    protected DFA45 dfa45 = new DFA45(this);
     static final String DFA9_eotS =
         "\7\uffff";
     static final String DFA9_eofS =
@@ -6252,30 +6048,30 @@ public class RParser extends Parser {
     static final String DFA9_minS =
         "\1\20\3\13\2\uffff\1\13";
     static final String DFA9_maxS =
-        "\1\111\3\125\2\uffff\1\125";
+        "\1\106\3\122\2\uffff\1\122";
     static final String DFA9_acceptS =
         "\4\uffff\1\2\1\1\1\uffff";
     static final String DFA9_specialS =
         "\7\uffff}>";
     static final String[] DFA9_transitionS = {
-            "\1\1\46\uffff\1\1\14\uffff\1\4\4\uffff\1\3",
+            "\1\1\44\uffff\1\1\13\uffff\1\4\4\uffff\1\3",
             "\1\5\4\uffff\1\1\2\5\1\uffff\1\5\5\uffff\1\5\1\uffff\2\5\4"+
-            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\3\uffff\1\5\3\uffff\1\5\2"+
-            "\uffff\1\5\3\uffff\1\5\1\uffff\1\1\2\5\2\uffff\1\5\6\uffff\1"+
+            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\2\uffff\1\5\3\uffff\1\5\1"+
+            "\uffff\1\5\3\uffff\1\5\1\uffff\1\1\2\5\2\uffff\1\5\5\uffff\1"+
             "\5\1\4\1\uffff\1\5\4\uffff\1\5\2\uffff\2\5\4\uffff\2\5",
             "\1\5\5\uffff\2\5\1\uffff\1\5\5\uffff\1\5\1\uffff\2\5\4\uffff"+
-            "\1\5\1\uffff\1\5\1\uffff\1\5\3\uffff\1\5\3\uffff\1\5\2\uffff"+
-            "\1\5\3\uffff\1\5\2\uffff\2\5\2\uffff\1\5\6\uffff\1\5\1\4\1\uffff"+
+            "\1\5\1\uffff\1\5\1\uffff\1\5\2\uffff\1\5\3\uffff\1\5\1\uffff"+
+            "\1\5\3\uffff\1\5\2\uffff\2\5\2\uffff\1\5\5\uffff\1\5\1\4\1\uffff"+
             "\1\5\4\uffff\1\5\2\uffff\2\5\4\uffff\2\5",
             "\1\5\4\uffff\1\6\2\5\1\uffff\1\5\5\uffff\1\5\1\uffff\2\5\4"+
-            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\3\uffff\1\5\3\uffff\1\5\2"+
-            "\uffff\1\5\3\uffff\1\5\1\uffff\1\6\2\5\2\uffff\1\5\6\uffff\1"+
+            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\2\uffff\1\5\3\uffff\1\5\1"+
+            "\uffff\1\5\3\uffff\1\5\1\uffff\1\6\2\5\2\uffff\1\5\5\uffff\1"+
             "\5\1\4\1\uffff\1\5\4\uffff\1\5\2\uffff\2\5\4\uffff\2\5",
             "",
             "",
             "\1\5\4\uffff\1\6\2\5\1\uffff\1\5\5\uffff\1\5\1\uffff\2\5\4"+
-            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\3\uffff\1\5\3\uffff\1\5\2"+
-            "\uffff\1\5\3\uffff\1\5\1\uffff\1\6\2\5\2\uffff\1\5\6\uffff\1"+
+            "\uffff\1\5\1\uffff\1\5\1\uffff\1\5\2\uffff\1\5\3\uffff\1\5\1"+
+            "\uffff\1\5\3\uffff\1\5\1\uffff\1\6\2\5\2\uffff\1\5\5\uffff\1"+
             "\5\1\4\1\uffff\1\5\4\uffff\1\5\2\uffff\2\5\4\uffff\2\5"
     };
 
@@ -6320,14 +6116,14 @@ public class RParser extends Parser {
     static final String DFA15_minS =
         "\2\17\2\uffff";
     static final String DFA15_maxS =
-        "\2\110\2\uffff";
+        "\2\105\2\uffff";
     static final String DFA15_acceptS =
         "\2\uffff\1\2\1\1";
     static final String DFA15_specialS =
         "\4\uffff}>";
     static final String[] DFA15_transitionS = {
-            "\1\3\1\1\46\uffff\1\1\20\uffff\1\2",
-            "\1\3\1\1\46\uffff\1\1\20\uffff\1\2",
+            "\1\3\1\1\44\uffff\1\1\17\uffff\1\2",
+            "\1\3\1\1\44\uffff\1\1\17\uffff\1\2",
             "",
             ""
     };
@@ -6373,23 +6169,23 @@ public class RParser extends Parser {
     static final String DFA17_minS =
         "\1\22\4\6\2\uffff\1\6\2\uffff\1\6\2\uffff";
     static final String DFA17_maxS =
-        "\1\124\4\110\2\uffff\1\110\2\uffff\1\110\2\uffff";
+        "\1\121\4\105\2\uffff\1\105\2\uffff\1\105\2\uffff";
     static final String DFA17_acceptS =
         "\5\uffff\1\1\1\2\1\uffff\1\3\1\4\1\uffff\1\5\1\6";
     static final String DFA17_specialS =
         "\15\uffff}>";
     static final String[] DFA17_transitionS = {
-            "\1\3\17\uffff\1\1\61\uffff\1\2",
-            "\1\6\10\uffff\1\5\1\4\46\uffff\1\4\20\uffff\1\5",
-            "\1\11\10\uffff\1\10\1\7\46\uffff\1\7\20\uffff\1\10",
-            "\1\14\10\uffff\1\13\1\12\46\uffff\1\12\20\uffff\1\13",
-            "\1\6\10\uffff\1\5\1\4\46\uffff\1\4\20\uffff\1\5",
+            "\1\3\17\uffff\1\1\56\uffff\1\2",
+            "\1\6\10\uffff\1\5\1\4\44\uffff\1\4\17\uffff\1\5",
+            "\1\11\10\uffff\1\10\1\7\44\uffff\1\7\17\uffff\1\10",
+            "\1\14\10\uffff\1\13\1\12\44\uffff\1\12\17\uffff\1\13",
+            "\1\6\10\uffff\1\5\1\4\44\uffff\1\4\17\uffff\1\5",
             "",
             "",
-            "\1\11\10\uffff\1\10\1\7\46\uffff\1\7\20\uffff\1\10",
+            "\1\11\10\uffff\1\10\1\7\44\uffff\1\7\17\uffff\1\10",
             "",
             "",
-            "\1\14\10\uffff\1\13\1\12\46\uffff\1\12\20\uffff\1\13",
+            "\1\14\10\uffff\1\13\1\12\44\uffff\1\12\17\uffff\1\13",
             "",
             ""
     };
@@ -6428,172 +6224,172 @@ public class RParser extends Parser {
             return "164:1: par_decl[ArgumentList l] : (i= ID |i= ID n_ ASSIGN n_ e= expr |v= VARIATIC | VARIATIC n_ ASSIGN n_ expr | DD | DD n_ ASSIGN n_ expr );";
         }
     }
-    static final String DFA44_eotS =
+    static final String DFA43_eotS =
         "\4\uffff";
-    static final String DFA44_eofS =
+    static final String DFA43_eofS =
         "\4\uffff";
-    static final String DFA44_minS =
+    static final String DFA43_minS =
         "\2\13\2\uffff";
-    static final String DFA44_maxS =
-        "\2\125\2\uffff";
-    static final String DFA44_acceptS =
+    static final String DFA43_maxS =
+        "\2\122\2\uffff";
+    static final String DFA43_acceptS =
         "\2\uffff\1\1\1\2";
-    static final String DFA44_specialS =
+    static final String DFA43_specialS =
         "\4\uffff}>";
-    static final String[] DFA44_transitionS = {
+    static final String[] DFA43_transitionS = {
             "\1\3\3\uffff\1\2\1\1\2\3\1\uffff\1\3\5\uffff\1\3\1\uffff\2\3"+
-            "\4\uffff\1\3\1\uffff\1\3\1\uffff\1\3\3\uffff\1\3\3\uffff\1\3"+
-            "\2\uffff\1\3\3\uffff\1\3\1\uffff\1\1\2\3\2\uffff\1\3\6\uffff"+
+            "\4\uffff\1\3\1\uffff\1\3\1\uffff\1\3\2\uffff\1\3\3\uffff\1\3"+
+            "\1\uffff\1\3\3\uffff\1\3\1\uffff\1\1\2\3\2\uffff\1\3\5\uffff"+
             "\1\3\1\uffff\1\2\1\3\1\uffff\1\2\2\uffff\1\3\2\uffff\2\3\4\uffff"+
             "\2\3",
             "\1\3\3\uffff\1\2\1\1\2\3\1\uffff\1\3\5\uffff\1\3\1\uffff\2"+
-            "\3\4\uffff\1\3\1\uffff\1\3\1\uffff\1\3\3\uffff\1\3\3\uffff\1"+
-            "\3\2\uffff\1\3\3\uffff\1\3\1\uffff\1\1\2\3\2\uffff\1\3\6\uffff"+
+            "\3\4\uffff\1\3\1\uffff\1\3\1\uffff\1\3\2\uffff\1\3\3\uffff\1"+
+            "\3\1\uffff\1\3\3\uffff\1\3\1\uffff\1\1\2\3\2\uffff\1\3\5\uffff"+
             "\1\3\1\uffff\1\2\1\3\1\uffff\1\2\2\uffff\1\3\2\uffff\2\3\4\uffff"+
             "\2\3",
             "",
             ""
     };
 
-    static final short[] DFA44_eot = DFA.unpackEncodedString(DFA44_eotS);
-    static final short[] DFA44_eof = DFA.unpackEncodedString(DFA44_eofS);
-    static final char[] DFA44_min = DFA.unpackEncodedStringToUnsignedChars(DFA44_minS);
-    static final char[] DFA44_max = DFA.unpackEncodedStringToUnsignedChars(DFA44_maxS);
-    static final short[] DFA44_accept = DFA.unpackEncodedString(DFA44_acceptS);
-    static final short[] DFA44_special = DFA.unpackEncodedString(DFA44_specialS);
-    static final short[][] DFA44_transition;
+    static final short[] DFA43_eot = DFA.unpackEncodedString(DFA43_eotS);
+    static final short[] DFA43_eof = DFA.unpackEncodedString(DFA43_eofS);
+    static final char[] DFA43_min = DFA.unpackEncodedStringToUnsignedChars(DFA43_minS);
+    static final char[] DFA43_max = DFA.unpackEncodedStringToUnsignedChars(DFA43_maxS);
+    static final short[] DFA43_accept = DFA.unpackEncodedString(DFA43_acceptS);
+    static final short[] DFA43_special = DFA.unpackEncodedString(DFA43_specialS);
+    static final short[][] DFA43_transition;
 
     static {
-        int numStates = DFA44_transitionS.length;
-        DFA44_transition = new short[numStates][];
+        int numStates = DFA43_transitionS.length;
+        DFA43_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA44_transition[i] = DFA.unpackEncodedString(DFA44_transitionS[i]);
+            DFA43_transition[i] = DFA.unpackEncodedString(DFA43_transitionS[i]);
         }
     }
 
-    class DFA44 extends DFA {
+    class DFA43 extends DFA {
 
-        public DFA44(BaseRecognizer recognizer) {
+        public DFA43(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 44;
-            this.eot = DFA44_eot;
-            this.eof = DFA44_eof;
-            this.min = DFA44_min;
-            this.max = DFA44_max;
-            this.accept = DFA44_accept;
-            this.special = DFA44_special;
-            this.transition = DFA44_transition;
+            this.decisionNumber = 43;
+            this.eot = DFA43_eot;
+            this.eof = DFA43_eof;
+            this.min = DFA43_min;
+            this.max = DFA43_max;
+            this.accept = DFA43_accept;
+            this.special = DFA43_special;
+            this.transition = DFA43_transition;
         }
         @Override
         public String getDescription() {
-            return "300:65: (| n_ arg_expr[v] )";
+            return "294:65: (| n_ arg_expr[v] )";
         }
     }
-    static final String DFA46_eotS =
+    static final String DFA45_eotS =
         "\17\uffff";
-    static final String DFA46_eofS =
+    static final String DFA45_eofS =
         "\17\uffff";
-    static final String DFA46_minS =
+    static final String DFA45_minS =
         "\1\13\1\uffff\3\4\1\6\1\13\1\6\2\13\2\uffff\1\13\2\uffff";
-    static final String DFA46_maxS =
-        "\1\125\1\uffff\3\116\1\110\1\125\1\110\2\125\2\uffff\1\125\2\uffff";
-    static final String DFA46_acceptS =
+    static final String DFA45_maxS =
+        "\1\122\1\uffff\3\113\1\105\1\122\1\105\2\122\2\uffff\1\122\2\uffff";
+    static final String DFA45_acceptS =
         "\1\uffff\1\1\10\uffff\1\2\1\3\1\uffff\1\4\1\5";
-    static final String DFA46_specialS =
+    static final String DFA45_specialS =
         "\17\uffff}>";
-    static final String[] DFA46_transitionS = {
+    static final String[] DFA45_transitionS = {
             "\1\1\5\uffff\2\1\1\uffff\1\1\5\uffff\1\1\1\uffff\2\1\4\uffff"+
-            "\1\2\1\uffff\1\1\1\uffff\1\1\3\uffff\1\1\3\uffff\1\1\2\uffff"+
-            "\1\1\3\uffff\1\1\2\uffff\2\1\2\uffff\1\4\6\uffff\1\1\2\uffff"+
+            "\1\2\1\uffff\1\1\1\uffff\1\1\2\uffff\1\1\3\uffff\1\1\1\uffff"+
+            "\1\1\3\uffff\1\1\2\uffff\2\1\2\uffff\1\4\5\uffff\1\1\2\uffff"+
             "\1\1\4\uffff\1\1\2\uffff\2\1\4\uffff\1\3\1\1",
             "",
             "\2\1\1\6\3\1\3\uffff\3\1\1\5\2\uffff\1\1\2\uffff\1\1\4\uffff"+
-            "\1\1\2\uffff\2\1\7\uffff\1\1\1\uffff\1\1\1\uffff\2\1\1\uffff"+
-            "\4\1\1\uffff\2\1\1\uffff\1\1\1\5\2\uffff\2\1\2\uffff\1\1\1\uffff"+
-            "\2\1\1\uffff\1\1\1\uffff\1\1\1\uffff\2\1\3\uffff\3\1",
-            "\2\1\1\6\3\1\3\uffff\3\1\1\5\2\uffff\1\1\2\uffff\1\1\4\uffff"+
-            "\1\1\2\uffff\2\1\7\uffff\1\1\1\uffff\1\1\1\uffff\2\1\1\uffff"+
-            "\4\1\1\uffff\2\1\1\uffff\1\1\1\5\2\uffff\2\1\2\uffff\1\1\1\uffff"+
-            "\2\1\1\uffff\1\1\1\uffff\1\1\1\uffff\2\1\3\uffff\3\1",
-            "\2\1\1\10\3\1\3\uffff\3\1\1\7\2\uffff\1\1\2\uffff\1\1\4\uffff"+
-            "\1\1\2\uffff\2\1\7\uffff\1\1\1\uffff\1\1\1\uffff\2\1\1\uffff"+
-            "\4\1\1\uffff\2\1\1\uffff\1\1\1\7\6\uffff\1\1\1\uffff\2\1\1\uffff"+
+            "\1\1\2\uffff\2\1\10\uffff\1\1\1\uffff\2\1\1\uffff\3\1\1\uffff"+
+            "\2\1\1\uffff\1\1\1\5\2\uffff\2\1\2\uffff\1\1\1\uffff\1\1\1\uffff"+
             "\1\1\1\uffff\1\1\1\uffff\2\1\3\uffff\3\1",
-            "\1\6\10\uffff\1\1\1\5\46\uffff\1\5\15\uffff\1\1\2\uffff\1\1",
+            "\2\1\1\6\3\1\3\uffff\3\1\1\5\2\uffff\1\1\2\uffff\1\1\4\uffff"+
+            "\1\1\2\uffff\2\1\10\uffff\1\1\1\uffff\2\1\1\uffff\3\1\1\uffff"+
+            "\2\1\1\uffff\1\1\1\5\2\uffff\2\1\2\uffff\1\1\1\uffff\1\1\1\uffff"+
+            "\1\1\1\uffff\1\1\1\uffff\2\1\3\uffff\3\1",
+            "\2\1\1\10\3\1\3\uffff\3\1\1\7\2\uffff\1\1\2\uffff\1\1\4\uffff"+
+            "\1\1\2\uffff\2\1\10\uffff\1\1\1\uffff\2\1\1\uffff\3\1\1\uffff"+
+            "\2\1\1\uffff\1\1\1\7\6\uffff\1\1\1\uffff\1\1\1\uffff\1\1\1\uffff"+
+            "\1\1\1\uffff\2\1\3\uffff\3\1",
+            "\1\6\10\uffff\1\1\1\5\44\uffff\1\5\14\uffff\1\1\2\uffff\1\1",
             "\1\12\3\uffff\1\13\1\11\2\12\1\uffff\1\12\5\uffff\1\12\1\uffff"+
-            "\2\12\4\uffff\1\12\1\uffff\1\12\1\uffff\1\12\3\uffff\1\12\3"+
-            "\uffff\1\12\2\uffff\1\12\3\uffff\1\12\1\uffff\1\11\2\12\2\uffff"+
-            "\1\12\6\uffff\1\12\1\uffff\1\13\1\12\1\uffff\1\13\2\uffff\1"+
+            "\2\12\4\uffff\1\12\1\uffff\1\12\1\uffff\1\12\2\uffff\1\12\3"+
+            "\uffff\1\12\1\uffff\1\12\3\uffff\1\12\1\uffff\1\11\2\12\2\uffff"+
+            "\1\12\5\uffff\1\12\1\uffff\1\13\1\12\1\uffff\1\13\2\uffff\1"+
             "\12\2\uffff\2\12\4\uffff\2\12",
-            "\1\10\10\uffff\1\1\1\7\46\uffff\1\7\15\uffff\1\1\2\uffff\1"+
+            "\1\10\10\uffff\1\1\1\7\44\uffff\1\7\14\uffff\1\1\2\uffff\1"+
             "\1",
             "\1\15\3\uffff\1\16\1\14\2\15\1\uffff\1\15\5\uffff\1\15\1\uffff"+
-            "\2\15\4\uffff\1\15\1\uffff\1\15\1\uffff\1\15\3\uffff\1\15\3"+
-            "\uffff\1\15\2\uffff\1\15\3\uffff\1\15\1\uffff\1\14\2\15\2\uffff"+
-            "\1\15\6\uffff\1\15\1\uffff\1\16\1\15\1\uffff\1\16\2\uffff\1"+
+            "\2\15\4\uffff\1\15\1\uffff\1\15\1\uffff\1\15\2\uffff\1\15\3"+
+            "\uffff\1\15\1\uffff\1\15\3\uffff\1\15\1\uffff\1\14\2\15\2\uffff"+
+            "\1\15\5\uffff\1\15\1\uffff\1\16\1\15\1\uffff\1\16\2\uffff\1"+
             "\15\2\uffff\2\15\4\uffff\2\15",
             "\1\12\3\uffff\1\13\1\11\2\12\1\uffff\1\12\5\uffff\1\12\1\uffff"+
-            "\2\12\4\uffff\1\12\1\uffff\1\12\1\uffff\1\12\3\uffff\1\12\3"+
-            "\uffff\1\12\2\uffff\1\12\3\uffff\1\12\1\uffff\1\11\2\12\2\uffff"+
-            "\1\12\6\uffff\1\12\1\uffff\1\13\1\12\1\uffff\1\13\2\uffff\1"+
+            "\2\12\4\uffff\1\12\1\uffff\1\12\1\uffff\1\12\2\uffff\1\12\3"+
+            "\uffff\1\12\1\uffff\1\12\3\uffff\1\12\1\uffff\1\11\2\12\2\uffff"+
+            "\1\12\5\uffff\1\12\1\uffff\1\13\1\12\1\uffff\1\13\2\uffff\1"+
             "\12\2\uffff\2\12\4\uffff\2\12",
             "",
             "",
             "\1\15\3\uffff\1\16\1\14\2\15\1\uffff\1\15\5\uffff\1\15\1\uffff"+
-            "\2\15\4\uffff\1\15\1\uffff\1\15\1\uffff\1\15\3\uffff\1\15\3"+
-            "\uffff\1\15\2\uffff\1\15\3\uffff\1\15\1\uffff\1\14\2\15\2\uffff"+
-            "\1\15\6\uffff\1\15\1\uffff\1\16\1\15\1\uffff\1\16\2\uffff\1"+
+            "\2\15\4\uffff\1\15\1\uffff\1\15\1\uffff\1\15\2\uffff\1\15\3"+
+            "\uffff\1\15\1\uffff\1\15\3\uffff\1\15\1\uffff\1\14\2\15\2\uffff"+
+            "\1\15\5\uffff\1\15\1\uffff\1\16\1\15\1\uffff\1\16\2\uffff\1"+
             "\15\2\uffff\2\15\4\uffff\2\15",
             "",
             ""
     };
 
-    static final short[] DFA46_eot = DFA.unpackEncodedString(DFA46_eotS);
-    static final short[] DFA46_eof = DFA.unpackEncodedString(DFA46_eofS);
-    static final char[] DFA46_min = DFA.unpackEncodedStringToUnsignedChars(DFA46_minS);
-    static final char[] DFA46_max = DFA.unpackEncodedStringToUnsignedChars(DFA46_maxS);
-    static final short[] DFA46_accept = DFA.unpackEncodedString(DFA46_acceptS);
-    static final short[] DFA46_special = DFA.unpackEncodedString(DFA46_specialS);
-    static final short[][] DFA46_transition;
+    static final short[] DFA45_eot = DFA.unpackEncodedString(DFA45_eotS);
+    static final short[] DFA45_eof = DFA.unpackEncodedString(DFA45_eofS);
+    static final char[] DFA45_min = DFA.unpackEncodedStringToUnsignedChars(DFA45_minS);
+    static final char[] DFA45_max = DFA.unpackEncodedStringToUnsignedChars(DFA45_maxS);
+    static final short[] DFA45_accept = DFA.unpackEncodedString(DFA45_acceptS);
+    static final short[] DFA45_special = DFA.unpackEncodedString(DFA45_specialS);
+    static final short[][] DFA45_transition;
 
     static {
-        int numStates = DFA46_transitionS.length;
-        DFA46_transition = new short[numStates][];
+        int numStates = DFA45_transitionS.length;
+        DFA45_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA46_transition[i] = DFA.unpackEncodedString(DFA46_transitionS[i]);
+            DFA45_transition[i] = DFA.unpackEncodedString(DFA45_transitionS[i]);
         }
     }
 
-    class DFA46 extends DFA {
+    class DFA45 extends DFA {
 
-        public DFA46(BaseRecognizer recognizer) {
+        public DFA45(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 46;
-            this.eot = DFA46_eot;
-            this.eof = DFA46_eof;
-            this.min = DFA46_min;
-            this.max = DFA46_max;
-            this.accept = DFA46_accept;
-            this.special = DFA46_special;
-            this.transition = DFA46_transition;
+            this.decisionNumber = 45;
+            this.eot = DFA45_eot;
+            this.eof = DFA45_eof;
+            this.min = DFA45_min;
+            this.max = DFA45_max;
+            this.accept = DFA45_accept;
+            this.special = DFA45_special;
+            this.transition = DFA45_transition;
         }
         @Override
         public String getDescription() {
-            return "302:1: arg_expr[ArgumentList l] : (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
+            return "296:1: arg_expr[ArgumentList l] : (e= expr |name= id n_ ASSIGN n_ val= expr |name= id n_ ASSIGN | NULL n_ ASSIGN n_ val= expr | NULL n_ ASSIGN );";
         }
     }
  
 
-    public static final BitSet FOLLOW_n__in_script156 = new BitSet(new long[]{0x1322445434160802L,0x0000000000B0C848L});
-    public static final BitSet FOLLOW_statement_in_script161 = new BitSet(new long[]{0x1322445434160802L,0x0000000000B0C848L});
-    public static final BitSet FOLLOW_n__in_interactive192 = new BitSet(new long[]{0x1322445434160802L,0x0000000000B0C848L});
-    public static final BitSet FOLLOW_statement_in_interactive197 = new BitSet(new long[]{0x1322445434160802L,0x0000000000B0C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_statement217 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000200L});
+    public static final BitSet FOLLOW_n__in_script156 = new BitSet(new long[]{0x04C8A25434160802L,0x0000000000161909L});
+    public static final BitSet FOLLOW_statement_in_script161 = new BitSet(new long[]{0x04C8A25434160802L,0x0000000000161909L});
+    public static final BitSet FOLLOW_n__in_interactive192 = new BitSet(new long[]{0x04C8A25434160802L,0x0000000000161909L});
+    public static final BitSet FOLLOW_statement_in_interactive197 = new BitSet(new long[]{0x04C8A25434160802L,0x0000000000161909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_statement217 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000040L});
     public static final BitSet FOLLOW_n_in_statement219 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_87_in_statement226 = new BitSet(new long[]{0xFFFFFFFFFFFFFFF0L,0x0000000000FFFFFFL});
+    public static final BitSet FOLLOW_84_in_statement226 = new BitSet(new long[]{0xFFFFFFFFFFFFFFF0L,0x00000000001FFFFFL});
     public static final BitSet FOLLOW_EOF_in_statement231 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_EOF_in_n266 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SEMICOLON_in_n270 = new BitSet(new long[]{0x0080000000010000L});
+    public static final BitSet FOLLOW_SEMICOLON_in_n270 = new BitSet(new long[]{0x0020000000010000L});
     public static final BitSet FOLLOW_n__in_n272 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_alter_assign_in_expr_or_assign287 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_assign_in_expr305 = new BitSet(new long[]{0x0000000000000002L});
@@ -6604,255 +6400,249 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_function_in_expr_wo_assign360 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_NEXT_in_expr_wo_assign367 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_BREAK_in_expr_wo_assign377 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LBRACE_in_sequence411 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C858L});
-    public static final BitSet FOLLOW_n__in_sequence413 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C858L});
-    public static final BitSet FOLLOW_expr_or_assign_in_sequence418 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000210L});
-    public static final BitSet FOLLOW_n_in_sequence423 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_sequence427 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000210L});
-    public static final BitSet FOLLOW_n_in_sequence433 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000010L});
+    public static final BitSet FOLLOW_LBRACE_in_sequence411 = new BitSet(new long[]{0x04E8A25434170800L,0x000000000006190BL});
+    public static final BitSet FOLLOW_n__in_sequence413 = new BitSet(new long[]{0x04C8A25434160800L,0x000000000006190BL});
+    public static final BitSet FOLLOW_expr_or_assign_in_sequence418 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000042L});
+    public static final BitSet FOLLOW_n_in_sequence423 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_sequence427 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000042L});
+    public static final BitSet FOLLOW_n_in_sequence433 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000002L});
     public static final BitSet FOLLOW_RBRACE_in_sequence439 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_tilde_expr_in_assign457 = new BitSet(new long[]{0x0000000000000022L,0x0000000000003080L});
-    public static final BitSet FOLLOW_ARROW_in_assign464 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_assign466 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_tilde_expr_in_assign457 = new BitSet(new long[]{0x0000000000000022L,0x0000000000000610L});
+    public static final BitSet FOLLOW_ARROW_in_assign464 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_assign466 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_assign470 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SUPER_ARROW_in_assign478 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_assign480 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_SUPER_ARROW_in_assign478 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_assign480 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_assign484 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RIGHT_ARROW_in_assign494 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_assign496 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_RIGHT_ARROW_in_assign494 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_assign496 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_assign500 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SUPER_RIGHT_ARROW_in_assign510 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_assign512 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_SUPER_RIGHT_ARROW_in_assign510 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_assign512 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_assign516 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_tilde_expr_in_alter_assign544 = new BitSet(new long[]{0x0000000000000062L,0x0000000000003080L});
-    public static final BitSet FOLLOW_ARROW_in_alter_assign555 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_alter_assign557 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_tilde_expr_in_alter_assign544 = new BitSet(new long[]{0x0000000000000062L,0x0000000000000610L});
+    public static final BitSet FOLLOW_ARROW_in_alter_assign555 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_alter_assign557 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_alter_assign561 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SUPER_ARROW_in_alter_assign573 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_alter_assign575 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_SUPER_ARROW_in_alter_assign573 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_alter_assign575 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_alter_assign579 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_RIGHT_ARROW_in_alter_assign593 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_alter_assign595 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_RIGHT_ARROW_in_alter_assign593 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_alter_assign595 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_alter_assign599 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_SUPER_RIGHT_ARROW_in_alter_assign613 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_alter_assign615 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_SUPER_RIGHT_ARROW_in_alter_assign613 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_alter_assign615 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_alter_assign619 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ASSIGN_in_alter_assign633 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_alter_assign635 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_ASSIGN_in_alter_assign633 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_alter_assign635 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_alter_assign639 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_IF_in_if_expr666 = new BitSet(new long[]{0x0080400000010000L});
-    public static final BitSet FOLLOW_n__in_if_expr668 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LPAR_in_if_expr670 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_if_expr672 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_if_expr676 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_n__in_if_expr678 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_if_expr680 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_if_expr682 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_if_expr686 = new BitSet(new long[]{0x0080000000210002L});
+    public static final BitSet FOLLOW_IF_in_if_expr666 = new BitSet(new long[]{0x0020200000010000L});
+    public static final BitSet FOLLOW_n__in_if_expr668 = new BitSet(new long[]{0x0000200000000000L});
+    public static final BitSet FOLLOW_LPAR_in_if_expr670 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_if_expr672 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_if_expr676 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_n__in_if_expr678 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_if_expr680 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_if_expr682 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_if_expr686 = new BitSet(new long[]{0x0020000000210002L});
     public static final BitSet FOLLOW_n__in_if_expr712 = new BitSet(new long[]{0x0000000000200000L});
-    public static final BitSet FOLLOW_ELSE_in_if_expr714 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_if_expr716 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_ELSE_in_if_expr714 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_if_expr716 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_if_expr720 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_WHILE_in_while_expr748 = new BitSet(new long[]{0x0080400000010000L});
-    public static final BitSet FOLLOW_n__in_while_expr750 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LPAR_in_while_expr752 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_while_expr754 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_while_expr758 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_n__in_while_expr760 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_while_expr762 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_while_expr764 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_WHILE_in_while_expr748 = new BitSet(new long[]{0x0020200000010000L});
+    public static final BitSet FOLLOW_n__in_while_expr750 = new BitSet(new long[]{0x0000200000000000L});
+    public static final BitSet FOLLOW_LPAR_in_while_expr752 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_while_expr754 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_while_expr758 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_n__in_while_expr760 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_while_expr762 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_while_expr764 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_while_expr768 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_FOR_in_for_expr784 = new BitSet(new long[]{0x0080400000010000L});
-    public static final BitSet FOLLOW_n__in_for_expr786 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LPAR_in_for_expr788 = new BitSet(new long[]{0x0080000400010000L});
+    public static final BitSet FOLLOW_FOR_in_for_expr784 = new BitSet(new long[]{0x0020200000010000L});
+    public static final BitSet FOLLOW_n__in_for_expr786 = new BitSet(new long[]{0x0000200000000000L});
+    public static final BitSet FOLLOW_LPAR_in_for_expr788 = new BitSet(new long[]{0x0020000400010000L});
     public static final BitSet FOLLOW_n__in_for_expr790 = new BitSet(new long[]{0x0000000400000000L});
-    public static final BitSet FOLLOW_ID_in_for_expr794 = new BitSet(new long[]{0x0080002000010000L});
+    public static final BitSet FOLLOW_ID_in_for_expr794 = new BitSet(new long[]{0x0020002000010000L});
     public static final BitSet FOLLOW_n__in_for_expr796 = new BitSet(new long[]{0x0000002000000000L});
-    public static final BitSet FOLLOW_IN_in_for_expr798 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_for_expr800 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_for_expr804 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_n__in_for_expr806 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_for_expr808 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_for_expr810 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_IN_in_for_expr798 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_for_expr800 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_for_expr804 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_n__in_for_expr806 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_for_expr808 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_for_expr810 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_for_expr814 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_REPEAT_in_repeat_expr831 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_repeat_expr833 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_REPEAT_in_repeat_expr831 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_repeat_expr833 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_repeat_expr837 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_FUNCTION_in_function858 = new BitSet(new long[]{0x0080400000010000L});
-    public static final BitSet FOLLOW_n__in_function860 = new BitSet(new long[]{0x0000400000000000L});
-    public static final BitSet FOLLOW_LPAR_in_function862 = new BitSet(new long[]{0x0080000400050000L,0x0000000000100100L});
-    public static final BitSet FOLLOW_n__in_function865 = new BitSet(new long[]{0x0000000400040000L,0x0000000000100100L});
-    public static final BitSet FOLLOW_par_decl_in_function868 = new BitSet(new long[]{0x0080000000018000L,0x0000000000000100L});
+    public static final BitSet FOLLOW_FUNCTION_in_function858 = new BitSet(new long[]{0x0020200000010000L});
+    public static final BitSet FOLLOW_n__in_function860 = new BitSet(new long[]{0x0000200000000000L});
+    public static final BitSet FOLLOW_LPAR_in_function862 = new BitSet(new long[]{0x0020000400050000L,0x0000000000020020L});
+    public static final BitSet FOLLOW_n__in_function865 = new BitSet(new long[]{0x0000000400040000L,0x0000000000020020L});
+    public static final BitSet FOLLOW_par_decl_in_function868 = new BitSet(new long[]{0x0020000000018000L,0x0000000000000020L});
     public static final BitSet FOLLOW_n__in_function872 = new BitSet(new long[]{0x0000000000008000L});
-    public static final BitSet FOLLOW_COMMA_in_function874 = new BitSet(new long[]{0x0080000400050000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_n__in_function876 = new BitSet(new long[]{0x0000000400040000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_par_decl_in_function878 = new BitSet(new long[]{0x0080000000018000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_n__in_function883 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_function887 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_function889 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_COMMA_in_function874 = new BitSet(new long[]{0x0020000400050000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_n__in_function876 = new BitSet(new long[]{0x0000000400040000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_par_decl_in_function878 = new BitSet(new long[]{0x0020000000018000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_n__in_function883 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_function887 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_function889 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_or_assign_in_function893 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ID_in_par_decl910 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_par_decl920 = new BitSet(new long[]{0x0080000000010040L});
+    public static final BitSet FOLLOW_ID_in_par_decl920 = new BitSet(new long[]{0x0020000000010040L});
     public static final BitSet FOLLOW_n__in_par_decl922 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_par_decl924 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_par_decl926 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_ASSIGN_in_par_decl924 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_par_decl926 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_par_decl930 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_VARIATIC_in_par_decl939 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_VARIATIC_in_par_decl989 = new BitSet(new long[]{0x0080000000010040L});
+    public static final BitSet FOLLOW_VARIATIC_in_par_decl989 = new BitSet(new long[]{0x0020000000010040L});
     public static final BitSet FOLLOW_n__in_par_decl991 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_par_decl993 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_par_decl995 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_ASSIGN_in_par_decl993 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_par_decl995 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_par_decl997 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_DD_in_par_decl1003 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DD_in_par_decl1009 = new BitSet(new long[]{0x0080000000010040L});
+    public static final BitSet FOLLOW_DD_in_par_decl1009 = new BitSet(new long[]{0x0020000000010040L});
     public static final BitSet FOLLOW_n__in_par_decl1011 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_par_decl1013 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_par_decl1015 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
+    public static final BitSet FOLLOW_ASSIGN_in_par_decl1013 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_par_decl1015 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
     public static final BitSet FOLLOW_expr_in_par_decl1017 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_utilde_expr_in_tilde_expr1033 = new BitSet(new long[]{0x0000000000000002L,0x0000000000004000L});
-    public static final BitSet FOLLOW_TILDE_in_tilde_expr1045 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_tilde_expr1047 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_utilde_expr_in_tilde_expr1051 = new BitSet(new long[]{0x0000000000000002L,0x0000000000004000L});
-    public static final BitSet FOLLOW_TILDE_in_utilde_expr1071 = new BitSet(new long[]{0x13A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_utilde_expr1073 = new BitSet(new long[]{0x1322445434160800L,0x0000000000308848L});
+    public static final BitSet FOLLOW_utilde_expr_in_tilde_expr1033 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000800L});
+    public static final BitSet FOLLOW_TILDE_in_tilde_expr1045 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_tilde_expr1047 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_utilde_expr_in_tilde_expr1051 = new BitSet(new long[]{0x0000000000000002L,0x0000000000000800L});
+    public static final BitSet FOLLOW_TILDE_in_utilde_expr1071 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_utilde_expr1073 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061109L});
     public static final BitSet FOLLOW_or_expr_in_utilde_expr1077 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_or_expr_in_utilde_expr1086 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_and_expr_in_or_expr1102 = new BitSet(new long[]{0x0000000000000202L,0x0000000000000001L});
-    public static final BitSet FOLLOW_or_operator_in_or_expr1115 = new BitSet(new long[]{0x13A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_or_expr1117 = new BitSet(new long[]{0x1322445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_and_expr_in_or_expr1121 = new BitSet(new long[]{0x0000000000000202L,0x0000000000000001L});
+    public static final BitSet FOLLOW_and_expr_in_or_expr1102 = new BitSet(new long[]{0x4000000000000202L});
+    public static final BitSet FOLLOW_or_operator_in_or_expr1115 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_or_expr1117 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_and_expr_in_or_expr1121 = new BitSet(new long[]{0x4000000000000202L});
     public static final BitSet FOLLOW_not_expr_in_and_expr1143 = new BitSet(new long[]{0x0000000000000112L});
-    public static final BitSet FOLLOW_and_operator_in_and_expr1159 = new BitSet(new long[]{0x13A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_and_expr1161 = new BitSet(new long[]{0x1322445434160800L,0x0000000000308848L});
+    public static final BitSet FOLLOW_and_operator_in_and_expr1159 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_and_expr1161 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061109L});
     public static final BitSet FOLLOW_not_expr_in_and_expr1165 = new BitSet(new long[]{0x0000000000000112L});
-    public static final BitSet FOLLOW_NOT_in_not_expr1185 = new BitSet(new long[]{0x13A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_not_expr1187 = new BitSet(new long[]{0x1322445434160800L,0x0000000000308848L});
+    public static final BitSet FOLLOW_NOT_in_not_expr1185 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_not_expr1187 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061109L});
     public static final BitSet FOLLOW_not_expr_in_not_expr1191 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_comp_expr_in_not_expr1200 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_add_expr_in_comp_expr1218 = new BitSet(new long[]{0x00409000C0400002L});
-    public static final BitSet FOLLOW_comp_operator_in_comp_expr1234 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_comp_expr1236 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_add_expr_in_comp_expr1240 = new BitSet(new long[]{0x00409000C0400002L});
-    public static final BitSet FOLLOW_mult_expr_in_add_expr1265 = new BitSet(new long[]{0x0002000000000002L,0x0000000000000008L});
-    public static final BitSet FOLLOW_add_operator_in_add_expr1279 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_add_expr1281 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_mult_expr_in_add_expr1285 = new BitSet(new long[]{0x0002000000000002L,0x0000000000000008L});
-    public static final BitSet FOLLOW_operator_expr_in_mult_expr1307 = new BitSet(new long[]{0x0010000000080002L});
-    public static final BitSet FOLLOW_mult_operator_in_mult_expr1320 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_mult_expr1322 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_operator_expr_in_mult_expr1326 = new BitSet(new long[]{0x0010000000080002L});
-    public static final BitSet FOLLOW_colon_expr_in_operator_expr1348 = new BitSet(new long[]{0x4009008000000002L,0x0000000000000002L});
-    public static final BitSet FOLLOW_predefined_percent_operator_in_operator_expr1377 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_operator_expr1379 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_colon_expr_in_operator_expr1383 = new BitSet(new long[]{0x4009008000000002L,0x0000000000000002L});
-    public static final BitSet FOLLOW_OP_in_operator_expr1406 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_operator_expr1408 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_colon_expr_in_operator_expr1412 = new BitSet(new long[]{0x4009008000000002L,0x0000000000000002L});
-    public static final BitSet FOLLOW_unary_expression_in_colon_expr1451 = new BitSet(new long[]{0x0000000000004002L});
-    public static final BitSet FOLLOW_COLON_in_colon_expr1464 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_colon_expr1466 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_unary_expression_in_colon_expr1470 = new BitSet(new long[]{0x0000000000004002L});
-    public static final BitSet FOLLOW_PLUS_in_unary_expression1490 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_unary_expression1492 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_unary_expression_in_unary_expression1496 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_unary_expression1503 = new BitSet(new long[]{0x11A2445434170800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_n__in_unary_expression1505 = new BitSet(new long[]{0x1122445434160800L,0x0000000000308848L});
-    public static final BitSet FOLLOW_unary_expression_in_unary_expression1509 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_power_expr_in_unary_expression1518 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_basic_expr_in_power_expr1536 = new BitSet(new long[]{0x0000000000002002L});
-    public static final BitSet FOLLOW_power_operator_in_power_expr1552 = new BitSet(new long[]{0x11A0445434170800L,0x0000000000308840L});
-    public static final BitSet FOLLOW_n__in_power_expr1554 = new BitSet(new long[]{0x1120445434160800L,0x0000000000308840L});
-    public static final BitSet FOLLOW_power_expr_in_power_expr1558 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_simple_expr_in_basic_expr1588 = new BitSet(new long[]{0x00004A0008000082L});
-    public static final BitSet FOLLOW_expr_subset_in_basic_expr1609 = new BitSet(new long[]{0x00004A0008000082L});
-    public static final BitSet FOLLOW_FIELD_in_expr_subset1642 = new BitSet(new long[]{0x0080000400010000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_n__in_expr_subset1644 = new BitSet(new long[]{0x0000000400000000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_id_in_expr_subset1648 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_AT_in_expr_subset1661 = new BitSet(new long[]{0x0080000400010000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_n__in_expr_subset1663 = new BitSet(new long[]{0x0000000400000000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_id_in_expr_subset1667 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LBRAKET_in_expr_subset1681 = new BitSet(new long[]{0x13A2445434178800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_args_in_expr_subset1685 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
-    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1687 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LBB_in_expr_subset1699 = new BitSet(new long[]{0x13A2445434178800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_args_in_expr_subset1703 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
-    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1705 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
-    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1707 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LPAR_in_expr_subset1724 = new BitSet(new long[]{0x13A2445434178800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_args_in_expr_subset1728 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_expr_subset1730 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_add_expr_in_comp_expr1218 = new BitSet(new long[]{0x00104800C0400002L});
+    public static final BitSet FOLLOW_comp_operator_in_comp_expr1234 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_comp_expr1236 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_add_expr_in_comp_expr1240 = new BitSet(new long[]{0x00104800C0400002L});
+    public static final BitSet FOLLOW_mult_expr_in_add_expr1265 = new BitSet(new long[]{0x0000800000000002L,0x0000000000000001L});
+    public static final BitSet FOLLOW_add_operator_in_add_expr1279 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_add_expr1281 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_mult_expr_in_add_expr1285 = new BitSet(new long[]{0x0000800000000002L,0x0000000000000001L});
+    public static final BitSet FOLLOW_operator_expr_in_mult_expr1307 = new BitSet(new long[]{0x0006000000080002L});
+    public static final BitSet FOLLOW_mult_operator_in_mult_expr1320 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_mult_expr1322 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_operator_expr_in_mult_expr1326 = new BitSet(new long[]{0x0006000000080002L});
+    public static final BitSet FOLLOW_colon_expr_in_operator_expr1348 = new BitSet(new long[]{0x1000000000000002L});
+    public static final BitSet FOLLOW_OP_in_operator_expr1360 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_operator_expr1362 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_colon_expr_in_operator_expr1366 = new BitSet(new long[]{0x1000000000000002L});
+    public static final BitSet FOLLOW_unary_expression_in_colon_expr1388 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_COLON_in_colon_expr1401 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_colon_expr1403 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_unary_expression_in_colon_expr1407 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_PLUS_in_unary_expression1427 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_unary_expression1429 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_unary_expression_in_unary_expression1433 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_unary_expression1440 = new BitSet(new long[]{0x0468A25434170800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_n__in_unary_expression1442 = new BitSet(new long[]{0x0448A25434160800L,0x0000000000061109L});
+    public static final BitSet FOLLOW_unary_expression_in_unary_expression1446 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_power_expr_in_unary_expression1455 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_basic_expr_in_power_expr1473 = new BitSet(new long[]{0x0000000000002002L});
+    public static final BitSet FOLLOW_power_operator_in_power_expr1489 = new BitSet(new long[]{0x0468225434170800L,0x0000000000061108L});
+    public static final BitSet FOLLOW_n__in_power_expr1491 = new BitSet(new long[]{0x0448225434160800L,0x0000000000061108L});
+    public static final BitSet FOLLOW_power_expr_in_power_expr1495 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_simple_expr_in_basic_expr1525 = new BitSet(new long[]{0x0000250008000082L});
+    public static final BitSet FOLLOW_expr_subset_in_basic_expr1546 = new BitSet(new long[]{0x0000250008000082L});
+    public static final BitSet FOLLOW_FIELD_in_expr_subset1579 = new BitSet(new long[]{0x0020000400010000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_n__in_expr_subset1581 = new BitSet(new long[]{0x0000000400000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_id_in_expr_subset1585 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_AT_in_expr_subset1598 = new BitSet(new long[]{0x0020000400010000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_n__in_expr_subset1600 = new BitSet(new long[]{0x0000000400000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_id_in_expr_subset1604 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LBRAKET_in_expr_subset1618 = new BitSet(new long[]{0x04E8A25434178800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_args_in_expr_subset1622 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
+    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1624 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LBB_in_expr_subset1636 = new BitSet(new long[]{0x04E8A25434178800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_args_in_expr_subset1640 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
+    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1642 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000004L});
+    public static final BitSet FOLLOW_RBRAKET_in_expr_subset1644 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LPAR_in_expr_subset1661 = new BitSet(new long[]{0x04E8A25434178800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_args_in_expr_subset1665 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_expr_subset1667 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_simple_expr1696 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_bool_in_simple_expr1705 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_DD_in_simple_expr1712 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_simple_expr1717 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_number_in_simple_expr1726 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_conststring_in_simple_expr1735 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_simple_expr1742 = new BitSet(new long[]{0x0100000000000000L});
+    public static final BitSet FOLLOW_NS_GET_in_simple_expr1744 = new BitSet(new long[]{0x0020000400010000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1746 = new BitSet(new long[]{0x0000000400000000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_id_in_simple_expr1748 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_simple_expr1753 = new BitSet(new long[]{0x0200000000000000L});
+    public static final BitSet FOLLOW_NS_GET_INT_in_simple_expr1755 = new BitSet(new long[]{0x0020000400010000L,0x0000000000020000L});
+    public static final BitSet FOLLOW_n__in_simple_expr1757 = new BitSet(new long[]{0x0000000400000000L,0x0000000000020000L});
     public static final BitSet FOLLOW_id_in_simple_expr1759 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_bool_in_simple_expr1768 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DD_in_simple_expr1775 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_simple_expr1780 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_number_in_simple_expr1789 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_conststring_in_simple_expr1798 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_simple_expr1805 = new BitSet(new long[]{0x0400000000000000L});
-    public static final BitSet FOLLOW_NS_GET_in_simple_expr1807 = new BitSet(new long[]{0x0080000400010000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1809 = new BitSet(new long[]{0x0000000400000000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_id_in_simple_expr1811 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_simple_expr1816 = new BitSet(new long[]{0x0800000000000000L});
-    public static final BitSet FOLLOW_NS_GET_INT_in_simple_expr1818 = new BitSet(new long[]{0x0080000400010000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_n__in_simple_expr1820 = new BitSet(new long[]{0x0000000400000000L,0x0000000000100000L});
-    public static final BitSet FOLLOW_id_in_simple_expr1822 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LPAR_in_simple_expr1827 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_simple_expr1829 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_or_assign_in_simple_expr1835 = new BitSet(new long[]{0x0080000000010000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_n__in_simple_expr1837 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000100L});
-    public static final BitSet FOLLOW_RPAR_in_simple_expr1839 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_sequence_in_simple_expr1850 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_expr_wo_assign_in_simple_expr1861 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INTEGER_in_number1882 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DOUBLE_in_number1894 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_COMPLEX_in_number1906 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_STRING_in_conststring1930 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_ID_in_id1954 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_VARIATIC_in_id1966 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_TRUE_in_bool1988 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_FALSE_in_bool1998 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NA_in_bool2008 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_OR_in_or_operator2027 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BITWISEOR_in_or_operator2044 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_AND_in_and_operator2060 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BITWISEAND_in_and_operator2076 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_GT_in_comp_operator2092 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_GE_in_comp_operator2099 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LT_in_comp_operator2106 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_LE_in_comp_operator2113 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_EQ_in_comp_operator2120 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NE_in_comp_operator2127 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_PLUS_in_add_operator2141 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MINUS_in_add_operator2148 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MULT_in_mult_operator2163 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_DIV_in_mult_operator2170 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MOD_in_predefined_percent_operator2185 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_INTEGER_DIV_in_predefined_percent_operator2193 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MAT_MULT_in_predefined_percent_operator2200 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_OUTER_MULT_in_predefined_percent_operator2207 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_CARRET_in_power_operator2221 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_n__in_args2249 = new BitSet(new long[]{0x1322445434168802L,0x000000000030C848L});
-    public static final BitSet FOLLOW_arg_expr_in_args2253 = new BitSet(new long[]{0x0000000000008002L});
-    public static final BitSet FOLLOW_COMMA_in_args2263 = new BitSet(new long[]{0x13A2445434178800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_args2271 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_arg_expr_in_args2273 = new BitSet(new long[]{0x0080000000018000L});
-    public static final BitSet FOLLOW_n__in_args2277 = new BitSet(new long[]{0x0000000000008002L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2294 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_arg_expr2303 = new BitSet(new long[]{0x0080000000010040L});
-    public static final BitSet FOLLOW_n__in_arg_expr2305 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2307 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_arg_expr2309 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2313 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_id_in_arg_expr2322 = new BitSet(new long[]{0x0080000000010040L});
-    public static final BitSet FOLLOW_n__in_arg_expr2324 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2326 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_arg_expr2334 = new BitSet(new long[]{0x0080000000010040L});
-    public static final BitSet FOLLOW_n__in_arg_expr2336 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2338 = new BitSet(new long[]{0x13A2445434170800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_n__in_arg_expr2340 = new BitSet(new long[]{0x1322445434160800L,0x000000000030C848L});
-    public static final BitSet FOLLOW_expr_in_arg_expr2344 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NULL_in_arg_expr2351 = new BitSet(new long[]{0x0080000000010040L});
-    public static final BitSet FOLLOW_n__in_arg_expr2353 = new BitSet(new long[]{0x0000000000000040L});
-    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2355 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LPAR_in_simple_expr1764 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_simple_expr1766 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_or_assign_in_simple_expr1772 = new BitSet(new long[]{0x0020000000010000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_n__in_simple_expr1774 = new BitSet(new long[]{0x0000000000000000L,0x0000000000000020L});
+    public static final BitSet FOLLOW_RPAR_in_simple_expr1776 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_sequence_in_simple_expr1787 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_expr_wo_assign_in_simple_expr1798 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_INTEGER_in_number1819 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_DOUBLE_in_number1831 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_COMPLEX_in_number1843 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_STRING_in_conststring1867 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_ID_in_id1891 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_VARIATIC_in_id1903 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_TRUE_in_bool1925 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_FALSE_in_bool1935 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NA_in_bool1945 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_OR_in_or_operator1964 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BITWISEOR_in_or_operator1981 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_AND_in_and_operator1997 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BITWISEAND_in_and_operator2013 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_GT_in_comp_operator2029 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_GE_in_comp_operator2036 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LT_in_comp_operator2043 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_LE_in_comp_operator2050 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_EQ_in_comp_operator2057 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NE_in_comp_operator2064 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_PLUS_in_add_operator2078 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MINUS_in_add_operator2085 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MULT_in_mult_operator2100 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_DIV_in_mult_operator2107 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MOD_in_mult_operator2115 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_CARRET_in_power_operator2132 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_n__in_args2160 = new BitSet(new long[]{0x04C8A25434168802L,0x0000000000061909L});
+    public static final BitSet FOLLOW_arg_expr_in_args2164 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_COMMA_in_args2174 = new BitSet(new long[]{0x04E8A25434178800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_args2182 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_arg_expr_in_args2184 = new BitSet(new long[]{0x0020000000018000L});
+    public static final BitSet FOLLOW_n__in_args2188 = new BitSet(new long[]{0x0000000000008002L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2205 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_arg_expr2214 = new BitSet(new long[]{0x0020000000010040L});
+    public static final BitSet FOLLOW_n__in_arg_expr2216 = new BitSet(new long[]{0x0000000000000040L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2218 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_arg_expr2220 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2224 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_id_in_arg_expr2233 = new BitSet(new long[]{0x0020000000010040L});
+    public static final BitSet FOLLOW_n__in_arg_expr2235 = new BitSet(new long[]{0x0000000000000040L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2237 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_arg_expr2245 = new BitSet(new long[]{0x0020000000010040L});
+    public static final BitSet FOLLOW_n__in_arg_expr2247 = new BitSet(new long[]{0x0000000000000040L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2249 = new BitSet(new long[]{0x04E8A25434170800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_n__in_arg_expr2251 = new BitSet(new long[]{0x04C8A25434160800L,0x0000000000061909L});
+    public static final BitSet FOLLOW_expr_in_arg_expr2255 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NULL_in_arg_expr2262 = new BitSet(new long[]{0x0020000000010040L});
+    public static final BitSet FOLLOW_n__in_arg_expr2264 = new BitSet(new long[]{0x0000000000000040L});
+    public static final BitSet FOLLOW_ASSIGN_in_arg_expr2266 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_ARROW_in_synpred1_R552 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_SUPER_ARROW_in_synpred2_R570 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_RIGHT_ARROW_in_synpred3_R588 = new BitSet(new long[]{0x0000000000000002L});
@@ -6866,10 +6656,9 @@ public class RParser extends Parser {
     public static final BitSet FOLLOW_comp_operator_in_synpred10_R1229 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_add_operator_in_synpred11_R1274 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_mult_operator_in_synpred12_R1315 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_predefined_percent_operator_in_synpred13_R1372 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_OP_in_synpred14_R1401 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_COLON_in_synpred15_R1459 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_power_operator_in_synpred16_R1547 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_n__in_synpred18_R1619 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_OP_in_synpred13_R1355 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_COLON_in_synpred14_R1396 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_power_operator_in_synpred15_R1484 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_n__in_synpred17_R1556 = new BitSet(new long[]{0x0000000000000002L});
 
 }

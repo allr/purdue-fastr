@@ -27,9 +27,6 @@ public abstract class BinaryOperation extends Operation {
             case ADD: return new Add(left, right);
             case SUB: return new Sub(left, right);
             case MULT: return new Mult(left, right);
-            case MAT_MULT: return new MatMult(left, right);
-            case OUTER_MULT: return new OuterMult(left, right);
-            case INTEGER_DIV: return new IntegerDiv(left, right);
             case DIV: return new Div(left, right);
             case MOD: return new Mod(left, right);
             case POW: return new Pow(left, right);
@@ -52,6 +49,10 @@ public abstract class BinaryOperation extends Operation {
     }
 
     public static ASTNode create(String op, ASTNode left, ASTNode right) {
+        if("%o%".equals(op)) return new OuterMult(left, right);
+        if("%*%".equals(op)) return new MatMult(left, right);
+        if("%/%".equals(op)) return new IntegerDiv(left, right);
+
         return null;
 //        throw new Error("Custom operator not implemented: '" + op + "' (" + left + ", " + right + ")");
     }
@@ -63,10 +64,7 @@ public abstract class BinaryOperation extends Operation {
         ADD,
         SUB,
         MULT,
-        MAT_MULT,
-        OUTER_MULT,
         DIV,
-        INTEGER_DIV,
         MOD,
 
         POW,

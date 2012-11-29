@@ -206,11 +206,8 @@ mult_expr returns [ASTNode v]
 	;
 operator_expr returns [ASTNode v]
 	: l=colon_expr { $v = $l.v ;}
-        (
-        ((predefined_percent_operator)=>opp=predefined_percent_operator n_ r=colon_expr { $v = BinaryOperation.create(opp, $operator_expr.v, $r.v); } )
-        | ((OP)=>opc=OP n_ r=colon_expr { $v = BinaryOperation.create($opc.text, $operator_expr.v, $r.v); } )
-        )*
-        ;
+	((OP)=>opc=OP n_ r=colon_expr { $v = BinaryOperation.create($opc.text, $operator_expr.v, $r.v); } )*
+	;
 colon_expr returns [ASTNode v] // FIXME
 	: l=unary_expression { $v = $l.v ;}
 	(((COLON)=>op=COLON n_ r=unary_expression { $v = BinaryOperation.create(BinaryOperator.COLON, $colon_expr.v, $r.v);} ))*
@@ -286,12 +283,9 @@ add_operator returns [BinaryOperator v]
 	| MINUS {$v = BinaryOperator.SUB; };	
 mult_operator returns [BinaryOperator v]
 	: MULT {$v = BinaryOperator.MULT; }
-	| DIV  {$v = BinaryOperator.DIV; };
-predefined_percent_operator returns [BinaryOperator v]
-	: MOD  {$v = BinaryOperator.MOD; }
-	| INTEGER_DIV { $v = BinaryOperator.INTEGER_DIV; }
-	| MAT_MULT {$v = BinaryOperator.MAT_MULT; }
-	| OUTER_MULT {$v = BinaryOperator.OUTER_MULT; };
+	| DIV  {$v = BinaryOperator.DIV; }
+	| MOD  {$v = BinaryOperator.MOD; }
+	;
 power_operator returns [BinaryOperator v]
 	: CARRET {$v = BinaryOperator.POW; }
 	;
@@ -380,14 +374,6 @@ MULT
 	: '*';
 MOD
 	: '%%' ;
-
-INTEGER_DIV
-	: '%/%' ;
-
-MAT_MULT
-	: '%*%';
-OUTER_MULT
-	: '%o%';
 
 DIV	: '/';
 MINUS
