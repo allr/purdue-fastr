@@ -9,7 +9,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.Loop;
 import r.nodes.tools.*;
-import r.nodes.truffle.*;
 import r.parser.*;
 
 /*
@@ -23,8 +22,8 @@ public class Console {
     public static String prompt = Utils.getProperty("RConsole.prompt", "> ");
     public static String promptMore = Utils.getProperty("RConsole.promptmore", "+ ");
 
-    static String[] trailingArgs; // For commandArgs(trailing=T)
-    static String[] commandArgs; // For commandArgs(trailing=F)
+    public static String[] trailingArgs; // For commandArgs(trailing=T)
+    public static String[] commandArgs; // For commandArgs(trailing=F)
 
     static int compilerThreshold = 1; // For --threshold
     static String inputFile;
@@ -113,7 +112,7 @@ public class Console {
         }
         long after = System.nanoTime();
         long elapsed = after - before;
-				System.out.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
+        System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
     static void interactive(BufferedReader in) throws IOException {
@@ -211,9 +210,7 @@ public class Console {
 
     static void printResult(ASTNode expr, RAny result) {
         // TODO to be a bit more compatible, we need to keep '()' as an ASTNode, but Truffelize must SKIP it.
-        if (forceVisible || !(
-                            expr instanceof AssignVariable
-                            || expr instanceof Loop)) {
+        if (forceVisible || !(expr instanceof AssignVariable || expr instanceof Loop)) {
             System.out.println(result.pretty());
         }
     }
