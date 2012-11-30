@@ -18,9 +18,8 @@ public class CommandArgs {
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
             AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-            final boolean[] provided = a.providedParams;
 
-            if (!provided[0]) {
+            if (a.providedParams.length == 1) {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
