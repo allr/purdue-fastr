@@ -70,13 +70,13 @@ public class ReadMatrix extends BaseR {
                 if (failedSelector == selectorI) {
                     if (DEBUG_M) Utils.debug("Selector I failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorI.getIndex();
-                    replaceChild(selIExpr, createSelectorNode(ast, index, selIExpr.child, false, selectorI.getTransition()));
+                    replaceChild(selIExpr, createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
                     selectorI = selIExpr.executeSelector(context, index);
                 } else {
                     // failedSelector == selectorJ
                     if (DEBUG_M) Utils.debug("Selector J failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorJ.getIndex();
-                    replaceChild(selJExpr, createSelectorNode(ast, index, selJExpr.child, false, selectorJ.getTransition()));
+                    replaceChild(selJExpr, createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
                     selectorJ = selJExpr.executeSelector(context, index);
                 }
                 continue;
@@ -132,7 +132,7 @@ public class ReadMatrix extends BaseR {
         public Transition getTransition() {
             return null;
         }
-        public abstract void start(int dataSize, RContext context, ASTNode ast);
+        public abstract void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException;
         public abstract void restart();
         public abstract int size();
         public abstract int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException;
@@ -206,7 +206,7 @@ public class ReadMatrix extends BaseR {
     }
 
     // only for positive indexes, fails otherwise
-    public static final class SimpleNumericSelector extends Selector {
+    public static final class SimpleNumericSubsetSelector extends Selector {
         RInt index;
         int dataSize;
         int offset;
@@ -263,8 +263,130 @@ public class ReadMatrix extends BaseR {
         }
     }
 
+    // only for scalar positive non-NA indexes, fails otherwise
+    // does not handle error cases, so it is usable both for subset and subscript
+    public static final class SimpleScalarNumericSelector extends Selector {
+        RInt index;
+        int dataSize;
+        int indexValue;
+        Transition transition;
+
+        @Override
+        public void setIndex(RAny index) {
+            this.index = (RInt) index;
+        }
+
+        @Override
+        public RInt getIndex() {
+            return index;
+        }
+
+        @Override
+        public Transition getTransition() {
+            return transition;
+        }
+
+        @Override
+        public void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException {
+            if (index.size() == 1) {
+                int i = index.getInt(0);
+                if (i > 0) {
+                    i--;
+                    if (i < dataSize) {
+                        this.dataSize = dataSize;
+                        indexValue = i;
+                        return;
+                    } // else bounds error - handle in the generic case
+                }
+            }
+            transition = Transition.GENERIC_SELECTION;
+            throw new UnexpectedResultException(this);
+        }
+
+        @Override
+        public void restart() {
+        }
+
+        @Override
+        public int size() {
+            return 1;
+        }
+
+        @Override
+        public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
+            return indexValue;
+        }
+
+        @Override
+        public boolean isConstant() {
+            return false;
+        }
+    }
+
     // non-failing
-    public static final class GenericNumericSelector extends Selector {
+    public static final class GenericSubscriptSelector extends Selector {
+        RInt index;
+        int dataSize;
+        int indexValue;
+
+        @Override
+        public void setIndex(RAny index) {
+            this.index = (RInt) index;
+        }
+
+        @Override
+        public RInt getIndex() {
+            return index;
+        }
+
+        @Override
+        public void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException {
+            int isize = index.size();
+            if (isize == 1) {
+                int i = index.getInt(0);
+                if (i > 0) {
+                    i--;
+                    if (i < dataSize) {
+                        this.dataSize = dataSize;
+                        indexValue = i;
+                        return;
+                    } else {
+                        throw RError.getSubscriptBounds(ast);
+                    }
+                } else {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+            } else {
+                if (isize > 1) {
+                    throw RError.getSelectMoreThanOne(ast);
+                } else {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+            }
+        }
+
+        @Override
+        public void restart() {
+        }
+
+        @Override
+        public int size() {
+            return 1;
+        }
+
+        @Override
+        public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
+            return indexValue;
+        }
+
+        @Override
+        public boolean isConstant() {
+            return false;
+        }
+    }
+
+    // non-failing
+    public static final class GenericNumericSubsetSelector extends Selector {
 
         RInt index;
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
@@ -390,7 +512,7 @@ public class ReadMatrix extends BaseR {
         }
     }
 
-    public static final class GenericLogicalSelector extends Selector {
+    public static final class GenericLogicalSubsetSelector extends Selector {
 
         RLogical index;
         int indexSize;
@@ -498,13 +620,17 @@ public class ReadMatrix extends BaseR {
         };
     }
 
-    public static SelectorNode createSelectorNode(ASTNode ast, final RNode node) {
+    public static SelectorNode createSelectorNode(ASTNode ast, final boolean subset, final RNode node) {
         if (node == null) {
-            return createConstantSelectorNode(ast, node, new MissingSelector());
+            if (subset) {
+                return createConstantSelectorNode(ast, node, new MissingSelector());
+            } else {
+                throw RError.getInvalidSubscriptType(ast, "symbol");
+            }
         }
         if (node.getAST() instanceof r.nodes.Constant) {
             RAny index = (RAny) node.execute(null, null);
-            return createSelectorNode(ast, index, node, true, null);
+            return createSelectorNode(ast, subset, index, node, true, null);
         }
         return new SelectorNode(ast, node) {
             @Override
@@ -512,7 +638,7 @@ public class ReadMatrix extends BaseR {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
-                    SelectorNode sn = createSelectorNode(ast, index, child, false, null);
+                    SelectorNode sn = createSelectorNode(ast, subset, index, child, false, null);
                     replace(sn, "install SelectorNode from Uninitialized");
                     return sn.executeSelector(context, index);
                 }
@@ -521,7 +647,7 @@ public class ReadMatrix extends BaseR {
         };
     }
 
-    public enum Transition {
+    public enum Transition { // FIXME: this is not really used now as it has one value only, but future optimizations will likely need it
         GENERIC_SELECTION;
     }
 
@@ -565,7 +691,7 @@ public class ReadMatrix extends BaseR {
         return new AnalyzedIndex(hasNA, hasNegative, hasPositive, hasZero);
     }
 
-    public static SelectorNode createSelectorNode(ASTNode ast, RAny template, RNode child, boolean isConstant, Transition transition) {
+    public static SelectorNode createSelectorNode(ASTNode ast, boolean subset, RAny template, RNode child, boolean isConstant, Transition transition) {
         if (transition == null) {
             if (template instanceof RDouble || template instanceof RInt) {
                 RInt index = template.asInt().materialize();
@@ -576,43 +702,97 @@ public class ReadMatrix extends BaseR {
                             return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1));
                         }
                      // FIXME: handle more cases? e.g. set of positive integer indexes
+                    }
+                    if (subset) {
+                        if (index.size() == 1) {
+                            return createSimpleScalarNumericSubsetSelectorNode(ast, child);
+                        } else {
+                            return createSimpleNumericSubsetSelectorNode(ast, child);
+                        }
                     } else {
-                        return createSimpleNumericSelectorNode(ast, child);
-
+                        return createSimpleSubscriptSelectorNode(ast, child);
                     }
                 }
             }
         }
-        return createGenericSelectorNode(ast, child);
+        if (subset) {
+            return createGenericSubsetSelectorNode(ast, child);
+        } else {
+            return createGenericSubscriptSelectorNode(ast, child);
+        }
     }
 
-    public static SelectorNode createSimpleNumericSelectorNode(ASTNode ast, RNode child) {
-        final Selector selector = new SimpleNumericSelector();
+    public static SelectorNode createSimpleNumericSubsetSelectorNode(ASTNode ast, RNode child) {
+        final SimpleNumericSubsetSelector selector = new SimpleNumericSubsetSelector();
         return new SelectorNode(ast, child) {
 
             @Override
             public Selector executeSelector(RContext context, RAny index) {
                 try {
-                    if (index instanceof RInt || index instanceof RDouble) {
+                    if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
                         return selector;
                     }
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_M) Utils.debug("SimpleNumericSelector failed in SelectorNode.execute (unexpected type), replacing.");
-                    SelectorNode gn = createGenericSelectorNode(ast, child);
-                    replace(gn, "install GenericSelectorNode from SimpleNumericSelectorNode");
+                    if (DEBUG_M) Utils.debug("SimpleNumericSubsetSelector failed in SelectorNode.execute (unexpected type), replacing.");
+                    SelectorNode gn = createGenericSubsetSelectorNode(ast, child);
+                    replace(gn, "install GenericSubsetSelectorNode from SimpleNumericSubsetSelectorNode");
                     return gn.executeSelector(context, index);
                 }
             }
         };
     }
 
-    public static SelectorNode createGenericSelectorNode(ASTNode ast, RNode child) {
+    public static SelectorNode createSimpleSubscriptSelectorNode(ASTNode ast, RNode child) {
+        final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
-            final GenericNumericSelector numericSelector = new GenericNumericSelector();
-            final GenericLogicalSelector logicalSelector = new GenericLogicalSelector();
+            @Override
+            public Selector executeSelector(RContext context, RAny index) {
+                try {
+                    if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { // FIXME: can get rid of this through type-specialization
+                        selector.setIndex(index.asInt());
+                        return selector;
+                    }
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_M) Utils.debug("SimpleSubscriptSelector failed in SelectorNode.execute (unexpected type), replacing.");
+                    SelectorNode gn = createGenericSubscriptSelectorNode(ast, child);
+                    replace(gn, "install GenericSubscriptSelectorNode from SimpleSubscriptSelectorNode");
+                    return gn.executeSelector(context, index);
+                }
+            }
+        };
+    }
+
+    public static SelectorNode createSimpleScalarNumericSubsetSelectorNode(ASTNode ast, RNode child) {
+        final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
+        return new SelectorNode(ast, child) {
+
+            @Override
+            public Selector executeSelector(RContext context, RAny index) {
+                try {
+                    if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
+                        selector.setIndex(index.asInt());
+                        return selector;
+                    }
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_M) Utils.debug("SimpleScalarNumericSelector failed in SelectorNode.execute (unexpected type), replacing.");
+                    SelectorNode gn = createSimpleNumericSubsetSelectorNode(ast, child);
+                    replace(gn, "install SimpleNumericSubsetSelectorNode from SimpleScalarNumericSubsetSelectorNode");
+                    return gn.executeSelector(context, index);
+                }
+            }
+        };
+    }
+
+    public static SelectorNode createGenericSubsetSelectorNode(ASTNode ast, RNode child) {
+        return new SelectorNode(ast, child) {
+
+            final GenericNumericSubsetSelector numericSelector = new GenericNumericSubsetSelector();
+            final GenericLogicalSubsetSelector logicalSelector = new GenericLogicalSubsetSelector();
 
             @Override
             public Selector executeSelector(RContext context, RAny index) {
@@ -623,6 +803,23 @@ public class ReadMatrix extends BaseR {
                 if (index instanceof RLogical) {
                     logicalSelector.setIndex(index);
                     return logicalSelector;
+                }
+                Utils.nyi("unsupported index type");
+                return null;
+            }
+        };
+    }
+
+    public static SelectorNode createGenericSubscriptSelectorNode(ASTNode ast, RNode child) {
+        final GenericSubscriptSelector selector = new GenericSubscriptSelector();
+
+        return new SelectorNode(ast, child) {
+
+            @Override
+            public Selector executeSelector(RContext context, RAny index) {
+                if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
+                    selector.setIndex(index.asInt());
+                    return selector;
                 }
                 Utils.nyi("unsupported index type");
                 return null;

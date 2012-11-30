@@ -322,8 +322,11 @@ public class Truffleize implements Visitor {
             if (dims == 1) {
                 Utils.nyi("unsupported indexing style");
             }
-            result = new ReadMatrix(a, a.isSubset(), createTree(a.getVector()), ReadMatrix.createSelectorNode(a, isel), ReadMatrix.createSelectorNode(a, jsel),
-                            ReadMatrix.createDropOptionNode(a, drop), ReadMatrix.createExactOptionNode(a, exact));
+            result = new ReadMatrix(a, a.isSubset(), createTree(a.getVector()),
+                            ReadMatrix.createSelectorNode(a, a.isSubset(), isel),
+                            ReadMatrix.createSelectorNode(a, a.isSubset(), jsel),
+                            ReadMatrix.createDropOptionNode(a, drop),
+                            ReadMatrix.createExactOptionNode(a, exact));
             return;
         }
         Utils.nyi("unsupported indexing style");
