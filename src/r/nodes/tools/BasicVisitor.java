@@ -139,6 +139,16 @@ public class BasicVisitor implements Visitor {
         visit((BinaryOperation) col);
     }
 
+    @Override
+    public void visit(And and) {
+        visit((BinaryOperation) and);
+    }
+
+    @Override
+    public void visit(Or or) {
+        visit((BinaryOperation) or);
+    }
+
     public void visit(UnaryOperation op) {
         visit((ASTNode) op);
     }

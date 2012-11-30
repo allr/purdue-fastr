@@ -444,6 +444,16 @@ public class Truffleize implements Visitor {
     }
 
     @Override
+    public void visit(And and) {
+        result = new r.nodes.truffle.LogicalOperation.And(and, createTree(and.getLHS()), createTree(and.getRHS()));
+    }
+
+    @Override
+    public void visit(Or or) {
+        result = new r.nodes.truffle.LogicalOperation.Or(or, createTree(or.getLHS()), createTree(or.getRHS()));
+    }
+
+    @Override
     public void visit(ArgumentList.Default.DefaultEntry entry) {
     }
 }

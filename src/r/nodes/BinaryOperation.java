@@ -31,8 +31,8 @@ public abstract class BinaryOperation extends Operation {
             case MOD: return new Mod(left, right);
             case POW: return new Pow(left, right);
 
-            case OR: return new Add(left, right); // FIXME
-            case AND: return new Add(left, right); // FIXME
+            case OR: return new Or(left, right);
+            case AND: return new And(left, right);
             case BITWISEOR: return new Add(left, right); // FIXME
             case BITWISEAND: return new Add(left, right); // FIXME
 
@@ -49,10 +49,15 @@ public abstract class BinaryOperation extends Operation {
     }
 
     public static ASTNode create(String op, ASTNode left, ASTNode right) {
-        if("%o%".equals(op)) return new OuterMult(left, right);
-        if("%*%".equals(op)) return new MatMult(left, right);
-        if("%/%".equals(op)) return new IntegerDiv(left, right);
-
+        if ("%o%".equals(op)) {
+            return new OuterMult(left, right);
+        }
+        if ("%*%".equals(op)) {
+            return new MatMult(left, right);
+        }
+        if ("%/%".equals(op)) {
+            return new IntegerDiv(left, right);
+        }
         return null;
 //        throw new Error("Custom operator not implemented: '" + op + "' (" + left + ", " + right + ")");
     }

@@ -86,4 +86,27 @@ public class TestSimpleArithmetic extends TestBase {
         // precedence
         assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");
     }
+
+    public void testNonvectorizedLogical() throws RecognitionException {
+        assertEval("{ 1.1 || 3.15 }", "TRUE");
+        assertEval("{ 0 || 0 }", "FALSE");
+        assertEval("{ 1 || 0 }", "TRUE");
+        assertEval("{ NA || 1 }", "TRUE");
+        assertEval("{ NA || 0 }", "FALSE");
+        assertEval("{ 0 || NA }", "NA");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA || f(NA) ; x }", "2.0");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; TRUE || f(FALSE) ; x } ", "1.0");
+
+        assertEval("{ TRUE && FALSE }", "FALSE");
+        assertEval("{ FALSE && FALSE }", "FALSE");
+        assertEval("{ FALSE && TRUE }", "FALSE");
+        assertEval("{ TRUE && TRUE }", "TRUE");
+        assertEval("{ TRUE && NA }", "NA");
+        assertEval("{ FALSE && NA }", "FALSE");
+        assertEval("{ NA && TRUE }", "NA");
+        assertEval("{ NA && FALSE }", "NA");
+        assertEval("{ NA && NA }", "NA");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x } ", "2.0");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } ", "1.0");
+    }
 }

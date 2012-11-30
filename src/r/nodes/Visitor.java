@@ -26,6 +26,8 @@ public interface Visitor {
     void visit(Add add);
     void visit(Sub sub);
     void visit(Colon col);
+    void visit(And and);
+    void visit(Or or);
 
     void visit(Not n);
     void visit(UnaryMinus m);
