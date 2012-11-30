@@ -113,7 +113,7 @@ public class Console {
         }
         long after = System.nanoTime();
         long elapsed = after - before;
-        System.out.println("\nElapsed " + (elapsed / 1000000L) + " microseconds");
+				System.out.println("\n" + (inputFile == null ? "" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
     static void interactive(BufferedReader in) throws IOException {

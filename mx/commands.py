@@ -22,7 +22,9 @@ def mx_init():
       'rfasta': [rfastaServer, '[size]'],
       'rfastaredux': [rfastareduxServer, '[size]'],      
       'runittest': [runittestServer, ''],
-      'rgunittest': [runittestGraal, '']
+      'rgunittest': [runittestGraal, ''],
+      'rbenchmark': [rallbenchmarksServer, ''],
+      'rgbenchmark': [rallbenchmarks, '']
   }
   mx.commands.update(commands);
 
@@ -94,6 +96,22 @@ def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
 
+def rallbenchmarksServer(args):
+	"""Run all benchmarks with the HotSpot server graal"""
+	rbenchmarks(args, [], 'server')
+
+def rallbenchmarks(args):
+	"""Run all benchmarks on graal"""
+	rbenchmarks(args, ['-XX:-BootstrapGraal'], 'graal')
+
+def rbenchmarks(args, vmArgs, vm):
+	rfannkuch(args, vmArgs, vm)
+	rbinarytrees(args, vmArgs, vm)
+	rspectralnorm(args, vmArgs, vm)
+	rspectralnorm(args, vmArgs, vm)
+	rnbody(args, vmArgs, vm)
+	rfasta(args, vmArgs, vm)
+
 def runittestGraal(args):
   """Run unit tests with the Graal VM"""
   runittest(args, ['-XX:-BootstrapGraal'], 'graal')
@@ -137,19 +155,19 @@ def rconsole(vmArgs, vm, cArgs):
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   """Run given shootout benchmark using given VM"""
   if (len(args)==0):
-    arg = defaultArg;
+    arg = defaultArg
   else:
-    arg = args[0];
+    arg = args[0]
 
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile); 
-  tmp = ".tmp." + benchDir + ".torun.r";
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile)
+  tmp = ".tmp." + benchDir + ".torun.r"
 
-  shutil.copyfile(source, tmp);
+  shutil.copyfile(source, tmp)
   with open(tmp, "a") as f:
-    f.write("run(" + arg + ")\n");       
+    f.write("run(" + arg + ")\n")
 
-  print("Argument "+ arg);
-  print("Input file "+tmp);
+  if mx._opts.verbose:
+	print("Input file " + tmp + ": " + arg);
   
 #  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
 #  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
