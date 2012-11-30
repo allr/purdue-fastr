@@ -1,5 +1,7 @@
 package r.builtins;
 
+import java.io.*;
+
 import r.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
@@ -7,8 +9,8 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
-
 
 public class Cat {
 
@@ -67,7 +69,7 @@ public class Cat {
         return v.getString(i);
     }
 
-    public static void cat(RAny[] args, int sepArgPos, ASTNode ast) {
+    public static void genericCat(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) {
 
         RString sep = null;
         int ssize = 0;
@@ -90,12 +92,12 @@ public class Cat {
             }
             if (i > 0 && !lastWasNull) {
                 if (sep != null) {
-                    System.out.print(sep.getString(si++));
+                    out.print(sep.getString(si++));
                     if (si == ssize) {
                         si = 0;
                     }
                 } else {
-                    System.out.print(" ");
+                    out.print(" ");
                 }
             }
             RAny v = args[i];
@@ -114,18 +116,46 @@ public class Cat {
                 for (int j = 0; j < vsize; j++) {
                     if (j > 0) {
                         if (sep != null) {
-                            System.out.print(sep.getString(si++));
+                            out.print(sep.getString(si++));
                             if (si == ssize) {
                                 si = 0;
                             }
                         } else {
-                            System.out.print(" ");
+                            out.print(" ");
                         }
                     }
-                    System.out.print(catElement(va, j));
+                    out.print(catElement(va, j));
                 }
             }
         }
+        out.flush();
+    }
+
+    // speculates on that all arguments are strings and separator is an empty string
+    // the empty separator is a usual thing in R programs
+    // all args strings is inspired by fasta
+    public static void catStrings(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
+        StringBuilder str = new StringBuilder();
+        int argslen = args.length;
+        for (int j = 0; j < argslen; j++) {
+            RAny arg = args[j];
+            if (!(arg instanceof RString)) {
+                throw new UnexpectedResultException(null);
+            }
+            RString rs = (RString) arg;
+            int size = rs.size();
+            if (j != sepArgPos) {
+                for (int i = 0; i < size; i++) {
+                    str.append(rs.getString(i));
+                }
+            } else {
+                if (size != 1 || rs.getString(0).length() > 0) {
+                    throw new UnexpectedResultException(null);
+                }
+            }
+        }
+        out.append(str); // FIXME: this creates a copy of the string, internally
+        out.flush();
     }
 
     public static final CallFactory FACTORY = new CallFactory() {
@@ -147,13 +177,28 @@ public class Cat {
             final int[] paramPositions = a.paramPositions;
 
             final int sepPosition = provided[ISEP] ? paramPositions[ISEP] : -1;
+            final PrintWriter stdOut = new PrintWriter(System.out, true); // stdout buffering, important for fasta
             return new BuiltIn(call, names, exprs) {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    cat(params, sepPosition, ast);
+                    // assume we are only printing strings and separator is an empty (single-element) string
+                    try {
+                        catStrings(stdOut, params, sepPosition, ast);
+                    } catch (UnexpectedResultException e) {
+                        RNode generic = new BuiltIn(ast, argNames, argExprs) {
+                            @Override
+                            public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                                genericCat(stdOut, params, sepPosition, ast);
+                                return RNull.getNull();
+                            }
+                        };
+                        replace(generic, "install Cat.Generic from Cat.Strings.NoSep");
+                        genericCat(stdOut, params, sepPosition, ast);
+                    }
                     return RNull.getNull();
                 }
+
             };
         }
     };
