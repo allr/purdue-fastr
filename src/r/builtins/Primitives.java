@@ -66,6 +66,8 @@ public class Primitives {
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);
         add("strsplit", 1, 5, StrSplit.FACTORY);
+        add("substr", 3, 3, Substring.SUBSTR_FACTORY);
+        add("substring", 2, 3, Substring.SUBSTRING_FACTORY);
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);

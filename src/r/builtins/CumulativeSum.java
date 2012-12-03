@@ -99,7 +99,7 @@ public class CumulativeSum {
                     } else if (x instanceof RNull) {
                         return RDouble.EMPTY;
                     } else if (x instanceof RString) {
-                        return cumsum(Convert.string2double((RString) x, context, ast), context, ast);
+                        return cumsum(x.asDouble(context, ast), context, ast);
                     } else {
                         context.warning(ast, RError.NA_INTRODUCED_COERCION);
                         return RDouble.BOXED_NA;

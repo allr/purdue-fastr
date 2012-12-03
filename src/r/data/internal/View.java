@@ -255,8 +255,13 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
-            Utils.nyi();
+            Utils.check(false, "unreachable");
             return null;
+        }
+
+        @Override
+        public RDouble asDouble(RContext context, ASTNode ast) {
+            return RString.RStringUtils.stringToDouble(this, context, ast);
         }
 
         @Override

@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
+import r.nodes.*;
 
 
 public abstract class ArrayImpl extends BaseObject implements RArray {
@@ -76,5 +77,25 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     @Override
     public Object getRef(int i) {
         return get(i);
+    }
+
+    @Override
+    public RLogical asLogical(RContext context, ASTNode ast) {
+        return asLogical();
+    }
+
+    @Override
+    public RInt asInt(RContext context, ASTNode ast) {
+        return asInt();
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        return asDouble();
+    }
+
+    @Override
+    public RString asString(RContext context, ASTNode ast) {
+        return asString();
     }
 }

@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -118,14 +119,22 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
             return RString.TYPE_STRING + "(0)";
         }
         StringBuilder str = new StringBuilder();
-        str.append("\"");
-        str.append(content[0]);
-        str.append("\"");
+        if (content[0] != RString.NA) {
+            str.append("\"");
+            str.append(content[0]); // FIXME: quote
+            str.append("\"");
+        } else {
+            str.append("NA");
+        }
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            str.append("\"");
-            str.append(content[i]); // FIXME: quote
-            str.append("\"");
+            if (content[0] != RString.NA) {
+                str.append("\"");
+                str.append(content[i]); // FIXME: quote
+                str.append("\"");
+            } else {
+                str.append("NA");
+            }
         }
         return str.toString();
     }
@@ -138,8 +147,13 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RDouble asDouble() {
-        Utils.nyi();
+        Utils.check(false, "unreachable");
         return null;
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        return RString.RStringUtils.stringToDouble(this, context, ast);
     }
 
     @Override

@@ -140,4 +140,28 @@ public final class RNull implements RAny, RAttributes {
     public Object getRef(int i) {
         return get(i);
     }
+
+    @Override
+    public RInt asInt(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
 }

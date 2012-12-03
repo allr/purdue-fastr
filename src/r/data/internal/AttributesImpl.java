@@ -4,6 +4,7 @@ import java.util.*;
 
 import r.*;
 import r.data.*;
+import r.nodes.*;
 
 public class AttributesImpl extends BaseObject implements RAttributes {
 
@@ -103,6 +104,30 @@ public class AttributesImpl extends BaseObject implements RAttributes {
 
     @Override
     public RList asList() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(RContext context, ASTNode ast) {
         Utils.nyi();
         return null;
     }

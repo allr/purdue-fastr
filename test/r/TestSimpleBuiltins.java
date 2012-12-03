@@ -292,6 +292,19 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testSubstring() throws RecognitionException {
+        assertEval("{ substr(\"123456\", start=2, stop=4) }", "\"234\"");
+        assertEval("{ substr(\"123456\", start=2.8, stop=4) }", "\"234\"");
+        assertEval("{ substr(c(\"hello\", \"bye\"), start=c(1,2,3), stop=4) }", "\"hell\", \"ye\"");
+        assertEval("{ substr(\"fastr\", start=NA, stop=2) }", "NA");
+
+        assertEval("{ substring(\"123456\", first=2, last=4) }", "\"234\"");
+        assertEval("{ substring(\"123456\", first=2.8, last=4) }", "\"234\"");
+        assertEval("{ substring(c(\"hello\", \"bye\"), first=c(1,2,3), last=4) }", "\"hell\", \"ye\", \"ll\"");
+        assertEval("{ substring(\"fastr\", first=NA, last=2) }", "NA");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

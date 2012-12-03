@@ -86,4 +86,29 @@ public class BuiltInImpl implements RBuiltIn {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public RInt asInt(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
 }

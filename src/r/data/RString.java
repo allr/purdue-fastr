@@ -2,6 +2,8 @@ package r.data;
 
 import r.*;
 import r.data.internal.*;
+import r.errors.*;
+import r.nodes.*;
 
 public interface RString extends RArray {
 
@@ -14,6 +16,32 @@ public interface RString extends RArray {
     String getString(int i);
     RString set(int i, String val);
     RString materialize();
+
+    public class RStringUtils {
+        public static RDouble stringToDouble(RString value, RContext context, ASTNode ast) {
+            boolean introducedNA = false;
+
+            int size = value.size();
+            double[] dcontent = new double[size];
+            for (int i = 0; i < size; i++) {
+                String str = value.getString(i);
+                if (str != RString.NA) {
+                    try {
+                        dcontent[i] = Double.parseDouble(str);  // FIXME: use R rules
+                    } catch (NumberFormatException e) {
+                        dcontent[i] = RDouble.NA;
+                        introducedNA = true;
+                    }
+                } else {
+                    dcontent[i] = RDouble.NA;
+                }
+            }
+            if (introducedNA) {
+                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            }
+            return RDouble.RDoubleFactory.getFor(dcontent); // drops dimensions
+        }
+    }
 
     public class RStringFactory {
         public static ScalarStringImpl getScalar(String value) {

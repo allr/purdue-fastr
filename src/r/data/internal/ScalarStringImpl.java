@@ -69,7 +69,11 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public String pretty() {
-        return "\"" + value + "\"";
+        if (value != RString.NA) {
+            return "\"" + value + "\"";
+        } else {
+            return "NA";
+        }
     }
 
     @Override

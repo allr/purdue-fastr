@@ -7,6 +7,7 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
+import r.nodes.*;
 import r.nodes.truffle.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
@@ -301,6 +302,30 @@ public class ClosureImpl extends BaseObject implements RClosure {
 
     @Override
     public ClosureImpl stripAttributes() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RLogical asLogical(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RDouble asDouble(RContext context, ASTNode ast) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(RContext context, ASTNode ast) {
         Utils.nyi();
         return null;
     }
