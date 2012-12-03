@@ -44,6 +44,9 @@ public class Primitives {
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
         add("length", 1, 1, Length.FACTORY);
         add("list", 0, -1, List.FACTORY);
+        add("log", 1, 1, MathFunctions.LOG_FACTORY);
+        add("log10", 1, 1, MathFunctions.LOG10_FACTORY);
+        add("log2", 1, 1, MathFunctions.LOG2_FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
         add("lower.tri", 1, 2, TriangularPart.LOWER_FACTORY);
         add("matrix", 0, 5, Matrix.FACTORY);
