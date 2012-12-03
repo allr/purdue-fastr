@@ -39,4 +39,12 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{ matrix(1) > NA }", "     [,1]\n[1,]   NA");
         assertEval("{ m <- matrix(1:6, nrow=2) ; m > c(1,2,3) }", "      [,1]  [,2] [,3]\n[1,] FALSE FALSE TRUE\n[2,] FALSE  TRUE TRUE");
     }
+
+    @Test
+    public void testStrings() throws RecognitionException {
+        assertEval("{ \"a\" <= \"b\" }", "TRUE");
+        assertEval("{ \"a\" > \"b\" }", "FALSE");
+        assertEval("{ \"2.0\" == 2 }", "TRUE"); // FIXME: incompatible with R because of fastr's character representation of numbers
+
+    }
 }

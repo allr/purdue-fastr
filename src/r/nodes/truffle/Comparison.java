@@ -71,12 +71,6 @@ public class Comparison extends BaseR {
             VECTOR_SCALAR
         }
 
-        private static void checkScalar(RArray v, Transition t) throws UnexpectedResultException {
-            if (v.size() != 1) {
-                throw new UnexpectedResultException(t);
-            }
-        }
-
         public static ScalarComparison createSpecialized(RAny leftTemplate, RAny rightTemplate, ASTNode ast, RNode left, RNode right, final ValueComparison cmp) {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
@@ -186,7 +180,19 @@ public class Comparison extends BaseR {
         public static int generic(RContext context, RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
-            if (lexpr instanceof ScalarDoubleImpl) { // note: could make this shorter if we didn't care about Java-level boxing
+            if (lexpr instanceof ScalarStringImpl) { // note: could make this shorter if we didn't care about Java-level boxing
+                String lstr = ((ScalarStringImpl) lexpr).getString();
+                if (lstr == RString.NA) {
+                    return RLogical.NA;
+                }
+                if (rexpr instanceof ScalarStringImpl) {
+                    String rstr = ((ScalarStringImpl) rexpr).getString();
+                    if (rstr == RString.NA) {
+                        return RLogical.NA;
+                    }
+                    return cmp.cmp(lstr, rstr) ? RLogical.TRUE : RLogical.FALSE;
+                }
+            } else if (lexpr instanceof ScalarDoubleImpl) {
                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                 if (RDouble.RDoubleUtils.isNA(ldbl)) {
                     return RLogical.NA;
@@ -270,7 +276,7 @@ public class Comparison extends BaseR {
             return execute(context, lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
+        public Object execute(RContext context, RAny lexpr, RAny rexpr) { // FIXME: some of these checks should be rewritten as we now enforce scalar representation
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -314,6 +320,17 @@ public class Comparison extends BaseR {
                     }
                 }
                 // now we know that one of the argument is not double and one is not integer
+                if (lexpr instanceof RString || rexpr instanceof RString) {
+                    RString lstr = lexpr.asString();
+                    RString rstr = rexpr.asString();
+                    if (rstr.size() == 1 && rstr.dimensions() == null) {
+                        return Comparison.this.cmp.cmp(lstr, rstr.getString(0));
+                    } else if (lstr.size() == 1 && lstr.dimensions() == null) {
+                        return Comparison.this.cmp.cmp(lstr.getString(0), rstr);
+                    } else {
+                        throw new UnexpectedResultException(null);
+                    }
+                }
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                     RDouble ldbl = lexpr.asDouble();
                     RDouble rdbl = rexpr.asDouble();
@@ -362,6 +379,11 @@ public class Comparison extends BaseR {
 
         public Object execute(RContext context, RAny lexpr, RAny rexpr) {
             if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
+            if (lexpr instanceof RString || rexpr instanceof RString) {
+                RString lstr = lexpr.asString();
+                RString rstr = rexpr.asString();
+                return Comparison.this.cmp.cmp(lstr, rstr, context, ast);
+            }
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
@@ -377,6 +399,7 @@ public class Comparison extends BaseR {
                 RLogical rlog = rexpr.asLogical();
                 return Comparison.this.cmp.cmp(llog, rlog, context, ast);
             }
+            Utils.debug("lexpr is "+lexpr+" rexpr is "+rexpr);
             Utils.nyi("unsupported case for comparison");
             return null;
         }
@@ -386,6 +409,8 @@ public class Comparison extends BaseR {
     public abstract static class ValueComparison {
         public abstract boolean cmp(int a, int b);
         public abstract boolean cmp(double a, double b);
+        public abstract boolean cmp(String a, String b);
+
         public boolean cmp(int a, double b) {
             return cmp((double) a, b);
         }
@@ -393,6 +418,38 @@ public class Comparison extends BaseR {
             return cmp(a, (double) b);
         }
 
+        public RLogical cmp(RString a, String b) {
+            int n = a.size();
+            if (b == RString.NA) {
+                return RLogicalFactory.getNAArray(n, a.dimensions());
+            }
+            int[] content = new int[n];
+            for (int i = 0; i < n; i++) {
+                String astr = a.getString(i);
+                if (astr == RString.NA) {
+                    content[i] = RLogical.NA;
+                } else {
+                    content[i] = cmp(astr, b) ? RLogical.TRUE : RLogical.FALSE;
+                }
+            }
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
+        }
+        public RLogical cmp(String a, RString b) {
+            int n = b.size();
+            if (a == RString.NA) {
+                return RLogicalFactory.getNAArray(n, b.dimensions());
+            }
+            int[] content = new int[n];
+            for (int i = 0; i < n; i++) {
+                String bstr = b.getString(i);
+                if (bstr == RString.NA) {
+                    content[i] = RLogical.NA;
+                } else {
+                    content[i] = cmp(a, bstr) ? RLogical.TRUE : RLogical.FALSE;
+                }
+            }
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
+        }
         public RLogical cmp(RDouble a, double b) {
             int n = a.size();
             if (RDouble.RDoubleUtils.isNA(b)) {
@@ -458,6 +515,41 @@ public class Comparison extends BaseR {
             return RLogical.RLogicalFactory.getFor(content, b.dimensions());
         }
 
+        public RLogical cmp(RString a, RString b, RContext context, ASTNode ast) {
+            int na = a.size();
+            int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            if (na == 0 || nb == 0) {
+                return RLogical.EMPTY;
+            }
+
+            int n = (na > nb) ? na : nb;
+            int[] content = new int[n];
+            int ai = 0;
+            int bi = 0;
+
+            for (int i = 0; i < n; i++) {
+                String astr = a.getString(ai++);
+                if (ai == na) {
+                    ai = 0;
+                }
+                String bstr = b.getString(bi++);
+                if (bi == nb) {
+                    bi = 0;
+                }
+
+                if (astr == RString.NA || bstr == RString.NA) {
+                    content[i] = RLogical.NA;
+                } else {
+                    content[i] = cmp(astr, bstr) ? RLogical.TRUE : RLogical.FALSE;
+                }
+            }
+
+            if (ai != 0 || bi != 0) {
+                context.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
+        }
         public RLogical cmp(RDouble a, RDouble b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
@@ -578,6 +670,10 @@ public class Comparison extends BaseR {
             public boolean cmp(double a, double b) {
                 return a == b;
             }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) == 0; // FIXME: intern?
+            }
         };
     }
     public static ValueComparison getNE() {
@@ -589,6 +685,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a != b;
+            }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) != 0; // FIXME: intern?
             }
         };
     }
@@ -602,6 +702,10 @@ public class Comparison extends BaseR {
             public boolean cmp(double a, double b) {
                 return a <= b;
             }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) <= 0;
+            }
         };
     }
     public static ValueComparison getGE() {
@@ -613,6 +717,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a >= b;
+            }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) >= 0;
             }
         };
     }
@@ -626,6 +734,10 @@ public class Comparison extends BaseR {
             public boolean cmp(double a, double b) {
                 return a < b;
             }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) < 0;
+            }
         };
     }
     public static ValueComparison getGT() {
@@ -637,6 +749,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a > b;
+            }
+            @Override
+            public boolean cmp(String a, String b) {
+                return a.compareTo(b) > 0;
             }
         };
     }

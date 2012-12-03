@@ -20,7 +20,8 @@ def mx_init():
       'rspectralnorm': [rspectralnormServer, '[size]'],      
       'rnbody': [rnbodyServer, '[size]'],
       'rfasta': [rfastaServer, '[size]'],
-      'rfastaredux': [rfastareduxServer, '[size]'],      
+      'rfastaredux': [rfastareduxServer, '[size]'],
+      'rpidigits': [rpidigitsServer, '[size]'],
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -92,6 +93,10 @@ def rfastareduxServer(args):
   """Run Fastaredux with the HotSpot server VM"""  
   rfastaredux(args, [], 'server')
 
+def rpidigitsServer(args):
+  """Run Pidigits with the HotSpot server VM"""  
+  rpidigits(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -145,6 +150,10 @@ def rfasta(args, vmArgs, vm):
 def rfastaredux(args, vmArgs, vm):
   """Run Fastaredux benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "fastaredux", "fastaredux.r", "10000L");
+
+def rpidigits(args, vmArgs, vm):
+  """Run Pidigits benchmark using the given VM"""
+  rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "100");
 
 # ------------------
   
