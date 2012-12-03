@@ -247,7 +247,7 @@ public abstract class UpdateVector extends BaseR {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
                         RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble) || !(value instanceof RDouble)) {
+                            if (!(base instanceof RDouble) || !(value instanceof ScalarDoubleImpl)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
                             RDouble dbase = (RDouble) base;

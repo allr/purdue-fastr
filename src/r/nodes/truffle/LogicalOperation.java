@@ -38,8 +38,9 @@ public abstract class LogicalOperation extends BaseR {
             try {
                 return curNode.executeScalarLogical(context, frame);
             } catch (UnexpectedResultException e) {
-                curNode = createCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
-                replace(curNode, "install cast node");
+                RNode newNode = createCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
+                replaceChild(curNode, newNode);
+                curNode = newNode;
                 continue;
             }
         }
@@ -110,11 +111,15 @@ public abstract class LogicalOperation extends BaseR {
         abstract int extract(RAny value) throws UnexpectedResultException;
     }
 
-    public static CastNode createCastNode(ASTNode ast, RNode child, RAny template, RNode failedNode) {
+    public static CastNode createCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {
 
         int iteration = -1;
+        RNode child;
         if (failedNode instanceof CastNode) {
             iteration = ((CastNode) failedNode).iteration;
+            child = ((CastNode) failedNode).child;
+        } else {
+            child = childNode;
         }
         if (iteration < 0) {
             if (template instanceof ScalarDoubleImpl) {

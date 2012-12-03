@@ -33,6 +33,7 @@ public class Primitives {
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
+        add("character", 0, 1, ArrayConstructor.STRING_FACTORY);
         add("colMeans", 1, 3, ColumnsRowsStats.COLMEANS_FACTORY);
         add("colSums", 1, 3, ColumnsRowsStats.COLSUMS_FACTORY);
         add("cumsum", 1, 1, CumulativeSum.FACTORY);
@@ -44,7 +45,7 @@ public class Primitives {
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
         add("length", 1, 1, Length.FACTORY);
         add("list", 0, -1, List.FACTORY);
-        add("log", 1, 1, MathFunctions.LOG_FACTORY);
+        add("log", 1, 2, MathFunctions.LOG_FACTORY);
         add("log10", 1, 1, MathFunctions.LOG10_FACTORY);
         add("log2", 1, 1, MathFunctions.LOG2_FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
@@ -104,9 +105,12 @@ public class Primitives {
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {
         PrimitiveEntry pe = get(name);
         if (pe != null && fun != null && fun.isInWriteSet(name)) {
-            Utils.nyi(); // TODO case when a primitive is shadowed by a local symbol
-        }                // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
+            Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
+            if (false) Utils.nyi(); // TODO case when a primitive is shadowed by a local symbol
+                         // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
                          // FIXME: also, what about reflections?
+        }
+
         return pe;
     }
 

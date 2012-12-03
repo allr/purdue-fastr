@@ -65,6 +65,25 @@ public class ArrayConstructor {
         }
     };
 
+    public static final CallFactory STRING_FACTORY = new CallFactory() {
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    if (args.length == 0) {
+                        return RString.EMPTY;
+                    }
+                    int len = extractArrayLength(args[0], ast);
+                    return RString.RStringFactory.getUninitializedArray(len);
+                }
+            };
+        }
+    };
+
     public static final CallFactory INT_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -102,4 +121,5 @@ public class ArrayConstructor {
             };
         }
     };
+
 }

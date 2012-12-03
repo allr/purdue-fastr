@@ -107,6 +107,19 @@ public abstract class BuiltIn extends AbstractCall {
         return false;
     }
 
+    public static boolean isNumericConstant(RNode node, double cvalue) {
+        RAny value = getConstantValue(node);
+        if (value != null) {
+            if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
+                RDouble dv = value.asDouble();
+                if (dv.size() == 1) {
+                    return dv.getDouble(0) == cvalue;
+                }
+            }
+        }
+        return false;
+    }
+
     abstract static class NamedArgsBuiltIn extends BuiltIn {
         final int[] argPositions; // maps arguments to positions in parameters array
         final int nParams; // number of _named_ parameters (not ... symbol)

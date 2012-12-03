@@ -150,7 +150,7 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(SimpleAssignVariable assign) {
         RSymbol symbol = assign.getSymbol();
-        if (r.builtins.Primitives.get(symbol) != null) {
+        if (false && r.builtins.Primitives.get(symbol) != null) { // FIXME: pidigits uses a variable "c"
             Utils.nyi(symbol.pretty() + ": we don't support variables over-shadowing primitives.");
             // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
             // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations

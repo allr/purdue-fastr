@@ -3,6 +3,7 @@ package r.builtins;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
+import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -72,13 +73,6 @@ public class MathFunctions {
         }
     });
 
-    public static final CallFactory LOG_FACTORY = new NumericXArgCallFactory(new Operation() {
-
-        @Override
-        public double op(RContext context, ASTNode ast, double value) {
-            return Math.log(value);
-        }
-    });
 
     public static final CallFactory LOG2_FACTORY = new NumericXArgCallFactory(new Operation() {
 
@@ -90,5 +84,49 @@ public class MathFunctions {
         }
     });
 
+    public static final CallFactory LN_FACTORY = new NumericXArgCallFactory(new Operation() {
+
+        @Override
+        public double op(RContext context, ASTNode ast, double value) {
+            return Math.log(value);
+        }
+    });
+
+    private static final String[] paramNames = new String[]{"x", "base"};
+
+    private static final int IX = 0;
+    private static final int IBASE = 1;
+
+    public static final CallFactory LOG_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (!provided[IX]) {
+                BuiltIn.missingArg(call, paramNames[IX]);
+            }
+
+            if (exprs.length == 1) {
+                return LN_FACTORY.create(call, names, exprs);
+            }
+
+            RNode baseExpr = exprs[paramPositions[IBASE]];
+            if (BuiltIn.isNumericConstant(baseExpr, 10)) {
+                return LOG10_FACTORY.create(call, names, exprs);
+            }
+            if (BuiltIn.isNumericConstant(baseExpr, 2)) {
+                return LOG2_FACTORY.create(call, names, exprs);
+            }
+            // TODO: implement the generic case
+            Utils.nyi("unsupported case");
+            return null;
+        }
+
+    };
 
 }

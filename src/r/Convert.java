@@ -1,10 +1,10 @@
 package r;
 
 import r.data.*;
-import r.errors.*;
-import r.nodes.*;
 
 public class Convert {
+
+    private static final boolean DEBUGGING_FORMAT = true; // initial debugging friendly number format of fastr, however incompatible with GNU-R
 
     public static double string2double(String v) {
         if (v.equals("NA")) {
@@ -24,7 +24,15 @@ public class Convert {
             return "NA";
         }
         // FIXME use R rules
-        return Double.toString(d);
+        if (!DEBUGGING_FORMAT) {
+            if (RDouble.RDoubleUtils.fitsRInt(d)) {
+                return int2string((int) d); // a hack to get rid of ".0" in "1.0"
+            } else {
+                return Double.toString(d);
+            }
+        } else {
+            return Double.toString(d);
+        }
     }
 
     public static int string2logical(String b) {
@@ -53,7 +61,11 @@ public class Convert {
             return "NA";
         }
         // FIXME use R rules
-        return Integer.toString(i) + "L";
+        if (!DEBUGGING_FORMAT) {
+            return Integer.toString(i);
+        } else {
+            return Integer.toString(i) + "L";
+        }
     }
 
     public static int string2int(String v) {
