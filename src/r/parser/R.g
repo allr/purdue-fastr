@@ -430,7 +430,7 @@ COMPLEX
 DOUBLE
     :   ('0'..'9')+ '.' ('0'..'9')* EXPONENT?
     |   '.'? ('0'..'9')+ EXPONENT?
-    |	'0x' HEX_DIGIT
+    |	'0x' HEX_DIGIT+
     ;
 DD	: '..' ('0'..'9')+
 	;  

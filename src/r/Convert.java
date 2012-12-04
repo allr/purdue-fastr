@@ -12,6 +12,12 @@ public class Convert {
         try {
             return Double.parseDouble(v);
         } catch (NumberFormatException e) {
+            if (v.startsWith("0x")) {
+                try {
+                    return int2double(Integer.decode(v));
+                } catch (NumberFormatException ein) {
+                }
+            }
             return RDouble.NA;
         }
     }
@@ -72,7 +78,7 @@ public class Convert {
         }
         // FIXME use R rules
         try {
-            return Integer.parseInt(v);
+            return Integer.decode(v);  // decode supports hex constants
         } catch (NumberFormatException e) {
             return RInt.NA;
         }

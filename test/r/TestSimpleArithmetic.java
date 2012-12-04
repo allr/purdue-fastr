@@ -35,6 +35,8 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ 3 %% -2 }", "-1.0");
         assertEval("{ 3 %% 0 }", "NaN");
         assertEval("{ 3L %% 0L }", "NA");
+
+        assertEval("{ 0x10 + 0x10L + 1.28 }", "33.28");
     }
 
     @Test
