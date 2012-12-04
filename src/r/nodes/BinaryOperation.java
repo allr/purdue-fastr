@@ -33,8 +33,8 @@ public abstract class BinaryOperation extends Operation {
 
             case OR: return new Or(left, right);
             case AND: return new And(left, right);
-            case BITWISEOR: return new Add(left, right); // FIXME
-            case BITWISEAND: return new Add(left, right); // FIXME
+            case ELEMENTWISEOR: return new ElementwiseOr(left, right);
+            case ELEMENTWISEAND: return new ElementwiseAnd(left, right);
 
             case EQ: return new EQ(left, right);
             case GE: return new GE(left, right);
@@ -82,8 +82,8 @@ public abstract class BinaryOperation extends Operation {
         EQ, NE,
 
         OR,
-        BITWISEOR,
+        ELEMENTWISEOR,
         AND,
-        BITWISEAND,
+        ELEMENTWISEAND,
     }
 }

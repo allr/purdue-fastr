@@ -449,8 +449,18 @@ public class Truffleize implements Visitor {
     }
 
     @Override
+    public void visit(ElementwiseAnd and) {
+        result = r.nodes.truffle.ElementwiseLogicalOperation.createUninitialized(and, createTree(and.getLHS()), r.nodes.truffle.ElementwiseLogicalOperation.AND, createTree(and.getRHS()));
+    }
+
+    @Override
     public void visit(Or or) {
         result = new r.nodes.truffle.LogicalOperation.Or(or, createTree(or.getLHS()), createTree(or.getRHS()));
+    }
+
+    @Override
+    public void visit(ElementwiseOr or) {
+        result = r.nodes.truffle.ElementwiseLogicalOperation.createUninitialized(or, createTree(or.getLHS()), r.nodes.truffle.ElementwiseLogicalOperation.OR, createTree(or.getRHS()));
     }
 
     @Override

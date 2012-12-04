@@ -109,4 +109,29 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x } ", "2.0");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } ", "1.0");
     }
+
+    public void testVectorizedLogical() throws RecognitionException {
+        assertEval("{ 1.1 | 3.15 }", "TRUE");
+        assertEval("{ 0 | 0 }", "FALSE");
+        assertEval("{ 1 | 0 }", "TRUE");
+        assertEval("{ NA | 1 }", "TRUE");
+        assertEval("{ NA | 0 }", "FALSE");
+        assertEval("{ 0 | NA }", "NA");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA | f(NA) ; x }", "2.0");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; TRUE | f(FALSE) ; x }", "2.0");
+
+        assertEval("{ TRUE & FALSE }", "FALSE");
+        assertEval("{ FALSE & FALSE }", "FALSE");
+        assertEval("{ FALSE & TRUE }", "FALSE");
+        assertEval("{ TRUE & TRUE }", "TRUE");
+        assertEval("{ TRUE & NA }", "NA");
+        assertEval("{ FALSE & NA }", "FALSE");
+        assertEval("{ NA & TRUE }", "NA");
+        assertEval("{ NA & FALSE }", "NA");
+        assertEval("{ NA & NA }", "NA");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA & f(NA) ; x }", "2.0");
+        assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE & f(FALSE) ; x }", "2.0");
+
+        assertEval("{ 1:4 & c(FALSE,TRUE) }", "FALSE, TRUE, FALSE, TRUE");
+    }
 }

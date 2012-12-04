@@ -267,10 +267,10 @@ bool returns [ASTNode v]
     ;
 or_operator returns [BinaryOperator v]
 	: OR          {$v = BinaryOperator.OR; }
- 	| BITWISEOR   {$v = BinaryOperator.BITWISEOR; };
+ 	| ELEMENTWISEOR   {$v = BinaryOperator.ELEMENTWISEOR; };
 and_operator returns [BinaryOperator v]
 	: AND          {$v = BinaryOperator.AND; }
-	| BITWISEAND   {$v = BinaryOperator.BITWISEAND; };
+	| ELEMENTWISEAND   {$v = BinaryOperator.ELEMENTWISEAND; };
 comp_operator returns [BinaryOperator v]
 	: GT {$v = BinaryOperator.GT; }
 	| GE {$v = BinaryOperator.GE; }
@@ -344,10 +344,10 @@ COMMA
 	: ',';
 AND
 	: '&&';
-BITWISEAND 
+ELEMENTWISEAND 
 	: '&';
 OR	: '||';
-BITWISEOR
+ELEMENTWISEOR
 	:'|';
 LBRACE 
 	: '{'	{incomplete_stack[++incomplete_depth] = 0; }; // TODO grow the stack

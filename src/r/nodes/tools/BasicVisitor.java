@@ -145,7 +145,17 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(ElementwiseAnd and) {
+        visit((BinaryOperation) and);
+    }
+
+    @Override
     public void visit(Or or) {
+        visit((BinaryOperation) or);
+    }
+
+    @Override
+    public void visit(ElementwiseOr or) {
         visit((BinaryOperation) or);
     }
 
