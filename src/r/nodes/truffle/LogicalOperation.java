@@ -4,7 +4,6 @@ import r.*;
 import r.Convert;
 import r.data.*;
 import r.data.internal.*;
-import r.errors.*;
 import r.nodes.*;
 
 import com.oracle.truffle.nodes.*;

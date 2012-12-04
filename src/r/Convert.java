@@ -4,8 +4,6 @@ import r.data.*;
 
 public class Convert {
 
-    private static final boolean DEBUGGING_FORMAT = true; // initial debugging friendly number format of fastr, however incompatible with GNU-R
-
     public static double string2double(String v) {
         if (v.equals("NA")) {
             return RDouble.NA;
@@ -24,7 +22,7 @@ public class Convert {
             return "NA";
         }
         // FIXME use R rules
-        if (!DEBUGGING_FORMAT) {
+        if (!RContext.debuggingFormat()) {
             if (RDouble.RDoubleUtils.fitsRInt(d)) {
                 return int2string((int) d); // a hack to get rid of ".0" in "1.0"
             } else {
@@ -47,7 +45,7 @@ public class Convert {
 
     public static String logical2string(int i) {
         switch (i) {
-            case 0:
+            case RLogical.FALSE:
                 return "FALSE";
             case RLogical.NA:
                 return "NA";
@@ -61,7 +59,7 @@ public class Convert {
             return "NA";
         }
         // FIXME use R rules
-        if (!DEBUGGING_FORMAT) {
+        if (!RContext.debuggingFormat()) {
             return Integer.toString(i);
         } else {
             return Integer.toString(i) + "L";

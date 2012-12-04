@@ -119,7 +119,7 @@ public class Console {
         RLexer lexer = new RLexer();
         RParser parser = new RParser(null);
         ASTNode tree;
-        RContext context = new RContext(compilerThreshold);
+        RContext context = new RContext(compilerThreshold, true); // note: uses debugging format
         StringBuilder incomplete = new StringBuilder();
 
         do {

@@ -12,7 +12,7 @@ import r.nodes.tools.*;
 public class TestBase {
 
     static Truffleize truffleize = new Truffleize();
-    static RContext global = new RContext(1);
+    static RContext global = new RContext(1, true);
 
     static String evalString(String input) throws RecognitionException {
         return eval(input).pretty();

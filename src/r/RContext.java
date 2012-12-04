@@ -15,12 +15,14 @@ public class RContext implements Context {
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
     private final TruffleCompiler compiler;
+    private static boolean debuggingFormat;
 
     ManageError errorManager;
     Truffleize truffleize;
 
-    RContext(int compilerThreshold) {
+    RContext(int compilerThreshold, boolean debuggingFormat) {
         init();
+        RContext.debuggingFormat = debuggingFormat;
         TruffleCompiler cmp;
         try {
             cmp = new TruffleCompilerImpl(compilerThreshold);
@@ -31,6 +33,10 @@ public class RContext implements Context {
         this.compiler = cmp;
     }
 
+    RContext(int compilerThreshold) {
+        this(compilerThreshold, false);
+    }
+
     RContext(TruffleCompiler compiler) {
         init();
         this.compiler = compiler;
@@ -38,6 +44,10 @@ public class RContext implements Context {
 
     RContext() {
         this(null);
+    }
+
+    public static boolean debuggingFormat() {
+        return debuggingFormat;
     }
 
     public RAny eval(ASTNode expr) {

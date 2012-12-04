@@ -162,7 +162,7 @@ public class TestSimpleBuiltins extends TestBase {
 
     @Test
     public void testCat() throws RecognitionException {
-        assertEval("{ cat(\"hi\",1:3,\"hello\") }", "hi 1 2 3 hello", "NULL");
+        assertEval("{ cat(\"hi\",1:3,\"hello\") }", "hi 1L 2L 3L hello", "NULL");
         assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
         assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
         assertEval("{ cat(\"hi\",1[2],\"hello\",sep=\"-\") }", "hi-NA-hello", "NULL");

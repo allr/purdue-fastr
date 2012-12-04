@@ -3,6 +3,7 @@ package r.builtins;
 import java.io.*;
 
 import r.*;
+import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -12,6 +13,7 @@ import r.nodes.truffle.*;
 import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
+// FIXME: not quite the GNU-R output particularly for numbers; re-visit if some code could be removed once we have fully GNU-R string representation of numerics
 public class Cat {
 
     private static final String[] paramNames = new String[]{"...", "sep"};
@@ -36,33 +38,17 @@ public class Cat {
 
     public static String catElement(RDouble v, int i) {
         double d = v.getDouble(i);
-        if (RDouble.RDoubleUtils.isNA(d)) {
-            return "NA";
-        } else {
-            return (new Double(d)).toString();
-        }
+        return Convert.double2string(d);
     }
 
     public static String catElement(RInt v, int i) {
         int n = v.getInt(i);
-        if (n == RInt.NA) {
-            return "NA";
-        } else {
-            return (new Integer(n)).toString();
-        }
+        return Convert.int2string(n);
     }
 
     public static String catElement(RLogical v, int i) {
         int n = v.getLogical(i);
-        if (n == RLogical.NA) {
-            return "NA";
-        } else {
-            if (n == RLogical.TRUE) {
-                return "TRUE";
-            } else {
-                return "FALSE";
-            }
-        }
+        return Convert.logical2string(n);
     }
 
     public static String catElement(RString v, int i) {
