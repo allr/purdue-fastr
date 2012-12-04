@@ -150,6 +150,34 @@ public class Rep {
                 }
             };
         }
+        if (arg0 instanceof RString) {
+            final RString orig = (RString) arg0;
+            final int osize = orig.size();
+            final int size = osize * ftimes;
+
+            return new View.RStringView() {
+
+                @Override
+                public int size() {
+                    return size;
+                }
+
+                @Override
+                public String getString(int i) {
+                    return orig.getString(i % osize);
+                }
+
+                @Override
+                public boolean isSharedReal() {
+                    return orig.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    orig.ref();
+                }
+            };
+        }
         Utils.nyi("unsupported base type for rep");
         return null;
     }

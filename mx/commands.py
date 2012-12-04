@@ -153,7 +153,7 @@ def rfastaredux(args, vmArgs, vm):
 
 def rpidigits(args, vmArgs, vm):
   """Run Pidigits benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "100");
+  rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "300");
 
 # ------------------
   
