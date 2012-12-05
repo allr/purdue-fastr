@@ -56,6 +56,7 @@ public class Primitives {
         add("nchar", 1, 3, NChar.FACTORY);
         add("ncol", 1, 1, Dimensions.NCOL_FACTORY);
         add("nrow", 1, 1, Dimensions.NROW_FACTORY);
+        add("order", 0, -1, Sort.ORDER_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
         add("paste", 0, -1, Paste.FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int

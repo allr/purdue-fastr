@@ -306,6 +306,25 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testOrder() throws RecognitionException {
+        assertEval("{ order(1:3) }", "1L, 2L, 3L");
+        assertEval("{ order(3:1) }", "3L, 2L, 1L");
+        assertEval("{ order(c(1,1,1), 3:1) }", "3L, 2L, 1L");
+        assertEval("{ order(c(1,1,1), 3:1, decreasing=FALSE) }", "3L, 2L, 1L");
+        assertEval("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=TRUE) }", "1L, 2L, 3L");
+        assertEval("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=NA) }", "1L, 2L, 3L");
+        assertEval("{ order(c(1,1,1), 3:1, decreasing=TRUE, na.last=FALSE) }", "1L, 2L, 3L");
+        assertEval("{ order() }", "NULL");
+        assertEval("{ order(c(NA,NA,1), c(2,1,3)) }", "3L, 2L, 1L");
+        assertEval("{ order(c(NA,NA,1), c(1,2,3)) }", "3L, 1L, 2L");
+        assertEval("{ order(c(1,2,3,NA)) }", "1L, 2L, 3L, 4L");
+        assertEval("{ order(c(1,2,3,NA), na.last=FALSE) }", "4L, 1L, 2L, 3L");
+        assertEval("{ order(c(1,2,3,NA), na.last=FALSE, decreasing=TRUE) }", "4L, 3L, 2L, 1L");
+        assertEval("{ order(c(0/0, -1/0, 2)) }", "2L, 3L, 1L");
+        assertEval("{ order(c(0/0, -1/0, 2), na.last=NA) }", "2L, 3L");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

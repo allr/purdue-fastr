@@ -61,6 +61,8 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_SEPARATOR = "invalid separator";
     public static final String INCORRECT_DIMENSIONS = "incorrect number of dimensions";
     public static final String LOGICAL_SUBSCRIPT_LONG = "(subscript) logical subscript too long";
+    public static final String DECREASING_TRUE_FALSE = "'decreasing' must be TRUE or FALSE";
+    public static final String ARGUMENT_LENGTHS_DIFFER = "argument lengths differ";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -73,6 +75,7 @@ public abstract class RError extends RuntimeException {
     public static final String UNKNOWN_OBJECT = "object '%s' not found";
     public static final String INVALID_ARGUMENT = "invalid '%s' argument";
     public static final String INVALID_SUBSCRIPT_TYPE = "invalid subscript type '%s'";
+    public static final String ARGUMENT_NOT_VECTOR = "argument %d is not a vector";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -636,6 +639,30 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getDecreasingTrueFalse(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.DECREASING_TRUE_FALSE;
+            }
+        };
+    }
+
+    public static RError getArgumentLengthsDiffer(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ARGUMENT_LENGTHS_DIFFER;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -663,6 +690,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidSubscriptType(ASTNode ast, String str) {
         return getGenericError(ast, String.format(RError.INVALID_SUBSCRIPT_TYPE, str));
+    }
+
+    public static RError getArgumentNotVector(ASTNode ast, int i) {
+        return getGenericError(ast, String.format(RError.ARGUMENT_NOT_VECTOR, i));
     }
 
     public static RError getUnknownVariable(ASTNode source) {
