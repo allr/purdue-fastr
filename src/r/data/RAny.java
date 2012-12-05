@@ -1,9 +1,17 @@
 package r.data;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// NOTE: error handling with casts is tricky, because different commands do it differently
+//  sometimes error is signalled by returning an NA
+//  sometimes that comes with a warning that NAs have been introduced, but the warning is only given once for the whole vector even if multiple NAs are introduced
+//  but sometimes there is a different warning or even an error when the conversion is not possible
+//
+//  also, error messages sometimes come from R itself when builtins are implemented in R, but we implement some in Java that are in GNU-R implemented in R
+//    (this is not fully implemented in R)
 public interface RAny {
 
     RAttributes getAttributes();
@@ -12,18 +20,18 @@ public interface RAny {
     String pretty();
     String prettyMatrixElement();
 
-        // casts that don't produce warnings and don't introduce NAs
+        // casts that don't set a flag (but still can introduce NAs)
     RLogical asLogical();
     RInt asInt();
     RDouble asDouble();
     RString asString();
     RList asList();
 
-        // coercion - can produce warnings (NAs introduced by coercion)
-    RLogical asLogical(RContext context, ASTNode ast);
-    RInt asInt(RContext context, ASTNode ast);
-    RDouble asDouble(RContext context, ASTNode ast);
-    RString asString(RContext context, ASTNode ast);
+        // casts that do set a flag when NA is introduced
+    RLogical asLogical(NAIntroduced naIntroduced);
+    RInt asInt(NAIntroduced naIntroduced);
+    RDouble asDouble(NAIntroduced naIntroduced);
+    RString asString(NAIntroduced naIntroduced);
 
     void ref();
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2

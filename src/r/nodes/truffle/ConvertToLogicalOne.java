@@ -71,7 +71,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                     context.warning(getAST(), RError.LENGTH_GT_1);
                     return logicalArray.getLogical(0);
                 }
-                throw RError.getNulLength(null);
+                throw RError.getLengthZero(null);
             }
         };
     }
@@ -93,7 +93,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                     context.warning(getAST(), RError.LENGTH_GT_1);
                     intValue = intArray.getInt(0);
                 } else {
-                    throw RError.getNulLength(null);
+                    throw RError.getLengthZero(null);
                 }
 
                 if (intValue == RLogical.FALSE || intValue == RLogical.NA) {
@@ -119,7 +119,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                     context.warning(getAST(), RError.LENGTH_GT_1);
                     return logicalArray.getLogical(0);
                 }
-                throw RError.getNulLength(null);
+                throw RError.getLengthZero(null);
             }
 
             @Override

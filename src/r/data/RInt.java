@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.internal.*;
 
 // FIXME: add conversion to scalar representation to copies (also other types that have scalar representations)
@@ -129,6 +130,20 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rint.asString();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rint;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return rint.asLogical();
+        }
+        @Override
         public RAttributes getAttributes() {
             return rint.getAttributes();
         }
@@ -184,6 +199,21 @@ public interface RInt extends RNumber {
 
         @Override
         public RInt asInt() {
+            return rint;
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rint.asString();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rint.asDouble();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
             return rint;
         }
 
@@ -245,6 +275,22 @@ public interface RInt extends RNumber {
         public RLogical asLogical() {
             return rint.asLogical();
         }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rint.asDouble();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rint;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return rint.asLogical();
+        }
+
 
         @Override
         public RAttributes getAttributes() {

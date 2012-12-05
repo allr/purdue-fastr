@@ -1,9 +1,8 @@
 package r.data;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.internal.*;
-import r.errors.*;
-import r.nodes.*;
 
 public interface RString extends RArray {
 
@@ -18,28 +17,32 @@ public interface RString extends RArray {
     RString materialize();
 
     public class RStringUtils {
-        public static RDouble stringToDouble(RString value, RContext context, ASTNode ast) {
-            boolean introducedNA = false;
-
+        public static RDouble stringToDouble(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
             int size = value.size();
-            double[] dcontent = new double[size];
+            double[] content = new double[size];
             for (int i = 0; i < size; i++) {
                 String str = value.getString(i);
-                if (str != RString.NA) {
-                    try {
-                        dcontent[i] = Double.parseDouble(str);  // FIXME: use R rules
-                    } catch (NumberFormatException e) {
-                        dcontent[i] = RDouble.NA;
-                        introducedNA = true;
-                    }
-                } else {
-                    dcontent[i] = RDouble.NA;
-                }
+                content[i] = Convert.string2double(str, naIntroduced);
             }
-            if (introducedNA) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            return RDouble.RDoubleFactory.getFor(content, value.dimensions());
+        }
+        public static RInt stringToInt(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+            int size = value.size();
+            int[] content = new int[size];
+            for (int i = 0; i < size; i++) {
+                String str = value.getString(i);
+                content[i] = Convert.string2int(str, naIntroduced);
             }
-            return RDouble.RDoubleFactory.getFor(dcontent); // drops dimensions
+            return RInt.RIntFactory.getFor(content, value.dimensions());
+        }
+        public static RLogical stringToLogical(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+            int size = value.size();
+            int[] content = new int[size];
+            for (int i = 0; i < size; i++) {
+                String str = value.getString(i);
+                content[i] = Convert.string2logical(str, naIntroduced);
+            }
+            return RLogical.RLogicalFactory.getFor(content, value.dimensions());
         }
     }
 

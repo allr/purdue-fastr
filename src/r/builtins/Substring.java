@@ -3,6 +3,7 @@ package r.builtins;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -41,18 +42,25 @@ public class Substring {
             final RDouble defaultLast = RDouble.RDoubleFactory.getScalar(1000000); // FIXME slow, but perhaps the default is not used, anyway
             return new BuiltIn(call, names, exprs) {
 
+                NAIntroduced naIntroduced = new NAIntroduced();
+
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RString text = args[paramPositions[ITEXT]].asString();
-                    RDouble first = args[paramPositions[IFIRST]].asDouble(context, ast);
+                    naIntroduced.naIntroduced = false;
+                    RDouble first = args[paramPositions[IFIRST]].asDouble(naIntroduced);
                     RDouble last;
                     if (provided[ILAST]) {
-                        last = args[paramPositions[ILAST]].asDouble(context, ast);
+                        last = args[paramPositions[ILAST]].asDouble(naIntroduced);
                     } else {
                         last = defaultLast;
                     }
 
-                    return substring(text, first, last, context, ast);
+                    RString res = substring(text, first, last, context, ast);
+                    if (naIntroduced.naIntroduced) {
+                        context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                    }
+                    return res;
                 }
             };
         }
@@ -85,13 +93,20 @@ public class Substring {
 
             return new BuiltIn(call, names, exprs) {
 
+                NAIntroduced naIntroduced = new NAIntroduced();
+
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RString x = args[paramPositions[IX]].asString();
-                    RDouble start = args[paramPositions[ISTART]].asDouble(context, ast);
-                    RDouble stop = args[paramPositions[ISTOP]].asDouble(context, ast);
+                    naIntroduced.naIntroduced = false;
+                    RDouble start = args[paramPositions[ISTART]].asDouble(naIntroduced);
+                    RDouble stop = args[paramPositions[ISTOP]].asDouble(naIntroduced);
 
-                    return substr(x, start, stop, context, ast);
+                    RString res = substr(x, start, stop, context, ast);
+                    if (naIntroduced.naIntroduced) {
+                        context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                    }
+                    return res;
                 }
             };
 

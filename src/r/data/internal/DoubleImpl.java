@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
 
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
@@ -92,7 +93,17 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return RDouble.RDoubleUtils.double2int(this, naIntroduced);
+    }
+
+    @Override
     public RDouble asDouble() {
+        return this;
+    }
+
+    @Override
+    public RDouble asDouble(NAIntroduced naIntroduced) {
         return this;
     }
 
@@ -128,8 +139,18 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        return asLogical();
+    }
+
+    @Override
     public RString asString() {
         return new RDouble.RStringView(this);
+    }
+
+    @Override
+    public RString asString(NAIntroduced naIntroduced) {
+        return asString();
     }
 
     @Override

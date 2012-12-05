@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
 
 
@@ -77,12 +78,27 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        return asLogical();
+    }
+
+    @Override
     public RInt asInt() {
         return RInt.RIntFactory.getScalar(Convert.double2int(value));
     }
 
     @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return RInt.RIntFactory.getScalar(Convert.double2int(value, naIntroduced));
+    }
+
+    @Override
     public RDouble asDouble() {
+        return this;
+    }
+
+    @Override
+    public RDouble asDouble(NAIntroduced naIntroduced) {
         return this;
     }
 

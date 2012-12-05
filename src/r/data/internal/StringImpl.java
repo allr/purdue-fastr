@@ -1,8 +1,8 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -101,8 +101,13 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RInt asInt() {
-        Utils.nyi();
+        Utils.check(false, "unreachable");
         return null;
+    }
+
+    @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return RString.RStringUtils.stringToInt(this, naIntroduced);
     }
 
     @Override
@@ -141,8 +146,13 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RLogical asLogical() {
-        Utils.nyi();
+        Utils.check(false, "unreachable");
         return null;
+    }
+
+    @Override
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        return RString.RStringUtils.stringToLogical(this, naIntroduced);
     }
 
     @Override
@@ -152,8 +162,8 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RDouble asDouble(RContext context, ASTNode ast) {
-        return RString.RStringUtils.stringToDouble(this, context, ast);
+    public RDouble asDouble(NAIntroduced naIntroduced) {
+        return RString.RStringUtils.stringToDouble(this, naIntroduced);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -95,8 +96,18 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        return this;
+    }
+
+    @Override
     public RInt asInt() {
         return RInt.RIntFactory.getFor(content, dimensions());
+    }
+
+    @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return asInt();
     }
 
     @Override
@@ -105,8 +116,18 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
+    public RDouble asDouble(NAIntroduced naIntroduced) {
+        return asDouble();
+    }
+
+    @Override
     public RString asString() {
         return new RLogical.RStringView(this);
+    }
+
+    @Override
+    public RString asString(NAIntroduced naIntroduced) {
+        return asString();
     }
 
     @Override

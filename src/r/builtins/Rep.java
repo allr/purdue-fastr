@@ -35,6 +35,7 @@ public class Rep {
             if (d == 0) {
                 return Utils.createEmptyArray(arg0);
             }
+                // FIXME: perhaps fitsRInt => isFinite ?
             if (!RDouble.RDoubleUtils.isFinite(d) || d < 0 || !RDouble.RDoubleUtils.fitsRInt(d)) {
                 throw RError.getInvalidTimes(ast);
             }

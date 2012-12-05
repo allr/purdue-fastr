@@ -62,7 +62,7 @@ public class Colon {
     public static void checkScalar(RArray a, ASTNode ast, RContext context) {
       int n = a.size();
       if (n == 0) {
-          throw RError.getNulLength(ast);
+          throw RError.getLengthZero(ast);
       }
       if (n > 1) {
           context.warning(ast, String.format(RError.ONLY_FIRST_USED, n));

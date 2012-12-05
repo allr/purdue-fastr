@@ -7,7 +7,7 @@ public abstract class RError extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
     public static final String LENGTH_GT_1 = "the condition has length > 1 and only the first element will be used";
-    public static final String LENGTH_0 = "argument is of length zero";
+    public static final String LENGTH_ZERO = "argument is of length zero";
     public static final String NA_UNEXP = "missing value where TRUE/FALSE needed";
     public static final String UNUSED_ARGUMENT = "unused argument(s)";
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
@@ -84,14 +84,14 @@ public abstract class RError extends RuntimeException {
             }
         };
     }
-    public static RError getNulLength(ASTNode expr) {
+    public static RError getLengthZero(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getMessage() {
-                return LENGTH_0;
+                return LENGTH_ZERO;
             }
         };
     }

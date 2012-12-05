@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
 import r.nodes.*;
 
@@ -80,22 +81,26 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     }
 
     @Override
-    public RLogical asLogical(RContext context, ASTNode ast) {
-        return asLogical();
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
     }
 
     @Override
-    public RInt asInt(RContext context, ASTNode ast) {
-        return asInt();
+    public RInt asInt(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
     }
 
     @Override
-    public RDouble asDouble(RContext context, ASTNode ast) {
-        return asDouble();
+    public RDouble asDouble(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
     }
 
     @Override
-    public RString asString(RContext context, ASTNode ast) {
-        return asString();
+    public RString asString(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
     }
 }

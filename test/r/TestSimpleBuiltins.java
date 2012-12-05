@@ -294,6 +294,7 @@ public class TestSimpleBuiltins extends TestBase {
     @Test
     public void testSubstring() throws RecognitionException {
         assertEval("{ substr(\"123456\", start=2, stop=4) }", "\"234\"");
+        assertEval("{ substr(\"123456\", start=2L, stop=4L) }", "\"234\"");
         assertEval("{ substr(\"123456\", start=2.8, stop=4) }", "\"234\"");
         assertEval("{ substr(c(\"hello\", \"bye\"), start=c(1,2,3), stop=4) }", "\"hell\", \"ye\"");
         assertEval("{ substr(\"fastr\", start=NA, stop=2) }", "NA");

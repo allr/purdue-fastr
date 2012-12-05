@@ -3,6 +3,7 @@ package r.data;
 import java.util.*;
 
 import r.*;
+import r.Convert.*;
 import r.data.internal.*;
 import r.nodes.*;
 
@@ -113,25 +114,25 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override
-    public RInt asInt(RContext context, ASTNode ast) {
+    public RLogical asLogical(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RLogical asLogical(RContext context, ASTNode ast) {
+    public RInt asInt(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RDouble asDouble(RContext context, ASTNode ast) {
+    public RDouble asDouble(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RString asString(RContext context, ASTNode ast) {
+    public RString asString(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }

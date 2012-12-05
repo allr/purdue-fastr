@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.Convert.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
@@ -32,6 +33,15 @@ public interface RDouble extends RNumber {
         }
         public static boolean isFinite(double d) {
             return !isNAorNaN(d) && !Double.isInfinite(d);
+        }
+        public static RInt double2int(RDouble value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+            int size = value.size();
+            int[] content = new int[size];
+            for (int i = 0; i < size; i++) {
+                double d = value.getDouble(i);
+                content[i] = Convert.double2int(d, naIntroduced);
+            }
+            return RInt.RIntFactory.getFor(content, value.dimensions());
         }
     }
     public class RDoubleFactory {
@@ -140,6 +150,21 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rdbl.asString();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rdbl;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return rdbl.asLogical();
+        }
+
+        @Override
         public int getInt(int i) {
             return Convert.double2int(rdbl.getDouble(i));
         }
@@ -199,6 +224,21 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rdbl.asString();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rdbl;
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rdbl.asInt(naIntroduced);
+        }
+
+        @Override
         public int getLogical(int i) {
             return Convert.double2logical(rdbl.getDouble(i));
         }
@@ -254,6 +294,21 @@ public interface RDouble extends RNumber {
 
         @Override
         public RLogical asLogical() {
+            return rdbl.asLogical();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rdbl;
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rdbl.asInt(naIntroduced);
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
             return rdbl.asLogical();
         }
 

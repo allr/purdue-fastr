@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.Convert.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -142,25 +143,25 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
-    public RInt asInt(RContext context, ASTNode ast) {
+    public RLogical asLogical(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RLogical asLogical(RContext context, ASTNode ast) {
+    public RInt asInt(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RDouble asDouble(RContext context, ASTNode ast) {
+    public RDouble asDouble(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RString asString(RContext context, ASTNode ast) {
+    public RString asString(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
     }

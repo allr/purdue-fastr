@@ -3,6 +3,7 @@ package r.data.internal;
 import java.util.*;
 
 import r.*;
+import r.Convert.*;
 import r.data.*;
 import r.nodes.*;
 
@@ -109,30 +110,6 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
-    public RInt asInt(RContext context, ASTNode ast) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RLogical asLogical(RContext context, ASTNode ast) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RDouble asDouble(RContext context, ASTNode ast) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RString asString(RContext context, ASTNode ast) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
     public int[] dimensions() {
         Utils.nyi();
         return null;
@@ -168,5 +145,29 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     @Override
     public Object getRef(int i) {
         return get(i);
+    }
+
+    @Override
+    public RLogical asLogical(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RDouble asDouble(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(NAIntroduced naIntroduced) {
+        Utils.nyi();
+        return null;
     }
 }

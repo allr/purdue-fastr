@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -77,13 +78,28 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return asLogical();
+        }
+
+        @Override
         public RInt asInt() {
+            return this;
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
             return this;
         }
 
         @Override
         public RDouble asDouble() {
             return new RInt.RDoubleView(this);
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return asDouble();
         }
 
         @Override
@@ -139,7 +155,17 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return RDouble.RDoubleUtils.double2int(this, naIntroduced);
+        }
+
+        @Override
         public RDouble asDouble() {
+            return this;
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
             return this;
         }
 
@@ -159,8 +185,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return asLogical();
+        }
+
+        @Override
         public RString asString() {
             return new RDouble.RStringView(this);
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return asString();
         }
 
         @Override
@@ -191,8 +227,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return this;
+        }
+
+        @Override
         public RInt asInt() {
             return new RLogical.RIntView(this);
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return asInt();
         }
 
         @Override
@@ -201,8 +247,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return asDouble();
+        }
+
+        @Override
         public RString asString() {
             return new RLogical.RStringView(this);
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return asString();
         }
 
         @Override
@@ -248,9 +304,19 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return this;
+        }
+
+        @Override
         public RInt asInt() {
-            Utils.nyi();
+            Utils.check(false, "unreachable");
             return null;
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return RString.RStringUtils.stringToInt(this, naIntroduced);
         }
 
         @Override
@@ -260,14 +326,19 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(RContext context, ASTNode ast) {
-            return RString.RStringUtils.stringToDouble(this, context, ast);
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return RString.RStringUtils.stringToDouble(this, naIntroduced);
         }
 
         @Override
         public RLogical asLogical() {
-            Utils.nyi();
+            Utils.check(false, "unreachable");
             return null;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return RString.RStringUtils.stringToLogical(this, naIntroduced);
         }
 
         @Override

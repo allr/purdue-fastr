@@ -50,9 +50,6 @@ public class Matrix {
                 return RInt.NA;
             }
             double d = v.getDouble(0);
-            if (!RDouble.RDoubleUtils.fitsRInt(d)) {
-                return RInt.NA;
-            }
             return Convert.double2int(d);
         }
         if (arg instanceof RLogical) {

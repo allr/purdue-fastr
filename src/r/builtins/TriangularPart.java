@@ -9,7 +9,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// note that in GNU-R, this is implemented in R
+// note: in GNU-R, this is implemented in R
 public class TriangularPart {
     private static final String[] paramNames = new String[]{"x", "diag"};
 

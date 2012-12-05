@@ -1,6 +1,7 @@
 package r.data;
 
 import r.*;
+import r.Convert.NAIntroduced;
 import r.data.internal.*;
 
 public interface RLogical extends RArray { // FIXME: should extend Number instead?
@@ -146,6 +147,21 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return l.asString();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return l.asInt();
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return l;
+        }
+
+        @Override
         public double getDouble(int i) {
             int ll = l.getLogical(i);
             return Convert.logical2double(ll);
@@ -196,6 +212,21 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
         @Override
         public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return l.asString();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return l.asDouble();
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
             return l;
         }
 
@@ -254,6 +285,21 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
         @Override
         public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return l.asDouble();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return l.asInt();
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
             return l;
         }
 
