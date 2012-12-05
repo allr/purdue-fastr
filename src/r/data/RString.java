@@ -50,6 +50,13 @@ public interface RString extends RArray {
         public static ScalarStringImpl getScalar(String value) {
             return new ScalarStringImpl(value);
         }
+        public static RString getScalar(String value, int[] dimensions) {
+            if (dimensions == null) {
+                return new ScalarStringImpl(value);
+            } else {
+                return getFor(new String[] {value}, dimensions);
+            }
+        }
         public static RString getArray(String... values) {
             if (values.length == 1) {
                 return new ScalarStringImpl(values[0]);

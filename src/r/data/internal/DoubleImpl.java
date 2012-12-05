@@ -120,7 +120,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         if (content.length == 0) {
             return RDouble.TYPE_STRING + "(0)";
         }
-        String fst = Convert.double2string(content[0]);
+        String fst = Convert.pretty(Convert.double2string(content[0]));
         if (content.length == 1) {
             return fst;
         }
@@ -128,7 +128,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         str.append(fst);
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            str.append(Convert.double2string(content[i]));
+            str.append(Convert.pretty(Convert.double2string(content[i])));
         }
         return str.toString();
     }

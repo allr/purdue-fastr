@@ -143,7 +143,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";
         }
-        String fst = Convert.logical2string(content[0]);
+        String fst = Convert.pretty(Convert.logical2string(content[0]));
         if (content.length == 1) {
             return fst;
         }
@@ -151,7 +151,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         str.append(fst);
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            str.append(Convert.logical2string(content[i]));
+            str.append(Convert.pretty(Convert.logical2string(content[i])));
         }
         return str.toString();
     }

@@ -48,6 +48,13 @@ public interface RDouble extends RNumber {
         public static ScalarDoubleImpl getScalar(double value) {
             return new ScalarDoubleImpl(value);
         }
+        public static RDouble getScalar(double value, int[] dimensions) {
+            if (dimensions == null) {
+                return new ScalarDoubleImpl(value);
+            } else {
+                return getFor(new double[] {value}, dimensions);
+            }
+        }
         public static RDouble getArray(double... values) {
             if (values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);

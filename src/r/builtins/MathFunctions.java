@@ -27,7 +27,7 @@ public class MathFunctions {
         public RDouble calc(final RContext context, final ASTNode ast, final RDouble value) {
             final int size = value.size();
             if (size == 1) {
-                return RDouble.RDoubleFactory.getScalar(op.op(context, ast, value.getDouble(0)));
+                return RDouble.RDoubleFactory.getScalar(op.op(context, ast, value.getDouble(0)), value.dimensions());
             } else if (size > 0) {
                 return new View.RDoubleView() {
 
@@ -39,6 +39,16 @@ public class MathFunctions {
                     @Override
                     public double getDouble(int i) {
                         return op.op(context, ast, value.getDouble(i));
+                    }
+
+                    @Override
+                    public void ref() {
+                        value.ref();
+                    }
+
+                    @Override
+                    public int[] dimensions() {
+                        return value.dimensions();
                     }
                 };
             } else {

@@ -46,6 +46,13 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public static ScalarLogicalImpl getScalar(int value) {
             return new ScalarLogicalImpl(value);
         }
+        public static RLogical getScalar(int value, int[] dimensions) {
+            if (dimensions == null) {
+                return new ScalarLogicalImpl(value);
+            } else {
+                return getFor(new int[] {value}, dimensions);
+            }
+        }
         public static RLogical getArray(int... values) {
             if (values.length == 1) {
                 return new ScalarLogicalImpl(values[0]);

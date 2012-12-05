@@ -16,7 +16,7 @@ public class Convert {
     }
 
     public static double string2double(String v, NAIntroduced naIntroduced) {
-        if (!v.equals("NA")) {
+        if (v != RString.NA) {
             // FIXME use R rules
             try {
                 return Double.parseDouble(v);
@@ -45,7 +45,7 @@ public class Convert {
             }
             return Double.toString(d);
         }
-        return "NA";
+        return RString.NA;
     }
 
     public static int string2logical(String s) {
@@ -78,7 +78,7 @@ public class Convert {
             case RLogical.FALSE:
                 return "FALSE";
             case RLogical.NA:
-                return "NA";
+                return RString.NA;
             default:
                 return "TRUE";
         }
@@ -86,7 +86,7 @@ public class Convert {
 
     public static String int2string(int i) {
         if (i == RInt.NA) {
-            return "NA";
+            return RString.NA;
         }
         // FIXME use R rules
         if (!RContext.debuggingFormat()) {
@@ -155,6 +155,14 @@ public class Convert {
 
     public static int logical2int(int l) {
         return l;
+    }
+
+    public static String pretty(String s) {
+        if (s != RString.NA) {
+            return s;
+        } else {
+            return "NA";
+        }
     }
 
     public static int scalar2int(RAny v) { // FIXME: rewrite to scalar impl types if we have reliable scalarization, or remove

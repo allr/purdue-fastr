@@ -100,6 +100,11 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
+    public RString asString(NAIntroduced naIntroduced) {
+        return this;
+    }
+
+    @Override
     public RInt asInt() {
         Utils.check(false, "unreachable");
         return null;

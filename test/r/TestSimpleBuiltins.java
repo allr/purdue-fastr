@@ -325,6 +325,23 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testMathFunctions() throws RecognitionException {
+        assertEval("{ log(1) } ", "0.0");
+        assertEval("{ m <- matrix(1:4, nrow=2) ; log10(m) }", "                   [,1]                [,2]\n[1,]                0.0 0.47712125471966244\n[2,] 0.3010299956639812  0.6020599913279624");
+    }
+
+    @Test
+    public void testCharUtils() throws RecognitionException {
+        assertEval("{ toupper(c(\"hello\",\"bye\")) }", "\"HELLO\", \"BYE\"");
+        assertEval("{ tolower(c(\"Hello\",\"ByE\")) }", "\"hello\", \"bye\"");
+        assertEval("{ tolower(1E100) }", "\"1.0e100\"");
+        assertEval("{ toupper(1E100) }", "\"1.0E100\"");
+        assertEval("{ tolower(c()) }", "character(0)");
+        assertEval("{ tolower(NA) }", "NA");
+        assertEval("{ m <- matrix(\"hi\") ; toupper(m) }", "     [,1]\n[1,] \"HI\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

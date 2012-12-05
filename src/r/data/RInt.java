@@ -24,6 +24,13 @@ public interface RInt extends RNumber {
         public static ScalarIntImpl getScalar(int value) {
             return new ScalarIntImpl(value);
         }
+        public static RInt getScalar(int value, int[] dimensions) {
+            if (dimensions == null) {
+                return new ScalarIntImpl(value);
+            } else {
+                return getFor(new int[] {value}, dimensions);
+            }
+        }
         public static RInt getArray(int... values) {
             if (values.length == 1) {
                 return new ScalarIntImpl(values[0]);

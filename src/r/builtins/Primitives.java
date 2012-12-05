@@ -72,6 +72,8 @@ public class Primitives {
         add("substring", 2, 3, Substring.SUBSTRING_FACTORY);
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
+        add("tolower", 1, 1, CharUtils.TOLOWER_FACTORY);
+        add("toupper", 1, 1, CharUtils.TOUPPER_FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
         add("which", 1, 3, Which.FACTORY);
         add("commandArgs", 0, 1, CommandArgs.FACTORY);
