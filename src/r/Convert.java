@@ -201,6 +201,14 @@ public class Convert {
         }
     }
 
+    public static boolean checkFirstLogical(RAny arg, int value) {
+        RLogical l = arg.asLogical();
+        if (l.size() == 0) {
+            return false;
+        }
+        return l.getLogical(0) == value;
+    }
+
     public static int scalar2int(RAny v) { // FIXME: rewrite to scalar impl types if we have reliable scalarization, or remove
         if (v instanceof RInt) {
             return ((RInt) v).getInt(0);

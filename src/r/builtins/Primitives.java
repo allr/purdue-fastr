@@ -40,6 +40,7 @@ public class Primitives {
         add("diag<-", 2, 2, Diagonal.REPLACEMENT_FACTORY);
         add("dim", 1, 1, Dimensions.DIM_FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
+        add("gsub", 3, 7, Sub.GSUB_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
@@ -68,6 +69,7 @@ public class Primitives {
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);
         add("strsplit", 1, 5, StrSplit.FACTORY);
+        add("sub", 3, 7, Sub.SUB_FACTORY);
         add("substr", 3, 3, Substring.SUBSTR_FACTORY);
         add("substring", 2, 3, Substring.SUBSTRING_FACTORY);
         add("sum", 0, -1, Sum.FACTORY);

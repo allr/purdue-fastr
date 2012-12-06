@@ -69,6 +69,8 @@ public class StrSplit {
         return RList.RListFactory.getFor(content);
     }
 
+    // FIXME: wouldn't it be just faster & simpler to use Java's regexes with Pattern.LITERAL flag?
+
     // FIXME: this could be optimized by getting rid of ArrayList (R does two passes, one to count number of occurrences, then allocates, then another)
     //        we could speculate that elements of x will have always the same number of matches (e.g. lines of input in fixed format)
     // FIXME: this could also be optimized by using a better algorithm to search text, e.g. KMG
@@ -174,8 +176,8 @@ public class StrSplit {
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
                     RString split = Convert.coerceToStringError(args[paramPositions[ISPLIT]], ast);
-                    boolean fixed = provided[IFIXED] ? args[paramPositions[IFIXED]].asLogical().getLogical(0) == RLogical.TRUE : false;
-                    boolean perl = provided[IPERL] ? args[paramPositions[IPERL]].asLogical().getLogical(0) == RLogical.TRUE : false;
+                    boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
+                    boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
 
                     return strsplit(context, ast, x, split, fixed, perl);
                 }

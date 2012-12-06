@@ -63,6 +63,7 @@ public abstract class RError extends RuntimeException {
     public static final String LOGICAL_SUBSCRIPT_LONG = "(subscript) logical subscript too long";
     public static final String DECREASING_TRUE_FALSE = "'decreasing' must be TRUE or FALSE";
     public static final String ARGUMENT_LENGTHS_DIFFER = "argument lengths differ";
+    public static final String ZERO_LENGTH_PATTERN = "zero-length pattern";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -77,6 +78,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_SUBSCRIPT_TYPE = "invalid subscript type '%s'";
     public static final String ARGUMENT_NOT_VECTOR = "argument %d is not a vector";
     public static final String CANNOT_COERCE = "cannot coerce type '%s' to vector of type '%s'";
+    public static final String ARGUMENT_ONLY_FIRST = "argument '%s' has length > 1 and only the first element will be used";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -660,6 +662,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.ARGUMENT_LENGTHS_DIFFER;
+            }
+        };
+    }
+
+    public static RError getZeroLengthPattern(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ZERO_LENGTH_PATTERN;
             }
         };
     }

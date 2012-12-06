@@ -351,6 +351,23 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testSub() throws RecognitionException {
+        assertEval("{ gsub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague aalley\"");
+        assertEval("{ sub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague alley\"");
+        assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\", fixed=TRUE) }", "\"prAgue aalley\"");
+        assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\", fixed=TRUE, ignore.case=TRUE) }", "\"praague aalley\"");
+        assertEval("{ gsub(\"h\",\"\", c(\"hello\", \"hi\", \"bye\"), fixed=TRUE) }", "\"ello\", \"i\", \"bye\"");
+
+        assertEval("{ gsub(\"a\",\"aa\", \"prague alley\") }", "\"praague aalley\"");
+        assertEval("{ sub(\"a\",\"aa\", \"prague alley\") }", "\"praague alley\"");
+        assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\") }", "\"prAgue aalley\"");
+        assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\", ignore.case=TRUE) }", "\"praague aalley\"");
+        assertEval("{ gsub(\"h\",\"\", c(\"hello\", \"hi\", \"bye\") }", "\"ello\", \"i\", \"bye\"");
+
+        assertEval("{ gsub(\"([a-e])\",\"\\\\1\\\\1\", \"prague alley\") }", "\"praaguee aalleey\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
