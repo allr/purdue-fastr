@@ -215,4 +215,9 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     public RArray subset(RInt index) {
         return RList.RListFactory.subset(this, index);
     }
+
+    @Override
+    public String typeOf() {
+        return RList.TYPE_STRING;
+    }
 }

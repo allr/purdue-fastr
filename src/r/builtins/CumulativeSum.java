@@ -2,7 +2,6 @@ package r.builtins;
 
 import r.*;
 import r.Convert;
-import r.Convert.NAIntroduced;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.RDouble.*;
@@ -88,8 +87,6 @@ public class CumulativeSum {
 
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                NAIntroduced naIntroduced = new NAIntroduced();
-
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
 
@@ -104,11 +101,7 @@ public class CumulativeSum {
                     }
 
                     if (x instanceof RString) {
-                        naIntroduced.naIntroduced = false;
-                        RDouble res = cumsum(x.asDouble(naIntroduced), context, ast);
-                        if (naIntroduced.naIntroduced) {
-                            context.warning(ast, RError.NA_INTRODUCED_COERCION);
-                        }
+                        RDouble res = cumsum(Convert.coerceToDoubleWarning(x, context, ast), context, ast);
                         return res;
                     } else {
                         Utils.nyi("unsupported type");

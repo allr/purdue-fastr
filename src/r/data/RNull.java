@@ -6,6 +6,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 public final class RNull implements RAny, RAttributes {
+    String TYPE_STRING = "NULL";
 
     private static RNull instance = new RNull();
 
@@ -160,5 +161,10 @@ public final class RNull implements RAny, RAttributes {
     @Override
     public RString asString(NAIntroduced naIntroduced) {
         return RString.EMPTY;
+    }
+
+    @Override
+    public String typeOf() {
+        return TYPE_STRING;
     }
 }

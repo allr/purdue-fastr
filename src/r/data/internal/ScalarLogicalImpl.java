@@ -134,4 +134,9 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
         value = val;
         return this;
     }
+
+    @Override
+    public String typeOf() {
+        return RLogical.TYPE_STRING;
+    }
 }

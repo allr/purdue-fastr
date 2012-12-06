@@ -131,6 +131,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RArray subset(RInt index) {
             return RInt.RIntFactory.subset(this, index);
         }
+
+        @Override
+        public String typeOf() {
+            return RInt.TYPE_STRING;
+        }
     }
 
     public abstract static class RDoubleView extends View implements RDouble {
@@ -208,6 +213,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RArray subset(RInt index) {
             return RDouble.RDoubleFactory.subset(this, index);
         }
+
+        @Override
+        public String typeOf() {
+            return RDouble.TYPE_STRING;
+        }
     }
 
     public abstract static class RLogicalView extends View implements RLogical {
@@ -284,6 +294,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RArray subset(RInt index) {
             return RLogical.RLogicalFactory.subset(this, index);
+        }
+
+        @Override
+        public String typeOf() {
+            return RLogical.TYPE_STRING;
         }
     }
 
@@ -365,6 +380,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RArray subset(RInt index) {
             return RString.RStringFactory.subset(this, index);
         }
+
+        @Override
+        public String typeOf() {
+            return RString.TYPE_STRING;
+        }
     }
 
     public abstract static class RListView extends View implements RList {
@@ -444,6 +464,11 @@ public abstract class View extends ArrayImpl implements RArray {
             RAny v = getRAny(i);
             v.ref();
             return v;
+        }
+
+        @Override
+        public String typeOf() {
+            return RList.TYPE_STRING;
         }
     }
 }

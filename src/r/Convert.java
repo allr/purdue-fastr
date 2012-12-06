@@ -1,6 +1,8 @@
 package r;
 
 import r.data.*;
+import r.errors.*;
+import r.nodes.*;
 
 public class Convert {
 
@@ -162,6 +164,40 @@ public class Convert {
             return s;
         } else {
             return "NA";
+        }
+    }
+
+    public static final NAIntroduced globalNAIntroduced = new NAIntroduced();
+
+    public static RString coerceToStringError(RAny arg, ASTNode ast) { // WARNING: non-reentrant
+        globalNAIntroduced.naIntroduced = false;
+        RString res = arg.asString(globalNAIntroduced);
+        if (!globalNAIntroduced.naIntroduced) {
+            return res;
+        } else {
+            throw RError.getCannotCoerce(ast, arg.typeOf(), RString.TYPE_STRING);
+        }
+    }
+
+    public static RString coerceToStringWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+        globalNAIntroduced.naIntroduced = false;
+        RString res = arg.asString(globalNAIntroduced);
+        if (!globalNAIntroduced.naIntroduced) {
+            return res;
+        } else {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            return res;
+        }
+    }
+
+    public static RDouble coerceToDoubleWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+        globalNAIntroduced.naIntroduced = false;
+        RDouble res = arg.asDouble(globalNAIntroduced);
+        if (!globalNAIntroduced.naIntroduced) {
+            return res;
+        } else {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            return res;
         }
     }
 

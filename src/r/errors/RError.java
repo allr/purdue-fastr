@@ -76,6 +76,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_ARGUMENT = "invalid '%s' argument";
     public static final String INVALID_SUBSCRIPT_TYPE = "invalid subscript type '%s'";
     public static final String ARGUMENT_NOT_VECTOR = "argument %d is not a vector";
+    public static final String CANNOT_COERCE = "cannot coerce type '%s' to vector of type '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -694,6 +695,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getArgumentNotVector(ASTNode ast, int i) {
         return getGenericError(ast, String.format(RError.ARGUMENT_NOT_VECTOR, i));
+    }
+
+    public static RError getCannotCoerce(ASTNode ast, String srcType, String dstType) {
+        return getGenericError(ast, String.format(RError.CANNOT_COERCE, srcType, dstType));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

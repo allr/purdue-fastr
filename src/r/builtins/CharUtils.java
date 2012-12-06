@@ -1,7 +1,7 @@
 package r.builtins;
 
 import r.*;
-import r.Convert.NAIntroduced;
+import r.Convert;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
@@ -66,17 +66,10 @@ public class CharUtils {
 
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                final NAIntroduced naIntroduced = new NAIntroduced();
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny value) {
-                    naIntroduced.naIntroduced = false;
-                    RString str = value.asString(naIntroduced);
-                    if (!naIntroduced.naIntroduced) {
-                        return convert(context, ast, str);
-                    } else {
-                        Utils.nyi("unsupported type"); // FIXME: cannot coerce type 'XXX' to vector of type 'character'
-                        return null;
-                    }
+                    RString str = Convert.coerceToStringError(value, ast);
+                    return convert(context, ast, str);
                 }
 
             };

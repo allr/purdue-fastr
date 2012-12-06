@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.regex.*;
 
 import r.*;
+import r.Convert;
+import r.Convert.NAIntroduced;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.nodes.*;
@@ -11,7 +13,8 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.runtime.*;
 
-// FIXME: this implementation is very slow
+// FIXME: this implementation is very slow and is only partial
+// the supported regular expressions may not be exactly like in GNU-R
 
 public class StrSplit {
     private static final String[] paramNames = new String[]{"x", "split", "fixed", "perl", "useBytes"};
@@ -69,6 +72,7 @@ public class StrSplit {
     // FIXME: this could be optimized by getting rid of ArrayList (R does two passes, one to count number of occurrences, then allocates, then another)
     //        we could speculate that elements of x will have always the same number of matches (e.g. lines of input in fixed format)
     // FIXME: this could also be optimized by using a better algorithm to search text, e.g. KMG
+    //        who knows if using Java's regex wouldn't be faster than this implementation
     public static RAny strSplitFixed(RString x, RString split) {
         int xsize = x.size();
         RAny[] content = new RAny[xsize];
@@ -168,8 +172,8 @@ public class StrSplit {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    RString x = args[paramPositions[IX]].asString().asString();
-                    RString split = args[paramPositions[ISPLIT]].asString();
+                    RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
+                    RString split = Convert.coerceToStringError(args[paramPositions[ISPLIT]], ast);
                     boolean fixed = provided[IFIXED] ? args[paramPositions[IFIXED]].asLogical().getLogical(0) == RLogical.TRUE : false;
                     boolean perl = provided[IPERL] ? args[paramPositions[IPERL]].asLogical().getLogical(0) == RLogical.TRUE : false;
 

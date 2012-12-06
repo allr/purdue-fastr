@@ -165,4 +165,9 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     public RArray subset(RInt index) {
         return RLogical.RLogicalFactory.subset(this, index);
     }
+
+    @Override
+    public String typeOf() {
+        return RLogical.TYPE_STRING;
+    }
 }

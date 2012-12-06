@@ -5,7 +5,7 @@ import r.Convert.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
-    String TYPE_STRING = "numeric";
+    String TYPE_STRING = "double";
     long NA_LONGBITS = 0x7ff00000000007a2L; // R's NA is a special instance of IEEE's NaN
     double NA = Double.longBitsToDouble(NA_LONGBITS);
     double NaN = Double.NaN;

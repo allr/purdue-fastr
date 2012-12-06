@@ -330,4 +330,9 @@ public class ClosureImpl extends BaseObject implements RClosure {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public String typeOf() {
+        return RClosure.TYPE_STRING;
+    }
 }

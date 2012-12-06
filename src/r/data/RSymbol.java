@@ -137,4 +137,10 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
+    @Override
+    public String typeOf() {
+        Utils.nyi();
+        return null;
+    }
+
 }

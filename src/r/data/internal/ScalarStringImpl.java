@@ -137,4 +137,9 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
         value = val;
         return this;
     }
+
+    @Override
+    public String typeOf() {
+        return RString.TYPE_STRING;
+    }
 }

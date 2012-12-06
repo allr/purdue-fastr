@@ -112,4 +112,9 @@ public class BuiltInImpl implements RBuiltIn {
         return null;
     }
 
+    @Override
+    public String typeOf() {
+        return RBuiltIn.TYPE_STRING;
+    }
+
 }

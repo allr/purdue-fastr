@@ -7,6 +7,9 @@ import com.oracle.truffle.compiler.*;
 import com.oracle.truffle.runtime.*;
 
 public interface RClosure extends RAny, RCallable, Compilable<Object[]>, FunctionProxy {
+
+    String TYPE_STRING = "closure";
+
     Frame environment();
     RFunction function();
 

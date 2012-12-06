@@ -170,4 +170,10 @@ public class AttributesImpl extends BaseObject implements RAttributes {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public String typeOf() {
+        Utils.nyi();
+        return null;
+    }
 }

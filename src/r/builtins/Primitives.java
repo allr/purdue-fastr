@@ -74,6 +74,7 @@ public class Primitives {
         add("sqrt", 1, 1, Sqrt.FACTORY);
         add("tolower", 1, 1, CharUtils.TOLOWER_FACTORY);
         add("toupper", 1, 1, CharUtils.TOUPPER_FACTORY);
+        add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
         add("which", 1, 3, Which.FACTORY);
         add("commandArgs", 0, 1, CommandArgs.FACTORY);

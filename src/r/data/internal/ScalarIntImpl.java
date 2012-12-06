@@ -133,4 +133,9 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
         value = val;
         return this;
     }
+
+    @Override
+    public String typeOf() {
+        return RInt.TYPE_STRING;
+    }
 }

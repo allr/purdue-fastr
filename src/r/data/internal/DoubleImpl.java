@@ -118,7 +118,8 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
             return matrixPretty();
         }
         if (content.length == 0) {
-            return RDouble.TYPE_STRING + "(0)";
+//            return RDouble.TYPE_STRING + "(0)";
+            return "numeric(0)";  // FIXME: I think there is an inconsistency in GNU-R itself on this
         }
         String fst = Convert.pretty(Convert.double2string(content[0]));
         if (content.length == 1) {
@@ -156,5 +157,10 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     @Override
     public RArray subset(RInt index) {
         return RDouble.RDoubleFactory.subset(this, index);
+    }
+
+    @Override
+    public String typeOf() {
+        return RDouble.TYPE_STRING;
     }
 }

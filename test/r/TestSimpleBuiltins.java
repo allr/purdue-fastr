@@ -342,6 +342,15 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testTypeOf() throws RecognitionException {
+        assertEval("{ typeof(1) }", "\"double\"");
+        assertEval("{ typeof(1L) }", "\"integer\"");
+        assertEval("{ typeof(sum) }", "\"builtin\"");
+        assertEval("{ typeof(function(){}) }", "\"closure\"");
+        assertEval("{ typeof(\"hi\") }", "\"character\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

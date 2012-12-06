@@ -230,4 +230,9 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             return false;
         }
     }
+
+    @Override
+    public String typeOf() {
+        return RInt.TYPE_STRING;
+    }
 }

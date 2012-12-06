@@ -181,4 +181,9 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     public RArray subset(RInt index) {
         return RString.RStringFactory.subset(this, index);
     }
+
+    @Override
+    public String typeOf() {
+        return RString.TYPE_STRING;
+    }
 }

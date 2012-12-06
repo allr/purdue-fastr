@@ -1,6 +1,5 @@
 package r.data;
 
-import r.*;
 import r.Convert.NAIntroduced;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -13,6 +12,8 @@ import r.nodes.truffle.*;
 //  also, error messages sometimes come from R itself when builtins are implemented in R, but we implement some in Java that are in GNU-R implemented in R
 //    (this is not fully implemented in R)
 public interface RAny {
+
+    String typeOf();
 
     RAttributes getAttributes();
     RAny stripAttributes();

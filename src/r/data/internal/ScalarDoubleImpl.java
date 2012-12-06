@@ -137,4 +137,9 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     public double getDouble() {
         return value;
     }
+
+    @Override
+    public String typeOf() {
+        return RDouble.TYPE_STRING;
+    }
 }
