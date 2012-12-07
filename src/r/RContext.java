@@ -5,6 +5,7 @@ import com.oracle.truffle.debug.*;
 import com.oracle.truffle.runtime.*;
 
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
@@ -122,5 +123,27 @@ public class RContext implements Context {
 
     @Override
     public void leave() {
+    }
+
+    public static final int NCONNECTIONS = 128;
+    public static final Connection[] connections = new Connection[128];
+
+    public int allocateConnection(Connection connection) {
+        for (int i = 0; i < NCONNECTIONS; i++) {
+            if (connections[i] == null) {
+                connections[i] = connection;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void freeConnection(int i) {
+        Utils.check(connections[i] != null);
+        connections[i] = null;
+    }
+
+    public Connection getConnection(int i) {
+        return connections[i];
     }
 }

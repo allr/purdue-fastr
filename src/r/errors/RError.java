@@ -64,6 +64,8 @@ public abstract class RError extends RuntimeException {
     public static final String DECREASING_TRUE_FALSE = "'decreasing' must be TRUE or FALSE";
     public static final String ARGUMENT_LENGTHS_DIFFER = "argument lengths differ";
     public static final String ZERO_LENGTH_PATTERN = "zero-length pattern";
+    public static final String ALL_CONNECTIONS_IN_USE = "all connections are in use";
+    public static final String CANNOT_READ_CONNECTION = "cannot read from this connection";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -79,6 +81,8 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_NOT_VECTOR = "argument %d is not a vector";
     public static final String CANNOT_COERCE = "cannot coerce type '%s' to vector of type '%s'";
     public static final String ARGUMENT_ONLY_FIRST = "argument '%s' has length > 1 and only the first element will be used";
+    public static final String CANNOT_OPEN_FILE = "cannot open file '%s': %s";
+    public static final String NOT_CONNECTION = "'%s' is not a connection";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -678,6 +682,30 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getAllConnectionsInUse(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ALL_CONNECTIONS_IN_USE;
+            }
+        };
+    }
+
+    public static RError getCannotReadConnection(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.CANNOT_READ_CONNECTION;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -713,6 +741,14 @@ public abstract class RError extends RuntimeException {
 
     public static RError getCannotCoerce(ASTNode ast, String srcType, String dstType) {
         return getGenericError(ast, String.format(RError.CANNOT_COERCE, srcType, dstType));
+    }
+
+    public static RError getCannotOpenFile(ASTNode ast, String fileName, String reason) {
+        return getGenericError(ast, String.format(RError.CANNOT_OPEN_FILE, fileName, reason));
+    }
+
+    public static RError getNotConnection(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.NOT_CONNECTION, argName));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

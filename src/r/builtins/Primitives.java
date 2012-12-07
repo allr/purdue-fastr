@@ -42,6 +42,7 @@ public class Primitives {
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("gregexpr", 2, 6, RegExpr.GREGEXPR_FACTORY);
         add("gsub", 3, 7, Sub.GSUB_FACTORY);
+        add("file", 0, 5, OpenConnection.FILE_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
@@ -61,6 +62,7 @@ public class Primitives {
         add("order", 0, -1, Sort.ORDER_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
         add("paste", 0, -1, Paste.FACTORY);
+        add("readLines", 0, 5, ReadLines.FACTORY);
         add("regexpr", 2, 6, RegExpr.REGEXPR_FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
         add("rep.int", 2, 2, Rep.FACTORY);
