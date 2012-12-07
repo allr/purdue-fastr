@@ -138,9 +138,6 @@ public class Sub {
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
 
-            if (provided[IUSE_BYTES]) {
-                Utils.nyi();
-            }
             if (!provided[IPATTERN]) {
                 BuiltIn.missingArg(call, paramNames[IPATTERN]);
             }
@@ -155,6 +152,9 @@ public class Sub {
 
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    if (provided[IUSE_BYTES]) {
+                        context.warning(ast, "Ignoring useBytes.");
+                    }
                     String pattern = parseScalarString(context, ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
                     String replacement = parseScalarString(context, ast, args[paramPositions[IREPLACEMENT]], paramNames[IREPLACEMENT]);
                     RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
