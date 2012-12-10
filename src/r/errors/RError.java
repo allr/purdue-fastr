@@ -66,6 +66,8 @@ public abstract class RError extends RuntimeException {
     public static final String ZERO_LENGTH_PATTERN = "zero-length pattern";
     public static final String ALL_CONNECTIONS_IN_USE = "all connections are in use";
     public static final String CANNOT_READ_CONNECTION = "cannot read from this connection";
+    public static final String TOO_FEW_LINES_READ_LINES = "too few lines read in readLines";
+    public static final String INVALID_CONNECTION = "invalid connection";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -83,6 +85,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_ONLY_FIRST = "argument '%s' has length > 1 and only the first element will be used";
     public static final String CANNOT_OPEN_FILE = "cannot open file '%s': %s";
     public static final String NOT_CONNECTION = "'%s' is not a connection";
+    public static final String INCOMPLETE_FINAL_LINE = "incomplete final line found on '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -702,6 +705,30 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.CANNOT_READ_CONNECTION;
+            }
+        };
+    }
+
+    public static RError getTooFewLinesReadLines(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.TOO_FEW_LINES_READ_LINES;
+            }
+        };
+    }
+
+    public static RError getInvalidConnection(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_CONNECTION;
             }
         };
     }

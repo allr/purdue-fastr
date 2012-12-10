@@ -34,6 +34,7 @@ public class Primitives {
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
         add("character", 0, 1, ArrayConstructor.STRING_FACTORY);
+        add("close", 1, 1, CloseConnection.FACTORY);
         add("colMeans", 1, 3, ColumnsRowsStats.COLMEANS_FACTORY);
         add("colSums", 1, 3, ColumnsRowsStats.COLSUMS_FACTORY);
         add("cumsum", 1, 1, CumulativeSum.FACTORY);

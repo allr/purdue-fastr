@@ -27,10 +27,24 @@ public abstract class Connection {
         return mode;
     }
 
+    public String description() {
+        return description;
+    }
+
     public abstract void open(ConnectionMode openMode) throws IOException;
     public abstract void open(ConnectionMode openMode, ASTNode ast);
+    public abstract void close(ASTNode ast);
 
     public abstract Reader reader();
+
+    @Override
+    public void finalize() throws Throwable {
+        if (isOpen()) {
+            close(null);
+        }
+        super.finalize();
+    }
+
 
     public static class FileConnection extends Connection {
 
@@ -81,6 +95,19 @@ public abstract class Connection {
         @Override
         public Reader reader() {
             return reader;
+        }
+
+        @Override
+        public void close(ASTNode ast) { // FIXME: could be more lazy?
+            try {
+                if (reader != null) {
+                    reader.close();
+                    reader = null;
+                }
+                mode = null;
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
         }
     }
 }

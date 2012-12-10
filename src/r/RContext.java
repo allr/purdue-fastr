@@ -144,6 +144,10 @@ public class RContext implements Context {
     }
 
     public Connection getConnection(int i) {
-        return connections[i];
+        if (i >= 0 && i < NCONNECTIONS) {
+            return connections[i];
+        } else {
+            return null;
+        }
     }
 }

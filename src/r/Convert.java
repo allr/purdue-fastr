@@ -201,6 +201,17 @@ public class Convert {
         }
     }
 
+    public static RInt coerceToIntWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+        globalNAIntroduced.naIntroduced = false;
+        RInt res = arg.asInt(globalNAIntroduced);
+        if (!globalNAIntroduced.naIntroduced) {
+            return res;
+        } else {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            return res;
+        }
+    }
+
     public static boolean checkFirstLogical(RAny arg, int value) {
         RLogical l = arg.asLogical();
         if (l.size() == 0) {
