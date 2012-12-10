@@ -90,7 +90,7 @@ public class ReadLines {
                         } else if (conArg instanceof RInt) {
                             // FIXME: check if it is a connection once attributes are implemented
                             RInt iarg = (RInt) conArg;
-                            if (iarg.size() != -1) {
+                            if (iarg.size() != 1) {
                                 throw RError.getNotConnection(ast, paramNames[ICON]);
                             }
                             int handle = iarg.getInt(0);

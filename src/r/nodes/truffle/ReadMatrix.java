@@ -161,7 +161,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) {
+        public int nextIndex(RContext context, ASTNode ast) { // zero-based
             return last++;
         }
 
@@ -248,7 +248,12 @@ public class ReadMatrix extends BaseR {
         public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
             int value = index.getInt(offset++);
             if (value > 0) {
-                return value - 1;
+                value--;
+                if (value < dataSize) {
+                    return value;
+                } else {
+                    throw RError.getSubscriptBounds(ast);
+                }
             }
             if (value == RInt.NA) { // could also remove this
                 return RInt.NA;
@@ -512,6 +517,7 @@ public class ReadMatrix extends BaseR {
         }
     }
 
+    // non-failing
     public static final class GenericLogicalSubsetSelector extends Selector {
 
         RLogical index;

@@ -28,7 +28,7 @@ public class RContext implements Context {
         try {
             cmp = new TruffleCompilerImpl(compilerThreshold);
         } catch (UnsatisfiedLinkError le) {
-            System.out.println("Not using the Truffle compiler as it is not available.");
+            System.err.println("Not using the Truffle compiler as it is not available.");
             cmp = null;
         }
         this.compiler = cmp;

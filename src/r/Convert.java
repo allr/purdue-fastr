@@ -37,11 +37,12 @@ public class Convert {
         return RDouble.NA;
     }
 
+    @SuppressWarnings("cast")
     public static String double2string(double d) {
         if (!RDouble.RDoubleUtils.isNA(d)) {
             // FIXME use R rules
             if (!RContext.debuggingFormat()) {
-                if (RDouble.RDoubleUtils.fitsRInt(d)) {
+                if (RDouble.RDoubleUtils.fitsRInt(d) && (((double) ((int) d)) ==  d)) {
                     return int2string((int) d); // a hack to get rid of ".0" in "1.0"
                 }
             }

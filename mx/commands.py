@@ -5,6 +5,7 @@ import mx;
 
 # Graal VM module
 gmod = None;
+gvmOut = None;
 
 # def vm(args, vm=None, nonZeroIsFatal=True, out=None, err=None, cwd=None, timeout=None, vmbuild=None):
 
@@ -22,6 +23,7 @@ def mx_init():
       'rfasta': [rfastaServer, '[size]'],
       'rfastaredux': [rfastareduxServer, '[size]'],
       'rpidigits': [rpidigitsServer, '[size]'],
+      'rregexdna': [rregexdnaServer, '[size]'],      
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -97,6 +99,10 @@ def rpidigitsServer(args):
   """Run Pidigits with the HotSpot server VM"""  
   rpidigits(args, [], 'server')
 
+def rregexdnaServer(args):
+  """Run Regexdna with the HotSpot server VM"""  
+  rregexdna(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -159,7 +165,8 @@ def rpidigits(args, vmArgs, vm):
   
 def rconsole(vmArgs, vm, cArgs):
   """Run R Console with the given VM"""
-  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm ); 
+  global gvmOut
+  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
 
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   """Run given shootout benchmark using given VM"""
@@ -181,6 +188,42 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
 #  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
 #  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
   rconsole(vmArgs, vm, ['-f', tmp]);
+
+def rregexdna(args, vmArgs, vm):
+  """Run Regexdna benchmark using the given VM"""
+  
+  if (len(args)==0):
+    size = "5000000"
+  else:
+    size = args[0]
+    
+  input = ".tmp.fasta." + size + ".out";
+  if not os.path.exists(input):
+    print("Generating input for Regexdna, size " + size + "...\n");
+    outputFile = open(input, "w")
+    def out(line): 
+      outputFile.write(line)
+    global gvmOut 
+    gvmOut = out
+    rfastaServer([size])
+    gvmOut = None
+    outputFile.close()
+    print("Done.\n")
+      
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "regexdna", "regexdna.r")
+  tmp = ".tmp.regexdna.torun.r"
+
+  shutil.copyfile(source, tmp)
+  with open(tmp, "a") as f:
+    f.write("regexdna(\"" + input + "\")\n")
+
+  if mx._opts.verbose:
+	print("Input file " + tmp + ": " + arg);
+  
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
+  rconsole(vmArgs, vm, ['-f', tmp]);
+
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 

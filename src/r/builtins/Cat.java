@@ -121,6 +121,9 @@ public class Cat {
     // the empty separator is a usual thing in R programs
     // all args strings is inspired by fasta
     public static void catStrings(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
+        if (sepArgPos == -1) {
+            throw new UnexpectedResultException(null);
+        }
         StringBuilder str = new StringBuilder();
         int argslen = args.length;
         for (int j = 0; j < argslen; j++) {

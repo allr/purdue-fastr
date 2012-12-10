@@ -166,6 +166,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
         assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
         assertEval("{ cat(\"hi\",1[2],\"hello\",sep=\"-\") }", "hi-NA-hello", "NULL");
+        assertEval("{ m <- matrix(as.character(1:6, nrow=2)) ; cat(m) }", "1L 2L 3L 4L 5L 6L", "NULL");
     }
 
     @Test
