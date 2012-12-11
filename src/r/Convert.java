@@ -13,6 +13,10 @@ public class Convert {
         public boolean naIntroduced;
     }
 
+    public static class OutOfRange { // not set when NAIntroduced (in that case out of range warning should always be produced)
+        public boolean outOfRange;
+    }
+
     public static double string2double(String v) {
         return string2double(v, null);
     }
@@ -51,6 +55,36 @@ public class Convert {
         return RString.NA;
     }
 
+    public static int string2int(String s) {
+        return string2int(s, null);
+    }
+
+    public static int string2int(String s, NAIntroduced naIntroduced) {
+        if (s != RString.NA) {
+            // FIXME use R rules
+            try {
+                return Integer.decode(s);  // decode supports hex constants
+            } catch (NumberFormatException e) {
+                if (naIntroduced != null) {
+                    naIntroduced.naIntroduced = true;
+                }
+            }
+        }
+        return RInt.NA;
+    }
+
+    public static String int2string(int i) {
+        if (i == RInt.NA) {
+            return RString.NA;
+        }
+        // FIXME use R rules
+        if (!RContext.debuggingFormat()) {
+            return Integer.toString(i);
+        } else {
+            return Integer.toString(i) + "L";
+        }
+    }
+
     public static int string2logical(String s) {
         return string2logical(s, null);
     }
@@ -87,34 +121,34 @@ public class Convert {
         }
     }
 
-    public static String int2string(int i) {
-        if (i == RInt.NA) {
-            return RString.NA;
-        }
-        // FIXME use R rules
-        if (!RContext.debuggingFormat()) {
-            return Integer.toString(i);
-        } else {
-            return Integer.toString(i) + "L";
-        }
+    public static byte string2raw(String s) {
+        return string2raw(s, null, null);
     }
 
-    public static int string2int(String s) {
-        return string2int(s, null);
-    }
-
-    public static int string2int(String s, NAIntroduced naIntroduced) {
+    public static byte string2raw(String s, NAIntroduced naIntroduced, OutOfRange outOfRange) {
         if (s != RString.NA) {
             // FIXME use R rules
+            int intVal;
             try {
-                return Integer.decode(s);  // decode supports hex constants
+                 intVal = Integer.decode(s);  // decode supports hex constants
             } catch (NumberFormatException e) {
                 if (naIntroduced != null) {
                     naIntroduced.naIntroduced = true;
                 }
+                return 0;
+            }
+            if (intVal >= 0 && intVal <= 255) {
+                return (byte) intVal;
             }
         }
-        return RInt.NA;
+        if (outOfRange != null) {
+            outOfRange.outOfRange = true;
+        }
+        return RRaw.ZERO;
+    }
+
+    public static String raw2string(byte v) {
+        return rawStrings[byteToUnsigned(v)];
     }
 
     public static int double2int(double d) {
@@ -122,7 +156,7 @@ public class Convert {
     }
 
     public static int double2int(double d, NAIntroduced naIntroduced) {
-        if (!RDouble.RDoubleUtils.isNA(d)) {
+        if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
             if (RDouble.RDoubleUtils.fitsRInt(d)) {
                 return (int) d;
             } else {
@@ -134,19 +168,45 @@ public class Convert {
         return RInt.NA;
     }
 
-    public static double logical2double(int l) {
-        return  l == RLogical.NA ? RDouble.NA : l;
-    }
-
     public static double int2double(int i) {
         return  i == RInt.NA ? RDouble.NA : i;
     }
 
     public static int double2logical(double d) {
-        if (RDouble.RDoubleUtils.isNA(d)) {
+        if (RDouble.RDoubleUtils.isNAorNaN(d)) {
             return RLogical.NA;
         }
         return d != 0 ? RLogical.TRUE : RLogical.FALSE;
+    }
+
+    public static double logical2double(int l) {
+        return  l == RLogical.NA ? RDouble.NA : l;
+    }
+
+    public static byte double2raw(double d) {
+        return double2raw(d, null, null);
+    }
+
+    public static byte double2raw(double d, NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
+            if (d >= 0 && d < 256) {
+                return (byte) d;
+            }
+            if (!RDouble.RDoubleUtils.fitsRInt(d)) {
+                if (naIntroduced != null) {
+                    naIntroduced.naIntroduced = true;
+                }
+                return RRaw.ZERO;
+            }
+        }
+        if (outOfRange != null) {
+            outOfRange.outOfRange = true;
+        }
+        return RRaw.ZERO;
+    }
+
+    public static double raw2double(byte v) {
+        return byteToUnsigned(v);
     }
 
     public static int int2logical(int i) {
@@ -158,6 +218,42 @@ public class Convert {
 
     public static int logical2int(int l) {
         return l;
+    }
+
+    public static byte int2raw(int v) {
+        return int2raw(v, null);
+    }
+
+    public static byte int2raw(int v, OutOfRange outOfRange) {
+        if (v >= 0 && v < 256) { // note: RInt.NA < 0
+            return (byte) v;
+        }
+        if (outOfRange != null) {
+            outOfRange.outOfRange = true;
+        }
+        return RRaw.ZERO;
+    }
+
+    public static int raw2int(byte v) {
+        return byteToUnsigned(v);
+    }
+
+    public static byte logical2raw(int v) {
+        return logical2raw(v, null);
+    }
+
+    public static byte logical2raw(int v, OutOfRange outOfRange) {
+        if (v != RLogical.NA) {
+            return (byte) v;
+        }
+        if (outOfRange != null) {
+            outOfRange.outOfRange = true;
+        }
+        return RRaw.ZERO;
+    }
+
+    public static int raw2logical(byte v) {
+        return byteToUnsigned(v);
     }
 
     public static String pretty(String s) {
@@ -247,5 +343,19 @@ public class Convert {
         }
         Utils.nyi("unsupported type");
         return -1;
+    }
+
+    static final String[] rawStrings = generateRawStrings();
+
+    public static String[] generateRawStrings() {
+        String[] res = new String[256];
+        for (int i = 0; i < 256; i++) {
+            res[i] = Integer.toHexString(i);
+        }
+        return res;
+    }
+
+    public static int byteToUnsigned(byte v) {
+        return v & 0xFF;
     }
 }

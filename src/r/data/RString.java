@@ -1,7 +1,7 @@
 package r.data;
 
 import r.*;
-import r.Convert.NAIntroduced;
+import r.Convert.*;
 import r.data.internal.*;
 
 public interface RString extends RArray {
@@ -43,6 +43,15 @@ public interface RString extends RArray {
                 content[i] = Convert.string2logical(str, naIntroduced);
             }
             return RLogical.RLogicalFactory.getFor(content, value.dimensions());
+        }
+        public static RRaw stringToRaw(RString value, NAIntroduced naIntroduced, OutOfRange outOfRange) { // eager to keep error semantics eager
+            int size = value.size();
+            byte[] content = new byte[size];
+            for (int i = 0; i < size; i++) {
+                String str = value.getString(i);
+                content[i] = Convert.string2raw(str, naIntroduced, outOfRange);
+            }
+            return RRaw.RRawFactory.getFor(content, value.dimensions());
         }
     }
 

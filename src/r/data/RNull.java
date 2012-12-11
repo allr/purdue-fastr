@@ -59,13 +59,18 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
-    public RInt asInt() {
-        return RInt.EMPTY;
+    public RRaw asRaw() {
+        return RRaw.EMPTY;
     }
 
     @Override
     public RLogical asLogical() {
         return RLogical.EMPTY;
+    }
+
+    @Override
+    public RInt asInt() {
+        return RInt.EMPTY;
     }
 
     @Override
@@ -141,6 +146,11 @@ public final class RNull implements RAny, RAttributes {
     @Override
     public Object getRef(int i) {
         return get(i);
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RRaw.EMPTY;
     }
 
     @Override

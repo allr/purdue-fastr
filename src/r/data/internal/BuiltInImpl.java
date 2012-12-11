@@ -48,17 +48,26 @@ public class BuiltInImpl implements RBuiltIn {
     }
 
     @Override
+    public RRaw asRaw() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RLogical asLogical() {
+        Utils.nyi();
         return null;
     }
 
     @Override
     public RInt asInt() {
+        Utils.nyi();
         return null;
     }
 
     @Override
     public RDouble asDouble() {
+        Utils.nyi();
         return null;
     }
 
@@ -70,6 +79,7 @@ public class BuiltInImpl implements RBuiltIn {
 
     @Override
     public RList asList() {
+        Utils.nyi();
         return null;
     }
 
@@ -84,6 +94,12 @@ public class BuiltInImpl implements RBuiltIn {
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
         Utils.nyi();
         return null;
     }

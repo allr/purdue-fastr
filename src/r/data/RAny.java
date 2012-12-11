@@ -1,6 +1,7 @@
 package r.data;
 
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -22,6 +23,7 @@ public interface RAny {
     String prettyMatrixElement();
 
         // casts that don't set a flag (but still can introduce NAs)
+    RRaw asRaw();
     RLogical asLogical();
     RInt asInt();
     RDouble asDouble();
@@ -29,6 +31,7 @@ public interface RAny {
     RList asList();
 
         // casts that do set a flag when NA is introduced
+    RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange);
     RLogical asLogical(NAIntroduced naIntroduced);
     RInt asInt(NAIntroduced naIntroduced);
     RDouble asDouble(NAIntroduced naIntroduced);

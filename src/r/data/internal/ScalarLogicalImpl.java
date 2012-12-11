@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 
 
@@ -72,6 +73,16 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     @Override
     public String pretty() {
         return Convert.pretty(Convert.logical2string(value));
+    }
+
+    @Override
+    public RRaw asRaw() {
+        return RRaw.RRawFactory.getScalar(Convert.logical2raw(value));
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RRaw.RRawFactory.getScalar(Convert.logical2raw(value, outOfRange));
     }
 
     @Override

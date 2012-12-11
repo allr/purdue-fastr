@@ -2,6 +2,7 @@ package r.data;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.internal.*;
 
 public interface RLogical extends RArray { // FIXME: should extend Number instead?
@@ -39,6 +40,15 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
                 }
             }
             return nnonfalse;
+        }
+        public static RRaw logicalToRaw(RLogical value, OutOfRange outOfRange) { // eager to keep error semantics eager
+            int size = value.size();
+            byte[] content = new byte[size];
+            for (int i = 0; i < size; i++) {
+                int lval = value.getLogical(i);
+                content[i] = Convert.logical2raw(lval, outOfRange);
+            }
+            return RRaw.RRawFactory.getFor(content, value.dimensions());
         }
     }
 
@@ -116,6 +126,90 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
     }
 
+    public static class RStringView extends View.RStringView implements RString {
+
+        final RLogical l;
+        public RStringView(RLogical l) {
+            this.l = l;
+        }
+
+        @Override
+        public int size() {
+            return l.size();
+        }
+
+        @Override
+        public RList asList() {
+            return l.asList();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return l.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return l.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return l;
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return l.asRaw();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return l.asDouble();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return l.asInt();
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return l;
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return l.asRaw(naIntroduced, outOfRange);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
+        public String getString(int i) {
+            int v = l.getLogical(i);
+            return Convert.logical2string(v);
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return l.isShared();
+        }
+
+        @Override
+        public void ref() {
+            l.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return l.dimensions();
+        }
+    }
+
     public static class RDoubleView extends View.RDoubleView implements RDouble {
 
         final RLogical l;
@@ -154,6 +248,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RRaw asRaw() {
+            return l.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return l.asString();
         }
@@ -166,6 +265,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public RLogical asLogical(NAIntroduced naIntroduced) {
             return l;
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return l.asRaw(naIntroduced, outOfRange);
         }
 
         @Override
@@ -223,6 +327,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RRaw asRaw() {
+            return l.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return l.asString();
         }
@@ -238,13 +347,18 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return l.asRaw(naIntroduced, outOfRange);
+        }
+
+        @Override
         public RAttributes getAttributes() {
             return l.getAttributes();
         }
 
         @Override
         public int getInt(int i) {
-            return l.getLogical(i);
+            return Convert.logical2int(l.getLogical(i));
         }
 
         @Override
@@ -263,10 +377,10 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
+    public static class RRawView extends View.RRawView implements RRaw {
 
         final RLogical l;
-        public RStringView(RLogical l) {
+        public RRawView(RLogical l) {
             this.l = l;
         }
 
@@ -276,8 +390,18 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RAttributes getAttributes() {
+            return l.getAttributes();
+        }
+
+        @Override
         public RList asList() {
             return l.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return l.asString();
         }
 
         @Override
@@ -296,6 +420,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return l.asString();
+        }
+
+        @Override
         public RDouble asDouble(NAIntroduced naIntroduced) {
             return l.asDouble();
         }
@@ -311,14 +440,9 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return l.getAttributes();
-        }
-
-        @Override
-        public String getString(int i) {
-            int v = l.getLogical(i);
-            return Convert.logical2string(v);
+        public byte getRaw(int i) {
+            int ll = l.getLogical(i);
+            return Convert.logical2raw(ll);
         }
 
         @Override

@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 
 
@@ -75,6 +76,16 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
         } else {
             return "NA";
         }
+    }
+
+    @Override
+    public RRaw asRaw() {
+        return RRaw.RRawFactory.getScalar(Convert.string2raw(value));
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RRaw.RRawFactory.getScalar(Convert.string2raw(value, naIntroduced, outOfRange));
     }
 
     @Override

@@ -54,11 +54,6 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     @Override
-    public ListImpl asList() {
-        return this;
-    }
-
-    @Override
     public int size() {
         return content.length;
     }
@@ -188,13 +183,19 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     @Override
-    public RInt asInt() {
+    public RRaw asRaw() {
         Utils.nyi();
         return null;
     }
 
     @Override
     public RLogical asLogical() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt() {
         Utils.nyi();
         return null;
     }
@@ -209,6 +210,11 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     public RString asString() {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public ListImpl asList() {
+        return this;
     }
 
     @Override

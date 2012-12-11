@@ -54,6 +54,12 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override
+    public RRaw asRaw() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RLogical asLogical() {
         Utils.nyi();
         return null;
@@ -111,6 +117,12 @@ public final class RSymbol extends BaseObject implements RAny {
     @Override
     public RSymbol stripAttributes() {
         return this;
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        Utils.nyi();
+        return null;
     }
 
     @Override

@@ -52,6 +52,12 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public RRaw asRaw() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RLogical asLogical() {
         Utils.nyi();
         return null;
@@ -303,6 +309,12 @@ public class ClosureImpl extends BaseObject implements RClosure {
 
     @Override
     public ClosureImpl stripAttributes() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
         Utils.nyi();
         return null;
     }

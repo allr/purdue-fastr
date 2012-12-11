@@ -2,6 +2,7 @@ package r.data;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.internal.*;
 
 // FIXME: add conversion to scalar representation to copies (also other types that have scalar representations)
@@ -20,6 +21,17 @@ public interface RInt extends RNumber {
     RInt set(int i, int val);
     RInt materialize();
 
+    public class RIntUtils {
+        public static RRaw intToRaw(RInt value, OutOfRange outOfRange) { // eager to keep error semantics eager
+            int size = value.size();
+            byte[] content = new byte[size];
+            for (int i = 0; i < size; i++) {
+                int ival = value.getInt(i);
+                content[i] = Convert.int2raw(ival, outOfRange);
+            }
+            return RRaw.RRawFactory.getFor(content, value.dimensions());
+        }
+    }
     public class RIntFactory {
         public static ScalarIntImpl getScalar(int value) {
             return new ScalarIntImpl(value);
@@ -104,6 +116,90 @@ public interface RInt extends RNumber {
         }
     }
 
+    public static class RStringView extends View.RStringView implements RString {
+
+        final RInt rint;
+        public RStringView(RInt rint) {
+            this.rint = rint;
+        }
+
+        @Override
+        public int size() {
+            return rint.size();
+        }
+
+        @Override
+        public RList asList() {
+            return rint.asList();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rint.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return rint;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rint.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return rint.asRaw();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rint.asDouble();
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rint;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return rint.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rint.asRaw(naIntroduced, outOfRange);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rint.getAttributes();
+        }
+
+        @Override
+        public String getString(int i) {
+            int v = rint.getInt(i);
+            return Convert.int2string(v);
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return rint.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rint.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rint.dimensions();
+        }
+    }
+
     public static class RDoubleView extends View.RDoubleView implements RDouble {
 
         final RInt rint;
@@ -137,6 +233,11 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RRaw asRaw() {
+            return rint.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return rint.asString();
         }
@@ -150,6 +251,12 @@ public interface RInt extends RNumber {
         public RLogical asLogical(NAIntroduced naIntroduced) {
             return rint.asLogical();
         }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rint.asRaw(naIntroduced, outOfRange);
+        }
+
         @Override
         public RAttributes getAttributes() {
             return rint.getAttributes();
@@ -210,6 +317,11 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RRaw asRaw() {
+            return rint.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return rint.asString();
         }
@@ -222,6 +334,11 @@ public interface RInt extends RNumber {
         @Override
         public RInt asInt(NAIntroduced naIntroduced) {
             return rint;
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rint.asRaw(naIntroduced, outOfRange);
         }
 
         @Override
@@ -251,10 +368,10 @@ public interface RInt extends RNumber {
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
+    public static class RRawView extends View.RRawView implements RRaw {
 
         final RInt rint;
-        public RStringView(RInt rint) {
+        public RRawView(RInt rint) {
             this.rint = rint;
         }
 
@@ -266,6 +383,11 @@ public interface RInt extends RNumber {
         @Override
         public RList asList() {
             return rint.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return rint.asString();
         }
 
         @Override
@@ -284,6 +406,11 @@ public interface RInt extends RNumber {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rint.asString();
+        }
+
+        @Override
         public RDouble asDouble(NAIntroduced naIntroduced) {
             return rint.asDouble();
         }
@@ -298,16 +425,15 @@ public interface RInt extends RNumber {
             return rint.asLogical();
         }
 
-
         @Override
         public RAttributes getAttributes() {
             return rint.getAttributes();
         }
 
         @Override
-        public String getString(int i) {
+        public byte getRaw(int i) {
             int v = rint.getInt(i);
-            return Convert.int2string(v);
+            return Convert.int2raw(v);
         }
 
         @Override

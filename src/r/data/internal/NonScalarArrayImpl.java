@@ -2,7 +2,7 @@ package r.data.internal;
 
 import r.*;
 
-
+// children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
 public abstract class NonScalarArrayImpl extends ArrayImpl {
 
     protected int[] dimensions; // the content shall never be modified once set

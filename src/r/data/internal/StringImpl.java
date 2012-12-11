@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -95,27 +96,6 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RString asString() {
-        return this;
-    }
-
-    @Override
-    public RString asString(NAIntroduced naIntroduced) {
-        return this;
-    }
-
-    @Override
-    public RInt asInt() {
-        Utils.check(false, "unreachable");
-        return null;
-    }
-
-    @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
-        return RString.RStringUtils.stringToInt(this, naIntroduced);
-    }
-
-    @Override
     public StringImpl materialize() {
         return this;
     }
@@ -150,6 +130,17 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
+    public RRaw asRaw() {
+        Utils.check(false, "unreachable");
+        return null;
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RString.RStringUtils.stringToRaw(this, naIntroduced, outOfRange);
+    }
+
+    @Override
     public RLogical asLogical() {
         Utils.check(false, "unreachable");
         return null;
@@ -161,6 +152,18 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
+    public RInt asInt() {
+        Utils.check(false, "unreachable");
+        return null;
+    }
+
+    @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return RString.RStringUtils.stringToInt(this, naIntroduced);
+    }
+
+
+    @Override
     public RDouble asDouble() {
         Utils.check(false, "unreachable");
         return null;
@@ -169,6 +172,16 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     @Override
     public RDouble asDouble(NAIntroduced naIntroduced) {
         return RString.RStringUtils.stringToDouble(this, naIntroduced);
+    }
+
+    @Override
+    public RString asString() {
+        return this;
+    }
+
+    @Override
+    public RString asString(NAIntroduced naIntroduced) {
+        return this;
     }
 
     @Override

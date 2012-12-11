@@ -5,7 +5,6 @@ import java.util.*;
 import r.*;
 import r.Convert.*;
 import r.data.*;
-import r.nodes.*;
 
 public class AttributesImpl extends BaseObject implements RAttributes {
 
@@ -80,13 +79,19 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
-    public RInt asInt() {
+    public RRaw asRaw() {
         Utils.nyi();
         return null;
     }
 
     @Override
     public RLogical asLogical() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RInt asInt() {
         Utils.nyi();
         return null;
     }
@@ -145,6 +150,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     @Override
     public Object getRef(int i) {
         return get(i);
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        Utils.nyi();
+        return null;
     }
 
     @Override

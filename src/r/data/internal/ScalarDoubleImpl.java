@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 
 
@@ -73,6 +74,16 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public RRaw asRaw() {
+        return RRaw.RRawFactory.getScalar(Convert.double2raw(value));
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RRaw.RRawFactory.getScalar(Convert.double2raw(value, naIntroduced, outOfRange));
+    }
+
+    @Override
     public RLogical asLogical() {
         return RLogical.RLogicalFactory.getScalar(Convert.double2logical(value));
     }
@@ -103,11 +114,6 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
-    public ScalarDoubleImpl materialize() {
-        return this;
-    }
-
-    @Override
     public RString asString() {
         return RString.RStringFactory.getScalar(Convert.double2string(value));
     }
@@ -115,6 +121,11 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     @Override
     public RString asString(NAIntroduced naIntroduced) {
         return asString();
+    }
+
+    @Override
+    public ScalarDoubleImpl materialize() {
+        return this;
     }
 
     @Override

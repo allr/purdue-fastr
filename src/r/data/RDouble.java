@@ -43,6 +43,15 @@ public interface RDouble extends RNumber {
             }
             return RInt.RIntFactory.getFor(content, value.dimensions());
         }
+        public static RRaw doubleToRaw(RDouble value, NAIntroduced naIntroduced, OutOfRange outOfRange) { // eager to keep error semantics eager
+            int size = value.size();
+            byte[] content = new byte[size];
+            for (int i = 0; i < size; i++) {
+                double dval = value.getDouble(i);
+                content[i] = Convert.double2raw(dval, naIntroduced, outOfRange);
+            }
+            return RRaw.RRawFactory.getFor(content, value.dimensions());
+        }
     }
     public class RDoubleFactory {
         public static ScalarDoubleImpl getScalar(double value) {
@@ -118,6 +127,90 @@ public interface RDouble extends RNumber {
         }
     }
 
+    public static class RStringView extends View.RStringView implements RString {
+
+        RDouble rdbl;
+
+        public RStringView(RDouble rdbl) {
+            this.rdbl = rdbl;
+        }
+
+        @Override
+        public int size() {
+            return rdbl.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return rdbl.getAttributes();
+        }
+
+        @Override
+        public RList asList() {
+            return rdbl.asList();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return rdbl;
+        }
+
+        @Override
+        public RInt asInt() {
+            return rdbl.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return rdbl.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return rdbl.asRaw();
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return rdbl;
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return rdbl.asInt(naIntroduced);
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return rdbl.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rdbl.asRaw(naIntroduced, outOfRange);
+        }
+
+        @Override
+        public String getString(int i) {
+            return Convert.double2string(rdbl.getDouble(i));
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return rdbl.isShared();
+        }
+
+        @Override
+        public void ref() {
+            rdbl.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return rdbl.dimensions();
+        }
+    }
+
     public static class RIntView extends View.RIntView implements RInt {
 
         RDouble rdbl;
@@ -157,6 +250,11 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RRaw asRaw() {
+            return rdbl.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return rdbl.asString();
         }
@@ -169,6 +267,11 @@ public interface RDouble extends RNumber {
         @Override
         public RLogical asLogical(NAIntroduced naIntroduced) {
             return rdbl.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rdbl.asRaw(naIntroduced, outOfRange);
         }
 
         @Override
@@ -231,6 +334,11 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RRaw asRaw() {
+            return rdbl.asRaw();
+        }
+
+        @Override
         public RString asString(NAIntroduced naIntroduced) {
             return rdbl.asString();
         }
@@ -243,6 +351,11 @@ public interface RDouble extends RNumber {
         @Override
         public RInt asInt(NAIntroduced naIntroduced) {
             return rdbl.asInt(naIntroduced);
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return rdbl.asRaw(naIntroduced, outOfRange);
         }
 
         @Override
@@ -266,11 +379,11 @@ public interface RDouble extends RNumber {
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
+    public static class RRawView extends View.RRawView implements RRaw {
 
         RDouble rdbl;
 
-        public RStringView(RDouble rdbl) {
+        public RRawView(RDouble rdbl) {
             this.rdbl = rdbl;
         }
 
@@ -290,6 +403,11 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RString asString() {
+            return rdbl.asString();
+        }
+
+        @Override
         public RDouble asDouble() {
             return rdbl;
         }
@@ -305,6 +423,11 @@ public interface RDouble extends RNumber {
         }
 
         @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return rdbl.asString();
+        }
+
+        @Override
         public RDouble asDouble(NAIntroduced naIntroduced) {
             return rdbl;
         }
@@ -316,12 +439,12 @@ public interface RDouble extends RNumber {
 
         @Override
         public RLogical asLogical(NAIntroduced naIntroduced) {
-            return rdbl.asLogical();
+            return rdbl.asLogical(naIntroduced);
         }
 
         @Override
-        public String getString(int i) {
-            return Convert.double2string(rdbl.getDouble(i));
+        public byte getRaw(int i) {
+            return Convert.double2raw(rdbl.getDouble(i));
         }
 
         @Override

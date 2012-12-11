@@ -1,23 +1,21 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.*;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
 
-public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
-    final int[] content;
+public class RawImpl extends NonScalarArrayImpl implements RRaw {
 
-    public LogicalImpl(int size) {
-        content = new int[size];
+    final byte[] content;
+
+    public RawImpl(int size) {
+        content = new byte[size];
     }
 
-    public LogicalImpl(int[] values, int[] dimensions, boolean doCopy) {
+    public RawImpl(byte[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
-            content = new int[values.length];
+            content = new byte[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
         } else {
             content = values;
@@ -25,24 +23,24 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         this.dimensions = dimensions;
     }
 
-    public LogicalImpl(int[] values, int[] dimensions) {
+    public RawImpl(byte[] values, int[] dimensions) {
         this(values, dimensions, true);
     }
 
-    public LogicalImpl(int[] values) {
+    public RawImpl(byte[] values) {
         this(values, null, true);
     }
 
-    public LogicalImpl(RLogical l) {
-        content = new int[l.size()];
+    public RawImpl(RRaw r) {
+        content = new byte[r.size()];
         for (int i = 0; i < content.length; i++) {
-            content[i] = l.getLogical(i);
+            content[i] = r.getRaw(i);
         }
-        dimensions = l.dimensions();
+        dimensions = r.dimensions();
     }
 
     @Override
-    public LogicalImpl stripAttributes() {
+    public RawImpl stripAttributes() {
         if (dimensions == null) {
             return this;
         }
@@ -50,7 +48,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
             dimensions = null;
             return this;
         }
-        LogicalImpl v = new LogicalImpl(content, null, false); // note: re-uses current values
+        RawImpl v = new RawImpl(content, null, false); // note: re-uses current values
         v.refcount = refcount; // mark the new vector shared
         return v;
     }
@@ -66,54 +64,54 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public int getLogical(int i) {
+    public byte getRaw(int i) {
         return content[i];
     }
 
     @Override
     public RAny boxedGet(int i) {
-        return RLogicalFactory.getScalar(getLogical(i));
+        return RRawFactory.getScalar(getRaw(i));
     }
 
     @Override
     public boolean isNAorNaN(int i) {
-        return content[i] == RLogical.NA;
+        return false;
     }
 
     @Override
     public RArray set(int i, Object val) {
-        return set(i, ((Integer) val).intValue()); // FIXME better conversion
+        return set(i, ((Byte) val).byteValue());
     }
 
     @Override
-    public RLogical set(int i, int val) {
+    public RRaw set(int i, byte val) {
         content[i] = val;
         return this;
     }
 
     @Override
     public RRaw asRaw() {
-        return new RLogical.RRawView(this);
+        return this;
     }
 
     @Override
     public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RLogical.RLogicalUtils.logicalToRaw(this, outOfRange);
+        return this;
     }
 
     @Override
     public RLogical asLogical() {
-        return this;
+        return new RRaw.RLogicalView(this);
     }
 
     @Override
     public RLogical asLogical(NAIntroduced naIntroduced) {
-        return this;
+        return asLogical();
     }
 
     @Override
     public RInt asInt() {
-        return RInt.RIntFactory.getFor(content, dimensions());
+        return new RRaw.RIntView(this);
     }
 
     @Override
@@ -123,7 +121,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RDouble asDouble() {
-        return new RLogical.RDoubleView(this);
+        return new RRaw.RDoubleView(this);
     }
 
     @Override
@@ -133,7 +131,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RString asString() {
-        return new RLogical.RStringView(this);
+        return new RRaw.RStringView(this);
     }
 
     @Override
@@ -142,7 +140,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public LogicalImpl materialize() {
+    public RawImpl materialize() {
         return this;
     }
 
@@ -152,9 +150,9 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
             return matrixPretty();
         }
         if (content.length == 0) {
-            return RLogical.TYPE_STRING + "(0)";
+            return RRaw.TYPE_STRING + "(0)";
         }
-        String fst = Convert.pretty(Convert.logical2string(content[0]));
+        String fst = Convert.pretty(Convert.raw2string(content[0]));
         if (content.length == 1) {
             return fst;
         }
@@ -162,23 +160,19 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         str.append(fst);
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            str.append(Convert.pretty(Convert.logical2string(content[i])));
+            str.append(Convert.pretty(Convert.raw2string(content[i])));
         }
         return str.toString();
     }
 
     @Override
-    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-        return factory.fromLogical();
+    public String typeOf() {
+        return RRaw.TYPE_STRING;
     }
 
     @Override
     public RArray subset(RInt index) {
-        return RLogical.RLogicalFactory.subset(this, index);
+        return RRaw.RRawFactory.subset(this, index);
     }
 
-    @Override
-    public String typeOf() {
-        return RLogical.TYPE_STRING;
-    }
 }

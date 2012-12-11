@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -56,6 +57,191 @@ public abstract class View extends ArrayImpl implements RArray {
         return true;
     }
 
+    public abstract static class RRawView extends View implements RRaw {
+        @Override
+        public Object get(int i) {
+            return getRaw(i);
+         }
+
+        @Override
+        public RRaw materialize() {
+            return RRawFactory.copy(this);
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return this;
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return this;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return new RRaw.RLogicalView(this);
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return asLogical();
+        }
+
+        @Override
+        public RInt asInt() {
+            return new RRaw.RIntView(this);
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return asInt();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return new RRaw.RDoubleView(this);
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return asDouble();
+        }
+
+        @Override
+        public RString asString() {
+            return new RRaw.RStringView(this);
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return asString();
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RRawFactory.getScalar(getRaw(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return false;
+        }
+
+        @Override
+        public RRaw set(int i, byte val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RRaw.RRawFactory.subset(this, index);
+        }
+
+        @Override
+        public String typeOf() {
+            return RLogical.TYPE_STRING;
+        }
+    }
+
+
+    public abstract static class RLogicalView extends View implements RLogical {
+        @Override
+        public Object get(int i) {
+            return getLogical(i);
+         }
+
+        @Override
+        public RLogical materialize() {
+            return RLogicalFactory.copy(this);
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return new RLogical.RRawView(this);
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return RLogical.RLogicalUtils.logicalToRaw(this, outOfRange);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return this;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return this;
+        }
+
+        @Override
+        public RInt asInt() {
+            return new RLogical.RIntView(this);
+        }
+
+        @Override
+        public RInt asInt(NAIntroduced naIntroduced) {
+            return asInt();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return new RLogical.RDoubleView(this);
+        }
+
+        @Override
+        public RDouble asDouble(NAIntroduced naIntroduced) {
+            return asDouble();
+        }
+
+        @Override
+        public RString asString() {
+            return new RLogical.RStringView(this);
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return asString();
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RLogicalFactory.getScalar(getLogical(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return getLogical(i) == RLogical.NA;
+        }
+
+        @Override
+        public RLogical set(int i, int val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RLogical.RLogicalFactory.subset(this, index);
+        }
+
+        @Override
+        public String typeOf() {
+            return RLogical.TYPE_STRING;
+        }
+    }
+
     public abstract static class RIntView extends View implements RInt {
         @Override
         public Object get(int i) {
@@ -70,6 +256,16 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RInt stripAttributes() {
             return RIntFactory.copyValuesOnly(this);
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return new RInt.RRawView(this);
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return RInt.RIntUtils.intToRaw(this, outOfRange);
         }
 
         @Override
@@ -155,6 +351,26 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RRaw asRaw() {
+            return new RDouble.RRawView(this);
+        }
+
+        @Override
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return RDouble.RDoubleUtils.doubleToRaw(this, naIntroduced, outOfRange);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return new RDouble.RLogicalView(this);
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return asLogical();
+        }
+
+        @Override
         public RInt asInt() {
             return new RDouble.RIntView(this);
         }
@@ -175,6 +391,16 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RString asString() {
+            return new RDouble.RStringView(this);
+        }
+
+        @Override
+        public RString asString(NAIntroduced naIntroduced) {
+            return asString();
+        }
+
+        @Override
         public RDouble materialize() {
             return RDouble.RDoubleFactory.copy(this);
         }
@@ -184,25 +410,6 @@ public abstract class View extends ArrayImpl implements RArray {
             return null;
         }
 
-        @Override
-        public RLogical asLogical() {
-            return new RDouble.RLogicalView(this);
-        }
-
-        @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return asLogical();
-        }
-
-        @Override
-        public RString asString() {
-            return new RDouble.RStringView(this);
-        }
-
-        @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return asString();
-        }
 
         @Override
         public RDouble set(int i, double val) {
@@ -220,88 +427,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RLogicalView extends View implements RLogical {
-        @Override
-        public Object get(int i) {
-            return getLogical(i);
-         }
-
-        @Override
-        public RLogical materialize() {
-            return RLogicalFactory.copy(this);
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return this;
-        }
-
-        @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return this;
-        }
-
-        @Override
-        public RInt asInt() {
-            return new RLogical.RIntView(this);
-        }
-
-        @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return asInt();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return new RLogical.RDoubleView(this);
-        }
-
-        @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return asDouble();
-        }
-
-        @Override
-        public RString asString() {
-            return new RLogical.RStringView(this);
-        }
-
-        @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return asString();
-        }
-
-        @Override
-        public RAny boxedGet(int i) {
-            return RLogicalFactory.getScalar(getLogical(i));
-        }
-
-        @Override
-        public boolean isNAorNaN(int i) {
-            return getLogical(i) == RLogical.NA;
-        }
-
-        @Override
-        public RLogical set(int i, int val) {
-            return materialize().set(i, val);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
-        public RArray subset(RInt index) {
-            return RLogical.RLogicalFactory.subset(this, index);
-        }
-
-        @Override
-        public String typeOf() {
-            return RLogical.TYPE_STRING;
-        }
-    }
-
     public abstract static class RStringView extends View implements RString {
         @Override
         public Object get(int i) {
@@ -314,13 +439,25 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RString asString() {
-            return this;
+        public RRaw asRaw() {
+            Utils.check(false, "unreachable");
+            return null;
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return this;
+        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+            return RString.RStringUtils.stringToRaw(this, naIntroduced, outOfRange);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            Utils.check(false, "unreachable");
+            return null;
+        }
+
+        @Override
+        public RLogical asLogical(NAIntroduced naIntroduced) {
+            return RString.RStringUtils.stringToLogical(this, naIntroduced);
         }
 
         @Override
@@ -346,14 +483,13 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical() {
-            Utils.check(false, "unreachable");
-            return null;
+        public RString asString() {
+            return this;
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return RString.RStringUtils.stringToLogical(this, naIntroduced);
+        public RString asString(NAIntroduced naIntroduced) {
+            return this;
         }
 
         @Override
@@ -396,6 +532,12 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RList materialize() {
             return RList.RListFactory.copy(this);
+        }
+
+        @Override
+        public RRaw asRaw() {
+            Utils.nyi();
+            return null;
         }
 
         @Override

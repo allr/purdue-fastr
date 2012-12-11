@@ -2,8 +2,8 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
-import r.nodes.*;
 
 
 public abstract class ArrayImpl extends BaseObject implements RArray {
@@ -37,11 +37,6 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     @Override
     public RArray materialize() {
         return this;
-    }
-
-    @Override
-    public RList asList() {
-        return new RArray.RListView(this);
     }
 
     @Override
@@ -81,6 +76,12 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     }
 
     @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RLogical asLogical(NAIntroduced naIntroduced) {
         Utils.nyi();
         return null;
@@ -103,4 +104,10 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public RList asList() {
+        return new RArray.RListView(this);
+    }
+
 }

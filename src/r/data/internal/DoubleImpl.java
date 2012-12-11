@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
@@ -88,26 +89,6 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RInt asInt() {
-        return new RDouble.RIntView(this);
-    }
-
-    @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
-        return RDouble.RDoubleUtils.double2int(this, naIntroduced);
-    }
-
-    @Override
-    public RDouble asDouble() {
-        return this;
-    }
-
-    @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
-        return this;
-    }
-
-    @Override
     public DoubleImpl materialize() {
         return this;
     }
@@ -135,6 +116,16 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
+    public RRaw asRaw() {
+        return new RDouble.RRawView(this);
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RDouble.RDoubleUtils.doubleToRaw(this, naIntroduced, outOfRange);
+    }
+
+    @Override
     public RLogical asLogical() {
         return new RDouble.RLogicalView(this);
     }
@@ -142,6 +133,26 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     @Override
     public RLogical asLogical(NAIntroduced naIntroduced) {
         return asLogical();
+    }
+
+    @Override
+    public RInt asInt() {
+        return new RDouble.RIntView(this);
+    }
+
+    @Override
+    public RInt asInt(NAIntroduced naIntroduced) {
+        return RDouble.RDoubleUtils.double2int(this, naIntroduced);
+    }
+
+    @Override
+    public RDouble asDouble() {
+        return this;
+    }
+
+    @Override
+    public RDouble asDouble(NAIntroduced naIntroduced) {
+        return this;
     }
 
     @Override

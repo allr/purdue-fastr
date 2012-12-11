@@ -2,6 +2,7 @@ package r.data.internal;
 
 import r.*;
 import r.Convert.NAIntroduced;
+import r.Convert.OutOfRange;
 import r.data.*;
 
 
@@ -71,6 +72,16 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
     @Override
     public String pretty() {
         return Convert.pretty(Convert.int2string(value));
+    }
+
+    @Override
+    public RRaw asRaw() {
+        return RRaw.RRawFactory.getScalar(Convert.int2raw(value));
+    }
+
+    @Override
+    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        return RRaw.RRawFactory.getScalar(Convert.int2raw(value, outOfRange));
     }
 
     @Override
