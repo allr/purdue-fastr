@@ -11,8 +11,7 @@ import r.nodes.tools.*;
 
 public class TestBase {
 
-    static Truffleize truffleize = new Truffleize();
-    static RContext global = new RContext(1, true);
+    static RContext global = new RContext(1, true); // use debugging format
 
     static String evalString(String input) throws RecognitionException {
         return eval(input).pretty();

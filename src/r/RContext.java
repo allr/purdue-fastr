@@ -16,19 +16,29 @@ public class RContext implements Context {
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
     private final TruffleCompiler compiler;
-    private static boolean debuggingFormat;
+    private static RContext currentContext;
+
+    private boolean debuggingFormat;
 
     ManageError errorManager;
     Truffleize truffleize;
+    static boolean truffleCompilerNotAvailable = false;
 
-    RContext(int compilerThreshold, boolean debuggingFormat) {
+    public RContext(int compilerThreshold, boolean debuggingFormat) {
         init();
-        RContext.debuggingFormat = debuggingFormat;
+        this.debuggingFormat = debuggingFormat;
+
         TruffleCompiler cmp;
-        try {
-            cmp = new TruffleCompilerImpl(compilerThreshold);
-        } catch (UnsatisfiedLinkError le) {
-            System.err.println("Not using the Truffle compiler as it is not available.");
+        if (!truffleCompilerNotAvailable) {
+            // only check once per VM instance (would need a more elaborate check to make re-checking possible)
+            try {
+                cmp = new TruffleCompilerImpl(compilerThreshold);
+            } catch (UnsatisfiedLinkError le) {
+                System.err.println("Not using the Truffle compiler as it is not available.");
+                truffleCompilerNotAvailable = true;
+                cmp = null;
+            }
+        } else {
             cmp = null;
         }
         this.compiler = cmp;
@@ -48,10 +58,11 @@ public class RContext implements Context {
     }
 
     public static boolean debuggingFormat() {
-        return debuggingFormat;
+        return currentContext.debuggingFormat;
     }
 
     public RAny eval(ASTNode expr) {
+        currentContext = this;
         try {
             return (RAny) truffleize.createLazyRootTree(expr).execute(this, topLevel());
         } catch (RError e) {
@@ -60,6 +71,7 @@ public class RContext implements Context {
             }
             error(e);
         }
+        currentContext = null;
         return RNull.getNull(); // this is not quite correct, since R doesn't print anything here
         // Solutions: Maybe a black hole type could be used here
         // : Set a flag in the context to say nothing to print

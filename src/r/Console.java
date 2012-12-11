@@ -160,7 +160,7 @@ public class Console {
         try {
             ASTNode tree = parser.script();
             if (tree != null) {
-                printResult(tree, new RContext(compilerThreshold).eval(tree));
+                printResult(tree, new RContext(compilerThreshold, false).eval(tree)); // use non-debugging format
             }
         } catch (RecognitionException e) {
             parseError(parser, e);

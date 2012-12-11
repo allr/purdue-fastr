@@ -72,11 +72,12 @@ public class Cat {
 
         int si = 0;
         boolean lastWasNull = false;
+        int nprinted = 0;
         for (int i = 0; i < args.length; i++) {
             if (i == sepArgPos) {
                 continue;
             }
-            if (i > 0 && !lastWasNull) {
+            if (nprinted > 0 && !lastWasNull) {
                 if (sep != null) {
                     out.print(sep.getString(si++));
                     if (si == ssize) {
@@ -110,6 +111,7 @@ public class Cat {
                             out.print(" ");
                         }
                     }
+                    nprinted++;
                     out.print(catElement(va, j));
                 }
             }
