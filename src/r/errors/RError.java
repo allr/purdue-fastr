@@ -68,6 +68,7 @@ public abstract class RError extends RuntimeException {
     public static final String CANNOT_READ_CONNECTION = "cannot read from this connection";
     public static final String TOO_FEW_LINES_READ_LINES = "too few lines read in readLines";
     public static final String INVALID_CONNECTION = "invalid connection";
+    public static final String OUT_OF_RANGE = "out-of-range values treated as 0 in coercion to raw";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";

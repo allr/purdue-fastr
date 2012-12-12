@@ -5,7 +5,6 @@ import java.util.*;
 import r.*;
 import r.Convert.*;
 import r.data.internal.*;
-import r.nodes.*;
 
 public final class RSymbol extends BaseObject implements RAny {
 

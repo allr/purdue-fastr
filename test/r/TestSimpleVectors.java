@@ -246,6 +246,5 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; m[[1,2]] }", "3L");
 
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] } ;  f(1,1); f(1,1:3) }", "1L, 3L, 5L");
-
     }
 }

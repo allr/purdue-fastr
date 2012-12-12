@@ -105,6 +105,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.integer(list(c(1),2,3)) }", "1L, 2L, 3L");
         assertEval("{ as.integer(list(integer(),2,3)) }", "NA, 2L, 3L");
         assertEval("{ as.integer(list(list(1),2,3)) }", "NA, 2L, 3L");
+        assertEval("{ as.integer(list(1,2,3,list())) }", "1L, 2L, 3L, NA");
 
         assertEval("{ m<-matrix(1:6, nrow=3) ; as.integer(m) }", "1L, 2L, 3L, 4L, 5L, 6L");
         assertEval("{ m<-matrix(1:6, nrow=3) ; as.vector(m, \"any\") }", "1L, 2L, 3L, 4L, 5L, 6L");
@@ -114,6 +115,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.double(\"1.27\") }", "1.27");
         assertEval("{ as.double(1L) }", "1.0");
         assertEval("{ as.double(\"TRUE\") }", "NA");
+        assertEval("{ as.double(c(\"1\",\"hello\")) }", "1.0, NA");
 
         assertEval("{ as.character(1L) }", "\"1L\"");
         assertEval("{ as.character(TRUE) }", "\"TRUE\"");
@@ -124,6 +126,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.character(list(1,2,3)) }", "\"1.0\", \"2.0\", \"3.0\"");
         assertEval("{ as.character(list(c(2L, 3L))) }", "\"2:3\"");
         assertEval("{ as.character(list(c(2L, 3L, 5L))) }", "\"c(2L, 3L, 5L)\"");
+
+        assertEval("{ as.raw(list(1,2,3)) }", "01, 02, 03");
+        assertEval("{ as.raw(list(\"1\", 2L, 3.4)) }", "01, 02, 03");
+        assertEval("{ as.raw(c(1,1000,NA)) }", "01, 00, 00");
     }
 
     @Test

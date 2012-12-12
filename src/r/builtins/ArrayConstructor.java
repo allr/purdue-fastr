@@ -46,25 +46,6 @@ public class ArrayConstructor {
         throw RError.getInvalidLength(ast);
     }
 
-    public static final CallFactory DOUBLE_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            if (names.length != 0) {
-                BuiltIn.ensureArgName(call, "length", names[0]);
-            }
-            return new BuiltIn(call, names, exprs) {
-                @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    if (args.length == 0) {
-                        return RDouble.EMPTY;
-                    }
-                    int len = extractArrayLength(args[0], ast);
-                    return RDouble.RDoubleFactory.getUninitializedArray(len);
-                }
-            };
-        }
-    };
-
     public static final CallFactory STRING_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -79,6 +60,25 @@ public class ArrayConstructor {
                     }
                     int len = extractArrayLength(args[0], ast);
                     return RString.RStringFactory.getUninitializedArray(len);
+                }
+            };
+        }
+    };
+
+    public static final CallFactory DOUBLE_FACTORY = new CallFactory() {
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    if (args.length == 0) {
+                        return RDouble.EMPTY;
+                    }
+                    int len = extractArrayLength(args[0], ast);
+                    return RDouble.RDoubleFactory.getUninitializedArray(len);
                 }
             };
         }
@@ -117,6 +117,25 @@ public class ArrayConstructor {
                     }
                     int len = extractArrayLength(args[0], ast);
                     return RLogical.RLogicalFactory.getUninitializedArray(len);
+                }
+            };
+        }
+    };
+
+    public static final CallFactory RAW_FACTORY = new CallFactory() {
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (names.length != 0) {
+                BuiltIn.ensureArgName(call, "length", names[0]);
+            }
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    if (args.length == 0) {
+                        return RLogical.EMPTY;
+                    }
+                    int len = extractArrayLength(args[0], ast);
+                    return RRaw.RRawFactory.getUninitializedArray(len);
                 }
             };
         }

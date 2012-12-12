@@ -265,6 +265,7 @@ public class Convert {
     }
 
     public static final NAIntroduced globalNAIntroduced = new NAIntroduced();
+    public static final OutOfRange globalOutOfRange = new OutOfRange();
 
     public static RString coerceToStringError(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalNAIntroduced.naIntroduced = false;
@@ -309,6 +310,23 @@ public class Convert {
         }
     }
 
+    public static RRaw coerceToRawWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+        globalNAIntroduced.naIntroduced = false;
+        globalOutOfRange.outOfRange = false;
+        RRaw res = arg.asRaw(globalNAIntroduced, globalOutOfRange);
+        if (!globalNAIntroduced.naIntroduced) {
+            if (!globalOutOfRange.outOfRange) {
+                // nothing
+            } else {
+                context.warning(ast, RError.OUT_OF_RANGE);
+            }
+        } else {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            context.warning(ast, RError.OUT_OF_RANGE);
+        }
+        return res;
+    }
+
     public static boolean checkFirstLogical(RAny arg, int value) {
         RLogical l = arg.asLogical();
         if (l.size() == 0) {
@@ -350,7 +368,7 @@ public class Convert {
     public static String[] generateRawStrings() {
         String[] res = new String[256];
         for (int i = 0; i < 256; i++) {
-            res[i] = Integer.toHexString(i);
+            res[i] = Integer.toHexString(i / 16) + Integer.toHexString(i % 16);
         }
         return res;
     }

@@ -30,6 +30,7 @@ public class Primitives {
         add("as.character", 0, -1, Cast.STRING_FACTORY);
         add("as.double", 0, -1, Cast.DOUBLE_FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);
+        add("as.raw", 0, -1, Cast.RAW_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
@@ -63,6 +64,7 @@ public class Primitives {
         add("order", 0, -1, Sort.ORDER_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
         add("paste", 0, -1, Paste.FACTORY);
+        add("raw", 0, 1, ArrayConstructor.RAW_FACTORY);
         add("readLines", 0, 5, ReadLines.FACTORY);
         add("regexpr", 2, 6, RegExpr.REGEXPR_FACTORY);
         add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
