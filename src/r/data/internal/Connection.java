@@ -1,6 +1,8 @@
 package r.data.internal;
 
 import java.io.*;
+import java.lang.ProcessBuilder.Redirect;
+import java.util.*;
 
 import r.*;
 import r.errors.*;
@@ -129,10 +131,121 @@ public abstract class Connection {
             try {
                 if (file != null) {
                     file.close();
+                    file = null;
                 }
+                output = null;
                 input = null;
                 reader = null;
                 mode = null;
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
+        }
+    }
+
+    public static class PipeConnection extends Connection {
+
+        Process process;
+        ProcessBuilder processBuilder;
+        InputStream input;
+        OutputStream output;
+        PushbackReader reader;
+
+        PipeConnection(String command, ConnectionMode mode, ConnectionMode defaultMode) {
+            super(command, mode, defaultMode);
+
+            StringTokenizer st = new StringTokenizer(command);
+            String[] commandArray = new String[st.countTokens()];
+            for (int i = 0; st.hasMoreTokens(); i++) {
+                commandArray[i] = st.nextToken();
+            }
+            processBuilder = new ProcessBuilder(commandArray);
+        }
+
+        public static PipeConnection createUnopened(String command, ConnectionMode defaultMode) {
+            return new PipeConnection(command, null, defaultMode);
+        }
+
+        public static PipeConnection createOpened(String command, ConnectionMode mode) throws IOException {
+            PipeConnection con = new PipeConnection(command, null, null);
+            con.open(mode);
+            return con;
+        }
+
+        public static PipeConnection createOpened(String command, ConnectionMode mode, ASTNode ast) {
+            try {
+                return PipeConnection.createOpened(command, mode);
+            } catch (IOException e) {
+                throw RError.getCannotOpenPipe(ast, command, e.toString());
+            }
+        }
+
+        @Override
+        public void open(ConnectionMode openMode) throws IOException {
+            Utils.check(mode == null);
+            if (openMode.read()) {
+                processBuilder.redirectOutput(Redirect.PIPE);
+            } else {
+                processBuilder.redirectOutput(Redirect.INHERIT);
+            }
+            if (openMode.write() || openMode.append()) {
+                processBuilder.redirectInput(Redirect.PIPE);
+            } else {
+                processBuilder.redirectOutput(Redirect.INHERIT);
+            }
+            // NOTE: GNU-R uses popen, which can either read, or write, but not both
+
+            process = processBuilder.start();
+        }
+
+        @Override
+        public void open(ConnectionMode openMode, ASTNode ast) {
+            try {
+                open(openMode);
+            } catch (IOException e) {
+                throw RError.getCannotOpenPipe(ast, description, e.toString());
+            }
+        }
+
+        @Override
+        public Reader reader(ASTNode ast) {
+            if (reader != null) {
+                return reader;
+            }
+            Utils.check(process != null);
+            if (input == null) {
+                input = process.getInputStream();
+            }
+            reader = new PushbackReader(new InputStreamReader(input));
+            return reader;
+        }
+
+        @Override
+        public OutputStream output(ASTNode ast) {
+            if (output != null) {
+                return output;
+            }
+            Utils.check(process != null);
+            output = process.getOutputStream();
+            return output;
+        }
+
+        @Override
+        public void close(ASTNode ast) { // FIXME: could be more lazy?
+            try {
+                if (process != null) {
+                   if (output != null) {
+                       output.close();
+                   }
+                   process.waitFor();
+                   process = null;
+                }
+                output = null;
+                input = null;
+                reader = null;
+                mode = null;
+            } catch (InterruptedException e) {
+                throw RError.getGenericError(ast, e.toString());
             } catch (IOException e) {
                 throw RError.getGenericError(ast, e.toString());
             }

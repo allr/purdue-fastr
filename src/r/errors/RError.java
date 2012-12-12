@@ -89,6 +89,7 @@ public abstract class RError extends RuntimeException {
     public static final String CANNOT_OPEN_FILE = "cannot open file '%s': %s";
     public static final String NOT_CONNECTION = "'%s' is not a connection";
     public static final String INCOMPLETE_FINAL_LINE = "incomplete final line found on '%s'";
+    public static final String CANNOT_OPEN_PIPE = "cannot open pipe() cmd '%s': %s";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -799,6 +800,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getCannotOpenFile(ASTNode ast, String fileName, String reason) {
         return getGenericError(ast, String.format(RError.CANNOT_OPEN_FILE, fileName, reason));
+    }
+
+    public static RError getCannotOpenPipe(ASTNode ast, String command, String reason) {
+        return getGenericError(ast, String.format(RError.CANNOT_OPEN_PIPE, command, reason));
     }
 
     public static RError getNotConnection(ASTNode ast, String argName) {
