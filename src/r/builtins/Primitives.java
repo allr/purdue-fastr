@@ -35,7 +35,7 @@ public class Primitives {
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
         add("character", 0, 1, ArrayConstructor.STRING_FACTORY);
-        add("close", 1, 1, CloseConnection.FACTORY);
+        add("close", 1, 1, ConnectionOperation.CLOSE_FACTORY);
         add("colMeans", 1, 3, ColumnsRowsStats.COLMEANS_FACTORY);
         add("colSums", 1, 3, ColumnsRowsStats.COLSUMS_FACTORY);
         add("cumsum", 1, 1, CumulativeSum.FACTORY);
@@ -45,6 +45,7 @@ public class Primitives {
         add("gregexpr", 2, 6, RegExpr.GREGEXPR_FACTORY);
         add("gsub", 3, 7, Sub.GSUB_FACTORY);
         add("file", 0, 5, OpenConnection.FILE_FACTORY);
+        add("flush", 1, 1, ConnectionOperation.FLUSH_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);

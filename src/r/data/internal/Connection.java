@@ -35,6 +35,7 @@ public abstract class Connection {
 
     public abstract void open(ConnectionMode openMode) throws IOException;
     public abstract void open(ConnectionMode openMode, ASTNode ast);
+    public abstract void flush(ASTNode ast);
     public abstract void close(ASTNode ast);
 
     public abstract Reader reader(ASTNode ast);
@@ -47,7 +48,6 @@ public abstract class Connection {
         }
         super.finalize();
     }
-
 
     public static class FileConnection extends Connection {
 
@@ -121,6 +121,17 @@ public abstract class Connection {
             try {
                 output = new FileOutputStream(file.getFD());
                 return output;
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
+        }
+
+        @Override
+        public void flush(ASTNode ast) {
+            try {
+                if (output != null) {
+                    output.flush();
+                }
             } catch (IOException e) {
                 throw RError.getGenericError(ast, e.toString());
             }
@@ -228,6 +239,17 @@ public abstract class Connection {
             Utils.check(process != null);
             output = process.getOutputStream();
             return output;
+        }
+
+        @Override
+        public void flush(ASTNode ast) {
+            try {
+                if (output != null) {
+                    output.flush();
+                }
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
         }
 
         @Override
