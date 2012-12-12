@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
+import r.Convert;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.data.internal.*;
@@ -353,6 +354,7 @@ public class Comparison extends BaseR {
                         throw new UnexpectedResultException(null);
                     }
                 }
+                // logicals and raws are expected to be less frequent, hence handled in GenericComparison
                 throw new UnexpectedResultException(null);
 
             } catch (UnexpectedResultException e) {
@@ -399,7 +401,11 @@ public class Comparison extends BaseR {
                 RLogical rlog = rexpr.asLogical();
                 return Comparison.this.cmp.cmp(llog, rlog, context, ast);
             }
-            Utils.debug("lexpr is "+lexpr+" rexpr is "+rexpr);
+            if (lexpr instanceof RRaw || rexpr instanceof RRaw) {
+                RRaw lraw = lexpr.asRaw();
+                RRaw rraw = rexpr.asRaw();
+                return Comparison.this.cmp.cmp(lraw, rraw, context, ast);
+            }
             Utils.nyi("unsupported case for comparison");
             return null;
         }
@@ -407,6 +413,7 @@ public class Comparison extends BaseR {
     }
 
     public abstract static class ValueComparison {
+        public abstract boolean cmp(byte a, byte b);
         public abstract boolean cmp(int a, int b);
         public abstract boolean cmp(double a, double b);
         public abstract boolean cmp(String a, String b);
@@ -658,10 +665,45 @@ public class Comparison extends BaseR {
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions);
         }
+        public RLogical cmp(RRaw a, RRaw b, RContext context, ASTNode ast) {
+            int na = a.size();
+            int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+
+            if (na == 0 || nb == 0) {
+                return RLogical.EMPTY;
+            }
+
+            int n = (na > nb) ? na : nb;
+            int[] content = new int[n];
+            int ai = 0;
+            int bi = 0;
+
+            for (int i = 0; i < n; i++) {
+                byte araw = a.getRaw(ai++);
+                if (ai == na) {
+                    ai = 0;
+                }
+                byte braw = b.getRaw(bi++);
+                if (bi == nb) {
+                    bi = 0;
+                }
+                content[i] = cmp(araw, braw) ? RLogical.TRUE : RLogical.FALSE;
+            }
+
+            if (ai != 0 || bi != 0) {
+                context.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
+        }
     }
 
     public static ValueComparison getEQ() {
         return new ValueComparison() {
+            @Override
+            public boolean cmp(byte a, byte b) {
+                return a == b;
+            }
             @Override
             public boolean cmp(int a, int b) {
                 return a == b;
@@ -679,6 +721,10 @@ public class Comparison extends BaseR {
     public static ValueComparison getNE() {
         return new ValueComparison() {
             @Override
+            public boolean cmp(byte a, byte b) {
+                return a != b;
+            }
+            @Override
             public boolean cmp(int a, int b) {
                 return a != b;
             }
@@ -694,6 +740,10 @@ public class Comparison extends BaseR {
     }
     public static ValueComparison getLE() {
         return new ValueComparison() {
+            @Override
+            public boolean cmp(byte a, byte b) {
+                return Convert.byteToUnsigned(a) <= Convert.byteToUnsigned(b);
+            }
             @Override
             public boolean cmp(int a, int b) {
                 return a <= b;
@@ -711,6 +761,10 @@ public class Comparison extends BaseR {
     public static ValueComparison getGE() {
         return new ValueComparison() {
             @Override
+            public boolean cmp(byte a, byte b) {
+                return Convert.byteToUnsigned(a) >= Convert.byteToUnsigned(b);
+            }
+            @Override
             public boolean cmp(int a, int b) {
                 return a >= b;
             }
@@ -727,6 +781,10 @@ public class Comparison extends BaseR {
     public static ValueComparison getLT() {
         return new ValueComparison() {
             @Override
+            public boolean cmp(byte a, byte b) {
+                return Convert.byteToUnsigned(a) < Convert.byteToUnsigned(b);
+            }
+            @Override
             public boolean cmp(int a, int b) {
                 return a < b;
             }
@@ -742,6 +800,10 @@ public class Comparison extends BaseR {
     }
     public static ValueComparison getGT() {
         return new ValueComparison() {
+            @Override
+            public boolean cmp(byte a, byte b) {
+                return Convert.byteToUnsigned(a) > Convert.byteToUnsigned(b);
+            }
             @Override
             public boolean cmp(int a, int b) {
                 return a > b;

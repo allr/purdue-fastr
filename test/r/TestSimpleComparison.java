@@ -47,4 +47,13 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{ \"2.0\" == 2 }", "TRUE"); // FIXME: incompatible with R because of fastr's character representation of numbers
 
     }
+
+    @Test
+    public void testRaw() throws RecognitionException {
+        assertEval("{ a <- as.raw(1) ; b <- as.raw(2) ; a < b }", "TRUE");
+        assertEval("{ a <- as.raw(1) ; b <- as.raw(2) ; a > b }", "FALSE");
+        assertEval("{ a <- as.raw(1) ; b <- as.raw(2) ; a == b }", "FALSE");
+        assertEval("{ a <- as.raw(1) ; b <- as.raw(200) ; a < b }", "TRUE");
+        assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; a < b }", "TRUE");
+    }
 }

@@ -32,8 +32,15 @@ public class Cat {
         if (v instanceof RString) {
             return catElement((RString) v, i);
         }
+        if (v instanceof RRaw) {
+            return catElement((RRaw) v, i);
+        }
         Utils.nyi("unsupported type");
         return null;
+    }
+
+    public static String catElement(RString v, int i) {
+        return v.getString(i);
     }
 
     public static String catElement(RDouble v, int i) {
@@ -51,9 +58,12 @@ public class Cat {
         return Convert.pretty(Convert.logical2string(n));
     }
 
-    public static String catElement(RString v, int i) {
-        return v.getString(i);
+    public static String catElement(RRaw v, int i) {
+        byte n = v.getRaw(i);
+        return Convert.raw2string(n);
     }
+
+
 
     public static void genericCat(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) {
 

@@ -65,6 +65,9 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ !c(TRUE,TRUE,FALSE,NA) }", "FALSE, FALSE, TRUE, NA");
         assertEval("{ !c(1,2,3,4,0,0,NA) }", "FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, NA");
         assertEval("{ !((0-3):3) }", "FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE");
+
+        assertEval("{ a <- as.raw(201) ; !a }", "36");
+        assertEval("{ a <- as.raw(12) ; !a }", "f3");
     }
 
     @Test
@@ -135,5 +138,9 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE & f(FALSE) ; x }", "2.0");
 
         assertEval("{ 1:4 & c(FALSE,TRUE) }", "FALSE, TRUE, FALSE, TRUE");
+
+        assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; a | b }", "ff");
+        assertEval("{ a <- as.raw(200) ; b <- as.raw(1) ; a | b }", "c9");
+        assertEval("{ a <- as.raw(201) ; b <- as.raw(1) ; a & b }", "01");
     }
 }

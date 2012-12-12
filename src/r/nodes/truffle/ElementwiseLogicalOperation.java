@@ -61,6 +61,9 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
                                (rightValue instanceof RInt || rightValue instanceof RDouble || rightValue instanceof RLogical)) {
                     return op.op(leftValue.asLogical(), rightValue.asLogical(), context, ast);
                 }
+                if (leftValue instanceof RRaw && rightValue instanceof RRaw) {
+                    return op.op(leftValue.asRaw(), rightValue.asRaw(), context, ast);
+                }
                 Utils.nyi("unsupported types");
                 return null;
             }
@@ -77,7 +80,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
         }
 
         public abstract static class Action {
-            abstract RLogical doFor(RAny leftValue, RAny rightValue, RContext context, ASTNode ast) throws UnexpectedResultException;
+            abstract RAny doFor(RAny leftValue, RAny rightValue, RContext context, ASTNode ast) throws UnexpectedResultException;
         }
 
         public static ElementwiseLogicalOperation create(final ASTNode ast, RNode left, final Operation op, RNode right, RAny leftTemplate, RAny rightTemplate) {
@@ -89,7 +92,29 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
                             int l = op.op(((ScalarLogicalImpl) leftValue).getLogical(), ((ScalarLogicalImpl) rightValue).getLogical());
                             return RLogical.RLogicalFactory.getScalar(l);
                         }
-                        return null;
+                        throw new UnexpectedResultException(null);
+                    }
+                });
+            }
+            if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) {
+                return new Specialized(ast, left, op, right, new Action() {
+                    @Override
+                    RLogical doFor(RAny leftValue, RAny rightValue, RContext context, ASTNode ast) throws UnexpectedResultException {
+                        if ((leftValue instanceof RLogical && rightValue instanceof RLogical)) {
+                            return op.op((RLogical) leftValue, (RLogical) rightValue, context, ast);
+                        }
+                        throw new UnexpectedResultException(null);
+                    }
+                });
+            }
+            if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
+                return new Specialized(ast, left, op, right, new Action() {
+                    @Override
+                    RRaw doFor(RAny leftValue, RAny rightValue, RContext context, ASTNode ast) throws UnexpectedResultException {
+                        if ((leftValue instanceof RRaw && rightValue instanceof RRaw)) {
+                            return op.op((RRaw) leftValue, (RRaw) rightValue, context, ast);
+                        }
+                        throw new UnexpectedResultException(null);
                     }
                 });
             }
@@ -112,6 +137,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
 
     public abstract static class Operation {
         public abstract int op(int a, int b);
+        public abstract byte op(byte a, byte b);
         public RLogical op(RLogical a, RLogical b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
@@ -142,9 +168,43 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions);
         }
+        public RRaw op(RRaw a, RRaw b, RContext context, ASTNode ast) {
+            int na = a.size();
+            int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            if (na == 0 || nb == 0) {
+                return RRaw.EMPTY;
+            }
+
+            int n = (na > nb) ? na : nb;
+            byte[] content = new byte[n];
+            int ai = 0;
+            int bi = 0;
+
+            for (int i = 0; i < n; i++) {
+                byte araw = a.getRaw(ai++);
+                if (ai == na) {
+                    ai = 0;
+                }
+                byte braw = b.getRaw(bi++);
+                if (bi == nb) {
+                    bi = 0;
+                }
+                content[i] = op(araw, braw);
+            }
+
+            if (ai != 0 || bi != 0) {
+                context.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+            return RRaw.RRawFactory.getFor(content, dimensions);
+        }
     }
 
     public static final Operation AND = new Operation() {
+        @Override
+        public byte op(byte a, byte b) {
+            return (byte) (a & b);
+        }
         @Override
         public int op(int a, int b) {
             if (a == RLogical.TRUE) {
@@ -163,6 +223,10 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
     };
 
     public static final Operation OR = new Operation() {
+        @Override
+        public byte op(byte a, byte b) {
+            return (byte) (a | b);
+        }
         @Override
         public int op(int a, int b) {
             if (a == RLogical.TRUE) {

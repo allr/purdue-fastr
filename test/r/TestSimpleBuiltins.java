@@ -297,6 +297,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ paste(1:2, 1:3, FALSE, collapse=\"-\", sep=\"+\") }", "\"1L+1L+FALSE-2L+2L+FALSE-1L+3L+FALSE\"");
         assertEval("{ paste() }", "character(0)");
         assertEval("{ paste(sep=\"\") }", "character(0)");
+        assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; paste(a, b) }", "\"c8 ff\"");
     }
 
     @Test

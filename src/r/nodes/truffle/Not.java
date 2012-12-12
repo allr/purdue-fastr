@@ -9,6 +9,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
+// FIXME: this could and should be performance optimized
 public abstract class Not extends BaseR {
     @Stable RNode lhs;
 
@@ -23,16 +24,16 @@ public abstract class Not extends BaseR {
         return execute(context, value);
     }
 
-    abstract RLogical execute(RContext context, RAny value);
+    abstract RAny execute(RContext context, RAny value);
 
     // when the argument is a logical scalar
-    public static class LogicalScalar extends Not {
+    public static class LogicalScalar extends Not { // TODO: optimize this using scalar types and executeScalarLogical
         public LogicalScalar(ASTNode ast, RNode lhs) {
             super(ast, lhs);
         }
 
         @Override
-        RLogical execute(RContext context, RAny value) {
+        RAny execute(RContext context, RAny value) {
             try {
                 if (!(value instanceof RLogical)) {
                     throw new UnexpectedResultException(null);
@@ -48,6 +49,32 @@ public abstract class Not extends BaseR {
                     default: return RLogical.BOXED_NA;
                 }
             } catch (UnexpectedResultException e) {
+                RawScalar n = new RawScalar(ast, lhs);  // FIXME: also create a specialized note for a logical vector
+                replace(n, "install RawScalar from LogicalScalar");
+                return n.execute(context, value);
+            }
+        }
+    }
+
+    // when the argument is a raw scalar
+    public static class RawScalar extends Not {
+        public RawScalar(ASTNode ast, RNode lhs) {
+            super(ast, lhs);
+        }
+
+        @Override
+        RAny execute(RContext context, RAny value) {
+            try {
+                if (!(value instanceof RRaw)) {
+                    throw new UnexpectedResultException(null);
+                }
+                RRaw rvalue = (RRaw) value;
+                if (rvalue.size() != 1) {
+                    throw new UnexpectedResultException(null);
+                }
+                byte b = rvalue.getRaw(0);
+                return RRaw.RRawFactory.getScalar((byte) ~b);
+            } catch (UnexpectedResultException e) {
                 Generic gn = new Generic(ast, lhs);
                 replace(gn, "install Generic from LogicalScalar");
                 return gn.execute(context, value);
@@ -61,40 +88,73 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RLogical execute(RContext context, RAny value) {
-            final RLogical lvalue = value.asLogical();
-            final int vsize = lvalue.size();
-            if (vsize == 0) {
-                throw RError.getInvalidArgType(ast);
-            }
-            return new View.RLogicalView() {
-                @Override
-                public int size() {
-                    return vsize;
-                }
+        RAny execute(RContext context, RAny value) {
+            if (value instanceof RLogical || value instanceof RDouble || value instanceof RInt) {
+                final RLogical lvalue = value.asLogical();
+                final int vsize = lvalue.size();
 
-                @Override
-                public int getLogical(int i) {
-                    int l = lvalue.getLogical(i);
-                    if (l == RLogical.TRUE) {
-                        return RLogical.FALSE;
-                    } else if (l == RLogical.FALSE) {
-                        return RLogical.TRUE;
-                    } else {
-                        return RLogical.NA;
+                return new View.RLogicalView() {
+                    @Override
+                    public int size() {
+                        return vsize;
                     }
-                }
 
-                @Override
-                public boolean isSharedReal() {
-                    return lvalue.isShared();
-                }
+                    @Override
+                    public int getLogical(int i) {
+                        int l = lvalue.getLogical(i);
+                        if (l == RLogical.TRUE) {
+                            return RLogical.FALSE;
+                        } else if (l == RLogical.FALSE) {
+                            return RLogical.TRUE;
+                        } else {
+                            return RLogical.NA;
+                        }
+                    }
 
-                @Override
-                public void ref() {
-                    lvalue.ref();
+                    @Override
+                    public boolean isSharedReal() {
+                        return lvalue.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        lvalue.ref();
+                    }
+                };
+            }
+            if (value instanceof RRaw) {
+                final RRaw rvalue = (RRaw) value;
+                final int vsize = rvalue.size();
+
+                return new View.RRawView() {
+                    @Override
+                    public int size() {
+                        return vsize;
+                    }
+
+                    @Override
+                    public byte getRaw(int i) {
+                        byte v = rvalue.getRaw(i);
+                        return (byte) ~v;
+                    }
+
+                    @Override
+                    public boolean isSharedReal() {
+                        return rvalue.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        rvalue.ref();
+                    }
+                };
+            }
+            if (value instanceof RArray) {
+                if (((RArray) value).size() == 0) {
+                    return RLogical.EMPTY;
                 }
-            };
+            }
+            throw RError.getInvalidArgType(ast);
         }
     }
 }
