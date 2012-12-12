@@ -86,6 +86,7 @@ public class Primitives {
         add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
         add("which", 1, 3, Which.FACTORY);
+        add("writeBin", 2, 5, WriteBin.FACTORY);
         add("commandArgs", 0, 1, CommandArgs.FACTORY);
     }
 

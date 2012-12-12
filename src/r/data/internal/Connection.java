@@ -35,7 +35,8 @@ public abstract class Connection {
     public abstract void open(ConnectionMode openMode, ASTNode ast);
     public abstract void close(ASTNode ast);
 
-    public abstract Reader reader();
+    public abstract Reader reader(ASTNode ast);
+    public abstract OutputStream output(ASTNode ast);
 
     @Override
     public void finalize() throws Throwable {
@@ -48,7 +49,10 @@ public abstract class Connection {
 
     public static class FileConnection extends Connection {
 
-        FileReader reader;
+        RandomAccessFile file;
+        FileInputStream input;
+        FileOutputStream output;
+        PushbackReader reader;
 
         FileConnection(String name, ConnectionMode mode, ConnectionMode defaultMode) {
             super(name, mode, defaultMode);
@@ -75,12 +79,9 @@ public abstract class Connection {
         @Override
         public void open(ConnectionMode openMode) throws IOException {
             Utils.check(mode == null);
-            if (openMode.read() && openMode.text() && !openMode.write() && !openMode.append() && !openMode.truncate()) {
-                reader = new FileReader(description);
-                mode = openMode;
-            } else {
-                Utils.nyi("unsupported open mode");
-            }
+            boolean needsWrite = openMode.write() || openMode.append();
+
+            file = new RandomAccessFile(description, !needsWrite ? "r" : "rw");
         }
 
         @Override
@@ -93,17 +94,44 @@ public abstract class Connection {
         }
 
         @Override
-        public Reader reader() {
-            return reader;
+        public Reader reader(ASTNode ast) {
+            if (reader != null) {
+                return reader;
+            }
+            Utils.check(file != null);
+            try {
+                if (input == null) {
+                    input = new FileInputStream(file.getFD());
+                }
+                reader = new PushbackReader(new InputStreamReader(input));
+                return reader;
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
+        }
+
+        @Override
+        public OutputStream output(ASTNode ast) {
+            if (output != null) {
+                return output;
+            }
+            Utils.check(file != null);
+            try {
+                output = new FileOutputStream(file.getFD());
+                return output;
+            } catch (IOException e) {
+                throw RError.getGenericError(ast, e.toString());
+            }
         }
 
         @Override
         public void close(ASTNode ast) { // FIXME: could be more lazy?
             try {
-                if (reader != null) {
-                    reader.close();
-                    reader = null;
+                if (file != null) {
+                    file.close();
                 }
+                input = null;
+                reader = null;
                 mode = null;
             } catch (IOException e) {
                 throw RError.getGenericError(ast, e.toString());

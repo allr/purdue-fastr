@@ -15,8 +15,7 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.runtime.*;
 
-// TODO: incomplete implementation of R semantics
-
+// TODO: this is incomplete implementation of R semantics
 public class ReadLines {
 
     private static final String[] paramNames = new String[]{"con", "n", "ok", "warn", "encoding"};
@@ -110,7 +109,7 @@ public class ReadLines {
                     }
 
                     try {
-                        BufferedReader reader = new BufferedReader(con.reader());
+                        BufferedReader reader = new BufferedReader(con.reader(ast));
                         ArrayList<String> buf = new ArrayList<String>();
                         String line = "";
                         int nlines = 0;
