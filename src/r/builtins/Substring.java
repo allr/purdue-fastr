@@ -3,7 +3,7 @@ package r.builtins;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
-import r.Convert.NAIntroduced;
+import r.Convert.ConversionStatus;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -18,6 +18,8 @@ public class Substring {
     private static final int ITEXT = 0;
     private static final int IFIRST = 1;
     private static final int ILAST = 2;
+
+    static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
     public static final CallFactory SUBSTRING_FACTORY = new CallFactory() {
 
@@ -42,22 +44,20 @@ public class Substring {
             final RDouble defaultLast = RDouble.RDoubleFactory.getScalar(1000000); // FIXME slow, but perhaps the default is not used, anyway
             return new BuiltIn(call, names, exprs) {
 
-                NAIntroduced naIntroduced = new NAIntroduced();
-
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RString text = args[paramPositions[ITEXT]].asString();
-                    naIntroduced.naIntroduced = false;
-                    RDouble first = args[paramPositions[IFIRST]].asDouble(naIntroduced);
+                    warn.naIntroduced = false;
+                    RDouble first = args[paramPositions[IFIRST]].asDouble(warn);
                     RDouble last;
                     if (provided[ILAST]) {
-                        last = args[paramPositions[ILAST]].asDouble(naIntroduced);
+                        last = args[paramPositions[ILAST]].asDouble(warn);
                     } else {
                         last = defaultLast;
                     }
 
                     RString res = substring(text, first, last, context, ast);
-                    if (naIntroduced.naIntroduced) {
+                    if (warn.naIntroduced) {
                         context.warning(ast, RError.NA_INTRODUCED_COERCION);
                     }
                     return res;
@@ -93,17 +93,15 @@ public class Substring {
 
             return new BuiltIn(call, names, exprs) {
 
-                NAIntroduced naIntroduced = new NAIntroduced();
-
                 @Override
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     RString x = args[paramPositions[IX]].asString();
-                    naIntroduced.naIntroduced = false;
-                    RDouble start = args[paramPositions[ISTART]].asDouble(naIntroduced);
-                    RDouble stop = args[paramPositions[ISTOP]].asDouble(naIntroduced);
+                    warn.naIntroduced = false;
+                    RDouble start = args[paramPositions[ISTART]].asDouble(warn);
+                    RDouble stop = args[paramPositions[ISTOP]].asDouble(warn);
 
                     RString res = substr(x, start, stop, context, ast);
-                    if (naIntroduced.naIntroduced) {
+                    if (warn.naIntroduced) {
                         context.warning(ast, RError.NA_INTRODUCED_COERCION);
                     }
                     return res;

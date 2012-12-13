@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 
 
@@ -81,8 +80,8 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RRaw.RRawFactory.getScalar(Convert.logical2raw(value, outOfRange));
+    public RRaw asRaw(ConversionStatus warn) {
+        return RRaw.RRawFactory.getScalar(Convert.logical2raw(value, warn));
     }
 
     @Override
@@ -91,7 +90,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return this;
     }
 
@@ -101,7 +100,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         return asInt();
     }
 
@@ -111,8 +110,18 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return asDouble();
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return RComplex.RComplexFactory.getScalar(Convert.logical2double(value), 0);
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return asComplex();
     }
 
     @Override
@@ -121,7 +130,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return asString();
     }
 

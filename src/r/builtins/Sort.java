@@ -5,7 +5,7 @@ import java.util.*;
 import com.oracle.truffle.runtime.*;
 
 import r.*;
-import r.Convert;
+import r.Convert.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -18,10 +18,10 @@ public class Sort {
     private static final int INA_LAST = 1;
     private static final int IDECREASING = 2;
 
-    private static Convert.NAIntroduced naIntroduced = new Convert.NAIntroduced();
+    static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
     public static int parseNALast(RAny arg, RContext context, ASTNode ast) {
-        naIntroduced.naIntroduced = false;
+        warn.naIntroduced = false;
         RLogical a = arg.asLogical(); // will produce NAs when conversion is not possible
         int size = a.size();
         int res;
@@ -39,7 +39,7 @@ public class Sort {
             context.warning(ast, RError.LENGTH_GT_1);
             res = a.getLogical(0);
         }
-        if (naIntroduced.naIntroduced) {
+        if (warn.naIntroduced) {
             throw RError.getInvalidArgument(ast, "na.last"); // not exactly R's error message
         }
         return res;

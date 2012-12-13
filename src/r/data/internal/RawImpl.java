@@ -95,7 +95,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public RRaw asRaw(ConversionStatus warn) {
         return this;
     }
 
@@ -105,7 +105,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return asLogical();
     }
 
@@ -115,7 +115,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         return asInt();
     }
 
@@ -125,8 +125,18 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return asDouble();
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return new RRaw.RComplexView(this);
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return asComplex();
     }
 
     @Override
@@ -135,7 +145,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return asString();
     }
 

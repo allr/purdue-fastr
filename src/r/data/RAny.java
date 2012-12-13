@@ -1,7 +1,6 @@
 package r.data;
 
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -22,20 +21,24 @@ public interface RAny {
     String pretty();
     String prettyMatrixElement();
 
-        // casts that don't set a flag (but still can introduce NAs)
+        // casts that don't set a flag
+        // FIXME: maybe could remove these and always pass the argument, but that might be slower
     RRaw asRaw();
     RLogical asLogical();
     RInt asInt();
     RDouble asDouble();
+    RComplex asComplex();
     RString asString();
+
     RList asList();
 
-        // casts that do set a flag when NA is introduced
-    RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange);
-    RLogical asLogical(NAIntroduced naIntroduced);
-    RInt asInt(NAIntroduced naIntroduced);
-    RDouble asDouble(NAIntroduced naIntroduced);
-    RString asString(NAIntroduced naIntroduced);
+        // casts that do set a flag when NA is introduced, out of range raw value, discarded imaginary part
+    RRaw asRaw(ConversionStatus warn);
+    RLogical asLogical(ConversionStatus warn);
+    RInt asInt(ConversionStatus warn);
+    RDouble asDouble(ConversionStatus warn);
+    RComplex asComplex(ConversionStatus warn);
+    RString asString(ConversionStatus warn); // FIXME: is any error ever produced? is this needed for String?
 
     void ref();
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2

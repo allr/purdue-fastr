@@ -4,13 +4,13 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
 
+public class ScalarComplexImpl extends ArrayImpl implements RComplex {
+    double real;
+    double imag;
 
-public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
-
-    double value;
-
-    public ScalarDoubleImpl(double value) {
-        this.value = value;
+    public ScalarComplexImpl(double real, double imag) {
+        this.real = real;
+        this.imag = imag;
     }
 
     @Override
@@ -25,7 +25,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     public Object get() {
-        return value;
+        return new RComplex.Complex(real, imag);
     }
 
     @Override
@@ -45,12 +45,13 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     public RArray set(Object val) {
-        return set(((Double) val).doubleValue());
+        Complex c = (Complex) val;
+        return set(c.realValue(), c.imagValue());
     }
 
     @Override
-    public RDouble setDimensions(int[] dimensions) {
-        return RDouble.RDoubleFactory.getFor(new double[] {value}, dimensions);
+    public RComplex setDimensions(int[] dimensions) {
+        return RComplex.RComplexFactory.getFor(new double[] {real, imag}, dimensions);
     }
 
     @Override
@@ -60,31 +61,31 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     public boolean isNAorNaN() {
-        return RDouble.RDoubleUtils.isNAorNaN(value);
+        return RComplex.RComplexUtils.eitherIsNAorNaN(real, imag);
     }
 
     public boolean isNA() {
-        return RDouble.RDoubleUtils.isNA(value);
+        return RComplex.RComplexUtils.eitherIsNA(real, imag);
     }
 
     @Override
     public String pretty() {
-        return Convert.pretty(Convert.double2string(value));
+        return Convert.pretty(Convert.complex2string(real, imag));
     }
 
     @Override
     public RRaw asRaw() {
-        return RRaw.RRawFactory.getScalar(Convert.double2raw(value));
+        return asRaw(null);
     }
 
     @Override
     public RRaw asRaw(ConversionStatus warn) {
-        return RRaw.RRawFactory.getScalar(Convert.double2raw(value, warn));
+        return RRaw.RRawFactory.getScalar(Convert.complex2raw(real, imag, warn));
     }
 
     @Override
     public RLogical asLogical() {
-        return RLogical.RLogicalFactory.getScalar(Convert.double2logical(value));
+        return RLogical.RLogicalFactory.getScalar(Convert.complex2logical(real, imag));
     }
 
     @Override
@@ -94,37 +95,37 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RInt asInt() {
-        return RInt.RIntFactory.getScalar(Convert.double2int(value));
+        return asInt(null);
     }
 
     @Override
     public RInt asInt(ConversionStatus warn) {
-        return RInt.RIntFactory.getScalar(Convert.double2int(value, warn));
+        return RInt.RIntFactory.getScalar(Convert.complex2int(real, imag, warn));
     }
 
     @Override
     public RDouble asDouble() {
-        return this;
+        return asDouble(null);
     }
 
     @Override
     public RDouble asDouble(ConversionStatus warn) {
-        return this;
+        return RDouble.RDoubleFactory.getScalar(Convert.complex2double(real, imag, warn));
     }
 
     @Override
     public RComplex asComplex() {
-        return RComplex.RComplexFactory.getScalar(value, 0);
+        return this;
     }
 
     @Override
     public RComplex asComplex(ConversionStatus warn) {
-        return asComplex();
+        return this;
     }
 
     @Override
     public RString asString() {
-        return RString.RStringFactory.getScalar(Convert.double2string(value));
+        return RString.RStringFactory.getScalar(Convert.complex2string(real, imag));
     }
 
     @Override
@@ -133,33 +134,44 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
-    public ScalarDoubleImpl materialize() {
+    public ScalarComplexImpl materialize() {
         return this;
     }
 
     @Override
-    public RDouble set(int i, double val) {
+    public RComplex set(int i, double real, double imag) {
         Utils.check(i == 0);
-        return set(val);
+        return set(real, imag);
     }
 
-    public RDouble set(double val) {
-        value = val;
+    public RComplex set(double real, double imag) {
+        this.real = real;
+        this.imag = imag;
         return this;
     }
 
     @Override
-    public double getDouble(int i) {
+    public double getReal(int i) {
         Utils.check(i == 0);
-        return getDouble();
+        return getReal();
     }
 
-    public double getDouble() {
-        return value;
+    public double getReal() {
+        return real;
+    }
+
+    @Override
+    public double getImag(int i) {
+        Utils.check(i == 0);
+        return getImag();
+    }
+
+    public double getImag() {
+        return imag;
     }
 
     @Override
     public String typeOf() {
-        return RDouble.TYPE_STRING;
+        return RComplex.TYPE_STRING;
     }
 }

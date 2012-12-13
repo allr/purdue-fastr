@@ -79,6 +79,11 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public RComplex asComplex() {
+        return RComplex.EMPTY;
+    }
+
+    @Override
     public RString asString() {
         return RString.EMPTY;
     }
@@ -149,27 +154,32 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public RRaw asRaw(ConversionStatus warn) {
         return RRaw.EMPTY;
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return RLogical.EMPTY;
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         return RInt.EMPTY;
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return RDouble.EMPTY;
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RComplex asComplex(ConversionStatus warn) {
+        return RComplex.EMPTY;
+    }
+
+    @Override
+    public RString asString(ConversionStatus warn) {
         return RString.EMPTY;
     }
 

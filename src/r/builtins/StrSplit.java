@@ -5,7 +5,6 @@ import java.util.regex.*;
 
 import r.*;
 import r.Convert;
-import r.Convert.NAIntroduced;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.nodes.*;

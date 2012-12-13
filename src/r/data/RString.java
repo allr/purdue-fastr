@@ -2,6 +2,7 @@ package r.data;
 
 import r.*;
 import r.Convert.*;
+import r.data.RComplex.*;
 import r.data.internal.*;
 
 public interface RString extends RArray {
@@ -17,39 +18,51 @@ public interface RString extends RArray {
     RString materialize();
 
     public class RStringUtils {
-        public static RDouble stringToDouble(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+
+        public static RComplex stringToComplex(RString value, ConversionStatus warn) { // eager to keep error semantics eager
+            int size = value.size();
+            double[] content = new double[2 * size];
+            for (int i = 0; i < size; i++) {
+                String str = value.getString(i);
+                Complex c = Convert.string2complex(str, warn);
+                content[2 * i] = c.realValue();
+                content[2 * i + 1] = c.imagValue();
+            }
+            return RComplex.RComplexFactory.getFor(content, value.dimensions());
+        }
+        public static RDouble stringToDouble(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
             double[] content = new double[size];
             for (int i = 0; i < size; i++) {
                 String str = value.getString(i);
-                content[i] = Convert.string2double(str, naIntroduced);
+                content[i] = Convert.string2double(str, warn);
             }
             return RDouble.RDoubleFactory.getFor(content, value.dimensions());
         }
-        public static RInt stringToInt(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+        public static RInt stringToInt(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
             int[] content = new int[size];
             for (int i = 0; i < size; i++) {
                 String str = value.getString(i);
-                content[i] = Convert.string2int(str, naIntroduced);
+                content[i] = Convert.string2int(str, warn);
             }
             return RInt.RIntFactory.getFor(content, value.dimensions());
         }
-        public static RLogical stringToLogical(RString value, NAIntroduced naIntroduced) { // eager to keep error semantics eager
+        public static RLogical stringToLogical(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
             int[] content = new int[size];
             for (int i = 0; i < size; i++) {
                 String str = value.getString(i);
-                content[i] = Convert.string2logical(str, naIntroduced);
+                content[i] = Convert.string2logical(str, warn);
             }
             return RLogical.RLogicalFactory.getFor(content, value.dimensions());
         }
-        public static RRaw stringToRaw(RString value, NAIntroduced naIntroduced, OutOfRange outOfRange) { // eager to keep error semantics eager
+        public static RRaw stringToRaw(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
             byte[] content = new byte[size];
             for (int i = 0; i < size; i++) {
                 String str = value.getString(i);
-                content[i] = Convert.string2raw(str, naIntroduced, outOfRange);
+                content[i] = Convert.string2raw(str, warn);
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions());
         }
@@ -95,7 +108,7 @@ public interface RString extends RArray {
         }
         public static RString getNAArray(int size, int[] dimensions) {
             if (size == 1 && dimensions == null) {
-                return new ScalarStringImpl(NA);
+                return BOXED_NA;
             }
             String[] content = new String[size];
             for (int i = 0; i < size; i++) {

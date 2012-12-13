@@ -1,6 +1,9 @@
 package r;
 
+import java.util.regex.*;
+
 import r.data.*;
+import r.data.RComplex.Complex;
 import r.errors.*;
 import r.nodes.*;
 
@@ -9,19 +12,55 @@ public class Convert {
     // NOTE: conversion functions do not clear naIntroduced, they only set it if non-null and NA has been introduced
     // indeed this could also be a static field, but hopefully this is faster when no NAs are introduced
 
-    public static class NAIntroduced {
+    // outOfRange is implied by naIntroduced (not set in that case)
+    public static class ConversionStatus {
         public boolean naIntroduced;
+        public boolean outOfRange; // when converting to raw
+        public boolean imagDiscarded; // when converting from complex
     }
 
-    public static class OutOfRange { // not set when NAIntroduced (in that case out of range warning should always be produced)
-        public boolean outOfRange;
+    static final Pattern numberSplit = Pattern.compile("[+-]?[^+-i]+(?:e[+-]?)?[^+-i]*");
+
+    public static Complex string2complex(String v) {
+        return string2complex(v, null);
+    }
+
+    // FIXME: this is slow and only an approximation of R semantics
+    public static Complex string2complex(String v, ConversionStatus warn) {
+        if (v != RString.NA) {
+            String input = v.trim();
+            Matcher m = numberSplit.matcher(input);
+            if (m.find()) {
+                int realEnd = m.end();
+                String sreal = input.substring(m.start(), realEnd);
+                double real = string2double(sreal, warn);
+                double imag = 0;
+                int imagEnd = input.length();
+                if (realEnd != imagEnd) {
+                    if (input.charAt(imagEnd - 1) == 'i') {
+                        String simag = input.substring(realEnd, imagEnd - 1);
+                        imag = string2double(simag, warn);
+                    } else {
+                        if (warn != null) {
+                            warn.naIntroduced = true;
+                        }
+                        return Complex.NA;
+                    }
+                }
+                return new Complex(real, imag);
+            }
+        }
+        if (warn != null) {
+            warn.naIntroduced = true;
+        }
+        return Complex.NA;
     }
 
     public static double string2double(String v) {
         return string2double(v, null);
     }
 
-    public static double string2double(String v, NAIntroduced naIntroduced) {
+    public static double string2double(String v, ConversionStatus warn) {
         if (v != RString.NA) {
             // FIXME use R rules
             try {
@@ -33,8 +72,8 @@ public class Convert {
                     } catch (NumberFormatException ein) {
                     }
                 }
-                if (naIntroduced != null) {
-                    naIntroduced.naIntroduced = true;
+                if (warn != null) {
+                    warn.naIntroduced = true;
                 }
             }
         }
@@ -59,14 +98,14 @@ public class Convert {
         return string2int(s, null);
     }
 
-    public static int string2int(String s, NAIntroduced naIntroduced) {
+    public static int string2int(String s, ConversionStatus warn) {
         if (s != RString.NA) {
             // FIXME use R rules
             try {
                 return Integer.decode(s);  // decode supports hex constants
             } catch (NumberFormatException e) {
-                if (naIntroduced != null) {
-                    naIntroduced.naIntroduced = true;
+                if (warn != null) {
+                    warn.naIntroduced = true;
                 }
             }
         }
@@ -89,7 +128,7 @@ public class Convert {
         return string2logical(s, null);
     }
 
-    public static int string2logical(String s, NAIntroduced naIntroduced) {
+    public static int string2logical(String s, ConversionStatus warn) {
         if (s != RString.NA) {
             if (s.equals("TRUE") || s.equals("T")) {
                 return RLogical.TRUE;
@@ -103,8 +142,8 @@ public class Convert {
             if (s.equals("False") || s.equals("false")) {
                 return RLogical.FALSE;
             }
-            if (naIntroduced != null) {
-                naIntroduced.naIntroduced = true;
+            if (warn != null) {
+                warn.naIntroduced = true;
             }
         }
         return RLogical.NA;
@@ -122,18 +161,18 @@ public class Convert {
     }
 
     public static byte string2raw(String s) {
-        return string2raw(s, null, null);
+        return string2raw(s, null);
     }
 
-    public static byte string2raw(String s, NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public static byte string2raw(String s, ConversionStatus warn) {
         if (s != RString.NA) {
             // FIXME use R rules
             int intVal;
             try {
                  intVal = Integer.decode(s);  // decode supports hex constants
             } catch (NumberFormatException e) {
-                if (naIntroduced != null) {
-                    naIntroduced.naIntroduced = true;
+                if (warn != null) {
+                    warn.naIntroduced = true;
                 }
                 return 0;
             }
@@ -141,8 +180,8 @@ public class Convert {
                 return (byte) intVal;
             }
         }
-        if (outOfRange != null) {
-            outOfRange.outOfRange = true;
+        if (warn != null) {
+            warn.outOfRange = true;
         }
         return RRaw.ZERO;
     }
@@ -151,17 +190,97 @@ public class Convert {
         return rawStrings[byteToUnsigned(v)];
     }
 
+    public static String complex2string(double real, double imag) {
+        if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
+            return double2string(real) + double2string(imag) + "i"; // FIXME: could elide some NA checks through hand-inlining
+        }
+        return RString.NA;
+    }
+
+    public static double complex2double(double real, double imag) {
+        return complex2double(real, imag, null);
+    }
+
+    public static double complex2double(double real, double imag, ConversionStatus warn) {
+        if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+            if (imag != 0 && warn != null) {
+                warn.imagDiscarded = true;
+            }
+            return real;
+        }
+        return RDouble.NA;
+    }
+
+    public static int complex2int(double real, double imag) {
+        return complex2int(real, imag, null);
+    }
+
+    public static int complex2int(double real, double imag, ConversionStatus warn) {
+        if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+            if (RDouble.RDoubleUtils.fitsRInt(real)) {
+                if (imag != 0 && warn != null) {
+                    warn.imagDiscarded = true;
+                }
+                return (int) real;
+            } else {
+                if (warn != null) {
+                    warn.naIntroduced = true;
+                }
+            }
+        }
+        return RInt.NA;
+    }
+
+    public static int complex2logical(double real, double imag) {
+        if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+            boolean v = (real != 0 || imag != 0);
+            return v ? RLogical.TRUE : RLogical.FALSE;
+        } else {
+            return RLogical.NA;
+        }
+    }
+
+    public static byte complex2raw(double real, double imag) {
+        return complex2raw(real, imag, null);
+    }
+
+    public static byte complex2raw(double real, double imag, ConversionStatus warn) {
+        if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+            if (real >= 0 && real < 256) {
+                if (imag != 0 && warn != null) {
+                    warn.imagDiscarded = true;
+                }
+                return (byte) real;
+            }
+            if (!RDouble.RDoubleUtils.fitsRInt(real)) {
+                if (warn != null) {
+                    warn.naIntroduced = true;
+                    // warn.outOfRange = true;  -- implied
+                }
+                return RRaw.ZERO;
+            }
+            // fits an integer, but not raw - out of range
+            if (imag != 0 && warn != null) {
+                warn.imagDiscarded = true;
+            }
+        }
+        if (warn != null) {
+            warn.outOfRange = true;
+        }
+        return RRaw.ZERO;
+    }
+
     public static int double2int(double d) {
         return double2int(d, null);
     }
 
-    public static int double2int(double d, NAIntroduced naIntroduced) {
+    public static int double2int(double d, ConversionStatus warn) {
         if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
             if (RDouble.RDoubleUtils.fitsRInt(d)) {
                 return (int) d;
             } else {
-                if (naIntroduced != null) {
-                    naIntroduced.naIntroduced = true;
+                if (warn != null) {
+                    warn.naIntroduced = true;
                 }
             }
         }
@@ -184,23 +303,23 @@ public class Convert {
     }
 
     public static byte double2raw(double d) {
-        return double2raw(d, null, null);
+        return double2raw(d, null);
     }
 
-    public static byte double2raw(double d, NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public static byte double2raw(double d, ConversionStatus warn) {
         if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
             if (d >= 0 && d < 256) {
                 return (byte) d;
             }
             if (!RDouble.RDoubleUtils.fitsRInt(d)) {
-                if (naIntroduced != null) {
-                    naIntroduced.naIntroduced = true;
+                if (warn != null) {
+                    warn.naIntroduced = true;
                 }
                 return RRaw.ZERO;
             }
         }
-        if (outOfRange != null) {
-            outOfRange.outOfRange = true;
+        if (warn != null) {
+            warn.outOfRange = true;
         }
         return RRaw.ZERO;
     }
@@ -224,12 +343,12 @@ public class Convert {
         return int2raw(v, null);
     }
 
-    public static byte int2raw(int v, OutOfRange outOfRange) {
+    public static byte int2raw(int v, ConversionStatus warn) {
         if (v >= 0 && v < 256) { // note: RInt.NA < 0
             return (byte) v;
         }
-        if (outOfRange != null) {
-            outOfRange.outOfRange = true;
+        if (warn != null) {
+            warn.outOfRange = true;
         }
         return RRaw.ZERO;
     }
@@ -242,12 +361,12 @@ public class Convert {
         return logical2raw(v, null);
     }
 
-    public static byte logical2raw(int v, OutOfRange outOfRange) {
+    public static byte logical2raw(int v, ConversionStatus warn) {
         if (v != RLogical.NA) {
             return (byte) v;
         }
-        if (outOfRange != null) {
-            outOfRange.outOfRange = true;
+        if (warn != null) {
+            warn.outOfRange = true;
         }
         return RRaw.ZERO;
     }
@@ -264,13 +383,12 @@ public class Convert {
         }
     }
 
-    public static final NAIntroduced globalNAIntroduced = new NAIntroduced();
-    public static final OutOfRange globalOutOfRange = new OutOfRange();
+    public static final ConversionStatus globalConversionStatus = new ConversionStatus();
 
     public static RString coerceToStringError(RAny arg, ASTNode ast) { // WARNING: non-reentrant
-        globalNAIntroduced.naIntroduced = false;
-        RString res = arg.asString(globalNAIntroduced);
-        if (!globalNAIntroduced.naIntroduced) {
+        globalConversionStatus.naIntroduced = false;
+        RString res = arg.asString(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
             throw RError.getCannotCoerce(ast, arg.typeOf(), RString.TYPE_STRING);
@@ -278,9 +396,9 @@ public class Convert {
     }
 
     public static RString coerceToStringWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
-        globalNAIntroduced.naIntroduced = false;
-        RString res = arg.asString(globalNAIntroduced);
-        if (!globalNAIntroduced.naIntroduced) {
+        globalConversionStatus.naIntroduced = false;
+        RString res = arg.asString(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
             context.warning(ast, RError.NA_INTRODUCED_COERCION);
@@ -289,9 +407,9 @@ public class Convert {
     }
 
     public static RDouble coerceToDoubleWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
-        globalNAIntroduced.naIntroduced = false;
-        RDouble res = arg.asDouble(globalNAIntroduced);
-        if (!globalNAIntroduced.naIntroduced) {
+        globalConversionStatus.naIntroduced = false;
+        RDouble res = arg.asDouble(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
             context.warning(ast, RError.NA_INTRODUCED_COERCION);
@@ -300,9 +418,9 @@ public class Convert {
     }
 
     public static RInt coerceToIntWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
-        globalNAIntroduced.naIntroduced = false;
-        RInt res = arg.asInt(globalNAIntroduced);
-        if (!globalNAIntroduced.naIntroduced) {
+        globalConversionStatus.naIntroduced = false;
+        RInt res = arg.asInt(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
             context.warning(ast, RError.NA_INTRODUCED_COERCION);
@@ -311,11 +429,11 @@ public class Convert {
     }
 
     public static RRaw coerceToRawWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
-        globalNAIntroduced.naIntroduced = false;
-        globalOutOfRange.outOfRange = false;
-        RRaw res = arg.asRaw(globalNAIntroduced, globalOutOfRange);
-        if (!globalNAIntroduced.naIntroduced) {
-            if (!globalOutOfRange.outOfRange) {
+        globalConversionStatus.naIntroduced = false;
+        globalConversionStatus.outOfRange = false;
+        RRaw res = arg.asRaw(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
+            if (!globalConversionStatus.outOfRange) {
                 // nothing
             } else {
                 context.warning(ast, RError.OUT_OF_RANGE);

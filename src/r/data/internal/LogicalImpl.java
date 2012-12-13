@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -97,8 +96,8 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RLogical.RLogicalUtils.logicalToRaw(this, outOfRange);
+    public RRaw asRaw(ConversionStatus warn) {
+        return RLogical.RLogicalUtils.logicalToRaw(this, warn);
     }
 
     @Override
@@ -107,7 +106,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return this;
     }
 
@@ -117,7 +116,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         return asInt();
     }
 
@@ -127,8 +126,18 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return asDouble();
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return new RLogical.RComplexView(this);
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return asComplex();
     }
 
     @Override
@@ -137,7 +146,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return asString();
     }
 

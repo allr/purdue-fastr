@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -136,8 +135,8 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RString.RStringUtils.stringToRaw(this, naIntroduced, outOfRange);
+    public RRaw asRaw(ConversionStatus warn) {
+        return RString.RStringUtils.stringToRaw(this, warn);
     }
 
     @Override
@@ -147,8 +146,8 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
-        return RString.RStringUtils.stringToLogical(this, naIntroduced);
+    public RLogical asLogical(ConversionStatus warn) {
+        return RString.RStringUtils.stringToLogical(this, warn);
     }
 
     @Override
@@ -158,8 +157,8 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
-        return RString.RStringUtils.stringToInt(this, naIntroduced);
+    public RInt asInt(ConversionStatus warn) {
+        return RString.RStringUtils.stringToInt(this, warn);
     }
 
 
@@ -170,8 +169,19 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
-        return RString.RStringUtils.stringToDouble(this, naIntroduced);
+    public RDouble asDouble(ConversionStatus warn) {
+        return RString.RStringUtils.stringToDouble(this, warn);
+    }
+
+    @Override
+    public RComplex asComplex() {
+        Utils.check(false, "unreachable");
+        return null;
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return RString.RStringUtils.stringToComplex(this, warn);
     }
 
     @Override
@@ -180,7 +190,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return this;
     }
 

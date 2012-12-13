@@ -207,6 +207,12 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     @Override
+    public RComplex asComplex() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RString asString() {
         Utils.nyi();
         return null;

@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 
 
@@ -84,8 +83,8 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RRaw.RRawFactory.getScalar(Convert.string2raw(value, naIntroduced, outOfRange));
+    public RRaw asRaw(ConversionStatus warn) {
+        return RRaw.RRawFactory.getScalar(Convert.string2raw(value, warn));
     }
 
     @Override
@@ -94,8 +93,8 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
-        return RLogical.RLogicalFactory.getScalar(Convert.string2logical(value, naIntroduced));
+    public RLogical asLogical(ConversionStatus warn) {
+        return RLogical.RLogicalFactory.getScalar(Convert.string2logical(value, warn));
     }
 
     @Override
@@ -104,8 +103,8 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
-        return  RInt.RIntFactory.getScalar(Convert.string2int(value, naIntroduced));
+    public RInt asInt(ConversionStatus warn) {
+        return  RInt.RIntFactory.getScalar(Convert.string2int(value, warn));
     }
 
     @Override
@@ -114,8 +113,18 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
-        return RDouble.RDoubleFactory.getScalar(Convert.string2double(value, naIntroduced));
+    public RDouble asDouble(ConversionStatus warn) {
+        return RDouble.RDoubleFactory.getScalar(Convert.string2double(value, warn));
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return RComplex.RComplexFactory.getScalar(Convert.string2complex(value));
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return RComplex.RComplexFactory.getScalar(Convert.string2complex(value, warn));
     }
 
     @Override
@@ -124,7 +133,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return this;
     }
 

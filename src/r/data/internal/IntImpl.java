@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -125,8 +124,8 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RInt.RIntUtils.intToRaw(this, outOfRange);
+    public RRaw asRaw(ConversionStatus warn) {
+        return RInt.RIntUtils.intToRaw(this, warn);
     }
 
     @Override
@@ -135,7 +134,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return asLogical();
     }
 
@@ -145,7 +144,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         return this;
     }
 
@@ -155,8 +154,18 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return asDouble();
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return new RInt.RComplexView(this);
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return asComplex();
     }
 
     @Override
@@ -165,7 +174,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return asString();
     }
 

@@ -1,8 +1,7 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
 
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
@@ -121,8 +120,8 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-        return RDouble.RDoubleUtils.doubleToRaw(this, naIntroduced, outOfRange);
+    public RRaw asRaw(ConversionStatus warn) {
+        return RDouble.RDoubleUtils.doubleToRaw(this, warn);
     }
 
     @Override
@@ -131,7 +130,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         return asLogical();
     }
 
@@ -141,8 +140,8 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
-        return RDouble.RDoubleUtils.double2int(this, naIntroduced);
+    public RInt asInt(ConversionStatus warn) {
+        return RDouble.RDoubleUtils.double2int(this, warn);
     }
 
     @Override
@@ -151,8 +150,18 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         return this;
+    }
+
+    @Override
+    public RComplex asComplex() {
+        return new RDouble.RComplexView(this);
+    }
+
+    @Override
+    public RComplex asComplex(ConversionStatus warn) {
+        return asComplex();
     }
 
     @Override
@@ -161,7 +170,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RString asString(ConversionStatus warn) {
         return asString();
     }
 

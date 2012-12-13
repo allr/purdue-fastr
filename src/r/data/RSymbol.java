@@ -77,6 +77,12 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override
+    public RComplex asComplex() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public RString asString() {
         Utils.nyi();
         return null;
@@ -119,31 +125,37 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public RRaw asRaw(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RComplex asComplex(ConversionStatus warn) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }

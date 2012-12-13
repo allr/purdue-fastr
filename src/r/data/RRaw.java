@@ -49,6 +49,199 @@ public interface RRaw extends RArray {
         }
     }
 
+    public static class RStringView extends View.RStringView implements RString {
+
+        final RRaw orig;
+        public RStringView(RRaw v) {
+            this.orig = v;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RList asList() {
+            return orig.asList();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return orig.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return orig;
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
+            return orig.asInt();
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig;
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public String getString(int i) {
+            byte v = orig.getRaw(i);
+            return Convert.raw2string(v);
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+    }
+
+    public static class RComplexView extends View.RComplexView implements RComplex {
+
+        final RRaw orig;
+        public RComplexView(RRaw v) {
+            this.orig = v;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public RList asList() {
+            return orig.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return orig.asString();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return orig.asInt();
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return orig;
+        }
+
+        @Override
+        public RString asString(ConversionStatus warn) {
+            return orig.asString();
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
+            return orig.asInt();
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig;
+        }
+
+        @Override
+        public double getReal(int i) {
+            byte v = orig.getRaw(i);
+            return Convert.raw2double(v);
+        }
+
+        @Override
+        public double getImag(int i) {
+            return 0;
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+    }
+
     public static class RDoubleView extends View.RDoubleView implements RDouble {
 
         final RRaw orig;
@@ -77,6 +270,11 @@ public interface RRaw extends RArray {
         }
 
         @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
+        }
+
+        @Override
         public RInt asInt() {
             return orig.asInt();
         }
@@ -92,22 +290,27 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return orig.asString();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
             return orig.asInt();
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return orig.asLogical();
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        public RRaw asRaw(ConversionStatus warn) {
             return orig;
         }
 
@@ -156,6 +359,11 @@ public interface RRaw extends RArray {
         }
 
         @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
+        }
+
+        @Override
         public RDouble asDouble() {
             return orig.asDouble();
         }
@@ -171,22 +379,27 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return orig.asString();
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
             return orig.asDouble();
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return orig.asLogical();
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        public RRaw asRaw(ConversionStatus warn) {
             return orig;
         }
 
@@ -245,6 +458,11 @@ public interface RRaw extends RArray {
         }
 
         @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
+        }
+
+        @Override
         public RDouble asDouble() {
             return orig.asDouble();
         }
@@ -260,22 +478,27 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return orig.asString();
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
             return orig.asDouble();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
+        public RInt asInt(ConversionStatus warn) {
             return orig.asInt();
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        public RRaw asRaw(ConversionStatus warn) {
             return orig;
         }
 
@@ -300,89 +523,7 @@ public interface RRaw extends RArray {
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
 
-        final RRaw orig;
-        public RStringView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt() {
-            return orig.asInt();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return orig.asLogical();
-        }
-
-        @Override
-        public RRaw asRaw() {
-            return orig;
-        }
-
-        @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return orig.asInt();
-        }
-
-        @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return orig.asLogical();
-        }
-
-        @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return orig;
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
-        public String getString(int i) {
-            byte v = orig.getRaw(i);
-            return Convert.raw2string(v);
-        }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
-    }
 
     // indexes must all be positive
     //   but can be out of bounds ==> 0's are returned in that case

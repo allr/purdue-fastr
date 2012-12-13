@@ -8,7 +8,6 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.Convert.*;
 import r.data.*;
-import r.nodes.*;
 import r.nodes.truffle.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
@@ -71,6 +70,12 @@ public class ClosureImpl extends BaseObject implements RClosure {
 
     @Override
     public RDouble asDouble() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RComplex asComplex() {
         Utils.nyi();
         return null;
     }
@@ -314,31 +319,37 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
-    public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+    public RRaw asRaw(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RLogical asLogical(NAIntroduced naIntroduced) {
+    public RLogical asLogical(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RInt asInt(NAIntroduced naIntroduced) {
+    public RInt asInt(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RDouble asDouble(NAIntroduced naIntroduced) {
+    public RDouble asDouble(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }
 
     @Override
-    public RString asString(NAIntroduced naIntroduced) {
+    public RComplex asComplex(ConversionStatus warn) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RString asString(ConversionStatus warn) {
         Utils.nyi();
         return null;
     }

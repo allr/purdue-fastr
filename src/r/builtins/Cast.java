@@ -4,8 +4,7 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.Convert;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -18,8 +17,7 @@ import r.nodes.truffle.*;
 // FIXME: Truffle can't handle BuiltIn1
 public class Cast {
 
-    static final NAIntroduced naIntroduced = new NAIntroduced(); // WARNING: calls not re-entrant
-    static final OutOfRange outOfRange = new OutOfRange();
+    static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
     public abstract static class Operation {
         public abstract RAny genericCast(RContext context, ASTNode ast, RAny arg);
@@ -196,7 +194,7 @@ public class Cast {
     // double
     public static RAny genericAsDouble(RContext context, ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
-            naIntroduced.naIntroduced = false;
+            warn.naIntroduced = false;
             RList l = (RList) arg;
             int size = l.size();
             double[] content = new double[size];
@@ -219,7 +217,7 @@ public class Cast {
                     content[i] = RDouble.NA;
                 }
             }
-            if (naIntroduced.naIntroduced) {
+            if (warn.naIntroduced) {
                 context.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             return RDouble.RDoubleFactory.getFor(content); // drop attributes
@@ -245,7 +243,7 @@ public class Cast {
     // int
     public static RAny genericAsInt(RContext context, ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
-            naIntroduced.naIntroduced = false;
+            warn.naIntroduced = false;
             RList l = (RList) arg;
             int size = l.size();
             int[] content = new int[size];
@@ -258,7 +256,7 @@ public class Cast {
                     if (a instanceof RList) {
                         content[i] = RInt.NA;
                     } else {
-                        content[i] = a.asInt(naIntroduced).getInt(0); // FIXME error handling - NA + warning
+                        content[i] = a.asInt(warn).getInt(0); // FIXME error handling - NA + warning
                     }
                 } else {
                     if (asize > 1) {
@@ -268,7 +266,7 @@ public class Cast {
                     content[i] = RInt.NA;
                 }
             }
-            if (naIntroduced.naIntroduced) {
+            if (warn.naIntroduced) {
                 context.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             return RInt.RIntFactory.getFor(content); // drop attributes
@@ -300,8 +298,8 @@ public class Cast {
     // raw
     public static RAny genericAsRaw(RContext context, ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
-            outOfRange.outOfRange = false;
-            naIntroduced.naIntroduced = false;
+            warn.outOfRange = false;
+            warn.naIntroduced = false;
             RList l = (RList) arg;
             int size = l.size();
             byte[] content = new byte[size];
@@ -313,9 +311,9 @@ public class Cast {
                 if (asize == 1) {
                     if (a instanceof RList) {
                         content[i] = RRaw.ZERO;
-                        outOfRange.outOfRange = true;
+                        warn.outOfRange = true;
                     } else {
-                        content[i] = a.asRaw(naIntroduced, outOfRange).getRaw(0); // FIXME error handling - NA + warning
+                        content[i] = a.asRaw(warn).getRaw(0); // FIXME error handling - NA + warning
                     }
                 } else {
                     if (asize > 1) {
@@ -323,16 +321,16 @@ public class Cast {
                     }
                     // asize == 0
                     content[i] = RRaw.ZERO;
-                    outOfRange.outOfRange = true;
+                    warn.outOfRange = true;
                 }
             }
-            if (naIntroduced.naIntroduced) {
+            if (warn.naIntroduced) {
                 context.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
-            if (naIntroduced.naIntroduced) {
+            if (warn.naIntroduced) {
                 context.warning(ast, RError.NA_INTRODUCED_COERCION);
                 context.warning(ast, RError.OUT_OF_RANGE);
-            } else if (outOfRange.outOfRange) {
+            } else if (warn.outOfRange) {
                 context.warning(ast, RError.OUT_OF_RANGE);
             }
             return RRaw.RRawFactory.getFor(content); // drop attributes

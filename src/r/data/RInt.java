@@ -1,8 +1,9 @@
 package r.data;
 
+import java.util.*;
+
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.internal.*;
 
 // FIXME: add conversion to scalar representation to copies (also other types that have scalar representations)
@@ -22,12 +23,12 @@ public interface RInt extends RNumber {
     RInt materialize();
 
     public class RIntUtils {
-        public static RRaw intToRaw(RInt value, OutOfRange outOfRange) { // eager to keep error semantics eager
+        public static RRaw intToRaw(RInt value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
             byte[] content = new byte[size];
             for (int i = 0; i < size; i++) {
                 int ival = value.getInt(i);
-                content[i] = Convert.int2raw(ival, outOfRange);
+                content[i] = Convert.int2raw(ival, warn);
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions());
         }
@@ -72,12 +73,10 @@ public interface RInt extends RNumber {
         }
         public static RInt getNAArray(int size, int[] dimensions) {
             if (size == 1 && dimensions == null) {
-                return new ScalarIntImpl(NA);
+                return BOXED_NA;
             }
             int[] content = new int[size];
-            for (int i = 0; i < size; i++) {
-                content[i] = NA;
-            }
+            Arrays.fill(content, NA);
             return new IntImpl(content, dimensions, false);
         }
         public static IntImpl getMatrixFor(int[] values, int m, int n) {
@@ -118,337 +117,476 @@ public interface RInt extends RNumber {
 
     public static class RStringView extends View.RStringView implements RString {
 
-        final RInt rint;
-        public RStringView(RInt rint) {
-            this.rint = rint;
+        final RInt orig;
+        public RStringView(RInt orig) {
+            this.orig = orig;
         }
 
         @Override
         public int size() {
-            return rint.size();
+            return orig.size();
         }
 
         @Override
         public RList asList() {
-            return rint.asList();
+            return orig.asList();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
         }
 
         @Override
         public RDouble asDouble() {
-            return rint.asDouble();
+            return orig.asDouble();
         }
 
         @Override
         public RInt asInt() {
-            return rint;
+            return orig;
         }
 
         @Override
         public RLogical asLogical() {
-            return rint.asLogical();
+            return orig.asLogical();
         }
 
         @Override
         public RRaw asRaw() {
-            return rint.asRaw();
+            return orig.asRaw();
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return rint.asDouble();
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return rint;
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return rint.asLogical();
+        public RInt asInt(ConversionStatus warn) {
+            return orig;
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return rint.asRaw(naIntroduced, outOfRange);
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig.asRaw(warn);
         }
 
         @Override
         public RAttributes getAttributes() {
-            return rint.getAttributes();
+            return orig.getAttributes();
         }
 
         @Override
         public String getString(int i) {
-            int v = rint.getInt(i);
+            int v = orig.getInt(i);
             return Convert.int2string(v);
         }
 
         @Override
         public boolean isSharedReal() {
-            return rint.isShared();
+            return orig.isShared();
         }
 
         @Override
         public void ref() {
-            rint.ref();
+            orig.ref();
         }
 
         @Override
         public int[] dimensions() {
-            return rint.dimensions();
+            return orig.dimensions();
+        }
+    }
+
+    public static class RComplexView extends View.RComplexView implements RComplex {
+
+        final RInt orig;
+        public RComplexView(RInt orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RList asList() {
+            return orig.asList();
+        }
+
+        @Override
+        public RString asString() {
+            return orig.asString();
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt() {
+            return orig;
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return orig.asRaw();
+        }
+
+        @Override
+        public RString asString(ConversionStatus warn) {
+            return orig.asString();
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
+            return orig;
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig.asRaw(warn);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public double getReal(int i) {
+            int v = orig.getInt(i);
+            return Convert.int2double(v);
+        }
+
+        @Override
+        public double getImag(int i) {
+            return 0;
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
         }
     }
 
     public static class RDoubleView extends View.RDoubleView implements RDouble {
 
-        final RInt rint;
-        public RDoubleView(RInt rint) {
-            this.rint = rint;
+        final RInt orig;
+        public RDoubleView(RInt orig) {
+            this.orig = orig;
         }
 
         @Override
         public int size() {
-            return rint.size();
+            return orig.size();
         }
 
         @Override
         public RList asList() {
-            return rint.asList();
+            return orig.asList();
         }
 
         @Override
         public RString asString() {
-            return rint.asString();
+            return orig.asString();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
         }
 
         @Override
         public RInt asInt() {
-            return rint;
+            return orig;
         }
 
         @Override
         public RLogical asLogical() {
-            return rint.asLogical();
+            return orig.asLogical();
         }
 
         @Override
         public RRaw asRaw() {
-            return rint.asRaw();
+            return orig.asRaw();
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return rint.asString();
+        public RString asString(ConversionStatus warn) {
+            return orig.asString();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return rint;
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return rint.asLogical();
+        public RInt asInt(ConversionStatus warn) {
+            return orig;
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return rint.asRaw(naIntroduced, outOfRange);
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig.asRaw(warn);
         }
 
         @Override
         public RAttributes getAttributes() {
-            return rint.getAttributes();
+            return orig.getAttributes();
         }
 
         @Override
         public double getDouble(int i) {
-            int v = rint.getInt(i);
+            int v = orig.getInt(i);
             return Convert.int2double(v);
         }
 
         @Override
         public boolean isSharedReal() {
-            return rint.isShared();
+            return orig.isShared();
         }
 
         @Override
         public void ref() {
-            rint.ref();
+            orig.ref();
         }
 
         @Override
         public int[] dimensions() {
-            return rint.dimensions();
+            return orig.dimensions();
         }
     }
 
     public static class RLogicalView extends View.RLogicalView implements RLogical {
 
-        final RInt rint;
-        public RLogicalView(RInt rint) {
-            this.rint = rint;
+        final RInt orig;
+        public RLogicalView(RInt orig) {
+            this.orig = orig;
         }
 
         @Override
         public int size() {
-            return rint.size();
+            return orig.size();
         }
 
         @Override
         public RList asList() {
-            return rint.asList();
+            return orig.asList();
         }
 
         @Override
         public RString asString() {
-            return rint.asString();
+            return orig.asString();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
         }
 
         @Override
         public RDouble asDouble() {
-            return rint.asDouble();
+            return orig.asDouble();
         }
 
         @Override
         public RInt asInt() {
-            return rint;
+            return orig;
         }
 
         @Override
         public RRaw asRaw() {
-            return rint.asRaw();
+            return orig.asRaw();
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return rint.asString();
+        public RString asString(ConversionStatus warn) {
+            return orig.asString();
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return rint.asDouble();
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return rint;
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return rint.asRaw(naIntroduced, outOfRange);
+        public RInt asInt(ConversionStatus warn) {
+            return orig;
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return orig.asRaw(warn);
         }
 
         @Override
         public RAttributes getAttributes() {
-            return rint.getAttributes();
+            return orig.getAttributes();
         }
 
         @Override
         public int getLogical(int i) {
-            int v = rint.getInt(i);
+            int v = orig.getInt(i);
             return Convert.int2logical(v);
         }
 
         @Override
         public boolean isSharedReal() {
-            return rint.isShared();
+            return orig.isShared();
         }
 
         @Override
         public void ref() {
-            rint.ref();
+            orig.ref();
         }
 
         @Override
         public int[] dimensions() {
-            return rint.dimensions();
+            return orig.dimensions();
         }
     }
 
-    public static class RRawView extends View.RRawView implements RRaw {
+    public static class RRawView extends View.RRawView implements RRaw { // FIXME: remove this? it breaks warnings
 
-        final RInt rint;
-        public RRawView(RInt rint) {
-            this.rint = rint;
+        final RInt orig;
+        public RRawView(RInt orig) {
+            this.orig = orig;
         }
 
         @Override
         public int size() {
-            return rint.size();
+            return orig.size();
         }
 
         @Override
         public RList asList() {
-            return rint.asList();
+            return orig.asList();
         }
 
         @Override
         public RString asString() {
-            return rint.asString();
+            return orig.asString();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return orig.asComplex();
         }
 
         @Override
         public RDouble asDouble() {
-            return rint.asDouble();
+            return orig.asDouble();
         }
 
         @Override
         public RInt asInt() {
-            return rint;
+            return orig;
         }
 
         @Override
         public RLogical asLogical() {
-            return rint.asLogical();
+            return orig.asLogical();
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
-            return rint.asString();
+        public RString asString(ConversionStatus warn) {
+            return orig.asString();
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return rint.asDouble();
+        public RComplex asComplex(ConversionStatus warn) {
+            return orig.asComplex();
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return rint;
+        public RDouble asDouble(ConversionStatus warn) {
+            return orig.asDouble();
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return rint.asLogical();
+        public RInt asInt(ConversionStatus warn) {
+            return orig;
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return orig.asLogical();
         }
 
         @Override
         public RAttributes getAttributes() {
-            return rint.getAttributes();
+            return orig.getAttributes();
         }
 
         @Override
         public byte getRaw(int i) {
-            int v = rint.getInt(i);
+            int v = orig.getInt(i);
             return Convert.int2raw(v);
         }
 
         @Override
         public boolean isSharedReal() {
-            return rint.isShared();
+            return orig.isShared();
         }
 
         @Override
         public void ref() {
-            rint.ref();
+            orig.ref();
         }
 
         @Override
         public int[] dimensions() {
-            return rint.dimensions();
+            return orig.dimensions();
         }
     }
 

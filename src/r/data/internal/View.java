@@ -1,9 +1,9 @@
 package r.data.internal;
 
 import r.*;
-import r.Convert.NAIntroduced;
-import r.Convert.OutOfRange;
+import r.Convert.ConversionStatus;
 import r.data.*;
+import r.data.RComplex.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -74,7 +74,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
+        public RRaw asRaw(ConversionStatus warn) {
             return this;
         }
 
@@ -84,7 +84,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return asLogical();
         }
 
@@ -94,7 +94,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
+        public RInt asInt(ConversionStatus warn) {
             return asInt();
         }
 
@@ -104,8 +104,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RDouble asDouble(ConversionStatus warn) {
             return asDouble();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return new RRaw.RComplexView(this);
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return asComplex();
         }
 
         @Override
@@ -114,7 +124,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return asString();
         }
 
@@ -167,8 +177,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return RLogical.RLogicalUtils.logicalToRaw(this, outOfRange);
+        public RRaw asRaw(ConversionStatus warn) {
+            return RLogical.RLogicalUtils.logicalToRaw(this, warn);
         }
 
         @Override
@@ -177,7 +187,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return this;
         }
 
@@ -187,7 +197,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
+        public RInt asInt(ConversionStatus warn) {
             return asInt();
         }
 
@@ -197,8 +207,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RDouble asDouble(ConversionStatus warn) {
             return asDouble();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return new RLogical.RComplexView(this);
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return asComplex();
         }
 
         @Override
@@ -207,7 +227,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return asString();
         }
 
@@ -264,8 +284,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return RInt.RIntUtils.intToRaw(this, outOfRange);
+        public RRaw asRaw(ConversionStatus warn) {
+            return RInt.RIntUtils.intToRaw(this, warn);
         }
 
         @Override
@@ -274,7 +294,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return asLogical();
         }
 
@@ -284,7 +304,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
+        public RInt asInt(ConversionStatus warn) {
             return this;
         }
 
@@ -294,8 +314,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RDouble asDouble(ConversionStatus warn) {
             return asDouble();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return new RInt.RComplexView(this);
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return asComplex();
         }
 
         @Override
@@ -356,8 +386,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return RDouble.RDoubleUtils.doubleToRaw(this, naIntroduced, outOfRange);
+        public RRaw asRaw(ConversionStatus warn) {
+            return RDouble.RDoubleUtils.doubleToRaw(this, warn);
         }
 
         @Override
@@ -366,7 +396,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
+        public RLogical asLogical(ConversionStatus warn) {
             return asLogical();
         }
 
@@ -376,8 +406,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return RDouble.RDoubleUtils.double2int(this, naIntroduced);
+        public RInt asInt(ConversionStatus warn) {
+            return RDouble.RDoubleUtils.double2int(this, warn);
         }
 
         @Override
@@ -386,8 +416,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
+        public RDouble asDouble(ConversionStatus warn) {
             return this;
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return new RDouble.RComplexView(this);
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return asComplex();
         }
 
         @Override
@@ -396,7 +436,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return asString();
         }
 
@@ -409,7 +449,6 @@ public abstract class View extends ArrayImpl implements RArray {
         public RAttributes getAttributes() {
             return null;
         }
-
 
         @Override
         public RDouble set(int i, double val) {
@@ -424,6 +463,108 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RDouble.TYPE_STRING;
+        }
+    }
+
+    public abstract static class RComplexView extends View implements RComplex {
+        @Override
+        public Object get(int i) {
+            return new Complex(getReal(i), getImag(i));
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RComplex.RComplexFactory.getScalar(getReal(i), getImag(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return RComplex.RComplexUtils.eitherIsNAorNaN(getReal(i), getImag(i));
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return asRaw(null);
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return RComplex.RComplexUtils.complexToRaw(this, warn);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return new RComplex.RLogicalView(this);
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return asLogical();
+        }
+
+        @Override
+        public RInt asInt() {
+            return asInt(null);
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
+            return RComplex.RComplexUtils.complex2int(this, warn);
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return asDouble(null);
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
+            return RComplex.RComplexUtils.complex2double(this, warn);
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return this;
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return this;
+        }
+
+        @Override
+        public RString asString() {
+            return new RComplex.RStringView(this);
+        }
+
+        @Override
+        public RString asString(ConversionStatus warn) {
+            return asString();
+        }
+
+        @Override
+        public RComplex materialize() {
+            return RComplex.RComplexFactory.copy(this);
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return null;
+        }
+
+        @Override
+        public RComplex set(int i, double real, double imag) {
+            return materialize().set(i, real, imag);
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RComplex.RComplexFactory.subset(this, index);
+        }
+
+        @Override
+        public String typeOf() {
+            return RComplex.TYPE_STRING;
         }
     }
 
@@ -445,8 +586,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RRaw asRaw(NAIntroduced naIntroduced, OutOfRange outOfRange) {
-            return RString.RStringUtils.stringToRaw(this, naIntroduced, outOfRange);
+        public RRaw asRaw(ConversionStatus warn) {
+            return RString.RStringUtils.stringToRaw(this, warn);
         }
 
         @Override
@@ -456,8 +597,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RLogical asLogical(NAIntroduced naIntroduced) {
-            return RString.RStringUtils.stringToLogical(this, naIntroduced);
+        public RLogical asLogical(ConversionStatus warn) {
+            return RString.RStringUtils.stringToLogical(this, warn);
         }
 
         @Override
@@ -467,8 +608,8 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RInt asInt(NAIntroduced naIntroduced) {
-            return RString.RStringUtils.stringToInt(this, naIntroduced);
+        public RInt asInt(ConversionStatus warn) {
+            return RString.RStringUtils.stringToInt(this, warn);
         }
 
         @Override
@@ -478,8 +619,19 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RDouble asDouble(NAIntroduced naIntroduced) {
-            return RString.RStringUtils.stringToDouble(this, naIntroduced);
+        public RDouble asDouble(ConversionStatus warn) {
+            return RString.RStringUtils.stringToDouble(this, warn);
+        }
+
+        @Override
+        public RComplex asComplex() {
+            Utils.check(false, "unreachable");
+            return null;
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return RString.RStringUtils.stringToComplex(this, warn);
         }
 
         @Override
@@ -488,7 +640,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RString asString(NAIntroduced naIntroduced) {
+        public RString asString(ConversionStatus warn) {
             return this;
         }
 
@@ -554,6 +706,12 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public RComplex asComplex() {
             Utils.nyi();
             return null;
         }
