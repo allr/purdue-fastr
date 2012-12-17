@@ -75,6 +75,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ rep(1,3) }", "1.0, 1.0, 1.0");
         assertEval("{ rep(1:3,2) }", "1L, 2L, 3L, 1L, 2L, 3L");
         assertEval("{ rep(c(1,2),0) }", "numeric(0)");
+        assertEval("{ rep(1:3, length.out=4) }", "1L, 2L, 3L, 1L");
+        assertEval("{ rep(1:3, length.out=NA) }", "1L, 2L, 3L");
     }
 
     @Test

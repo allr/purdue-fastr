@@ -174,7 +174,7 @@ public abstract class BuiltIn extends AbstractCall {
             AnalyzedArguments a = new AnalyzedArguments(nParams, nArgs);
             boolean[] usedArgs = new boolean[nArgs];
 
-            for (int i = 0; i < nArgs; i++) { // matching by name
+            outerLoop: for (int i = 0; i < nArgs; i++) { // matching by name
                 if (argNames[i] != null) {
                     for (int j = 0; j < nParams; j++) {
                         if (argNames[i] == paramNames[j]) {
@@ -182,20 +182,15 @@ public abstract class BuiltIn extends AbstractCall {
                             a.paramPositions[j] = i;
                             a.providedParams[j] = true;
                             usedArgs[i] = true;
+                            continue outerLoop;
                         }
-                    }
+                    } // reachable even in non-error case - when threeDots is among parameter names
                 }
             }
 
             int nextParam = 0;
             for (int i = 0; i < nArgs; i++) { // matching by position
                 if (!usedArgs[i]) {
-                    if (paramNames[nextParam] == threeDots) {
-                        /* usedArgs[i] = true; - not needed */
-                        a.argPositions[i] = nextParam;
-                        a.paramPositions[nextParam] = i; // so record the last argument that was taken by ...
-                        continue;
-                    }
                     while (nextParam < nParams && a.providedParams[nextParam]) {
                         nextParam++;
                     }
@@ -206,8 +201,17 @@ public abstract class BuiltIn extends AbstractCall {
                         }
                         a.unusedArgs.add(i);
                     } else {
+                        if (paramNames[nextParam] == threeDots) {
+                            /* usedArgs[i] = true; - not needed */
+                            a.argPositions[i] = nextParam;
+                            a.paramPositions[nextParam] = i; // so record the last argument that was taken by ...
+                            continue;
+                        }
                         if (argExprs[i] != null) {
                             /* usedArgs[i] = true; - not needed */
+                            if (argNames[i] != null) {
+                                throw RError.getGenericError(null, "Unknown parameter " + argNames[i].pretty() + " passed to a builtin"); // FIXME: better error message
+                            }
                             a.argPositions[i] = nextParam;
                             a.paramPositions[nextParam] = i;
                             a.providedParams[nextParam] = true;

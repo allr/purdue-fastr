@@ -76,7 +76,7 @@ public class Substring {
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, substringParamNames);
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, substrParamNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;

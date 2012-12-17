@@ -24,10 +24,11 @@ public class Combine {
     public static RAny genericCombine(RAny[] params) {
         int len = 0;
         boolean hasNull = false;
-        boolean hasDouble = false;
         boolean hasLogical = false;
         boolean hasInt = false;
         boolean hasList = false;
+        boolean hasDouble = false;
+        boolean hasComplex = false;
         boolean hasString = false;
         for (int i = 0; i < params.length; i++) {
             RAny v = params[i];
@@ -40,6 +41,8 @@ public class Combine {
                 hasList = true;
             } else if (v instanceof RString) {
                 hasString = true;
+            } else if (v instanceof RComplex) {
+                hasComplex = true;
             } else if (v instanceof RDouble) {
                 hasDouble = true;
             } else if (v instanceof RInt) {
@@ -83,6 +86,16 @@ public class Combine {
                     continue;
                 }
                 offset = fillIn(res, v instanceof RString ? (RString) v : v.asString(), offset);
+            }
+            return res;
+        }
+        if (hasComplex) {
+            RComplex res = RComplex.RComplexFactory.getUninitializedArray(len);
+            for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
+                offset = fillIn(res, v instanceof RComplex ? (RComplex) v : v.asComplex(), offset);
             }
             return res;
         }

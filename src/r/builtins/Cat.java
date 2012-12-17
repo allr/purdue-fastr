@@ -32,6 +32,9 @@ public class Cat {
         if (v instanceof RString) {
             return catElement((RString) v, i);
         }
+        if (v instanceof RComplex) {
+            return catElement((RComplex) v, i);
+        }
         if (v instanceof RRaw) {
             return catElement((RRaw) v, i);
         }
@@ -41,6 +44,10 @@ public class Cat {
 
     public static String catElement(RString v, int i) {
         return v.getString(i);
+    }
+
+    public static String catElement(RComplex v, int i) {
+        return Convert.pretty(Convert.complex2string(v.getReal(i), v.getImag(i)));
     }
 
     public static String catElement(RDouble v, int i) {
@@ -62,8 +69,6 @@ public class Cat {
         byte n = v.getRaw(i);
         return Convert.raw2string(n);
     }
-
-
 
     public static void genericCat(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) {
 

@@ -1,6 +1,7 @@
 package r.builtins;
 
 import r.*;
+import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.internal.*;
@@ -13,7 +14,8 @@ import com.oracle.truffle.runtime.*;
 // FIXME: Truffle can't handle BuiltIn2
 public class Rep {
 
-    private static final String[] paramNames = new String[]{"x", "times"};
+    private static final String[] repIntParamNames = new String[]{"x", "times"};
+    private static final String[] repParamNames = new String[]{"x", "..."};
 
     private static final int IX = 0;
     private static final int ITIMES = 1;
@@ -25,7 +27,137 @@ public class Rep {
         }
     }
 
-    public static RAny rep(ASTNode ast, RAny arg0, RAny arg1) {
+    public static RInt repInt(final RInt orig, final int origSize, final int size) {
+        return new View.RIntView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public int getInt(int i) {
+                return orig.getInt(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RDouble repInt(final RDouble orig, final int origSize, final int size) {
+        return new View.RDoubleView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public double getDouble(int i) {
+                return orig.getDouble(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RLogical repInt(final RLogical orig, final int origSize, final int size) {
+        return new View.RLogicalView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public int getLogical(int i) {
+                return orig.getLogical(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RString repInt(final RString orig, final int origSize, final int size) {
+        return new View.RStringView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public String getString(int i) {
+                return orig.getString(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RComplex repInt(final RComplex orig, final int origSize, final int size) {
+        return new View.RComplexView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public double getReal(int i) {
+                return orig.getReal(i % origSize);
+            }
+
+            @Override
+            public double getImag(int i) {
+                return orig.getImag(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RAny genericRepInt(ASTNode ast, RAny arg0, RAny arg1) {
 
         int times = -1;
         if (arg1 instanceof RDouble) {
@@ -66,177 +198,128 @@ public class Rep {
         } else {
             Utils.nyi("unsupported times argument");
         }
-        final int ftimes = times;
         if (arg0 instanceof RInt) {
-            final RInt orig = (RInt) arg0;
-            final int osize = orig.size();
-            final int size = osize * ftimes;
-
-            return new View.RIntView() {
-
-                @Override
-                public int size() {
-                    return size;
-                }
-
-                @Override
-                public int getInt(int i) {
-                    return orig.getInt(i % osize);
-                }
-
-                @Override
-                public boolean isSharedReal() {
-                    return orig.isShared();
-                }
-
-                @Override
-                public void ref() {
-                    orig.ref();
-                }
-            };
+            RInt orig = (RInt) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
         }
         if (arg0 instanceof RDouble) {
-            final RDouble orig = (RDouble) arg0;
-            final int osize = orig.size();
-            final int size = osize * ftimes;
-
-            return new View.RDoubleView() {
-
-                @Override
-                public int size() {
-                    return size;
-                }
-
-                @Override
-                public double getDouble(int i) {
-                    return orig.getDouble(i % osize);
-                }
-
-                @Override
-                public boolean isSharedReal() {
-                    return orig.isShared();
-                }
-
-                @Override
-                public void ref() {
-                    orig.ref();
-                }
-            };
+            RDouble orig = (RDouble) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
         }
         if (arg0 instanceof RLogical) {
-            final RLogical orig = (RLogical) arg0;
-            final int osize = orig.size();
-            final int size = osize * ftimes;
-
-            return new View.RLogicalView() {
-
-                @Override
-                public int size() {
-                    return size;
-                }
-
-                @Override
-                public int getLogical(int i) {
-                    return orig.getLogical(i % osize);
-                }
-
-                @Override
-                public boolean isSharedReal() {
-                    return orig.isShared();
-                }
-
-                @Override
-                public void ref() {
-                    orig.ref();
-                }
-            };
+            RLogical orig = (RLogical) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
         }
         if (arg0 instanceof RString) {
-            final RString orig = (RString) arg0;
-            final int osize = orig.size();
-            final int size = osize * ftimes;
-
-            return new View.RStringView() {
-
-                @Override
-                public int size() {
-                    return size;
-                }
-
-                @Override
-                public String getString(int i) {
-                    return orig.getString(i % osize);
-                }
-
-                @Override
-                public boolean isSharedReal() {
-                    return orig.isShared();
-                }
-
-                @Override
-                public void ref() {
-                    orig.ref();
-                }
-            };
+            RString orig = (RString) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
         }
         if (arg0 instanceof RComplex) {
-            final RComplex orig = (RComplex) arg0;
-            final int osize = orig.size();
-            final int size = osize * ftimes;
-
-            return new View.RComplexView() {
-
-                @Override
-                public int size() {
-                    return size;
-                }
-
-                @Override
-                public double getReal(int i) {
-                    return orig.getReal(i % osize);
-                }
-
-                @Override
-                public double getImag(int i) {
-                    return orig.getImag(i % osize);
-                }
-
-                @Override
-                public boolean isSharedReal() {
-                    return orig.isShared();
-                }
-
-                @Override
-                public void ref() {
-                    orig.ref();
-                }
-            };
+            RComplex orig = (RComplex) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
         }
         Utils.nyi("unsupported base type for rep");
         return null;
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
+    public static RAny genericRepLengthOut(RContext context, ASTNode ast, RAny argX, RAny argLengthOut) {
+        RInt ilengthOut = Convert.coerceToIntWarning(argLengthOut, context, ast); // FIXME: not exactly R semantics, R will not produce warnings on coercion for arguments at indexes 2 and higher
+        int len;
+        if (ilengthOut.size() == 1) {
+            len = ilengthOut.getInt(0);
+            if (len < 0) {
+                if (len != RInt.NA) {
+                    throw RError.getInvalidArgument(ast, "length.out");
+                } else {
+                    return argX;
+                }
+            }
+        } else {
+            return argX;
+        }
+        if (argX instanceof RDouble) {
+            RDouble x = (RDouble) argX;
+            return repInt(x, x.size(), len);
+        }
+        if (argX instanceof RInt) {
+            RInt x = (RInt) argX;
+            return repInt(x, x.size(), len);
+        }
+        if (argX instanceof RLogical) {
+            RLogical x = (RLogical) argX;
+            return repInt(x, x.size(), len);
+        }
+        if (argX instanceof RString) {
+            RString x = (RString) argX;
+            return repInt(x, x.size(), len);
+        }
+        if (argX instanceof RComplex) {
+            RComplex x = (RComplex) argX;
+            return repInt(x, x.size(), len);
+        }
+        Utils.nyi("unsupported base type for rep");
+        return null;
+    }
+
+    public static final CallFactory REPINT_FACTORY = new CallFactory() {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, repIntParamNames);
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
 
             if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
+                BuiltIn.missingArg(call, repIntParamNames[IX]);
             }
             if (!provided[ITIMES]) {
-                BuiltIn.missingArg(call, paramNames[ITIMES]);
+                BuiltIn.missingArg(call, repIntParamNames[ITIMES]);
             }
+            final boolean xfirst = paramPositions[IX] == 0;
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
-                    final boolean xfirst = paramPositions[IX] == 0;
-                    return rep(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                    return genericRepInt(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                 }
             };
+        }
+    };
+
+    public static final CallFactory REP_FACTORY = new CallFactory() {
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, repParamNames);
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (!provided[IX]) {
+                BuiltIn.missingArg(call, repIntParamNames[IX]);
+            }
+            if (names.length == 2) {
+                int otherPos = paramPositions[IX] == 0 ? 1 : 0;
+                RSymbol otherName = names[otherPos];
+                if (otherName == null || otherName == RSymbol.getSymbol("times")) {
+                    return REPINT_FACTORY.create(call, names, exprs);
+                }
+                if (otherName == RSymbol.getSymbol("length.out")) {
+                    final boolean xfirst = paramPositions[IX] == 0;
+                    return new BuiltIn.BuiltIn2(call, names, exprs) {
+                        @Override
+                        public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                            return genericRepLengthOut(context, ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                        }
+                    };
+
+                }
+            }
+            Utils.nyi("unsupported rep arguments");
+            return null;
         }
     };
 }

@@ -177,7 +177,7 @@ public class Seq {
                                       return Combine.genericCombine(new RAny[] {argfrom, argto});
                                   }
                                   if (from == to) {
-                                      return Rep.rep(ast, argfrom, arglengthOut);
+                                      return Rep.genericRepInt(ast, argfrom, arglengthOut);
                                   }
 
                                   double by = ((to - from) / (lengthOut - 1)); // FIXME: this may not reflect exactly R semantics in corner cases

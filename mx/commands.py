@@ -1,5 +1,5 @@
 
-import os, sys, shutil;
+import os, sys, shutil, hashlib;
 from os.path import exists, join;
 import mx;
 
@@ -23,7 +23,8 @@ def mx_init():
       'rfasta': [rfastaServer, '[size]'],
       'rfastaredux': [rfastareduxServer, '[size]'],
       'rpidigits': [rpidigitsServer, '[size]'],
-      'rregexdna': [rregexdnaServer, '[size]'],      
+      'rregexdna': [rregexdnaServer, '[size]'],
+      'rmandelbrot': [rmandelbrotServer, '[size]'],      
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -102,6 +103,10 @@ def rpidigitsServer(args):
 def rregexdnaServer(args):
   """Run Regexdna with the HotSpot server VM"""  
   rregexdna(args, [], 'server')
+
+def rmandelbrotServer(args):
+  """Run Mandelbrot with the HotSpot server VM"""  
+  rmandelbrot(args, [], 'server')
 
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
@@ -224,6 +229,28 @@ def rregexdna(args, vmArgs, vm):
 #  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
   rconsole(vmArgs, vm, ['-f', tmp]);
 
+def rmandelbrot(args, vmArgs, vm):
+  """Run Mandelbrot benchmark using the given VM"""
+  
+  output = ".tmp.mandelbrot.out";
+  outputFile = open(output, "w")
+  def out(line): 
+    outputFile.write(line)
+  global gvmOut 
+  gvmOut = out
+  rshootout(args, vmArgs, vm, "mandelbrot", "mandelbrot.r", "1000");
+  gvmOut = None
+  outputFile.close()
+  # note - the output file contants "NULL\n" at the end, something that should not be there
+  
+  sinfo = os.stat(output)
+  size = sinfo.st_size
+  file = open(output, "r");
+  data = file.read(size - 5)
+  file.close() 
+  hash = hashlib.md5(data).hexdigest()
+  print "Binary output has size ", size, " and MD5 hash ", hash, "\n"
+  
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 

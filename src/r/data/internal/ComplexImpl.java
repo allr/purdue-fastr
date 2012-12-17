@@ -109,7 +109,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public double getImag(int i) {
-        return content[2 * i];
+        return content[2 * i + 1];
     }
 
     @Override

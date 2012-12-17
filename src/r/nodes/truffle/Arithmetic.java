@@ -844,8 +844,8 @@ public class Arithmetic extends BaseR {
                 bi = i;
             }
             double areal = a.getReal(ai);
-            double aimag = a.getImag(bi);
-            double breal = b.getReal(ai);
+            double aimag = a.getImag(ai);
+            double breal = b.getReal(bi);
             double bimag = b.getImag(bi);
             if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
                 return arit.opReal(context, ast, areal, aimag, breal, bimag);
@@ -869,8 +869,8 @@ public class Arithmetic extends BaseR {
                 bi = i;
             }
             double areal = a.getReal(ai);
-            double aimag = a.getImag(bi);
-            double breal = b.getReal(ai);
+            double aimag = a.getImag(ai);
+            double breal = b.getReal(bi);
             double bimag = b.getImag(bi);
             if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
                 return arit.opImag(context, ast, areal, aimag, breal, bimag);

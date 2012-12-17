@@ -70,8 +70,8 @@ public class Primitives {
         add("raw", 0, 1, ArrayConstructor.RAW_FACTORY);
         add("readLines", 0, 5, ReadLines.FACTORY);
         add("regexpr", 2, 6, RegExpr.REGEXPR_FACTORY);
-        add("rep", 2, 2, Rep.FACTORY); // in fact rep.int
-        add("rep.int", 2, 2, Rep.FACTORY);
+        add("rep", 2, 2, Rep.REP_FACTORY);
+        add("rep.int", 2, 2, Rep.REPINT_FACTORY);
         add("return", 0, 1, Return.FACTORY);
         add("rowMeans", 1, 3, ColumnsRowsStats.ROWMEANS_FACTORY);
         add("rowSums", 1, 3, ColumnsRowsStats.ROWSUMS_FACTORY);
