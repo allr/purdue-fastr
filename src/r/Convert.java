@@ -192,7 +192,8 @@ public class Convert {
 
     public static String complex2string(double real, double imag) {
         if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
-            return double2string(real) + double2string(imag) + "i"; // FIXME: could elide some NA checks through hand-inlining
+            String sgn = (imag >= 0) ? "+" : "";
+            return double2string(real) + sgn + double2string(imag) + "i"; // FIXME: could elide some NA checks through hand-inlining
         }
         return RString.NA;
     }

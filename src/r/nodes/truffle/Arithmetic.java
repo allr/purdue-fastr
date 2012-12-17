@@ -9,7 +9,8 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
-
+// FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
+// FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
 public class Arithmetic extends BaseR {
 
     @Stable RNode left;
@@ -75,6 +76,68 @@ public class Arithmetic extends BaseR {
         }
 
         public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+            if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarComplexImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarComplexImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
+                        double lreal = lcomp.getReal();
+                        double limag = lcomp.getImag();
+                        ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
+                        double rreal = rcomp.getReal();
+                        double rimag = rcomp.getImag();
+                        if (!RComplex.RComplexUtils.eitherIsNA(lreal, limag) && !RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                            return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, limag, rreal, rimag), arit.opImag(context, ast, lreal, limag, rreal, rimag));
+                        } else {
+                            return RComplex.BOXED_NA;
+                        }
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarComplex, ScalarComplex>");
+            }
+            if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarDoubleImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
+                        double lreal = lcomp.getReal();
+                        double limag = lcomp.getImag();
+                        double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (!RComplex.RComplexUtils.eitherIsNA(lreal, limag) && !RDouble.RDoubleUtils.isNA(rreal)) {
+                            return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, limag, rreal, 0), arit.opImag(context, ast, lreal, limag, rreal, 0));
+                        } else {
+                            return RComplex.BOXED_NA;
+                        }
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarComplex, ScalarDouble>");
+            }
+            if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarComplexImpl) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarComplexImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
+                        ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
+                        double rreal = rcomp.getReal();
+                        double rimag = rcomp.getImag();
+                        if (!RDouble.RDoubleUtils.isNA(lreal) && !RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                            return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, 0, rreal, rimag), arit.opImag(context, ast, lreal, 0, rreal, rimag));
+                        } else {
+                            return RComplex.BOXED_NA;
+                        }
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<ScalarDouble, ScalarComplex>");
+            }
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
                     @Override
@@ -171,35 +234,29 @@ public class Arithmetic extends BaseR {
 
         public static Specialized createGeneric(final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             Calculator c;
-
-            if (returnsDouble(arit)) {
-                c = new Calculator() {
-                    @Override
-                    public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+            final boolean returnsDouble = returnsDouble(arit);
+            c = new Calculator() {
+                @Override
+                public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                    if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
+                        RComplex lcmp = lexpr.asComplex();
+                        RComplex rcmp = rexpr.asComplex();
+                        return ComplexView.create(lcmp, rcmp, context, arit, ast);
+                    }
+                    if (returnsDouble || lexpr instanceof RDouble || rexpr instanceof RDouble) {
                         RDouble ldbl = lexpr.asDouble();
                         RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
                         return DoubleView.create(ldbl, rdbl, context, arit, ast);
                     }
-                };
-            } else {
-                c = new Calculator() {
-                    @Override
-                    public Object calc(RContext context, RAny lexpr, RAny rexpr) {
-                        if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
-                            RDouble ldbl = lexpr.asDouble();
-                            RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            return DoubleView.create(ldbl, rdbl, context, arit, ast);
-                        }
-                        if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
-                            RInt lint = lexpr.asInt();
-                            RInt rint = rexpr.asInt();
-                            return IntView.create(lint, rint, context, arit, ast);
-                        }
-                        Utils.nyi("unsupported case for binary arithmetic operation");
-                        return null;
+                    if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
+                        RInt lint = lexpr.asInt();
+                        RInt rint = rexpr.asInt();
+                        return IntView.create(lint, rint, context, arit, ast);
                     }
-                };
-            }
+                    Utils.nyi("unsupported case for binary arithmetic operation");
+                    return null;
+                }
+            };
             return new Specialized(ast, left, right, arit, c, "<Generic, Generic>");
         }
 
@@ -249,7 +306,7 @@ public class Arithmetic extends BaseR {
                         return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rdbl));
                     }
                 };
-                return createLeftConst(ast, left, right, arit, c, "<ConstScalarDouble, Number>");
+                return createLeftConst(ast, left, right, arit, c, "<ConstScalarNon-Complex, ScalarDouble>");
             }
             if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
@@ -267,7 +324,7 @@ public class Arithmetic extends BaseR {
                         return RDouble.RDoubleFactory.getScalar(arit.op(context, ast, ldbl, rdbl));
                     }
                 };
-                return createRightConst(ast, left, right, arit, c, "<Number, ConstScalarDouble>");
+                return createRightConst(ast, left, right, arit, c, "<ScalarDouble, ConstScalarNon-Complex>");
             }
             // non-const is int and const is double
             // FIXME: handle also logical?
@@ -387,71 +444,61 @@ public class Arithmetic extends BaseR {
             Calculator c = null;
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
+            final boolean returnsDouble = returnsDouble(arit);
 
-            if (returnsDouble(arit)) {
-                if (leftConst) {
-                    final RDouble ldbl = leftTemplate.asDouble(); // FIXME: could force materialization
-                    c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+            if (leftConst) {
+                final boolean leftComplex = leftTemplate instanceof RComplex;
+                final boolean leftDouble = leftTemplate instanceof RDouble;
+                final boolean leftLogicalOrInt = leftTemplate instanceof RLogical || leftTemplate instanceof RInt; // FIXME: does this pre-allocation pay off?
+                final RComplex lcmp = (leftComplex) ? (RComplex) leftTemplate : leftTemplate.asComplex();
+                final RDouble ldbl = (leftDouble) ? (RDouble) leftTemplate : leftTemplate.asDouble();
+                final RInt lint = (leftLogicalOrInt) ? leftTemplate.asInt() : null;
+                c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                        if (leftComplex || rexpr instanceof RComplex) {
+                            RComplex rcmp = rexpr.asComplex();
+                            return ComplexView.create(lcmp, rcmp, context, arit, ast);
+                        }
+                        if (returnsDouble || leftDouble || rexpr instanceof RDouble) {
                             RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
                             return DoubleView.create(ldbl, rdbl, context, arit, ast);
                         }
-                    };
-                }
-                if (rightConst) {
-                    final RDouble rdbl = rightTemplate.asDouble(); // FIXME: could force materialization
-                    c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                        if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
+                            RInt rint = rexpr.asInt();
+                            return IntView.create(lint, rint, context, arit, ast);
+                        }
+                        Utils.nyi("unsupported case for binary arithmetic operation");
+                        return null;
+                    }
+                };
+            }
+            if (rightConst) {
+                final boolean rightComplex = rightTemplate instanceof RComplex;
+                final boolean rightDouble = rightTemplate instanceof RDouble;
+                final boolean rightLogicalOrInt = rightTemplate instanceof RLogical || rightTemplate instanceof RInt;
+                final RComplex rcmp = (rightComplex) ? (RComplex) rightTemplate : rightTemplate.asComplex();
+                final RDouble rdbl = (rightDouble) ? (RDouble) rightTemplate : rightTemplate.asDouble();
+                final RInt rint = (rightLogicalOrInt) ? rightTemplate.asInt() : null;
+                c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) {
+                        if (rightComplex || lexpr instanceof RComplex) {
+                            RComplex lcmp = lexpr.asComplex();
+                            return ComplexView.create(lcmp, rcmp, context, arit, ast);
+                        }
+                        if (returnsDouble || rightDouble || lexpr instanceof RDouble) {
                             RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
                             return DoubleView.create(ldbl, rdbl, context, arit, ast);
                         }
-                    };
-                }
-            } else {
-                if (leftConst) {
-                    final boolean leftDouble = leftTemplate instanceof RDouble;
-                    final boolean leftLogicalOrInt = leftTemplate instanceof RLogical || leftTemplate instanceof RInt;
-                    final RDouble ldbl = (leftDouble) ? (RDouble) leftTemplate : leftTemplate.asDouble();
-                    final RInt lint = (leftLogicalOrInt) ? leftTemplate.asInt() : null;
-                    c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
-                            if (leftDouble || rexpr instanceof RDouble) {
-                                RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                return DoubleView.create(ldbl, rdbl, context, arit, ast);
-                            }
-                            if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
-                                RInt rint = rexpr.asInt();
-                                return IntView.create(lint, rint, context, arit, ast);
-                            }
-                            Utils.nyi("unsupported case for binary arithmetic operation");
-                            return null;
+                        if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
+                            RInt lint = lexpr.asInt();
+                            return IntView.create(lint, rint, context, arit, ast);
                         }
-                    };
-                }
-                if (rightConst) {
-                    final boolean rightDouble = rightTemplate instanceof RDouble;
-                    final boolean rightLogicalOrInt = rightTemplate instanceof RLogical || rightTemplate instanceof RInt;
-                    final RDouble rdbl = (rightDouble) ? (RDouble) rightTemplate : rightTemplate.asDouble();
-                    final RInt rint = (rightLogicalOrInt) ? rightTemplate.asInt() : null;
-                    c = new Calculator() {
-                        @Override
-                        public Object calc(RContext context, RAny lexpr, RAny rexpr) {
-                            if (rightDouble || lexpr instanceof RDouble) {
-                                RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                                return DoubleView.create(ldbl, rdbl, context, arit, ast);
-                            }
-                            if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
-                                RInt lint = lexpr.asInt();
-                                return IntView.create(lint, rint, context, arit, ast);
-                            }
-                            Utils.nyi("unsupported case for binary arithmetic operation");
-                            return null;
-                        }
-                    };
-                }
+                        Utils.nyi("unsupported case for binary arithmetic operation");
+                        return null;
+                    }
+                };
             }
             if (c == null) {
                 Utils.nyi("unreachable");
@@ -508,6 +555,9 @@ public class Arithmetic extends BaseR {
     }
 
     public abstract static class ValueArithmetic {
+        public abstract double opReal(RContext context, ASTNode ast, double a, double b, double c, double d); // (a + bi)  op  (c + di)
+        public abstract double opImag(RContext context, ASTNode ast, double a, double b, double c, double d);
+
         public abstract double op(RContext context, ASTNode ast, double a, double b);
         public abstract int op(RContext context, ASTNode ast, int a, int b);
 
@@ -520,6 +570,14 @@ public class Arithmetic extends BaseR {
     }
 
     public static final class Add extends ValueArithmetic {
+        @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return a + c;
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return b + d;
+        }
         @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return a + b;
@@ -543,6 +601,14 @@ public class Arithmetic extends BaseR {
 
     public static final class Sub extends ValueArithmetic {
         @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return a - c;
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return b - d;
+        }
+        @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return a - b;
         }
@@ -557,7 +623,15 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    public static final class Mult extends ValueArithmetic {
+    public static final class Mult extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+        @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return a * c - b * d;
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return b * c + a * d;
+        }
         @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return a * b;
@@ -573,7 +647,17 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    public static final class Pow extends ValueArithmetic {
+    public static final class Pow extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+        @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            Utils.nyi();
+            return -1;
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            Utils.nyi();
+            return -1;
+        }
         @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return Math.pow(a, b); // FIXME: check that the R rules correspond to Java
@@ -585,7 +669,15 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    public static final class Div extends ValueArithmetic {
+    public static final class Div extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+        @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return (a * c + b * d) / (c * c + d * d);
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            return (b * c - a * d) / (c * c + d * d);
+        }
         @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return a / b; // FIXME: check that the R rules correspond to Java
@@ -598,6 +690,14 @@ public class Arithmetic extends BaseR {
     }
 
     public static final class IntegerDiv extends ValueArithmetic {
+        @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
         @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             double q = a / b;
@@ -636,6 +736,14 @@ public class Arithmetic extends BaseR {
 
     public static final class Mod extends ValueArithmetic {
         @Override
+        public double opReal(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public double opImag(RContext context, ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
         public double op(RContext context, ASTNode ast, double a, double b) {
             return fmod(context, ast, a, b);
         }
@@ -660,6 +768,133 @@ public class Arithmetic extends BaseR {
     public static final Div DIV = new Div();
     public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
     public static final Mod MOD = new Mod();
+
+    static class ComplexView extends View.RComplexView implements RComplex {
+        final RComplex a;
+        final RComplex b;
+        final RContext context;
+        final int na;
+        final int nb;
+        final int n;
+        final int[] dimensions;
+        boolean overflown = false;
+
+        final ValueArithmetic arit;
+        final ASTNode ast;
+
+        // limiting view depth
+        private int depth;  // total views involved
+
+        public static RComplex create(RComplex a, RComplex b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            int depth = 0;
+            if (LIMIT_VIEW_DEPTH) {
+                int adepth = (a instanceof ComplexView) ? ((ComplexView) a).depth : 0; // FIXME what about chains of double/complex views, etc?
+                int bdepth = (b instanceof ComplexView) ? ((ComplexView) b).depth : 0;
+                depth = adepth + bdepth + 1;
+            }
+            int[] dim = resultDimensions(ast, a, b);
+            ComplexView res = new ComplexView(a, b, dim, depth, context, arit, ast);
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+                return RComplexFactory.copy(res);
+            }
+            return res;
+        }
+
+        public ComplexView(RComplex a, RComplex b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
+            this.a = a;
+            this.b = b;
+            this.context = context;
+            na = a.size();
+            nb = b.size();
+            this.ast = ast;
+            this.arit = arit;
+            this.dimensions = dimensions;
+            this.depth = depth;
+
+            if (na > nb) {
+                n = na;
+                if ((n / nb) * nb != n) {
+                    context.warning(ast, RError.LENGTH_NOT_MULTI);
+                }
+            } else {
+                n = nb;
+                if ((n / na) * na != n) {
+                    context.warning(ast, RError.LENGTH_NOT_MULTI);
+                }
+            }
+        }
+
+        @Override
+        public int size() {
+            return n;
+        }
+
+        @Override
+        public double getReal(int i) { // FIXME: this is very likely to be slow (real and imag getters repeat the same computation)
+            int ai;
+            int bi;
+            if (i >= na) {
+                ai = i % na;
+                bi = i;
+            } else if (i >= nb) {
+                bi = i % nb;
+                ai = i;
+            } else {
+                ai = i;
+                bi = i;
+            }
+            double areal = a.getReal(ai);
+            double aimag = a.getImag(bi);
+            double breal = b.getReal(ai);
+            double bimag = b.getImag(bi);
+            if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
+                return arit.opReal(context, ast, areal, aimag, breal, bimag);
+            } else {
+                return RDouble.NA;
+            }
+        }
+
+        @Override
+        public double getImag(int i) { // FIXME: this is very likely to be slow (real and imag getters repeat the same computation)
+            int ai;
+            int bi;
+            if (i >= na) {
+                ai = i % na;
+                bi = i;
+            } else if (i >= nb) {
+                bi = i % nb;
+                ai = i;
+            } else {
+                ai = i;
+                bi = i;
+            }
+            double areal = a.getReal(ai);
+            double aimag = a.getImag(bi);
+            double breal = b.getReal(ai);
+            double bimag = b.getImag(bi);
+            if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
+                return arit.opImag(context, ast, areal, aimag, breal, bimag);
+            } else {
+                return RDouble.NA;
+            }
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public void ref() {
+            a.ref();
+            b.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return dimensions;
+        }
+    }
 
     static class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;

@@ -179,6 +179,39 @@ public class Rep {
                 }
             };
         }
+        if (arg0 instanceof RComplex) {
+            final RComplex orig = (RComplex) arg0;
+            final int osize = orig.size();
+            final int size = osize * ftimes;
+
+            return new View.RComplexView() {
+
+                @Override
+                public int size() {
+                    return size;
+                }
+
+                @Override
+                public double getReal(int i) {
+                    return orig.getReal(i % osize);
+                }
+
+                @Override
+                public double getImag(int i) {
+                    return orig.getImag(i % osize);
+                }
+
+                @Override
+                public boolean isSharedReal() {
+                    return orig.isShared();
+                }
+
+                @Override
+                public void ref() {
+                    orig.ref();
+                }
+            };
+        }
         Utils.nyi("unsupported base type for rep");
         return null;
     }

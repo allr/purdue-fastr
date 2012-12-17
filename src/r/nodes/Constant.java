@@ -62,8 +62,7 @@ public class Constant extends ASTNode {
 
     public static Constant createComplexConstant(double... values) {
         if (values.length == 1) {
-// return new Constant(RComplex.RDoubleFactory.getArray(values));
-            // Punt since I don't whant to create a class constant
+            return new Constant(RComplex.RComplexFactory.getScalar(0, values[0]));
         }
         throw new Error("Non scalar constants are not implemented.");
     }

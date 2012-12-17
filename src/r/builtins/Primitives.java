@@ -27,6 +27,7 @@ public class Primitives {
         add(">=", 2, 2, Operators.GE_FACTORY);
         add("%*%", 2, 2, Operators.MAT_MULT_FACTORY);
         add("%o%", 2, 2, Operators.OUTER_MULT_FACTORY);
+        add("abs", 1, 1, Abs.FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
         add("as.double", 0, -1, Cast.DOUBLE_FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);

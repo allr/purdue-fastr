@@ -37,6 +37,12 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ 3L %% 0L }", "NA");
 
         assertEval("{ 0x10 + 0x10L + 1.28 }", "33.28");
+
+        assertEval("{ (1+2i)*(3+4i) }", "-5.0+10.0i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; x*y }", "-5.0+10.0i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; x/y }", "0.44+0.08i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; x-y }", "-2.0-2.0i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; x*x*y/(x+y) }", "-1.9230769230769231+2.8846153846153846i");
     }
 
     @Test
@@ -68,6 +74,11 @@ public class TestSimpleArithmetic extends TestBase {
 
         assertEval("{ a <- as.raw(201) ; !a }", "36");
         assertEval("{ a <- as.raw(12) ; !a }", "f3");
+
+        assertEval("{ -(0/0) }", "NaN");
+        assertEval("{ -(1/0) }", "-Infinity");
+        assertEval("{ -(1[2]) }", "NA");
+
     }
 
     @Test

@@ -9,6 +9,8 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
+// FIXME: scalar tests using instanceof
+
 public abstract class UnaryMinus extends BaseR {
     @Stable RNode lhs;
 
@@ -40,6 +42,28 @@ public abstract class UnaryMinus extends BaseR {
             abstract RAny minus(RAny value) throws UnexpectedResultException;
         }
 
+        private static RComplex forComplex(RComplex cvalue) throws UnexpectedResultException {
+            if (cvalue.size() != 1) {
+                throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
+            }
+            double real = cvalue.getReal(0);
+            double imag = cvalue.getImag(0);
+            double nreal;
+            double nimag;
+            if (!RDouble.RDoubleUtils.isNAorNaN(real)) {
+                nreal = -real;
+            } else {
+                nreal = real;
+            }
+            if (!RDouble.RDoubleUtils.isNAorNaN(imag)) {
+                nimag = -imag;
+            } else {
+                nimag = imag;
+            }
+            return RComplex.RComplexFactory.getScalar(nreal, nimag);
+        }
+
+
         private static RDouble forDouble(RDouble dvalue) throws UnexpectedResultException {
             if (dvalue.size() != 1) {
                 throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
@@ -65,6 +89,18 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         public Specialized createSimple(RAny valueTemplate) {
+            if (valueTemplate instanceof RComplex) {
+                Minus minus = new Minus() {
+                    @Override
+                    RAny minus(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RComplex)) {
+                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                        }
+                        return forComplex((RComplex) value);
+                    }
+                };
+                return new Specialized(ast, lhs, minus, "NumericScalar<Double>");
+            }
             if (valueTemplate instanceof RDouble) {
                 Minus minus = new Minus() {
                     @Override
@@ -97,6 +133,9 @@ public abstract class UnaryMinus extends BaseR {
             Minus minus = new Minus() {
                 @Override
                 RAny minus(RAny value) throws UnexpectedResultException {
+                    if (value instanceof RComplex) {
+                        return forComplex((RComplex) value);
+                    }
                     if (value instanceof RDouble) {
                         return forDouble((RDouble) value);
                     }
@@ -163,6 +202,49 @@ public abstract class UnaryMinus extends BaseR {
         @Override
         RAny execute(RContext context, RAny value) {
 
+            if (value instanceof RComplex) {
+                final RComplex cvalue = (RComplex) value;
+                final int vsize = cvalue.size();
+                if (vsize == 0) {
+                    throw RError.getInvalidArgTypeUnary(ast);
+                }
+                return new View.RComplexView() {
+                    @Override
+                    public int size() {
+                        return vsize;
+                    }
+
+                    @Override
+                    public double getReal(int i) {
+                        double d = cvalue.getReal(i);
+                        if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            return -d;
+                        } else {
+                            return d;
+                        }
+                    }
+
+                    @Override
+                    public double getImag(int i) {
+                        double d = cvalue.getImag(i);
+                        if (!RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            return -d;
+                        } else {
+                            return d;
+                        }
+                    }
+
+                    @Override
+                    public boolean isSharedReal() {
+                        return cvalue.isShared();
+                    }
+
+                    @Override
+                    public void ref() {
+                        cvalue.ref();
+                    }
+                };
+            }
             if (value instanceof RDouble) {
                 final RDouble dvalue = (RDouble) value;
                 final int vsize = dvalue.size();
