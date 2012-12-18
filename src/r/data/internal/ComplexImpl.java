@@ -10,6 +10,10 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     final double[] content; // real0, imag0, real1, imag1, ...
     final int size;
 
+    public double[] getContent() {
+        return content;
+    }
+
     public ComplexImpl(double[] values, int[] dimensions, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];

@@ -5,6 +5,7 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
+import r.data.RComplex.RComplexUtils;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -23,6 +24,8 @@ public class Arithmetic extends BaseR {
 
     private static final boolean DEBUG_AR = false;
     private static final boolean PROFILE_DOUBLE_VIEWS = false;  // only works with EAGER == false and best with LIMIT_VIEW_DEPTH == false
+
+    private static final boolean EAGER_COMPLEX = true;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
         super(ast);
@@ -289,6 +292,94 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
+            // non-const is complex
+            if (leftConst && (rightTemplate instanceof ScalarComplexImpl) &&
+               (leftTemplate instanceof ScalarComplexImpl || leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
+                RComplex lcmp = leftTemplate.asComplex();
+                final double lreal = lcmp.getReal(0);
+                final double limag =  lcmp.getImag(0);
+                final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarComplexImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        ScalarComplexImpl rcmp = (ScalarComplexImpl) rexpr;
+                        double rreal = rcmp.getReal();
+                        double rimag = rcmp.getImag();
+                        if (isLeftNA || RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                            return RComplex.BOXED_NA;
+                        }
+                        return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, limag, rreal, rimag), arit.opImag(context, ast, lreal, limag, rreal, rimag));
+                    }
+                };
+                return createLeftConst(ast, left, right, arit, c, "<ConstScalarNumber, ScalarComplex>");
+            }
+            if (rightConst && (leftTemplate instanceof ScalarComplexImpl) &&
+                (rightTemplate instanceof ScalarComplexImpl || rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
+                 RComplex rcmp = rightTemplate.asComplex();
+                 final double rreal = rcmp.getReal(0);
+                 final double rimag =  rcmp.getImag(0);
+                 final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
+                 Calculator c = new Calculator() {
+                     @Override
+                     public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                         if (!(lexpr instanceof ScalarComplexImpl)) {
+                             throw new UnexpectedResultException(null);
+                         }
+                         ScalarComplexImpl lcmp = (ScalarComplexImpl) lexpr;
+                         double lreal = lcmp.getReal();
+                         double limag = lcmp.getImag();
+                         if (isRightNA || RComplex.RComplexUtils.eitherIsNA(lreal, limag)) {
+                             return RComplex.BOXED_NA;
+                         }
+                         return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, limag, rreal, rimag), arit.opImag(context, ast, lreal, limag, rreal, rimag));
+                     }
+                 };
+                 return createLeftConst(ast, left, right, arit, c, "<ScalarComplex, ConstScalarNumber>");
+            }
+            // non-const is double and const is complex
+            if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarComplexImpl)) {
+                 ScalarComplexImpl lcmp = (ScalarComplexImpl) leftTemplate;
+                 final double lreal = lcmp.getReal(0);
+                 final double limag =  lcmp.getImag(0);
+                 final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
+                 Calculator c = new Calculator() {
+                     @Override
+                     public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                         if (!(rexpr instanceof ScalarDoubleImpl)) {
+                             throw new UnexpectedResultException(null);
+                         }
+                         double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
+                         if (isLeftNA || RDouble.RDoubleUtils.isNA(rreal)) {
+                             return RComplex.BOXED_NA;
+                         }
+                         return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, limag, rreal, 0), arit.opImag(context, ast, lreal, limag, rreal, 0));
+                     }
+                 };
+                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarComplex, ScalarDouble>");
+            }
+            if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarComplexImpl)) {
+                ScalarComplexImpl rcmp = (ScalarComplexImpl) rightTemplate;
+                final double rreal = rcmp.getReal(0);
+                final double rimag =  rcmp.getImag(0);
+                final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
+                        if (isRightNA || RDouble.RDoubleUtils.isNA(lreal)) {
+                            return RComplex.BOXED_NA;
+                        }
+                        return RComplex.RComplexFactory.getScalar(arit.opReal(context, ast, lreal, 0, rreal, rimag), arit.opImag(context, ast, lreal, 0, rreal, rimag));
+                    }
+                };
+                return createLeftConst(ast, left, right, arit, c, "<ScalarDouble, ConstScalarComplex>");
+           }
             // non-const is double
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
@@ -567,6 +658,9 @@ public class Arithmetic extends BaseR {
         public double op(RContext context, ASTNode ast, int a, double b) {
             return op(context, ast, (double) a, b);
         }
+
+        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions);
+        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions);
     }
 
     public static final class Add extends ValueArithmetic {
@@ -597,6 +691,47 @@ public class Arithmetic extends BaseR {
             }
             return RInt.NA;
         }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            double[] y = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                double c = y[i];
+                double d = y[j];
+                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                    res[i] = a + c;
+                    res[j] = b + d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                if (!RComplexUtils.eitherIsNA(a, b)) {
+                    res[i] = a + c;
+                    res[j] = b + d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
     }
 
     public static final class Sub extends ValueArithmetic {
@@ -620,6 +755,47 @@ public class Arithmetic extends BaseR {
             } else {
                 return RInt.NA;
             }
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            double[] y = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                double c = y[i];
+                double d = y[j];
+                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                    res[i] = a - c;
+                    res[j] = b - d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                if (!RComplexUtils.eitherIsNA(a, b)) {
+                    res[i] = a - c;
+                    res[j] = b - d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
         }
     }
 
@@ -645,6 +821,47 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            double[] y = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                double c = y[i];
+                double d = y[j];
+                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                    res[i] = a * c - b * d;
+                    res[j] = b * c + a * d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                if (!RComplexUtils.eitherIsNA(a, b)) {
+                    res[i] = a * c - b * d;
+                    res[j] = b * c + a * d;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
     }
 
     public static final class Pow extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
@@ -667,6 +884,16 @@ public class Arithmetic extends BaseR {
             Utils.nyi("unreachable");
             return -1;
         }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            Utils.nyi();
+            return null;
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            Utils.nyi();
+            return null;
+        }
     }
 
     public static final class Div extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
@@ -686,6 +913,49 @@ public class Arithmetic extends BaseR {
         public int op(RContext context, ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            double[] y = xcomp.getContent();
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                double c = y[i];
+                double d = y[j];
+                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                    double denom = c * c + d * d;
+                    res[i] = (a * c + b * d) / denom;
+                    res[j] = (b * c - a * d) / denom;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            int rsize = size * 2;
+            double[] res = new double[rsize];
+            double[] x = xcomp.getContent();
+            double denom = c * c + d * d;
+            int j = 1;
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                if (!RComplexUtils.eitherIsNA(a, b)) {
+                    res[i] = (a * c + b * d) / denom;
+                    res[j] = (b * c - a * d) / denom;
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
+                }
+            }
+            return RComplex.RComplexFactory.getFor(res, dimensions);
         }
     }
 
@@ -717,6 +987,14 @@ public class Arithmetic extends BaseR {
             } else {
                 return RInt.NA;
             }
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            throw RError.getUnimplementedComplex(ast);
         }
     }
 
@@ -759,6 +1037,14 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+            throw RError.getUnimplementedComplex(ast);
+        }
     }
 
     public static final Add ADD = new Add();
@@ -786,6 +1072,23 @@ public class Arithmetic extends BaseR {
         private int depth;  // total views involved
 
         public static RComplex create(RComplex a, RComplex b, RContext context, ValueArithmetic arit, ASTNode ast) {
+            if (EAGER_COMPLEX) {
+                int asize = a.size();
+                if (asize > 1) {
+                    int bsize = b.size();
+                    if (asize == bsize) {
+                        return arit.op(context, ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b));
+                    }
+                    if (bsize == 1) {
+                        double c = b.getReal(0);
+                        double d = b.getImag(0);
+                        if (!RComplexUtils.eitherIsNA(c, d)) {
+                            return arit.op(context, ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b));
+                        }
+                        // NOTE: NA case falls back, could be added here
+                    }
+                }
+            }
             int depth = 0;
             if (LIMIT_VIEW_DEPTH) {
                 int adepth = (a instanceof ComplexView) ? ((ComplexView) a).depth : 0; // FIXME what about chains of double/complex views, etc?

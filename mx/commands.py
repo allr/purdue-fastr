@@ -238,7 +238,7 @@ def rmandelbrot(args, vmArgs, vm):
     outputFile.write(line)
   global gvmOut 
   gvmOut = out
-  rshootout(args, vmArgs, vm, "mandelbrot", "mandelbrot.r", "1000");
+  rshootout(args, vmArgs, vm, "mandelbrot", "mandelbrot.r", "6000");
   gvmOut = None
   outputFile.close()
   # note - the output file contants "NULL\n" at the end, something that should not be there
