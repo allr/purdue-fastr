@@ -91,7 +91,6 @@ public class WriteBin {
                             if (!mode.write()) {
                                throw RError.getCannotWriteConnection(ast);
                             }
-                            Utils.check(mode.text()); // TODO: GNU-R seems to be happily reading from binary connections, too
                             wasOpen = true;
                         } else {
                             con.open(defaultMode, ast);

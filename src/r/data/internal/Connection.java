@@ -21,9 +21,7 @@ public abstract class Connection {
         this.defaultMode = defaultMode;
     }
 
-    public boolean isOpen() {
-        return mode != null;
-    }
+    public abstract boolean isOpen();
 
     public ConnectionMode currentMode() {
         return mode;
@@ -80,10 +78,9 @@ public abstract class Connection {
 
         @Override
         public void open(ConnectionMode openMode) throws IOException {
-            Utils.check(mode == null);
             boolean needsWrite = openMode.write() || openMode.append();
-
             file = new RandomAccessFile(description, !needsWrite ? "r" : "rw");
+            mode = openMode;
         }
 
         @Override
@@ -152,6 +149,11 @@ public abstract class Connection {
                 throw RError.getGenericError(ast, e.toString());
             }
         }
+
+        @Override
+        public boolean isOpen() {
+            return file != null;
+        }
     }
 
     public static class PipeConnection extends Connection {
@@ -193,7 +195,6 @@ public abstract class Connection {
 
         @Override
         public void open(ConnectionMode openMode) throws IOException {
-            Utils.check(mode == null);
             if (openMode.read()) {
                 processBuilder.redirectOutput(Redirect.PIPE);
             } else {
@@ -205,8 +206,8 @@ public abstract class Connection {
                 processBuilder.redirectOutput(Redirect.INHERIT);
             }
             // NOTE: GNU-R uses popen, which can either read, or write, but not both
-
             process = processBuilder.start();
+            mode = openMode;
         }
 
         @Override
@@ -271,6 +272,11 @@ public abstract class Connection {
             } catch (IOException e) {
                 throw RError.getGenericError(ast, e.toString());
             }
+        }
+
+        @Override
+        public boolean isOpen() {
+            return process != null;
         }
     }
 }
