@@ -25,7 +25,6 @@ public class Diagonal {
                     RArray a = (RArray) x;
                     int[] dim = a.dimensions();
                     if (dim == null || dim.length != 2) {
-                        Utils.debug("DIMENSIONS ARE" + dim);
                         throw RError.getOnlyMatrixDiagonals(ast);
                     }
                     int m = dim[0];
@@ -38,6 +37,12 @@ public class Diagonal {
                     if (x instanceof RList || value instanceof RList) {
                         typedX = x.asList();
                         typedValue = value.asList();
+                    } else if (x instanceof RString || value instanceof RString) {
+                        typedX = x.asString();
+                        typedValue = value.asString();
+                    } else if (x instanceof RComplex || value instanceof RComplex) {
+                        typedX = x.asComplex();
+                        typedValue = value.asComplex();
                     } else if (x instanceof RDouble || value instanceof RDouble) {
                         typedX = x.asDouble();
                         typedValue = value.asDouble();
@@ -47,6 +52,9 @@ public class Diagonal {
                     } else if (x instanceof RLogical || value instanceof RLogical) {
                         typedX = x.asLogical();
                         typedValue = value.asLogical();
+                    } else if (x instanceof RRaw && value instanceof RRaw) {
+                        typedX = (RRaw) x;
+                        typedValue = (RRaw) value;
                     } else {
                         Utils.nyi("unsupported types");
                         return null;

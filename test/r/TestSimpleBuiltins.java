@@ -237,6 +237,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ upper.tri(1:3, diag=FALSE) }", "      [,1]\n[1,] FALSE\n[2,] FALSE\n[3,] FALSE");
         assertEval("{ lower.tri(1:3, diag=TRUE) }", "     [,1]\n[1,] TRUE\n[2,] TRUE\n[3,] TRUE");
         assertEval("{ lower.tri(1:3, diag=FALSE) }", "      [,1]\n[1,] FALSE\n[2,]  TRUE\n[3,]  TRUE");
+
+        assertEval("{ m <- { matrix( as.character(1:6), nrow=2 ) } ; diag(m) <- c(1,2) ; m }", "      [,1]  [,2] [,3]\n[1,] \"1.0\"  \"3L\" \"5L\"\n[2,]  \"2L\" \"2.0\" \"6L\"");
+        assertEval("{ m <- { matrix( (1:6) * (1+3i), nrow=2 ) } ; diag(m) <- c(1,2) ; m }", "         [,1]     [,2]      [,3]\n[1,] 1.0+0.0i 3.0+9.0i 5.0+15.0i\n[2,] 2.0+6.0i 2.0+0.0i 6.0+18.0i");
+        assertEval("{ m <- { matrix( as.raw(11:16), nrow=2 ) } ; diag(m) <- c(as.raw(1),as.raw(2)) ; m }", "     [,1] [,2] [,3]\n[1,]   01   0d   0f\n[2,]   0c   02   10");
     }
 
     @Test
