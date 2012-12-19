@@ -93,6 +93,7 @@ public abstract class RError extends RuntimeException {
     public static final String NOT_CONNECTION = "'%s' is not a connection";
     public static final String INCOMPLETE_FINAL_LINE = "incomplete final line found on '%s'";
     public static final String CANNOT_OPEN_PIPE = "cannot open pipe() cmd '%s': %s";
+    public static final String INVALID_TYPE_ARGUMENT = "invalid 'type' (%s) of argument";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -847,6 +848,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getNotConnection(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.NOT_CONNECTION, argName));
+    }
+
+    public static RError getInvalidTypeArgument(ASTNode ast, String typeName) {
+        return getGenericError(ast, String.format(RError.INVALID_TYPE_ARGUMENT, typeName));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

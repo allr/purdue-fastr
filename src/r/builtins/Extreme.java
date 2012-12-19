@@ -14,9 +14,11 @@ public class Extreme {
     public abstract static class Operation {
         public abstract boolean moreExtreme(int a, int b);
         public abstract boolean moreExtreme(double a, double b);
-        public abstract double extreme(double a, double b);
+        public abstract boolean moreExtreme(String a, String b);
         public abstract int extreme(int a, int b);
-        public abstract RDouble emptySetExtreme();
+        public abstract double extreme(double a, double b);
+        public abstract String extreme(String a, String b);
+        public abstract RAny emptySetExtreme();
     }
 
     public static final class ExtremeCallFactory extends CallFactory {
@@ -26,8 +28,29 @@ public class Extreme {
             this.op = op;
         }
 
+        // result is RString scalar
+        public RAny extreme(RString arg, RContext context, ASTNode ast) {
+            int size = arg.size();
+            if (size == 0) {
+                context.warning(ast, RError.NO_NONMISSING_MAX);
+                return op.emptySetExtreme();
+            }
+            String res = arg.getString(0);
+            for (int i = 1; i < size; i++) {
+                String s = arg.getString(i);
+                if (s != RString.NA) {
+                    if (op.moreExtreme(s, res)) {
+                        res = s;
+                    }
+                } else {
+                    return RString.BOXED_NA;
+                }
+            }
+            return RString.RStringFactory.getScalar(res);
+        }
+
         // result is RDouble scalar
-        public RDouble extreme(RDouble arg, RContext context, ASTNode ast) {
+        public RAny extreme(RDouble arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
                 context.warning(ast, RError.NO_NONMISSING_MAX);
@@ -46,7 +69,7 @@ public class Extreme {
             return RDouble.RDoubleFactory.getScalar(res);
         }
 
-        // result is RDouble or RInt scalar
+        // result is RInt scalar (or RDouble +-infinity)
         public RAny extreme(RInt arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
@@ -66,7 +89,7 @@ public class Extreme {
             return RInt.RIntFactory.getScalar(res);
         }
 
-        // result is RDouble or RInt scalar
+        // result is RInt scalar (or RDouble +-infinity)
         public RAny extreme(RLogical arg, RContext context, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
@@ -86,7 +109,7 @@ public class Extreme {
             return RInt.RIntFactory.getScalar(res);
         }
 
-        // result is RDouble or RInt scalar
+        // result is RDouble, RInt or RString scalar
         public RAny extreme(RAny arg, RContext context, ASTNode ast) {
             if (arg instanceof RDouble) {
                 return extreme((RDouble) arg, context, ast);
@@ -97,26 +120,42 @@ public class Extreme {
             if (arg instanceof RLogical) {
                 return extreme((RLogical) arg, context, ast);
             }
-            Utils.nyi("unsupported type");
-            return null;
+            if (arg instanceof RString) {
+                return extreme((RString) arg, context, ast);
+            }
+            throw RError.getInvalidTypeArgument(ast, arg.typeOf());
         }
 
-        // takes RDouble and RInt scalars
-        // returns RDouble or RInt scalar
+        // takes RDouble, RInt, RString scalars
+        // returns RDouble, RInt or RString scalar
         public RAny extreme(RAny scalar0, RAny scalar1) { // FIXME: does this preserve NA's ?
             if (scalar0 instanceof RDouble) {
                 if (scalar1 instanceof RDouble) {
                     return RDouble.RDoubleFactory.getScalar(op.extreme(((RDouble) scalar0).getDouble(0), ((RDouble) scalar1).getDouble(0)));
-                } else {
+                } else if (scalar1 instanceof RInt) {
                     return RDouble.RDoubleFactory.getScalar(op.extreme(((RDouble) scalar0).getDouble(0), Convert.int2double(((RInt) scalar1).getInt(0))));
-                }
-            } else {
-                if (scalar1 instanceof RDouble) {
-                    return RDouble.RDoubleFactory.getScalar(op.extreme(Convert.int2double(((RInt) scalar0).getInt(0)), ((RDouble) scalar1).getDouble(0)));
                 } else {
-                    return RInt.RIntFactory.getScalar(op.extreme(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
+                    return RString.RStringFactory.getScalar(op.extreme(Convert.double2string(((RDouble) scalar0).getDouble(0)), ((RString) scalar1).getString(0)));
                 }
             }
+            if (scalar0 instanceof RInt) {
+                if (scalar1 instanceof RDouble) {
+                    return RDouble.RDoubleFactory.getScalar(op.extreme(Convert.int2double(((RInt) scalar0).getInt(0)), ((RDouble) scalar1).getDouble(0)));
+                } else if (scalar1 instanceof RInt) {
+                    return RInt.RIntFactory.getScalar(op.extreme(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
+                } else {
+                    return RString.RStringFactory.getScalar(op.extreme(Convert.int2string(((RInt) scalar0).getInt(0)), ((RString) scalar1).getString(0)));
+                }
+            }
+            // scalar0 instance of RString
+            if (scalar1 instanceof RDouble) {
+                return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), Convert.double2string(((RDouble) scalar1).getDouble(0))));
+            } else if (scalar1 instanceof RInt) {
+                return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), Convert.int2string(((RInt) scalar1).getInt(0))));
+            } else {
+                return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), ((RString) scalar1).getString(0)));
+            }
+
         }
 
         // args has length at least 2
@@ -135,7 +174,7 @@ public class Extreme {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public RAny doBuiltIn(RContext context, Frame frame) {
                         context.warning(ast, RError.NO_NONMISSING_MAX);
                         return op.emptySetExtreme();
                     }
@@ -146,7 +185,7 @@ public class Extreme {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                    public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
                         return extreme(arg, context, ast);
                     }
 
@@ -155,7 +194,7 @@ public class Extreme {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     return extreme(args, context, ast);
                 }
             };
@@ -177,13 +216,23 @@ public class Extreme {
                         }
 
                         @Override
-                        public double extreme(double a, double b) {
-                            return Math.max(a, b);
+                        public boolean moreExtreme(String a, String b) {
+                            return a.compareTo(b) > 0;
                         }
 
                         @Override
                         public int extreme(int a, int b) {
                             return Math.max(a, b);
+                        }
+
+                        @Override
+                        public double extreme(double a, double b) {
+                            return Math.max(a, b);
+                        }
+
+                        @Override
+                        public String extreme(String a, String b) {
+                            return a.compareTo(b) >= 0 ? a : b;
                         }
 
                         @Override
@@ -207,13 +256,23 @@ public class Extreme {
                         }
 
                         @Override
-                        public double extreme(double a, double b) {
-                            return Math.min(a, b);
+                        public boolean moreExtreme(String a, String b) {
+                            return a.compareTo(b) < 0;
                         }
 
                         @Override
                         public int extreme(int a, int b) {
                             return Math.min(a, b);
+                        }
+
+                        @Override
+                        public double extreme(double a, double b) {
+                            return Math.min(a, b);
+                        }
+
+                        @Override
+                        public String extreme(String a, String b) {
+                            return a.compareTo(b) <= 0 ? a : b;
                         }
 
                         @Override
