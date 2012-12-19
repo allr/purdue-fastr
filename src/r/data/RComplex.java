@@ -11,6 +11,7 @@ public interface RComplex extends RArray {
 
     ComplexImpl EMPTY = (ComplexImpl) RComplexFactory.getUninitializedArray(0);
     ScalarComplexImpl BOXED_NA = RComplexFactory.getScalar(RDouble.NA, RDouble.NA);
+    Complex COMPLEX_BOXED_NA = new Complex(RDouble.NA, RDouble.NA);
     ScalarComplexImpl BOXED_ZERO = RComplexFactory.getScalar(0, 0);
 
     RComplex set(int i, double real, double imag);

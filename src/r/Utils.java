@@ -68,6 +68,12 @@ public final class Utils {
         if (type instanceof RString) {
             return RString.RStringFactory.getUninitializedArray(size);
         }
+        if (type instanceof RRaw) {
+            return RRaw.RRawFactory.getUninitializedArray(size);
+        }
+        if (type instanceof RComplex) {
+            return RComplex.RComplexFactory.getUninitializedArray(size);
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -87,6 +93,12 @@ public final class Utils {
         }
         if (type instanceof RString) {
             return RString.RStringFactory.getUninitializedArray(size, dimensions);
+        }
+        if (type instanceof RRaw) {
+            return RRaw.RRawFactory.getUninitializedArray(size, dimensions);
+        }
+        if (type instanceof RComplex) {
+            return RComplex.RComplexFactory.getUninitializedArray(size, dimensions);
         }
         Utils.nyi("unsupported array type");
         return null;
@@ -108,6 +120,12 @@ public final class Utils {
         if (type instanceof RString) {
             return RString.EMPTY;
         }
+        if (type instanceof RRaw) {
+            return RRaw.EMPTY;
+        }
+        if (type instanceof RComplex) {
+            return RComplex.EMPTY;
+        }
         Utils.nyi("unsupported array type");
         return null;
     }
@@ -123,7 +141,9 @@ public final class Utils {
             return RList.NULL;
         } else if (arr instanceof RString) {
             return RString.BOXED_NA;
-        } else {
+        } else if (arr instanceof RComplex) {
+            return RComplex.BOXED_NA;
+        }else {
             Utils.nyi("unsupported array type");
             return null;
         }
@@ -140,6 +160,8 @@ public final class Utils {
             arr.set(index, RList.NULL);
         } else if (arr instanceof RString) {
             arr.set(index, RString.NA);
+        } else if (arr instanceof RComplex) {
+            arr.set(index, RComplex.COMPLEX_BOXED_NA);
         } else {
             Utils.nyi("unsupported array type");
         }
@@ -171,6 +193,12 @@ public final class Utils {
         }
         if (arr instanceof RString) {
             return RString.RStringFactory.copy((RString) arr);
+        }
+        if (arr instanceof RRaw) {
+            return RRaw.RRawFactory.copy((RRaw) arr);
+        }
+        if (arr instanceof RComplex) {
+            return RComplex.RComplexFactory.copy((RComplex) arr);
         }
         Utils.nyi("unuspported array type");
         return null;

@@ -291,6 +291,15 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ m <- matrix(c(NA,2,3,4,NA,6), nrow=2) ; colMeans(m) }", "NA, 3.5, NA");
         assertEval("{ m <- matrix(c(NA,2,3,4,NA,6), nrow=2) ; colMeans(m, na.rm = TRUE) }", "2.0, 3.5, 6.0");
 
+        assertEval("{ colSums(matrix(as.complex(1:6), nrow=2)) }", "3.0+0.0i, 7.0+0.0i, 11.0+0.0i");
+        assertEval("{ colSums(matrix((1:6)*(1+1i), nrow=2)) }", "3.0+3.0i, 7.0+7.0i, 11.0+11.0i");
+        assertEval("{ colMeans(matrix(as.complex(1:6), nrow=2)) }", "1.5+0.0i, 3.5+0.0i, 5.5+0.0i");
+        assertEval("{ colMeans(matrix((1:6)*(1+1i), nrow=2)) }", "1.5+1.5i, 3.5+3.5i, 5.5+5.5i");
+        assertEval("{ rowSums(matrix(as.complex(1:6), nrow=2)) }", "9.0+0.0i, 12.0+0.0i");
+        assertEval("{ rowSums(matrix((1:6)*(1+1i), nrow=2)) }", "9.0+9.0i, 12.0+12.0i");
+        assertEval("{ rowMeans(matrix(as.complex(1:6), nrow=2)) }", "3.0+0.0i, 4.0+0.0i");
+        assertEval("{ rowMeans(matrix((1:6)*(1+1i), nrow=2)) }", "3.0+3.0i, 4.0+4.0i");
+
         assertEval("{ o <- outer(1:3, 1:4, \"<\") ; colSums(o) }", "0.0, 1.0, 2.0, 3.0");
     }
 

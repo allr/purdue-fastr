@@ -5,6 +5,7 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.RComplex.RComplexUtils;
 import r.data.RDouble.*;
 import r.errors.*;
 import r.nodes.*;
@@ -19,6 +20,7 @@ public class ColumnsRowsStats {
     private static final int IDIMS = 2;
 
     public abstract static class Stats {
+        public abstract double[] stat(RComplex x, int m, int n, boolean naRM);
         public abstract double[] stat(RDouble x, int m, int n, boolean naRM);
         public abstract double[] stat(RInt x, int m, int n, boolean naRM);
     }
@@ -38,6 +40,13 @@ public class ColumnsRowsStats {
 
         public StatsFactory(Stats stats) {
             this.stats = stats;
+        }
+
+        public RAny stat(RContext context, ASTNode ast, RComplex x, boolean naRM) {
+            int[] dim = x.dimensions();
+            checkDimensions(ast, dim);
+            double[] content = stats.stat(x, dim[0], dim[1], naRM); // real, imag, real, imag, ...
+            return RComplex.RComplexFactory.getFor(content);
         }
 
         public RAny stat(RContext context, ASTNode ast, RDouble x, boolean naRM) {
@@ -63,6 +72,9 @@ public class ColumnsRowsStats {
             }
             if (x instanceof RLogical) {
                 return stat(context, ast, ((RLogical) x).asInt(), naRM);
+            }
+            if (x instanceof RComplex) {
+                return stat(context, ast, (RComplex) x, naRM);
             }
             throw RError.getXNumeric(ast);
         }
@@ -150,6 +162,43 @@ public class ColumnsRowsStats {
 
     // FIXME: we might get better performance by hand-inlining the functions below
 
+    static double[] colSumsMeans(RComplex c, int m, int n, boolean mean, boolean naRM) {
+        double[] content = new double[2 * n];
+        outerLoop:
+        for (int j = 0; j < n; j++) {
+            double sumreal = 0;
+            double sumimag = 0;
+            int excluded = 0;
+            for (int i = 0; i < m; i++) {
+                int index = j * m + i;
+                double real = c.getReal(index);
+                double imag = c.getImag(index);
+                if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                    sumreal += real;
+                    sumimag += imag;
+                } else {
+                    if (!naRM) {
+                        content[2 * j] = RDouble.NA;
+                        content[2 * j + 1] = RDouble.NA;
+                        continue outerLoop;
+                    } else {
+                        excluded++;
+                    }
+                }
+            }
+            if (mean) {
+                double denom = m - excluded;
+                content[2 * j] = sumreal / denom;
+                content[2 * j + 1] = sumimag / denom;
+            } else {
+                content[2 * j] = sumreal;
+                content[2 * j + 1] = sumimag;
+            }
+        }
+        return content;
+    }
+
+
     static double[] colSumsMeans(RDouble d, int m, int n, boolean mean, boolean naRM) {
         double[] content = new double[n];
         outerLoop:
@@ -194,6 +243,59 @@ public class ColumnsRowsStats {
                 }
             }
             content[j] = mean ? sum / (m - excluded) : sum;
+        }
+        return content;
+    }
+
+    static double[] rowSumsMeans(RComplex c, int m, int n, final boolean mean, final boolean naRM) {
+        double[] content = new double[2 * m];
+        int[] excluded = null;
+        boolean[] isNA = null;
+        if (mean) {
+            excluded = new int[m];
+        }
+        if (!naRM) {
+            isNA = new boolean[m];
+        }
+        for (int j = 0; j < n; j++) {
+            for (int i = 0; i < m; i++) {
+                int index = j * m + i;
+                double real = c.getReal(index);
+                double imag = c.getImag(index);
+                if (!RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                    content[2 * i] += real;
+                    content[2 * i + 1] += imag;
+                } else {
+                    if (!naRM) {
+                        isNA[i] = true;
+                    } else {
+                        if (mean) {
+                            excluded[i]++;
+                        }
+                    }
+                }
+            }
+        }
+        if (!naRM || mean) {
+            for (int i = 0; i < m; i++) {
+                if (!naRM) {
+                    if (isNA[i]) {
+                        content[2 * i] = RDouble.NA;
+                        content[2 * i + 1] = RDouble.NA;
+                    } else {
+                        if (mean) {
+                            content[2 * i] /= n;
+                            content[2 * i + 1] /= n;
+                        }
+                    }
+                } else {
+                    if (mean) {
+                        double denom = n - excluded[i];
+                        content[2 * i] /= denom;
+                        content[2 * i + 1] /= denom;
+                    }
+                }
+            }
         }
         return content;
     }
@@ -293,6 +395,10 @@ public class ColumnsRowsStats {
     public static Stats getColSums() {
         return new Stats() {
             @Override
+            public double[] stat(RComplex x, int m, int n, boolean naRM) {
+                return colSumsMeans(x, m, n, false, naRM);
+            }
+            @Override
             public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, false, naRM);
             }
@@ -306,6 +412,10 @@ public class ColumnsRowsStats {
 
     public static Stats getColMeans() {
         return new Stats() {
+            @Override
+            public double[] stat(RComplex x, int m, int n, boolean naRM) {
+                return colSumsMeans(x, m, n, true, naRM);
+            }
             @Override
             public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, true, naRM);
@@ -321,6 +431,10 @@ public class ColumnsRowsStats {
     public static Stats getRowSums() {
         return new Stats() {
             @Override
+            public double[] stat(RComplex x, int m, int n, boolean naRM) {
+                return rowSumsMeans(x, m, n, false, naRM);
+            }
+            @Override
             public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, false, naRM);
             }
@@ -334,6 +448,10 @@ public class ColumnsRowsStats {
 
     public static Stats getRowMeans() {
         return new Stats() {
+            @Override
+            public double[] stat(RComplex x, int m, int n, boolean naRM) {
+                return rowSumsMeans(x, m, n, true, naRM);
+            }
             @Override
             public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, true, naRM);
