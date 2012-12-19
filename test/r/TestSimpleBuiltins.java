@@ -225,6 +225,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ `-`(1,2) }", "-1.0");
         assertEval("{ `*`(1,2) }", "2.0");
         assertEval("{ `/`(1,2) }", "0.5");
+        assertEval("{ `%/%`(1,2) }", "0.0");
+        assertEval("{ `%%`(1,2) }", "1.0");
+        assertEval("{ `^`(1,2) }", "1.0");
+        assertEval("{ `!`(TRUE) }", "FALSE");
+        assertEval("{ `||`(TRUE, FALSE) }", "TRUE");
+        assertEval("{ `&&`(TRUE, FALSE) }", "FALSE");
+        assertEval("{ `|`(TRUE, FALSE) }", "TRUE");
+        assertEval("{ `&`(TRUE, FALSE) }", "FALSE");
         assertEval("{ `%o%`(3,5) }", "     [,1]\n[1,] 15.0");
         assertEval("{ `%*%`(3,5) }", "     [,1]\n[1,] 15.0");
         assertEval("{ x <- `+` ; x(2,3) }", "5.0");

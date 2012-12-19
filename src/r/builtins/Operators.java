@@ -7,6 +7,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.nodes.truffle.Not;
 import r.nodes.truffle.UnaryMinus;
 
 public class Operators {
@@ -48,23 +49,25 @@ public class Operators {
         }
     };
 
-    public static final CallFactory MULT_FACTORY = new CallFactory() {
+    public static final class ArithmeticCallFactory extends CallFactory {
+        final Arithmetic.ValueArithmetic op;
+
+        ArithmeticCallFactory(Arithmetic.ValueArithmetic op) {
+            this.op = op;
+        }
 
         @Override
         public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
             // exprs.length == 2
-            return new Arithmetic(ast, exprs[0], exprs[1], Arithmetic.MULT);
+            return new Arithmetic(ast, exprs[0], exprs[1], op);
         }
-    };
+    }
 
-    public static final CallFactory DIV_FACTORY = new CallFactory() {
-
-        @Override
-        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
-            // exprs.length == 2
-            return new Arithmetic(ast, exprs[0], exprs[1], Arithmetic.DIV);
-        }
-    };
+    public static final CallFactory MULT_FACTORY = new ArithmeticCallFactory(Arithmetic.MULT);
+    public static final CallFactory DIV_FACTORY = new ArithmeticCallFactory(Arithmetic.DIV);
+    public static final CallFactory INTEGER_DIV_FACTORY = new ArithmeticCallFactory(Arithmetic.INTEGER_DIV);
+    public static final CallFactory MOD_FACTORY = new ArithmeticCallFactory(Arithmetic.MOD);
+    public static final CallFactory POW_FACTORY = new ArithmeticCallFactory(Arithmetic.POW);
 
     public static final CallFactory MAT_MULT_FACTORY = new CallFactory() {
 
@@ -104,5 +107,50 @@ public class Operators {
     public static final CallFactory LT_FACTORY = new ComparisonCallFactory(Comparison.getLT());
     public static final CallFactory GE_FACTORY = new ComparisonCallFactory(Comparison.getGE());
     public static final CallFactory LE_FACTORY = new ComparisonCallFactory(Comparison.getLE());
+
+    public static final CallFactory AND_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 2
+            return new LogicalOperation.And(ast, exprs[0], exprs[1]);
+        }
+    };
+
+    public static final CallFactory OR_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 2
+            return new LogicalOperation.Or(ast, exprs[0], exprs[1]);
+        }
+    };
+
+    public static final CallFactory ELEMENTWISE_AND_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 2
+            return ElementwiseLogicalOperation.createUninitialized(ast, exprs[0], ElementwiseLogicalOperation.AND, exprs[1]);
+        }
+    };
+
+    public static final CallFactory ELEMENTWISE_OR_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 2
+            return ElementwiseLogicalOperation.createUninitialized(ast, exprs[0], ElementwiseLogicalOperation.OR, exprs[1]);
+        }
+    };
+
+    public static final CallFactory NOT_FACTORY = new CallFactory() {
+
+        @Override
+        public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+            // exprs.length == 1
+            return new Not.LogicalScalar(ast, exprs[0]);
+        }
+    };
 
 }

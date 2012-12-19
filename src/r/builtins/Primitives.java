@@ -25,8 +25,16 @@ public class Primitives {
         add("<", 2, 2, Operators.LT_FACTORY);
         add("<=", 2, 2, Operators.LE_FACTORY);
         add(">=", 2, 2, Operators.GE_FACTORY);
+        add("%%", 2, 2, Operators.MOD_FACTORY);
+        add("%/%", 2, 2, Operators.INTEGER_DIV_FACTORY);
+        add("^", 2, 2, Operators.POW_FACTORY);
         add("%*%", 2, 2, Operators.MAT_MULT_FACTORY);
         add("%o%", 2, 2, Operators.OUTER_MULT_FACTORY);
+        add("|", 2, 2, Operators.ELEMENTWISE_OR_FACTORY);
+        add("&", 2, 2, Operators.ELEMENTWISE_AND_FACTORY);
+        add("||", 2, 2, Operators.OR_FACTORY);
+        add("&&", 2, 2, Operators.AND_FACTORY);
+        add("!", 1, 1, Operators.NOT_FACTORY);
         add("abs", 1, 1, Abs.FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
         add("as.complex", 0, -1, Cast.COMPLEX_FACTORY);
