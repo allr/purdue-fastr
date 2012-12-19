@@ -448,61 +448,6 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex() {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt() {
-            return orig.asInt();
-        }
-
-        @Override
-        public RRaw asRaw() {
-            return orig;
-        }
-
-        @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt(ConversionStatus warn) {
-            return orig.asInt();
-        }
-
-        @Override
-        public RRaw asRaw(ConversionStatus warn) {
-            return orig;
-        }
-
-        @Override
         public int getLogical(int i) {
             return Convert.raw2logical(orig.getRaw(i));
         }
@@ -522,8 +467,6 @@ public interface RRaw extends RArray {
             return orig.dimensions();
         }
     }
-
-
 
     // indexes must all be positive
     //   but can be out of bounds ==> 0's are returned in that case

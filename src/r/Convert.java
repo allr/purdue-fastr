@@ -373,7 +373,7 @@ public class Convert {
     }
 
     public static int raw2logical(byte v) {
-        return byteToUnsigned(v);
+        return byteToUnsigned(v) != 0 ? RLogical.TRUE : RLogical.FALSE;
     }
 
     public static String pretty(String s) {

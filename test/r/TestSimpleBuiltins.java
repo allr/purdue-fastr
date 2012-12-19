@@ -91,6 +91,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) }", "1.0, 1.0");
         assertEval("{ f <- function(x,y) { c(x,y) } ; f(1,1) ; f(1, TRUE) ; f(NULL, NULL) }", "NULL");
         assertEval("{ c(\"hello\", \"hi\") }", "\"hello\", \"hi\"");
+        assertEval("{ c(1+1i, as.raw(10)) }", "1.0+1.0i, 10.0+0.0i");
+        assertEval("{ c(as.raw(10), as.raw(20)) }", "0a, 14");
     }
 
     @Test
@@ -146,6 +148,12 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.complex(\"-.1e10+5i\") }", "-1.0E9+5.0i");
         assertEval("{ as.complex(\"1e-2+3i\") }", "0.01+3.0i");
         assertEval("{ as.complex(\"+.1e+2-3i\") }", "10.0-3.0i");
+
+        assertEval("{ as.complex(as.logical(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");
+        assertEval("{ as.double(as.logical(c(10,10))) }", "1.0, 1.0");
+        assertEval("{ as.integer(as.logical(-1:1)) }", "1L, 0L, 1L");
+        assertEval("{ as.raw(as.logical(as.raw(c(1,2)))) }", "01, 01");
+
     }
 
     @Test
@@ -262,6 +270,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cumsum(c(1e308, 1e308, NA, 1, 2)) }", "1.0E308, Infinity, NA, NA, NA");
         assertEval("{ cumsum(c(2000000000L, 2000000000L)) }", "2000000000L, NA");
         assertEval("{ cumsum(c(2000000000L, NA, 2000000000L)) }", "2000000000L, NA, NA");
+        assertEval("{ cumsum(as.logical(-2:2)) }", "1L, 2L, 2L, 3L, 4L");
     }
 
     @Test

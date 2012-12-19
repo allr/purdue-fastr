@@ -141,8 +141,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RLogical asLogical() {
-        Utils.check(false, "unreachable");
-        return null;
+        return asLogical(null);
     }
 
     @Override

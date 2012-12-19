@@ -24,6 +24,7 @@ public class Combine {
     public static RAny genericCombine(RAny[] params) {
         int len = 0;
         boolean hasNull = false;
+        boolean hasRaw = false;
         boolean hasLogical = false;
         boolean hasInt = false;
         boolean hasList = false;
@@ -49,6 +50,8 @@ public class Combine {
                 hasInt = true;
             } else if (v instanceof RLogical) {
                 hasLogical = true;
+            } else if (v instanceof RRaw) {
+                hasRaw = true;
             } else {
                 Utils.nyi("unsupported type");
                 return null;
@@ -126,6 +129,16 @@ public class Combine {
                     continue;
                 }
                 offset = fillIn(res, v instanceof RLogical ? (RLogical) v : v.asLogical(), offset);
+            }
+            return res;
+        }
+        if (hasRaw) {
+            RRaw res = RRaw.RRawFactory.getUninitializedArray(len);
+            for (RAny v : params) {
+                if (v instanceof RNull) {
+                    continue;
+                }
+                offset = fillIn(res, v instanceof RRaw ? (RRaw) v : v.asRaw(), offset);
             }
             return res;
         }

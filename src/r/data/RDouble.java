@@ -434,61 +434,6 @@ public interface RDouble extends RNumber {
         }
 
         @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex() {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return orig;
-        }
-
-        @Override
-        public RInt asInt() {
-            return orig.asInt();
-        }
-
-        @Override
-        public RRaw asRaw() {
-            return orig.asRaw();
-        }
-
-        @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
-            return orig;
-        }
-
-        @Override
-        public RInt asInt(ConversionStatus warn) {
-            return orig.asInt(warn);
-        }
-
-        @Override
-        public RRaw asRaw(ConversionStatus warn) {
-            return orig.asRaw(warn);
-        }
-
-        @Override
         public int getLogical(int i) {
             return Convert.double2logical(orig.getDouble(i));
         }
