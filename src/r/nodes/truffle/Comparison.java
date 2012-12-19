@@ -175,6 +175,7 @@ public class Comparison extends BaseR {
                 };
                 return new ScalarComparison(ast, left, right, cmp, c);
             }
+            // other type combinations handled in generic case
             return createGeneric(ast, left, right, cmp);
         }
 
@@ -332,6 +333,9 @@ public class Comparison extends BaseR {
                         throw new UnexpectedResultException(null);
                     }
                 }
+                if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
+                    throw new UnexpectedResultException(null); // we assume complex comparisons are rare, so use generic case
+                }
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                     RDouble ldbl = lexpr.asDouble();
                     RDouble rdbl = rexpr.asDouble();
@@ -386,6 +390,11 @@ public class Comparison extends BaseR {
                 RString rstr = rexpr.asString();
                 return Comparison.this.cmp.cmp(lstr, rstr, context, ast);
             }
+            if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
+                RComplex lcmp = lexpr.asComplex();
+                RComplex rcmp = rexpr.asComplex();  // if the cast fails, a zero-length array is returned
+                return Comparison.this.cmp.cmp(lcmp, rcmp, context, ast);
+            }
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
@@ -416,6 +425,7 @@ public class Comparison extends BaseR {
         public abstract boolean cmp(byte a, byte b);
         public abstract boolean cmp(int a, int b);
         public abstract boolean cmp(double a, double b);
+        public abstract boolean cmp(double areal, double aimag, double breal, double bimag);
         public abstract boolean cmp(String a, String b);
 
         public boolean cmp(int a, double b) {
@@ -549,6 +559,45 @@ public class Comparison extends BaseR {
                     content[i] = RLogical.NA;
                 } else {
                     content[i] = cmp(astr, bstr) ? RLogical.TRUE : RLogical.FALSE;
+                }
+            }
+
+            if (ai != 0 || bi != 0) {
+                context.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+            return RLogical.RLogicalFactory.getFor(content, dimensions);
+        }
+        public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+            int na = a.size();
+            int nb = b.size();
+            int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            if (na == 0 || nb == 0) {
+                return RLogical.EMPTY;
+            }
+
+            int n = (na > nb) ? na : nb;
+            int[] content = new int[n];
+            int ai = 0;
+            int bi = 0;
+
+            for (int i = 0; i < n; i++) {
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                ai++;
+                if (ai == na) {
+                    ai = 0;
+                }
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                bi++;
+                if (bi == nb) {
+                    bi = 0;
+                }
+
+                if (RComplex.RComplexUtils.eitherIsNA(areal,  aimag) || RComplex.RComplexUtils.eitherIsNA(breal, bimag)) {
+                    content[i] = RLogical.NA;
+                } else {
+                    content[i] = cmp(areal, aimag, breal, bimag) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
 
@@ -713,6 +762,10 @@ public class Comparison extends BaseR {
                 return a == b;
             }
             @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                return areal == breal && aimag == bimag;
+            }
+            @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) == 0; // FIXME: intern?
             }
@@ -731,6 +784,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a != b;
+            }
+            @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                return areal != breal || aimag != bimag;
             }
             @Override
             public boolean cmp(String a, String b) {
@@ -753,6 +810,15 @@ public class Comparison extends BaseR {
                 return a <= b;
             }
             @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                Utils.nyi();
+                return false;
+            }
+            @Override
+            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+                throw RError.getComparisonComplex(ast);
+            }
+            @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) <= 0;
             }
@@ -771,6 +837,15 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a >= b;
+            }
+            @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                Utils.nyi();
+                return false;
+            }
+            @Override
+            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+                throw RError.getComparisonComplex(ast);
             }
             @Override
             public boolean cmp(String a, String b) {
@@ -793,6 +868,15 @@ public class Comparison extends BaseR {
                 return a < b;
             }
             @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                Utils.nyi();
+                return false;
+            }
+            @Override
+            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+                throw RError.getComparisonComplex(ast);
+            }
+            @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) < 0;
             }
@@ -811,6 +895,15 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(double a, double b) {
                 return a > b;
+            }
+            @Override
+            public boolean cmp(double areal, double aimag, double breal, double bimag) {
+                Utils.nyi();
+                return false;
+            }
+            @Override
+            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+                throw RError.getComparisonComplex(ast);
             }
             @Override
             public boolean cmp(String a, String b) {

@@ -72,6 +72,8 @@ public abstract class RError extends RuntimeException {
     public static final String OUT_OF_RANGE = "out-of-range values treated as 0 in coercion to raw";
     public static final String WRITE_ONLY_BINARY = "can only write to a binary connection";
     public static final String UNIMPLEMENTED_COMPLEX = "unimplemented complex operation";
+    public static final String COMPARISON_COMPLEX = "invalid comparison with complex values";
+    public static final String NON_NUMERIC_BINARY = "non-numeric argument to binary operator";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -762,6 +764,18 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getComparisonComplex(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.COMPARISON_COMPLEX;
+            }
+        };
+    }
+
     public static RError getUnimplementedComplex(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
@@ -770,6 +784,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.UNIMPLEMENTED_COMPLEX;
+            }
+        };
+    }
+
+    public static RError getNonNumericBinary(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NON_NUMERIC_BINARY;
             }
         };
     }

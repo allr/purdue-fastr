@@ -416,9 +416,12 @@ public class Apply {
 
         public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
 
+            boolean hasRaw = false;
             boolean hasLogical = false;
             boolean hasInt = false;
             boolean hasDouble = false;
+            boolean hasComplex = false;
+            boolean hasString = false;
             boolean notAllScalarLists = false;
             boolean returnList = false;
 
@@ -443,6 +446,7 @@ public class Apply {
                 if (returnList && notAllScalarLists) {
                     continue;
                 }
+             // FIXME: can we write this in a nicer way without making it slower?
                 if (v instanceof RDouble) {
                     hasDouble = true;
                     notAllScalarLists = true;
@@ -466,6 +470,24 @@ public class Apply {
                     if (!notAllScalarLists && ((RList) v).size() != 1) {
                         notAllScalarLists = true;
                     }
+                } else if (v instanceof RString) {
+                    hasString = true;
+                    notAllScalarLists = true;
+                    if (!returnList && ((RString) v).size() != 1) {
+                        returnList = true;
+                    }
+                } else if (v instanceof RComplex) {
+                    hasComplex = true;
+                    notAllScalarLists = true;
+                    if (!returnList && ((RComplex) v).size() != 1) {
+                        returnList = true;
+                    }
+                } else if (v instanceof RRaw) {
+                    hasRaw = true;
+                    notAllScalarLists = true;
+                    if (!returnList && ((RRaw) v).size() != 1) {
+                        returnList = true;
+                    }
                 } else if (v instanceof RNull) {
                     returnList = true;
                     notAllScalarLists = true;
@@ -482,6 +504,48 @@ public class Apply {
                 }
                 return RList.RListFactory.getFor(content);
             }
+            // this could be written using asXXX (but much slower)
+            if (hasString) {
+                String[] values = new String[xsize];
+                for (int i = 0; i < xsize; i++) {
+                    RAny v = content[i];
+                    if (v instanceof RString) {
+                        values[i] = ((RString) v).getString(0);
+                    } else if (v instanceof RDouble) {
+                        values[i] = Convert.double2string(((RDouble) v).getDouble(0));
+                    } else if (v instanceof RInt) {
+                        values[i] = Convert.int2string(((RInt) v).getInt(0));
+                    } else if (v instanceof RLogical) {
+                        values[i] = Convert.logical2string(((RLogical) v).getLogical(0));
+                    } else if (v instanceof RComplex) {
+                        RComplex cv = (RComplex) v;
+                        values[i] = Convert.complex2string(cv.getReal(0), cv.getImag(0));
+                    } else if (v instanceof RRaw) {
+                        values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
+                    }
+                }
+                return RString.RStringFactory.getFor(values);
+            }
+            if (hasComplex) {
+                double[] values = new double[2 * xsize];
+                for (int i = 0; i < xsize; i++) {
+                    RAny v = content[i];
+                    if (v instanceof RDouble) {
+                        values[2 * i] = ((RDouble) v).getDouble(0);
+                    } else if (v instanceof RInt) {
+                        values[2 * i] = Convert.int2double(((RInt) v).getInt(0));
+                    } else if (v instanceof RLogical) {
+                        values[2 * i] = Convert.logical2double(((RLogical) v).getLogical(0));
+                    } else if (v instanceof RComplex) {
+                        RComplex cv = ((RComplex) v);
+                        values[2 * i] = cv.getReal(0);
+                        values[2 * i + 1] = cv.getImag(0);
+                    } else {
+                        values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
+                    }
+                }
+                return RComplex.RComplexFactory.getFor(values);
+            }
             if (hasDouble) {
                 double[] values = new double[xsize];
                 for (int i = 0; i < xsize; i++) {
@@ -490,8 +554,10 @@ public class Apply {
                         values[i] = ((RDouble) v).getDouble(0);
                     } else if (v instanceof RInt) {
                         values[i] = Convert.int2double(((RInt) v).getInt(0));
-                    } else {
+                    } else if (v instanceof RLogical) {
                         values[i] = Convert.logical2double(((RLogical) v).getLogical(0));
+                    } else {
+                        values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
                     }
                 }
                 return RDouble.RDoubleFactory.getFor(values);
@@ -502,8 +568,10 @@ public class Apply {
                     RAny v = content[i];
                     if (v instanceof RInt) {
                         values[i] = ((RInt) v).getInt(0);
-                    } else {
+                    } else if (v instanceof RLogical) {
                         values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
+                    } else {
+                        values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
                     }
                 }
                 return RInt.RIntFactory.getFor(values);
@@ -512,9 +580,21 @@ public class Apply {
                 int[] values = new int[xsize];
                 for (int i = 0; i < xsize; i++) {
                     RAny v = content[i];
-                    values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
+                    if (v instanceof RLogical) {
+                        values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
+                    } else {
+                        values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
+                    }
                 }
                 return RLogical.RLogicalFactory.getFor(values);
+            }
+            if (hasRaw) {
+                byte[] values = new byte[xsize];
+                for (int i = 0; i < xsize; i++) {
+                    RAny v = content[i];
+                    values[i] = ((RRaw) v).getRaw(0);
+                }
+                return RRaw.RRawFactory.getFor(values);
             }
             return RList.EMPTY;
         }
@@ -609,6 +689,48 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
             }
+            if (resTemplate instanceof RString) {
+                ApplyFunc a = new ApplyFunc() {
+                    @Override
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                        int xsize = argIterator.size();
+                        String[] content = new String[xsize];
+                        for (int i = 0; i < xsize; i++) {
+                            argIterator.setNext();
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            if (v instanceof RLogical) {
+                                content[i] = ((RString) v).getString(0);
+                            } else {
+                                throw new UnexpectedResultException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
+                            }
+                        }
+                        return RString.RStringFactory.getFor(content);
+                    }
+                };
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RString>");
+            }
+            if (resTemplate instanceof RComplex) {
+                ApplyFunc a = new ApplyFunc() {
+                    @Override
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                        int xsize = argIterator.size();
+                        double[] content = new double[2 * xsize];
+                        for (int i = 0; i < xsize; i++) {
+                            argIterator.setNext();
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            if (v instanceof RComplex) {
+                                RComplex cv = (RComplex) v;
+                                content[2 * i] = cv.getReal(0);
+                                content[2 * i + 1] = cv.getImag(0);
+                            } else {
+                                throw new UnexpectedResultException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
+                            }
+                        }
+                        return RComplex.RComplexFactory.getFor(content);
+                    }
+                };
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RComplex>");
+            }
             if (resTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
@@ -640,6 +762,26 @@ public class Apply {
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
+            }
+            if (resTemplate instanceof RRaw) {
+                ApplyFunc a = new ApplyFunc() {
+                    @Override
+                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                        int xsize = argIterator.size();
+                        byte[] content = new byte[xsize];
+                        for (int i = 0; i < xsize; i++) {
+                            argIterator.setNext();
+                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            if (v instanceof RRaw) {
+                                content[i] = ((RRaw) v).getRaw(0);
+                            } else {
+                                throw new UnexpectedResultException(new PartialResult(RRaw.RRawFactory.getFor(content), i, v));
+                            }
+                        }
+                        return RRaw.RRawFactory.getFor(content);
+                    }
+                };
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RRaw>");
             }
             Utils.nyi("unsupported type");
             return null;

@@ -20,6 +20,9 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{TRUE>FALSE}", "TRUE");
         assertEval("{TRUE>=FALSE}", "TRUE");
         assertEval("{TRUE!=FALSE}", "TRUE");
+
+        assertEval("{ 1+1i == 1-1i }", "FALSE");
+        assertEval("{ 1+1i == 1+1i }", "TRUE");
     }
 
     @Test

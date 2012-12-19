@@ -166,6 +166,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ f<-length; sapply(1:3, f) }", "1L, 1L, 1L");
         assertEval("{ sapply(1:3, `-`, 2) }", "-1.0, 0.0, 1.0");
         assertEval("{ sapply(1:3, \"-\", 2) }", "-1.0, 0.0, 1.0");
+
+        assertEval("{ sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { as.raw(10) } }) }", "00, 0a");
+        assertEval("{ sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { \"hello\" }} ) } ", "\"00\", \"hello\"");
+        assertEval("{ sapply(1:2, function(i) { if (i==1) { as.raw(0) } else { 5+10i } }) }", "0.0+0.0i, 5.0+10.0i");
     }
 
     @Test

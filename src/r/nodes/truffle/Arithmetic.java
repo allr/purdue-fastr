@@ -256,8 +256,7 @@ public class Arithmetic extends BaseR {
                         RInt rint = rexpr.asInt();
                         return IntView.create(lint, rint, context, arit, ast);
                     }
-                    Utils.nyi("unsupported case for binary arithmetic operation");
-                    return null;
+                    throw RError.getNonNumericBinary(ast);
                 }
             };
             return new Specialized(ast, left, right, arit, c, "<Generic, Generic>");
