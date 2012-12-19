@@ -1,9 +1,12 @@
 package r.builtins;
 
+import java.util.*;
+
 import r.*;
 import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.RComplex.RComplexUtils;
 import r.data.RDouble.*;
 import r.errors.*;
 import r.nodes.*;
@@ -11,11 +14,34 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.runtime.*;
 
-
+// FIXME: could be made much faster with direct access to the arrays (after materialization that is done anyway)
 public class CumulativeSum {
 
     private static final String[] paramNames = new String[]{"x"};
     private static final int IX = 0;
+
+    public static RComplex cumsum(RComplex x, Context context, ASTNode ast) {
+        RComplex input = x.materialize();
+        int size = x.size();
+        double[] content = new double[2 * size];
+
+        if (size > 0) {
+            double raccum = 0;
+            double iaccum = 0;
+            for (int i = 0; i < size; i++) {
+                double real = input.getReal(i);
+                double imag = input.getImag(i);
+                if (RComplexUtils.eitherIsNA(real, imag)) {
+                    return finishComplexWithNAs(content, i);
+                }
+                raccum += real;
+                iaccum += imag;
+                content[2 * i] = raccum;
+                content[2 * i + 1] = iaccum;
+            }
+        }
+        return RComplex.RComplexFactory.getFor(content); // drop dimensions
+    }
 
     public static RDouble cumsum(RDouble x, Context context, ASTNode ast) {
         RDouble input = x.materialize();
@@ -27,7 +53,7 @@ public class CumulativeSum {
             for (int i = 0; i < size; i++) {
                 double value = input.getDouble(i);
                 if (RDoubleUtils.isNA(value)) {
-                    return finishWithNAs(content, i);
+                    return finishDoubleWithNAs(content, i);
                 }
                 accum += value;
                 content[i] = accum;
@@ -36,10 +62,13 @@ public class CumulativeSum {
         return RDouble.RDoubleFactory.getFor(content); // drop dimensions
     }
 
-    private static RDouble finishWithNAs(double[] content, int fromIndex) {
-        for (int i = fromIndex; i < content.length; i++) {
-            content[i] = RDouble.NA;
-        }
+    private static RComplex finishComplexWithNAs(double[] content, int fromIndex) {
+        Arrays.fill(content, 2 * fromIndex, content.length, RDouble.NA);
+        return RComplex.RComplexFactory.getFor(content);
+    }
+
+    private static RDouble finishDoubleWithNAs(double[] content, int fromIndex) {
+        Arrays.fill(content, fromIndex, content.length, RDouble.NA);
         return RDouble.RDoubleFactory.getFor(content);
     }
 
@@ -96,6 +125,10 @@ public class CumulativeSum {
                         return cumsum((RInt) x, context, ast);
                     } else if (x instanceof RLogical) {
                         return cumsum(((RLogical) x).asInt(), context, ast);
+                    } else if (x instanceof RComplex) {
+                        return cumsum((RComplex) x, context, ast);
+                    } else if (x instanceof RRaw) {
+                        return cumsum(((RRaw) x).asDouble(), context, ast);
                     } else if (x instanceof RNull) {
                         return RDouble.EMPTY;
                     }
