@@ -19,7 +19,7 @@ public class Convert {
         public boolean imagDiscarded; // when converting from complex
     }
 
-    static final Pattern numberSplit = Pattern.compile("[+-]?[^+-i]+(?:e[+-]?)?[^+-i]*");
+    static final Pattern numberSplit = Pattern.compile("^[+-]?[^e+-]+(?:e[+-]?[\\d]+)?");
 
     public static Complex string2complex(String v) {
         return string2complex(v, null);
@@ -406,6 +406,18 @@ public class Convert {
             return res;
         }
     }
+
+    public static RComplex coerceToComplexWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+        globalConversionStatus.naIntroduced = false;
+        RComplex res = arg.asComplex(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
+            return res;
+        } else {
+            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            return res;
+        }
+    }
+
 
     public static RDouble coerceToDoubleWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;

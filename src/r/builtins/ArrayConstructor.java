@@ -141,4 +141,6 @@ public class ArrayConstructor {
         }
     };
 
+    // TODO: complex constructor (it is more elaborate than constructors of the other types)
+
 }

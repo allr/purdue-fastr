@@ -191,6 +191,58 @@ public class Cast {
                         }
                     });
 
+    // complex
+    public static RAny genericAsComplex(RContext context, ASTNode ast, RAny arg) {
+        if (arg instanceof RList) {
+            warn.naIntroduced = false;
+            RList l = (RList) arg;
+            int size = l.size();
+            double[] content = new double[2 * size];
+            for (int i = 0; i < size; i++) {
+                RAny v = l.getRAny(i);
+                RArray a = (RArray) v;
+                int asize = a.size();
+
+                if (asize == 1) {
+                    if (a instanceof RList) {
+                        content[2 * i] = RDouble.NA;
+                        content[2 * i + 1] = RDouble.NA;
+                    } else {
+                        RComplex ca = a.asComplex(warn);
+                        content[2 * i] =  ca.getReal(0);
+                        content[2 * i + 1] = ca.getImag(0);
+                    }
+                } else {
+                    if (asize > 1) {
+                        throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "complex"));
+                    }
+                    // asize == 0
+                    content[i] = RDouble.NA;
+                }
+            }
+            if (warn.naIntroduced) {
+                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            }
+            return RComplex.RComplexFactory.getFor(content); // drop attributes
+        } else {
+            return Convert.coerceToComplexWarning(arg, context, ast).stripAttributes();
+        }
+    }
+
+    public static final CallFactory COMPLEX_FACTORY = new SimpleCastFactory(
+                    new Operation() {
+
+                        @Override
+                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
+                            return genericAsComplex(context, ast, arg);
+                        }
+
+                        @Override
+                        public RAny getEmpty() {
+                            return RDouble.EMPTY;
+                        }
+                    });
+
     // double
     public static RAny genericAsDouble(RContext context, ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
@@ -207,7 +259,7 @@ public class Cast {
                     if (a instanceof RList) {
                         content[i] = RDouble.NA;
                     } else {
-                        content[i] =  a.asDouble().getDouble(0); // FIXME error handling - NA + warning
+                        content[i] =  a.asDouble(warn).getDouble(0); // FIXME error handling - NA + warning
                     }
                 } else {
                     if (asize > 1) {
@@ -256,7 +308,7 @@ public class Cast {
                     if (a instanceof RList) {
                         content[i] = RInt.NA;
                     } else {
-                        content[i] = a.asInt(warn).getInt(0); // FIXME error handling - NA + warning
+                        content[i] = a.asInt(warn).getInt(0);
                     }
                 } else {
                     if (asize > 1) {
@@ -291,9 +343,48 @@ public class Cast {
 
     // logical
     public static RAny genericAsLogical(RContext context, ASTNode ast, RAny arg) {
-        Utils.nyi();
-        return null;
+        if (arg instanceof RList) {
+            RList l = (RList) arg;
+            int size = l.size();
+            int[] content = new int[size];
+            for (int i = 0; i < size; i++) {
+                RAny v = l.getRAny(i);
+                RArray a = (RArray) v;
+                int asize = a.size();
+
+                if (asize == 1) {
+                    if (a instanceof RList) {
+                        content[i] = RInt.NA;
+                    } else {
+                        content[i] = a.asLogical().getLogical(0);
+                    }
+                } else {
+                    if (asize > 1) {
+                        throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "logical"));
+                    }
+                    // asize == 0
+                    content[i] = RLogical.NA;
+                }
+            }
+            return RLogical.RLogicalFactory.getFor(content); // drop attributes
+        } else {
+            return arg.asLogical().stripAttributes(); // note: coercion to logical produces no warnings
+        }
     }
+
+    public static final CallFactory LOGICAL_FACTORY = new SimpleCastFactory(
+                    new Operation() {
+
+                        @Override
+                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
+                            return genericAsLogical(context, ast, arg);
+                        }
+
+                        @Override
+                        public RAny getEmpty() {
+                            return RLogical.EMPTY;
+                        }
+                    });
 
     // raw
     public static RAny genericAsRaw(RContext context, ASTNode ast, RAny arg) {
@@ -380,6 +471,9 @@ public class Cast {
         }
         if (mode.equals("numeric") || mode.equals("double")) {
             return genericAsDouble(context, ast, arg0);
+        }
+        if (mode.equals("logical")) {
+            return genericAsLogical(context, ast, arg0);
         }
         if (mode.equals("list")) {
             return genericAsList(context, ast, arg0);

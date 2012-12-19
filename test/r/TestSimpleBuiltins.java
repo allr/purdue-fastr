@@ -132,6 +132,20 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.raw(list(1,2,3)) }", "01, 02, 03");
         assertEval("{ as.raw(list(\"1\", 2L, 3.4)) }", "01, 02, 03");
         assertEval("{ as.raw(c(1,1000,NA)) }", "01, 00, 00");
+
+        assertEval("{ as.logical(1) }", "TRUE");
+        assertEval("{ as.logical(\"false\") }", "FALSE");
+        assertEval("{ as.logical(\"dummy\") }", "NA"); // no warning produced
+
+        assertEval("{ as.complex(0) }", "0.0+0.0i");
+        assertEval("{ as.complex(TRUE) }", "1.0+0.0i");
+        assertEval("{ as.complex(\"1+5i\") }", "1.0+5.0i");
+        assertEval("{ as.complex(\"1e10+5i\") }", "1.0E10+5.0i");
+        assertEval("{ as.complex(\"-1+5i\") }", "-1.0+5.0i");
+        assertEval("{ as.complex(\"-1-5i\") }", "-1.0-5.0i");
+        assertEval("{ as.complex(\"-.1e10+5i\") }", "-1.0E9+5.0i");
+        assertEval("{ as.complex(\"1e-2+3i\") }", "0.01+3.0i");
+        assertEval("{ as.complex(\"+.1e+2-3i\") }", "10.0-3.0i");
     }
 
     @Test

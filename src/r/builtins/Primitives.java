@@ -29,8 +29,10 @@ public class Primitives {
         add("%o%", 2, 2, Operators.OUTER_MULT_FACTORY);
         add("abs", 1, 1, Abs.FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
+        add("as.complex", 0, -1, Cast.COMPLEX_FACTORY);
         add("as.double", 0, -1, Cast.DOUBLE_FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);
+        add("as.logical", 0, -1, Cast.LOGICAL_FACTORY);
         add("as.raw", 0, -1, Cast.RAW_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
