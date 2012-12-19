@@ -74,6 +74,7 @@ public abstract class RError extends RuntimeException {
     public static final String UNIMPLEMENTED_COMPLEX = "unimplemented complex operation";
     public static final String COMPARISON_COMPLEX = "invalid comparison with complex values";
     public static final String NON_NUMERIC_BINARY = "non-numeric argument to binary operator";
+    public static final String RAW_SORT = "raw vectors cannot be sorted";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -797,6 +798,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NON_NUMERIC_BINARY;
+            }
+        };
+    }
+
+    public static RError getRawSort(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.RAW_SORT;
             }
         };
     }

@@ -27,6 +27,57 @@ public class Rep {
         }
     }
 
+    public static RRaw repInt(final RRaw orig, final int origSize, final int size) {
+        return new View.RRawView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public byte getRaw(int i) {
+                return orig.getRaw(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+    public static RLogical repInt(final RLogical orig, final int origSize, final int size) {
+        return new View.RLogicalView() {
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public int getLogical(int i) {
+                return orig.getLogical(i % origSize);
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return orig.isShared();
+            }
+
+            @Override
+            public void ref() {
+                orig.ref();
+            }
+        };
+    }
+
+
     public static RInt repInt(final RInt orig, final int origSize, final int size) {
         return new View.RIntView() {
 
@@ -77,8 +128,8 @@ public class Rep {
         };
     }
 
-    public static RLogical repInt(final RLogical orig, final int origSize, final int size) {
-        return new View.RLogicalView() {
+    public static RComplex repInt(final RComplex orig, final int origSize, final int size) {
+        return new View.RComplexView() {
 
             @Override
             public int size() {
@@ -86,8 +137,13 @@ public class Rep {
             }
 
             @Override
-            public int getLogical(int i) {
-                return orig.getLogical(i % origSize);
+            public double getReal(int i) {
+                return orig.getReal(i % origSize);
+            }
+
+            @Override
+            public double getImag(int i) {
+                return orig.getImag(i % origSize);
             }
 
             @Override
@@ -127,35 +183,6 @@ public class Rep {
         };
     }
 
-    public static RComplex repInt(final RComplex orig, final int origSize, final int size) {
-        return new View.RComplexView() {
-
-            @Override
-            public int size() {
-                return size;
-            }
-
-            @Override
-            public double getReal(int i) {
-                return orig.getReal(i % origSize);
-            }
-
-            @Override
-            public double getImag(int i) {
-                return orig.getImag(i % origSize);
-            }
-
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
-
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
-    }
 
     public static RAny genericRepInt(ASTNode ast, RAny arg0, RAny arg1) {
 
@@ -220,6 +247,11 @@ public class Rep {
         }
         if (arg0 instanceof RComplex) {
             RComplex orig = (RComplex) arg0;
+            int origSize = orig.size();
+            return repInt(orig, origSize, origSize * times);
+        }
+        if (arg0 instanceof RRaw) {
+            RRaw orig = (RRaw) arg0;
             int origSize = orig.size();
             return repInt(orig, origSize, origSize * times);
         }

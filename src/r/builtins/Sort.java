@@ -159,7 +159,7 @@ public class Sort {
         }
     }
 
-    public static ElementsComparator createComparator(RArray arg) {
+    public static ElementsComparator createComparator(RArray arg, ASTNode ast) {
         if (arg instanceof RDouble) {
             return new DoubleComparator((RDouble) arg);
         }
@@ -171,6 +171,9 @@ public class Sort {
         }
         if (arg instanceof RString) {
             return new StringComparator((RString) arg);
+        }
+        if (arg instanceof RRaw) {
+            throw RError.getRawSort(ast);
         }
         Utils.nyi("unsupported type");
         return null;
@@ -207,7 +210,7 @@ public class Sort {
 
         final ElementsComparator[] comp = new ElementsComparator[nkeys];
         for (int i = 0; i < nkeys; i++) {
-            ElementsComparator c = createComparator(keys[i]);
+            ElementsComparator c = createComparator(keys[i], ast);
             comp[i] = c;
             if (removeNA) {
                 for (int j = 0; j < size; j++) {
