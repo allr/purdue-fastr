@@ -75,6 +75,8 @@ public abstract class RError extends RuntimeException {
     public static final String COMPARISON_COMPLEX = "invalid comparison with complex values";
     public static final String NON_NUMERIC_BINARY = "non-numeric argument to binary operator";
     public static final String RAW_SORT = "raw vectors cannot be sorted";
+    public static final String INVALID_UNNAMED_ARGUMENT = "invalid argument";
+    public static final String INVALID_UNNAMED_VALUE = "invalid value";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -810,6 +812,30 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.RAW_SORT;
+            }
+        };
+    }
+
+    public static RError getInvalidUnnamedArgument(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_UNNAMED_ARGUMENT;
+            }
+        };
+    }
+
+    public static RError getInvalidUnnamedValue(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_UNNAMED_VALUE;
             }
         };
     }

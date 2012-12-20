@@ -441,6 +441,13 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testLength() throws RecognitionException {
+        assertEval("{ x <- 1:4 ; length(x) <- 2 ; x }", "1L, 2L");
+        assertEval("{ x <- 1:2 ; length(x) <- 4 ; x }", "1L, 2L, NA, NA");
+        assertEval("{ x <- 1:2 ; z <- (length(x) <- 4) ; z }", "4.0");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

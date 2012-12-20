@@ -61,6 +61,7 @@ public class Primitives {
         add("is.na", 1, 1, IsNA.FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
         add("length", 1, 1, Length.FACTORY);
+        add("length<-", 2, 2, Length.REPLACEMENT_FACTORY);
         add("list", 0, -1, List.FACTORY);
         add("log", 1, 2, MathFunctions.LOG_FACTORY);
         add("log10", 1, 1, MathFunctions.LOG10_FACTORY);
