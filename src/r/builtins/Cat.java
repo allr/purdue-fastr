@@ -47,22 +47,22 @@ public class Cat {
     }
 
     public static String catElement(RComplex v, int i) {
-        return Convert.pretty(Convert.complex2string(v.getReal(i), v.getImag(i)));
+        return Convert.prettyNA(Convert.complex2string(v.getReal(i), v.getImag(i)));
     }
 
     public static String catElement(RDouble v, int i) {
         double d = v.getDouble(i);
-        return Convert.pretty(Convert.double2string(d));
+        return Convert.prettyNA(Convert.double2string(d));
     }
 
     public static String catElement(RInt v, int i) {
         int n = v.getInt(i);
-        return Convert.pretty(Convert.int2string(n));
+        return Convert.prettyNA(Convert.int2string(n));
     }
 
     public static String catElement(RLogical v, int i) {
         int n = v.getLogical(i);
-        return Convert.pretty(Convert.logical2string(n));
+        return Convert.prettyNA(Convert.logical2string(n));
     }
 
     public static String catElement(RRaw v, int i) {

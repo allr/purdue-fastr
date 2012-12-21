@@ -115,21 +115,10 @@ public interface RInt extends RNumber {
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
+    public static class RStringView extends View.RStringProxy<RInt> implements RString {
 
-        final RInt orig;
         public RStringView(RInt orig) {
-            this.orig = orig;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
+            super(orig);
         }
 
         @Override
@@ -145,11 +134,6 @@ public interface RInt extends RNumber {
         @Override
         public RInt asInt() {
             return orig;
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return orig.asLogical();
         }
 
         @Override
@@ -173,18 +157,8 @@ public interface RInt extends RNumber {
         }
 
         @Override
-        public RLogical asLogical(ConversionStatus warn) {
-            return orig.asLogical();
-        }
-
-        @Override
         public RRaw asRaw(ConversionStatus warn) {
             return orig.asRaw(warn);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -192,43 +166,12 @@ public interface RInt extends RNumber {
             int v = orig.getInt(i);
             return Convert.int2string(v);
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RComplexView extends View.RComplexView implements RComplex {
+    public static class RComplexView extends View.RComplexProxy<RInt> implements RComplex {
 
-        final RInt orig;
         public RComplexView(RInt orig) {
-            this.orig = orig;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
+            super(orig);
         }
 
         @Override
@@ -252,11 +195,6 @@ public interface RInt extends RNumber {
         }
 
         @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
         public RDouble asDouble(ConversionStatus warn) {
             return orig.asDouble();
         }
@@ -274,11 +212,6 @@ public interface RInt extends RNumber {
         @Override
         public RRaw asRaw(ConversionStatus warn) {
             return orig.asRaw(warn);
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -291,44 +224,19 @@ public interface RInt extends RNumber {
         public double getImag(int i) {
             return 0;
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RDoubleView extends View.RDoubleView implements RDouble {
+    public static class RDoubleView extends View.RDoubleProxy<RInt> implements RDouble {
 
-        final RInt orig;
         public RDoubleView(RInt orig) {
-            this.orig = orig;
+            super(orig);
         }
 
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
-        }
+     // fast debugging format does not support this shortcut, non-debugging format probably would
+//        @Override
+//        public RString asString() {
+//            return orig.asString();
+//        }
 
         @Override
         public RComplex asComplex() {
@@ -348,11 +256,6 @@ public interface RInt extends RNumber {
         @Override
         public RRaw asRaw() {
             return orig.asRaw();
-        }
-
-        @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
         }
 
         @Override
@@ -376,47 +279,16 @@ public interface RInt extends RNumber {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
         public double getDouble(int i) {
             int v = orig.getInt(i);
             return Convert.int2double(v);
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RLogicalView extends View.RLogicalView implements RLogical {
+    public static class RLogicalView extends View.RLogicalProxy<RInt> implements RLogical {
 
-        final RInt orig;
         public RLogicalView(RInt orig) {
-            this.orig = orig;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
+            super(orig);
         }
 
         @Override
@@ -424,114 +296,18 @@ public interface RInt extends RNumber {
             int v = orig.getInt(i);
             return Convert.int2logical(v);
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RRawView extends View.RRawView implements RRaw { // FIXME: remove this? it breaks warnings
+    public static class RRawView extends View.RRawProxy<RInt> implements RRaw {
 
-        final RInt orig;
         public RRawView(RInt orig) {
-            this.orig = orig;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex() {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt() {
-            return orig;
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return orig.asLogical();
-        }
-
-        @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt(ConversionStatus warn) {
-            return orig;
-        }
-
-        @Override
-        public RLogical asLogical(ConversionStatus warn) {
-            return orig.asLogical();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
+            super(orig);
         }
 
         @Override
         public byte getRaw(int i) {
             int v = orig.getInt(i);
             return Convert.int2raw(v);
-        }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
         }
     }
 

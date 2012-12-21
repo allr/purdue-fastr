@@ -117,7 +117,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         }
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            if (content[0] != RString.NA) {
+            if (content[i] != RString.NA) {
                 str.append("\"");
                 str.append(content[i]); // FIXME: quote
                 str.append("\"");

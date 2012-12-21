@@ -155,10 +155,18 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.complex(\"1e-2+3i\") }", "0.01+3.0i");
         assertEval("{ as.complex(\"+.1e+2-3i\") }", "10.0-3.0i");
 
+        // shortcuts in views (only some combinations)
+        assertEval("{ as.complex(as.character(c(1+1i,1+1i))) }", "1.0+1.0i, 1.0+1.0i");
+        assertEval("{ as.complex(as.double(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");
+        assertEval("{ as.complex(as.integer(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");
         assertEval("{ as.complex(as.logical(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");
+        assertEval("{ as.complex(as.raw(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");
+
         assertEval("{ as.double(as.logical(c(10,10))) }", "1.0, 1.0");
         assertEval("{ as.integer(as.logical(-1:1)) }", "1L, 0L, 1L");
         assertEval("{ as.raw(as.logical(as.raw(c(1,2)))) }", "01, 01");
+        assertEval("{ as.character(as.double(1:5)) }", "\"1.0\", \"2.0\", \"3.0\", \"4.0\", \"5.0\"");
+        assertEval("{ as.character(as.complex(1:2)) }", "\"1.0+0.0i\", \"2.0+0.0i\"");
 
     }
 
@@ -445,6 +453,12 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 1:4 ; length(x) <- 2 ; x }", "1L, 2L");
         assertEval("{ x <- 1:2 ; length(x) <- 4 ; x }", "1L, 2L, NA, NA");
         assertEval("{ x <- 1:2 ; z <- (length(x) <- 4) ; z }", "4.0");
+    }
+
+    @Test
+    public void testNames() throws RecognitionException {
+        assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\", \"hi\"); names(x) } ", "\"hello\", \"hi\"");
+        assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\"); names(x) }", "\"hello\", NA");
     }
 
     @Test

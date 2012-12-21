@@ -129,7 +129,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         if (size == 0) {
             return RComplex.TYPE_STRING + "(0)";
         }
-        String fst = Convert.pretty(Convert.complex2string(content[0], content[1]));
+        String fst = Convert.prettyNA(Convert.complex2string(content[0], content[1]));
         if (size == 1) {
             return fst;
         }
@@ -137,7 +137,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         str.append(fst);
         for (int i = 1; i < size; i++) {
             str.append(", ");
-            str.append(Convert.pretty(Convert.complex2string(content[2 * i], content[2 * i + 1])));
+            str.append(Convert.prettyNA(Convert.complex2string(content[2 * i], content[2 * i + 1])));
         }
         return str.toString();
     }

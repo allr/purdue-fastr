@@ -70,7 +70,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public String pretty() {
-        return Convert.pretty(Convert.complex2string(real, imag));
+        return Convert.prettyNA(Convert.complex2string(real, imag));
     }
 
     @Override

@@ -376,11 +376,27 @@ public class Convert {
         return byteToUnsigned(v) != 0 ? RLogical.TRUE : RLogical.FALSE;
     }
 
-    public static String pretty(String s) {
+    public static String prettyNA(String s) {
         if (s != RString.NA) {
             return s;
         } else {
             return "NA";
+        }
+    }
+
+    public static String prettyGTNALT(String s) {
+        if (s != RString.NA) {
+            return s;
+        } else {
+            return "<NA>";
+        }
+    }
+
+    public static void prettyGTNALT(String[] s) { // re-uses array !
+        for (int i = 0; i < s.length; i++) {
+            if (s[i] == RString.NA) {
+                s[i] = "<NA>";
+            }
         }
     }
 

@@ -133,6 +133,18 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
+    public Names names() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RArray setNames(Names names) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public int index(int i, int j) {
         Utils.nyi();
         return 0;

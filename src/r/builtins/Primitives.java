@@ -71,6 +71,8 @@ public class Primitives {
         add("matrix", 0, 5, Matrix.FACTORY);
         add("max", 0, -1, Extreme.MAX_FACTORY);
         add("min", 0, -1, Extreme.MIN_FACTORY);
+        add("names", 1, 1, Names.FACTORY);
+        add("names<-", 2, 2, Names.REPLACEMENT_FACTORY);
         add("nchar", 1, 3, NChar.FACTORY);
         add("ncol", 1, 1, Dimensions.NCOL_FACTORY);
         add("nrow", 1, 1, Dimensions.NROW_FACTORY);

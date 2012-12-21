@@ -70,7 +70,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public String pretty() {
-        return Convert.pretty(Convert.int2string(value));
+        return Convert.prettyNA(Convert.int2string(value));
     }
 
     @Override

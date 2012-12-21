@@ -1,11 +1,16 @@
 package r.data.internal;
 
+import java.util.*;
+
 import r.*;
+import r.data.*;
 
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
+// fixme - perhaps rename the class
 public abstract class NonScalarArrayImpl extends ArrayImpl {
 
     protected int[] dimensions; // the content shall never be modified once set
+    protected Names names;
     protected int refcount;
 
     @Override
@@ -30,6 +35,17 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
     @Override
     public NonScalarArrayImpl setDimensions(int[] dimensions) {
         this.dimensions = dimensions;
+        return this;
+    }
+
+    @Override
+    public Names names() {
+        return names;
+    }
+
+    @Override
+    public NonScalarArrayImpl setNames(Names names) {
+        this.names = names;
         return this;
     }
 

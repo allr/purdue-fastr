@@ -69,7 +69,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public String pretty() {
-        return Convert.pretty(Convert.double2string(value));
+        return Convert.prettyNA(Convert.double2string(value));
     }
 
     @Override

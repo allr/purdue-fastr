@@ -3,7 +3,6 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
-import r.data.RComplex.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -40,6 +39,12 @@ public abstract class View extends ArrayImpl implements RArray {
     public RArray setDimensions(int[] dimensions) {
         return materialize().setDimensions(dimensions);
     }
+
+    @Override
+    public RArray setNames(Names names) {
+        return materialize().setNames(names);
+    }
+
 
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
@@ -159,6 +164,43 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
+    public abstract static class RRawProxy<O extends RArray> extends RRawView implements RRaw {
+        protected final O orig;
+
+        public RRawProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
+        }
+    }
 
     public abstract static class RLogicalView extends View implements RLogical {
         @Override
@@ -259,6 +301,45 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RLogical.TYPE_STRING;
+        }
+    }
+
+    // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RLogicalProxy<O extends RArray> extends RLogicalView implements RLogical {
+        protected final O orig;
+
+        public RLogicalProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
         }
     }
 
@@ -364,6 +445,45 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
+    // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RIntProxy<O extends RArray> extends RIntView implements RInt {
+        protected final O orig;
+
+        public RIntProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
+        }
+    }
+
     public abstract static class RDoubleView extends View implements RDouble {
         @Override
         public Object get(int i) {
@@ -466,6 +586,45 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
+ // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RDoubleProxy<O extends RArray> extends RDoubleView implements RDouble {
+        protected final O orig;
+
+        public RDoubleProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
+        }
+    }
+
     public abstract static class RComplexView extends View implements RComplex {
         @Override
         public Object get(int i) {
@@ -565,6 +724,45 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RComplex.TYPE_STRING;
+        }
+    }
+
+ // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RComplexProxy<O extends RArray> extends RComplexView implements RComplex {
+        protected final O orig;
+
+        public RComplexProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
         }
     }
 
@@ -672,6 +870,45 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RString.TYPE_STRING;
+        }
+    }
+
+    // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RStringProxy<O extends RArray> extends RStringView implements RString {
+        protected final O orig;
+
+        public RStringProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
         }
     }
 

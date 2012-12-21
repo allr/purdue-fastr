@@ -178,7 +178,7 @@ public final class Utils {
         return null;
     }
 
-    public static RArray copyArray(RArray arr) {
+    public static RArray copyArray(RArray arr) {  // FIXME: should be a method of RArray for (hopefully) faster dispatch
         if (arr instanceof RDouble) {
             return RDouble.RDoubleFactory.copy((RDouble) arr);
         }

@@ -49,66 +49,15 @@ public interface RRaw extends RArray {
         }
     }
 
-    public static class RStringView extends View.RStringView implements RString {
+    public static class RStringView extends View.RStringProxy<RRaw> implements RString {
 
-        final RRaw orig;
-        public RStringView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RComplex asComplex() {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble() {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt() {
-            return orig.asInt();
-        }
-
-        @Override
-        public RLogical asLogical() {
-            return orig.asLogical();
+        public RStringView(RRaw orig) {
+            super(orig);
         }
 
         @Override
         public RRaw asRaw() {
             return orig;
-        }
-
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
-            return orig.asComplex();
-        }
-
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
-            return orig.asDouble();
-        }
-
-        @Override
-        public RInt asInt(ConversionStatus warn) {
-            return orig.asInt();
-        }
-
-        @Override
-        public RLogical asLogical(ConversionStatus warn) {
-            return orig.asLogical();
         }
 
         @Override
@@ -117,57 +66,16 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
         public String getString(int i) {
             byte v = orig.getRaw(i);
             return Convert.raw2string(v);
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RComplexView extends View.RComplexView implements RComplex {
+    public static class RComplexView extends View.RComplexProxy<RRaw> implements RComplex {
 
-        final RRaw orig;
-        public RComplexView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
+        public RComplexView(RRaw orig) {
+            super(orig);
         }
 
         @Override
@@ -188,11 +96,6 @@ public interface RRaw extends RArray {
         @Override
         public RRaw asRaw() {
             return orig;
-        }
-
-        @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
         }
 
         @Override
@@ -225,48 +128,12 @@ public interface RRaw extends RArray {
         public double getImag(int i) {
             return 0;
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RDoubleView extends View.RDoubleView implements RDouble {
+    public static class RDoubleView extends View.RDoubleProxy<RRaw> implements RDouble {
 
-        final RRaw orig;
-        public RDoubleView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
+        public RDoubleView(RRaw orig) {
+            super(orig);
         }
 
         @Override
@@ -290,11 +157,6 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
         public RComplex asComplex(ConversionStatus warn) {
             return orig.asComplex();
         }
@@ -314,48 +176,16 @@ public interface RRaw extends RArray {
             return orig;
         }
 
-        @Override
         public double getDouble(int i) {
             byte v = orig.getRaw(i);
             return Convert.raw2double(v);
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RIntView extends View.RIntView implements RInt {
+    public static class RIntView extends View.RIntProxy<RRaw> implements RInt {
 
-        final RRaw orig;
-        public RIntView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RList asList() {
-            return orig.asList();
-        }
-
-        @Override
-        public RString asString() {
-            return orig.asString();
+        public RIntView(RRaw orig) {
+            super(orig);
         }
 
         @Override
@@ -379,11 +209,6 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RString asString(ConversionStatus warn) {
-            return orig.asString();
-        }
-
-        @Override
         public RComplex asComplex(ConversionStatus warn) {
             return orig.asComplex();
         }
@@ -404,67 +229,20 @@ public interface RRaw extends RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
-        }
-
-        @Override
         public int getInt(int i) {
             return Convert.raw2int(orig.getRaw(i));
         }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
-        }
     }
 
-    public static class RLogicalView extends View.RLogicalView implements RLogical {
+    public static class RLogicalView extends View.RLogicalProxy<RRaw> implements RLogical {
 
-        RRaw orig;
-
-        public RLogicalView(RRaw v) {
-            this.orig = v;
-        }
-
-        @Override
-        public int size() {
-            return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
+        public RLogicalView(RRaw orig) {
+            super(orig);
         }
 
         @Override
         public int getLogical(int i) {
             return Convert.raw2logical(orig.getRaw(i));
-        }
-
-        @Override
-        public boolean isSharedReal() {
-            return orig.isShared();
-        }
-
-        @Override
-        public void ref() {
-            orig.ref();
-        }
-
-        @Override
-        public int[] dimensions() {
-            return orig.dimensions();
         }
     }
 

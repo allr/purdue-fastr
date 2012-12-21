@@ -162,7 +162,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         if (content.length == 0) {
             return RRaw.TYPE_STRING + "(0)";
         }
-        String fst = Convert.pretty(Convert.raw2string(content[0]));
+        String fst = Convert.prettyNA(Convert.raw2string(content[0]));
         if (content.length == 1) {
             return fst;
         }
@@ -170,7 +170,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         str.append(fst);
         for (int i = 1; i < content.length; i++) {
             str.append(", ");
-            str.append(Convert.pretty(Convert.raw2string(content[i])));
+            str.append(Convert.prettyNA(Convert.raw2string(content[i])));
         }
         return str.toString();
     }

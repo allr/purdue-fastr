@@ -71,7 +71,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
 
     @Override
     public String pretty() {
-        return Convert.pretty(Convert.logical2string(value));
+        return Convert.prettyNA(Convert.logical2string(value));
     }
 
     @Override

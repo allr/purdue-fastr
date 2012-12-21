@@ -77,6 +77,7 @@ public abstract class RError extends RuntimeException {
     public static final String RAW_SORT = "raw vectors cannot be sorted";
     public static final String INVALID_UNNAMED_ARGUMENT = "invalid argument";
     public static final String INVALID_UNNAMED_VALUE = "invalid value";
+    public static final String NAMES_NONVECTOR = "names() applied to a non-vector";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -97,6 +98,7 @@ public abstract class RError extends RuntimeException {
     public static final String INCOMPLETE_FINAL_LINE = "incomplete final line found on '%s'";
     public static final String CANNOT_OPEN_PIPE = "cannot open pipe() cmd '%s': %s";
     public static final String INVALID_TYPE_ARGUMENT = "invalid 'type' (%s) of argument";
+    public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -840,6 +842,18 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getNamesNonVector(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NAMES_NONVECTOR;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -891,6 +905,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidTypeArgument(ASTNode ast, String typeName) {
         return getGenericError(ast, String.format(RError.INVALID_TYPE_ARGUMENT, typeName));
+    }
+
+    public static RError getAttributeVectorSameLength(ASTNode ast, String attr, int attrLen, int vectorLen) {
+        return getGenericError(ast, String.format(RError.ATTRIBUTE_VECTOR_SAME_LENGTH, attr, attrLen, vectorLen));
     }
 
     public static RError getUnknownVariable(ASTNode source) {
