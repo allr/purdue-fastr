@@ -109,6 +109,10 @@ public class TestSimpleVectors extends TestBase {
     public void testListDefinitions() throws RecognitionException {
         assertEval("{ list(1:4) }", "[[1]]\n1L, 2L, 3L, 4L");
         assertEval("{ list(1,list(2,list(3,4))) }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0\n\n[[2]][[2]][[2]]\n4.0");
+
+        assertEval("{ list(1,b=list(2,3)) }", "[[1]]\n1.0\n\n$b\n$b[[1]]\n2.0\n\n$b[[2]]\n3.0");
+        assertEval("{ list(1,b=list(c=2,3)) }", "[[1]]\n1.0\n\n$b\n$b$c\n2.0\n\n$b[[2]]\n3.0");
+        assertEval("{ list(list(c=2)) }", "[[1]]\n[[1]]$c\n2.0");
     }
 
     @Test

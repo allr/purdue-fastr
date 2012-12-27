@@ -163,6 +163,11 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         if (dimensions != null) {
             return matrixPretty();
         }
+        RSymbol[] snames = null;
+        if (names() != null) {
+            snames = names().sequence();
+        }
+
         if (content.length == 0) {
             return RList.TYPE_STRING + "()";
         } else {
@@ -173,9 +178,15 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
                 }
                 StringBuilder nprefix = new StringBuilder();
                 nprefix.append(indexPrefix);
-                nprefix.append("[[");
-                nprefix.append(i + 1);
-                nprefix.append("]]");
+                RSymbol s = (snames == null) ? null : snames[i];
+                if (s == null || s == RSymbol.EMPTY_SYMBOL) {
+                    nprefix.append("[[");
+                    nprefix.append(i + 1);
+                    nprefix.append("]]");
+                } else {
+                    nprefix.append("$");
+                    nprefix.append(s.pretty());
+                }
                 str.append(nprefix);
                 str.append("\n");
 

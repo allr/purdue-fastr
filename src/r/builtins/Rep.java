@@ -4,6 +4,7 @@ import r.*;
 import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.RRaw.RRawFactory;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -27,29 +28,51 @@ public class Rep {
         }
     }
 
+    // FIXME: make these faster using System.arraycopy
+    public static RSymbol[] rep(RSymbol[] origArray, int origSize, int newSize) {
+        RSymbol[] newArray = new RSymbol[newSize];
+
+        int oi = 0;
+        for (int ni = 0; ni < newSize; ni++) {
+            newArray[ni] = origArray[oi++];
+            if (oi == origSize) {
+                oi = 0;
+            }
+        }
+        return newArray;
+    }
+
+    public static RArray.Names repNames(RArray.Names origNames, int origSize, int size) {
+        return RArray.Names.create(rep(origNames.sequence(), origSize, size));
+    }
+
+    // TODO: finish this (name propagation)
+
     public static RRaw repInt(final RRaw orig, final int origSize, final int size) {
-        return new View.RRawView() {
 
-            @Override
-            public int size() {
-                return size;
-            }
+        RArray.Names names = orig.names();
+//        if (names == null) {
+            return new View.RRawProxy<RRaw>(orig) {
 
-            @Override
-            public byte getRaw(int i) {
-                return orig.getRaw(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public byte getRaw(int i) {
+                    return orig.getRaw(i % origSize);
+                }
+
+            };
+//        } else {
+//            return RRawFactory.getFor(values, null, repNames(names, origSize, size));
+//        }
     }
 
     public static RLogical repInt(final RLogical orig, final int origSize, final int size) {

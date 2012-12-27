@@ -61,11 +61,11 @@ public interface RDouble extends RNumber {
         public static ScalarDoubleImpl getScalar(double value) {
             return new ScalarDoubleImpl(value);
         }
-        public static RDouble getScalar(double value, int[] dimensions) {
-            if (dimensions == null) {
+        public static RDouble getScalar(double value, int[] dimensions, Names names) {
+            if (dimensions == null && names == null) {
                 return new ScalarDoubleImpl(value);
             } else {
-                return getFor(new double[] {value}, dimensions, null);
+                return getFor(new double[] {value}, dimensions, names);
             }
         }
         public static RDouble getArray(double... values) {

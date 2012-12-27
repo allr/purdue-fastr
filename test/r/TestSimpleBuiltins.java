@@ -417,6 +417,8 @@ public class TestSimpleBuiltins extends TestBase {
     public void testMathFunctions() throws RecognitionException {
         assertEval("{ log(1) } ", "0.0");
         assertEval("{ m <- matrix(1:4, nrow=2) ; log10(m) }", "                   [,1]                [,2]\n[1,]                0.0 0.47712125471966244\n[2,] 0.3010299956639812  0.6020599913279624");
+
+        assertEval("{ x <- c(a=1, b=10) ; c(log(x), log10(x), log2(x)) }", "  a                 b   a   b   a                  b\n0.0 2.302585092994046 0.0 1.0 0.0 3.3219280948873626");
     }
 
     @Test
