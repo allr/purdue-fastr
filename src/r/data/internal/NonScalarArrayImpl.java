@@ -49,15 +49,6 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
         return this;
     }
 
-    private static void strAppend(StringBuilder b, String s, int width) {
-        int spaces = width - s.length();
-        Utils.check(spaces >= 0);
-        for (int i = 0; i < spaces; i++) {
-            b.append(' ');
-        }
-        b.append(s);
-    }
-
     protected String matrixPretty() {
         Utils.check(dimensions != null);
         Utils.check(dimensions.length == 2);
@@ -104,15 +95,15 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
 
         StringBuilder res = new StringBuilder();
 
-        strAppend(res, "", rowNamesWidth);
+        Utils.strAppend(res, "", rowNamesWidth);
         for (int j = 0; j < n; j++) {
-            strAppend(res, colNames[j], colWidth[j]);
+            Utils.strAppend(res, colNames[j], colWidth[j]);
         }
         res.append("\n");
         for (int i = 0; i < m; i++) {
-            strAppend(res, rowNames[i], rowNamesWidth);
+            Utils.strAppend(res, rowNames[i], rowNamesWidth);
             for (int j = 0; j < n; j++) {
-                strAppend(res, data[i][j], colWidth[j]);
+                Utils.strAppend(res, data[i][j], colWidth[j]);
             }
             if (i != m - 1) {
                 res.append("\n");

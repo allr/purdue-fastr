@@ -101,7 +101,7 @@ public interface RString extends RArray {
             if (size == 1 && dimensions == null) {
                 return new ScalarStringImpl(NA);
             }
-            return new StringImpl(new String[size], dimensions, false);
+            return new StringImpl(new String[size], dimensions, null, false);
         }
         public static RString getNAArray(int size) {
             return getNAArray(size, null);
@@ -114,16 +114,22 @@ public interface RString extends RArray {
             for (int i = 0; i < size; i++) {
                 content[i] = NA;
             }
-            return new StringImpl(content, dimensions, false);
+            return new StringImpl(content, dimensions, null, false);
         }
         public static StringImpl getMatrixFor(String[] values, int m, int n) {
-            return new StringImpl(values, new int[] {m, n}, false);
+            return new StringImpl(values, new int[] {m, n}, null, false);
         }
         public static RString copy(RString s) {
-            if (s.size() == 1 && s.dimensions() == null) {
+            if (s.size() == 1 && s.dimensions() == null && s.names() == null) {
                 return new ScalarStringImpl(s.getString(0));
             }
             return new StringImpl(s, false);
+        }
+        public static RString strip(RString v) {
+            if (v.size() == 1) {
+                return new ScalarStringImpl(v.getString(0));
+            }
+            return new StringImpl(v, true);
         }
         public static RString getFor(String[] values) { // re-uses values!
             return getFor(values, null);
@@ -133,7 +139,7 @@ public interface RString extends RArray {
             if (values.length == 1 && dimensions == null) {
                 return new ScalarStringImpl(values[0]);
             }
-            return new StringImpl(values, dimensions, false);
+            return new StringImpl(values, dimensions, null, false);
         }
         public static RString exclude(int excludeIndex, RString orig) {
             return new RStringExclusion(excludeIndex, orig);

@@ -54,7 +54,7 @@ public interface RInt extends RNumber {
             if (dimensions == null && values.length == 1) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, dimensions);
+            return new IntImpl(values, dimensions, null);
         }
         public static RInt getUninitializedArray(int size) {
             if (size == 1) {
@@ -66,7 +66,7 @@ public interface RInt extends RNumber {
             if (size == 1 && dimensions == null) {
                 return new ScalarIntImpl(0);
             }
-            return new IntImpl(new int[size], dimensions, false);
+            return new IntImpl(new int[size], dimensions, null, false);
         }
         public static RInt getNAArray(int size) {
             return getNAArray(size, null);
@@ -77,32 +77,31 @@ public interface RInt extends RNumber {
             }
             int[] content = new int[size];
             Arrays.fill(content, NA);
-            return new IntImpl(content, dimensions, false);
+            return new IntImpl(content, dimensions, null, false);
         }
         public static IntImpl getMatrixFor(int[] values, int m, int n) {
-            return new IntImpl(values, new int[] {m, n}, false);
+            return new IntImpl(values, new int[] {m, n}, null, false);
         }
         public static RInt copy(RInt i) {
-            if (i.size() == 1 && i.dimensions() == null) {
+            if (i.size() == 1 && i.dimensions() == null && i.names() == null) {
                 return new ScalarIntImpl(i.getInt(0));
             }
             return new IntImpl(i, false);
         }
-        public static RInt copyValuesOnly(RInt i) {
-            if (i.size() == 1) {
-                return new ScalarIntImpl(i.getInt(0));
+        public static RInt strip(RInt v) {
+            if (v.size() == 1) {
+                return new ScalarIntImpl(v.getInt(0));
             }
-            return new IntImpl(i, true);
+            return new IntImpl(v, true);
         }
         public static RInt getFor(int[] values) { // re-uses values!
             return getFor(values, null);
-
         }
         public static RInt getFor(int[] values, int[] dimensions) {  // re-uses values!
             if (values.length == 1 && dimensions == null) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, dimensions, false);
+            return new IntImpl(values, dimensions, null, false);
         }
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);

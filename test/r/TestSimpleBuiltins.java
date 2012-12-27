@@ -168,6 +168,16 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ as.character(as.double(1:5)) }", "\"1.0\", \"2.0\", \"3.0\", \"4.0\", \"5.0\"");
         assertEval("{ as.character(as.complex(1:2)) }", "\"1.0+0.0i\", \"2.0+0.0i\"");
 
+        // dropping dimensions
+        assertEval("{ m <- matrix(1:6, nrow=2) ; as.double(m) }", "1.0, 2.0, 3.0, 4.0, 5.0, 6.0");
+        assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=2) ; as.integer(m) }", "1L, 2L, 3L, 4L, 5L, 6L");
+        assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=2) ; as.logical(m) }", "TRUE, TRUE, TRUE, TRUE, TRUE, TRUE");
+
+        // dropping names
+        assertEval("{ x <- 1:2; names(x) <- c(\"hello\",\"hi\") ; as.double(x) }", "1.0, 2.0");
+        assertEval("{ x <- c(1,2); names(x) <- c(\"hello\",\"hi\") ; as.integer(x) }", "1L, 2L");
+        assertEval("{ x <- c(0,2); names(x) <- c(\"hello\",\"hi\") ; as.logical(x) }", "FALSE, TRUE");
+
     }
 
     @Test
@@ -459,6 +469,8 @@ public class TestSimpleBuiltins extends TestBase {
     public void testNames() throws RecognitionException {
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\", \"hi\"); names(x) } ", "\"hello\", \"hi\"");
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\"); names(x) }", "\"hello\", NA");
+        assertEval("{ x <- 1:2; names(x) <- c(\"hello\", \"hi\") ; x }", "hello hi\n   1L 2L");
+        assertEval("{ x <- c(1,9); names(x) <- c(\"hello\",\"hi\") ; sqrt(x) }", "hello  hi\n  1.0 3.0");
     }
 
     @Test

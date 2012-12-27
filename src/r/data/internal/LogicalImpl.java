@@ -14,7 +14,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         content = new int[size];
     }
 
-    public LogicalImpl(int[] values, int[] dimensions, boolean doCopy) {
+    public LogicalImpl(int[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new int[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -22,36 +22,26 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
 
     public LogicalImpl(int[] values, int[] dimensions) {
-        this(values, dimensions, true);
+        this(values, dimensions, null, true);
     }
 
     public LogicalImpl(int[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
-    public LogicalImpl(RLogical l) {
+    public LogicalImpl(RLogical l, boolean valuesOnly) {
         content = new int[l.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = l.getLogical(i);
         }
-        dimensions = l.dimensions();
-    }
-
-    @Override
-    public LogicalImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
+        if (!valuesOnly) {
+            dimensions = l.dimensions();
+            names = l.names();
         }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        LogicalImpl v = new LogicalImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new vector shared
-        return v;
     }
 
     @Override
@@ -163,6 +153,9 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         if (content.length == 0) {
             return RLogical.TYPE_STRING + "(0)";
         }
+        if (names() != null) {
+            return namedPretty();
+        }
         String fst = Convert.prettyNA(Convert.logical2string(content[0]));
         if (content.length == 1) {
             return fst;
@@ -189,5 +182,10 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     @Override
     public String typeOf() {
         return RLogical.TYPE_STRING;
+    }
+
+    @Override
+    public LogicalImpl doStrip() {
+        return new LogicalImpl(content, null, null, false);
     }
 }

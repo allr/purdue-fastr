@@ -8,7 +8,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
 
-    public DoubleImpl(double[] values, int[] dimensions, boolean doCopy) {
+    public DoubleImpl(double[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -16,39 +16,29 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
-    public DoubleImpl(double[] values, int[] dimensions) {
-        this(values, dimensions, true);
+    public DoubleImpl(double[] values, int[] dimensions, Names names) {
+        this(values, dimensions, names, true);
     }
 
     public DoubleImpl(double[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
     public DoubleImpl(int size) {
         content = new double[size];
     }
 
-    public DoubleImpl(RDouble d) {
+    public DoubleImpl(RDouble d, boolean valuesOnly) {
         content = new double[d.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = d.getDouble(i);
         }
-        dimensions = d.dimensions();
-    }
-
-    @Override
-    public DoubleImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
+        if (!valuesOnly) {
+            dimensions = d.dimensions();
+            names = d.names();
         }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        DoubleImpl v = new DoubleImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new integer shared
-        return v;
     }
 
     @Override
@@ -100,6 +90,9 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         if (content.length == 0) {
 //            return RDouble.TYPE_STRING + "(0)";
             return "numeric(0)";  // FIXME: I think there is an inconsistency in GNU-R itself on this
+        }
+        if (names() != null) {
+            return namedPretty();
         }
         String fst = Convert.prettyNA(Convert.double2string(content[0]));
         if (content.length == 1) {
@@ -182,5 +175,10 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     @Override
     public String typeOf() {
         return RDouble.TYPE_STRING;
+    }
+
+    @Override
+    public DoubleImpl doStrip() {
+        return new DoubleImpl(content, null, null, false);
     }
 }

@@ -30,19 +30,22 @@ public interface RRaw extends RArray {
             return new RawImpl(size);
         }
         public static RawImpl getUninitializedArray(int size, int[] dimensions) {
-            return new RawImpl(new byte[size], dimensions, false);
+            return new RawImpl(new byte[size], dimensions, null, false);
         }
         public static RawImpl getMatrixFor(byte[] values, int m, int n) {
-            return new RawImpl(values, new int[] {m, n}, false);
+            return new RawImpl(values, new int[] {m, n}, null, false);
         }
         public static RawImpl copy(RRaw v) {
-            return new RawImpl(v);
+            return new RawImpl(v, false);
+        }
+        public static RawImpl strip(RRaw v) {
+            return new RawImpl(v, true);
         }
         public static RawImpl getFor(byte[] values) {  // re-uses values!
             return getFor(values, null);
         }
         public static RawImpl getFor(byte[] values, int[] dimensions) {  // re-uses values!
-            return new RawImpl(values, dimensions, false);
+            return new RawImpl(values, dimensions, null, false);
         }
         public static RRaw subset(RRaw value, RInt index) {
             return new RRawSubset(value, index);

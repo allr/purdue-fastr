@@ -32,16 +32,7 @@ public class Sqrt {
                         throw RError.getNonNumericMath(ast);
                     }
 
-                    final int[] dim = typedArg.dimensions();
-                    final int size = typedArg.size();
-                    final RDouble orig = typedArg;
-
-                    return new View.RDoubleView() {
-
-                        @Override
-                        public int size() {
-                            return size;
-                        }
+                    return new View.RDoubleProxy<RDouble>(typedArg) {
 
                         @Override
                         public double getDouble(int i) {
@@ -55,21 +46,6 @@ public class Sqrt {
                                 }
                                 return res;
                             }
-                        }
-
-                        @Override
-                        public boolean isSharedReal() {
-                            return orig.isShared();
-                        }
-
-                        @Override
-                        public void ref() {
-                            orig.ref();
-                        }
-
-                        @Override
-                        public int[] dimensions() {
-                            return dim;
                         }
                     };
                 }

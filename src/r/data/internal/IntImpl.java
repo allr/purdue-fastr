@@ -10,7 +10,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     final int[] content;
 
-    public IntImpl(int[] values, int[] dimensions, boolean doCopy) {
+    public IntImpl(int[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new int[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -18,14 +18,15 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
 
-    public IntImpl(int[] values, int[] dimensions) {
-        this(values, dimensions, true);
+    public IntImpl(int[] values, int[] dimensions, Names names) {
+        this(values, dimensions, names, true);
     }
 
     public IntImpl(int[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
     public IntImpl(int size) {
@@ -39,21 +40,8 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         }
         if (!valuesOnly) {
             dimensions = v.dimensions();
+            names = v.names();
         }
-    }
-
-    @Override
-    public IntImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
-        }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        IntImpl v = new IntImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new integer shared
-        return v;
     }
 
     @Override
@@ -102,8 +90,12 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         if (dimensions != null) {
             return matrixPretty();
         }
+
         if (content.length == 0) {
             return RInt.TYPE_STRING + "(0)";
+        }
+        if (names() != null) {
+            return namedPretty();
         }
         String fst = Convert.prettyNA(Convert.int2string(content[0]));
         if (content.length == 1) {
@@ -254,5 +246,10 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     @Override
     public String typeOf() {
         return RInt.TYPE_STRING;
+    }
+
+    @Override
+    public IntImpl doStrip() {
+        return new IntImpl(content, null, null, false);
     }
 }

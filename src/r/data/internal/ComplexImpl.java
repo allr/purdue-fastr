@@ -14,7 +14,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         return content;
     }
 
-    public ComplexImpl(double[] values, int[] dimensions, boolean doCopy) {
+    public ComplexImpl(double[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -22,6 +22,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
         size = values.length / 2;
     }
 
@@ -37,11 +38,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     }
 
     public ComplexImpl(double[] values, int[] dimensions) {
-        this(values, dimensions, true);
+        this(values, dimensions, null, true);
     }
 
     public ComplexImpl(double[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
     public ComplexImpl(int size) {
@@ -49,28 +50,17 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         this.size = size;
     }
 
-    public ComplexImpl(RComplex c) {
+    public ComplexImpl(RComplex c, boolean valuesOnly) {
         size = c.size();
         content = new double[2 * size];
         for (int i = 0; i < size; i++) {
             content[2 * i] = c.getReal(i);
             content[2 * i + 1] = c.getImag(i);
         }
-        dimensions = c.dimensions();
-    }
-
-    @Override
-    public ComplexImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
+        if (!valuesOnly) {
+            dimensions = c.dimensions();
+            names = c.names();
         }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        ComplexImpl v = new ComplexImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new integer shared
-        return v;
     }
 
     @Override
@@ -128,6 +118,9 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         }
         if (size == 0) {
             return RComplex.TYPE_STRING + "(0)";
+        }
+        if (names() != null) {
+            return namedPretty();
         }
         String fst = Convert.prettyNA(Convert.complex2string(content[0], content[1]));
         if (size == 1) {
@@ -210,6 +203,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     @Override
     public String typeOf() {
         return RComplex.TYPE_STRING;
+    }
+
+    @Override
+    public ComplexImpl doStrip() {
+        return new ComplexImpl(content, null, null, false);
     }
 
  }

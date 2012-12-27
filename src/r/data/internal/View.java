@@ -45,7 +45,6 @@ public abstract class View extends ArrayImpl implements RArray {
         return materialize().setNames(names);
     }
 
-
     @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi(); // Do we have to bind on the view node or on the implementation
@@ -161,6 +160,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RLogical.TYPE_STRING;
+        }
+
+        @Override
+        public RRaw doStrip() {
+            return RRaw.RRawFactory.strip(this);
         }
     }
 
@@ -302,6 +306,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public String typeOf() {
             return RLogical.TYPE_STRING;
         }
+
+        @Override
+        public RLogical doStrip() {
+            return RLogical.RLogicalFactory.strip(this);
+        }
     }
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -352,11 +361,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RInt materialize() {
             return RIntFactory.copy(this);
-        }
-
-        @Override
-        public RInt stripAttributes() {
-            return RIntFactory.copyValuesOnly(this);
         }
 
         @Override
@@ -442,6 +446,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RInt.TYPE_STRING;
+        }
+
+        @Override
+        public RInt doStrip() {
+            return RInt.RIntFactory.strip(this);
         }
     }
 
@@ -584,6 +593,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public String typeOf() {
             return RDouble.TYPE_STRING;
         }
+
+        @Override
+        public RDouble doStrip() {
+            return RDouble.RDoubleFactory.strip(this);
+        }
     }
 
  // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -724,6 +738,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RComplex.TYPE_STRING;
+        }
+
+        @Override
+        public RComplex doStrip() {
+            return RComplex.RComplexFactory.strip(this);
         }
     }
 
@@ -871,6 +890,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public String typeOf() {
             return RString.TYPE_STRING;
         }
+
+        @Override
+        public RString doStrip() {
+            return RString.RStringFactory.strip(this);
+        }
     }
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -1006,6 +1030,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public String typeOf() {
             return RList.TYPE_STRING;
+        }
+
+        @Override
+        public RList doStrip() {
+            return RList.RListFactory.strip(this);
         }
     }
 }

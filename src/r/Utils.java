@@ -215,4 +215,13 @@ public final class Utils {
             ((RAny) o).ref();
         }
     }
+
+    public static void strAppend(StringBuilder b, String s, int width) {
+        int spaces = width - s.length();
+        Utils.check(spaces >= 0);
+        for (int i = 0; i < spaces; i++) {
+            b.append(' ');
+        }
+        b.append(s);
+    }
 }

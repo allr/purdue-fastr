@@ -120,7 +120,7 @@ public interface RComplex extends RArray {
             if (size == 1 && dimensions == null) {
                 return new ScalarComplexImpl(0, 0);
             }
-            return new ComplexImpl(new double[2 * size], dimensions, false);
+            return new ComplexImpl(new double[2 * size], dimensions, null, false);
         }
         public static RComplex getNAArray(int size) {
             return getNAArray(size, null);
@@ -131,16 +131,22 @@ public interface RComplex extends RArray {
             }
             double[] content = new double[2 * size];
             Arrays.fill(content, RDouble.NA);
-            return new ComplexImpl(content, dimensions, false);
+            return new ComplexImpl(content, dimensions, null, false);
         }
         public static ComplexImpl getMatrixFor(double[] values, int m, int n) {
-            return new ComplexImpl(values, new int[] {m, n}, false);
+            return new ComplexImpl(values, new int[] {m, n}, null, false);
         }
         public static RComplex copy(RComplex c) {
-            if (c.size() == 1 && c.dimensions() == null) {  // FIXME: rely instead on scalarization ?
+            if (c.size() == 1 && c.dimensions() == null && c.names() == null) {  // FIXME: rely instead on scalarization ?
                 return new ScalarComplexImpl(c.getReal(0), c.getImag(0));
             }
-            return new ComplexImpl(c);
+            return new ComplexImpl(c, false);
+        }
+        public static RComplex strip(RComplex v) {
+            if (v.size() == 1) {
+                return new ScalarComplexImpl(v.getReal(0), v.getImag(0));
+            }
+            return new ComplexImpl(v, true);
         }
         public static RComplex getFor(double[] values) { // re-uses values!
             return getFor(values, null);
@@ -149,7 +155,7 @@ public interface RComplex extends RArray {
             if (values.length == 2 && dimensions == null) {
                 return new ScalarComplexImpl(values[0], values[1]);
             }
-            return new ComplexImpl(values, dimensions, false);
+            return new ComplexImpl(values, dimensions, null, false);
         }
         public static RComplex exclude(int excludeIndex, RComplex orig) {
             return new RComplexExclusion(excludeIndex, orig);

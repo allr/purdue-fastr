@@ -7,7 +7,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
 
     final RAny[] content;
 
-    public ListImpl(RAny[] values, int[] dimensions, boolean doCopy) {
+    public ListImpl(RAny[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new RAny[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -15,28 +15,32 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
 
     public ListImpl(RAny[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
     public ListImpl(RAny[] values, int[] dimensions) {
-        this(values, dimensions, true);
+        this(values, dimensions, null, true);
     }
 
     public ListImpl(int size) {
         content = new RAny[size];
     }
 
-    public ListImpl(RList v) { // deep-copy
+    public ListImpl(RList v, boolean valuesOnly) { // deep-copy
                                // FIXME: why deep? do all callers need it deep?
         content = new RAny[v.size()];
         for (int i = 0; i < content.length; i++) {
             RAny e = v.getRAny(i);
             content[i] = Utils.copy(e);
         }
-        dimensions = v.dimensions();
+        if (!valuesOnly) {
+            dimensions = v.dimensions();
+            names = v.names();
+        }
     }
 
     @Override
@@ -48,7 +52,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
             dimensions = null;
             return this;
         }
-        ListImpl v = new ListImpl(content, null, false); // note: re-uses current values
+        ListImpl v = new ListImpl(content, null, null, false); // note: re-uses current values
         v.refcount = refcount; // mark the new integer shared
         return v;
     }
@@ -144,6 +148,10 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
             base = "Logical";
         } else if (a instanceof RString) {
             base = "Character";
+        } else if (a instanceof RRaw) {
+           base = "Raw";
+        } else if (a instanceof RComplex) {
+           base = "Complex";
         } else {
             Utils.nyi("unsupported type");
             base = null;
@@ -231,5 +239,10 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     @Override
     public String typeOf() {
         return RList.TYPE_STRING;
+    }
+
+    @Override
+    public ListImpl doStrip() {
+        return new ListImpl(content, null, null, false);
     }
 }

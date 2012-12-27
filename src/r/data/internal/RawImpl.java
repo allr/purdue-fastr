@@ -13,7 +13,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         content = new byte[size];
     }
 
-    public RawImpl(byte[] values, int[] dimensions, boolean doCopy) {
+    public RawImpl(byte[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new byte[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -21,36 +21,26 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
 
     public RawImpl(byte[] values, int[] dimensions) {
-        this(values, dimensions, true);
+        this(values, dimensions, null, true);
     }
 
     public RawImpl(byte[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
-    public RawImpl(RRaw r) {
+    public RawImpl(RRaw r, boolean valuesOnly) {
         content = new byte[r.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = r.getRaw(i);
         }
-        dimensions = r.dimensions();
-    }
-
-    @Override
-    public RawImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
+        if (!valuesOnly) {
+            dimensions = r.dimensions();
+            names = r.names();
         }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        RawImpl v = new RawImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new vector shared
-        return v;
     }
 
     @Override
@@ -162,6 +152,9 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         if (content.length == 0) {
             return RRaw.TYPE_STRING + "(0)";
         }
+        if (names() != null) {
+            return namedPretty();
+        }
         String fst = Convert.prettyNA(Convert.raw2string(content[0]));
         if (content.length == 1) {
             return fst;
@@ -183,6 +176,11 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     @Override
     public RArray subset(RInt index) {
         return RRaw.RRawFactory.subset(this, index);
+    }
+
+    @Override
+    public RawImpl doStrip() {
+        return new RawImpl(content, null, null, false);
     }
 
 }

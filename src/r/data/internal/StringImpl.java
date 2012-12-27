@@ -11,7 +11,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     final String[] content;
 
-    public StringImpl(String[] values, int[] dimensions, boolean doCopy) {
+    public StringImpl(String[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new String[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -19,14 +19,15 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
             content = values;
         }
         this.dimensions = dimensions;
+        this.names = names;
     }
 
     public StringImpl(String[] values, int[] dimensions) {
-        this(values, dimensions, true);
+        this(values, dimensions, null, true);
     }
 
     public StringImpl(String[] values) {
-        this(values, null, true);
+        this(values, null, null, true);
     }
 
     public StringImpl(int size) {
@@ -40,21 +41,8 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         }
         if (!valuesOnly) {
             dimensions = v.dimensions();
+            names = v.names();
         }
-    }
-
-    @Override
-    public StringImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
-        }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        StringImpl v = new StringImpl(content, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new integer shared
-        return v;
     }
 
     @Override
@@ -106,6 +94,9 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         }
         if (content.length == 0) {
             return RString.TYPE_STRING + "(0)";
+        }
+        if (names() != null) {
+            return namedPretty();
         }
         StringBuilder str = new StringBuilder();
         if (content[0] != RString.NA) {
@@ -207,5 +198,10 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     @Override
     public String typeOf() {
         return RString.TYPE_STRING;
+    }
+
+    @Override
+    public StringImpl doStrip() {
+        return new StringImpl(content, null, null, false);
     }
 }

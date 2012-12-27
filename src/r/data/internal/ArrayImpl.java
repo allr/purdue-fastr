@@ -75,9 +75,22 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return true;
     }
 
+    protected RArray doStrip() {
+        Utils.nyi();
+        return null;
+    }
+
     @Override
     public RArray stripAttributes() {
-        return this;
+        if (dimensions() == null && names() == null) {
+            return this;
+        }
+        if (!isShared()) {
+            setDimensions(null);
+            setNames(null);
+            return this;
+        }
+        return doStrip();
     }
 
     @Override
@@ -126,4 +139,26 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return new RArray.RListView(this);
     }
 
+    protected String namedPretty() {
+        RArray.Names aNames = names();
+        Utils.check(aNames != null);
+        String[] names = aNames.asStringArray();
+        int size = size();
+        StringBuilder headers = new StringBuilder();
+        StringBuilder values = new StringBuilder();
+
+        for (int i = 0; i < size; i++) {
+            String header = Convert.prettyGTNALT(names[i]);
+            String value = boxedGet(i).prettyMatrixElement();
+            int hlen = header.length();
+            int vlen = value.length();
+            int len = Math.max(hlen, vlen);
+            if (i > 0) {
+                len++;
+            }
+            Utils.strAppend(headers, header, len);
+            Utils.strAppend(values, value, len);
+        }
+        return headers.append("\n").append(values).toString();
+    }
 }

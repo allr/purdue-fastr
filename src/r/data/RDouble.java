@@ -55,6 +55,7 @@ public interface RDouble extends RNumber {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions());
         }
+
     }
     public class RDoubleFactory {
         public static ScalarDoubleImpl getScalar(double value) {
@@ -77,7 +78,7 @@ public interface RDouble extends RNumber {
             if (dimensions == null && values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions);
+            return new DoubleImpl(values, dimensions, null);
         }
         public static RDouble getUninitializedArray(int size) {
             if (size == 1) {
@@ -89,7 +90,7 @@ public interface RDouble extends RNumber {
             if (size == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(0);
             }
-            return new DoubleImpl(new double[size], dimensions, false);
+            return new DoubleImpl(new double[size], dimensions, null, false);
         }
         public static RDouble getNAArray(int size) {
             return getNAArray(size, null);
@@ -100,16 +101,22 @@ public interface RDouble extends RNumber {
             }
             double[] content = new double[size];
             Arrays.fill(content, NA);
-            return new DoubleImpl(content, dimensions, false);
+            return new DoubleImpl(content, dimensions, null, false);
         }
         public static DoubleImpl getMatrixFor(double[] values, int m, int n) {
-            return new DoubleImpl(values, new int[] {m, n}, false);
+            return new DoubleImpl(values, new int[] {m, n}, null, false);
         }
         public static RDouble copy(RDouble d) {
-            if (d.size() == 1 && d.dimensions() == null) {
+            if (d.size() == 1 && d.dimensions() == null && d.names() == null) {
                 return new ScalarDoubleImpl(d.getDouble(0));
             }
-            return new DoubleImpl(d);
+            return new DoubleImpl(d, false);
+        }
+        public static RDouble strip(RDouble v) {
+            if (v.size() == 1) {
+                return new ScalarDoubleImpl(v.getDouble(0));
+            }
+            return new DoubleImpl(v, true);
         }
         public static RDouble getFor(double[] values) { // re-uses values!
             return getFor(values, null);
@@ -118,7 +125,7 @@ public interface RDouble extends RNumber {
             if (values.length == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions, false);
+            return new DoubleImpl(values, dimensions, null, false);
         }
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             return new RDoubleExclusion(excludeIndex, orig);

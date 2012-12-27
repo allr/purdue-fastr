@@ -86,7 +86,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (size == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(0);
             }
-            return new LogicalImpl(new int[size], dimensions, false);
+            return new LogicalImpl(new int[size], dimensions, null, false);
         }
         public static RLogical getNAArray(int size) {
             return getNAArray(size, null);
@@ -97,16 +97,22 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             int[] content = new int[size];
             Arrays.fill(content, NA);
-            return new LogicalImpl(content, dimensions, false);
+            return new LogicalImpl(content, dimensions, null, false);
         }
         public static LogicalImpl getMatrixFor(int[] values, int m, int n) {
-            return new LogicalImpl(values, new int[] {m, n}, false);
+            return new LogicalImpl(values, new int[] {m, n}, null, false);
         }
         public static RLogical copy(RLogical l) {
-            if (l.size() == 1 && l.dimensions() == null) {
+            if (l.size() == 1 && l.dimensions() == null && l.names() == null) {
                 return new ScalarLogicalImpl(l.getLogical(0));
             }
-            return new LogicalImpl(l);
+            return new LogicalImpl(l, false);
+        }
+        public static RLogical strip(RLogical v) {
+            if (v.size() == 1) {
+                return new ScalarLogicalImpl(v.getLogical(0));
+            }
+            return new LogicalImpl(v, true);
         }
         public static RLogical getFor(int[] values) {  // re-uses values!
             return getFor(values, null);
@@ -115,7 +121,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (values.length == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(values[0]);
             }
-            return new LogicalImpl(values, dimensions, false);
+            return new LogicalImpl(values, dimensions, null, false);
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             return new RLogicalExclusion(excludeIndex, orig);
