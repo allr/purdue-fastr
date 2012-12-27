@@ -2,6 +2,7 @@ package r.nodes.truffle;
 
 import r.*;
 import r.data.*;
+import r.data.RArray.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -142,6 +143,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
             }
@@ -166,12 +168,13 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
         public RRaw op(RRaw a, RRaw b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RRaw.EMPTY;
             }
@@ -196,7 +199,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RRaw.RRawFactory.getFor(content, dimensions);
+            return RRaw.RRawFactory.getFor(content, dimensions, names);
         }
     }
 

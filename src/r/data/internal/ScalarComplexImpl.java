@@ -51,7 +51,12 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public RComplex setDimensions(int[] dimensions) {
-        return RComplex.RComplexFactory.getFor(new double[] {real, imag}, dimensions);
+        return RComplex.RComplexFactory.getFor(new double[] {real, imag}, dimensions, null);
+    }
+
+    @Override
+    public RComplex setNames(Names names) {
+        return RComplex.RComplexFactory.getFor(new double[] {real, imag}, null, names);
     }
 
     @Override

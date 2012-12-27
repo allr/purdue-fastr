@@ -120,22 +120,28 @@ public class CumulativeSum {
                 public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
 
                     if (x instanceof RDouble) {
-                        return cumsum((RDouble) x, context, ast);
+                        RDouble dx = (RDouble) x;
+                        return cumsum(dx, context, ast).setNames(dx.names());
                     } else if (x instanceof RInt) {
-                        return cumsum((RInt) x, context, ast);
+                        RInt ix = (RInt) x;
+                        return cumsum(ix, context, ast).setNames(ix.names());
                     } else if (x instanceof RLogical) {
-                        return cumsum(((RLogical) x).asInt(), context, ast);
+                        RLogical lx = (RLogical) x;
+                        return cumsum(lx.asInt(), context, ast).setNames(lx.names());
                     } else if (x instanceof RComplex) {
-                        return cumsum((RComplex) x, context, ast);
+                        RComplex cx = (RComplex) x;
+                        return cumsum(cx, context, ast).setNames(cx.names());
                     } else if (x instanceof RRaw) {
-                        return cumsum(((RRaw) x).asDouble(), context, ast);
+                        RRaw rx = (RRaw) x;
+                        return cumsum(rx.asDouble(), context, ast).setNames(rx.names());
                     } else if (x instanceof RNull) {
                         return RDouble.EMPTY;
                     }
 
                     if (x instanceof RString) {
-                        RDouble res = cumsum(Convert.coerceToDoubleWarning(x, context, ast), context, ast);
-                        return res;
+                        RString sx = (RString) x;
+                        RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, context, ast), context, ast);
+                        return res.setNames(sx.names());
                     } else {
                         Utils.nyi("unsupported type");
                         return null;

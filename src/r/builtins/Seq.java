@@ -174,7 +174,7 @@ public class Seq {
                                       return argfrom;
                                   }
                                   if (lengthOut == 2) {
-                                      return Combine.genericCombine(new RAny[] {argfrom, argto});
+                                      return Combine.genericCombine(null, new RAny[] {argfrom, argto});
                                   }
                                   if (from == to) {
                                       return Rep.genericRepInt(ast, argfrom, arglengthOut);
@@ -190,7 +190,7 @@ public class Seq {
                                   for (int i = 1; i <= len - 2; i++) {
                                       vec[i] = RDouble.RDoubleFactory.getScalar(from + i * by);
                                   }
-                                  return Combine.genericCombine(vec);
+                                  return Combine.genericCombine(null, vec);
                               }
                           };
                       }

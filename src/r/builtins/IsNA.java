@@ -21,7 +21,7 @@ public class IsNA {
                 return a.isNAorNaN(0) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
             }
             if (asize > 1) {
-                return new View.RLogicalView() {
+                return new View.RLogicalProxy<RArray>(a) {
 
                     @Override
                     public int size() {
@@ -31,16 +31,6 @@ public class IsNA {
                     @Override
                     public int getLogical(int i) {
                         return a.isNAorNaN(i) ? RLogical.TRUE : RLogical.FALSE;
-                    }
-
-                    @Override
-                    public boolean isSharedReal() {
-                        return a.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        a.ref();
                     }
                 };
             }

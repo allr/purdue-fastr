@@ -28,7 +28,7 @@ public interface RString extends RArray {
                 content[2 * i] = c.realValue();
                 content[2 * i + 1] = c.imagValue();
             }
-            return RComplex.RComplexFactory.getFor(content, value.dimensions());
+            return RComplex.RComplexFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RDouble stringToDouble(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -37,7 +37,7 @@ public interface RString extends RArray {
                 String str = value.getString(i);
                 content[i] = Convert.string2double(str, warn);
             }
-            return RDouble.RDoubleFactory.getFor(content, value.dimensions());
+            return RDouble.RDoubleFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RInt stringToInt(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -46,7 +46,7 @@ public interface RString extends RArray {
                 String str = value.getString(i);
                 content[i] = Convert.string2int(str, warn);
             }
-            return RInt.RIntFactory.getFor(content, value.dimensions());
+            return RInt.RIntFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RLogical stringToLogical(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -55,7 +55,7 @@ public interface RString extends RArray {
                 String str = value.getString(i);
                 content[i] = Convert.string2logical(str, warn);
             }
-            return RLogical.RLogicalFactory.getFor(content, value.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, value.dimensions(), null);
         }
         public static RRaw stringToRaw(RString value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -64,7 +64,7 @@ public interface RString extends RArray {
                 String str = value.getString(i);
                 content[i] = Convert.string2raw(str, warn);
             }
-            return RRaw.RRawFactory.getFor(content, value.dimensions());
+            return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
     }
 
@@ -76,7 +76,7 @@ public interface RString extends RArray {
             if (dimensions == null) {
                 return new ScalarStringImpl(value);
             } else {
-                return getFor(new String[] {value}, dimensions);
+                return getFor(new String[] {value}, dimensions, null);
             }
         }
         public static RString getArray(String... values) {
@@ -132,14 +132,14 @@ public interface RString extends RArray {
             return new StringImpl(v, true);
         }
         public static RString getFor(String[] values) { // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
 
         }
-        public static RString getFor(String[] values, int[] dimensions) {  // re-uses values!
-            if (values.length == 1 && dimensions == null) {
+        public static RString getFor(String[] values, int[] dimensions, Names names) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarStringImpl(values[0]);
             }
-            return new StringImpl(values, dimensions, null, false);
+            return new StringImpl(values, dimensions, names, false);
         }
         public static RString exclude(int excludeIndex, RString orig) {
             return new RStringExclusion(excludeIndex, orig);

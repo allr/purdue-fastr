@@ -99,6 +99,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ c(\"hello\", \"hi\") }", "\"hello\", \"hi\"");
         assertEval("{ c(1+1i, as.raw(10)) }", "1.0+1.0i, 10.0+0.0i");
         assertEval("{ c(as.raw(10), as.raw(20)) }", "0a, 14");
+
+        assertEval("{ c(x=1,y=2) }", "  x   y\n1.0 2.0");
+        assertEval("{ c(x=1,2) }", "  x    \n1.0 2.0");
+        assertEval("{ x <- 1:2 ; names(x) <- c(\"A\",NA) ; c(x,test=x) }", " A <NA> test.A test.NA\n1L   2L     1L      2L");
     }
 
     @Test
@@ -463,6 +467,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 1:4 ; length(x) <- 2 ; x }", "1L, 2L");
         assertEval("{ x <- 1:2 ; length(x) <- 4 ; x }", "1L, 2L, NA, NA");
         assertEval("{ x <- 1:2 ; z <- (length(x) <- 4) ; z }", "4.0");
+        assertEval("{ length(c(z=1:4)) }", "4L");
     }
 
     @Test
@@ -470,7 +475,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\", \"hi\"); names(x) } ", "\"hello\", \"hi\"");
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\"); names(x) }", "\"hello\", NA");
         assertEval("{ x <- 1:2; names(x) <- c(\"hello\", \"hi\") ; x }", "hello hi\n   1L 2L");
+
         assertEval("{ x <- c(1,9); names(x) <- c(\"hello\",\"hi\") ; sqrt(x) }", "hello  hi\n  1.0 3.0");
+        assertEval("{ x <- c(1,9); names(x) <- c(\"hello\",\"hi\") ; is.na(x) }", "hello    hi\nFALSE FALSE");
+        assertEval("{ x <- c(1,NA); names(x) <- c(\"hello\",\"hi\") ; cumsum(x) }", "hello hi\n  1.0 NA");
+        assertEval("{ x <- c(1,NA); names(x) <- c(NA,\"hi\") ; cumsum(x) }", "<NA> hi\n 1.0 NA");
+        assertEval("{ x <- c(1,2); names(x) <- c(\"A\", \"B\") ; x + 1 }", "  A   B\n2.0 3.0");
+        assertEval("{ x <- 1:2; names(x) <- c(\"A\", \"B\") ; y <- c(1,2,3,4) ; names(y) <- c(\"X\", \"Y\", \"Z\") ; x + y }", "  X   Y   Z <NA>\n2.0 4.0 4.0  6.0");
+        assertEval("{ x <- 1:2; names(x) <- c(\"A\", \"B\") ; abs(x) }", " A  B\n1L 2L");
     }
 
     @Test

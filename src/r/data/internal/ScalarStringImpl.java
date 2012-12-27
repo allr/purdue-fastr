@@ -50,7 +50,12 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public RString setDimensions(int[] dimensions) {
-        return RString.RStringFactory.getFor(new String[] {value}, dimensions);
+        return RString.RStringFactory.getFor(new String[] {value}, dimensions, null);
+    }
+
+    @Override
+    public RString setNames(Names names) {
+        return RString.RStringFactory.getFor(new String[] {value}, null, names);
     }
 
     @Override

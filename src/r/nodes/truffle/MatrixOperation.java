@@ -63,7 +63,7 @@ public abstract class MatrixOperation extends BaseR {
                     }
                     content[j] = d;
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {1, n});
+                return RDouble.RDoubleFactory.getFor(content, new int[] {1, n}, null);
 
             } else if (m == 1) {
                 // treat vector as s x 1 (column), result is s x n
@@ -73,7 +73,7 @@ public abstract class MatrixOperation extends BaseR {
                         content[j * s + i] = vector.getDouble(i) * matrix.getDouble(j);
                     }
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {s, n});
+                return RDouble.RDoubleFactory.getFor(content, new int[] {s, n}, null);
             } else {
                 throw RError.getNonConformableArgs(ast);
             }
@@ -95,7 +95,7 @@ public abstract class MatrixOperation extends BaseR {
                     }
                     content[i] = d;
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, 1});
+                return RDouble.RDoubleFactory.getFor(content, new int[] {m, 1}, null);
             } else if (n == 1) {
                 // treat vector as 1 x s (row), result is m x s
                 double[] content = new double[m * s];
@@ -104,7 +104,7 @@ public abstract class MatrixOperation extends BaseR {
                         content[ j * m + i] = matrix.getDouble(i) * vector.getDouble(j);
                     }
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, s});
+                return RDouble.RDoubleFactory.getFor(content, new int[] {m, s}, null);
             } else {
                 throw RError.getNonConformableArrays(ast);
             }
@@ -132,7 +132,7 @@ public abstract class MatrixOperation extends BaseR {
                     content[j * m + i] = d;
                 }
             }
-            return RDouble.RDoubleFactory.getFor(content, new int[] {m, p});
+            return RDouble.RDoubleFactory.getFor(content, new int[] {m, p}, null);
         }
 
         @Override
@@ -189,7 +189,7 @@ public abstract class MatrixOperation extends BaseR {
             int[] ldims = ld.dimensions();
             int[] rdims = rd.dimensions();
             if (ldims == null && rdims == null) {
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, n});
+                return RDouble.RDoubleFactory.getFor(content, new int[] {m, n}, null);
             } else {
                 Utils.nyi("unsupported case");
                 return  null;

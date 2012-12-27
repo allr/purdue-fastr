@@ -42,10 +42,10 @@ public interface RRaw extends RArray {
             return new RawImpl(v, true);
         }
         public static RawImpl getFor(byte[] values) {  // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static RawImpl getFor(byte[] values, int[] dimensions) {  // re-uses values!
-            return new RawImpl(values, dimensions, null, false);
+        public static RawImpl getFor(byte[] values, int[] dimensions, Names names) {  // re-uses values!
+            return new RawImpl(values, dimensions, names, false);
         }
         public static RRaw subset(RRaw value, RInt index) {
             return new RRawSubset(value, index);

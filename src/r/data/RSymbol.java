@@ -15,6 +15,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
     private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
     public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
+    public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
 
     private RSymbol(String identifier) {
         name = identifier;

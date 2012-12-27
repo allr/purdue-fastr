@@ -44,7 +44,7 @@ public interface RDouble extends RNumber {
                 double d = value.getDouble(i);
                 content[i] = Convert.double2int(d, warn);
             }
-            return RInt.RIntFactory.getFor(content, value.dimensions());
+            return RInt.RIntFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RRaw doubleToRaw(RDouble value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -53,7 +53,7 @@ public interface RDouble extends RNumber {
                 double dval = value.getDouble(i);
                 content[i] = Convert.double2raw(dval, warn);
             }
-            return RRaw.RRawFactory.getFor(content, value.dimensions());
+            return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
 
     }
@@ -65,7 +65,7 @@ public interface RDouble extends RNumber {
             if (dimensions == null) {
                 return new ScalarDoubleImpl(value);
             } else {
-                return getFor(new double[] {value}, dimensions);
+                return getFor(new double[] {value}, dimensions, null);
             }
         }
         public static RDouble getArray(double... values) {
@@ -119,13 +119,13 @@ public interface RDouble extends RNumber {
             return new DoubleImpl(v, true);
         }
         public static RDouble getFor(double[] values) { // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static RDouble getFor(double[] values, int[] dimensions) {  // re-uses values!
-            if (values.length == 1 && dimensions == null) {
+        public static RDouble getFor(double[] values, int[] dimensions, Names names) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions, null, false);
+            return new DoubleImpl(values, dimensions, names, false);
         }
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             return new RDoubleExclusion(excludeIndex, orig);

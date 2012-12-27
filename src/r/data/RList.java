@@ -40,10 +40,13 @@ public interface RList extends RArray {
             return new ListImpl(l, true);
         }
         public static ListImpl getFor(RAny[] values) {
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static ListImpl getFor(RAny[] values, int[] dimensions) {  // re-uses values!
-            return new ListImpl(values, dimensions, null, false);
+        public static ListImpl getFor(RAny[] values, int[] dimensions) { // FIXME: remove this after fixing list element deletion
+            return getFor(values, dimensions, null);
+        }
+        public static ListImpl getFor(RAny[] values, int[] dimensions, Names names) {  // re-uses values!
+            return new ListImpl(values, dimensions, names, false);
         }
         public static RList exclude(int excludeIndex, RList orig) {
             return new RListExclusion(excludeIndex, orig);

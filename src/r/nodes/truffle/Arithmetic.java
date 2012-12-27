@@ -5,6 +5,7 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.data.*;
+import r.data.RArray.Names;
 import r.data.RComplex.RComplexUtils;
 import r.data.internal.*;
 import r.errors.*;
@@ -658,8 +659,8 @@ public class Arithmetic extends BaseR {
             return op(context, ast, (double) a, b);
         }
 
-        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions);
-        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions);
+        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names);
+        public abstract RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names);
     }
 
     public static final class Add extends ValueArithmetic {
@@ -691,7 +692,7 @@ public class Arithmetic extends BaseR {
             return RInt.NA;
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -710,10 +711,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -729,7 +730,7 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
     }
 
@@ -756,7 +757,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -775,10 +776,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -794,7 +795,7 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
     }
 
@@ -821,7 +822,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -840,10 +841,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -859,7 +860,7 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
     }
 
@@ -884,12 +885,12 @@ public class Arithmetic extends BaseR {
             return -1;
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             Utils.nyi();
             return null;
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             Utils.nyi();
             return null;
         }
@@ -914,7 +915,7 @@ public class Arithmetic extends BaseR {
             return -1;
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -934,10 +935,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -954,7 +955,7 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions);
+            return RComplex.RComplexFactory.getFor(res, dimensions, names);
         }
     }
 
@@ -988,11 +989,11 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             throw RError.getUnimplementedComplex(ast);
         }
     }
@@ -1037,11 +1038,11 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions) {
+        public RComplex op(RContext context, ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
             throw RError.getUnimplementedComplex(ast);
         }
     }
@@ -1062,6 +1063,7 @@ public class Arithmetic extends BaseR {
         final int nb;
         final int n;
         final int[] dimensions;
+        final Names names;
         boolean overflown = false;
 
         final ValueArithmetic arit;
@@ -1076,13 +1078,13 @@ public class Arithmetic extends BaseR {
                 if (asize > 1) {
                     int bsize = b.size();
                     if (asize == bsize) {
-                        return arit.op(context, ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b));
+                        return arit.op(context, ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b));
                     }
                     if (bsize == 1) {
                         double c = b.getReal(0);
                         double d = b.getImag(0);
                         if (!RComplexUtils.eitherIsNA(c, d)) {
-                            return arit.op(context, ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b));
+                            return arit.op(context, ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b));
                         }
                         // NOTE: NA case falls back, could be added here
                     }
@@ -1095,14 +1097,15 @@ public class Arithmetic extends BaseR {
                 depth = adepth + bdepth + 1;
             }
             int[] dim = resultDimensions(ast, a, b);
-            ComplexView res = new ComplexView(a, b, dim, depth, context, arit, ast);
+            Names names = resultNames(ast, a, b);
+            ComplexView res = new ComplexView(a, b, dim, names, depth, context, arit, ast);
             if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
                 return RComplexFactory.copy(res);
             }
             return res;
         }
 
-        public ComplexView(RComplex a, RComplex b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public ComplexView(RComplex a, RComplex b, int[] dimensions, Names names, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -1111,6 +1114,7 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
             this.arit = arit;
             this.dimensions = dimensions;
+            this.names = names;
             this.depth = depth;
 
             if (na > nb) {
@@ -1132,7 +1136,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public double getReal(int i) { // FIXME: this is very likely to be slow (real and imag getters repeat the same computation)
+        public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
             int ai;
             int bi;
             if (i >= na) {
@@ -1157,7 +1161,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public double getImag(int i) { // FIXME: this is very likely to be slow (real and imag getters repeat the same computation)
+        public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
             int ai;
             int bi;
             if (i >= na) {
@@ -1196,6 +1200,11 @@ public class Arithmetic extends BaseR {
         public int[] dimensions() {
             return dimensions;
         }
+
+        @Override
+        public Names names() {
+            return names;
+        }
     }
 
     static class DoubleView extends View.RDoubleView implements RDouble {
@@ -1206,6 +1215,7 @@ public class Arithmetic extends BaseR {
         final int nb;
         final int n;
         final int[] dimensions;
+        final Names names;
 
         final ValueArithmetic arit;
         final ASTNode ast;
@@ -1225,7 +1235,8 @@ public class Arithmetic extends BaseR {
                 depth = adepth + bdepth + 1;
             }
             int[] dim = resultDimensions(ast, a, b);
-            DoubleView res = new DoubleView(a, b, dim, depth, context, arit, ast);
+            Names names = resultNames(ast, a, b);
+            DoubleView res = new DoubleView(a, b, dim, names, depth, context, arit, ast);
             if (PROFILE_DOUBLE_VIEWS) {
                 int d = 1;
                 int ausa = 0;
@@ -1258,7 +1269,7 @@ public class Arithmetic extends BaseR {
             return res;
         }
 
-        public DoubleView(RDouble a, RDouble b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public DoubleView(RDouble a, RDouble b, int[] dimensions, Names names, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -1269,6 +1280,7 @@ public class Arithmetic extends BaseR {
             this.arit = arit;
             this.ast = ast;
             this.dimensions = dimensions;
+            this.names = names;
 
             if (na > nb) {
                 n = na;
@@ -1331,6 +1343,11 @@ public class Arithmetic extends BaseR {
         public int[] dimensions() {
             return dimensions;
         }
+
+        @Override
+        public Names names() {
+            return names;
+        }
     }
 
     static class IntView extends View.RIntView implements RInt {
@@ -1341,6 +1358,7 @@ public class Arithmetic extends BaseR {
         final int nb;
         final int n;
         final int[] dimensions;
+        final Names names;
         boolean overflown = false;
 
         final ValueArithmetic arit;
@@ -1357,14 +1375,15 @@ public class Arithmetic extends BaseR {
                 depth = adepth + bdepth + 1;
             }
             int[] dim = resultDimensions(ast, a, b);
-            IntView res = new IntView(a, b, dim, depth, context, arit, ast);
+            Names names = resultNames(ast, a, b);
+            IntView res = new IntView(a, b, dim, names, depth, context, arit, ast);
             if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
                 return RIntFactory.copy(res);
             }
             return res;
         }
 
-        public IntView(RInt a, RInt b, int[] dimensions, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
+        public IntView(RInt a, RInt b, int[] dimensions, Names names, int depth, RContext context, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
             this.context = context;
@@ -1373,6 +1392,7 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
             this.arit = arit;
             this.dimensions = dimensions;
+            this.names = names;
             this.depth = depth;
 
             if (na > nb) {
@@ -1436,6 +1456,11 @@ public class Arithmetic extends BaseR {
         public int[] dimensions() {
             return dimensions;
         }
+
+        @Override
+        public Names names() {
+            return names;
+        }
     }
 
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
@@ -1467,4 +1492,27 @@ public class Arithmetic extends BaseR {
         }
         throw RError.getNonConformableArrays(ast);
     }
+
+    public static Names resultNames(ASTNode ast, RArray a, RArray b) {
+        Names na = a.names();
+        Names nb = b.names();
+        if (nb == null) {
+            return na;
+        }
+        if (na == null) {
+            return nb;
+        }
+        if (na == nb) {
+            return na;
+        }
+        int asize = a.size();
+        int bsize = b.size();
+
+        if (bsize > asize) {
+            return nb;
+        } else {
+            return na;
+        }
+    }
 }
+

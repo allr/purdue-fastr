@@ -49,7 +49,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
                 int lval = value.getLogical(i);
                 content[i] = Convert.logical2raw(lval, warn);
             }
-            return RRaw.RRawFactory.getFor(content, value.dimensions());
+            return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
     }
 
@@ -61,7 +61,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (dimensions == null) {
                 return new ScalarLogicalImpl(value);
             } else {
-                return getFor(new int[] {value}, dimensions);
+                return getFor(new int[] {value}, dimensions, null);
             }
         }
         public static RLogical getArray(int... values) {
@@ -115,13 +115,13 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             return new LogicalImpl(v, true);
         }
         public static RLogical getFor(int[] values) {  // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static RLogical getFor(int[] values, int[] dimensions) {  // re-uses values!
-            if (values.length == 1 && dimensions == null) {
+        public static RLogical getFor(int[] values, int[] dimensions, Names names) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarLogicalImpl(values[0]);
             }
-            return new LogicalImpl(values, dimensions, null, false);
+            return new LogicalImpl(values, dimensions, names, false);
         }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             return new RLogicalExclusion(excludeIndex, orig);

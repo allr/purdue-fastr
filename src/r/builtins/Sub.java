@@ -73,7 +73,7 @@ public class Sub {
                 content[i] = RString.NA;
             }
         }
-        return RString.RStringFactory.getFor(content, x.dimensions());
+        return RString.RStringFactory.getFor(content, x.dimensions(), x.names());
     }
 
     // FIXME: wouldn't it be just faster & simpler to use Java's regexes with Pattern.LITERAL flag?
@@ -120,7 +120,7 @@ public class Sub {
                 content[i] = xstr;
             }
         }
-        return RString.RStringFactory.getFor(content, xArg.dimensions());
+        return RString.RStringFactory.getFor(content, xArg.dimensions(), xArg.names());
     }
 
     public static class SubCallFactory extends CallFactory {

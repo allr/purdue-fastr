@@ -23,7 +23,7 @@ public class NChar {
         for (int i = 0; i < size; i++) {
             content[i] = s.getString(i).length();
         }
-        return RInt.RIntFactory.getFor(content, s.dimensions());
+        return RInt.RIntFactory.getFor(content, s.dimensions(), s.names());
     }
 
     public static final CallFactory FACTORY = new CallFactory() {

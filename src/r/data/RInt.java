@@ -30,7 +30,7 @@ public interface RInt extends RNumber {
                 int ival = value.getInt(i);
                 content[i] = Convert.int2raw(ival, warn);
             }
-            return RRaw.RRawFactory.getFor(content, value.dimensions());
+            return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
     }
     public class RIntFactory {
@@ -41,7 +41,7 @@ public interface RInt extends RNumber {
             if (dimensions == null) {
                 return new ScalarIntImpl(value);
             } else {
-                return getFor(new int[] {value}, dimensions);
+                return getFor(new int[] {value}, dimensions, null);
             }
         }
         public static RInt getArray(int... values) {
@@ -95,13 +95,13 @@ public interface RInt extends RNumber {
             return new IntImpl(v, true);
         }
         public static RInt getFor(int[] values) { // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static RInt getFor(int[] values, int[] dimensions) {  // re-uses values!
-            if (values.length == 1 && dimensions == null) {
+        public static RInt getFor(int[] values, int[] dimensions, Names names) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, dimensions, null, false);
+            return new IntImpl(values, dimensions, names, false);
         }
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);

@@ -3,6 +3,7 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
+import r.data.RArray.*;
 
 
 public final class ScalarIntImpl extends ArrayImpl implements RInt {
@@ -50,7 +51,12 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RInt setDimensions(int[] dimensions) {
-        return RInt.RIntFactory.getFor(new int[] {value}, dimensions);
+        return RInt.RIntFactory.getFor(new int[] {value}, dimensions, null);
+    }
+
+    @Override
+    public RInt setNames(Names names) {
+        return RInt.RIntFactory.getFor(new int[] {value}, null, names);
     }
 
     @Override

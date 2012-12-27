@@ -6,6 +6,7 @@ import com.oracle.truffle.runtime.*;
 import r.*;
 import r.Convert;
 import r.data.*;
+import r.data.RArray.Names;
 import r.data.RLogical.RLogicalFactory;
 import r.data.internal.*;
 import r.errors.*;
@@ -449,7 +450,7 @@ public class Comparison extends BaseR {
                     content[i] = cmp(astr, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions(), a.names());
         }
         public RLogical cmp(String a, RString b) {
             int n = b.size();
@@ -465,7 +466,7 @@ public class Comparison extends BaseR {
                     content[i] = cmp(a, bstr) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
         public RLogical cmp(RDouble a, double b) {
             int n = a.size();
@@ -481,7 +482,7 @@ public class Comparison extends BaseR {
                     content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions(), a.names());
         }
         public RLogical cmp(double a, RDouble b) {
             int n = b.size();
@@ -497,7 +498,7 @@ public class Comparison extends BaseR {
                     content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
         public RLogical cmp(RInt a, int b) {
             int n = a.size();
@@ -513,7 +514,7 @@ public class Comparison extends BaseR {
                     content[i] = cmp(aint, b) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, a.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, a.dimensions(), a.names());
         }
         public RLogical cmp(int a, RInt b) {
             int n = b.size();
@@ -529,13 +530,14 @@ public class Comparison extends BaseR {
                     content[i] = cmp(a, bint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            return RLogical.RLogicalFactory.getFor(content, b.dimensions());
+            return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
 
         public RLogical cmp(RString a, RString b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
             }
@@ -565,12 +567,13 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
         public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
             }
@@ -604,12 +607,14 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
+
         public RLogical cmp(RDouble a, RDouble b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
             }
@@ -639,12 +644,13 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
         public RLogical cmp(RInt a, RInt b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
 
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
@@ -676,12 +682,13 @@ public class Comparison extends BaseR {
                 Utils.debug("XXX");
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
         public RLogical cmp(RLogical a, RLogical b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
 
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
@@ -712,12 +719,13 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
         public RLogical cmp(RRaw a, RRaw b, RContext context, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
+            Names names = Arithmetic.resultNames(ast, a, b);
 
             if (na == 0 || nb == 0) {
                 return RLogical.EMPTY;
@@ -743,7 +751,7 @@ public class Comparison extends BaseR {
             if (ai != 0 || bi != 0) {
                 context.warning(ast, RError.LENGTH_NOT_MULTI);
             }
-            return RLogical.RLogicalFactory.getFor(content, dimensions);
+            return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
     }
 

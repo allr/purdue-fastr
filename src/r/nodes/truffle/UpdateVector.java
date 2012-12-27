@@ -203,7 +203,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content, base.dimensions());
+                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -234,7 +234,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content, base.dimensions());
+                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -268,7 +268,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -299,7 +299,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -330,7 +330,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -364,7 +364,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = lbase.getLogical(i);
                                 }
-                                return RLogical.RLogicalFactory.getFor(content, base.dimensions());
+                                return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
                             }
                         }
                     };
@@ -397,7 +397,7 @@ public abstract class UpdateVector extends BaseR {
                             for (; i < bsize; i++) { // shallow copy
                                 content[i] = lbase.getRAny(i);
                             }
-                            return RList.RListFactory.getFor(content, base.dimensions());
+                            return RList.RListFactory.getFor(content, base.dimensions(), base.names());
                         }
                     }
                 };
@@ -428,7 +428,7 @@ public abstract class UpdateVector extends BaseR {
                             for (; i < bsize; i++) {
                                 content[i] = sbase.getString(i);
                             }
-                            return RString.RStringFactory.getFor(content, base.dimensions());
+                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
                         }
                     }
                 };
@@ -917,7 +917,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) { // shallow copy
                                 content[i] = typedBase.getRAny(i);
                             }
-                            return RList.RListFactory.getFor(content, base.dimensions());
+                            return RList.RListFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
@@ -981,7 +981,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getDouble(i);
                             }
-                            return RDouble.RDoubleFactory.getFor(content, base.dimensions());
+                            return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
@@ -1045,7 +1045,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getInt(i);
                             }
-                            return RInt.RIntFactory.getFor(content, base.dimensions());
+                            return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1102,7 +1102,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getLogical(i);
                             }
-                            return RLogical.RLogicalFactory.getFor(content, base.dimensions());
+                            return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
@@ -1159,7 +1159,7 @@ public abstract class UpdateVector extends BaseR {
                             for (i = imax + 1; i < bsize; i++) {
                                 content[i] = typedBase.getString(i);
                             }
-                            return RString.RStringFactory.getFor(content, base.dimensions());
+                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");
@@ -1675,7 +1675,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RList.RListFactory.getFor(content, base.dimensions());
+                            return RList.RListFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
@@ -1734,7 +1734,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RDouble.RDoubleFactory.getFor(content, base.dimensions());
+                            return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
@@ -1793,7 +1793,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RInt.RIntFactory.getFor(content, base.dimensions());
+                            return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1850,7 +1850,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RLogical.RLogicalFactory.getFor(content, base.dimensions());
+                            return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
@@ -1907,7 +1907,7 @@ public abstract class UpdateVector extends BaseR {
                             if (vi != 0) {
                                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RString.RStringFactory.getFor(content, base.dimensions());
+                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");
@@ -2163,7 +2163,7 @@ public abstract class UpdateVector extends BaseR {
                     for (; j < bsize; j++) { // shallow copy
                         content[k++] = l.getRAny(j);
                     }
-                    RList newList = RList.RListFactory.getFor(content, l.dimensions());
+                    RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names());
                     if (parent != null) {
                         parent.set(parentIndex, newList);
                     } else {

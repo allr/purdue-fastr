@@ -2,6 +2,7 @@ package r.data;
 
 import java.util.*;
 
+import r.*;
 import r.data.internal.*;
 
 // note: dimensions array should never be modified (only can be replaced, to allow sharing)
@@ -53,9 +54,18 @@ public interface RArray extends RAny {
         public String[] asStringArray() {
             String[] res = new String[names.length];
             for (int i = 0; i < names.length; i++) {
-                res[i] = names[i].pretty();
+                RSymbol s = names[i];
+                if (s != null) { // FIXME: or should we use RSymbol.asString ?
+                    res[i] = names[i].pretty();
+                } else {
+                    res[i] = RString.NA;
+                }
             }
             return res;
+        }
+
+        public int size() {
+            return names.length;
         }
     }
 

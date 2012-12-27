@@ -21,8 +21,9 @@ public class Combine {
         return offset + len;
     }
 
-    public static RAny genericCombine(RAny[] params) {
+    public static RAny genericCombine(RSymbol[] paramNames, RAny[] params) {
         int len = 0;
+        boolean hasNames = (paramNames != null);
         boolean hasNull = false;
         boolean hasRaw = false;
         boolean hasLogical = false;
@@ -56,9 +57,62 @@ public class Combine {
                 Utils.nyi("unsupported type");
                 return null;
             }
-            len += ((RArray) v).size();
+            RArray a = (RArray) v;
+            len += a.size();
+            if (a.names() != null) {
+                hasNames = true;
+            }
         }
         int offset = 0;
+        RArray.Names newNames = null;
+        if (hasNames) {
+            RSymbol[] names = new RSymbol[len];
+            int j = 0;
+            for (int i = 0; i < params.length; i++) {
+                RAny v = params[i];
+                if (v instanceof RNull) {
+                    continue;
+                }
+                RArray a = (RArray) v;
+                int asize = a.size();
+                RArray.Names aNamesPacked = a.names();
+                RSymbol[] aNames = aNamesPacked == null ? null : aNamesPacked.sequence();
+                if (aNames == null) {
+                    if (paramNames == null || paramNames[i] == null) {
+                        for (int k = 0; k < asize; k++) {
+                            names[j++] = RSymbol.EMPTY_SYMBOL;
+                        }
+                        continue;
+                    }
+                    if (asize == 1) {
+                        names[j++] = paramNames[i];
+                        continue;
+                    }
+                    if (asize == 0) {
+                        continue;
+                    }
+                    String prefix = paramNames[i].pretty();
+                    for (int k = 0; k < asize; k++) {
+                        String n = prefix + k;
+                        names[j++] = RSymbol.getSymbol(n);
+                    }
+                    continue;
+                }
+                // aNames != null
+                if (paramNames == null || paramNames[i] == RSymbol.EMPTY_SYMBOL || paramNames[i] == null) {
+                    for (int k = 0; k < asize; k++) {
+                        names[j++] = aNames[k];
+                    }
+                    continue;
+                }
+                String prefix = paramNames[i].pretty() + ".";
+                for (int k = 0; k < asize; k++) {
+                    String n = prefix + Convert.prettyNA(aNames[k].pretty());
+                    names[j++] = RSymbol.getSymbol(n);
+                }
+            }
+            newNames = RArray.Names.create(names);
+        }
         if (hasList) {
             ListImpl res = RList.RListFactory.getUninitializedArray(len);
             for (RAny v : params) {
@@ -80,7 +134,7 @@ public class Combine {
                 }
                 offset += asize;
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasString) {
             RString res = RString.RStringFactory.getUninitializedArray(len);
@@ -90,7 +144,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RString ? (RString) v : v.asString(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasComplex) {
             RComplex res = RComplex.RComplexFactory.getUninitializedArray(len);
@@ -100,7 +154,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RComplex ? (RComplex) v : v.asComplex(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasDouble) {
             RDouble res = RDouble.RDoubleFactory.getUninitializedArray(len);
@@ -110,7 +164,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RDouble ? (RDouble) v : v.asDouble(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasInt) {
             RInt res = RInt.RIntFactory.getUninitializedArray(len);
@@ -120,7 +174,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RInt ? (RInt) v : v.asInt(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasLogical) {
             RLogical res = RLogical.RLogicalFactory.getUninitializedArray(len);
@@ -130,7 +184,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RLogical ? (RLogical) v : v.asLogical(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasRaw) {
             RRaw res = RRaw.RRawFactory.getUninitializedArray(len);
@@ -140,7 +194,7 @@ public class Combine {
                 }
                 offset = fillIn(res, v instanceof RRaw ? (RRaw) v : v.asRaw(), offset);
             }
-            return res;
+            return res.setNames(newNames);
         }
         if (hasNull) {
             return RNull.getNull();
@@ -149,12 +203,12 @@ public class Combine {
         return null;
     }
 
-    public static BuiltIn createGeneric(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+    public static BuiltIn createGeneric(ASTNode ast, final RSymbol[] names, RNode[] exprs) {
         return new BuiltIn(ast, names, exprs) {
 
             @Override
             public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                return genericCombine(params);
+                return genericCombine(names, params);
             }
         };
     }
@@ -193,6 +247,9 @@ public class Combine {
         }
 
         public static Specialized createSimpleScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
+            if (names != null) {
+                return createTransition(ast, names, exprs, Transition.GENERIC);
+            }
             if (typeTemplate instanceof ScalarStringImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
@@ -270,6 +327,9 @@ public class Combine {
         }
 
         public static Specialized createCastingScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
+            if (names != null) {
+                return createTransition(ast, names, exprs, Transition.GENERIC);
+            }
             if (typeTemplate instanceof RDouble) {
                 CombineAction a = new CombineAction() {
                     @Override
@@ -336,7 +396,7 @@ public class Combine {
                         return s.doBuiltIn(context, frame, params);
 
                     case CASTING_SCALARS:
-                        RAny res = genericCombine(params);
+                        RAny res = genericCombine(argNames, params);
                         s = createCastingScalars(ast, argNames, argExprs, res);
                         replace(s, "install CastingScalars in Combine.Specialized");
                         return res;
@@ -344,10 +404,22 @@ public class Combine {
                     case GENERIC:
                     default:
                         replace(createGeneric(ast, argNames, argExprs), "install Generic in Combine.Specialized");
-                        return genericCombine(params);
+                        return genericCombine(argNames, params);
                 }
              }
         }
+    }
+
+    public static final RSymbol[] collapseEmptyNames(RSymbol[] names) {
+        if (names == null) {
+            return names;
+        }
+        for (RSymbol s : names) {
+            if (s != null) {
+                return names;
+            }
+        }
+        return null;
     }
 
     public static final CallFactory FACTORY = new CallFactory() {
@@ -355,8 +427,9 @@ public class Combine {
         // only supports a vector of integers, doubles, or logical
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            RSymbol[] collapsedNames = collapseEmptyNames(names);
             if (exprs.length == 0) {
-                return new BuiltIn.BuiltIn0(call, names, exprs) {
+                return new BuiltIn.BuiltIn0(call, collapsedNames, exprs) {
 
                     @Override
                     public final RAny doBuiltIn(RContext context, Frame frame) {
@@ -365,7 +438,7 @@ public class Combine {
 
                 };
             }
-            return Specialized.createUninitialized(call, names, exprs);
+            return Specialized.createUninitialized(call, collapsedNames, exprs);
         }
     };
 }

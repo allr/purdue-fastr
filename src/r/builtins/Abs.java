@@ -33,97 +33,33 @@ public class Abs {
     }
 
     public static RDouble abs(final RDouble orig) {
-        final int size = orig.size();
 
-        return new View.RDoubleView() {
+        return new View.RDoubleProxy<RDouble>(orig) {
 
             @Override
             public double getDouble(int i) {
                 return abs(orig.getDouble(i));
             }
-
-            @Override
-            public int size() {
-                return size;
-            }
-
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
-
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-
-            @Override
-            public int[] dimensions() {
-                return orig.dimensions();
-            }
-
         };
     }
 
     public static RInt abs(final RInt orig) {
-        final int size = orig.size();
 
-        return new View.RIntView() {
+        return new View.RIntProxy<RInt>(orig) {
             @Override
             public int getInt(int i) {
                 return abs(orig.getInt(i));
-            }
-
-            @Override
-            public int size() {
-                return size;
-            }
-
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
-
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-
-            @Override
-            public int[] dimensions() {
-                return orig.dimensions();
             }
         };
     }
 
     public static RDouble abs(final RComplex orig) {
-        final int size = orig.size();
 
-        return new View.RDoubleView() {
+        return new View.RDoubleProxy<RComplex>(orig) {
 
             @Override
             public double getDouble(int i) {
                 return abs(orig.getReal(i), orig.getImag(i));
-            }
-
-            @Override
-            public int size() {
-                return size;
-            }
-
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
-
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-
-            @Override
-            public int[] dimensions() {
-                return orig.dimensions();
             }
         };
     }

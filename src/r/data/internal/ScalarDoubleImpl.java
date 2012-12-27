@@ -50,7 +50,12 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RDouble setDimensions(int[] dimensions) {
-        return RDouble.RDoubleFactory.getFor(new double[] {value}, dimensions);
+        return RDouble.RDoubleFactory.getFor(new double[] {value}, dimensions, null);
+    }
+
+    @Override
+    public RDouble setNames(Names names) {
+        return RDouble.RDoubleFactory.getFor(new double[] {value}, null, names);
     }
 
     @Override

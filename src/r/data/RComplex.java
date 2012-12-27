@@ -54,7 +54,7 @@ public interface RComplex extends RArray {
                 double imag = value.getImag(i);
                 content[i] = Convert.complex2double(real, imag, warn);
             }
-            return RDouble.RDoubleFactory.getFor(content, value.dimensions());
+            return RDouble.RDoubleFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RInt complex2int(RComplex value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -64,7 +64,7 @@ public interface RComplex extends RArray {
                 double imag = value.getImag(i);
                 content[i] = Convert.complex2int(real, imag, warn);
             }
-            return RInt.RIntFactory.getFor(content, value.dimensions());
+            return RInt.RIntFactory.getFor(content, value.dimensions(), value.names());
         }
         public static RRaw complexToRaw(RComplex value, ConversionStatus warn) { // eager to keep error semantics eager
             int size = value.size();
@@ -74,7 +74,7 @@ public interface RComplex extends RArray {
                 double imag = value.getImag(i);
                 content[i] = Convert.complex2raw(real, imag, warn);
             }
-            return RRaw.RRawFactory.getFor(content, value.dimensions());
+            return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
     }
 
@@ -89,7 +89,7 @@ public interface RComplex extends RArray {
             if (dimensions == null) {
                 return new ScalarComplexImpl(real, imag);
             } else {
-                return getFor(new double[] {real, imag}, dimensions);
+                return getFor(new double[] {real, imag}, dimensions, null);
             }
         }
         public static RComplex getArray(double... values) {
@@ -149,13 +149,13 @@ public interface RComplex extends RArray {
             return new ComplexImpl(v, true);
         }
         public static RComplex getFor(double[] values) { // re-uses values!
-            return getFor(values, null);
+            return getFor(values, null, null);
         }
-        public static RComplex getFor(double[] values, int[] dimensions) {  // re-uses values!
-            if (values.length == 2 && dimensions == null) {
+        public static RComplex getFor(double[] values, int[] dimensions, Names names) {  // re-uses values!
+            if (values.length == 2 && dimensions == null && names == null) {
                 return new ScalarComplexImpl(values[0], values[1]);
             }
-            return new ComplexImpl(values, dimensions, null, false);
+            return new ComplexImpl(values, dimensions, names, false);
         }
         public static RComplex exclude(int excludeIndex, RComplex orig) {
             return new RComplexExclusion(excludeIndex, orig);
