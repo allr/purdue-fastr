@@ -25,10 +25,10 @@ public class CharUtils {
 
         public RString convert(final RContext context, final ASTNode ast, final RString value) {
             final int size = value.size();
-            if (size == 1) {
+            if (value instanceof ScalarStringImpl) {
                 return RString.RStringFactory.getScalar(op.op(context, ast, value.getString(0)), value.dimensions());
-            } else if (size > 0) {
-                return new View.RStringView() {
+            } else {
+                return new View.RStringProxy<RString>(value) {
 
                     @Override
                     public int size() {
@@ -39,24 +39,7 @@ public class CharUtils {
                     public String getString(int i) {
                         return op.op(context, ast, value.getString(i));
                     }
-
-                    @Override
-                    public boolean isSharedReal() {
-                        return value.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        value.ref();
-                    }
-
-                    @Override
-                    public int[] dimensions() {
-                        return value.dimensions();
-                    }
                 };
-            } else {
-                return RString.EMPTY;
             }
         }
 

@@ -34,7 +34,22 @@ public class Which {
         int nsize = j;
         int[] content = new int[nsize];
         System.arraycopy(tmp, 0, content, 0, nsize);
-        return RInt.RIntFactory.getFor(content); // drops dimensions
+        RArray.Names inames = l.names();
+        RArray.Names names;
+        if (inames != null) {
+            RSymbol[] symbols = new RSymbol[nsize];
+            RSymbol[] isymbols = inames.sequence();
+            j = 0;
+            for (int i = 0; i < size; i++) {
+                if (input.getLogical(i) == RLogical.TRUE) {
+                    symbols[j++] = isymbols[i] ;
+                }
+            }
+            names = RArray.Names.create(symbols);
+        } else {
+            names = null;
+        }
+        return RInt.RIntFactory.getFor(content, null, names); // drops dimensions, preserves names
     }
 
     public static final CallFactory FACTORY = new CallFactory() {

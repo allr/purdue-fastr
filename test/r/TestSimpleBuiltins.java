@@ -339,6 +339,7 @@ public class TestSimpleBuiltins extends TestBase {
     public void testWhich() throws RecognitionException {
         assertEval("{ which(c(TRUE, FALSE, NA, TRUE)) }", "1L, 4L");
         assertEval("{ which(logical()) }", "integer(0)");
+        assertEval("{ which(c(a=TRUE,b=FALSE,c=TRUE)) }", " a  c\n1L 3L");
     }
 
     @Test
@@ -439,6 +440,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ m <- matrix(1:4, nrow=2) ; log10(m) }", "                   [,1]                [,2]\n[1,]                0.0 0.47712125471966244\n[2,] 0.3010299956639812  0.6020599913279624");
 
         assertEval("{ x <- c(a=1, b=10) ; c(log(x), log10(x), log2(x)) }", "  a                 b   a   b   a                  b\n0.0 2.302585092994046 0.0 1.0 0.0 3.3219280948873626");
+
+        assertEval("{ sqrt(c(a=9,b=81)) }", "  a   b\n3.0 9.0");
     }
 
     @Test
@@ -450,6 +453,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ tolower(c()) }", "character(0)");
         assertEval("{ tolower(NA) }", "NA");
         assertEval("{ m <- matrix(\"hi\") ; toupper(m) }", "     [,1]\n[1,] \"HI\"");
+        assertEval("{ toupper(c(a=\"hi\", \"hello\")) }", "   a        \n\"HI\" \"HELLO\"");
+        assertEval("{ tolower(c(a=\"HI\", \"HELlo\")) }", "   a        \n\"hi\" \"hello\"");
     }
 
     @Test
