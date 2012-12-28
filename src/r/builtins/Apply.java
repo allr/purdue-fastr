@@ -397,6 +397,7 @@ public class Apply {
         }
     }
 
+    // TODO: handle names
     public static class Sapply extends BuiltIn {
 
         @Stable ValueProvider firstArgProvider;
@@ -414,6 +415,7 @@ public class Apply {
             this.funPosition = funPosition;
         }
 
+        // TODO: support names
         public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
 
             boolean hasRaw = false;
@@ -423,8 +425,10 @@ public class Apply {
             boolean hasComplex = false;
             boolean hasString = false;
             boolean notAllScalarLists = false;
-            boolean returnList = false;
+            boolean hasList = false;
+            boolean hasMultipleSizes = false;
 
+            int elementSize = -1;
             RAny[] content;
             int xsize = argIterator.size();
 
@@ -443,158 +447,238 @@ public class Apply {
                 } else {
                     v = content[i];
                 }
-                if (returnList && notAllScalarLists) {
-                    continue;
-                }
-             // FIXME: can we write this in a nicer way without making it slower?
+                int vsize;
                 if (v instanceof RDouble) {
                     hasDouble = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RDouble) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RDouble) v).size();
                 } else if (v instanceof RInt) {
                     hasInt = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RInt) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RInt) v).size();
                 } else if (v instanceof RLogical) {
                     hasLogical = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RLogical) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RLogical) v).size();
                 } else if (v instanceof RList) {
-                    returnList = true;
-                    if (!notAllScalarLists && ((RList) v).size() != 1) {
+                    hasList = true;
+                    vsize = ((RList) v).size();
+                    if (vsize != 1) {
                         notAllScalarLists = true;
                     }
                 } else if (v instanceof RString) {
                     hasString = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RString) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RString) v).size();
                 } else if (v instanceof RComplex) {
                     hasComplex = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RComplex) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RComplex) v).size();
                 } else if (v instanceof RRaw) {
                     hasRaw = true;
                     notAllScalarLists = true;
-                    if (!returnList && ((RRaw) v).size() != 1) {
-                        returnList = true;
-                    }
+                    vsize = ((RRaw) v).size();
                 } else if (v instanceof RNull) {
-                    returnList = true;
+                    hasList = true;
                     notAllScalarLists = true;
+                    vsize = 0;
                 } else {
                     Utils.nyi("unsupported type");
+                    return null;
+                }
+                if (elementSize != -1) {
+                    if (vsize != elementSize) {
+                        hasMultipleSizes = true;
+                    }
+                } else {
+                    elementSize = vsize;
                 }
             }
-            if (returnList) {
-                if (!notAllScalarLists) {
+            if (elementSize > 1 && !hasMultipleSizes) {
+                // result is a matrix
+                int[] dimensions = new int[] {elementSize, xsize};
+                int resSize = elementSize * xsize;
+
+                if (hasList) {
+                    RAny[] values = new RAny[resSize];
                     for (int i = 0; i < xsize; i++) {
-                        RList v = (RList) content[i];
-                        content[i] = v.getRAny(0); // shallow but no need to ref here
+                        RList v = content[i].asList();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getRAny(j); // shallow but no need to ref here
+                        }
                     }
+                    return RList.RListFactory.getFor(values, dimensions);
                 }
-                return RList.RListFactory.getFor(content);
-            }
-            // this could be written using asXXX (but much slower)
-            if (hasString) {
-                String[] values = new String[xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    if (v instanceof RString) {
-                        values[i] = ((RString) v).getString(0);
-                    } else if (v instanceof RDouble) {
-                        values[i] = Convert.double2string(((RDouble) v).getDouble(0));
-                    } else if (v instanceof RInt) {
-                        values[i] = Convert.int2string(((RInt) v).getInt(0));
-                    } else if (v instanceof RLogical) {
-                        values[i] = Convert.logical2string(((RLogical) v).getLogical(0));
-                    } else if (v instanceof RComplex) {
-                        RComplex cv = (RComplex) v;
-                        values[i] = Convert.complex2string(cv.getReal(0), cv.getImag(0));
-                    } else if (v instanceof RRaw) {
-                        values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
+                if (hasString) {
+                    String[] values = new String[resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RString v = content[i].asString();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getString(j);
+                        }
                     }
+                    return RString.RStringFactory.getFor(values, dimensions, null);
                 }
-                return RString.RStringFactory.getFor(values);
-            }
-            if (hasComplex) {
-                double[] values = new double[2 * xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    if (v instanceof RDouble) {
-                        values[2 * i] = ((RDouble) v).getDouble(0);
-                    } else if (v instanceof RInt) {
-                        values[2 * i] = Convert.int2double(((RInt) v).getInt(0));
-                    } else if (v instanceof RLogical) {
-                        values[2 * i] = Convert.logical2double(((RLogical) v).getLogical(0));
-                    } else if (v instanceof RComplex) {
-                        RComplex cv = ((RComplex) v);
-                        values[2 * i] = cv.getReal(0);
-                        values[2 * i + 1] = cv.getImag(0);
-                    } else {
-                        values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
+                if (hasComplex) {
+                    double[] values = new double[2 * resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RComplex v = content[i].asComplex();
+                        for (int j = 0; j < elementSize; j++) {
+                            int offset = 2 * (i * elementSize + j);
+                            values[offset] = v.getReal(j);
+                            values[offset + 1] = v.getImag(j);
+                        }
                     }
+                    return RComplex.RComplexFactory.getFor(values, dimensions, null);
                 }
-                return RComplex.RComplexFactory.getFor(values);
-            }
-            if (hasDouble) {
-                double[] values = new double[xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    if (v instanceof RDouble) {
-                        values[i] = ((RDouble) v).getDouble(0);
-                    } else if (v instanceof RInt) {
-                        values[i] = Convert.int2double(((RInt) v).getInt(0));
-                    } else if (v instanceof RLogical) {
-                        values[i] = Convert.logical2double(((RLogical) v).getLogical(0));
-                    } else {
-                        values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
+                if (hasDouble) {
+                    double[] values = new double[resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RDouble v = content[i].asDouble();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getDouble(j);
+                        }
                     }
+                    return RDouble.RDoubleFactory.getFor(values, dimensions, null);
                 }
-                return RDouble.RDoubleFactory.getFor(values);
-            }
-            if (hasInt) {
-                int[] values = new int[xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    if (v instanceof RInt) {
-                        values[i] = ((RInt) v).getInt(0);
-                    } else if (v instanceof RLogical) {
-                        values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
-                    } else {
-                        values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
+                if (hasInt) {
+                    int[] values = new int[resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RInt v = content[i].asInt();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getInt(j);
+                        }
                     }
+                    return RInt.RIntFactory.getFor(values, dimensions, null);
                 }
-                return RInt.RIntFactory.getFor(values);
-            }
-            if (hasLogical) {
-                int[] values = new int[xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    if (v instanceof RLogical) {
-                        values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
-                    } else {
-                        values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
+                if (hasLogical) {
+                    int[] values = new int[resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RLogical v = content[i].asLogical();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getLogical(j);
+                        }
                     }
+                    return RLogical.RLogicalFactory.getFor(values, dimensions, null);
                 }
-                return RLogical.RLogicalFactory.getFor(values);
-            }
-            if (hasRaw) {
-                byte[] values = new byte[xsize];
-                for (int i = 0; i < xsize; i++) {
-                    RAny v = content[i];
-                    values[i] = ((RRaw) v).getRaw(0);
+                if (hasRaw) {
+                    byte[] values = new byte[resSize];
+                    for (int i = 0; i < xsize; i++) {
+                        RRaw v = content[i].asRaw();
+                        for (int j = 0; j < elementSize; j++) {
+                            values[i * elementSize + j] = v.getRaw(j);
+                        }
+                    }
+                    return RRaw.RRawFactory.getFor(values, dimensions, null);
                 }
-                return RRaw.RRawFactory.getFor(values);
+
+            } else {
+                // result is a vector
+
+                if (hasList) {
+                    if (!notAllScalarLists) {
+                        for (int i = 0; i < xsize; i++) {
+                            RList v = (RList) content[i];
+                            content[i] = v.getRAny(0); // shallow but no need to ref here
+                        }
+                    }
+                    return RList.RListFactory.getFor(content);
+                }
+                if (hasMultipleSizes) {
+                    return RList.RListFactory.getFor(content);
+                }
+                // this could be written using asXXX (but much slower)
+                if (hasString) {
+                    String[] values = new String[xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        if (v instanceof RString) {
+                            values[i] = ((RString) v).getString(0);
+                        } else if (v instanceof RDouble) {
+                            values[i] = Convert.double2string(((RDouble) v).getDouble(0));
+                        } else if (v instanceof RInt) {
+                            values[i] = Convert.int2string(((RInt) v).getInt(0));
+                        } else if (v instanceof RLogical) {
+                            values[i] = Convert.logical2string(((RLogical) v).getLogical(0));
+                        } else if (v instanceof RComplex) {
+                            RComplex cv = (RComplex) v;
+                            values[i] = Convert.complex2string(cv.getReal(0), cv.getImag(0));
+                        } else if (v instanceof RRaw) {
+                            values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
+                        }
+                    }
+                    return RString.RStringFactory.getFor(values);
+                }
+                if (hasComplex) {
+                    double[] values = new double[2 * xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        if (v instanceof RDouble) {
+                            values[2 * i] = ((RDouble) v).getDouble(0);
+                        } else if (v instanceof RInt) {
+                            values[2 * i] = Convert.int2double(((RInt) v).getInt(0));
+                        } else if (v instanceof RLogical) {
+                            values[2 * i] = Convert.logical2double(((RLogical) v).getLogical(0));
+                        } else if (v instanceof RComplex) {
+                            RComplex cv = ((RComplex) v);
+                            values[2 * i] = cv.getReal(0);
+                            values[2 * i + 1] = cv.getImag(0);
+                        } else {
+                            values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
+                        }
+                    }
+                    return RComplex.RComplexFactory.getFor(values);
+                }
+                if (hasDouble) {
+                    double[] values = new double[xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        if (v instanceof RDouble) {
+                            values[i] = ((RDouble) v).getDouble(0);
+                        } else if (v instanceof RInt) {
+                            values[i] = Convert.int2double(((RInt) v).getInt(0));
+                        } else if (v instanceof RLogical) {
+                            values[i] = Convert.logical2double(((RLogical) v).getLogical(0));
+                        } else {
+                            values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
+                        }
+                    }
+                    return RDouble.RDoubleFactory.getFor(values);
+                }
+                if (hasInt) {
+                    int[] values = new int[xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        if (v instanceof RInt) {
+                            values[i] = ((RInt) v).getInt(0);
+                        } else if (v instanceof RLogical) {
+                            values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
+                        } else {
+                            values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
+                        }
+                    }
+                    return RInt.RIntFactory.getFor(values);
+                }
+                if (hasLogical) {
+                    int[] values = new int[xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        if (v instanceof RLogical) {
+                            values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
+                        } else {
+                            values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
+                        }
+                    }
+                    return RLogical.RLogicalFactory.getFor(values);
+                }
+                if (hasRaw) {
+                    byte[] values = new byte[xsize];
+                    for (int i = 0; i < xsize; i++) {
+                        RAny v = content[i];
+                        values[i] = ((RRaw) v).getRaw(0);
+                    }
+                    return RRaw.RRawFactory.getFor(values);
+                }
             }
             return RList.EMPTY;
         }
@@ -629,7 +713,7 @@ public class Apply {
         }
 
         public Specialized createSpecialized(RAny resTemplate, ArgIterator argIterator) {
-            if (resTemplate instanceof RDouble) {
+            if (resTemplate instanceof RDouble && ((RDouble) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -638,8 +722,8 @@ public class Apply {
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
-                            if (v instanceof RDouble) {
-                                content[i] = ((RDouble) v).getDouble(0);
+                            if (v instanceof ScalarDoubleImpl) {
+                                content[i] = ((ScalarDoubleImpl) v).getDouble();
                             } else { // NOTE: can also add Int and Logical support here
                                 throw new UnexpectedResultException(new PartialResult(RDouble.RDoubleFactory.getFor(content), i, v));
                             }
@@ -649,7 +733,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
             }
-            if (resTemplate instanceof RInt) {
+            if (resTemplate instanceof RInt && ((RInt) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -658,8 +742,8 @@ public class Apply {
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
-                            if (v instanceof RInt) {
-                                content[i] = ((RInt) v).getInt(0);
+                            if (v instanceof ScalarIntImpl) {
+                                content[i] = ((ScalarIntImpl) v).getInt();
                             } else { // NOTE: can also add Logical support here
                                throw new UnexpectedResultException(new PartialResult(RInt.RIntFactory.getFor(content), i,  v));
                             }
@@ -669,7 +753,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
             }
-            if (resTemplate instanceof RLogical) {
+            if (resTemplate instanceof RLogical && ((RLogical) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -678,8 +762,8 @@ public class Apply {
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
-                            if (v instanceof RLogical) {
-                                content[i] = ((RLogical) v).getLogical(0);
+                            if (v instanceof ScalarLogicalImpl) {
+                                content[i] = ((ScalarLogicalImpl) v).getLogical();
                             } else {
                                 throw new UnexpectedResultException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
                             }
@@ -689,7 +773,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
             }
-            if (resTemplate instanceof RString) {
+            if (resTemplate instanceof RString && ((RString) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -698,8 +782,8 @@ public class Apply {
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
-                            if (v instanceof RLogical) {
-                                content[i] = ((RString) v).getString(0);
+                            if (v instanceof ScalarStringImpl) {
+                                content[i] = ((ScalarStringImpl) v).getString();
                             } else {
                                 throw new UnexpectedResultException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
                             }
@@ -709,7 +793,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RString>");
             }
-            if (resTemplate instanceof RComplex) {
+            if (resTemplate instanceof RComplex && ((RComplex) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -718,10 +802,10 @@ public class Apply {
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
-                            if (v instanceof RComplex) {
-                                RComplex cv = (RComplex) v;
-                                content[2 * i] = cv.getReal(0);
-                                content[2 * i + 1] = cv.getImag(0);
+                            if (v instanceof ScalarComplexImpl) {
+                                ScalarComplexImpl cv = (ScalarComplexImpl) v;
+                                content[2 * i] = cv.getReal();
+                                content[2 * i + 1] = cv.getImag();
                             } else {
                                 throw new UnexpectedResultException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
                             }
@@ -731,7 +815,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RComplex>");
             }
-            if (resTemplate instanceof RList) {
+            if (resTemplate instanceof RList && ((RList) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -763,7 +847,7 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
             }
-            if (resTemplate instanceof RRaw) {
+            if (resTemplate instanceof RRaw && ((RRaw) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
                     public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
@@ -783,7 +867,6 @@ public class Apply {
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RRaw>");
             }
-            Utils.nyi("unsupported type");
             return null;
         }
 
