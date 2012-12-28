@@ -111,13 +111,16 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         return this;
     }
 
+    private static final String EMPTY_STRING = RComplex.TYPE_STRING + "(0)";
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     @Override
     public String pretty() {
         if (dimensions != null) {
             return matrixPretty();
         }
         if (size == 0) {
-            return RComplex.TYPE_STRING + "(0)";
+            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
         }
         if (names() != null) {
             return namedPretty();

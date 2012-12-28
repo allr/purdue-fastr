@@ -8,6 +8,10 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
 
+    public double[] getContent() {
+        return content;
+    }
+
     public DoubleImpl(double[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
@@ -82,14 +86,16 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         return this;
     }
 
+    private static final String EMPTY_STRING = "numeric(0)"; // NOTE: this is not RDouble.TYPE_STRING (R is inconsistent on this)
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     @Override
     public String pretty() {
         if (dimensions != null) {
             return matrixPretty();
         }
         if (content.length == 0) {
-//            return RDouble.TYPE_STRING + "(0)";
-            return "numeric(0)";  // FIXME: I think there is an inconsistency in GNU-R itself on this
+            return (names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING;
         }
         if (names() != null) {
             return namedPretty();

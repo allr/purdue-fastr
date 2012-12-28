@@ -83,6 +83,15 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ rep(1:3, length.out=4) }", "1L, 2L, 3L, 1L");
         assertEval("{ rep(1:3, length.out=NA) }", "1L, 2L, 3L");
         assertEval("{ rep(as.raw(14), 4) }", "0e, 0e, 0e, 0e");
+
+        assertEval("{ x <- as.raw(11) ; names(x) <- c(\"X\") ; rep(x, 3) }", " X  X  X\n0b 0b 0b");
+        assertEval("{ x <- as.raw(c(11,12)) ; names(x) <- c(\"X\",\"Y\") ; rep(x, 2) }", " X  Y  X  Y\n0b 0c 0b 0c");
+        assertEval("{ x <- c(TRUE,NA) ; names(x) <- c(\"X\",NA) ; rep(x, length.out=3) }", "   X <NA>    X\nTRUE   NA TRUE");
+        assertEval("{ x <- 1L ; names(x) <- c(\"X\") ; rep(x, times=2) } ", " X  X\n1L 1L");
+        assertEval("{ x <- 1 ; names(x) <- c(\"X\") ; rep(x, times=0) }", "named numeric(0)");
+        assertEval("{ x <- 1+1i ; names(x) <- c(\"X\") ; rep(x, times=2) }", "       X        X\n1.0+1.0i 1.0+1.0i");
+        assertEval("{ x <- c(1+1i,1+2i) ; names(x) <- c(\"X\") ; rep(x, times=2) }", "       X     <NA>        X     <NA>\n1.0+1.0i 1.0+2.0i 1.0+1.0i 1.0+2.0i");
+        assertEval("{ x <- c(\"A\",\"B\") ; names(x) <- c(\"X\") ; rep(x, length.out=3) }", "  X <NA>   X\n\"A\"  \"B\" \"A\"");
     }
 
     @Test

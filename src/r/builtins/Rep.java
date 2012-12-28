@@ -1,10 +1,17 @@
 package r.builtins;
 
+import java.util.*;
+
 import r.*;
 import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.RComplex.RComplexFactory;
+import r.data.RDouble.RDoubleFactory;
+import r.data.RInt.RIntFactory;
+import r.data.RLogical.RLogicalFactory;
 import r.data.RRaw.RRawFactory;
+import r.data.RString.RStringFactory;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -13,6 +20,8 @@ import r.nodes.truffle.*;
 import com.oracle.truffle.runtime.*;
 
 // FIXME: Truffle can't handle BuiltIn2
+// TODO: support non-scalar times argument
+// TODO: support list argument
 public class Rep {
 
     private static final String[] repIntParamNames = new String[]{"x", "times"};
@@ -28,30 +37,171 @@ public class Rep {
         }
     }
 
-    // FIXME: make these faster using System.arraycopy
+    public static RSymbol[] rep(RSymbol value, int size) {
+        RSymbol[] res = new RSymbol[size];
+        Arrays.fill(res, value);
+        return res;
+    }
     public static RSymbol[] rep(RSymbol[] origArray, int origSize, int newSize) {
         RSymbol[] newArray = new RSymbol[newSize];
-
-        int oi = 0;
-        for (int ni = 0; ni < newSize; ni++) {
-            newArray[ni] = origArray[oi++];
-            if (oi == origSize) {
-                oi = 0;
+        int start = 0;
+        for (;;) {
+            int end = start + origSize;
+            if (end <= newSize) {
+                System.arraycopy(origArray, 0, newArray, start, origSize);
+                start = end;
+            } else {
+                break;
             }
         }
+        System.arraycopy(origArray, 0, newArray, start, newSize - start);
         return newArray;
+    }
+
+    // FIXME copy-paste, as one cannot allocate generic array (or do generics on primitive types)
+    public static byte[] rep(byte value, int size) {
+        byte[] res = new byte[size];
+        Arrays.fill(res, value);
+        return res;
+    }
+    public static byte[] rep(byte[] origArray, int origSize, int newSize) {
+        byte[] newArray = new byte[newSize];
+        int start = 0;
+        for (;;) {
+            int end = start + origSize;
+            if (end <= newSize) {
+                System.arraycopy(origArray, 0, newArray, start, origSize);
+                start = end;
+            } else {
+                break;
+            }
+        }
+        System.arraycopy(origArray, 0, newArray, start, newSize - start);
+        return newArray;
+    }
+
+    // FIXME copy-paste, as one cannot allocate generic array (or do generics on primitive types)
+    public static int[] rep(int value, int size) {
+        int[] res = new int[size];
+        Arrays.fill(res, value);
+        return res;
+    }
+    public static int[] rep(int[] origArray, int origSize, int newSize) {
+        int[] newArray = new int[newSize];
+        int start = 0;
+        for (;;) {
+            int end = start + origSize;
+            if (end <= newSize) {
+                System.arraycopy(origArray, 0, newArray, start, origSize);
+                start = end;
+            } else {
+                break;
+            }
+        }
+        System.arraycopy(origArray, 0, newArray, start, newSize - start);
+        return newArray;
+    }
+
+    // FIXME copy-paste, as one cannot allocate generic array (or do generics on primitive types)
+    public static double[] rep(double value, int size) {
+        double[] res = new double[size];
+        Arrays.fill(res, value);
+        return res;
+    }
+    public static double[] rep(double[] origArray, int origSize, int newSize) {
+        double[] newArray = new double[newSize];
+        int start = 0;
+        for (;;) {
+            int end = start + origSize;
+            if (end <= newSize) {
+                System.arraycopy(origArray, 0, newArray, start, origSize);
+                start = end;
+            } else {
+                break;
+            }
+        }
+        System.arraycopy(origArray, 0, newArray, start, newSize - start);
+        return newArray;
+    }
+
+    // FIXME copy-paste, as one cannot allocate generic array (or do generics on primitive types)
+    public static String[] rep(String value, int size) {
+        String[] res = new String[size];
+        Arrays.fill(res, value);
+        return res;
+    }
+    public static String[] rep(String[] origArray, int origSize, int newSize) {
+        String[] newArray = new String[newSize];
+        int start = 0;
+        for (;;) {
+            int end = start + origSize;
+            if (end <= newSize) {
+                System.arraycopy(origArray, 0, newArray, start, origSize);
+                start = end;
+            } else {
+                break;
+            }
+        }
+        System.arraycopy(origArray, 0, newArray, start, newSize - start);
+        return newArray;
+    }
+
+    public static byte[] repValues(RRaw origArray, int origSize, int newSize) {
+        if (origSize == 1) { // NOTE: branch not needed as long as we don't have a scalar type for raw
+            return rep(origArray.getRaw(0), newSize);
+        } else {
+            return rep(((RawImpl) origArray.materialize()).getContent(), origSize, newSize);
+        }
+    }
+
+    public static int[] repValues(RInt origArray, int origSize, int newSize) {
+        if (origSize == 1) {
+            return rep(origArray.getInt(0), newSize);
+        } else {
+            return rep(((IntImpl) origArray.materialize()).getContent(), origSize, newSize);
+        }
+    }
+
+    public static int[] repValues(RLogical origArray, int origSize, int newSize) {
+        if (origSize == 1) {
+            return rep(origArray.getLogical(0), newSize);
+        } else {
+            return rep(((LogicalImpl) origArray.materialize()).getContent(), origSize, newSize);
+        }
+    }
+
+    public static double[] repValues(RDouble origArray, int origSize, int newSize) {
+        if (origSize == 1) {
+            return rep(origArray.getDouble(0), newSize);
+        } else {
+            return rep(((DoubleImpl) origArray.materialize()).getContent(), origSize, newSize);
+        }
+    }
+
+    public static double[] repValues(RComplex origArray, int origSize, int newSize) {
+        if (origSize == 1) {
+            return rep(new double[] {origArray.getReal(0), origArray.getImag(0)}, 2, newSize * 2);
+        } else {
+            return rep(((ComplexImpl) origArray.materialize()).getContent(), origSize * 2, newSize * 2);
+        }
+    }
+
+    public static String[] repValues(RString origArray, int origSize, int newSize) {
+        if (origSize == 1) {
+            return rep(origArray.getString(0), newSize);
+        } else {
+            return rep(((StringImpl) origArray.materialize()).getContent(), origSize, newSize);
+        }
     }
 
     public static RArray.Names repNames(RArray.Names origNames, int origSize, int size) {
         return RArray.Names.create(rep(origNames.sequence(), origSize, size));
     }
 
-    // TODO: finish this (name propagation)
-
     public static RRaw repInt(final RRaw orig, final int origSize, final int size) {
 
         RArray.Names names = orig.names();
-//        if (names == null) {
+        if (names == null) {
             return new View.RRawProxy<RRaw>(orig) {
 
                 @Override
@@ -70,143 +220,149 @@ public class Rep {
                 }
 
             };
-//        } else {
-//            return RRawFactory.getFor(values, null, repNames(names, origSize, size));
-//        }
+        } else {
+            return RRawFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
     public static RLogical repInt(final RLogical orig, final int origSize, final int size) {
-        return new View.RLogicalView() {
+        RArray.Names names = orig.names();
 
-            @Override
-            public int size() {
-                return size;
-            }
+        if (names == null) {
+            return new View.RLogicalProxy<RLogical>(orig) {
 
-            @Override
-            public int getLogical(int i) {
-                return orig.getLogical(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public int getLogical(int i) {
+                    return orig.getLogical(i % origSize);
+                }
+            };
+        } else {
+            return RLogicalFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
 
     public static RInt repInt(final RInt orig, final int origSize, final int size) {
-        return new View.RIntView() {
+        RArray.Names names = orig.names();
 
-            @Override
-            public int size() {
-                return size;
-            }
+        if (names == null) {
+            return new View.RIntProxy<RInt>(orig) {
 
-            @Override
-            public int getInt(int i) {
-                return orig.getInt(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public int getInt(int i) {
+                    return orig.getInt(i % origSize);
+                }
+            };
+        } else {
+            return RIntFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
     public static RDouble repInt(final RDouble orig, final int origSize, final int size) {
-        return new View.RDoubleView() {
+        RArray.Names names = orig.names();
 
-            @Override
-            public int size() {
-                return size;
-            }
+        if (names == null) {
+            return new View.RDoubleProxy<RDouble>(orig) {
 
-            @Override
-            public double getDouble(int i) {
-                return orig.getDouble(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public double getDouble(int i) {
+                    return orig.getDouble(i % origSize);
+                }
+
+            };
+        } else {
+            return RDoubleFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
     public static RComplex repInt(final RComplex orig, final int origSize, final int size) {
-        return new View.RComplexView() {
+        RArray.Names names = orig.names();
 
-            @Override
-            public int size() {
-                return size;
-            }
+        if (names == null) {
+            return new View.RComplexProxy<RComplex>(orig) {
 
-            @Override
-            public double getReal(int i) {
-                return orig.getReal(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public double getImag(int i) {
-                return orig.getImag(i % origSize);
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public double getReal(int i) {
+                    return orig.getReal(i % origSize);
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public double getImag(int i) {
+                    return orig.getImag(i % origSize);
+                }
+            };
+        } else {
+            return RComplexFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
     public static RString repInt(final RString orig, final int origSize, final int size) {
-        return new View.RStringView() {
+        RArray.Names names = orig.names();
 
-            @Override
-            public int size() {
-                return size;
-            }
+        if (names == null) {
+            return new View.RStringProxy<RString>(orig) {
 
-            @Override
-            public String getString(int i) {
-                return orig.getString(i % origSize);
-            }
+                @Override
+                public RArray.Names names() {
+                    return null;
+                }
 
-            @Override
-            public boolean isSharedReal() {
-                return orig.isShared();
-            }
+                @Override
+                public int size() {
+                    return size;
+                }
 
-            @Override
-            public void ref() {
-                orig.ref();
-            }
-        };
+                @Override
+                public String getString(int i) {
+                    return orig.getString(i % origSize);
+                }
+            };
+        } else {
+            return RStringFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
+        }
     }
 
-
+    // TODO: support non-scalar times argument
     public static RAny genericRepInt(ASTNode ast, RAny arg0, RAny arg1) {
 
         int times = -1;
@@ -214,9 +370,6 @@ public class Rep {
             RDouble da = (RDouble) arg1;
             checkScalar(da, ast);
             double d = da.getDouble(0);
-            if (d == 0) {
-                return Utils.createEmptyArray(arg0);
-            }
                 // FIXME: perhaps fitsRInt => isFinite ?
             if (!RDouble.RDoubleUtils.isFinite(d) || d < 0 || !RDouble.RDoubleUtils.fitsRInt(d)) {
                 throw RError.getInvalidTimes(ast);
@@ -226,9 +379,6 @@ public class Rep {
             RInt ia = (RInt) arg1;
             checkScalar(ia, ast);
             int i = ia.getInt(0);
-            if (i == 0) {
-                return Utils.createEmptyArray(arg0);
-            }
             if (i < 0 || i == RInt.NA) {
                 throw RError.getInvalidTimes(ast);
             }
@@ -241,10 +391,11 @@ public class Rep {
                 return arg0;
             }
             if (l == RLogical.FALSE) {
-                return Utils.createEmptyArray(arg0);
+                times = 0; // NOTE: we won't simply return an empty array because of names handling (if arg0 is named, the empty array should be too)
+            } else {
+                // l == NA
+                throw RError.getInvalidTimes(ast);
             }
-            // l == NA
-            throw RError.getInvalidTimes(ast);
         } else {
             Utils.nyi("unsupported times argument");
         }
@@ -278,7 +429,7 @@ public class Rep {
             int origSize = orig.size();
             return repInt(orig, origSize, origSize * times);
         }
-        Utils.nyi("unsupported base type for rep");
+        Utils.nyi("unsupported base type for rep"); // TODO: support list type
         return null;
     }
 

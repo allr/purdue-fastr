@@ -10,6 +10,10 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     final int[] content;
 
+    public int[] getContent() {
+        return content;
+    }
+
     public IntImpl(int[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new int[values.length];
@@ -85,14 +89,16 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         return this;
     }
 
+    private static final String EMPTY_STRING = RInt.TYPE_STRING + "(0)";
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     @Override
     public String pretty() {
         if (dimensions != null) {
             return matrixPretty();
         }
-
         if (content.length == 0) {
-            return RInt.TYPE_STRING + "(0)";
+            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
         }
         if (names() != null) {
             return namedPretty();

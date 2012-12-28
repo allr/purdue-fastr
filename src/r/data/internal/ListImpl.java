@@ -159,6 +159,9 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         return base + "," + Integer.toString(asize);
     }
 
+    private static final String EMPTY_STRING = RList.TYPE_STRING + "()";  // NOTE: no zero in parenthesis (R inconsistency)
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     public String pretty(StringBuilder indexPrefix) {
         if (dimensions != null) {
             return matrixPretty();
@@ -169,7 +172,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         }
 
         if (content.length == 0) {
-            return RList.TYPE_STRING + "()";
+            return (names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING;
         } else {
             StringBuilder str = new StringBuilder();
             for (int i = 0; i < content.length; i++) {

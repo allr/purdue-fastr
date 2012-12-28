@@ -10,6 +10,11 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     final int[] content;
 
+
+    public int[] getContent() {
+        return content;
+    }
+
     public LogicalImpl(int size) {
         content = new int[size];
     }
@@ -145,13 +150,16 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         return this;
     }
 
+    private static final String EMPTY_STRING = RLogical.TYPE_STRING + "(0)";
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     @Override
     public String pretty() {
         if (dimensions != null) {
             return matrixPretty();
         }
         if (content.length == 0) {
-            return RLogical.TYPE_STRING + "(0)";
+            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
         }
         if (names() != null) {
             return namedPretty();

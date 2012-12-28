@@ -13,6 +13,10 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         content = new byte[size];
     }
 
+    public byte[] getContent() {
+        return content;
+    }
+
     public RawImpl(byte[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new byte[values.length];
@@ -144,13 +148,16 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         return this;
     }
 
+    private static final String EMPTY_STRING = RRaw.TYPE_STRING + "(0)";
+    private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
+
     @Override
     public String pretty() {
         if (dimensions != null) {
             return matrixPretty();
         }
         if (content.length == 0) {
-            return RRaw.TYPE_STRING + "(0)";
+            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
         }
         if (names() != null) {
             return namedPretty();
