@@ -415,7 +415,22 @@ public class Apply {
             this.funPosition = funPosition;
         }
 
-        // TODO: support names
+        // FIXME: this will be slow (a second pass through the results array)
+        public static RArray.Names extractNames(RAny[] results, int size) {
+            RSymbol[] symbols = new RSymbol[size];
+            for (int i = 0; i < size; i++) {
+                RArray a = (RArray) results[i];
+                RArray.Names n = a.names();
+                if (n != null) {
+                    symbols[i] = n.sequence()[0];
+                } else {
+                    symbols[i] = RSymbol.EMPTY_SYMBOL;
+                }
+            }
+            return RArray.Names.create(symbols);
+        }
+
+        // TODO: support rownames, colnames (and names for a matrix result)
         public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
 
             boolean hasRaw = false;
@@ -427,6 +442,7 @@ public class Apply {
             boolean notAllScalarLists = false;
             boolean hasList = false;
             boolean hasMultipleSizes = false;
+            boolean hasNames = false;
 
             int elementSize = -1;
             RAny[] content;
@@ -492,6 +508,12 @@ public class Apply {
                     }
                 } else {
                     elementSize = vsize;
+                }
+                if (!hasNames) {
+                    RArray.Names names = ((RArray) v).names(); // FIXME: could elide this cast by hand-inlining into code above
+                    if (names != null) {
+                        hasNames = true;
+                    }
                 }
             }
             if (elementSize > 1 && !hasMultipleSizes) {
@@ -574,19 +596,34 @@ public class Apply {
 
             } else {
                 // result is a vector
-
+                if (hasMultipleSizes) {
+                    return RList.RListFactory.getFor(content); // no names for the outer list here
+                }
                 if (hasList) {
-                    if (!notAllScalarLists) {
-                        for (int i = 0; i < xsize; i++) {
-                            RList v = (RList) content[i];
-                            content[i] = v.getRAny(0); // shallow but no need to ref here
+                    if (!notAllScalarLists) { // all elements are scalar lists
+                        if (!hasNames) {
+                            for (int i = 0; i < xsize; i++) {
+                                RList v = (RList) content[i];
+                                content[i] = v.getRAny(0); // shallow but no need to ref here
+                            }
+                        } else {
+                            RSymbol[] symbols = new RSymbol[xsize];
+                            for (int i = 0; i < xsize; i++) {
+                                RList v = (RList) content[i];
+                                content[i] = v.getRAny(0); // shallow but no need to ref here
+                                RArray.Names n = v.names();
+                                if (n != null) {
+                                    symbols[i] = n.sequence()[0];
+                                } else {
+                                    symbols[i] = RSymbol.EMPTY_SYMBOL;
+                                }
+                            }
+                            return RList.RListFactory.getFor(content, null, RArray.Names.create(symbols));
                         }
                     }
                     return RList.RListFactory.getFor(content);
                 }
-                if (hasMultipleSizes) {
-                    return RList.RListFactory.getFor(content);
-                }
+
                 // this could be written using asXXX (but much slower)
                 if (hasString) {
                     String[] values = new String[xsize];
@@ -607,7 +644,7 @@ public class Apply {
                             values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RString.RStringFactory.getFor(values);
+                    return RString.RStringFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
                 if (hasComplex) {
                     double[] values = new double[2 * xsize];
@@ -627,7 +664,7 @@ public class Apply {
                             values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RComplex.RComplexFactory.getFor(values);
+                    return RComplex.RComplexFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
                 if (hasDouble) {
                     double[] values = new double[xsize];
@@ -643,7 +680,7 @@ public class Apply {
                             values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RDouble.RDoubleFactory.getFor(values);
+                    return RDouble.RDoubleFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
                 if (hasInt) {
                     int[] values = new int[xsize];
@@ -657,7 +694,7 @@ public class Apply {
                             values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RInt.RIntFactory.getFor(values);
+                    return RInt.RIntFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
                 if (hasLogical) {
                     int[] values = new int[xsize];
@@ -669,7 +706,7 @@ public class Apply {
                             values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RLogical.RLogicalFactory.getFor(values);
+                    return RLogical.RLogicalFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
                 if (hasRaw) {
                     byte[] values = new byte[xsize];
@@ -677,7 +714,7 @@ public class Apply {
                         RAny v = content[i];
                         values[i] = ((RRaw) v).getRaw(0);
                     }
-                    return RRaw.RRawFactory.getFor(values);
+                    return RRaw.RRawFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
                 }
             }
             return RList.EMPTY;
