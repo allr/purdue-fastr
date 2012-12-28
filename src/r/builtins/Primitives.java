@@ -136,7 +136,7 @@ public class Primitives {
         PrimitiveEntry pe = get(name);
         if (pe != null && fun != null && fun.isInWriteSet(name)) {
             Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
-            if (false) Utils.nyi(); // TODO case when a primitive is shadowed by a local symbol
+            if (false) Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
                          // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
                          // FIXME: also, what about reflections?
         }

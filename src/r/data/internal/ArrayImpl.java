@@ -161,4 +161,14 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         }
         return headers.append("\n").append(values).toString();
     }
+
+    public RAny boxedNamedGet(int i) {
+        RAny res = boxedGet(i);
+        Names names = names();
+        if (names == null || !(res instanceof RArray)) { // FIXME: isn't res always an instance of RArray ?
+            return res;
+        }
+        RSymbol s = names.sequence()[i];
+        return ((RArray) res).setNames(Names.create(new RSymbol[] {s}));
+     }
 }

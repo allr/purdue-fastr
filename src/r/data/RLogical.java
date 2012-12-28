@@ -13,11 +13,13 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
     int FALSE = 0;
     int NA = Integer.MIN_VALUE;
 
-    ScalarLogicalImpl BOXED_TRUE = RLogicalFactory.getScalar(TRUE);
-    ScalarLogicalImpl BOXED_FALSE = RLogicalFactory.getScalar(FALSE);
-    ScalarLogicalImpl BOXED_NA = RLogicalFactory.getScalar(NA);
+    ScalarLogicalImpl BOXED_TRUE = (ScalarLogicalImpl) RArrayUtils.markShared(RLogicalFactory.getScalar(TRUE));
+    ScalarLogicalImpl BOXED_FALSE = (ScalarLogicalImpl) RArrayUtils.markShared(RLogicalFactory.getScalar(FALSE));
+    ScalarLogicalImpl BOXED_NA = (ScalarLogicalImpl) RArrayUtils.markShared(RLogicalFactory.getScalar(NA));
 
-    LogicalImpl EMPTY = (LogicalImpl) RLogicalFactory.getUninitializedArray(0);
+    LogicalImpl EMPTY = (LogicalImpl) RArrayUtils.markShared(RLogicalFactory.getUninitializedArray(0));
+    LogicalImpl EMPTY_NAMED_NA = (LogicalImpl) RArrayUtils.markShared(RLogicalFactory.getFor(new int[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    LogicalImpl NA_NAMED_NA = (LogicalImpl) RArrayUtils.markShared(RLogicalFactory.getFor(new int[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     int getLogical(int il);
     RLogical set(int i, int val);
@@ -123,8 +125,27 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return new LogicalImpl(values, dimensions, names, false);
         }
+        public static RLogical getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RLogical getNA(boolean named) {
+            return named ? NA_NAMED_NA : BOXED_NA;
+        }
         public static RLogical exclude(int excludeIndex, RLogical orig) {
-            return new RLogicalExclusion(excludeIndex, orig);
+            Names names = orig.names();
+            if (names == null) {
+                return new RLogicalExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            int[] content = new int[nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[i] = orig.getLogical(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[i] = orig.getLogical(i + 1);
+            }
+            return RLogicalFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RLogical subset(RLogical value, RInt index) {
             return new RLogicalSubset(value, index);

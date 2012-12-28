@@ -67,6 +67,12 @@ public class AttributesImpl extends BaseObject implements RAttributes {
     }
 
     @Override
+    public RAny boxedNamedGet(int i) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.nyi();
         return false;

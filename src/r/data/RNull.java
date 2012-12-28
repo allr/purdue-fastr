@@ -5,6 +5,7 @@ import r.Convert.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// FIXME: why should RNull implement RAttributes? (note that NULL cannot have attributes)
 public final class RNull implements RAny, RAttributes {
     String TYPE_STRING = "NULL";
 
@@ -30,6 +31,11 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public RAny boxedGet(int i) {
+        return this;
+    }
+
+    @Override
+    public RAny boxedNamedGet(int i) {
         return this;
     }
 

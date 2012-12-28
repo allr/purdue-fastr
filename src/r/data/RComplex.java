@@ -9,10 +9,13 @@ import r.data.internal.*;
 public interface RComplex extends RArray {
     String TYPE_STRING = "complex";
 
-    ComplexImpl EMPTY = (ComplexImpl) RComplexFactory.getUninitializedArray(0);
-    ScalarComplexImpl BOXED_NA = RComplexFactory.getScalar(RDouble.NA, RDouble.NA);
+    ComplexImpl EMPTY = (ComplexImpl) RArrayUtils.markShared(RComplexFactory.getUninitializedArray(0));
+    ScalarComplexImpl BOXED_NA = (ScalarComplexImpl) RArrayUtils.markShared(RComplexFactory.getScalar(RDouble.NA, RDouble.NA));
     Complex COMPLEX_BOXED_NA = new Complex(RDouble.NA, RDouble.NA);
-    ScalarComplexImpl BOXED_ZERO = RComplexFactory.getScalar(0, 0);
+    ScalarComplexImpl BOXED_ZERO = (ScalarComplexImpl) RArrayUtils.markShared(RComplexFactory.getScalar(0, 0));
+
+    ComplexImpl EMPTY_NAMED_NA = (ComplexImpl) RArrayUtils.markShared(RComplexFactory.getFor(new double[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    ComplexImpl NA_NAMED_NA = (ComplexImpl) RArrayUtils.markShared(RComplexFactory.getFor(new double[] {RDouble.NA, RDouble.NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     RComplex set(int i, double real, double imag);
     double getReal(int i);
@@ -157,8 +160,29 @@ public interface RComplex extends RArray {
             }
             return new ComplexImpl(values, dimensions, names, false);
         }
+        public static RComplex getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RComplex getNA(boolean named) {
+            return named ? NA_NAMED_NA : BOXED_NA;
+        }
         public static RComplex exclude(int excludeIndex, RComplex orig) {
-            return new RComplexExclusion(excludeIndex, orig);
+            Names names = orig.names();
+            if (names == null) {
+                return new RComplexExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            double[] content = new double[2 * nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[2 * i] = orig.getReal(i);
+                content[2 * i + 1] = orig.getImag(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[2 * i] = orig.getReal(i + 1);
+                content[2 * i + 1] = orig.getImag(i + 1);
+            }
+            return RComplexFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RComplex subset(RComplex value, RInt index) {
             return new RComplexSubset(value, index);

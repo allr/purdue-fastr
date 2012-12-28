@@ -6,8 +6,13 @@ import r.data.internal.*;
 public interface RList extends RArray {
 
     String TYPE_STRING = "list";
-    ListImpl EMPTY = RList.RListFactory.getUninitializedArray(0);
+
     RNull NULL = RNull.getNull();
+
+    ListImpl EMPTY = (ListImpl) RArrayUtils.markShared(RList.RListFactory.getUninitializedArray(0));
+    ListImpl EMPTY_NAMED_NA = (ListImpl) RArrayUtils.markShared(RListFactory.getFor(new RAny[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    ListImpl BOXED_NULL = (ListImpl) RArrayUtils.markShared(RList.RListFactory.getArray(NULL));
+    ListImpl NULL_NAMED_NA = (ListImpl) RArrayUtils.markShared(RListFactory.getFor(new RAny[] {NULL}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     RAny getRAny(int i);
     RAny getRAnyRef(int i);
@@ -47,6 +52,12 @@ public interface RList extends RArray {
         }
         public static ListImpl getFor(RAny[] values, int[] dimensions, Names names) {  // re-uses values!
             return new ListImpl(values, dimensions, names, false);
+        }
+        public static ListImpl getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static ListImpl getNull(boolean named) {
+            return named ? NULL_NAMED_NA : BOXED_NULL;
         }
         public static RList exclude(int excludeIndex, RList orig) {
             return new RListExclusion(excludeIndex, orig);

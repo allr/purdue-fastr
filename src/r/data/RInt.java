@@ -12,11 +12,13 @@ public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
 
-    ScalarIntImpl BOXED_NA = RIntFactory.getScalar(NA);
-    ScalarIntImpl BOXED_ZERO = RIntFactory.getScalar(0);
-    ScalarIntImpl BOXED_ONE = RIntFactory.getScalar(1);
+    ScalarIntImpl BOXED_NA = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(NA));
+    ScalarIntImpl BOXED_ZERO = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(0));
+    ScalarIntImpl BOXED_ONE = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(1));
 
-    IntImpl EMPTY = (IntImpl) RIntFactory.getUninitializedArray(0);
+    IntImpl EMPTY = (IntImpl) RArrayUtils.markShared(RIntFactory.getUninitializedArray(0));
+    IntImpl EMPTY_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    IntImpl NA_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     int getInt(int i);
     RInt set(int i, int val);
@@ -106,8 +108,27 @@ public interface RInt extends RNumber {
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);
         }
+        public static RInt getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RInt getNA(boolean named) {
+            return named ? NA_NAMED_NA : BOXED_NA;
+        }
         public static RInt exclude(int excludeIndex, RInt orig) {
-            return new RIntExclusion(excludeIndex, orig);
+            Names names = orig.names();
+            if (names == null) {
+                return new RIntExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            int[] content = new int[nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[i] = orig.getInt(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[i] = orig.getInt(i + 1);
+            }
+            return RIntFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RInt subset(RInt value, RInt index) {
             return new RIntSubset(value, index);

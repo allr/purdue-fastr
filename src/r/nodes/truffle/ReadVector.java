@@ -146,6 +146,9 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray vrarr = (RArray) vector;
+                if (vrarr.names() != null) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                }
                 if (!(index instanceof RInt)) {
                     throw new UnexpectedResultException(Failure.NOT_INT_INDEX);
                 }
@@ -222,7 +225,7 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray vrarr = (RArray) base;
-                if (index > vrarr.size()) {
+                if (index > vrarr.size() || vrarr.names() != null) {
                     throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 }
                 if (subset || !(vrarr instanceof RList)) {
@@ -275,8 +278,8 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray vrarr = (RArray) vector;
-                if (i <= 0 || i > vrarr.size()) {
-                    throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
                 }
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
@@ -310,7 +313,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // any case when the index has only one argument (a scalar)
-    //   rewrite itself when index is not a single scalar
+    //   rewrites itself when index is not a single scalar
     public static class GenericScalarSelection extends ReadVector {
         public GenericScalarSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
@@ -339,10 +342,13 @@ public abstract class ReadVector extends BaseR {
 
             if (i > 0) { // NOTE: RInt.NA < 0
                 if (i <= size) {
-                    if (subset || !(base instanceof RList)) {
-                        return base.boxedGet(i - 1);
+
+                    if (subset) {
+                        return base.boxedNamedGet(i - 1);
+                    } else if (base instanceof RList) {
+                        return ((RList) base).getRAny(i - 1); // list subscript does not preserve names
                     } else {
-                        return ((RList) base).getRAny(i - 1);
+                        return base.boxedGet(i - 1); // non-list subscript does not preserve names, either
                     }
                 }
             }
@@ -380,10 +386,10 @@ public abstract class ReadVector extends BaseR {
                     return RDouble.RDoubleFactory.exclude(-i - 1, (RDouble) base);
                 }
                 if (i == 0) {
-                    return RDouble.EMPTY;
+                    return RDouble.RDoubleFactory.getEmpty(base.names() != null);
                 }
                 // i > size
-                return RDouble.BOXED_NA;
+                return RDouble.RDoubleFactory.getNA(base.names() != null);
             }
             if (base instanceof RInt) {
                 if (i == RInt.NA) {
@@ -396,10 +402,10 @@ public abstract class ReadVector extends BaseR {
                     return RInt.RIntFactory.exclude(-i - 1, (RInt) base);
                 }
                 if (i == 0) {
-                    return RInt.EMPTY;
+                    return RInt.RIntFactory.getEmpty(base.names() != null);
                 }
                 // i > size
-                return RInt.BOXED_NA;
+                return RInt.RIntFactory.getNA(base.names() != null);
             }
             if (base instanceof RLogical) {
                 if (i == RInt.NA) {
@@ -412,10 +418,10 @@ public abstract class ReadVector extends BaseR {
                     return RLogical.RLogicalFactory.exclude(-i - 1, (RLogical) base);
                 }
                 if (i == 0) {
-                    return RLogical.EMPTY;
+                    return RLogical.RLogicalFactory.getEmpty(base.names() != null);
                 }
                 // i > size
-                return RLogical.BOXED_NA;
+                return RLogical.RLogicalFactory.getNA(base.names() != null);
             }
             if (base instanceof RList) {
                 if (i == RInt.NA) {
@@ -428,10 +434,10 @@ public abstract class ReadVector extends BaseR {
                     return RList.RListFactory.exclude(-i - 1, (RList) base);
                 }
                 if (i == 0) {
-                    return RList.EMPTY;
+                    return RList.RListFactory.getEmpty(base.names() != null);
                 }
                 // i > size
-                return RList.NULL;
+                return RList.RListFactory.getNull(base.names() != null);
             }
             if (base instanceof RString) {
                 if (i == RInt.NA) {
@@ -444,10 +450,39 @@ public abstract class ReadVector extends BaseR {
                     return RString.RStringFactory.exclude(-i - 1, (RString) base);
                 }
                 if (i == 0) {
-                    return RString.EMPTY;
+                    return RString.RStringFactory.getEmpty(base.names() != null);
                 }
                 // i > size
-                return RString.BOXED_NA;
+                return RString.RStringFactory.getNA(base.names() != null);
+            }
+            if (base instanceof RComplex) {
+                if (i == RInt.NA) {
+                    return RComplex.RComplexFactory.getNAArray(size);
+                }
+                if (i < 0) {
+                    if (-i > size) {
+                        return base;
+                    }
+                    return RComplex.RComplexFactory.exclude(-i - 1, (RComplex) base);
+                }
+                if (i == 0) {
+                    return RComplex.RComplexFactory.getEmpty(base.names() != null);
+                }
+                // i > size
+                return RComplex.RComplexFactory.getNA(base.names() != null);
+            }
+            if (base instanceof RRaw) {
+                if (i < 0) {
+                    if (-i > size) {
+                        return base;
+                    }
+                    return RRaw.RRawFactory.exclude(-i - 1, (RRaw) base);
+                }
+                if (i == 0) {
+                    return RRaw.RRawFactory.getEmpty(base.names() != null);
+                }
+                // i > size
+                return RRaw.RRawFactory.getZero(base.names() != null);
             }
             Utils.nyi("unsupported vector type for subscript");
             return null;

@@ -19,6 +19,30 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(1,2);x[0-3] }", "1.0, 2.0");
         assertEval("{ x<-10; x[0-1] }", "numeric(0)");
         assertEval("{ x<-10; x[NA] }", "NA");
+
+        assertEval("{ x <- c(a=1, b=2, c=3) ; x[2] }", "  b\n2.0");
+        assertEval("{ x <- c(a=1, b=2, c=3) ; x[[2]] }", "2.0");
+        assertEval("{ x <- c(a=\"A\", b=\"B\", c=\"C\") ; x[-2] }", "  a   c\n\"A\" \"C\"");
+        assertEval("{ x <- c(a=1+2i, b=2+3i, c=3) ; x[-2] }", "       a        c\n1.0+2.0i 3.0+0.0i");
+        assertEval("{ x <- c(a=1, b=2, c=3) ; x[-2] }", "  a   c\n1.0 3.0");
+        assertEval("{ x <- c(a=1L, b=2L, c=3L) ; x[-2] }", " a  c\n1L 3L");
+        assertEval("{ x <- c(a=TRUE, b=FALSE, c=NA) ; x[-2] }", "   a  c\nTRUE NA");
+        assertEval("{ x <- c(a=as.raw(10), b=as.raw(11), c=as.raw(12)) ; x[-2] }", " a  c\n0a 0c");
+
+        assertEval("{ x <- c(a=1L, b=2L, c=3L) ; x[0] }", "named integer(0)");
+        assertEval("{ x <- c(a=1L, b=2L, c=3L) ; x[10] }", "<NA>\n  NA");
+        assertEval("{ x <- c(a=TRUE, b=FALSE, c=NA) ; x[0] }", "named logical(0)");
+        assertEval("{ x <- c(TRUE, FALSE, NA) ; x[0] }", "logical(0)");
+        assertEval("{ x <- list(1L, 2L, 3L) ; x[10] }", "[[1]]\nNULL");
+        assertEval("{ x <- list(a=1L, b=2L, c=3L) ; x[0] }", "named list()");
+        assertEval("{ x <- c(a=\"A\", b=\"B\", c=\"C\") ; x[10] }", "<NA>\n  NA");
+        assertEval("{ x <- c(a=\"A\", b=\"B\", c=\"C\") ; x[0] }", "named character(0)");
+        assertEval("{ x <- c(a=1+1i, b=2+2i, c=3+3i) ; x[10] }", "<NA>\n  NA");
+        assertEval("{ x <- c(a=1+1i, b=2+2i, c=3+3i) ; x[0] }", "named complex(0)");
+        assertEval("{ x <- c(a=as.raw(10), b=as.raw(11), c=as.raw(12)) ; x[10] }", "<NA>\n  00");
+        assertEval("{ x <- c(a=as.raw(10), b=as.raw(11), c=as.raw(12)) ; x[0] }", "named raw(0)");
+        assertEval("{ x <- c(a=1, b=2, c=3) ; x[10] }", "<NA>\n  NA");
+        assertEval("{ x <- c(a=1, b=2, c=3) ; x[0] }", "named numeric(0)");
     }
 
     @Test

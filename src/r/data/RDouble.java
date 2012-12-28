@@ -14,11 +14,14 @@ public interface RDouble extends RNumber {
     double EPSILON = Math.pow(2.0, -52.0);
     double NEG_INF = Double.NEGATIVE_INFINITY;
 
-    DoubleImpl EMPTY = (DoubleImpl) RDoubleFactory.getUninitializedArray(0);
-    ScalarDoubleImpl BOXED_ZERO = RDoubleFactory.getScalar(0);
-    ScalarDoubleImpl BOXED_NA = RDoubleFactory.getScalar(NA);
-    ScalarDoubleImpl BOXED_NEG_INF = RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY);
-    ScalarDoubleImpl BOXED_POS_INF = RDoubleFactory.getScalar(Double.POSITIVE_INFINITY);
+    DoubleImpl EMPTY = (DoubleImpl) RArrayUtils.markShared(RDoubleFactory.getUninitializedArray(0));
+    ScalarDoubleImpl BOXED_ZERO = (ScalarDoubleImpl) RArrayUtils.markShared(RDoubleFactory.getScalar(0));
+    ScalarDoubleImpl BOXED_NA = (ScalarDoubleImpl) RArrayUtils.markShared(RDoubleFactory.getScalar(NA));
+    ScalarDoubleImpl BOXED_NEG_INF = (ScalarDoubleImpl) RArrayUtils.markShared(RDoubleFactory.getScalar(Double.NEGATIVE_INFINITY));
+    ScalarDoubleImpl BOXED_POS_INF = (ScalarDoubleImpl) RArrayUtils.markShared(RDoubleFactory.getScalar(Double.POSITIVE_INFINITY));
+
+    DoubleImpl EMPTY_NAMED_NA = (DoubleImpl) RArrayUtils.markShared(RDoubleFactory.getFor(new double[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    DoubleImpl NA_NAMED_NA = (DoubleImpl) RArrayUtils.markShared(RDoubleFactory.getFor(new double[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     RDouble set(int i, double val);
     double getDouble(int i);
@@ -127,8 +130,27 @@ public interface RDouble extends RNumber {
             }
             return new DoubleImpl(values, dimensions, names, false);
         }
+        public static RDouble getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RDouble getNA(boolean named) {
+            return named ? NA_NAMED_NA : BOXED_NA;
+        }
         public static RDouble exclude(int excludeIndex, RDouble orig) {
-            return new RDoubleExclusion(excludeIndex, orig);
+            Names names = orig.names();
+            if (names == null) {
+                return new RDoubleExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            double[] content = new double[nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[i] = orig.getDouble(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[i] = orig.getDouble(i + 1);
+            }
+            return RDoubleFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RDouble subset(RDouble value, RInt index) {
             return new RDoubleSubset(value, index);

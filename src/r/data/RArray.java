@@ -17,6 +17,7 @@ public interface RArray extends RAny {
     Object get(int i);
     Object getRef(int i);
     RAny boxedGet(int i);
+    RAny boxedNamedGet(int i);
     RArray set(int i, Object val);
     RArray setDimensions(int[] dimensions);
     RArray setNames(Names names);
@@ -29,6 +30,14 @@ public interface RArray extends RAny {
     RArray subset(RString names);
 
     RArray materialize();
+
+    public static class RArrayUtils {
+        public static RArray markShared(RArray a) {
+            a.ref();
+            a.ref();
+            return a;
+        }
+    }
 
     public abstract static class Names {
         RSymbol[] names;
@@ -49,6 +58,17 @@ public interface RArray extends RAny {
             } else {
                 return new SimpleNames(names);
             }
+        }
+
+        public Names exclude(int i) {
+            int size = names.length;
+            int nsize = size - 1;
+            RSymbol[] newNames = new RSymbol[nsize];
+            System.arraycopy(names, 0, newNames, 0, i);
+            if (i < nsize) {
+                System.arraycopy(names, i + 1, newNames, i, nsize - i);
+            }
+            return create(newNames);
         }
 
         public String[] asStringArray() {

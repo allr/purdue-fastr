@@ -10,7 +10,11 @@ public interface RRaw extends RArray {
     String TYPE_STRING = "raw";
     byte ZERO = 0;
 
-    RawImpl EMPTY = RRawFactory.getUninitializedArray(0);
+    RawImpl EMPTY = (RawImpl) RArrayUtils.markShared(RRawFactory.getUninitializedArray(0));
+    RawImpl BOXED_ZERO = (RawImpl) RArrayUtils.markShared(RRawFactory.getScalar(ZERO));
+
+    RawImpl EMPTY_NAMED_NA = (RawImpl) RArrayUtils.markShared(RRawFactory.getFor(new byte[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    RawImpl ZERO_NAMED_NA = (RawImpl) RArrayUtils.markShared(RRawFactory.getFor(new byte[] {ZERO}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     byte getRaw(int il);
     RRaw set(int i, byte val);
@@ -46,6 +50,28 @@ public interface RRaw extends RArray {
         }
         public static RawImpl getFor(byte[] values, int[] dimensions, Names names) {  // re-uses values!
             return new RawImpl(values, dimensions, names, false);
+        }
+        public static RRaw getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RRaw getZero(boolean named) {
+            return named ? ZERO_NAMED_NA : BOXED_ZERO;
+        }
+        public static RRaw exclude(int excludeIndex, RRaw orig) {
+            Names names = orig.names();
+            if (names == null) {
+                return new RRawExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            byte[] content = new byte[nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[i] = orig.getRaw(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[i] = orig.getRaw(i + 1);
+            }
+            return RRawFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RRaw subset(RRaw value, RInt index) {
             return new RRawSubset(value, index);
@@ -289,6 +315,46 @@ public interface RRaw extends RArray {
         public void ref() {
             value.ref();
             index.ref();
+        }
+    }
+
+    public static class RRawExclusion extends View.RRawView implements RRaw {
+
+        final RRaw orig;
+        final int excludeIndex;
+        final int size;
+
+        public RRawExclusion(int excludeIndex, RRaw orig) {
+            this.orig = orig;
+            this.excludeIndex = excludeIndex;
+            this.size = orig.size() - 1;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public byte getRaw(int i) {
+            Utils.check(i < size, "bounds check");
+            Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getRaw(i);
+            } else {
+                return orig.getRaw(i + 1);
+            }
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
         }
     }
 }

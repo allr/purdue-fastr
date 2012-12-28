@@ -9,9 +9,11 @@ public interface RString extends RArray {
 
     String TYPE_STRING = "character";
 
-    StringImpl EMPTY = (StringImpl) RStringFactory.getUninitializedArray(0);
+    StringImpl EMPTY = (StringImpl) RArrayUtils.markShared(RStringFactory.getUninitializedArray(0));
     String NA = null;
-    ScalarStringImpl BOXED_NA = RStringFactory.getScalar(NA);
+    ScalarStringImpl BOXED_NA = (ScalarStringImpl) RArrayUtils.markShared(RStringFactory.getScalar(NA));
+    StringImpl EMPTY_NAMED_NA = (StringImpl) RArrayUtils.markShared(RStringFactory.getFor(new String[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    StringImpl NA_NAMED_NA = (StringImpl) RArrayUtils.markShared(RStringFactory.getFor(new String[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
     String getString(int i);
     RString set(int i, String val);
@@ -141,8 +143,27 @@ public interface RString extends RArray {
             }
             return new StringImpl(values, dimensions, names, false);
         }
+        public static RString getEmpty(boolean named) {
+            return named ? EMPTY_NAMED_NA : EMPTY;
+        }
+        public static RString getNA(boolean named) {
+            return named ? NA_NAMED_NA : BOXED_NA;
+        }
         public static RString exclude(int excludeIndex, RString orig) {
-            return new RStringExclusion(excludeIndex, orig);
+            Names names = orig.names();
+            if (names == null) {
+                return new RStringExclusion(excludeIndex, orig);
+            }
+            int size = orig.size();
+            int nsize = size - 1;
+            String[] content = new String[nsize];
+            for (int i = 0; i < excludeIndex; i++) {
+                content[i] = orig.getString(i);
+            }
+            for (int i = excludeIndex; i < nsize; i++) {
+                content[i] = orig.getString(i + 1);
+            }
+            return RStringFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RString subset(RString value, RInt index) {
             return new RStringSubset(value, index);
