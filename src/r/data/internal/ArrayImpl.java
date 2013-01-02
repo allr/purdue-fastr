@@ -162,7 +162,7 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return headers.append("\n").append(values).toString();
     }
 
-    public RAny boxedNamedGet(int i) {
+    public RAny boxedNamedGet(int i) { // FIXME: this includes unnecessary allocation (in boxedGet) later re-done in setNames
         RAny res = boxedGet(i);
         Names names = names();
         if (names == null || !(res instanceof RArray)) { // FIXME: isn't res always an instance of RArray ?

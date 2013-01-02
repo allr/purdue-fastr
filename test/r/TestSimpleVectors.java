@@ -43,6 +43,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- c(a=as.raw(10), b=as.raw(11), c=as.raw(12)) ; x[0] }", "named raw(0)");
         assertEval("{ x <- c(a=1, b=2, c=3) ; x[10] }", "<NA>\n  NA");
         assertEval("{ x <- c(a=1, b=2, c=3) ; x[0] }", "named numeric(0)");
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[\"b\"] }", "  b\n2.0");
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[\"d\"] }", "  d\n4.0");
     }
 
     @Test
@@ -75,6 +77,13 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(1,2,3,4) ; names(x) <- c(\"a\",\"b\",\"c\",\"d\") ; x[c(-2,-4,0)] }", "  a   c\n1.0 3.0");
         assertEval("{ x<-c(1,2) ; names(x) <- c(\"a\",\"b\") ; x[c(FALSE,TRUE,NA,FALSE)] }", "  b <NA>\n2.0   NA");
         assertEval("{ x<-c(1,2) ; names(x) <- c(\"a\",\"b\") ; x[c(FALSE,TRUE)] }", "  b\n2.0");
+
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[character()] }", "named numeric(0)");
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[c(\"b\",\"b\",\"d\",\"a\",\"a\")] }", "  b   b   d   a   a\n2.0 2.0 4.0 1.0 1.0");
+        assertEval("{ x <- c(a=as.raw(10),b=as.raw(11),c=as.raw(12),d=as.raw(13)) ; f <- function(s) { x[s] } ; f(TRUE) ; f(1L) ; f(as.character(NA)) }", "<NA>\n  00");
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; f <- function(s) { x[s] } ; f(TRUE) ; f(1L) ; f(\"b\") }", "  b\n2.0");
+        assertEval("{ x <- c(a=as.raw(10),b=as.raw(11),c=as.raw(12),d=as.raw(13)) ; f <- function(s) { x[c(s,s)] } ; f(TRUE) ; f(1L) ; f(as.character(NA)) }", "<NA> <NA>\n  00   00");
+        assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; f <- function(s) { x[c(s,s)] } ; f(TRUE) ; f(1L) ; f(\"b\") }", "  b   b\n2.0 2.0");
     }
 
     @Test

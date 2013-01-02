@@ -39,6 +39,9 @@ public interface RRaw extends RArray {
         public static RawImpl getUninitializedArray(int size, int[] dimensions) {
             return new RawImpl(new byte[size], dimensions, null, false);
         }
+        public static RawImpl getZeroArray(int size) {
+            return getUninitializedArray(size);
+        }
         public static RawImpl getMatrixFor(byte[] values, int m, int n) {
             return new RawImpl(values, new int[] {m, n}, null, false);
         }

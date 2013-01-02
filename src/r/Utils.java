@@ -78,6 +78,32 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createNAArray(RAny type, int size) {
+        if (type instanceof RInt) {
+            return RInt.RIntFactory.getNAArray(size);
+        }
+        if (type instanceof RDouble) {
+            return RDouble.RDoubleFactory.getNAArray(size);
+        }
+        if (type instanceof RLogical) {
+            return RLogical.RLogicalFactory.getNAArray(size);
+        }
+        if (type instanceof RList) {
+            return RList.RListFactory.getNullArray(size);
+        }
+        if (type instanceof RString) {
+            return RString.RStringFactory.getNAArray(size);
+        }
+        if (type instanceof RRaw) {
+            return RRaw.RRawFactory.getZeroArray(size);
+        }
+        if (type instanceof RComplex) {
+            return RComplex.RComplexFactory.getNAArray(size);
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
     public static RArray createArray(RAny type, int size, int[] dimensions) {
         if (type instanceof RInt) {
             return RInt.RIntFactory.getUninitializedArray(size, dimensions);
@@ -159,6 +185,40 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createNamedEmptyArray(RAny type) {
+        if (type instanceof RInt) {
+            return RInt.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RDouble) {
+            return RDouble.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RLogical) {
+            return RLogical.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RList) {
+            return RList.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RString) {
+            return RString.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RRaw) {
+            return RRaw.EMPTY_NAMED_NA;
+        }
+        if (type instanceof RComplex) {
+            return RComplex.EMPTY_NAMED_NA;
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
+    public static RArray createEmptyArray(RAny type, boolean named) {
+        if (!named) {
+            return createEmptyArray(type);
+        } else {
+            return createNamedEmptyArray(type);
+        }
+    }
+
     public static RArray getBoxedNA(RArray arr) {
         if (arr instanceof RInt) {
             return RInt.BOXED_NA;
@@ -172,7 +232,30 @@ public final class Utils {
             return RString.BOXED_NA;
         } else if (arr instanceof RComplex) {
             return RComplex.BOXED_NA;
-        }else {
+        } else if (arr instanceof RRaw) {
+            return RRaw.BOXED_ZERO;
+        } else {
+            Utils.nyi("unsupported array type");
+            return null;
+        }
+    }
+
+    public static RArray getNamedNA(RArray arr) {
+        if (arr instanceof RInt) {
+            return RInt.NA_NAMED_NA;
+        } else if (arr instanceof RDouble) {
+            return RDouble.NA_NAMED_NA;
+        } else if (arr instanceof RLogical) {
+            return RLogical.NA_NAMED_NA;
+        } else if (arr instanceof RList) {
+            return RList.NULL_NAMED_NA;
+        } else if (arr instanceof RString) {
+            return RString.NA_NAMED_NA;
+        } else if (arr instanceof RComplex) {
+            return RComplex.NA_NAMED_NA;
+        } else if (arr instanceof RRaw) {
+            return RRaw.ZERO_NAMED_NA;
+        } else {
             Utils.nyi("unsupported array type");
             return null;
         }
@@ -191,6 +274,8 @@ public final class Utils {
             arr.set(index, RString.NA);
         } else if (arr instanceof RComplex) {
             arr.set(index, RComplex.COMPLEX_BOXED_NA);
+        } else if (arr instanceof RRaw) {
+            arr.set(index,  RRaw.ZERO);
         } else {
             Utils.nyi("unsupported array type");
         }

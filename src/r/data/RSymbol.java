@@ -33,6 +33,15 @@ public final class RSymbol extends BaseObject implements RAny {
         return symbols;
     }
 
+    public static RSymbol[] getSymbols(RString names) {
+        int size = names.size();
+        RSymbol[] symbols = new RSymbol[size];
+        for (int i = 0; i < size; i++) {
+            symbols[i] = RSymbol.getSymbol(names.getString(i));
+        }
+        return symbols;
+    }
+
     @Override
     public String pretty() {
         // TODO put `` when needed
