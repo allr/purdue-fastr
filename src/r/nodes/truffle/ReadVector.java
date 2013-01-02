@@ -575,6 +575,12 @@ public abstract class ReadVector extends BaseR {
                 if (abase instanceof RString) {
                     return new RStringView((RString) abase, sindex.from(), sindex.to(), sindex.step());
                 }
+                if (abase instanceof RRaw) {
+                    return new RRawView((RRaw) abase, sindex.from(), sindex.to(), sindex.step());
+                }
+                if (abase instanceof RComplex) {
+                    return new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step());
+                }
                 Utils.nyi("unsupported base vector type");
                 return null;
             } catch (UnexpectedResultException e) {
@@ -598,26 +604,27 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
-        static class RIntView extends View.RIntView implements RInt {
-            final RInt base;
+        public static int sequenceSize(int from, int to, int step) {
+            int absstep = (step > 0) ? step : -step;
+            if (from <= to) {
+                return (to - from + 1) / absstep;
+            } else {
+                return (from - to + 1) / absstep;
+            }
+        }
+
+        static class RRawView extends View.RRawProxy<RRaw> implements RRaw {
             final int from;
             final int to;
             final int step;
-
             final int size;
 
-            public RIntView(RInt base, int from, int to, int step) {
-                this.base = base;
+            public RRawView(RRaw base, int from, int to, int step) {
+                super(base);
                 this.from = from;
                 this.to = to;
                 this.step = step;
-
-                int absstep = (step > 0) ? step : -step;
-                if (from <= to) {
-                    size = (to - from + 1) / absstep;
-                } else {
-                    size = (from - to + 1) / absstep;
-                }
+                this.size = sequenceSize(from, to, step);
             }
 
             @Override
@@ -626,88 +633,30 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public int getInt(int i) {
+            public byte getRaw(int i) {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
-                return base.getInt(from + i * step - 1);
+                return orig.getRaw(from + i * step - 1);
             }
 
             @Override
-            public boolean isSharedReal() {
-                return base.isShared();
-            }
-
-            @Override
-            public void ref() {
-                base.ref();
+            public int[] dimensions() { // drop dimensions
+                return null;
             }
         }
 
-        static class RDoubleView extends View.RDoubleView implements RDouble {
-            final RDouble base;
+        static class RLogicalView extends View.RLogicalProxy<RLogical> implements RLogical {
             final int from;
             final int to;
             final int step;
-
-            final int size;
-
-            public RDoubleView(RDouble base, int from, int to, int step) {
-                this.base = base;
-                this.from = from;
-                this.to = to;
-                this.step = step;
-
-                int absstep = (step > 0) ? step : -step;
-                if (from <= to) {
-                    size = (to - from + 1) / absstep;
-                } else {
-                    size = (from - to + 1) / absstep;
-                }
-            }
-
-            @Override
-            public int size() {
-                return size;
-            }
-
-            @Override
-            public double getDouble(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
-                return base.getDouble(from + i * step - 1);
-            }
-
-            @Override
-            public boolean isSharedReal() {
-                return base.isShared();
-            }
-
-            @Override
-            public void ref() {
-                base.ref();
-            }
-        }
-
-        static class RLogicalView extends View.RLogicalView implements RLogical {
-            final RLogical base;
-            final int from;
-            final int to;
-            final int step;
-
             final int size;
 
             public RLogicalView(RLogical base, int from, int to, int step) {
-                this.base = base;
+                super(base);
                 this.from = from;
                 this.to = to;
                 this.step = step;
-
-                int absstep = (step > 0) ? step : -step;
-                if (from <= to) {
-                    size = (to - from + 1) / absstep;
-                } else {
-                    size = (from - to + 1) / absstep;
-                }
+                this.size = sequenceSize(from, to, step);
             }
 
             @Override
@@ -719,40 +668,27 @@ public abstract class ReadVector extends BaseR {
             public int getLogical(int i) {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
-                return base.getLogical(from + i * step - 1);
+                return orig.getLogical(from + i * step - 1);
             }
 
             @Override
-            public boolean isSharedReal() {
-                return base.isShared();
-            }
-
-            @Override
-            public void ref() {
-                base.ref();
+            public int[] dimensions() { // drop dimensions
+                return null;
             }
         }
 
-        static class RListView extends View.RListView implements RList {
-            final RList base;
+        static class RIntView extends View.RIntProxy<RInt> implements RInt {
             final int from;
             final int to;
             final int step;
-
             final int size;
 
-            public RListView(RList base, int from, int to, int step) {
-                this.base = base;
+            public RIntView(RInt base, int from, int to, int step) {
+                super(base);
                 this.from = from;
                 this.to = to;
                 this.step = step;
-
-                int absstep = (step > 0) ? step : -step;
-                if (from <= to) {
-                    size = (to - from + 1) / absstep;
-                } else {
-                    size = (from - to + 1) / absstep;
-                }
+                this.size = sequenceSize(from, to, step);
             }
 
             @Override
@@ -761,43 +697,101 @@ public abstract class ReadVector extends BaseR {
             }
 
             @Override
-            public RAny getRAny(int i) {
+            public int getInt(int i) {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
-                return base.getRAny(from + i * step - 1);
+                return orig.getInt(from + i * step - 1);
             }
 
             @Override
-            public boolean isSharedReal() {
-                return base.isShared();
-            }
-
-            @Override
-            public void ref() {
-                base.ref();
+            public int[] dimensions() { // drop dimensions
+                return null;
             }
         }
 
-        static class RStringView extends View.RStringView implements RString {
-            final RString base;
+        static class RDoubleView extends View.RDoubleProxy<RDouble> implements RDouble {
             final int from;
             final int to;
             final int step;
-
             final int size;
 
-            public RStringView(RString base, int from, int to, int step) {
-                this.base = base;
+            public RDoubleView(RDouble base, int from, int to, int step) {
+                super(base);
                 this.from = from;
                 this.to = to;
                 this.step = step;
+                this.size = sequenceSize(from, to, step);
+            }
 
-                int absstep = (step > 0) ? step : -step;
-                if (from <= to) {
-                    size = (to - from + 1) / absstep;
-                } else {
-                    size = (from - to + 1) / absstep;
-                }
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public double getDouble(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return orig.getDouble(from + i * step - 1);
+            }
+
+            @Override
+            public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RComplexView extends View.RComplexProxy<RComplex> implements RComplex {
+            final int from;
+            final int to;
+            final int step;
+            final int size;
+
+            public RComplexView(RComplex base, int from, int to, int step) {
+                super(base);
+                this.from = from;
+                this.to = to;
+                this.step = step;
+                this.size = sequenceSize(from, to, step);
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public double getReal(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return orig.getReal(from + i * step - 1);
+            }
+
+            @Override
+            public double getImag(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return orig.getImag(from + i * step - 1);
+            }
+
+            @Override
+            public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RStringView extends View.RStringProxy<RString> implements RString {
+            final int from;
+            final int to;
+            final int step;
+            final int size;
+
+            public RStringView(RString base, int from, int to, int step) {
+                super(base);
+                this.from = from;
+                this.to = to;
+                this.step = step;
+                this.size = sequenceSize(from, to, step);
             }
 
             @Override
@@ -809,20 +803,46 @@ public abstract class ReadVector extends BaseR {
             public String getString(int i) {
                 Utils.check(i < size, "bounds check");
                 Utils.check(i >= 0, "bounds check");
-                return base.getString(from + i * step - 1);
+                return orig.getString(from + i * step - 1);
             }
 
             @Override
-            public boolean isSharedReal() {
-                return base.isShared();
-            }
-
-            @Override
-            public void ref() {
-                base.ref();
+            public int[] dimensions() { // drop dimensions
+                return null;
             }
         }
 
+        static class RListView extends View.RListProxy<RList> implements RList {
+            final int from;
+            final int to;
+            final int step;
+            final int size;
+
+            public RListView(RList base, int from, int to, int step) {
+                super(base);
+                this.from = from;
+                this.to = to;
+                this.step = step;
+                this.size = sequenceSize(from, to, step);
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public RAny getRAny(int i) {
+                Utils.check(i < size, "bounds check");
+                Utils.check(i >= 0, "bounds check");
+                return orig.getRAny(from + i * step - 1);
+            }
+
+            @Override
+            public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
     }
 
     // when the index is a vector of integers (selection by index)

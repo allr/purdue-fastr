@@ -746,7 +746,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
- // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
     public abstract static class RComplexProxy<O extends RArray> extends RComplexView implements RComplex {
         protected final O orig;
 
@@ -1035,6 +1035,45 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RList doStrip() {
             return RList.RListFactory.strip(this);
+        }
+    }
+
+    // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
+    public abstract static class RListProxy<O extends RArray> extends RListView implements RList {
+        protected final O orig;
+
+        public RListProxy(O orig) {
+            this.orig = orig;
+        }
+
+        @Override
+        public int size() {
+            return orig.size();
+        }
+
+        @Override
+        public RAttributes getAttributes() {
+            return orig.getAttributes();
+        }
+
+        @Override
+        public boolean isSharedReal() {
+            return orig.isShared();
+        }
+
+        @Override
+        public void ref() {
+            orig.ref();
+        }
+
+        @Override
+        public int[] dimensions() {
+            return orig.dimensions();
+        }
+
+        @Override
+        public Names names() {
+            return orig.names();
         }
     }
 }

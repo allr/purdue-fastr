@@ -67,6 +67,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(1) ; f(TRUE) ; f(c(3,2))  }", "3L, 2L");
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(1)  ; f(3:4) }", "3L, 4L");
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(c(TRUE,FALSE))  ; f(3:4) }", "3L, 4L");
+        assertEval("{ x<-as.complex(c(1,2,3,4)) ; x[2:4] }", "2.0+0.0i, 3.0+0.0i, 4.0+0.0i");
+        assertEval("{ x<-as.raw(c(1,2,3,4)) ; x[2:4] }", "02, 03, 04");
     }
 
     @Test
