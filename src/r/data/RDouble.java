@@ -89,6 +89,9 @@ public interface RDouble extends RNumber {
             }
             return new DoubleImpl(size);
         }
+        public static RDouble getUninitializedNonScalarArray(int size) {
+            return new DoubleImpl(size);
+        }
         public static RDouble getUninitializedArray(int size, int[] dimensions) {
             if (size == 1 && dimensions == null) {
                 return new ScalarDoubleImpl(0);

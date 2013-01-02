@@ -84,6 +84,9 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return new LogicalImpl(size);
         }
+        public static RLogical getUninitializedNonScalarArray(int size) {
+            return new LogicalImpl(size);
+        }
         public static RLogical getUninitializedArray(int size, int[] dimensions) {
             if (size == 1 && dimensions == null) {
                 return new ScalarLogicalImpl(0);

@@ -33,6 +33,9 @@ public interface RRaw extends RArray {
         public static RawImpl getUninitializedArray(int size) {
             return new RawImpl(size);
         }
+        public static RawImpl getUninitializedNonScalarArray(int size) {
+            return new RawImpl(size);
+        }
         public static RawImpl getUninitializedArray(int size, int[] dimensions) {
             return new RawImpl(new byte[size], dimensions, null, false);
         }

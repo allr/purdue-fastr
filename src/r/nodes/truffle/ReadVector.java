@@ -7,6 +7,7 @@ import com.oracle.truffle.runtime.ContentStable;
 
 import r.*;
 import r.data.*;
+import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -68,6 +69,7 @@ public abstract class ReadVector extends BaseR {
         INDEX_OUT_OF_BOUNDS,
         NOT_SAME_LENGTH,
         NOT_SUBSET,
+        BASE_HAS_NAMES,
         UNSPECIFIED
     }
 
@@ -547,6 +549,9 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray abase = (RArray) base;
+                if (abase.names() != null) {
+                    throw new UnexpectedResultException(Failure.BASE_HAS_NAMES); // FIXME: lazy names?
+                }
                 if (!(index instanceof IntImpl.RIntSequence)) { // FIXME: this goes directly to Int implementation, not terribly nice
                     throw new UnexpectedResultException(Failure.NOT_INT_SEQUENCE_INDEX);
                 }
@@ -590,6 +595,7 @@ public abstract class ReadVector extends BaseR {
                     case NOT_INT_SEQUENCE_INDEX:
                     case NOT_ALL_POSITIVE_INDEX:
                     case INDEX_OUT_OF_BOUNDS:
+                    case BASE_HAS_NAMES:
                         IntSelection is = new IntSelection(ast, lhs, indexes, subset);
                         replace(is, "install IntSelection from SimpleIntSequenceSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
@@ -845,9 +851,9 @@ public abstract class ReadVector extends BaseR {
         }
     }
 
-    // when the index is a vector of integers (selection by index)
+    // when the index is a vector of integers or doubles (selection by numeric index)
     //   casts double index to integer
-    //   rewrites itself for other and corner cases
+    //   rewrites itself for other cases
     public static class IntSelection extends ReadVector { // FIXME: create yet another node without the negatives and zero crap
         public IntSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
             super(ast, lhs, indexes, subset);
@@ -855,6 +861,10 @@ public abstract class ReadVector extends BaseR {
         }
 
         public static RAny executeIntVector(RInt index, RArray base, ASTNode ast) {
+
+            Names names = base.names();
+            RSymbol[] symbols = (names == null) ? null : names.sequence();
+            RSymbol[] newSymbols = null;
             int nzeros = 0;
             boolean hasNegative = false;
             boolean hasPositive = false;
@@ -896,27 +906,37 @@ public abstract class ReadVector extends BaseR {
             boolean hasZero = nzeros > 0;
 
             if (!hasNegative) {
-                if (!hasZero) {
+                if (!hasZero && symbols == null) {
                     return base.subset(index);
                 }
                 // positive and zero indexes (and perhaps NAs)
                 int nsize = isize - nzeros;
-                RArray res = Utils.createArray(base, nsize);
+                if (symbols != null) {
+                    newSymbols = new RSymbol[nsize];
+                }
+                RArray res = Utils.createArray(base, nsize, symbols != null);
                 int j = 0;
                 for (int i = 0; i < isize; i++) {
                     int v = index.getInt(i);
+                    if (v > 0 && v <= bsize) { // note: RInt.NA < 0
+                        res.set(j, base.get(v - 1));
+                        if (symbols != null) {
+                            newSymbols[j] = symbols[v - 1];
+                        }
+                        j++;
+                        continue;
+                    }
                     if (v == 0) {
                         continue;
                     }
-                    if (v == RInt.NA) {
-                        Utils.setNA(res, j++);
-                        continue;
+                    Utils.setNA(res, j);
+                    if (symbols != null) {
+                        newSymbols[j] = RSymbol.NA_SYMBOL;
                     }
-                    if (v <= bsize) {
-                        res.set(j++, base.get(v - 1));
-                        continue;
-                    }
-                    Utils.setNA(res, j++);
+                    j++;
+                }
+                if (symbols != null) {
+                    res = res.setNames(Names.create(newSymbols));
                 }
                 return res;
             } else { // hasNegative == true
@@ -925,12 +945,22 @@ public abstract class ReadVector extends BaseR {
                 }
                 // negative and zero indexes
                 int nsize = bsize - nomit;
-                RArray res = Utils.createArray(base, nsize);
+                RArray res = Utils.createArray(base, nsize, symbols != null);
+                if (symbols != null) {
+                    newSymbols = new RSymbol[nsize];
+                }
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (!omit[i]) {
-                        res.set(j++, base.get(i));
+                        res.set(j, base.get(i));
+                        if (symbols != null) {
+                            newSymbols[j] = symbols[i];
+                        }
+                        j++;
                     }
+                }
+                if (symbols != null) {
+                    res = res.setNames(Names.create(newSymbols));
                 }
                 return res;
             }
@@ -984,6 +1014,9 @@ public abstract class ReadVector extends BaseR {
                 if (!(index instanceof RLogical)) {
                     throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX);
                 }
+                if (abase.names() != null) {
+                    throw new UnexpectedResultException(Failure.BASE_HAS_NAMES);
+                }
                 RLogical lindex = (RLogical) index;
                 int isize = lindex.size();
                 int bsize = abase.size();
@@ -1012,6 +1045,7 @@ public abstract class ReadVector extends BaseR {
                 if (DEBUG_SEL) Utils.debug("selection - SimpleLogicalSelection failed: " + f);
                 switch(f) {
                     case NOT_SAME_LENGTH:
+                    case BASE_HAS_NAMES:
                         LogicalSelection ls = new LogicalSelection(ast, lhs, indexes, subset);
                         replace(ls, "install LogicalSelection from SimpleLogicalSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with LogicalSelection");
@@ -1038,6 +1072,9 @@ public abstract class ReadVector extends BaseR {
         public static RAny executeLogicalVector(RLogical index, RArray base) {
             int isize = index.size();
             int bsize = base.size();
+            Names names = base.names();
+            RSymbol[] symbols = (names == null) ? null : names.sequence();
+            RSymbol[] newSymbols = null;
 
             if (isize >= bsize) {
                 // no re-use of index, but index can be longer than base
@@ -1047,22 +1084,40 @@ public abstract class ReadVector extends BaseR {
                         nsize++;
                     }
                 }
-                RArray res = Utils.createArray(base, nsize);
+                RArray res = Utils.createArray(base, nsize, symbols != null);
+                if (symbols != null) {
+                    newSymbols = new RSymbol[nsize];
+                }
                 int j = 0;
                 int i = 0;
                 for (; i < bsize; i++) {
                     int l = index.getLogical(i);
                     if (l == RLogical.TRUE) {
-                        res.set(j++, base.get(i));
+                        res.set(j, base.get(i));
+                        if (symbols != null) {
+                            newSymbols[j] = symbols[i];
+                        }
+                        j++;
                     } else if (l == RLogical.NA) {
-                        Utils.setNA(res, j++);
+                        Utils.setNA(res, j);
+                        if (symbols != null) {
+                            newSymbols[j] = RSymbol.NA_SYMBOL;
+                        }
+                        j++;
                     }
                 }
                 for (; i < isize; i++) {
                     int l = index.getLogical(i);
                     if (l != RLogical.FALSE) {
-                        Utils.setNA(res, j++);
+                        Utils.setNA(res, j);
+                        if (symbols != null) {
+                            newSymbols[j] = RSymbol.NA_SYMBOL;
+                        }
+                        j++;
                     }
+                }
+                if (symbols != null) {
+                    res = res.setNames(Names.create(newSymbols));
                 }
                 return res;
             } else {
@@ -1078,20 +1133,34 @@ public abstract class ReadVector extends BaseR {
                         j = 0;
                     }
                 }
-                RArray res = Utils.createArray(base, nsize);
+                RArray res = Utils.createArray(base, nsize, symbols != null);
+                if (symbols != null) {
+                    newSymbols = new RSymbol[nsize];
+                }
                 j = 0;
                 int k = 0;
                 for (int i = 0; i < bsize; i++) {
                     int l = index.getLogical(j);
                     if (l == RLogical.TRUE) {
-                        res.set(k++, base.get(i));
+                        res.set(k, base.get(i));
+                        if (symbols != null) {
+                            newSymbols[k] = symbols[i];
+                        }
+                        k++;
                     } else if (l == RLogical.NA) {
-                        Utils.setNA(res, k++);
+                        Utils.setNA(res, k);
+                        if (symbols != null) {
+                            newSymbols[k] = RSymbol.NA_SYMBOL;
+                        }
+                        k++;
                     }
                     j++;
                     if (j == isize) {
                         j = 0;
                     }
+                }
+                if (symbols != null) {
+                    res = res.setNames(Names.create(newSymbols));
                 }
                 return res;
             }
@@ -1099,7 +1168,7 @@ public abstract class ReadVector extends BaseR {
 
         @Override
         public RAny execute(RContext context, RAny index, RAny base) {
-            if (DEBUG_SEL) Utils.debug("selection - executing SimpleLogicalSelection");
+            if (DEBUG_SEL) Utils.debug("selection - executing LogicalSelection");
             try {
                 if (!(base instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
@@ -1168,6 +1237,7 @@ public abstract class ReadVector extends BaseR {
             return isel;
         }
 
+        // note: subscript does not preserve names in the base, so no name handling (of base) is needed here
         public static RAny executeSubscript(RInt index, RArray base, ASTNode ast) {
             final int isize = index.size();
             if (isize == 0) {
@@ -1177,8 +1247,8 @@ public abstract class ReadVector extends BaseR {
             RAny b = base;
 
             if (isize > 1) {
-                // the upper levels of recursive indexes have to be treated differently from the lowest level (error semantics is different)
-                // also, we know that upper levels must be lists
+                // the upper levels of recursive indexes have to be treated differently from the lowest level (the error semantics is different)
+                // also, we know that the upper levels must be lists
                 for (; i < isize - 1; i++) {
                     if (!(b instanceof RList)) {
                         throw RError.getSelectMoreThanOne(ast);

@@ -104,6 +104,35 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createArray(RAny type, int size, boolean named) {
+        if (!named) {
+            return createArray(type, size);
+        }
+        if (type instanceof RInt) {
+            return RInt.RIntFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RDouble) {
+            return RDouble.RDoubleFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RLogical) {
+            return RLogical.RLogicalFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RList) {
+            return RList.RListFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RString) {
+            return RString.RStringFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RRaw) {
+            return RRaw.RRawFactory.getUninitializedNonScalarArray(size);
+        }
+        if (type instanceof RComplex) {
+            return RComplex.RComplexFactory.getUninitializedNonScalarArray(size);
+        }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
     public static RArray createEmptyArray(RAny type) {
         if (type instanceof RInt) {
             return RInt.EMPTY;

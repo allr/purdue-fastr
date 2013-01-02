@@ -28,6 +28,9 @@ public interface RList extends RArray {
         public static ListImpl getUninitializedArray(int size) {
             return new ListImpl(size);
         }
+        public static ListImpl getUninitializedNonScalarArray(int size) {
+            return new ListImpl(size);
+        }
         public static ListImpl getUninitializedArray(int size, int[] dimensions) {
             return new ListImpl(new RAny[size], dimensions);
         }

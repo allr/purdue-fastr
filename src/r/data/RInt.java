@@ -64,6 +64,9 @@ public interface RInt extends RNumber {
             }
             return new IntImpl(size);
         }
+        public static RInt getUninitializedNonScalarArray(int size) {
+            return new IntImpl(size);
+        }
         public static RInt getUninitializedArray(int size, int[] dimensions) {
             if (size == 1 && dimensions == null) {
                 return new ScalarIntImpl(0);

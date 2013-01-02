@@ -69,6 +69,12 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ f<-function(i) { x<-1:5 ; x[i] } ; f(c(TRUE,FALSE))  ; f(3:4) }", "3L, 4L");
         assertEval("{ x<-as.complex(c(1,2,3,4)) ; x[2:4] }", "2.0+0.0i, 3.0+0.0i, 4.0+0.0i");
         assertEval("{ x<-as.raw(c(1,2,3,4)) ; x[2:4] }", "02, 03, 04");
+
+        assertEval("{ x<-c(1,2,3,4) ; names(x) <- c(\"a\",\"b\",\"c\",\"d\") ; x[c(10,2,3,0)] }", "<NA>   b   c\n  NA 2.0 3.0");
+        assertEval("{ x<-c(1,2,3,4) ; names(x) <- c(\"a\",\"b\",\"c\",\"d\") ; x[c(10,2,3)] }", "<NA>   b   c\n  NA 2.0 3.0");
+        assertEval("{ x<-c(1,2,3,4) ; names(x) <- c(\"a\",\"b\",\"c\",\"d\") ; x[c(-2,-4,0)] }", "  a   c\n1.0 3.0");
+        assertEval("{ x<-c(1,2) ; names(x) <- c(\"a\",\"b\") ; x[c(FALSE,TRUE,NA,FALSE)] }", "  b <NA>\n2.0   NA");
+        assertEval("{ x<-c(1,2) ; names(x) <- c(\"a\",\"b\") ; x[c(FALSE,TRUE)] }", "  b\n2.0");
     }
 
     @Test
@@ -174,6 +180,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-(list(list(1,2),list(3,4))); l[[c(1,-1)]] }", "2.0");
         assertEval("{ l<-(list(list(1,2),list(3,4))); l[[c(1,TRUE)]] }", "1.0");
         assertEval("{ l<-(list(list(1,2),c(3,4))); l[[c(2,1)]] }", "3.0");
+        assertEval("{ l <- list(a=1,b=2,c=list(d=3,e=list(f=4))) ; l[[c(3,2)]] }", "$f\n4.0");
+        assertEval("{ l <- list(a=1,b=2,c=list(d=3,e=list(f=4))) ; l[[c(3,1)]] }", "3.0");
     }
 
     @Test
