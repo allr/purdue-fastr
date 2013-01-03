@@ -1,6 +1,7 @@
 package r;
 
 import r.data.*;
+import r.data.RArray.Names;
 import r.errors.*;
 
 public final class Utils {
@@ -104,27 +105,27 @@ public final class Utils {
         return null;
     }
 
-    public static RArray createArray(RAny type, int size, int[] dimensions) {
+    public static RArray createArray(RAny type, int size, int[] dimensions, Names names) {
         if (type instanceof RInt) {
-            return RInt.RIntFactory.getUninitializedArray(size, dimensions);
+            return RInt.RIntFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RDouble) {
-            return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions);
+            return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RLogical) {
-            return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions);
+            return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RList) {
-            return RList.RListFactory.getUninitializedArray(size, dimensions);
+            return RList.RListFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RString) {
-            return RString.RStringFactory.getUninitializedArray(size, dimensions);
+            return RString.RStringFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RRaw) {
-            return RRaw.RRawFactory.getUninitializedArray(size, dimensions);
+            return RRaw.RRawFactory.getUninitializedArray(size, dimensions, names);
         }
         if (type instanceof RComplex) {
-            return RComplex.RComplexFactory.getUninitializedArray(size, dimensions);
+            return RComplex.RComplexFactory.getUninitializedArray(size, dimensions, names);
         }
         Utils.nyi("unsupported array type");
         return null;

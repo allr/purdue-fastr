@@ -122,11 +122,11 @@ public interface RComplex extends RArray {
         public static RComplex getUninitializedNonScalarArray(int size) {
             return new ComplexImpl(size);
         }
-        public static RComplex getUninitializedArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
+        public static RComplex getUninitializedArray(int size, int[] dimensions, Names names) {
+            if (size == 1 && dimensions == null && names == null) {
                 return new ScalarComplexImpl(0, 0);
             }
-            return new ComplexImpl(new double[2 * size], dimensions, null, false);
+            return new ComplexImpl(new double[2 * size], dimensions, names, false);
         }
         public static RComplex getNAArray(int size) {
             return getNAArray(size, null);

@@ -1,5 +1,7 @@
 package r.nodes.truffle;
 
+import java.util.*;
+
 import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.ContentStable;
@@ -7,6 +9,7 @@ import com.oracle.truffle.runtime.Stable;
 
 import r.*;
 import r.data.*;
+import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
@@ -139,6 +142,15 @@ public abstract class UpdateVector extends BaseR {
     }
 
     abstract RAny execute(RContext context, RAny base, RAny index, RAny value);
+
+    public static Names expandNames(Names names, int newSize) {
+        RSymbol[] baseSymbols = names.sequence();
+        RSymbol[] symbols = new RSymbol[newSize];
+        System.arraycopy(baseSymbols, 0, symbols, 0, baseSymbols.length);
+        Arrays.fill(symbols, baseSymbols.length, newSize, RSymbol.EMPTY_SYMBOL);
+        return Names.create(symbols);
+    }
+
 
     // for a numeric (int, double) scalar index
     //   first installs an uninitialized node
@@ -442,6 +454,7 @@ public abstract class UpdateVector extends BaseR {
             RArray typedBase;
             Object rawValue;
             int[] dimensions = base.dimensions();
+            Names names = base.names();
 
             if (value instanceof RList) {
                 if (base instanceof RList) {
@@ -477,7 +490,7 @@ public abstract class UpdateVector extends BaseR {
             if (pos > 0) {
                 if (pos <= bsize) {
                     int zpos = pos - 1;
-                    RArray res = Utils.createArray(typedBase, bsize, dimensions);
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
                     int i = 0;
                     for (; i < zpos; i++) {
                         res.set(i, typedBase.get(i));
@@ -490,7 +503,7 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     int zpos = pos - 1;
                     int nsize = zpos + 1;
-                    RArray res = Utils.createArray(typedBase, nsize); // drop dimensions
+                    RArray res = Utils.createArray(typedBase, nsize, names != null); // drop dimensions
                     int i = 0;
                     for (; i < bsize; i++) {
                         res.set(i, typedBase.get(i));
@@ -499,6 +512,9 @@ public abstract class UpdateVector extends BaseR {
                         Utils.setNA(res, i);
                     }
                     res.set(i, rawValue);
+                    if (names != null) {
+                        res = res.setNames(expandNames(names, zpos + 1));
+                    }
                     return res;
                 }
             } else { // pos < 0
@@ -519,7 +535,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 int keep = -pos - 1;
                 Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
-                RArray res = Utils.createArray(typedBase, bsize, dimensions);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
                 int i = 0;
                 for (; i < keep; i++) {
                     res.set(i, rawValue);
@@ -1223,7 +1239,7 @@ public abstract class UpdateVector extends BaseR {
                     if (isize != vsize) {
                         throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
                     }
-                    RArray res = Utils.createArray(typedBase, bsize, dimensions);
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names());
                     int i = 0;
                     for (; i < imin; i++) {
                         res.set(i, typedBase.get(i));
@@ -1499,12 +1515,18 @@ public abstract class UpdateVector extends BaseR {
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
             if (!hasNegative) {
                 int nsize = maxIndex;
-                if (nsize < bsize) {
+                Names names = base.names();
+                boolean expanding = false;
+                RArray res = null;
+                if (nsize <= bsize) {
                     nsize = bsize;
-                } else if (nsize > bsize) {
-                    dimensions = null; // drop dimensions
+                    res = Utils.createArray(typedBase, nsize, dimensions, names);
+                } else {
+                    expanding = true;
+                    // drop dimensions
+                    res = Utils.createArray(typedBase, nsize, names != null);
                 }
-                RArray res = Utils.createArray(typedBase, nsize, dimensions);
+
                 // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
                 int i = 0;
                 for (; i < bsize; i++) {
@@ -1530,13 +1552,16 @@ public abstract class UpdateVector extends BaseR {
                 if (j != 0) {
                     context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                 }
+                if (expanding && names != null) {
+                    res = res.setNames(expandNames(names, nsize));
+                }
                 return res;
             } else {
                 // hasNegative == true
                 if (hasPositive || hasNA) {
                     throw RError.getOnlyZeroMixed(ast);
                 }
-                RArray res = Utils.createArray(typedBase, bsize, dimensions);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names());
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (omit[i]) {
@@ -2022,9 +2047,20 @@ public abstract class UpdateVector extends BaseR {
             int bsize = base.size();
             int isize = index.size();
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
-            int nsize = (bsize > isize) ? bsize : isize;
-
-            RArray res = Utils.createArray(typedBase, nsize, dimensions);
+            int nsize;
+            RArray res;
+            Names names = base.names();
+            boolean expanding;
+            if (isize <= bsize) {
+                nsize = bsize;
+                expanding = false;
+                res = Utils.createArray(typedBase, nsize, dimensions, names);
+            } else {
+                expanding = true;
+                // drop dimensions
+                nsize = isize;
+                res = Utils.createArray(typedBase, nsize, names != null);
+            }
             int ii = 0;
             int vi = 0;
             boolean hasNA = false;
@@ -2060,6 +2096,9 @@ public abstract class UpdateVector extends BaseR {
             }
             if (vi != 0) {
                 context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+            }
+            if (expanding && names != null) {
+                res = res.setNames(expandNames(names, nsize));
             }
             return res;
         }

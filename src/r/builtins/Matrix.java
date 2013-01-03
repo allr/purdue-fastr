@@ -151,7 +151,7 @@ public class Matrix {
 
                     boolean byRow = provided[IBYROW] ? parseByRow(ast, args[paramPositions[IBYROW]]) : false;
 
-                    RArray res = Utils.createArray(data, size, new int[] {nRow, nCol});
+                    RArray res = Utils.createArray(data, size, new int[] {nRow, nCol}, null);
                     int di = 0;
                     if (!byRow) {
                         for (int i = 0; i < size; i++) {

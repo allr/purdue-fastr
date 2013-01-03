@@ -92,11 +92,11 @@ public interface RDouble extends RNumber {
         public static RDouble getUninitializedNonScalarArray(int size) {
             return new DoubleImpl(size);
         }
-        public static RDouble getUninitializedArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
+        public static RDouble getUninitializedArray(int size, int[] dimensions, Names names) {
+            if (size == 1 && dimensions == null && names == null) {
                 return new ScalarDoubleImpl(0);
             }
-            return new DoubleImpl(new double[size], dimensions, null, false);
+            return new DoubleImpl(new double[size], dimensions, names, false);
         }
         public static RDouble getNAArray(int size) {
             return getNAArray(size, null);

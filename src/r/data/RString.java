@@ -102,11 +102,11 @@ public interface RString extends RArray {
         public static RString getUninitializedNonScalarArray(int size) {
             return new StringImpl(size);
         }
-        public static RString getUninitializedArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
+        public static RString getUninitializedArray(int size, int[] dimensions, Names names) {
+            if (size == 1 && dimensions == null && names == null) {
                 return new ScalarStringImpl(NA);
             }
-            return new StringImpl(new String[size], dimensions, null, false);
+            return new StringImpl(new String[size], dimensions, names, false);
         }
         public static RString getNAArray(int size) {
             return getNAArray(size, null);

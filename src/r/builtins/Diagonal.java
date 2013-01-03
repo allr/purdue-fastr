@@ -65,7 +65,7 @@ public class Diagonal {
                         throw RError.getReplacementDiagonalLength(ast);
                     }
 
-                    RArray res = Utils.createArray(typedX, m * n, dim);
+                    RArray res = Utils.createArray(typedX, m * n, dim, null);
                     int vi = 0;
 
                     for (int i = 0; i < m; i++) {

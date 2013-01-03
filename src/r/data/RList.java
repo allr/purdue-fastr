@@ -31,8 +31,8 @@ public interface RList extends RArray {
         public static ListImpl getUninitializedNonScalarArray(int size) {
             return new ListImpl(size);
         }
-        public static ListImpl getUninitializedArray(int size, int[] dimensions) {
-            return new ListImpl(new RAny[size], dimensions);
+        public static ListImpl getUninitializedArray(int size, int[] dimensions, Names names) {
+            return new ListImpl(new RAny[size], dimensions, names);
         }
         public static ListImpl getNullArray(int size) {
             ListImpl v = getUninitializedArray(size);

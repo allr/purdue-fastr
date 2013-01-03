@@ -87,11 +87,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public static RLogical getUninitializedNonScalarArray(int size) {
             return new LogicalImpl(size);
         }
-        public static RLogical getUninitializedArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
+        public static RLogical getUninitializedArray(int size, int[] dimensions, Names names) {
+            if (size == 1 && dimensions == null && names == null) {
                 return new ScalarLogicalImpl(0);
             }
-            return new LogicalImpl(new int[size], dimensions, null, false);
+            return new LogicalImpl(new int[size], dimensions, names, false);
         }
         public static RLogical getNAArray(int size) {
             return getNAArray(size, null);

@@ -144,6 +144,16 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ v<-1:3 ; v[-1] <- c(100,101) ; v }", "1.0, 100.0, 101.0");
         assertEval("{ v<-1:3 ; v[TRUE] <- c(100,101,102) ; v }", "100.0, 101.0, 102.0");
 
+        assertEval("{ x <- c(a=1,b=2,c=3) ; x[2]<-10; x }", "  a    b   c\n1.0 10.0 3.0");
+        assertEval("{ x <- c(a=1,b=2,c=3) ; x[2:3]<-10; x }", "  a    b    c\n1.0 10.0 10.0");
+        assertEval("{ x <- c(a=1,b=2,c=3) ; x[c(2,3)]<-10; x }", "  a    b    c\n1.0 10.0 10.0");
+        assertEval("{ x <- c(a=1,b=2,c=3) ; x[c(TRUE,TRUE,FALSE)]<-10; x }", "   a    b   c\n10.0 10.0 3.0");
+        assertEval("{ x <- c(a=1,b=2) ; x[2:3]<-10; x }", "  a    b     \n1.0 10.0 10.0");
+        assertEval("{ x <- c(a=1,b=2) ; x[c(2,3)]<-10; x }", "  a    b     \n1.0 10.0 10.0");
+        assertEval("{ x <- c(a=1,b=2) ; x[3]<-10; x }", "  a   b     \n1.0 2.0 10.0");
+        assertEval("{ x <- matrix(1:2) ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "1.0, 2.0, 10.0");
+        assertEval("{ x <- 1:2 ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "1.0, 2.0, 10.0");
+        assertEval("{ x <- c(a=1,b=2) ; x[c(FALSE,FALSE,TRUE)]<-10; x }", "  a   b     \n1.0 2.0 10.0");
     }
 
     @Test

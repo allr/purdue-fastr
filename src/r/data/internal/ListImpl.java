@@ -22,8 +22,8 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         this(values, null, null, true);
     }
 
-    public ListImpl(RAny[] values, int[] dimensions) {
-        this(values, dimensions, null, true);
+    public ListImpl(RAny[] values, int[] dimensions, Names names) {
+        this(values, dimensions, names, true);
     }
 
     public ListImpl(int size) {
