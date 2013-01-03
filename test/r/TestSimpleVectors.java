@@ -268,11 +268,22 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE)] <- NULL ; v }", "[[1]]\n2.0");
         assertEval("{ v<-list(1,2,3) ; v[c(TRUE,FALSE,FALSE,FALSE,FALSE,TRUE)] <- NULL ; v }", "[[1]]\n2.0\n\n[[2]]\n3.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
 
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(-1,-3)] <- NULL ; l}", "$a\n1.0\n\n$c\n3.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(-1,-10)] <- NULL ; l}", "$a\n1.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(2,3)] <- NULL ; l}", "$a\n1.0\n\n$d\n4.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(2,3,5)] <- NULL ; l}", "$a\n1.0\n\n$d\n4.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(2,3,6)] <- NULL ; l}", "$a\n1.0\n\n$d\n4.0\n\n[[3]]\nNULL");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,TRUE,FALSE,TRUE)] <- NULL ; l}", "$c\n3.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,FALSE)] <- NULL ; l}", "$b\n2.0\n\n$d\n4.0");
+        assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,FALSE,FALSE,TRUE,FALSE,NA,TRUE,TRUE)] <- NULL ; l}", "$b\n2.0\n\n$c\n3.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
+
         // recursive indexing
         assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- NULL ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0");
         assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- 4 ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n4.0");
         assertEval("{ l <- list(1,list(2,list(3))) ; l[[1]] <- NULL ; l }", "[[1]]\n[[1]][[1]]\n2.0\n\n[[1]][[2]]\n[[1]][[2]][[1]]\n3.0");
         assertEval("{ l <- list(1,list(2,list(3))) ; l[[1]] <- 5 ; l }", "[[1]]\n5.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0");
+
+        assertEval("{ l<-list(a=1,b=2,list(c=3,d=4,list(e=5:6,f=100))) ; l[[c(3,3,1)]] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0\n\n[[3]]\n[[3]]$c\n3.0\n\n[[3]]$d\n4.0\n\n[[3]][[3]]\n[[3]][[3]]$f\n100.0");
 
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");

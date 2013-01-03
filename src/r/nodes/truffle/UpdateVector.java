@@ -1401,6 +1401,9 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
             }
+            Names names = base.names();
+            RSymbol[] symbols = names == null ? null : names.sequence();
+
             if (!hasNegative) {
                 int nullsToAdd = 0;
                 if (maxIndex > (bsize + 1)) {
@@ -1424,21 +1427,30 @@ public abstract class UpdateVector extends BaseR {
                 }
                 int nsize = (bsize - ntrue) + nullsToAdd;
                 RAny[] content = new RAny[nsize];
+                RSymbol[] nsymbols = symbols == null ? null : new RSymbol[nsize];
                 int j = 0;
 
                 for (int i = 0; i < bsize; i++) {
                     if (!selected[i]) { // shallow copy
-                        content[j++] = base.getRAny(i);
+                        content[j] = base.getRAny(i);
+                        if (symbols != null) {
+                            nsymbols[j] = symbols[i];
+                        }
+                        j++;
                     }
                 }
                 for (int i = 0; i < nullsToAdd; i++) {
-                    content[j++] = RList.NULL;
+                    content[j] = RList.NULL;
+                    if (symbols != null) {
+                        nsymbols[j] = RSymbol.EMPTY_SYMBOL;
+                    }
+                    j++;
                 }
                 int[] dimensions = null;
                 if (nsize == bsize && maxIndex <= bsize) {
                     dimensions = base.dimensions();
                 }
-                return RList.RListFactory.getFor(content, dimensions);
+                return RList.RListFactory.getFor(content, dimensions, nsymbols == null ? null : Names.create(nsymbols));
             } else {
                 // hasNegative == true
                 if (hasPositive || hasNA) {
@@ -1446,15 +1458,20 @@ public abstract class UpdateVector extends BaseR {
                 }
                 int nsize = ntrue;
                 RAny[] content = new RAny[nsize];
+                RSymbol[] nsymbols = symbols == null ? null : new RSymbol[nsize];
                 int j = 0;
 
                 for (int i = 0; i < bsize; i++) {
                     if (selected[i]) { // shallow copy
-                        content[j++] = base.getRAny(i);
+                        content[j] = base.getRAny(i);
+                        if (symbols != null) {
+                            nsymbols[j] = symbols[i];
+                        }
+                        j++;
                     }
                 }
                 int[] dimensions = nsize == bsize ? base.dimensions() : null;
-                return RList.RListFactory.getFor(content, dimensions);
+                return RList.RListFactory.getFor(content, dimensions, nsymbols == null ? null : Names.create(nsymbols));
             }
         }
 
@@ -1970,37 +1987,53 @@ public abstract class UpdateVector extends BaseR {
             int bsize = base.size();
             int isize = index.size();
 
+            Names names = base.names();
+            RSymbol[] symbols = names == null ? null : names.sequence();
             if (isize == bsize) {
                 int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, isize);
                 int nsize = bsize - ntrue;
                 RAny[] content = new RAny[nsize];
+                RSymbol[] nsymbols = symbols == null ? null : new RSymbol[nsize];
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     int l = index.getLogical(i);
                     if (l != RLogical.TRUE) { // shallow copy
-                        content[j++] = base.getRAny(i);
+                        content[j] = base.getRAny(i);
+                        if (symbols != null) {
+                            nsymbols[j] = symbols[i];
+                        }
+                        j++;
                     }
                 }
-                return RList.RListFactory.getFor(content, ntrue != 0 ? null : base.dimensions());
+                return RList.RListFactory.getFor(content, ntrue != 0 ? null : base.dimensions(), nsymbols == null ? null : Names.create(nsymbols));
             }
             if (isize > bsize) {
-                // for each "non-TRUE" element above base vector size, have to add NULL to the vector
+                // for each "non-TRUE" element above base vector size we have to add NULL to the vector
                 int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, bsize);
                 int natrue = RLogical.RLogicalUtils.truesInRange(index, bsize, isize);
                 int nullsToAdd = isize - bsize - natrue;
                 int nsize = (bsize - ntrue) + nullsToAdd;
                 RAny[] content = new RAny[nsize];
+                RSymbol[] nsymbols = symbols == null ? null : new RSymbol[nsize];
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     int l = index.getLogical(i);
                     if (l != RLogical.TRUE) { // shallow copy
-                        content[j++] = base.getRAny(i);
+                        content[j] = base.getRAny(i);
+                        if (symbols != null) {
+                            nsymbols[j] = symbols[i];
+                        }
+                        j++;
                     }
                 }
                 for (int i = 0; i < nullsToAdd; i++) {
-                    content[j++] = RList.NULL;
+                    content[j] = RList.NULL;
+                    if (symbols != null) {
+                        nsymbols[j] = RSymbol.EMPTY_SYMBOL;
+                    }
+                    j++;
                 }
-                return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions());
+                return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions(), nsymbols == null ? null : Names.create(nsymbols));
             }
             // isize < bsize
             if (isize == 0) {
@@ -2013,6 +2046,7 @@ public abstract class UpdateVector extends BaseR {
 
             int nsize = bsize - (ntrue * rep + nltrue);
             RAny[] content = new RAny[nsize];
+            RSymbol[] nsymbols = symbols == null ? null : new RSymbol[nsize];
             int ii = 0;
             int ci = 0;
             for (int bi = 0; bi < bsize; bi++) {
@@ -2021,10 +2055,14 @@ public abstract class UpdateVector extends BaseR {
                     ii = 0;
                 }
                 if (l != RLogical.TRUE) { // shallow copy
-                    content[ci++] = base.getRAny(bi);
+                    content[ci] = base.getRAny(bi);
+                    if (symbols != null) {
+                        nsymbols[ci] = symbols[bi];
+                    }
+                    ci++;
                 }
             }
-            return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions());
+            return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions(), nsymbols == null ? null : Names.create(nsymbols));
         }
 
         public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
