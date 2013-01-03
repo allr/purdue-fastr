@@ -60,6 +60,10 @@ public interface RArray extends RAny {
             }
         }
 
+        public static Names create(RSymbol[] names, HashMap<RSymbol, Integer> preparedMap) {
+            return new MappedNames(names, preparedMap);
+        }
+
         public Names exclude(int i) {
             int size = names.length;
             int nsize = size - 1;
@@ -111,6 +115,11 @@ public interface RArray extends RAny {
 
         public MappedNames(RSymbol[] names) {
             super(names);
+        }
+
+        public MappedNames(RSymbol[] names, HashMap<RSymbol, Integer> preparedMap) {
+            super(names);
+            this.namesMap = preparedMap;
         }
 
         void initMap() {

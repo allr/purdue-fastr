@@ -143,22 +143,32 @@ public abstract class UpdateVector extends BaseR {
 
     abstract RAny execute(RContext context, RAny base, RAny index, RAny value);
 
+        // FIXME: move these to some other file?
     public static Names expandNames(Names names, int newSize) {
-        RSymbol[] baseSymbols = names.sequence();
+        RSymbol[] oldSymbols = names.sequence();
         RSymbol[] symbols = new RSymbol[newSize];
-        System.arraycopy(baseSymbols, 0, symbols, 0, baseSymbols.length);
-        Arrays.fill(symbols, baseSymbols.length, newSize, RSymbol.EMPTY_SYMBOL);
+        System.arraycopy(oldSymbols, 0, symbols, 0, oldSymbols.length);
+        Arrays.fill(symbols, oldSymbols.length, newSize, RSymbol.EMPTY_SYMBOL);
         return Names.create(symbols);
     }
 
     public static Names removeName(Names names, int removeIndex) {
-        RSymbol[] baseSymbols = names.sequence();
-        int nsize = baseSymbols.length - 1;
+        RSymbol[] oldSymbols = names.sequence();
+        int nsize = oldSymbols.length - 1;
         RSymbol[] symbols = new RSymbol[nsize];
-        System.arraycopy(baseSymbols, 0, symbols, 0, removeIndex);
+        System.arraycopy(oldSymbols, 0, symbols, 0, removeIndex);
         if (removeIndex < nsize) {
-            System.arraycopy(baseSymbols, removeIndex + 1, symbols, removeIndex, nsize - removeIndex);
+            System.arraycopy(oldSymbols, removeIndex + 1, symbols, removeIndex, nsize - removeIndex);
         }
+        return Names.create(symbols);
+    }
+
+    public static Names appendName(Names names, RSymbol newName) {
+        RSymbol[] oldSymbols = names.sequence();
+        int size = oldSymbols.length;
+        RSymbol[] symbols = new RSymbol[size + 1];
+        System.arraycopy(oldSymbols, 0, symbols, 0, size);
+        symbols[size] = newName;
         return Names.create(symbols);
     }
 
@@ -644,6 +654,72 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
+    public static class ScalarStringSelection {
+        public static RArray genericUpdate(RArray base, String index, RAny value, boolean subset, ASTNode ast) {
+            RArray typedBase;
+            Object rawValue;
+            int[] dimensions = base.dimensions();
+            Names names = base.names();
+
+            if (value instanceof RList) { // FIXME: this code gets copied around a few times, could it be refactored without a performance penalty?
+                if (base instanceof RList) {
+                    typedBase = base;
+                } else {
+                    typedBase = base.asList();
+                    dimensions = null;
+                }
+                RAny v = subset ? ((RList) value).getRAny(0) : value;
+                v.ref();
+                rawValue = v;
+            } else if (base instanceof RList) {
+                typedBase = base;
+                rawValue = value;
+                value.ref();
+            } else if (base instanceof RString || value instanceof RString) {
+                typedBase = base.asString();
+                rawValue = value.asString().get(0);
+            } else if (base instanceof RDouble || value instanceof RDouble) {
+                typedBase = base.asDouble();
+                rawValue = value.asDouble().get(0);
+            } else if (base instanceof RInt || value instanceof RInt) {
+                typedBase = base.asInt();
+                rawValue = value.asInt().get(0);
+            } else if (base instanceof RLogical || value instanceof RLogical) {
+                typedBase = base.asLogical();
+                rawValue = value.asLogical().get(0);
+            } else {
+                Utils.nyi("unsupported vector types");
+                return null;
+            }
+            int bsize = base.size();
+            int pos = -1;
+            RSymbol symbol = RSymbol.getSymbol(index);
+            if (names != null) {
+                pos = names.map(symbol);
+            }
+            if (pos != -1) {
+                // updating
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
+                int i = 0;
+                for (; i < pos; i++) {
+                    res.set(i, typedBase.get(i));
+                }
+                res.set(i++, rawValue);
+                for (; i < bsize; i++) {
+                    res.set(i, typedBase.get(i));
+                }
+                return res;
+            }
+            // appending
+            RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol));
+            for (int i = 0; i < bsize; i++) {
+                res.set(i, typedBase.get(i));
+            }
+            res.set(bsize, rawValue);
+            return res;
+        }
+    }
+
     // any update when the selector is a scalar
     //   includes deletion of list elements (FIXME: perhaps could move that out into a special node?)
     //   rewrites itself if the update is in fact vector-like (subset with logical index, multi-value subset with negative number index)
@@ -747,6 +823,9 @@ public abstract class UpdateVector extends BaseR {
             int vsize = value.size();
             if (vsize == 0) {
                 throw RError.getReplacementZero(ast);
+            }
+            if (index instanceof RString) {
+                return ScalarStringSelection.genericUpdate(base, ((RString) index).getString(0), value, subset, ast);
             }
             if (index instanceof RLogical) {
                 if (subset) {
@@ -2224,6 +2303,96 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
+    public static class StringSelection {
+
+        public static RAny deleteElements(RList base, RString index, ASTNode ast) {
+            Utils.nyi();
+            return null;
+        }
+        public static RAny genericUpdate(RArray base, RString index, RAny value, RContext context, ASTNode ast) {
+
+            int isize = index.size();
+            if (isize == 1) {
+                // this version is faster
+                return ScalarStringSelection.genericUpdate(base, index.getString(0), value, true, ast);
+            }
+            RArray typedBase;
+            RArray typedValue;
+            RList listValue = null;
+            int[] dimensions;
+
+            if (base instanceof RList && value instanceof RNull) {
+                return deleteElements((RList) base, index, ast);
+            } else if (value instanceof RList) {
+                listValue = (RList) value;
+                typedValue = null;
+                if (base instanceof RList) {
+                    typedBase = base;
+                    dimensions = base.dimensions();
+                } else {
+                    typedBase = base.asList();
+                    dimensions = null;
+                }
+            } else {
+                dimensions = base.dimensions();
+                if (base instanceof RList) {
+                    typedBase = base;
+                    listValue = value.asList();
+                    typedValue = null;
+                } else if (base instanceof RString || value instanceof RString) {
+                    typedBase = base.asString();
+                    typedValue = value.asString();
+                } else if (base instanceof RDouble || value instanceof RDouble) {
+                    typedBase = base.asDouble();
+                    typedValue = value.asDouble();
+                } else if (base instanceof RInt || value instanceof RInt) {
+                    typedBase = base.asInt();
+                    typedValue = value.asInt();
+                } else if (base instanceof RLogical || value instanceof RLogical) {
+                    typedBase = base.asLogical();
+                    typedValue = value.asLogical();
+                } else {
+                    Utils.nyi("unsupported vector types");
+                    return null;
+                }
+            }
+            int bsize = base.size();
+            int vsize = typedValue != null ? typedValue.size() : listValue.size();
+
+            if (bsize == 0) {
+                RSymbol[] nsymbols = new RSymbol[isize]; // optimistically assume that names are not repeated
+                HashMap<RSymbol, Integer> nmap = new HashMap<RSymbol, Integer>(isize);
+                int j = 0;
+                boolean hasDuplicates = false;
+                for (int i = 0; i < isize; i++) {
+                    RSymbol name = RSymbol.getSymbol(index.getString(i));
+                    Integer prevOffset = nmap.get(name);
+                    if (prevOffset == null) {
+                        nmap.put(name, i);
+                        nsymbols[j++] = name;
+                    } else {
+                        hasDuplicates = true;
+                    }
+                }
+                if (!hasDuplicates) {
+                    RArray res = Utils.createArray(typedBase,  isize, null, Names.create(nsymbols, nmap));
+                    int vi = 0;
+                    int ii = 0;
+                    for (; ii < isize; ii++) {
+                        res.set(ii, typedValue.get(vi));
+                        vi++;
+                        if (vi == vsize) {
+                            vi = 0;
+                        }
+                    }
+                    return res;
+                }
+            }
+            Utils.nyi();
+            return null;
+        }
+    }
+
     // when the index is a vector of integers (selection by index)
     //   and the base can be recursive
     //   and the mode is subscript ([[.]])
@@ -2369,9 +2538,11 @@ public abstract class UpdateVector extends BaseR {
 
                 if (subset) {
                     if (aindex instanceof RDouble || aindex instanceof RInt) {
-                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, ast, subset);
+                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, ast, true);
                     } else if (aindex instanceof RLogical) {
                         return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, context, ast);
+                    } else if (aindex instanceof RString) {
+                        return StringSelection.genericUpdate(abase, (RString) index, avalue, context, ast);
                     } else {
                         Utils.nyi("unsupported update");
                         return null;
