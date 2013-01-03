@@ -151,6 +151,16 @@ public abstract class UpdateVector extends BaseR {
         return Names.create(symbols);
     }
 
+    public static Names removeName(Names names, int removeIndex) {
+        RSymbol[] baseSymbols = names.sequence();
+        int nsize = baseSymbols.length - 1;
+        RSymbol[] symbols = new RSymbol[nsize];
+        System.arraycopy(baseSymbols, 0, symbols, 0, removeIndex);
+        if (removeIndex < nsize) {
+            System.arraycopy(baseSymbols, removeIndex + 1, symbols, removeIndex, nsize - removeIndex);
+        }
+        return Names.create(symbols);
+    }
 
     // for a numeric (int, double) scalar index
     //   first installs an uninitialized node
@@ -648,12 +658,12 @@ public abstract class UpdateVector extends BaseR {
         public static RAny deleteElement(RList base, int i, ASTNode ast, boolean subset) {
             int size = base.size();
             if (i > 0) {
+                int zi = i - 1; // zero-based
+                int j = 0;
                 if (i <= size) {
                     // remove element i
-                    int zi = i - 1; // zero-based
                     int nsize = size - 1;
                     RAny[] content = new RAny[nsize];
-                    int j = 0;
                     for (; j < zi; j++) {  // shallow copy
                         content[j] = base.getRAny(j);
                     }
@@ -661,7 +671,21 @@ public abstract class UpdateVector extends BaseR {
                     for (; j < nsize; j++) { // shallow copy
                         content[j] = base.getRAny(zi++);
                     }
-                    return RList.RListFactory.getFor(content); // drop dimensions
+                    Names bnames = base.names();
+                    return RList.RListFactory.getFor(content, null, bnames == null ? null : removeName(bnames, i - 1)); // drop dimensions
+                } else if (subset && i > size) {
+                    // note that we could have this branch just for "i > size + 1", however, not quite, because
+                    // when i == size + 1, subset drops dimensions
+                    int nsize = i - 1;
+                    RAny[] content = new RAny[nsize];
+                    for (; j < size; j++) { // shallow copy
+                        content[j] =  base.getRAny(j);
+                    }
+                    for (; j < nsize; j++) {
+                        content[j] = RList.NULL;
+                    }
+                    Names bnames = base.names();
+                    return RList.RListFactory.getFor(content, null, bnames == null ? null : expandNames(bnames, nsize)); //drop dimensions
                 } else {
                     return base;
                 }

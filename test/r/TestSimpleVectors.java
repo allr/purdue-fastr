@@ -226,6 +226,17 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ m<-list(1,2) ; m[[1]] <- NULL ; m }", "[[1]]\n2.0");
         assertEval("{ m<-list(1,2) ; m[[-1]] <- NULL ; m }", "[[1]]\n1.0");
         assertEval("{ m<-list(1,2) ; m[[-2]] <- NULL ; m }", "[[1]]\n2.0");
+        assertEval("{ l <- matrix(list(1,2)) ; l[3] <- NULL ; l }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ l <- matrix(list(1,2)) ; l[[3]] <- NULL ; l }", "     [,1]\n[1,]  1.0\n[2,]  2.0");
+        assertEval("{ l <- matrix(list(1,2)) ; l[[4]] <- NULL ; l }", "     [,1]\n[1,]  1.0\n[2,]  2.0");
+        assertEval("{ l <- matrix(list(1,2)) ; l[4] <- NULL ; l }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\nNULL");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[1] <- NULL ; l }", "$b\n2.0\n\n$c\n3.0");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[3] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0");
+
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[5] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0\n\n[[4]]\nNULL");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[4] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[[5]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[[4]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
 
         // vector update
         assertEval("{ l <- list(1,2,3) ; l[c(2,3)] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
