@@ -911,6 +911,10 @@ public abstract class RError extends RuntimeException {
         return getGenericError(ast, String.format(RError.ATTRIBUTE_VECTOR_SAME_LENGTH, attr, attrLen, vectorLen));
     }
 
+    public static RError getNoSuchIndexAtLevel(ASTNode ast, int level) {
+        return getGenericError(ast, String.format(RError.NO_SUCH_INDEX, level));
+    }
+
     public static RError getUnknownVariable(ASTNode source) {
         return new RErrorInExpr(source){
             private static final long serialVersionUID = 1L;

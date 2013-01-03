@@ -191,6 +191,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-(list(list(1,2),c(3,4))); l[[c(2,1)]] }", "3.0");
         assertEval("{ l <- list(a=1,b=2,c=list(d=3,e=list(f=4))) ; l[[c(3,2)]] }", "$f\n4.0");
         assertEval("{ l <- list(a=1,b=2,c=list(d=3,e=list(f=4))) ; l[[c(3,1)]] }", "3.0");
+
+        assertEval("{ l <- list(c=list(d=3,e=c(f=4)), b=2, a=3) ; l[[c(\"c\",\"e\")]] }", "  f\n4.0");
+        assertEval("{ l <- list(c=list(d=3,e=c(f=4)), b=2, a=3) ; l[[c(\"c\",\"e\", \"f\")]] }", "4.0");
+        assertEval("{ l <- list(c=list(d=3,e=c(f=4)), b=2, a=3) ; l[[c(\"c\")]] }", "$d\n3.0\n\n$e\n  f\n4.0");
     }
 
     @Test

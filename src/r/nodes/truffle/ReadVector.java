@@ -1369,11 +1369,11 @@ public abstract class ReadVector extends BaseR {
                 if (indexv <= bsize) { // NOTE: RInt.NA < 0
                     isel = indexv - 1;
                 } else {
-                    throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, iindex + 1));
+                    throw RError.getNoSuchIndexAtLevel(ast, iindex + 1);
                 }
             } else {
                 if (indexv == RInt.NA) {
-                    throw RError.getGenericError(ast, String.format(RError.NO_SUCH_INDEX, iindex + 1));
+                    throw RError.getNoSuchIndexAtLevel(ast, iindex + 1);
                 }
                 isel = convertNegativeNonNAIndex(indexv, bsize, ast);
             }
@@ -1439,6 +1439,71 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
+        public static RAny executeSubscript(RString index, RArray base, ASTNode ast) {
+            final int isize = index.size();
+            if (isize == 0) {
+                throw RError.getSelectLessThanOne(ast);
+            }
+            int i = 0;
+            RAny b = base;
+
+            if (isize > 1) {
+                // the upper levels of recursive indexes have to be treated differently from the lowest level (the error semantics is different)
+                // also, we know that the upper levels must be lists
+                for (; i < isize - 1; i++) {
+                    if (!(b instanceof RList)) {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                    RList l = (RList) b;
+                    Names names = l.names();
+                    if (names == null) {
+                        throw RError.getNoSuchIndexAtLevel(ast, i + 1);
+                    }
+                    RSymbol s = RSymbol.getSymbol(index.getString(i));
+                    int indexv = names.map(s);
+                    if (indexv == RInt.NA) {
+                        throw RError.getNoSuchIndexAtLevel(ast, i + 1);
+                    }
+                    b = l.getRAny(indexv);
+                }
+            }
+            // selection at the last level
+            if (!(b instanceof RArray)) {
+                Utils.nyi("unuspported base type");
+            }
+            RArray a = (RArray) b;
+            Names names = a.names();
+            int indexv = -1;
+            if (names != null) {
+                RSymbol s = RSymbol.getSymbol(index.getString(i));
+                indexv = names.map(s);
+            }
+            boolean isList = a instanceof RList;
+            if (indexv != -1) {
+                if (isList) {
+                    return ((RList) a).getRAny(indexv);
+                } else {
+                    return a.boxedGet(indexv);
+                }
+            } else {
+                if (isList) {
+                    return RList.NULL;
+                } else {
+                    throw RError.getSubscriptBounds(ast);
+                }
+            }
+        }
+
+        public static RAny executeSubscript(RAny index, RArray base, ASTNode ast) {
+            if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
+                return executeSubscript(index.asInt(), base, ast);
+            }
+            if (index instanceof RString) {
+                return executeSubscript((RString) index, base, ast);
+            }
+            throw RError.getInvalidSubscriptType(ast, index.typeOf());
+        }
+
         @Override
         public RAny execute(RContext context, RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing Subscript");
@@ -1447,16 +1512,7 @@ public abstract class ReadVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray abase = (RArray) base;
-                RInt iindex;
-                if (index instanceof RInt) {
-                    iindex = (RInt) index;
-                } else if (index instanceof RDouble || index instanceof RLogical) {
-                    iindex = index.asInt();
-                } else {
-                    throw new UnexpectedResultException(Failure.NOT_INT_DOUBLE_OR_LOGICAL_INDEX);
-                }
-                return executeSubscript(iindex, abase, ast);
-
+                return executeSubscript(index, abase, ast);
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - Subscript failed: " + f);
@@ -1502,7 +1558,7 @@ public abstract class ReadVector extends BaseR {
                     return Utils.createEmptyArray(abase);
                 }
             } else {
-                return Subscript.executeSubscript(aindex.asInt(), abase, ast);
+                return Subscript.executeSubscript(aindex, abase, ast);
             }
             Utils.nyi("vector in generic selection");
             return null;
