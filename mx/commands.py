@@ -25,6 +25,7 @@ def mx_init():
       'rpidigits': [rpidigitsServer, '[size]'],
       'rregexdna': [rregexdnaServer, '[size]'],
       'rmandelbrot': [rmandelbrotServer, '[size]'],      
+      'rreversecomplement': [reversecomplementServer, '[size]'],            
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -108,6 +109,10 @@ def rmandelbrotServer(args):
   """Run Mandelbrot with the HotSpot server VM"""  
   rmandelbrot(args, [], 'server')
 
+def reversecomplementServer(args):
+  """Run Reversecomplement with the HotSpot server VM"""  
+  rreversecomplement(args, [], 'server')
+
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
   runittest(args, [], 'server')
@@ -167,7 +172,39 @@ def rpidigits(args, vmArgs, vm):
   rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "300");
 
 # ------------------
+
+def stripTrailingNULL(fname):
+  """Remove last 5 bytes from a file (the trailing NULL\n)"""
+
+  sinfo = os.stat(fname)
+  size = sinfo.st_size
+  file = open(fname, "r");
+  data = file.read(size - 5)
+  file.close() 
+  file = open(fname, "w")
+  file.write(data)
+  file.close()
   
+def getFastaOutput(size):
+  """Run Fasta capturing the output to a file"""
+  
+  fname = ".tmp.fasta." + size + ".out";
+  if not os.path.exists(fname):
+    print("Generating input for Regexdna, size " + size + "...\n");
+    outputFile = open(fname, "w")
+    def out(line): 
+      outputFile.write(line)
+    global gvmOut 
+    gvmOut = out
+    rfastaServer([size])
+    gvmOut = None
+    outputFile.close()
+    print("Done.\n")
+
+  stripTrailingNULL(fname)
+  return fname
+
+
 def rconsole(vmArgs, vm, cArgs):
   """Run R Console with the given VM"""
   global gvmOut
@@ -194,6 +231,7 @@ def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
 #  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
   rconsole(vmArgs, vm, ['-f', tmp]);
 
+  
 def rregexdna(args, vmArgs, vm):
   """Run Regexdna benchmark using the given VM"""
   
@@ -202,18 +240,7 @@ def rregexdna(args, vmArgs, vm):
   else:
     size = args[0]
     
-  input = ".tmp.fasta." + size + ".out";
-  if not os.path.exists(input):
-    print("Generating input for Regexdna, size " + size + "...\n");
-    outputFile = open(input, "w")
-    def out(line): 
-      outputFile.write(line)
-    global gvmOut 
-    gvmOut = out
-    rfastaServer([size])
-    gvmOut = None
-    outputFile.close()
-    print("Done.\n")
+  input = getFastaOutput(size) 
       
   source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "regexdna", "regexdna.r")
   tmp = ".tmp.regexdna.torun.r"
@@ -241,16 +268,38 @@ def rmandelbrot(args, vmArgs, vm):
   rshootout(args, vmArgs, vm, "mandelbrot", "mandelbrot.r", "6000");
   gvmOut = None
   outputFile.close()
-  # note - the output file contants "NULL\n" at the end, something that should not be there
+  # note - the output file contains "NULL\n" at the end, something that should not be there
+  stripTrailingNULL(output);
   
-  sinfo = os.stat(output)
-  size = sinfo.st_size
   file = open(output, "r");
-  data = file.read(size - 5)
+  data = file.read()
   file.close() 
   hash = hashlib.md5(data).hexdigest()
-  print "Binary output has size ", size, " and MD5 hash ", hash, "\n"
+  print "Binary output has MD5 hash ", hash, "\n"
   
+def rreversecomplement(args, vmArgs, vm):
+  """Run Reversecomplement benchmark using the given VM"""
+  
+  if (len(args)==0):
+    size = "5000000"
+  else:
+    size = args[0]
+    
+  input = getFastaOutput(size) 
+      
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "reversecomplement", "reversecomplement.r")
+  tmp = ".tmp.reversecomplement.torun.r"
+
+  shutil.copyfile(source, tmp)
+  with open(tmp, "a") as f:
+    f.write("reversecomplement(\"" + input + "\")\n")
+
+  if mx._opts.verbose:
+	print("Input file " + tmp + ": " + arg);
+  
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
+  rconsole(vmArgs, vm, ['-f', tmp]);
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 
