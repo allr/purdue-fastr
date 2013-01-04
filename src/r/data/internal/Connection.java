@@ -15,6 +15,8 @@ public abstract class Connection {
     ConnectionMode mode;
     ConnectionMode defaultMode;
 
+    public static final int READ_BUFFER_SIZE = 8192;
+
     Connection(String description, ConnectionMode mode, ConnectionMode defaultMode) {
         this.description = description;
         this.mode = mode;
@@ -36,7 +38,7 @@ public abstract class Connection {
     public abstract void flush(ASTNode ast);
     public abstract void close(ASTNode ast);
 
-    public abstract Reader reader(ASTNode ast);
+    public abstract BufferedReader reader(ASTNode ast);
     public abstract OutputStream output(ASTNode ast);
 
     @Override
@@ -52,7 +54,7 @@ public abstract class Connection {
         RandomAccessFile file;
         FileInputStream input;
         FileOutputStream output;
-        PushbackReader reader;
+        BufferedReader reader;
 
         FileConnection(String name, ConnectionMode mode, ConnectionMode defaultMode) {
             super(name, mode, defaultMode);
@@ -93,7 +95,7 @@ public abstract class Connection {
         }
 
         @Override
-        public Reader reader(ASTNode ast) {
+        public BufferedReader reader(ASTNode ast) {
             if (reader != null) {
                 return reader;
             }
@@ -102,7 +104,11 @@ public abstract class Connection {
                 if (input == null) {
                     input = new FileInputStream(file.getFD());
                 }
-                reader = new PushbackReader(new InputStreamReader(input));
+                int bufSize = READ_BUFFER_SIZE;
+                if (mode.write() || mode.append()) {
+                    bufSize = 1;
+                }
+                reader = new BufferedReader(new InputStreamReader(input), bufSize);
                 return reader;
             } catch (IOException e) {
                 throw RError.getGenericError(ast, e.toString());
@@ -162,7 +168,7 @@ public abstract class Connection {
         ProcessBuilder processBuilder;
         InputStream input;
         OutputStream output;
-        PushbackReader reader;
+        BufferedReader reader;
 
         PipeConnection(String command, ConnectionMode mode, ConnectionMode defaultMode) {
             super(command, mode, defaultMode);
@@ -220,7 +226,7 @@ public abstract class Connection {
         }
 
         @Override
-        public Reader reader(ASTNode ast) {
+        public BufferedReader reader(ASTNode ast) {
             if (reader != null) {
                 return reader;
             }
@@ -228,7 +234,7 @@ public abstract class Connection {
             if (input == null) {
                 input = process.getInputStream();
             }
-            reader = new PushbackReader(new InputStreamReader(input));
+            reader = new BufferedReader(new InputStreamReader(input), Connection.READ_BUFFER_SIZE);
             return reader;
         }
 

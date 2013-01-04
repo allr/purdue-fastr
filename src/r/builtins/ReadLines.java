@@ -109,7 +109,7 @@ public class ReadLines {
                     }
 
                     try {
-                        BufferedReader reader = new BufferedReader(con.reader(ast));
+                        BufferedReader reader = con.reader(ast);
                         ArrayList<String> buf = new ArrayList<String>();
                         String line = "";
                         int nlines = 0;
