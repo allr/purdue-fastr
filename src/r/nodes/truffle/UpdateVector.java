@@ -2319,7 +2319,6 @@ public abstract class UpdateVector extends BaseR {
             RArray typedBase;
             RArray typedValue;
             RList listValue = null;
-            int[] dimensions;
 
             if (base instanceof RList && value instanceof RNull) {
                 return deleteElements((RList) base, index, ast);
@@ -2328,13 +2327,10 @@ public abstract class UpdateVector extends BaseR {
                 typedValue = null;
                 if (base instanceof RList) {
                     typedBase = base;
-                    dimensions = base.dimensions();
                 } else {
                     typedBase = base.asList();
-                    dimensions = null;
                 }
             } else {
-                dimensions = base.dimensions();
                 if (base instanceof RList) {
                     typedBase = base;
                     listValue = value.asList();
@@ -2359,37 +2355,93 @@ public abstract class UpdateVector extends BaseR {
             int bsize = base.size();
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
 
-            if (bsize == 0) {
-                RSymbol[] nsymbols = new RSymbol[isize]; // optimistically assume that names are not repeated
-                HashMap<RSymbol, Integer> nmap = new HashMap<RSymbol, Integer>(isize);
-                int j = 0;
-                boolean hasDuplicates = false;
-                for (int i = 0; i < isize; i++) {
-                    RSymbol name = RSymbol.getSymbol(index.getString(i));
-                    Integer prevOffset = nmap.get(name);
-                    if (prevOffset == null) {
-                        nmap.put(name, i);
-                        nsymbols[j++] = name;
-                    } else {
-                        hasDuplicates = true;
-                    }
+            // note that the base can have duplicate names, but these cannot be created using update vector (like here),
+            // only e.g. using names<-
+
+            Names bnames = base.names();
+            RSymbol[] bsymbols;
+            HashMap<RSymbol, Integer> nmap;
+            if (bnames == null) {
+                nmap = new HashMap<RSymbol, Integer>(bsize);
+                bsymbols = null;
+            } else {
+                nmap = bnames.getMap();
+                if (bnames.keepsMap()) {
+                    nmap = new HashMap<RSymbol, Integer>(nmap);
                 }
-                if (!hasDuplicates) {
-                    RArray res = Utils.createArray(typedBase,  isize, null, Names.create(nsymbols, nmap));
-                    int vi = 0;
-                    int ii = 0;
-                    for (; ii < isize; ii++) {
-                        res.set(ii, typedValue.get(vi));
-                        vi++;
-                        if (vi == vsize) {
-                            vi = 0;
-                        }
+                bsymbols = bnames.sequence();
+            }
+
+            RSymbol[] addSymbols = new RSymbol[isize];
+            int j = 0;
+            int firstOverwrite = -1;
+            int noverwrites = 0;
+            int[] targetOffsets = null;
+            for (int i = 0; i < isize; i++) {
+                RSymbol name = RSymbol.getSymbol(index.getString(i));
+                Integer prevOffset = nmap.get(name);
+                if (prevOffset == null) {
+                    nmap.put(name, i);
+                    addSymbols[j++] = name;
+                } else {
+                    if (firstOverwrite == -1) {
+                        firstOverwrite = i;
+                        targetOffsets = new int[isize - i];
                     }
-                    return res;
+                    noverwrites++;
+                    targetOffsets[i - firstOverwrite] = prevOffset.intValue();
                 }
             }
-            Utils.nyi();
-            return null;
+
+            int addSize = isize - noverwrites;
+            int nsize = bsize + addSize;
+
+            Names nnames;
+            if (bsymbols == null) {
+                nnames = Names.create(addSymbols, nmap);
+            } else {
+                if (addSize == 0) {
+                    nnames = bnames;
+                } else {
+                    RSymbol[] nsymbols = new RSymbol[nsize];
+                    System.arraycopy(bsymbols, 0, nsymbols, 0, bsize);
+                    System.arraycopy(addSymbols, 0, nsymbols, bsize, addSize);
+                    nnames = Names.create(nsymbols, nmap);
+                }
+            }
+            RArray res = Utils.createArray(typedBase,  nsize, null, nnames);
+            for (int bi = 0; bi < bsize; bi++) {
+                res.set(bi, typedBase.get(bi));
+            }
+
+            int vi = 0;
+            int ii = 0;
+            if (noverwrites == 0) {
+                for (; ii < isize; ii++) {
+                    res.set(bsize + ii, typedValue.get(vi));
+                    vi++;
+                    if (vi == vsize) {
+                        vi = 0;
+                    }
+                }
+                return res;
+            } else {
+                // some overwrites (either update of an existing field, or a duplicate name in the update vector)
+                for (; ii < isize; ii++) {
+                    int ni;
+                    if (ii < firstOverwrite) {
+                        ni = bsize + ii;
+                    } else {
+                        ni = targetOffsets[ii - firstOverwrite];
+                    }
+                    res.set(ni, typedValue.get(vi));
+                    vi++;
+                    if (vi == vsize) {
+                        vi = 0;
+                    }
+                }
+                return res;
+            }
         }
     }
 

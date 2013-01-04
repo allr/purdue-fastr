@@ -53,11 +53,11 @@ public interface RArray extends RAny {
         public abstract int map(RSymbol name);
 
         public static Names create(RSymbol[] names) {
-            if (names.length > 10) {
+//            if (names.length > 10) {
                 return new MappedNames(names);
-            } else {
-                return new SimpleNames(names);
-            }
+//            } else {
+//                return new SimpleNames(names);
+//            }
         }
 
         public static Names create(RSymbol[] names, HashMap<RSymbol, Integer> preparedMap) {
@@ -91,8 +91,12 @@ public interface RArray extends RAny {
         public int size() {
             return names.length;
         }
+
+        public abstract HashMap<RSymbol, Integer> getMap();
+        public abstract boolean keepsMap();
     }
 
+    // TODO: currently this is not used as vector update using names needs a hashmap anyway
     public static final class SimpleNames extends Names { // FIXME: implement a specialized hash map that takes less memory
 
         public SimpleNames(RSymbol[] names) {
@@ -107,6 +111,18 @@ public interface RArray extends RAny {
                 }
             }
             return -1;
+        }
+
+        @Override
+        public HashMap<RSymbol, Integer> getMap() {
+            Utils.nyi();
+            return null;
+        }
+
+        @Override
+        public boolean keepsMap() {
+            Utils.nyi();
+            return false;
         }
     }
 
@@ -143,6 +159,19 @@ public interface RArray extends RAny {
             } else {
                 return -1;
             }
+        }
+
+        @Override
+        public HashMap<RSymbol, Integer> getMap() {
+            if (namesMap == null) { // race (but we don't care)
+                initMap();
+            }
+            return namesMap;
+        }
+
+        @Override
+        public boolean keepsMap() {
+            return true;
         }
     }
 

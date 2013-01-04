@@ -158,6 +158,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[[\"b\"]]<-200; x }", "  a     b   c\n1.0 200.0 3.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[[\"d\"]]<-200; x }", "  a   b   c     d\n1.0 2.0 3.0 200.0");
         assertEval("{ x<-c() ; x[c(\"a\",\"b\",\"c\",\"d\")]<-c(1,2); x }", "  a   b   c   d\n1.0 2.0 1.0 2.0");
+        assertEval("{ x<-c(a=1,b=2,c=3) ; x[\"d\"]<-4 ; x }", "  a   b   c   d\n1.0 2.0 3.0 4.0");
+        assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"e\")]<-c(4,5) ; x }", "  a   b   c   d   e\n1.0 2.0 3.0 4.0 5.0");
+        assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "  a   b   c   d\n5.0 2.0 3.0 4.0");
     }
 
     @Test
