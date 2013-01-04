@@ -284,6 +284,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,FALSE)] <- NULL ; l}", "$b\n2.0\n\n$d\n4.0");
         assertEval("{ l<-list(a=1,b=2,c=3,d=4); l[c(TRUE,FALSE,FALSE,TRUE,FALSE,NA,TRUE,TRUE)] <- NULL ; l}", "$b\n2.0\n\n$c\n3.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
 
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[[\"b\"]] <- NULL ; l }", "$a\n1.0\n\n$c\n3.0");
+
         // recursive indexing
         assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- NULL ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0");
         assertEval("{ l <- list(1,list(2,c(3))) ; l[[c(2,2)]] <- 4 ; l }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n4.0");
@@ -291,6 +293,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(1,list(2,list(3))) ; l[[1]] <- 5 ; l }", "[[1]]\n5.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n[[2]][[2]][[1]]\n3.0");
 
         assertEval("{ l<-list(a=1,b=2,list(c=3,d=4,list(e=5:6,f=100))) ; l[[c(3,3,1)]] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0\n\n[[3]]\n[[3]]$c\n3.0\n\n[[3]]$d\n4.0\n\n[[3]][[3]]\n[[3]][[3]]$f\n100.0");
+        assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"zz\")]] <- 100 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n  x   y   z    zz\n1.0 2.0 3.0 100.0");
+        assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"z\")]] <- 100 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n  x   y     z\n1.0 2.0 100.0");
+        assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\")]] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0");
+        assertEval("{ l <- list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "$b\n2.0");
 
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");

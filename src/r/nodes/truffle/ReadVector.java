@@ -69,7 +69,6 @@ public abstract class ReadVector extends BaseR {
         NOT_STRING_INDEX,
         NOT_ALL_POSITIVE_INDEX,
         NOT_INT_OR_DOUBLE_INDEX,
-        NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
         NOT_LOGICAL_INDEX,
         NOT_ONE_ELEMENT,
         NA_INDEX,

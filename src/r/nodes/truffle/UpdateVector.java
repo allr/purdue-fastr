@@ -74,7 +74,6 @@ public abstract class UpdateVector extends BaseR {
         UNEXPECTED_TYPE,
         NOT_SAME_LENGTH,
         MAYBE_VECTOR_UPDATE,
-        NOT_INT_DOUBLE_OR_LOGICAL_INDEX,
     }
 
     public final Object executeSuper(RContext context, Frame frame) {
@@ -731,27 +730,37 @@ public abstract class UpdateVector extends BaseR {
             super(ast, isSuper, var, lhs, indexes, rhs, subset);
         }
 
+        public static RAny deleteElement(RList base, int i) {
+            return deleteElement(base, i, base.size());
+        }
+
+        public static RAny deleteElement(RList base, int index, int size) {
+            int j = 0;
+            int i = index;
+            int nsize = size - 1;
+            RAny[] content = new RAny[nsize];
+            for (; j < i; j++) {  // shallow copy
+                content[j] = base.getRAny(j);
+            }
+            i++;
+            for (; j < nsize; j++) { // shallow copy
+                content[j] = base.getRAny(i++);
+            }
+            Names bnames = base.names();
+            return RList.RListFactory.getFor(content, null, bnames == null ? null : removeName(bnames, index)); // drop dimensions
+        }
+
         public static RAny deleteElement(RList base, int i, ASTNode ast, boolean subset) {
             int size = base.size();
             if (i > 0) {
                 int zi = i - 1; // zero-based
-                int j = 0;
                 if (i <= size) {
                     // remove element i
-                    int nsize = size - 1;
-                    RAny[] content = new RAny[nsize];
-                    for (; j < zi; j++) {  // shallow copy
-                        content[j] = base.getRAny(j);
-                    }
-                    zi++;
-                    for (; j < nsize; j++) { // shallow copy
-                        content[j] = base.getRAny(zi++);
-                    }
-                    Names bnames = base.names();
-                    return RList.RListFactory.getFor(content, null, bnames == null ? null : removeName(bnames, i - 1)); // drop dimensions
+                    return deleteElement(base, zi, size);
                 } else if (subset && i > size) {
                     // note that we could have this branch just for "i > size + 1", however, not quite, because
                     // when i == size + 1, subset drops dimensions
+                    int j = 0;
                     int nsize = i - 1;
                     RAny[] content = new RAny[nsize];
                     for (; j < size; j++) { // shallow copy
@@ -789,6 +798,19 @@ public abstract class UpdateVector extends BaseR {
             return RList.RListFactory.getScalar(base.getRAny(keep)); // shallow copy
         }
 
+        public static RAny deleteElement(RList base, String index) {
+            Names names = base.names();
+            int deleteIndex = -1;
+            if (names != null) {
+                deleteIndex = names.map(RSymbol.getSymbol(index));
+            }
+            if (deleteIndex != -1) {
+                return deleteElement(base, deleteIndex);
+            } else {
+                return base;
+            }
+        }
+
         public static RAny deleteElement(RArray base, RArray index, ASTNode ast, boolean subset) {
             if (!(base instanceof RList)) {
                 throw RError.getReplacementZero(ast);
@@ -811,6 +833,8 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 return deleteElement(l, i, ast, subset);
+            } else if (index instanceof RString) {
+                return deleteElement(l, ((RString) index).getString(0));
             } else if (index instanceof RNull) {
                 return l;
             } else {
@@ -934,7 +958,7 @@ public abstract class UpdateVector extends BaseR {
                     default:
                         GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
-                        if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
+                        if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                         return gs.execute(context, base, index, value);
                 }
             }
@@ -2306,9 +2330,44 @@ public abstract class UpdateVector extends BaseR {
     public static class StringSelection {
 
         public static RAny deleteElements(RList base, RString index, ASTNode ast) {
-            Utils.nyi();
-            return null;
+            Names bnames = base.names();
+            if (bnames == null) {
+                return base;
+            }
+            int bsize = base.size();
+            int isize = index.size();
+            boolean[] remove = new boolean[bsize];
+            int nremove = 0;
+
+            for (int i = 0; i < isize; i++) {
+                RSymbol s = RSymbol.getSymbol(index.getString(i));
+                int v = bnames.map(s);
+                if (v != -1) {
+                    if (!remove[v]) {
+                        remove[v] = true;
+                        nremove++;
+                    }
+                }
+            }
+
+            if (nremove == 0) {
+                return base;
+            }
+            int nsize = bsize - nremove;
+            RSymbol[] bsymbols = bnames.sequence();
+            RSymbol[] nsymbols = new RSymbol[nsize];
+            RAny[] content = new RAny[nsize];
+            int j = 0;
+            for (int i = 0; i < bsize; i++) {
+                if (!remove[i]) { // shallow copy
+                    content[j] = base.getRAny(i);
+                    nsymbols[j] = bsymbols[i];
+                    j++;
+                }
+            }
+            return RList.RListFactory.getFor(content, null, Names.create(nsymbols));
         }
+
         public static RAny genericUpdate(RArray base, RString index, RAny value, RContext context, ASTNode ast) {
 
             int isize = index.size();
@@ -2523,6 +2582,92 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
+        public static RAny executeSubscript(RString index, RArray base, RArray value, ASTNode ast) {
+            final int isize = index.size();
+            if (isize == 0) {
+                throw RError.getSelectLessThanOne(ast);
+            }
+            int i = 0;
+            RAny b = base;
+            RAny res = null;
+            RList parent = null;
+            int parentIndex = -1;
+            if (isize > 1) {
+                for (; i < isize - 1; i++) {  // shallow copy
+                    if (!(b instanceof RList)) {
+                        throw RError.getMoreElementsSupplied(ast);
+                    }
+                    RList l = (RList) b;
+                    Names names = l.names();
+                    if (names == null) {
+                        throw RError.getNoSuchIndexAtLevel(ast, i + 1);
+                    }
+                    RSymbol s = RSymbol.getSymbol(index.getString(i));
+                    int indexv = names.map(s);
+                    if (indexv == RInt.NA) {
+                        throw RError.getNoSuchIndexAtLevel(ast, i + 1);
+                    }
+                    int bsize = l.size();
+                    RAny[] content = new RAny[bsize];
+                    int k = 0;
+                    int j = 0;
+                    for (; j < indexv; j++) { // shallow copy
+                        content[k++] = l.getRAny(j);
+                    }
+                    j++; // skip
+                    k++;
+                    for (; j < bsize; j++) { // shallow copy
+                        content[k++] = l.getRAny(j);
+                    }
+                    RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names());
+                    if (parent != null) {
+                        parent.set(parentIndex, newList);
+                    } else {
+                        res = newList;
+                    }
+                    parent = newList;
+                    parentIndex = indexv;
+                    b = l.getRAny(indexv); // shallow copy
+                }
+            }
+            // selection at the last level
+            if (!(b instanceof RArray)) {
+                Utils.nyi("unuspported base type");
+            }
+            RArray a = (RArray) b;
+            if (value instanceof RNull) {
+                if (a instanceof RList) {
+                    b = GenericScalarSelection.deleteElement((RList) a, index.getString(i)); // TODO: call directly a method for string index
+                } else {
+                    throw RError.getMoreElementsSupplied(ast);
+                }
+            } else {
+                if (value.size() > 1) {
+                    throw RError.getMoreElementsSupplied(ast);
+                } else {
+                    b = ScalarStringSelection.genericUpdate(a, index.getString(i), value, false, ast);
+                    // FIXME: ScalarNumericSelection.genericUpdate is unnecessarily heavy-weight for a valid positive index
+                }
+            }
+            if (parent == null) {
+                return b;
+            } else {
+                parent.set(parentIndex, b);
+                return res;
+            }
+        }
+
+        public static RAny executeSubscript(RAny index, RArray base, RArray value, ASTNode ast) {
+            if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
+                return executeSubscript(index.asInt(), base, value, ast);
+            }
+            if (index instanceof RString) {
+                return executeSubscript((RString) index, base, value, ast);
+            }
+            throw RError.getInvalidSubscriptType(ast, index.typeOf());
+        }
+
+
         @Override
         public RAny execute(RContext context, RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing Subscript");
@@ -2531,19 +2676,11 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
                 }
                 RArray abase = (RArray) base;
-                RInt iindex;
-                if (index instanceof RInt) {
-                    iindex = (RInt) index;
-                } else if (index instanceof RDouble || index instanceof RLogical) {
-                    iindex = index.asInt();
-                } else {
-                    throw new UnexpectedResultException(Failure.NOT_INT_DOUBLE_OR_LOGICAL_INDEX);
-                }
                 if (!(value instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
                 }
                 RArray avalue = (RArray) value;
-                return executeSubscript(iindex, abase, avalue, ast);
+                return executeSubscript(index, abase, avalue, ast);
 
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -2578,7 +2715,26 @@ public abstract class UpdateVector extends BaseR {
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
                 if (value instanceof RNull) {
-                    return GenericScalarSelection.deleteElement(abase, aindex, ast, subset);
+                    if (isize == 1) {
+                        return GenericScalarSelection.deleteElement(abase, aindex, ast, subset);
+                    } else {
+                        if (!(abase instanceof RList)) {
+                            throw RError.getReplacementZero(ast);
+                        }
+                        RList lbase = (RList) abase;
+                        if (aindex instanceof RDouble || aindex instanceof RInt) {
+                            return NumericSelection.deleteElements(lbase, aindex.asInt(), ast, true);
+                        } else if (aindex instanceof RLogical) {
+                            return LogicalSelection.deleteElements(lbase, index.asLogical(), ast);
+                        } else if (aindex instanceof RString) {
+                            return StringSelection.deleteElements(lbase, (RString) index, ast);
+                        } else if (aindex instanceof RNull) {
+                            return lbase;
+                        } else {
+                            Utils.nyi("unsupported update");
+                            return null;
+                        }
+                    }
                 }
                 if (!(value instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
@@ -2600,7 +2756,7 @@ public abstract class UpdateVector extends BaseR {
                         return null;
                     }
                 } else {
-                    return Subscript.executeSubscript(aindex.asInt(), abase, avalue, ast);
+                    return Subscript.executeSubscript(aindex, abase, avalue, ast);
                 }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
