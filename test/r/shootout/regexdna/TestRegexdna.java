@@ -17,7 +17,7 @@ public class TestRegexdna extends ShootoutTestBase {
         String inputFile = ".tmp.regexdna.input";
         try {
             PrintWriter out = new PrintWriter(inputFile);
-            out.println(result.output);
+            out.print(result.output);
             out.close();
         } catch (IOException e) {
             Assert.fail("I/O error while creating input for regexdna: " + e.toString());
@@ -33,7 +33,7 @@ public class TestRegexdna extends ShootoutTestBase {
 "agggta[cgt]a|t[acg]taccct 0 \n" +
 "agggtaa[cgt]|[acg]ttaccct 2 \n" +
 "\n" +
-"10246\n" +
+"10245\n" +
 "10000\n" +
 "13348",
                         null, "NULL");

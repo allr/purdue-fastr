@@ -1,0 +1,46 @@
+package r.shootout.reversecomplement;
+
+import java.io.*;
+import org.junit.*;
+import r.shootout.*;
+
+public class TestReverseComplement extends ShootoutTestBase {
+    @Test
+    public void testReverseComplement() {
+
+        String sourceFile = sourceFilePath("fastaredux", "fastaredux");
+        String fileToRun = prepareSource(sourceFile, 100, "fastaredux");
+        RunResult result = run(fileToRun);
+        String inputFile = ".tmp.reversecomplement.input";
+        try {
+            PrintWriter out = new PrintWriter(inputFile);
+            out.print(result.output);
+            out.close();
+        } catch (IOException e) {
+            Assert.fail("I/O error while creating input for reversecomplement: " + e.toString());
+        }
+        assertShootout("reversecomplement", "reversecomplement", "reversecomplement", inputFile,
+">ONE Homo sapiens alu\n" +
+"CCGGCCCGCGCCACCGAGTGCGGACATTAGGGTCGTGAAACCCTCCGGCTCCGCCCGCCT\n" +
+"AGTGGACTCCAGTCCTCAAGCTCTGGTCGGACCGGTTGTACCACTTTGGGGCAGAGATGA\n" +
+"TTTTTATGTTTTTAATCGGCCCGCACCACCGCGCGCGGACATTAGGGTCGATGAGCCCTC\n" +
+"CGACTCCGTCCTCTTAGCGA\n" +
+">TWO IUB ambiguity codes\n" +
+"GAAVATAGTATACGATMCCNGTATTTSTACATTTHGHYAVCCHAGAAATATTAAGVCAGC\n" +
+"ATGAHAHTCGGATAAASBDADAAMACADKTSTAACWTDMDAAAATCTGTAWTACAYCTTT\n" +
+"NATGAKGSKARAGKCYATGAAGAWVTGCTTTATATCSGHAAACTTCTGTGTATCABCRCA\n" +
+"GTAADWAKKWGSACAATCCMASCTRTTGGWSAGCVAACGCTKAAVRTAGWACTGTRGTCT\n" +
+"CATVHAYTGAAAAGWTAKAAHVGTAWATAGAATGATVCTRAGAACAAAAAAAARTTSGRT\n" +
+">THREE Homo sapiens frequency\n" +
+"AGAGCCACATCGAATATTTACGTAGGCATTCTTATAATACAAATAAACAGCCATGCAAGT\n" +
+"ACCATCACCACAGCGGCTAAATCTGCATTTCCGTACATACCTAGAACTAGATACGTTTCC\n" +
+"ATCCAGGTAGATATATGCAACGTGTCGCCTATGTTTATTCTATTCTTAAATGATTGTAAA\n" +
+"TTTAAAAGAATAACAGCTCGTATCTAACCTCCTTTTTGAATAAATGAACCATAAATTTGC\n" +
+"CTTCAAAGATTACAAATACTAACCTACGTGCCTGTCAAATGACGAATGAAAGAATCCAAA\n" +
+"GAACTTGTTGTCCTACGTGATCATTGTACAGAGCAAGTACGAAGGTAATTCAAGAAGAAT\n" +
+"TTGAATGTGTTTGATGGATTAAATCTCAACTGCTCTACCAACTTGCACAACACTGTTTGC\n" +
+"AAACGTTTTACGTGTCATAGCAATGGTTTTTCATGTAAATTCACACACGCATCCTTAAGA\n" +
+"CGATGCAGGTAACGTCCGGT\n",
+                        null, "NULL");
+    }
+}
