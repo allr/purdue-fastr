@@ -3,7 +3,6 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
-import r.data.RArray.*;
 
 
 public final class ScalarIntImpl extends ArrayImpl implements RInt {

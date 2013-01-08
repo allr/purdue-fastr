@@ -40,6 +40,15 @@ public interface RComplex extends RArray {
         public double imagValue() {
             return imag;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Complex) {
+                Complex c = (Complex) o;
+                return real == c.real && imag == c.imag;
+            }
+            return false;
+        }
     }
 
     public class RComplexUtils {

@@ -343,4 +343,11 @@ public class TestSimpleVectors extends TestBase {
 
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] } ;  f(1,1); f(1,1:3) }", "1L, 3L, 5L");
     }
+
+    @Test
+    public void testIn() throws RecognitionException {
+        assertEval("{ 1:3 %in% 1:10 }", "TRUE, TRUE, TRUE");
+        assertEval("{ 1 %in% 1:10 }", "TRUE");
+        assertEval("{ c(\"1L\",\"hello\") %in% 1:10 }", "TRUE, FALSE");
+    }
 }

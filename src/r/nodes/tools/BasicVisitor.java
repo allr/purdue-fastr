@@ -120,6 +120,11 @@ public class BasicVisitor implements Visitor {
     }
 
     @Override
+    public void visit(In op) {
+        visit((BinaryOperation) op);
+    }
+
+    @Override
     public void visit(Mod op) {
         visit((BinaryOperation) op);
     }

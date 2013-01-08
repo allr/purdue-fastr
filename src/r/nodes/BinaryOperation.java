@@ -58,8 +58,10 @@ public abstract class BinaryOperation extends Operation {
         if ("%/%".equals(op)) {
             return new IntegerDiv(left, right);
         }
+        if ("%in%".equals(op)) {
+            return new In(left, right);
+        }
         return null;
-//        throw new Error("Custom operator not implemented: '" + op + "' (" + left + ", " + right + ")");
     }
 
     public enum BinaryOperator {

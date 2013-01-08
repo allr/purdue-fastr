@@ -20,6 +20,7 @@ public interface Visitor {
     void visit(MatMult mult);
     void visit(OuterMult mult);
     void visit(IntegerDiv div);
+    void visit(In in);
     void visit(Mod mod);
     void visit(Pow pow);
     void visit(Div div);
