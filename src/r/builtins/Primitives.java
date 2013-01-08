@@ -89,6 +89,7 @@ public class Primitives {
         add("rowMeans", 1, 3, ColumnsRowsStats.ROWMEANS_FACTORY);
         add("rowSums", 1, 3, ColumnsRowsStats.ROWSUMS_FACTORY);
         add("sapply", 2, -1, Apply.SAPPLY_FACTORY);
+        add("scan", 0, 21, Scan.FACTORY);
         add("seq", 0, -1, Seq.FACTORY);  // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq.FACTORY);
         add("strsplit", 1, 5, StrSplit.FACTORY);

@@ -149,8 +149,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RInt asInt() {
-        Utils.check(false, "unreachable");
-        return null;
+        return asInt(null);
     }
 
     @Override
@@ -161,8 +160,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RDouble asDouble() {
-        Utils.check(false, "unreachable");
-        return null;
+        return asDouble(null);
     }
 
     @Override
@@ -172,8 +170,7 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public RComplex asComplex() {
-        Utils.check(false, "unreachable");
-        return null;
+        return asComplex(null);
     }
 
     @Override

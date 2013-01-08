@@ -8,7 +8,7 @@ import r.nodes.*;
 
 import com.oracle.truffle.runtime.*;
 
-// FIXME: this is a very un-optimized version
+// FIXME: this is a very unoptimized version
 // FIXME: could optimize "%in% names" using the hash-map stored in Names
 public class InOperation extends BaseR {
     @Stable RNode left;

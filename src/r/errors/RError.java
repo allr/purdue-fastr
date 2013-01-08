@@ -99,6 +99,7 @@ public abstract class RError extends RuntimeException {
     public static final String CANNOT_OPEN_PIPE = "cannot open pipe() cmd '%s': %s";
     public static final String INVALID_TYPE_ARGUMENT = "invalid 'type' (%s) of argument";
     public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
+    public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -913,6 +914,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getNoSuchIndexAtLevel(ASTNode ast, int level) {
         return getGenericError(ast, String.format(RError.NO_SUCH_INDEX, level));
+    }
+
+    public static RError getScanUnexpected(ASTNode ast, String expType, String gotValue) {
+        return getGenericError(ast, String.format(RError.SCAN_UNEXPECTED, expType, gotValue));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

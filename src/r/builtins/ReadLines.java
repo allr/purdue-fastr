@@ -78,7 +78,7 @@ public class ReadLines {
                     Connection con = null;
                     boolean wasOpen = false;
 
-                    if (!provided[ICON]) {
+                    if (!provided[ICON]) { // FIXME: this is common code, extract? (e.g. also in scan)
                         Utils.nyi("stdin");
                         return null;
                     } else {

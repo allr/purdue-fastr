@@ -211,7 +211,11 @@ public class Console {
     static void printResult(ASTNode expr, RAny result) {
         // TODO to be a bit more compatible, we need to keep '()' as an ASTNode, but Truffelize must SKIP it.
         if (forceVisible || !(expr instanceof AssignVariable || expr instanceof Loop)) {
-            System.out.println(result.pretty());
+            println(result.pretty());
         }
+    }
+
+    public static void println(String str) {
+        System.out.println(str);
     }
 }
