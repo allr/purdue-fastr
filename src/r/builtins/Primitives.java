@@ -36,9 +36,11 @@ public class Primitives {
         add("&&", 2, 2, Operators.AND_FACTORY);
         add("!", 1, 1, Operators.NOT_FACTORY);
         add("abs", 1, 1, Abs.FACTORY);
+        add("assign", 2, 6, Environment.ASSIGN_FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
         add("as.complex", 0, -1, Cast.COMPLEX_FACTORY);
         add("as.double", 0, -1, Cast.DOUBLE_FACTORY);
+        add("as.environment", 1, 1, Environment.ASENVIRONMENT_FACTORY);
         add("as.integer", 0, -1, Cast.INT_FACTORY);
         add("as.logical", 0, -1, Cast.LOGICAL_FACTORY);
         add("as.raw", 0, -1, Cast.RAW_FACTORY);
@@ -55,6 +57,7 @@ public class Primitives {
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
         add("gregexpr", 2, 6, RegExpr.GREGEXPR_FACTORY);
         add("gsub", 3, 7, Sub.GSUB_FACTORY);
+        add("emptyenv", 0, 0, Environment.EMPTYENV_FACTORY);
         add("file", 0, 5, OpenConnection.FILE_FACTORY);
         add("flush", 1, 1, ConnectionOperation.FLUSH_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
@@ -75,6 +78,7 @@ public class Primitives {
         add("names<-", 2, 2, Names.REPLACEMENT_FACTORY);
         add("nchar", 1, 3, NChar.FACTORY);
         add("ncol", 1, 1, Dimensions.NCOL_FACTORY);
+        add("new.env", 0, 3, Environment.NEWENV_FACTORY);
         add("nrow", 1, 1, Dimensions.NROW_FACTORY);
         add("order", 0, -1, Sort.ORDER_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);

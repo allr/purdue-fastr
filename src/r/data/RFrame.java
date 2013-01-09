@@ -11,7 +11,8 @@ public final class RFrame  {
     public static final int PARENT_SLOT = 0; // frame of lexically enclosing function (not caller frame), must match Frame.PARENT_FRAME_SLOT
     public static final int FUNCTION_SLOT = 1;
     public static final int EXTENSION_SLOT = 2;
-    public static final int RETURN_VALUE_SLOT = 3;
+    public static final int ENVIRONMENT_SLOT = 3;
+    public static final int RETURN_VALUE_SLOT = 4;
 
     /**
      * Number of reserved slots (i.e., last slot id + 1).
@@ -63,6 +64,33 @@ public final class RFrame  {
             writeAtRef(f, pos, value);
         } else {
             writeInExtension(f, sym, value);
+        }
+    }
+
+    public static void reflectiveInheritsWrite(Frame frame, RSymbol symbol, RAny value) { // used for assign with inherits == TRUE
+        int pos = getPositionInWS(frame, symbol);
+        if (pos >= 0) {
+            superWriteViaWriteSet(frame, pos, symbol, value);
+        } else {
+            ReadSetEntry rse = RFrame.getRSEntry(frame, symbol);
+            if (rse != null) {
+                superWriteViaReadSet(frame, rse.frameHops, rse.framePos, symbol, value);
+            } else {
+                RFrameExtension ext = getExtension(frame);
+                if (ext != null) {
+                    int epos = ext.getPosition(symbol);
+                    if (epos != -1) {
+                        ext.writeAt(epos, value);
+                        return ;
+                    }
+                }
+                Frame parentFrame = getParent(frame);
+                if (parentFrame != null) {
+                    reflectiveInheritsWrite(parentFrame, symbol, value);
+                } else {
+                    superWriteToTopLevel(symbol, value);
+                }
+            }
         }
     }
 
@@ -419,6 +447,15 @@ public final class RFrame  {
         RFrameExtension ext = new RFrameExtension();
         f.setObject(EXTENSION_SLOT, ext);
         return ext;
+    }
+
+    public static REnvironment getEnvironment(Frame f) {
+        REnvironment e = Utils.cast(f.getObject(ENVIRONMENT_SLOT));
+        if (e == null) {
+            e = new EnvironmentImpl(f);
+            f.setObject(ENVIRONMENT_SLOT, e);
+        }
+        return e;
     }
 
     private static void markDirty(Frame f, int pos) {

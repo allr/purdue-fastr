@@ -516,4 +516,20 @@ public class TestSimpleBuiltins extends TestBase {
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
+
+    @Test
+    public void testEnvironment() throws RecognitionException {
+        assertEval("{ f <- function() { assign(\"x\", 1) ; x } ; f() }", "1.0");
+        assertEval("{ f <- function() { x <- 2 ; g <- function() { x <- 3 ; assign(\"x\", 1, inherits=FALSE) ; x } ; g() } ; f() }", "1.0");
+        assertEval("{ f <- function() { x <- 2 ; g <- function() { assign(\"x\", 1, inherits=FALSE) } ; g() ; x } ; f() }", "2.0");
+        assertEval("{ f <- function() { x <- 2 ; g <- function() { assign(\"x\", 1, inherits=TRUE) } ; g() ; x } ; f() }", "1.0");
+        assertEval("{ f <- function() {  g <- function() { assign(\"x\", 1, inherits=TRUE) } ; g() } ; f() ; x }", "1.0");
+        assertEval("{ x <- 3 ; g <- function() { x } ; f <- function() { assign(\"x\", 2) ; g() } ; f() }", "3.0");
+        assertEval("{ x <- 3 ; f <- function() { assign(\"x\", 2) ; g <- function() { x } ; g() } ; f() }", "2.0");
+        assertEval("{ h <- function() { x <- 3 ; g <- function() { x } ; f <- function() { assign(\"x\", 2) ; g() } ; f() }  ; h() }", "3.0");
+        // TODO:  { h <- function() { x <- 3  ; f <- function() { assign("x", 2) ; g <- function() { x } ; g() } ; f() }  ; h() }
+
+        assertEval("{ f <- function()  { as.environment(-1) } ; f() }", "<environment: R_GlobalEnv>");
+        assertEval("{ emptyenv() }", "<environment: R_EmptyEnv>");
+    }
 }

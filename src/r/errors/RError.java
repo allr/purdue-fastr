@@ -78,6 +78,9 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_UNNAMED_ARGUMENT = "invalid argument";
     public static final String INVALID_UNNAMED_VALUE = "invalid value";
     public static final String NAMES_NONVECTOR = "names() applied to a non-vector";
+    public static final String ONLY_FIRST_VARIABLE_NAME = "only the first element is used as variable name";
+    public static final String INVALID_FIRST_ARGUMENT = "invalid first argument";
+    public static final String NO_ENCLOSING_ENVIRONMENT = "no enclosing environment";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -100,6 +103,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_TYPE_ARGUMENT = "invalid 'type' (%s) of argument";
     public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
     public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
+    public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -855,6 +859,30 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getInvalidFirstArgument(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INVALID_FIRST_ARGUMENT;
+            }
+        };
+    }
+
+    public static RError getNoEnclosingEnvironment(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NO_ENCLOSING_ENVIRONMENT;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -918,6 +946,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getScanUnexpected(ASTNode ast, String expType, String gotValue) {
         return getGenericError(ast, String.format(RError.SCAN_UNEXPECTED, expType, gotValue));
+    }
+
+    public static RError getMustBeEnviron(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_ENVIRON, argName));
     }
 
     public static RError getUnknownVariable(ASTNode source) {
