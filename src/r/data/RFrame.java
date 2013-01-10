@@ -686,5 +686,46 @@ public final class RFrame  {
             names = newNames;
             values = newValues;
         }
+
+        private RSymbol[] validNames() { // TODO: revisit when deletion is implemented
+            int nremoved = 0;
+            for (int i = 0; i < used; i++) {
+                if (values[i] == null) {
+                    nremoved++;
+                }
+            }
+            if (nremoved == 0 && used == names.length) {
+                return names;
+            } else {
+                int size = used - nremoved;
+                RSymbol[] vnames = new RSymbol[size];
+                int j = 0;
+                for (int i = 0; i < used; i++) {
+                    if (values[i] != null) {
+                        vnames[j++] = names[i];
+                    }
+                }
+                return vnames;
+            }
+        }
+    }
+
+    public static RSymbol[] listSymbols(Frame frame) {
+        RSymbol[] ws = getFunction(frame).localWriteSet();
+        RFrameExtension ext = getExtension(frame);
+        if (ext != null) {
+            RSymbol[] es = ext.validNames();
+            if (ws.length == 0) {
+                return es;
+            }
+            int size = ws.length + es.length;
+            RSymbol[] res = new RSymbol[size];
+            System.arraycopy(ws, 0, res, 0, ws.length);
+            System.arraycopy(es, 0, res, ws.length, es.length);
+            return res;
+
+        } else {
+            return ws;
+        }
     }
 }

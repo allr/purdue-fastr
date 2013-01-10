@@ -536,6 +536,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ emptyenv() }", "<environment: R_EmptyEnv>");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\") } ; f() }", "TRUE");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\", inherits=FALSE) } ; f() }", "FALSE");
+        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
 
         // lookup
         assertEval("{ f <- function() { x <- 2 ; get(\"x\") } ; f() }", "2.0");

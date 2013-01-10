@@ -510,6 +510,15 @@ public class Convert {
         return -1;
     }
 
+    public static String[] symbols2strings(RSymbol[] symbols) {
+        int size = symbols.length;
+        String[] res = new String[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = symbols[i].pretty();
+        }
+        return res;
+    }
+
     static final String[] rawStrings = generateRawStrings();
 
     public static String[] generateRawStrings() {

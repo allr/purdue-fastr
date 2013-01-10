@@ -11,6 +11,7 @@ public interface RFunction {
     RNode[] paramValues();
     RNode body();
     RClosure createClosure(Frame frame);
+    RSymbol[] localWriteSet();
 
     ASTNode getSource();
 

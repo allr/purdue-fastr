@@ -174,4 +174,9 @@ public class FunctionImpl extends BaseObject implements RFunction {
         }
         return enclosing.isInWriteSet(sym);
     }
+
+    @Override
+    public RSymbol[] localWriteSet() {
+        return writeSet;
+    }
 }

@@ -119,14 +119,26 @@ public class Function extends ASTNode {
     }
 
     private static RSymbol[] buildWriteSet(RSymbol[] argNames, Set<RSymbol> origWSet) {
-        RSymbol[] writeSet = new RSymbol[origWSet.size() + argNames.length];
+        int maxSize = origWSet.size() + argNames.length;
+        RSymbol[] writeSet = new RSymbol[maxSize];
+        HashSet <RSymbol> args = new HashSet<RSymbol>(argNames.length);
         int i = 0;
         for (; i < argNames.length; i++) {
-            writeSet[i] = argNames[i];
+            RSymbol s = argNames[i];
+            writeSet[i] = s;
+            args.add(s);
         }
-        for (RSymbol s : origWSet) { // FIXME: an argument can be in the write-set twice (that used to be handled in the previous version...)
-            writeSet[i++] = s;
+        for (RSymbol s : origWSet) {
+            if (!args.contains(s)) {
+                writeSet[i++] = s;
+            }
         }
+        if (i < maxSize) {
+            RSymbol[] bigSet = writeSet;
+            writeSet = new RSymbol[i];
+            System.arraycopy(bigSet, 0, writeSet, 0, i);
+        }
+        // NOTE: write set does not have duplicates
         return writeSet;
     }
 

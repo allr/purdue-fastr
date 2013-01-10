@@ -19,6 +19,7 @@ public interface REnvironment extends RAny {
     void assign(RSymbol name, RAny value, boolean inherits);
     RAny get(RSymbol name, boolean inherits);
     boolean exists(RSymbol name, boolean inherits);
+    RSymbol[] ls();
 
     public static class DummyFunction implements RFunction {
 
@@ -88,6 +89,14 @@ public interface REnvironment extends RAny {
         public int nparams() {
             // TODO Auto-generated method stub
             return 0;
+        }
+
+        private static RSymbol[] emptySet = new RSymbol[0];
+
+        @Override
+        public RSymbol[] localWriteSet() {
+            // TODO Auto-generated method stub
+            return emptySet;
         }
 
     }

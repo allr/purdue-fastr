@@ -73,6 +73,7 @@ public class Primitives {
         add("log2", 1, 1, MathFunctions.LOG2_FACTORY);
         add("logical", 0, 1, ArrayConstructor.LOGICAL_FACTORY);
         add("lower.tri", 1, 2, TriangularPart.LOWER_FACTORY);
+        add("ls", 0, 5, Environment.LS_FACTORY);
         add("matrix", 0, 5, Matrix.FACTORY);
         add("max", 0, -1, Extreme.MAX_FACTORY);
         add("min", 0, -1, Extreme.MIN_FACTORY);

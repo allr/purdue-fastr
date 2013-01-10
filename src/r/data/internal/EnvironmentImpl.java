@@ -162,4 +162,10 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
     }
 
+    @Override
+    public RSymbol[] ls() {
+        Utils.check(frame != null);
+        return RFrame.listSymbols(frame);
+    }
+
 }

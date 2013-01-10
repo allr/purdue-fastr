@@ -1,5 +1,7 @@
 package r.builtins;
 
+import java.util.*;
+
 import r.*;
 import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
@@ -292,6 +294,48 @@ public class Environment {
                     }
                     // TODO: handle top-level
                     return RLogical.BOXED_FALSE;
+                }
+            };
+        }
+    };
+
+    public static final CallFactory LS_FACTORY = new CallFactory() {
+
+        private final String[] paramNames = new String[] {"name", "pos", "envir", "all.names", "pattern"};
+
+        private final int INAME = 0;
+        private final int IPOS = 1;
+        private final int IENVIR = 2;
+        private final int IALLNAMES = 3;
+        private final int IPATTERN = 4;
+
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (provided[IALLNAMES] || provided[IPATTERN]) {
+                Utils.nyi();
+            }
+
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+
+                    RAny nameArg = provided[INAME] ? args[paramPositions[INAME]] : null;
+                    REnvironment envir;
+                    if (nameArg != null) {
+                        envir = asEnvironment(context, frame, ast, nameArg, true);
+                    } else {
+                        RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
+                        RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
+                        envir = extractEnvironment(envirArg, posArg, frame, context, ast);
+                    }
+                    String[] names = Convert.symbols2strings(envir.ls());
+                    Arrays.sort(names);
+                    return RString.RStringFactory.getFor(names);
                 }
             };
         }
