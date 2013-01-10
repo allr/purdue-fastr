@@ -4,9 +4,6 @@ import r.nodes.*;
 
 public class BasicVisitor implements Visitor {
 
-    /**
-     * @param n
-     */
     public void visit(ASTNode n) {
         n.visit_all(this);
     }
@@ -54,9 +51,12 @@ public class BasicVisitor implements Visitor {
         visit((ControlStatement) n);
     }
 
+    public void visit(Operation op) {
+        visit((ASTNode) op);
+    }
+
     public void visit(BinaryOperation op) {
-        op.visit_all(this);
-        visit((ASTNode) op); // FIXME: why? isn't this in op.visit_all already?
+        visit((Operation) op);
     }
 
     @Override
@@ -214,7 +214,7 @@ public class BasicVisitor implements Visitor {
 
     @Override
     public void visit(AccessVector a) {
-        a.visit_all(this);
+        visit((Call) a);
     }
 
     @Override

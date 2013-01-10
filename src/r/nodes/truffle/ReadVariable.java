@@ -52,7 +52,7 @@ public abstract class ReadVariable extends BaseR {
                         node = getReadLocal(getAST(), symbol, pos);
                         reason = "installReadLocalNode";
                     } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
-                            // note: this can happen although we thought initially it shouldn't (why did we think that?)
+                            // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
                         node = getReadTopLevel(getAST(), symbol);
                         reason = "installReadTopLevel";
                     } else {

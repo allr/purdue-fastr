@@ -178,62 +178,8 @@ public class Function extends ASTNode {
         }
 
         @Override
-        public void visit(If iff) {
-            iff.visit_all(this);
-        }
-
-        @Override
-        public void visit(Repeat repeat) {
-            repeat.visit_all(this);
-        }
-
-        @Override
-        public void visit(While w) {
-            w.visit_all(this);
-        }
-
-        @Override
-        public void visit(Sequence sequence) {
-            sequence.visit_all(this);
-        }
-
-        @Override
-        public void visit(EQ eq) {
-            eq.visit_all(this);
-        }
-
-        @Override
-        public void visit(LE le) {
-            le.visit_all(this);
-        }
-
-        @Override
-        public void visit(Mult mult) {
-            mult.visit_all(this);
-        }
-
-        @Override
-        public void visit(Add add) {
-            add.visit_all(this);
-        }
-
-        @Override
-        public void visit(Not n) {
-            n.visit_all(this);
-        }
-
-        @Override
-        public void visit(Constant constant) {
-        }
-
-        @Override
         public void visit(SimpleAccessVariable readVariable) {
             read.add(readVariable.getSymbol());
-        }
-
-        @Override
-        public void visit(FieldAccess fieldAccess) {
-            fieldAccess.visit_all(this);
         }
 
         @Override
@@ -273,9 +219,9 @@ public class Function extends ASTNode {
             n.visit_all(this);
         }
 
-        @Override
-        public void visit(AccessVector n) {
-            n.visit_all(this); // includes a visit of the base of the vector
-        }
+//        @Override
+//        public void visit(AccessVector n) {
+//            n.visit_all(this); // includes a visit of the base of the vector
+//        }
     }
 }

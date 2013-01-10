@@ -420,7 +420,7 @@ public final class RFrame  {
     }
 
     private static boolean isDirty(Frame f, int pos) {
-        return (f.getLong(pos) & DIRTY_MASK) != 0;
+        return (f.getLong(pos + RESERVED_SLOTS) & DIRTY_MASK) != 0;
     }
 
     public static int getPositionInWS(Frame f, RSymbol sym) {
@@ -459,8 +459,9 @@ public final class RFrame  {
     }
 
     private static void markDirty(Frame f, int pos) {
-        long l = f.getLong(pos) | ~DIRTY_MASK;
-        f.setLong(pos, l);
+        int rawpos = pos + RESERVED_SLOTS;
+        long l = f.getLong(rawpos) | DIRTY_MASK;
+        f.setLong(rawpos, l);
     }
 
     private static void markDirty(Frame enclosing, RSymbol sym) {
