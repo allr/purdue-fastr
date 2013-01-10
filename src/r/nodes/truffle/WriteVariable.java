@@ -88,7 +88,7 @@ public abstract class WriteVariable extends BaseR {
             @Override
             public final Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
-                RFrame.writeInTopLevelCondRef(symbol, val);
+                RFrame.writeToTopLevelCondRef(symbol, val);
                 if (DEBUG_W) { Utils.debug("write - "+symbol.pretty()+" toplevel, wrote "+val+" ("+val.pretty()+")"); }
                 return val;
             }
@@ -101,7 +101,7 @@ public abstract class WriteVariable extends BaseR {
             @Override
             public final Object execute(RContext context, Frame frame) {
                 RAny val = Utils.cast(expr.execute(context, frame));
-                RFrame.writeInExtension(frame, symbol, val);
+                RFrame.writeToExtension(frame, symbol, val);
                 return val;
             }
         };

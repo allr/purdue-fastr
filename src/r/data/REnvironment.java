@@ -17,6 +17,8 @@ public interface REnvironment extends RAny {
 
     Frame frame();
     void assign(RSymbol name, RAny value, boolean inherits);
+    RAny get(RSymbol name, boolean inherits);
+    boolean exists(RSymbol name, boolean inherits);
 
     public static class DummyFunction implements RFunction {
 

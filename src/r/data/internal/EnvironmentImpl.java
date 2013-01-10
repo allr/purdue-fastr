@@ -135,11 +135,31 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         Utils.check(frame != null);
         // TODO: add hashing
         if (!inherits) {
-            RFrame.write(frame, name, value);
+            RFrame.localWrite(frame, name, value);
             return;
+        } else {
+            RFrame.reflectiveInheritsWrite(frame, name, value);
         }
-        // inherits == true
-        RFrame.reflectiveInheritsWrite(frame, name, value);
+    }
+
+    @Override
+    public RAny get(RSymbol name, boolean inherits) {
+        Utils.check(frame != null);
+        if (!inherits) {
+            return RFrame.localRead(frame, name);
+        } else {
+            return RFrame.read(frame, name);
+        }
+    }
+
+    @Override
+    public boolean exists(RSymbol name, boolean inherits) {
+        Utils.check(frame != null);
+        if (!inherits) {
+            return RFrame.localExists(frame, name);
+        } else {
+            return RFrame.exists(frame, name);
+        }
     }
 
 }

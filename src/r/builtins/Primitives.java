@@ -55,9 +55,11 @@ public class Primitives {
         add("diag<-", 2, 2, Diagonal.REPLACEMENT_FACTORY);
         add("dim", 1, 1, Dimensions.DIM_FACTORY);
         add("double", 0, 1, ArrayConstructor.DOUBLE_FACTORY);
+        add("get", 1, 5, Environment.GET_FACTORY);
         add("gregexpr", 2, 6, RegExpr.GREGEXPR_FACTORY);
         add("gsub", 3, 7, Sub.GSUB_FACTORY);
         add("emptyenv", 0, 0, Environment.EMPTYENV_FACTORY);
+        add("exists", 1, 6, Environment.EXISTS_FACTORY);
         add("file", 0, 5, OpenConnection.FILE_FACTORY);
         add("flush", 1, 1, ConnectionOperation.FLUSH_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);

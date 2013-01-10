@@ -95,6 +95,37 @@ public class Environment {
         }
     };
 
+    public static boolean parseInherits(RAny arg, RContext context, ASTNode ast) {
+        RLogical larg = arg.asLogical();
+        int size = larg.size();
+        if (size > 0) {
+            int v = larg.getLogical(0);
+            if (v != RLogical.NA) {
+                return v == RLogical.TRUE;
+            }
+        }
+        throw RError.getInvalidArgument(ast, "inherits");
+    }
+
+    public static REnvironment parseEnvir(RAny arg, RContext context, ASTNode ast) {
+        if (arg instanceof REnvironment) {
+            return (REnvironment) arg;
+        }
+        throw RError.getInvalidArgument(ast,  "envir");
+    }
+
+    public static REnvironment extractEnvironment(RAny envir, RAny pos, Frame frame, RContext context, ASTNode ast) {
+        if (envir != null) {
+            return parseEnvir(envir, context, ast);
+        } else {
+            if (pos != null) {
+                return asEnvironment(context, frame, ast, pos, true);
+            } else {
+                return frame == null ? REnvironment.GLOBAL : RFrame.getEnvironment(frame);
+            }
+        }
+    }
+
     public static final CallFactory ASSIGN_FACTORY = new CallFactory() {
 
         // "immediate" argument is ignored by GNU-R
@@ -123,25 +154,6 @@ public class Environment {
             throw RError.getInvalidFirstArgument(ast);
         }
 
-        private REnvironment parseEnvir(RAny arg, RContext context, ASTNode ast) {
-            if (arg instanceof REnvironment) {
-                return (REnvironment) arg;
-            }
-            throw RError.getInvalidArgument(ast,  paramNames[IENVIR]);
-        }
-
-        private boolean parseInherits(RAny arg, RContext context, ASTNode ast) {
-            RLogical larg = arg.asLogical();
-            int size = larg.size();
-            if (size > 0) {
-                int v = larg.getLogical(0);
-                if (v != RLogical.NA) {
-                    return v == RLogical.TRUE;
-                }
-            }
-            throw RError.getInvalidArgument(ast, paramNames[IINHERITS]);
-        }
-
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
@@ -163,16 +175,9 @@ public class Environment {
                     RSymbol name = parseX(args[paramPositions[IX]], context, ast);
                     RAny value = args[paramPositions[IVALUE]];
 
-                    REnvironment envir;
-                    if (provided[IENVIR]) {
-                        envir = parseEnvir(args[paramPositions[IENVIR]], context, ast);
-                    } else {
-                        if (provided[IPOS]) {
-                            envir = asEnvironment(context, frame, ast, args[paramPositions[IPOS]], true);
-                        } else {
-                            envir = frame == null ? REnvironment.GLOBAL : RFrame.getEnvironment(frame);
-                        }
-                    }
+                    RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
+                    RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
                     boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
                     envir.assign(name, value, inherits);
                     return value;
@@ -180,6 +185,118 @@ public class Environment {
             };
         }
     };
+
+ // NOTE: get and assign have different failure modes for X
+    public static RSymbol parseXSilent(RAny arg, RContext context, ASTNode ast) {
+        if (arg instanceof RString) {
+            RString sarg = (RString) arg;
+            int size = sarg.size();
+            if (size > 0) {
+                String s = sarg.getString(0);
+                return RSymbol.getSymbol(s);
+            }
+        }
+        throw RError.getInvalidFirstArgument(ast);
+    }
+
+    public static final CallFactory GET_FACTORY = new CallFactory() {
+
+        private final String[] paramNames = new String[] {"x", "pos", "envir", "mode", "inherits"};
+
+        private final int IX = 0;
+        private final int IPOS = 1;
+        private final int IENVIR = 2;
+        private final int IMODE = 3;
+        private final int IINHERITS = 4;
+
+        private final boolean DEFAULT_INHERITS = true;
+
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (!provided[IX]) {
+                BuiltIn.missingArg(call, paramNames[IX]);
+            }
+            if (provided[IMODE]) {
+                Utils.nyi();
+            }
+
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+
+                    RSymbol name = parseXSilent(args[paramPositions[IX]], context, ast);
+
+                    RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
+                    RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
+
+                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
+
+                    RAny res = envir.get(name, inherits);
+                    if (!inherits || res != null) { // FIXME: fix this for get on toplevel with inherits == false
+                        return res;
+                    } else {
+                        return ReadVariable.readNonVariable(ast, name);
+                    }
+                }
+            };
+        }
+    };
+
+    public static final CallFactory EXISTS_FACTORY = new CallFactory() {
+
+        private final String[] paramNames = new String[] {"x", "where", "envir", "frame", "mode", "inherits"};
+
+        private final int IX = 0;
+        private final int IWHERE = 1;
+        private final int IENVIR = 2;
+        private final int IFRAME = 3;
+        private final int IMODE = 4;
+        private final int IINHERITS = 5;
+
+        private final boolean DEFAULT_INHERITS = true;
+
+        @Override
+        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+
+            final boolean[] provided = a.providedParams;
+            final int[] paramPositions = a.paramPositions;
+
+            if (!provided[IX]) {
+                BuiltIn.missingArg(call, paramNames[IX]);
+            }
+            if (provided[IFRAME] || provided[IMODE]) {
+                Utils.nyi();
+            }
+
+            return new BuiltIn(call, names, exprs) {
+                @Override
+                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                    RSymbol name = parseXSilent(args[paramPositions[IX]], context, ast);
+
+                    // FIXME: add support for frame argument
+                    RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
+                    RAny posArg = provided[IWHERE] ? args[paramPositions[IWHERE]] : null;
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
+                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
+
+                    boolean res = envir.exists(name, inherits);
+                    if (res) {
+                        return RLogical.BOXED_TRUE;
+                    }
+                    // TODO: handle top-level
+                    return RLogical.BOXED_FALSE;
+                }
+            };
+        }
+    };
+
 
     public static REnvironment asEnvironment(RContext context, Frame frame, ASTNode ast, RAny arg) {
         return asEnvironment(context, frame, ast, arg, false);

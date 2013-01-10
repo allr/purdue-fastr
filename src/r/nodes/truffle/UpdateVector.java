@@ -134,7 +134,7 @@ public abstract class UpdateVector extends BaseR {
             }
             RAny newBase = execute(context, base, index, value);
             if (newBase != base) {
-                RFrame.writeInTopLevelRef(var, newBase);
+                RFrame.writeToTopLevelRef(var, newBase);
             }
         }
         return value;

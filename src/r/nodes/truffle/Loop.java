@@ -189,7 +189,7 @@ public abstract class Loop extends BaseR {
                         final int step = sval.step();
                         try {
                             for (int i = from;; i += step) {
-                                RFrame.writeInTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
+                                RFrame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -271,7 +271,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeInTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
+                                RFrame.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }

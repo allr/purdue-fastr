@@ -44,7 +44,7 @@ public abstract class SuperWriteVariable extends BaseR {
                         return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, pos), "install WriteViaWriteSet from SuperWriteVariable", context, frame);
                     }
 
-                    ReadSetEntry rse = RFrame.getRSEntry(frame, symbol);
+                    ReadSetEntry rse = RFrame.getRSEntry(parentFrame, symbol);
                     if (rse == null) {
                         return replaceAndExecute(getWriteToTopLevel(ast, symbol, expr), "install WriteToTopLevel from SuperWriteVariable", context, frame);
                     } else {
