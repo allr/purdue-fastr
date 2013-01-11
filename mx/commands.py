@@ -1,4 +1,8 @@
 
+#
+# FIXME: many benchmarks use fasta output as input, should have a generic runner for these benchmarks
+#
+
 import os, sys, shutil, hashlib;
 from os.path import exists, join;
 import mx;
@@ -25,7 +29,8 @@ def mx_init():
       'rpidigits': [rpidigitsServer, '[size]'],
       'rregexdna': [rregexdnaServer, '[size]'],
       'rmandelbrot': [rmandelbrotServer, '[size]'],      
-      'rreversecomplement': [reversecomplementServer, '[size]'],            
+      'rreversecomplement': [rreversecomplementServer, '[size]'],
+      'rknucleotide': [rknucleotideServer, '[size]'],      
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -109,9 +114,13 @@ def rmandelbrotServer(args):
   """Run Mandelbrot with the HotSpot server VM"""  
   rmandelbrot(args, [], 'server')
 
-def reversecomplementServer(args):
+def rreversecomplementServer(args):
   """Run Reversecomplement with the HotSpot server VM"""  
   rreversecomplement(args, [], 'server')
+
+def rknucleotideServer(args):
+  """Run Knucleotide with the HotSpot server VM"""  
+  rknucleotide(args, [], 'server')
 
 def runittestServer(args):
   """Run unit tests with the HotSpot server VM"""
@@ -293,6 +302,30 @@ def rreversecomplement(args, vmArgs, vm):
   shutil.copyfile(source, tmp)
   with open(tmp, "a") as f:
     f.write("reversecomplement(\"" + input + "\")\n")
+
+  if mx._opts.verbose:
+	print("Input file " + tmp + ": " + arg);
+  
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
+  rconsole(vmArgs, vm, ['-f', tmp]);
+
+def rknucleotide(args, vmArgs, vm):
+  """Run Knucleotide benchmark using the given VM"""
+  
+  if (len(args)==0):
+    size = "5000000"
+  else:
+    size = args[0]
+    
+  input = getFastaOutput(size) 
+      
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "knucleotide", "knucleotide.r")
+  tmp = ".tmp.knucleotide.torun.r"
+
+  shutil.copyfile(source, tmp)
+  with open(tmp, "a") as f:
+    f.write("knucleotide(\"" + input + "\")\n")
 
   if mx._opts.verbose:
 	print("Input file " + tmp + ": " + arg);

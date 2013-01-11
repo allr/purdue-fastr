@@ -685,6 +685,7 @@ public final class RFrame  {
             System.arraycopy(values, 0, newValues, 0, used);
             names = newNames;
             values = newValues;
+            capacity = newCap;
         }
 
         private RSymbol[] validNames() { // TODO: revisit when deletion is implemented

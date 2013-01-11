@@ -240,6 +240,12 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ ( sapply(1:3, function(i) { list(xxx=1:i) } )) }", "$xxx\n1L\n\n$xxx\n1L, 2L\n\n$xxx\n1L, 2L, 3L");
         assertEval("{ sapply(1:3, function(i) { if (i < 3) { list(xxx=1) } else {list(2)} }) }", "$xxx\n1.0\n\n$xxx\n1.0\n\n[[3]]\n2.0");
         assertEval("{ ( sapply(1:3, function(i) { if (i < 3) { c(xxx=1) } else {c(2)} })) }", "xxx xxx    \n1.0 1.0 2.0");
+        assertEval("{ f <- function() { lapply(c(X=\"a\",Y=\"b\"), function(x) { c(a=x) })  } ; f() }", "$X\n  a\n\"a\"\n\n$Y\n  a\n\"b\"");
+        assertEval("{ f <- function() { sapply(c(1,2), function(x) { c(a=x) })  } ; f() }", "  a   a\n1.0 2.0");
+        assertEval("{ f <- function() { sapply(c(X=1,Y=2), function(x) { c(a=x) })  } ; f() }", "X.a Y.a\n1.0 2.0");
+        assertEval("{ f <- function() { sapply(c(\"a\",\"b\"), function(x) { c(a=x) })  } ; f() }", "a.a b.a\n\"a\" \"b\"");
+        assertEval("{ f <- function() { sapply(c(X=\"a\",Y=\"b\"), function(x) { c(a=x) })  } ; f() }", "X.a Y.a\n\"a\" \"b\"");
+        assertEval("{ sapply(c(\"a\",\"b\",\"c\"), function(x) { x }) }", "  a   b   c\n\"a\" \"b\" \"c\"");
     }
 
     @Test

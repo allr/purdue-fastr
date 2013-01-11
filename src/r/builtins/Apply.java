@@ -179,7 +179,7 @@ public class Apply {
                 firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
                 content[i] = (RAny) callNode.execute(context, frame);
             }
-            return RList.RListFactory.getFor(content);
+            return RList.RListFactory.getFor(content, null, l.names());
         }
 
         public Specialized createSpecialized(RAny argxTemplate) {
@@ -197,7 +197,7 @@ public class Apply {
                             firstArgProvider.setValue(x.getRAny(i));
                             content[i] = (RAny) callNode.execute(context, frame);
                         }
-                        return RList.RListFactory.getFor(content);
+                        return RList.RListFactory.getFor(content, null, x.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
@@ -216,7 +216,7 @@ public class Apply {
                             firstArgProvider.setValue(x.boxedGet(i));
                             content[i] = (RAny) callNode.execute(context, frame);
                         }
-                        return RList.RListFactory.getFor(content);                    }
+                        return RList.RListFactory.getFor(content, null, x.names());                    }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
             }
@@ -282,7 +282,7 @@ public class Apply {
         }
     }
 
-        // FIXME: should move these iterators to RArray ?
+        // FIXME: should move these iterators to RArray ? (though note that the names semantics is sapply specific)
     public abstract static class ArgIterator {
         ValueProvider argProvider;
         int size;
@@ -292,6 +292,10 @@ public class Apply {
         public int size() {
             return size;
         }
+        public abstract RArray.Names names();
+        public abstract RString stringNames();
+        public abstract boolean hasNames();
+
         public static ArgIterator create(RAny sourceTemplate) {
             if (sourceTemplate instanceof IntImpl.RIntSequence) {
                 return new IntSequence();
@@ -299,8 +303,11 @@ public class Apply {
             if (sourceTemplate instanceof RList) {
                 return new List();
             }
+            if (sourceTemplate instanceof RString) {
+                return new StringArray();
+            }
             if (sourceTemplate instanceof RArray) {
-                return new NonlistArray();
+                return new NonlistNonstringArray();
             }
             return new Generic(); // this will fail later when called
         }
@@ -328,15 +335,78 @@ public class Apply {
                 argProvider.setValue(RInt.RIntFactory.getScalar(next));
                 next += step;
             }
+
+            @Override
+            public RArray.Names names() {
+                return null;
+            }
+
+            @Override
+            public RString stringNames() {
+                return null;
+            }
+
+            @Override
+            public boolean hasNames() {
+                return false;
+            }
         }
 
-        public static final class NonlistArray extends ArgIterator {
+        public static final class StringArray extends ArgIterator {
+            RString string;
+            int i;
+
+            @Override
+            public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
+                if (!(source instanceof RString)) {
+                    throw new UnexpectedResultException(null);
+                }
+                this.argProvider = provider;
+                this.string = (RString) source;
+                i = 0;
+                size = string.size();
+            }
+
+            @Override
+            public void setNext() {
+                argProvider.setValue(string.boxedGet(i));
+                i++;
+            }
+
+            @Override
+            public RArray.Names names() {
+                RArray.Names snames = string.names();
+                if (snames != null) {
+                    return snames;
+                } else {
+                    return RArray.Names.create(RSymbol.getSymbols(string));
+                }
+            }
+
+            @Override
+            public RString stringNames() {
+                RArray.Names snames = string.names();
+                if (snames != null) {
+                    return RString.RStringFactory.getFor(Convert.symbols2strings(snames.sequence()));
+                } else {
+                    return string;
+                }
+            }
+
+            @Override
+            public boolean hasNames() {
+                return size > 0;
+            }
+
+        }
+
+        public static final class NonlistNonstringArray extends ArgIterator {
             RArray array;
             int i;
 
             @Override
             public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
-                if (source instanceof RList || !(source instanceof RArray)) {
+                if (source instanceof RList || source instanceof RString || !(source instanceof RArray)) {
                     throw new UnexpectedResultException(null);
                 }
                 this.argProvider = provider;
@@ -349,6 +419,21 @@ public class Apply {
             public void setNext() {
                 argProvider.setValue(array.boxedGet(i));
                 i++;
+            }
+
+            @Override
+            public RArray.Names names() {
+                return array.names();
+            }
+
+            @Override
+            public RString stringNames() {
+                return RString.RStringFactory.getFor(Convert.symbols2strings(names().sequence()));
+            }
+
+            @Override
+            public boolean hasNames() {
+                return array.names() != null;
             }
         }
 
@@ -372,6 +457,21 @@ public class Apply {
                 argProvider.setValue(list.getRAny(i));
                 i++;
             }
+
+            @Override
+            public RArray.Names names() {
+                return list.names();
+            }
+
+            @Override
+            public RString stringNames() {
+                return RString.RStringFactory.getFor(Convert.symbols2strings(names().sequence()));
+            }
+
+            @Override
+            public boolean hasNames() {
+                return list.names() != null;
+            }
         }
 
         public static final class Generic extends ArgIterator {
@@ -393,6 +493,32 @@ public class Apply {
             public void setNext() {
                 argProvider.setValue(array.boxedGet(i));
                 i++;
+            }
+
+            @Override
+            public RArray.Names names() {
+                RArray.Names anames = array.names();
+                if (anames != null) {
+                    return anames;
+                }
+                if (array instanceof RString) {
+                    return RArray.Names.create(RSymbol.getSymbols((RString) array));
+                }
+                return null;
+            }
+
+            @Override
+            public RString stringNames() {
+                RArray.Names anames = array.names();
+                if (anames != null) {
+                    return RString.RStringFactory.getFor(Convert.symbols2strings(array.names().sequence()));
+                }
+                return (RString) array;
+            }
+
+            @Override
+            public boolean hasNames() {
+                return array.names() != null || (array instanceof RString && size > 0);
             }
         }
     }
@@ -416,16 +542,50 @@ public class Apply {
         }
 
         // FIXME: this will be slow (a second pass through the results array)
-        public static RArray.Names extractNames(RAny[] results, int size) {
+        public static RArray.Names extractNames(ArgIterator argIterator, boolean resultsHaveNames, RAny[] results, int size) {
+            boolean argHasNames = argIterator.hasNames();
+            if (!argHasNames) {
+                if (!resultsHaveNames) {
+                    return null;
+                }
+                // just names from results
+                RSymbol[] symbols = new RSymbol[size];
+                for (int i = 0; i < size; i++) {
+                    RArray a = (RArray) results[i];
+                    RArray.Names n = a.names();
+                    if (n != null) {
+                        symbols[i] = n.sequence()[0];
+                    } else {
+                        symbols[i] = RSymbol.EMPTY_SYMBOL;
+                    }
+                }
+                return RArray.Names.create(symbols);
+            }
+            // argNames != null
+            if (!resultsHaveNames) {
+                return argIterator.names();
+            }
+            // merge names
+            RString argNames = argIterator.stringNames();
             RSymbol[] symbols = new RSymbol[size];
             for (int i = 0; i < size; i++) {
+                String astr = argNames.getString(i);
                 RArray a = (RArray) results[i];
                 RArray.Names n = a.names();
                 if (n != null) {
-                    symbols[i] = n.sequence()[0];
+                    symbols[i] = RSymbol.getSymbol(astr + "." + n.sequence()[0].pretty());
                 } else {
-                    symbols[i] = RSymbol.EMPTY_SYMBOL;
+                    symbols[i] = RSymbol.getSymbol(astr);
                 }
+            }
+            return RArray.Names.create(symbols);
+        }
+
+        public static RArray.Names mergeNames(RString argNames, RSymbol[] rnames, int size) {
+            RSymbol[] symbols = new RSymbol[size];
+            for (int i = 0; i < size; i++) {
+                String astr = argNames.getString(i);
+                symbols[i] = RSymbol.getSymbol(astr + "." + rnames[i].pretty());
             }
             return RArray.Names.create(symbols);
         }
@@ -595,9 +755,9 @@ public class Apply {
                 }
 
             } else {
-                // result is a vector
+                // result is a vector (or list) - not a matrix
                 if (hasMultipleSizes) {
-                    return RList.RListFactory.getFor(content); // no names for the outer list here
+                    return RList.RListFactory.getFor(content, null, argIterator.names()); // result names not propagated
                 }
                 if (hasList) {
                     if (!notAllScalarLists) { // all elements are scalar lists
@@ -618,10 +778,14 @@ public class Apply {
                                     symbols[i] = RSymbol.EMPTY_SYMBOL;
                                 }
                             }
-                            return RList.RListFactory.getFor(content, null, RArray.Names.create(symbols));
+                            if (!argIterator.hasNames()) {
+                                return RList.RListFactory.getFor(content, null, RArray.Names.create(symbols));
+                            }
+                            return RList.RListFactory.getFor(content, null, mergeNames(argIterator.stringNames(), symbols, xsize));
                         }
+
                     }
-                    return RList.RListFactory.getFor(content);
+                    return RList.RListFactory.getFor(content, null, extractNames(argIterator, hasNames, content, xsize));
                 }
 
                 // this could be written using asXXX (but much slower)
@@ -644,7 +808,7 @@ public class Apply {
                             values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RString.RStringFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RString.RStringFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
                 if (hasComplex) {
                     double[] values = new double[2 * xsize];
@@ -664,7 +828,7 @@ public class Apply {
                             values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RComplex.RComplexFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RComplex.RComplexFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
                 if (hasDouble) {
                     double[] values = new double[xsize];
@@ -680,7 +844,7 @@ public class Apply {
                             values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RDouble.RDoubleFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RDouble.RDoubleFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
                 if (hasInt) {
                     int[] values = new int[xsize];
@@ -694,7 +858,7 @@ public class Apply {
                             values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RInt.RIntFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RInt.RIntFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
                 if (hasLogical) {
                     int[] values = new int[xsize];
@@ -706,7 +870,7 @@ public class Apply {
                             values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
                         }
                     }
-                    return RLogical.RLogicalFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RLogical.RLogicalFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
                 if (hasRaw) {
                     byte[] values = new byte[xsize];
@@ -714,7 +878,7 @@ public class Apply {
                         RAny v = content[i];
                         values[i] = ((RRaw) v).getRaw(0);
                     }
-                    return RRaw.RRawFactory.getFor(values, null, hasNames ? extractNames(content, xsize) : null);
+                    return RRaw.RRawFactory.getFor(values, null, extractNames(argIterator, hasNames, content, xsize));
                 }
             }
             return RList.EMPTY;
@@ -765,7 +929,7 @@ public class Apply {
                                 throw new UnexpectedResultException(new PartialResult(RDouble.RDoubleFactory.getFor(content), i, v));
                             }
                         }
-                        return RDouble.RDoubleFactory.getFor(content);
+                        return RDouble.RDoubleFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
@@ -780,12 +944,12 @@ public class Apply {
                             argIterator.setNext();
                             RAny v = (RAny) sapply.callNode.execute(context, frame);
                             if (v instanceof ScalarIntImpl) {
-                                content[i] = ((ScalarIntImpl) v).getInt();
+                               content[i] = ((ScalarIntImpl) v).getInt();
                             } else { // NOTE: can also add Logical support here
                                throw new UnexpectedResultException(new PartialResult(RInt.RIntFactory.getFor(content), i,  v));
                             }
                         }
-                        return RInt.RIntFactory.getFor(content);
+                        return RInt.RIntFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
@@ -805,7 +969,7 @@ public class Apply {
                                 throw new UnexpectedResultException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
                             }
                         }
-                        return RLogical.RLogicalFactory.getFor(content);
+                        return RLogical.RLogicalFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
@@ -825,7 +989,7 @@ public class Apply {
                                 throw new UnexpectedResultException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
                             }
                         }
-                        return RString.RStringFactory.getFor(content);
+                        return RString.RStringFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RString>");
@@ -847,7 +1011,7 @@ public class Apply {
                                 throw new UnexpectedResultException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
                             }
                         }
-                        return RComplex.RComplexFactory.getFor(content);
+                        return RComplex.RComplexFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RComplex>");
@@ -879,7 +1043,7 @@ public class Apply {
                         if (!returnsList) {
                             throw new UnexpectedResultException(content);
                         }
-                        return RList.RListFactory.getFor(content);
+                        return RList.RListFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
@@ -899,12 +1063,12 @@ public class Apply {
                                 throw new UnexpectedResultException(new PartialResult(RRaw.RRawFactory.getFor(content), i, v));
                             }
                         }
-                        return RRaw.RRawFactory.getFor(content);
+                        return RRaw.RRawFactory.getFor(content, null, argIterator.names());
                     }
                 };
                 return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RRaw>");
             }
-            return null;
+            return null; // FIXME: should return generic by default?
         }
 
         public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
