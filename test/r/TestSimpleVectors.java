@@ -111,6 +111,14 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ a <- c(1,2,3) ; b <- a; a[1] <- 4L; a }", "4.0, 2.0, 3.0");
         assertEval("{ a <- c(1,2,3) ; b <- a; a[2] <- 4L; a }", "1.0, 4.0, 3.0");
         assertEval("{ a <- c(1,2,3) ; b <- a; a[3] <- 4L; a }", "1.0, 2.0, 4.0");
+        // logical value inserted to double vector
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[1]] <- TRUE; a }","1.0, 2.2, 2.3");
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[2]] <- TRUE; a }","2.1, 1.0, 2.3");
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[3]] <- TRUE; a }","2.1, 2.2, 1.0");
+        // logical value inserted into logical vector
+        assertEval("{ a <- c(TRUE,TRUE,TRUE); b <- a; a[[1]] <- FALSE; a }", "FALSE, TRUE, TRUE");
+        assertEval("{ a <- c(TRUE,TRUE,TRUE); b <- a; a[[2]] <- FALSE; a }", "TRUE, FALSE, TRUE");
+        assertEval("{ a <- c(TRUE,TRUE,TRUE); b <- a; a[[3]] <- FALSE; a }", "TRUE, TRUE, FALSE");
         assertEval("{ x<-c(1,2,3,4,5); x[3:4]<-c(300L,400L); x }", "1.0, 2.0, 300.0, 400.0, 5.0");
         assertEval("{ x<-c(1,2,3,4,5); x[4:3]<-c(300L,400L); x }", "1.0, 2.0, 400.0, 300.0, 5.0");
         assertEval("{ x<-1:5; x[4:3]<-c(300L,400L); x }", "1L, 2L, 400L, 300L, 5L");
