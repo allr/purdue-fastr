@@ -50,6 +50,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ logical() }", "logical(0)");
         assertEval("{ double(3) }", "0.0, 0.0, 0.0");
         assertEval("{ logical(3L) }", "FALSE, FALSE, FALSE");
+        assertEval("{ character(1L) }", "\"\"");
     }
 
     @Test

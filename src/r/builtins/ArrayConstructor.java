@@ -59,7 +59,11 @@ public class ArrayConstructor {
                         return RString.EMPTY;
                     }
                     int len = extractArrayLength(args[0], ast);
-                    return RString.RStringFactory.getUninitializedArray(len);
+                    String[] content = new String[len];
+                    for (int i = 0; i < len; i++) {
+                        content[i] = "";
+                    }
+                    return RString.RStringFactory.getFor(content);
                 }
             };
         }

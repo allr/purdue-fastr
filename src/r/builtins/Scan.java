@@ -1,5 +1,6 @@
 package r.builtins;
 
+import java.io.*;
 import java.util.*;
 
 import com.oracle.truffle.runtime.*;
@@ -149,6 +150,21 @@ public class Scan {
         return null;
     }
 
+    public static boolean is_white(int c) {
+        return c == '\r' || c == '\n' || c == '\t' || c == ' ';
+    }
+
+    public static int skip_whites(Reader reader) throws IOException {
+        int c;
+        for (;;) {
+            c = reader.read();
+            if (!is_white(c)) {
+                return c;
+
+            }
+        }
+     }
+
     public static final CallFactory FACTORY = new CallFactory() {
 
         @Override
@@ -206,20 +222,44 @@ public class Scan {
                     }
 
                     try {
-                        Scanner scanner = new Scanner(con.reader(ast));
+                        // TODO: replace this primitive scanning by something more general
+                        // note that we cannot simply use Scan because it would buffer too much data (Scan cannot push its remaining buffered data back to the
+                        // underlying BufferedReader ; probably will have to implement a custom BufferedScanner for R
+
+                        Reader reader = con.reader(ast);
                         ArrayList<String> buf = new ArrayList<String>();
                         int nread = 0;
-                        while (scanner.hasNext()) {
-                            buf.add(scanner.next());
-                            nread++;
-                            if (nread == nmax) {
-                                break;
+                        StringBuilder item = new StringBuilder();
+                        int c;
+                        c = skip_whites(reader);
+                        if (c != -1) {
+                            for (;;) {
+                                if (is_white(c)) {
+                                    buf.add(item.toString());
+                                    nread++;
+                                    if (nread == nmax) {
+                                        break;
+                                    }
+                                    c = skip_whites(reader);
+                                    item = new StringBuilder(); // TODO: get rid of allocation
+                                    continue;
+                                }
+                                if (c == -1) {
+                                    buf.add(item.toString());
+                                    nread++;
+                                    break;
+                                }
+                                item.append((char) c);
+                                c = reader.read();
                             }
                         }
+
                         if (!quiet) {
                             Console.println(String.format("Read %d item%s.", nread, nread == 1 ? "" : "s"));
                         }
                         return scan(buf, context, ast, what);
+                    } catch (IOException e) {
+                        throw RError.getGenericError(ast, e.toString());
                     } finally {
                         if (!wasOpen) {
                             con.close(ast);
