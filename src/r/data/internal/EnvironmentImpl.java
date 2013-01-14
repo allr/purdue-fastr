@@ -132,8 +132,6 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public void assign(RSymbol name, RAny value, boolean inherits) {
-        Utils.check(frame != null);
-        // TODO: add hashing
         if (!inherits) {
             RFrame.localWrite(frame, name, value);
             return;
@@ -144,7 +142,6 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public RAny get(RSymbol name, boolean inherits) {
-        Utils.check(frame != null);
         if (!inherits) {
             return RFrame.localRead(frame, name);
         } else {
@@ -154,7 +151,6 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public boolean exists(RSymbol name, boolean inherits) {
-        Utils.check(frame != null);
         if (!inherits) {
             return RFrame.localExists(frame, name);
         } else {
@@ -164,8 +160,54 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public RSymbol[] ls() {
-        Utils.check(frame != null);
         return RFrame.listSymbols(frame);
     }
 
+    // a custom environment has no function (no read set or write set)
+    // it always has an extension
+    public static class Custom extends EnvironmentImpl implements REnvironment {
+
+        public Custom(Frame frame) {
+            super(frame);
+        }
+
+        public static Custom create(Frame parentFrame, boolean hash, int hashSize) {
+            Frame newFrame = new Frame(RFrame.RESERVED_SLOTS, parentFrame);
+            newFrame.setObject(RFrame.FUNCTION_SLOT, REnvironment.DUMMY_FUNCTION);
+            if (hash) {
+                RFrame.installHashedExtension(newFrame, hashSize);
+            } else {
+                RFrame.installExtension(newFrame);
+            }
+            return new Custom(newFrame);
+        }
+
+        @Override
+        public void assign(RSymbol name, RAny value, boolean inherits) {
+            if (!inherits) {
+                RFrame.customLocalWrite(frame, name, value);
+                return;
+            } else {
+                RFrame.customReflectiveInheritsWrite(frame, name, value);
+            }
+        }
+
+        @Override
+        public RAny get(RSymbol name, boolean inherits) {
+            if (!inherits) {
+                return RFrame.customLocalRead(frame, name);
+            } else {
+                return RFrame.customRead(frame, name);
+            }
+        }
+
+        @Override
+        public boolean exists(RSymbol name, boolean inherits) {
+            if (!inherits) {
+                return RFrame.customLocalExists(frame, name);
+            } else {
+                return RFrame.customExists(frame, name);
+            }
+        }
+    }
 }

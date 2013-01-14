@@ -43,7 +43,7 @@ public class Environment {
         private boolean parseHash(RAny arg, RContext context, ASTNode ast) { // not exactly R semantics
             RInt i = Convert.coerceToIntWarning(arg, context, ast);
             if (i.size() > 0 && i.getInt(0) != 0) {
-                return false;
+                return true;
             }
             return DEFAULT_HASH;
         }
@@ -79,19 +79,15 @@ public class Environment {
 
                     boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], context, ast) : DEFAULT_HASH;
                     Frame parentFrame = provided[IPARENT] ? parseParent(args[paramPositions[IPARENT]], context, ast).frame() : frame;
-                    Frame newFrame = new Frame(RFrame.RESERVED_SLOTS, parentFrame);
-                    newFrame.setObject(RFrame.FUNCTION_SLOT, REnvironment.DUMMY_FUNCTION);
 
-                    // TODO: finish this, currently no hashing is supported
                     int size = DEFAULT_SIZE;
                     if (hash) {
                         if (provided[ISIZE]) {
                             size = parseSize(args[paramPositions[ISIZE]], context, ast);
                         }
                     }
-                    // TODO: finish this, currently no hashing is supported
 
-                    return new EnvironmentImpl(newFrame);
+                    return EnvironmentImpl.Custom.create(parentFrame, hash, size);
                 }
             };
         }

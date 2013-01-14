@@ -1,5 +1,7 @@
 package r.data;
 
+import java.util.*;
+
 import r.*;
 import r.data.RFunction.ReadSetEntry;
 import r.data.internal.*;
@@ -50,6 +52,11 @@ public final class RFrame  {
         return null;
     }
 
+    public static RAny customLocalRead(Frame f, RSymbol sym) {
+        RFrameExtension ext = getExtension(f);
+        return ext.get(sym);
+    }
+
     public static RAny read(Frame f, RSymbol sym) {
         int pos = getPositionInWS(f, sym);
         RFunction.ReadSetEntry rse;
@@ -79,6 +86,22 @@ public final class RFrame  {
         return val;
     }
 
+    public static RAny customRead(Frame f, RSymbol sym) {
+        RAny val;
+        RFrameExtension ext = getExtension(f);
+        val = Utils.cast(ext.get(sym));
+        if (val != null) {
+            return val;
+        }
+        Frame parent = getParent(f);
+        if (parent != null) {
+            return read(parent, sym);
+        } else {
+            val = readFromTopLevel(sym);
+        }
+        return val;
+    }
+
     public static boolean localExists(Frame f, RSymbol symbol) {
         int pos = getPositionInWS(f, symbol);
         if (pos >= 0) {
@@ -89,6 +112,11 @@ public final class RFrame  {
             return ext.get(symbol) != null;
         }
         return false;
+    }
+
+    public static boolean customLocalExists(Frame f, RSymbol symbol) {
+        RFrameExtension ext = getExtension(f);
+        return ext.get(symbol) != null;
     }
 
     public static boolean exists(Frame f, RSymbol symbol) {
@@ -114,7 +142,19 @@ public final class RFrame  {
         } else {
             return readFromTopLevel(symbol) != null;
         }
+    }
 
+    public static boolean customExists(Frame f, RSymbol symbol) {
+        RFrameExtension ext = getExtension(f);
+        if (ext.get(symbol) != null) {
+            return true;
+        }
+        Frame parent = getParent(f);
+        if (parent != null) {
+            return exists(parent, symbol);
+        } else {
+            return readFromTopLevel(symbol) != null;
+        }
     }
 
     public static void localWrite(Frame f, RSymbol sym, RAny value) {
@@ -123,6 +163,16 @@ public final class RFrame  {
             writeAtRef(f, pos, value);
         } else {
             writeToExtension(f, sym, value); // marks the defining slot dirty
+        }
+    }
+
+    public static void customLocalWrite(Frame f, RSymbol sym, RAny value) {
+        RFrameExtension ext = getExtension(f);
+        int pos = ext.getPosition(sym);
+        if (pos >= 0) {
+            ext.writeAt(pos, value);
+        } else {
+            ext.put(f, sym, value);
         }
     }
 
@@ -151,6 +201,21 @@ public final class RFrame  {
                     superWriteToTopLevel(symbol, value);
                 }
             }
+        }
+    }
+
+    public static void customReflectiveInheritsWrite(Frame frame, RSymbol symbol, RAny value) { // used for assign with inherits == TRUE
+        RFrameExtension ext = getExtension(frame);
+        int epos = ext.getPosition(symbol);
+        if (epos != -1) {
+            ext.writeAt(epos, value);
+            return;
+        }
+        Frame parentFrame = getParent(frame);
+        if (parentFrame != null) {
+            reflectiveInheritsWrite(parentFrame, symbol, value);
+        } else {
+            superWriteToTopLevel(symbol, value);
         }
     }
 
@@ -588,8 +653,14 @@ public final class RFrame  {
         return Utils.cast(f.getObject(EXTENSION_SLOT));
     }
 
-    private static RFrameExtension installExtension(Frame f) {
+    public static RFrameExtension installExtension(Frame f) {
         RFrameExtension ext = new RFrameExtension();
+        f.setObject(EXTENSION_SLOT, ext);
+        return ext;
+    }
+
+    public static RFrameExtension installHashedExtension(Frame f, int size) {
+        RFrameExtension ext = new RFrameExtension.Hashed(size);
         f.setObject(EXTENSION_SLOT, ext);
         return ext;
     }
@@ -624,7 +695,7 @@ public final class RFrame  {
 
     private static class RFrameExtension {
 
-        private int used = 0;
+        protected int used = 0;
         private int capacity = 10;
         // NOTE: we need a third counter for the last value use for storing the lastUsed value in case of removal
 
@@ -635,7 +706,7 @@ public final class RFrame  {
         private RSymbol[] names = new RSymbol[capacity];
         private RAny[] values = new RAny[capacity];
 
-        private RAny get(RSymbol name) {
+        protected RAny get(RSymbol name) {
             int pos = getPosition(name);
             if (pos >= 0) {
                 return values[pos];
@@ -643,7 +714,7 @@ public final class RFrame  {
             return null;
         }
 
-        private int getPosition(RSymbol name) {
+        protected int getPosition(RSymbol name) {
             if (FunctionImpl.isIn(name.hash(), bloom)) {
                 RSymbol[] n = names;
                 for (int i = 0; i < used; i++) {
@@ -655,7 +726,7 @@ public final class RFrame  {
             return -1;
         }
 
-        private void put(Frame enclosing, RSymbol sym, RAny val) {
+        protected void put(Frame enclosing, RSymbol sym, RAny val) {
             int pos = used;
             if (pos == capacity) {
                 expand(capacity * 2);
@@ -665,7 +736,10 @@ public final class RFrame  {
             values[pos] = val;
             val.ref();
 
-            markDirty(enclosing, sym);
+            markDirty(getParent(enclosing), sym);
+                // the put method only gets called when the current write set does not have the value,
+                // so we do not have to check the current write set and can immediately go to the parent
+                // FIXME: handle environments that are not connected to top-level
             bloom |= sym.id();
         }
 
@@ -677,7 +751,7 @@ public final class RFrame  {
             }
         }
 
-        private void expand(int newCap) {
+        protected void expand(int newCap) {
             assert Utils.check(newCap > capacity);
             RSymbol[] newNames = new RSymbol[newCap];
             RAny[] newValues = new RAny[newCap];
@@ -688,7 +762,7 @@ public final class RFrame  {
             capacity = newCap;
         }
 
-        private RSymbol[] validNames() { // TODO: revisit when deletion is implemented
+        protected RSymbol[] validNames() { // TODO: revisit when deletion is implemented
             int nremoved = 0;
             for (int i = 0; i < used; i++) {
                 if (values[i] == null) {
@@ -709,6 +783,32 @@ public final class RFrame  {
                 return vnames;
             }
         }
+
+        private static final class Hashed extends RFrameExtension {
+
+            private HashMap<RSymbol, Integer> map; // FIXME: use a primitive map
+
+            private Hashed(int size) {
+                map = new HashMap<RSymbol, Integer>(size);
+            }
+
+            @Override
+            protected int getPosition(RSymbol name) {
+                Integer pos = map.get(name);
+                if (pos != null) {
+                    return pos.intValue();
+                } else {
+                    return -1;
+                }
+            }
+
+            @Override
+            protected void put(Frame enclosing, RSymbol sym, RAny val) {
+                map.put(sym, used);
+                super.put(enclosing, sym, val);
+            }
+        }
+
     }
 
     public static RSymbol[] listSymbols(Frame frame) {

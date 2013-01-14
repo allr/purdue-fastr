@@ -127,7 +127,7 @@ public interface RArray extends RAny {
     }
 
     public static final class MappedNames extends Names { // FIXME: implement a specialized hash map that takes less memory
-        HashMap<RSymbol, Integer> namesMap;
+        HashMap<RSymbol, Integer> namesMap; // NOTE: LinkedHashMap preserves the insertion order
 
         public MappedNames(RSymbol[] names) {
             super(names);
