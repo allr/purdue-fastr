@@ -54,7 +54,7 @@ public class Console {
                             forceVisible = true;
                         }
                     }, //
-                    new Option("--waitForKey", "Wait for presing 'return' before starting execution") {
+                    new Option("--waitForKey", "Wait for 'ENTER' before starting execution") {
 
                         @Override
                         protected void processOption(String name, String[] opts) {
@@ -94,8 +94,28 @@ public class Console {
 
     public static void main(String[] args) {
         try {
-            commandArgs = args;
-            trailingArgs = Option.processCommandLine(args, options);
+            int alen = args.length;
+            commandArgs = new String[alen + 1];
+            commandArgs[0] = "FAST-R";
+            System.arraycopy(args, 0, commandArgs, 1, alen);
+
+            int argsIndex = -1;
+            for (int i = 0; i < (alen - 1); i++) {
+                if ("--args".equals(args[i])) {
+                    argsIndex = i;
+                    break;
+                }
+            }
+            if (argsIndex == -1) {
+                trailingArgs = new String[0];
+            } else {
+                int tlen = alen - argsIndex - 1;
+                trailingArgs = new String[tlen];
+                System.arraycopy(args, argsIndex + 1, trailingArgs, 0, tlen);
+            }
+
+            Option.processCommandLine(args, options);
+
             // TODO store this in a more appropriate place (needed for commandArgs())
         } catch (Exception e1) {
             return;

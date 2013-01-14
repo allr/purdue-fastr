@@ -569,6 +569,11 @@ public class TestSimpleBuiltins extends TestBase {
         // hashmaps
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
+
+        // top-level lookups
+        assertEval("{ exists(\"sum\") }", "TRUE");
+        assertEval("{ exists(\"sum\", inherits = FALSE) }", "FALSE");
+        assertEval("{ x <- 1; exists(\"x\", inherits = FALSE) }", "TRUE");
     }
 
 }

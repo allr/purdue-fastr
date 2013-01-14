@@ -4,7 +4,10 @@ import com.oracle.truffle.runtime.*;
 
 import r.*;
 import r.Convert.ConversionStatus;
+import r.builtins.*;
 import r.data.*;
+import r.errors.*;
+import r.nodes.*;
 
 
 public class EnvironmentImpl extends BaseObject implements REnvironment {
@@ -21,7 +24,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
-    public String pretty() {
+    public String pretty() { // FIXME: clean this up when subclasses are implemented
         if (this == REnvironment.EMPTY) {
             return "<environment: R_EmptyEnv>";
         }
@@ -131,7 +134,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
-    public void assign(RSymbol name, RAny value, boolean inherits) {
+    public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
         if (!inherits) {
             RFrame.localWrite(frame, name, value);
             return;
@@ -163,6 +166,10 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return RFrame.listSymbols(frame);
     }
 
+    public static RAny readFromTopLevel(RSymbol sym) {
+        return sym.getValue();
+    }
+
     // a custom environment has no function (no read set or write set)
     // it always has an extension
     public static class Custom extends EnvironmentImpl implements REnvironment {
@@ -171,7 +178,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             super(frame);
         }
 
-        public static Custom create(Frame parentFrame, boolean hash, int hashSize) {
+        public static Custom create(Frame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
             Frame newFrame = new Frame(RFrame.RESERVED_SLOTS, parentFrame);
             newFrame.setObject(RFrame.FUNCTION_SLOT, REnvironment.DUMMY_FUNCTION);
             if (hash) {
@@ -179,11 +186,12 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             } else {
                 RFrame.installExtension(newFrame);
             }
+            RFrame.setRootEnvironment(newFrame, rootEnvironment);
             return new Custom(newFrame);
         }
 
         @Override
-        public void assign(RSymbol name, RAny value, boolean inherits) {
+        public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
             if (!inherits) {
                 RFrame.customLocalWrite(frame, name, value);
                 return;
@@ -208,6 +216,92 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             } else {
                 return RFrame.customExists(frame, name);
             }
+        }
+    }
+
+    public static class Global extends EnvironmentImpl implements REnvironment {
+
+        public Global() {
+            super(null);
+        }
+
+        @Override
+        public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
+            RFrame.writeToTopLevelCondRef(name, value);
+        }
+
+        @Override
+        public RAny get(RSymbol name, boolean inherits) {
+            if (!inherits) {
+                return readFromTopLevel(name);
+            } else {
+                RAny res = readFromTopLevel(name);
+                if (res != null) {
+                    return res;
+                }
+                // builtins
+                CallFactory callFactory = Primitives.getCallFactory(name, null);
+                if (callFactory != null) {
+                    return new BuiltInImpl(callFactory);
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        @Override
+        public boolean exists(RSymbol name, boolean inherits) {
+            if (!inherits) {
+                return readFromTopLevel(name) != null;
+            } else {
+                RAny res = readFromTopLevel(name);
+                if (res != null) {
+                    return true;
+                }
+                return Primitives.hasCallFactory(name, null);
+            }
+        }
+
+        @Override
+        public RSymbol[] ls() {
+            return RSymbol.listSymbols();
+        }
+
+        @Override
+        public String pretty() {
+            return "<environment: R_GlobalEnv>";
+        }
+    }
+
+    public static class Empty extends EnvironmentImpl implements REnvironment {
+
+        public Empty() {
+            super(null);
+        }
+
+        @Override
+        public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
+            throw RError.getAssignEmpty(ast);
+        }
+
+        @Override
+        public RAny get(RSymbol name, boolean inherits) {
+            return null;
+        }
+
+        @Override
+        public boolean exists(RSymbol name, boolean inherits) {
+            return false;
+        }
+
+        @Override
+        public RSymbol[] ls() {
+            return RSymbol.EMPTY_SYMBOL_ARRAY;
+        }
+
+        @Override
+        public String pretty() {
+            return "<environment: R_EmptyEnv>";
         }
     }
 }

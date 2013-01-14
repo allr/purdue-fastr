@@ -10,13 +10,13 @@ import com.oracle.truffle.runtime.*;
 public interface REnvironment extends RAny {
     String TYPE_STRING = "environment";
 
-    REnvironment EMPTY = new EnvironmentImpl(null);
-    REnvironment GLOBAL = new EnvironmentImpl(null);
+    REnvironment EMPTY = new EnvironmentImpl.Empty();
+    REnvironment GLOBAL = new EnvironmentImpl.Global();
 
     DummyFunction DUMMY_FUNCTION = new DummyFunction(); // a placeholder for no local variables, for Frames that do not belong to a real function
 
     Frame frame();
-    void assign(RSymbol name, RAny value, boolean inherits);
+    void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast);
     RAny get(RSymbol name, boolean inherits);
     boolean exists(RSymbol name, boolean inherits);
     RSymbol[] ls();
@@ -81,13 +81,11 @@ public interface REnvironment extends RAny {
 
         @Override
         public int nlocals() {
-            // TODO Auto-generated method stub
             return 0;
         }
 
         @Override
         public int nparams() {
-            // TODO Auto-generated method stub
             return 0;
         }
 

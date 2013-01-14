@@ -22,7 +22,7 @@ public abstract class ReadVariable extends BaseR {
         symbol = sym;
     }
 
-    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) {
+    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) { // FIXME: merge this with REnvironment.GLOBAL
         // builtins
         CallFactory callFactory = Primitives.getCallFactory(symbol, null);
         if (callFactory != null) {

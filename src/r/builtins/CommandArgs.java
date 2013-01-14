@@ -1,8 +1,8 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -17,9 +17,7 @@ public class CommandArgs {
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            if (a.providedParams.length == 1) {
+            if (names.length == 0) {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
@@ -29,20 +27,31 @@ public class CommandArgs {
                 };
             }
 
+            BuiltIn.ensureArgName(call, paramNames[0], names[0]);
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
-                    int trailingOnly;
+                    RLogical l;
                     if (x instanceof RLogical) {
-                        trailingOnly = ((RLogical) x).getLogical(0);
+                        l = (RLogical) x;
                     } else {
-                        trailingOnly = x.asLogical().getLogical(0);
+                        l = x.asLogical();
                     }
+                    int size = l.size();
+                    if (size == 0) {
+                        throw RError.getLengthZero(ast);
+                    }
+                    if (size > 1) {
+                        context.warning(ast, RError.LENGTH_GT_1);
+                    }
+                    int trailingOnly = l.getLogical(0);
                     if (trailingOnly == RLogical.TRUE) {
-                        return RString.RStringFactory.getFor(Console.trailingArgs);
+                        return RString.RStringFactory.getArray(Console.trailingArgs);
+                    } else if (trailingOnly == RLogical.FALSE) {
+                        return RString.RStringFactory.getArray(Console.commandArgs);
                     } else {
-                        return RString.RStringFactory.getFor(Console.commandArgs);
+                        throw RError.getUnexpectedNA(ast); // not always the same error message as with GNU-R
                     }
                 }
             };

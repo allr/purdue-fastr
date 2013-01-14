@@ -16,6 +16,7 @@ public final class RSymbol extends BaseObject implements RAny {
     private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
     public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
     public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
+    public static final RSymbol[] EMPTY_SYMBOL_ARRAY = new RSymbol[0];
 
     private RSymbol(String identifier) {
         name = identifier;
@@ -23,6 +24,10 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public static RSymbol getSymbol(String name) {
         return symbolTable.get(name);
+    }
+
+    public static RSymbol[] listSymbols() {
+        return symbolTable.list();
     }
 
     public static RSymbol[] getSymbols(String[] names) {
@@ -68,6 +73,11 @@ public final class RSymbol extends BaseObject implements RAny {
                 table.put(name, sym = new RSymbol(name));
             }
             return sym;
+        }
+
+        private RSymbol[] list() {
+            RSymbol[] res = new RSymbol[table.size()];
+            return table.values().toArray(res);
         }
     }
 

@@ -140,7 +140,7 @@ public abstract class Option {
 
     public static class Quiet extends Option {
 
-        // This class is only for convenience, it must not be instanciated in
+        // This class is only for convenience, it must not be instantiated in
         // a static context to avoid conflict with verbose.
         public Quiet() {
             super("--quiet", "Be quiet", 0);

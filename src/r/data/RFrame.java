@@ -8,13 +8,14 @@ import r.data.internal.*;
 
 import com.oracle.truffle.runtime.*;
 
+// TODO: finish implementation of root level (global environment, empty environment, correct behavior with super assignments, etc)
 public final class RFrame  {
 
     public static final int PARENT_SLOT = 0; // frame of lexically enclosing function (not caller frame), must match Frame.PARENT_FRAME_SLOT
     public static final int FUNCTION_SLOT = 1;
     public static final int EXTENSION_SLOT = 2;
     public static final int ENVIRONMENT_SLOT = 3;
-    public static final int RETURN_VALUE_SLOT = 4;
+    public static final int RETURN_VALUE_SLOT = 4; // also root environment
 
     /**
      * Number of reserved slots (i.e., last slot id + 1).
@@ -66,7 +67,7 @@ public final class RFrame  {
         } else if ((rse = getRSEntry(f, sym)) != null) {
             val = readViaReadSet(getParent(f), rse.frameHops - 1, rse.framePos, sym, f);
             if (val == null) {
-                val = readFromTopLevel(sym);
+                val = readFromRootLevel(f, sym);
             }
         } else {
             RFrameExtension ext = getExtension(f);
@@ -80,7 +81,7 @@ public final class RFrame  {
             if (parent != null) {
                 return read(parent, sym);
             } else {
-                val = readFromTopLevel(sym);
+                val = readFromRootLevel(f, sym);
             }
         }
         return val;
@@ -97,7 +98,7 @@ public final class RFrame  {
         if (parent != null) {
             return read(parent, sym);
         } else {
-            val = readFromTopLevel(sym);
+            val = readFromRootLevel(f, sym);
         }
         return val;
     }
@@ -140,7 +141,7 @@ public final class RFrame  {
         if (parent != null) {
             return exists(parent, symbol);
         } else {
-            return readFromTopLevel(symbol) != null;
+            return readFromRootLevel(f, symbol) != null;
         }
     }
 
@@ -153,7 +154,7 @@ public final class RFrame  {
         if (parent != null) {
             return exists(parent, symbol);
         } else {
-            return readFromTopLevel(symbol) != null;
+            return readFromRootLevel(f, symbol) != null;
         }
     }
 
@@ -221,9 +222,10 @@ public final class RFrame  {
 
     public static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0);
-        RAny val = readViaReadSet(getParent(f), hops - 1, pos, symbol, f);
+        Frame pf = getParent(f);
+        RAny val = readViaReadSet(pf, hops - 1, pos, symbol, f);
         if (val == null) {
-            val = readFromTopLevel(symbol);
+            val = readFromRootLevel(pf, symbol);
         }
         return val;
     }
@@ -248,10 +250,11 @@ public final class RFrame  {
 
     public static boolean existsViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0);
-        if (existsViaReadSet(getParent(f), hops - 1, pos, symbol, f)) {
+        Frame pf = getParent(f);
+        if (existsViaReadSet(pf, hops - 1, pos, symbol, f)) {
             return true;
         } else {
-            return readFromTopLevel(symbol) != null;
+            return readFromRootLevel(pf, symbol) != null;
         }
     }
 
@@ -287,7 +290,7 @@ public final class RFrame  {
         } else {
             val = readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
             if (val == null) {
-                val = readFromTopLevel(symbol);
+                val = readFromRootLevel(pf, symbol);
             }
         }
         return Utils.cast(val);
@@ -347,7 +350,7 @@ public final class RFrame  {
         if (sym.getVersion() != version) {
             return readFromExtensionsAndTopLevel(f, sym);
         } else {
-            return readFromTopLevel(sym);
+            return readFromRootLevel(f, sym);
         }
     }
 
@@ -423,8 +426,8 @@ public final class RFrame  {
         return true;
     }
 
-    private static RAny readFromTopLevel(RSymbol sym) {
-        return sym.value;
+    public static RAny readFromRootLevel(Frame f, RSymbol sym) {
+        return getRootEnvironment(f).get(sym, true);
     }
 
     public static RCallable matchFromExtensionsAndTopLevel(Frame f, RSymbol sym) {
@@ -569,8 +572,24 @@ public final class RFrame  {
         f.setObject(RETURN_VALUE_SLOT, value);
     }
 
+    public static void setRootEnvironment(Frame f, Object value) {
+        assert Utils.check(getParent(f) == null);
+        f.setObject(RETURN_VALUE_SLOT, value);
+    }
+
     public static Object getReturnValue(Frame f) {
         return f.getObject(RETURN_VALUE_SLOT);
+    }
+
+    public static REnvironment getRootEnvironment(Frame f) {
+        if (f == null) { // FIXME: get rid of this branch
+            return REnvironment.GLOBAL;
+        }
+        REnvironment env = (REnvironment) f.getObject(RETURN_VALUE_SLOT);
+        if (env == null) {  // FIXME: get rid of this branch
+            return REnvironment.GLOBAL;
+        }
+        return env;
     }
 
     public static RAny readFromExtension(Frame f, RSymbol sym, Frame stopFrame) { // It's public because of ReadVariable

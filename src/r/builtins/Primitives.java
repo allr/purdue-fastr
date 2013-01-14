@@ -114,6 +114,10 @@ public class Primitives {
         add("commandArgs", 0, 1, CommandArgs.FACTORY);
     }
 
+    public static boolean hasCallFactory(final RSymbol name, final RFunction enclosing) {
+        return Primitives.get(name, enclosing) != null;
+    }
+
     public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
         if (pe == null) {

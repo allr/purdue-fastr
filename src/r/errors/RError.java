@@ -81,6 +81,7 @@ public abstract class RError extends RuntimeException {
     public static final String ONLY_FIRST_VARIABLE_NAME = "only the first element is used as variable name";
     public static final String INVALID_FIRST_ARGUMENT = "invalid first argument";
     public static final String NO_ENCLOSING_ENVIRONMENT = "no enclosing environment";
+    public static final String ASSIGN_EMPTY = "cannot assign values in the empty environment";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -879,6 +880,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.NO_ENCLOSING_ENVIRONMENT;
+            }
+        };
+    }
+
+    public static RError getAssignEmpty(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ASSIGN_EMPTY;
             }
         };
     }

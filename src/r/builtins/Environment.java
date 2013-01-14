@@ -78,8 +78,20 @@ public class Environment {
                 public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
 
                     boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], context, ast) : DEFAULT_HASH;
-                    Frame parentFrame = provided[IPARENT] ? parseParent(args[paramPositions[IPARENT]], context, ast).frame() : frame;
-
+                    REnvironment rootEnvironment = null;
+                    Frame parentFrame = null;
+                    if (provided[IPARENT]) {
+                        REnvironment env = parseParent(args[paramPositions[IPARENT]], context, ast);
+                        parentFrame = env.frame();
+                        if (parentFrame == null) {
+                            rootEnvironment = env;
+                        }
+                    } else {
+                        parentFrame = frame;
+                        if (frame == null) {
+                            rootEnvironment = REnvironment.GLOBAL;
+                        }
+                    }
                     int size = DEFAULT_SIZE;
                     if (hash) {
                         if (provided[ISIZE]) {
@@ -87,7 +99,7 @@ public class Environment {
                         }
                     }
 
-                    return EnvironmentImpl.Custom.create(parentFrame, hash, size);
+                    return EnvironmentImpl.Custom.create(parentFrame, rootEnvironment, hash, size);
                 }
             };
         }
@@ -177,7 +189,7 @@ public class Environment {
                     RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
                     REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
                     boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
-                    envir.assign(name, value, inherits);
+                    envir.assign(name, value, inherits, ast);
                     return value;
                 }
             };
