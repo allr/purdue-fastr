@@ -93,6 +93,8 @@ public class Primitives {
         add("rep", 2, 2, Rep.REP_FACTORY);
         add("rep.int", 2, 2, Rep.REPINT_FACTORY);
         add("return", 0, 1, Return.FACTORY);
+        add("rev", 1, 1, Rev.FACTORY);
+        add("rev.default", 1, 1, Rev.FACTORY);
         add("rowMeans", 1, 3, ColumnsRowsStats.ROWMEANS_FACTORY);
         add("rowSums", 1, 3, ColumnsRowsStats.ROWSUMS_FACTORY);
         add("sapply", 2, -1, Apply.SAPPLY_FACTORY);

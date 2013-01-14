@@ -520,8 +520,9 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
-    public void testOther() throws RecognitionException {
-        assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
+    public void testRev() throws RecognitionException {
+        assertEval("{ rev(c(1+1i, 2+2i)) }", "2.0+2.0i, 1.0+1.0i");
+        assertEval("{ rev(1:3) }", "3L, 2L, 1L");
     }
 
     @Test
@@ -575,5 +576,11 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ exists(\"sum\", inherits = FALSE) }", "FALSE");
         assertEval("{ x <- 1; exists(\"x\", inherits = FALSE) }", "TRUE");
     }
+
+    @Test
+    public void testOther() throws RecognitionException {
+        assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
+    }
+
 
 }

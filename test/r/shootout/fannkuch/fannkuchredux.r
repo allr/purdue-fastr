@@ -8,10 +8,6 @@
 #   slightly hacked by Tomas
 # ------------------------------------------------------------------
 
-vecrev <- function(x) {
-  if (length(x)) x[length(x):1L] else x
-}
-
 fannkuch <- function(n) {
     one_two = c(1, 2)
     two_one = c(2, 1)
@@ -33,7 +29,7 @@ fannkuch <- function(n) {
             flip_count <- 1L
             while ((kk <- perm[[k]]) > 1L) {
                 k_range = 1:k
-                perm[k_range] <- vecrev(perm[k_range])
+                perm[k_range] <- rev.default(perm[k_range])
                 flip_count <- flip_count + 1L
                 k <- kk
                 kk <- perm[[kk]]
