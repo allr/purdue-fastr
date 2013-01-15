@@ -65,10 +65,7 @@ public final class RFrame  {
         if (pos >= 0) {
             return readViaWriteSet(f, pos, sym);
         } else if ((rse = getRSEntry(f, sym)) != null) {
-            val = readViaReadSet(getParent(f), rse.frameHops - 1, rse.framePos, sym, f);
-            if (val == null) {
-                val = readFromRootLevel(f, sym);
-            }
+            return readViaReadSetAndRootLevel(getParent(f), rse.frameHops - 1, rse.framePos, sym, f);
         } else {
             RFrameExtension ext = getExtension(f);
             if (ext != null) {
@@ -220,23 +217,49 @@ public final class RFrame  {
         }
     }
 
+    // in contrast to e.g. read, match can be called with a null frame
+    // FIXME: this may need to be adapted to work with eval
+    public static RCallable match(Frame frame, RSymbol symbol) {
+        if (frame == null) {
+            return REnvironment.GLOBAL.match(symbol);  // FIXME: get rid of this special case, FIX it for eval
+        }
+        Frame f = frame;
+
+        for (;;) {
+            int pos = RFrame.getPositionInWS(f, symbol);
+            if (pos >= 0) {
+                return RFrame.matchViaWriteSet(f, pos, symbol);
+            }
+
+            ReadSetEntry rse = RFrame.getRSEntry(f, symbol);
+            if (rse != null) {
+                return RFrame.matchViaReadSet(f, rse.frameHops, rse.framePos, symbol);
+            }
+
+            RFrameExtension ext = getExtension(f);
+            if (ext != null) {
+                RAny value = Utils.cast(ext.get(symbol));
+                if (value != null && value instanceof RCallable) {
+                    return (RCallable) value;
+                }
+            }
+            Frame parent = getParent(f);
+            if (parent == null) {
+                return matchFromRootLevel(f, symbol);
+            }
+            f = parent;
+        }
+    }
+
     public static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0);
         Frame pf = getParent(f);
-        RAny val = readViaReadSet(pf, hops - 1, pos, symbol, f);
-        if (val == null) {
-            val = readFromRootLevel(pf, symbol);
-        }
-        return val;
+        return readViaReadSetAndRootLevel(pf, hops - 1, pos, symbol, f);
     }
 
     public static RCallable matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol) {
         assert Utils.check(hops != 0);
-        RCallable val = matchViaReadSet(getParent(f), hops - 1, pos, symbol, f);
-        if (val == null) {
-            val = matchFromTopLevel(symbol);
-        }
-        return val;
+        return matchViaReadSet(getParent(f), hops - 1, pos, symbol, f);
     }
 
     public static boolean superWriteViaReadSet(Frame f, int hops, int pos, RSymbol symbol, RAny value) {
@@ -281,33 +304,26 @@ public final class RFrame  {
     }
 
     public static RAny readViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
-        Object val;
+        assert Utils.check(f != null);
 
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
-        Frame pf = getParent(f);
         if (rse == null) {
-              val = readFromExtensionsAndTopLevel(pf, symbol);
+            return readFromExtensionsAndRootLevel(f, symbol);
         } else {
-            val = readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
-            if (val == null) {
-                val = readFromRootLevel(pf, symbol);
-            }
+            Frame pf = getParent(f);
+            return readViaReadSetAndRootLevel(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         }
-        return Utils.cast(val);
     }
 
     public static RCallable matchViaWriteSetSlowPath(Frame f, int pos, RSymbol symbol) {
+        assert Utils.check(f != null);
+
         ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
-        Frame pf = getParent(f);
         if (rse == null) {
-            return matchFromExtensionsAndTopLevel(pf, symbol);
+            return matchFromExtensionsAndRootLevel(f, symbol);
         } else {
-            RCallable val = matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
-            if (val == null) {
-                return matchFromTopLevel(symbol);
-            } else {
-                return val;
-            }
+            Frame pf = getParent(f);
+            return matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         }
     }
 
@@ -337,20 +353,43 @@ public final class RFrame  {
         return superWriteToTopLevel(symbol, value);
     }
 
-    public static RAny readFromExtensionsAndTopLevel(Frame f, RSymbol sym) {
-        RAny val = readFromExtension(f, sym, null);
-        if (val != null) {
-            return val;
-        } else {
-            return sym.getValue();
+    public static RAny readFromExtensionsAndRootLevel(Frame childFrame, RSymbol symbol) {
+        assert Utils.check(childFrame != null);
+
+        Frame f = childFrame;
+        for (;;) {
+            Frame pf = getParent(f);
+            if (pf == null) {
+                return readFromRootLevel(f, symbol);
+            }
+            f = pf;
+            RFrameExtension ext = getExtension(f);
+            if (ext != null) {
+                RAny val = ext.get(symbol);
+                if (val != null) {
+                    return val;
+                }
+            }
         }
     }
 
-    public static RAny readFromTopLevel(Frame f, RSymbol sym, int version) {
-        if (sym.getVersion() != version) {
-            return readFromExtensionsAndTopLevel(f, sym);
-        } else {
-            return readFromRootLevel(f, sym);
+    public static RCallable matchFromExtensionsAndRootLevel(Frame childFrame, RSymbol symbol) {
+        assert Utils.check(childFrame != null);
+
+        Frame f = childFrame;
+        for (;;) {
+            Frame pf = getParent(f);
+            if (pf == null) {
+                return matchFromRootLevel(f, symbol);
+            }
+            f = pf;
+            RFrameExtension ext = getExtension(f);
+            if (ext != null) {
+                RAny val = ext.get(symbol);
+                if (val != null && val instanceof RCallable) {
+                    return (RCallable) val;
+                }
+            }
         }
     }
 
@@ -430,25 +469,13 @@ public final class RFrame  {
         return getRootEnvironment(f).get(sym, true);
     }
 
-    public static RCallable matchFromExtensionsAndTopLevel(Frame f, RSymbol sym) {
-        RCallable res = matchFromExtension(f, sym, null);
-        if (res != null) {
-            return res;
-        } else {
-            return matchFromTopLevel(sym);
-        }
+    private static RCallable matchFromRootLevel(Frame frame, RSymbol symbol) {
+        return getRootEnvironment(frame).match(symbol);
     }
 
-    private static RCallable matchFromTopLevel(RSymbol sym) {
-        RAny res = sym.value;
-        if (res instanceof RCallable) {
-            return (RCallable) res;
-        } else {
-            return null;
-        }
-    }
+    private static RAny readViaReadSetAndRootLevel(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
+        assert Utils.check(f != null);
 
-    private static RAny readViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
         if (hops == 0) {
             Object val;
             if (isDirty(f, pos)) {
@@ -464,19 +491,21 @@ public final class RFrame  {
             }
             Frame pf = getParent(f);
             if (pf == null) {
-                return null;
+                return readFromRootLevel(f, symbol);
             }
             ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
             if (rse == null) {
-                return readFromExtension(f, symbol, null);
+                return readFromExtensionsAndRootLevel(pf, symbol);
             }
-            return readViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
+            return readViaReadSetAndRootLevel(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         } else {
-            return readViaReadSet(getParent(f), hops - 1, pos, symbol, first);
+            return readViaReadSetAndRootLevel(getParent(f), hops - 1, pos, symbol, first);
         }
     }
 
     private static RCallable matchViaReadSet(Frame f, int hops, int pos, RSymbol symbol, Frame first) {
+        assert Utils.check(f != null);
+
         if (hops == 0) {
             if (isDirty(f, pos)) {
                 RCallable res = matchFromExtension(first, symbol, f);
@@ -490,11 +519,11 @@ public final class RFrame  {
             }
             Frame pf = getParent(f);
             if (pf == null) {
-                return null;
+                return matchFromRootLevel(f, symbol);
             }
             ReadSetEntry rse = getRSEFromCache(f, pos, symbol);
             if (rse == null) {
-                return matchFromExtension(f, symbol, null);
+                return matchFromExtensionsAndRootLevel(pf, symbol);
             }
             return matchViaReadSet(pf, rse.frameHops - 1, rse.framePos, symbol, pf);
         } else {

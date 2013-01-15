@@ -11,6 +11,8 @@ import r.nodes.truffle.*;
 
 public class Primitives {
 
+    public static final boolean STATIC_LOOKUP = false;
+
     private static Map<RSymbol, PrimitiveEntry> map;
     static {
         map = new HashMap<>();

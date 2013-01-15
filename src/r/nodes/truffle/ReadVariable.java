@@ -11,6 +11,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
+// TODO: needs to be updated with eval in mind (e.g. correct handling of top-level vs. empty environment)
 public abstract class ReadVariable extends BaseR {
 
     final RSymbol symbol;
@@ -22,7 +23,8 @@ public abstract class ReadVariable extends BaseR {
         symbol = sym;
     }
 
-    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) { // FIXME: merge this with REnvironment.GLOBAL
+    // FIXME: merge this with REnvironment.GLOBAL
+    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) {
         // builtins
         CallFactory callFactory = Primitives.getCallFactory(symbol, null);
         if (callFactory != null) {
@@ -45,6 +47,7 @@ public abstract class ReadVariable extends BaseR {
                     ReadSetEntry rse;
                     String reason;
 
+                    // FIXME: revisit this with eval in mind
                     if (frame == null) {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";

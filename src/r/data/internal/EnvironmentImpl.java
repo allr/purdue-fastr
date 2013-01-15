@@ -162,6 +162,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
+    public RCallable match(RSymbol name) {
+        return RFrame.match(frame, name);
+    }
+
+    @Override
     public RSymbol[] ls() {
         return RFrame.listSymbols(frame);
     }
@@ -217,6 +222,12 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
                 return RFrame.customExists(frame, name);
             }
         }
+
+        @Override
+        public RCallable match(RSymbol name) {
+            Utils.nyi("generic match");
+            return null;
+        }
     }
 
     public static class Global extends EnvironmentImpl implements REnvironment {
@@ -263,6 +274,21 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
+        public RCallable match(RSymbol name) {
+            RAny res = readFromTopLevel(name);
+            if (res != null && res instanceof RCallable) {
+                return (RCallable) res;
+            }
+            // builtins
+            CallFactory callFactory = Primitives.getCallFactory(name, null);
+            if (callFactory != null) {
+                return new BuiltInImpl(callFactory);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
         public RSymbol[] ls() {
             return RSymbol.listSymbols();
         }
@@ -292,6 +318,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         @Override
         public boolean exists(RSymbol name, boolean inherits) {
             return false;
+        }
+
+        @Override
+        public RCallable match(RSymbol name) {
+            return null;
         }
 
         @Override

@@ -206,7 +206,7 @@ sub_mag <- function(big, little) {
     return(result)
 }
 
-mysub <- function(x, y) {
+sub <- function(x, y) {
     if (y[[1]] == 0L)
         return(x)
     if (x[[1]] == 0L)
@@ -297,7 +297,7 @@ div_mag <- function(x_mag, y_mag) {
         if (le(mul(mid, y), x))
             lo <- mid
         else
-            hi <- mysub(mid, one)
+            hi <- sub(mid, one)
     }
     return(mag(lo))
 }
@@ -383,7 +383,7 @@ pidigits <- function(args) {
             n3a <- add(mul(n, THREE), a)
             t <- div(n3a, d)
 	    td = mul(t, d)
-            u <- add(mysub(n3a, td), n)
+            u <- add(sub(n3a, td), n)
             if (gt(d, u)) {
                 ns <- ns * 10L + to_int(t)
                 i <- i + 1L
@@ -395,7 +395,7 @@ pidigits <- function(args) {
                 }
                 if (i >= N)
                     break
-                a <- mysub(a, td)  # TODO use td
+                a <- sub(a, td)  # TODO use td
                 a <- mul(a, TEN)
                 n <- mul(n, TEN)
             }

@@ -5,15 +5,18 @@ import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.Colon;
 import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;
 import r.nodes.If;
 import r.nodes.Not;
 import r.nodes.Sequence;
+import r.nodes.Sub;
 import r.nodes.UpdateVector;
 import r.nodes.UnaryMinus;
 import r.nodes.truffle.*;
@@ -233,8 +236,14 @@ public class Truffleize implements Visitor {
         SplitArgumentList a = splitArgumentList(functionCall.getArgs(), true);
 
         RSymbol sym = functionCall.getName();
-        r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
-        if (factory == null) {
+        r.builtins.CallFactory factory;
+
+        if (Primitives.STATIC_LOOKUP) {
+            factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
+            if (factory == null) {
+                factory = r.nodes.truffle.FunctionCall.FACTORY;
+            }
+        } else {
             factory = r.nodes.truffle.FunctionCall.FACTORY;
         }
 

@@ -7,6 +7,7 @@ import r.data.RComplex.Complex;
 import r.errors.*;
 import r.nodes.*;
 
+// FIXME: will have to support printing doubles to a given number of complex digits (Double.toString uses a different algorithm)
 public class Convert {
 
     // NOTE: conversion functions do not clear naIntroduced, they only set it if non-null and NA has been introduced

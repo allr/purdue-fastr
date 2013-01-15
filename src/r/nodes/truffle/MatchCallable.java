@@ -11,19 +11,20 @@ import r.nodes.*;
 import com.oracle.truffle.nodes.*;
 import com.oracle.truffle.runtime.*;
 
+// TODO: re-visit this with eval in mind
+
 // this class is indeed very similar to ReadVariable
 // if there is a way to re-factor without incurring performance overhead, it might be worth trying (but unlikely, R has distinct code as well)
 
 public abstract class MatchCallable extends BaseR {
 
     final RSymbol symbol;
-
     public MatchCallable(ASTNode ast, RSymbol symbol) {
         super(ast);
         this.symbol = symbol;
     }
 
-    public static RCallable matchNonVariable(ASTNode ast, RSymbol symbol) {
+    public static RCallable matchNonVariable(ASTNode ast, RSymbol symbol) { // TODO: get rid of this (it is now in EnvironmentImpl.match)
         // builtins
         CallFactory callFactory = Primitives.getCallFactory(symbol, null);
         if (callFactory != null) {
@@ -32,44 +33,14 @@ public abstract class MatchCallable extends BaseR {
         throw RError.getUnknownFunction(ast, symbol);
     }
 
-    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) { // FIXME: does this belong to RFrame like read, write ?
-        RAny value = null;
-        if (frame == null) {
-            value = symbol.getValue();
-        } else {
-            int pos = RFrame.getPositionInWS(frame, symbol);
-            if (pos >= 0) {
-                RCallable cvalue = RFrame.matchViaWriteSet(frame, pos, symbol);
-                if (cvalue != null) {
-                    return cvalue;
-                } else {
-                    return matchNonVariable(ast, symbol);
-                }
-            } else {
-                ReadSetEntry rse = RFrame.getRSEntry(frame, symbol);
-                if (rse != null) {
-                    RCallable cvalue = RFrame.matchViaReadSet(frame, rse.frameHops, rse.framePos, symbol);
-                    if (cvalue != null) {
-                        return cvalue;
-                    } else {
-                        return matchNonVariable(ast, symbol);
-                    }
-                } else {
-                    RCallable cvalue = RFrame.matchFromExtension(frame, symbol, null);
-                    if (cvalue != null) {
-                        return cvalue;
-                    } else {
-                        value = symbol.getValue();
-                    }
-                }
-            }
+    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {
+        RCallable res = RFrame.match(frame, symbol);
+        if (res != null) {
+            return res;
         }
-        if (value != null && value instanceof RCallable) {
-            return (RCallable) value;
-        } else {
-            return matchNonVariable(ast, symbol);
-        }
+        throw RError.getUnknownFunction(ast, symbol);
     }
+
 
     // FIXME: the matching below does not fall-back to builtins, because currently we compile built-in invocation statically, disallowing override
     public static MatchCallable getUninitialized(ASTNode ast, RSymbol sym) {
@@ -156,8 +127,12 @@ public abstract class MatchCallable extends BaseR {
                 } else {
                     val = symbol.getValue();
                 }
-                if (val == null || !(val instanceof RCallable)) {
-                    throw RError.getUnknownFunction(ast, symbol);
+                if (val == null|| !(val instanceof RCallable)) {
+                    if (Primitives.STATIC_LOOKUP) {
+                        throw RError.getUnknownFunction(ast, symbol);
+                    } else {
+                        return matchNonVariable(ast, symbol);
+                    }
                 }
                 return val;
             }
@@ -172,7 +147,11 @@ public abstract class MatchCallable extends BaseR {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null || !(val instanceof RCallable)) {
-                    throw RError.getUnknownFunction(ast, symbol);
+                    if (Primitives.STATIC_LOOKUP) {
+                        throw RError.getUnknownFunction(ast, symbol);
+                    } else {
+                        return matchNonVariable(ast, symbol);
+                    }
                 }
                 return val;
             }

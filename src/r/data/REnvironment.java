@@ -19,6 +19,7 @@ public interface REnvironment extends RAny {
     void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast);
     RAny get(RSymbol name, boolean inherits);
     boolean exists(RSymbol name, boolean inherits);
+    RCallable match(RSymbol name);
     RSymbol[] ls();
 
     public static class DummyFunction implements RFunction {
