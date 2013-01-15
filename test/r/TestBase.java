@@ -6,6 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.data.*;
+import r.errors.ManageError;
 import r.nodes.*;
 import r.nodes.tools.*;
 
@@ -38,50 +39,112 @@ public class TestBase {
 
     }
 
-    static void assertEval(String input, String expected) throws RecognitionException {
+    /** A simple class that holds the resulr of a test evaluation.
+     *
+     * Contains the actual result reported by eval, the captured std err and std out of the execution and the message
+     * of a Java exception if any was thrown during the execution, or null.
+     */
+    public static class EvalResult {
 
-        if (global.getCompiler() != null) {
+        public final String result; // result of the evaulation (last expression)
+        public final String stdout; // standard out as reported during the evaluation
+        public final String stderr; // stderr as reported during the evaluation
+        public final String exception; // exception, or null if no exception was thrown
 
-            final PrintStream oldOut = System.out;
-            final PrintStream oldErr = System.err;
+        public EvalResult(String res, String out, String err, Exception e) {
+            result = res;
+            stdout = out;
+            stderr = err;
+            if (e == null)
+                exception = null;
+            else
+                exception = e.getClass().getName()+e.getMessage();
+        }
+    }
 
-            final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
-            final PrintStream myOutPS = new PrintStream(myOut);
-
-            System.out.println("Testing " + input + " with captured output.");
-
-            System.setOut(myOutPS);
-            System.setErr(myOutPS);
-            String result = evalString(input);
-            myOutPS.flush();
+    /** Evaluates the given string and returns the output. Fails if there are problems. Also captures the stderr
+     * and stdout streams and then returns an EvalResult object containing the captured evaluation.
+     */
+    static EvalResult testEval(String input) throws RecognitionException {
+        final PrintStream oldOut = System.out;
+        final PrintStream oldErr = System.err;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(out));
+            ByteArrayOutputStream err = new ByteArrayOutputStream();
+            System.setErr(new PrintStream(err));
+            String result = "";
+            Exception e = null;
+            try {
+              result = evalString(input);
+            } catch (Exception ex) {
+                e = ex;
+            }
+            String output = out.toString();
+            String error = err.toString();
+            if (global.getCompiler() != null) {
+                String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
+                        "Captured output of " + input + " is above.\n";
+                if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
+                    System.err.println("Truffle compilation failed for " + input);
+                    System.err.println(verboseOutput);
+                    Assert.fail("Truffle compilation failed");
+                }
+                if (!input.contains("junitWrapper")) {
+                    // the test did not trigger compilation
+                    String newInput = "{ junitWrapper <- function() { " + input + " }; junitWrapper(); junitWrapper() }";
+                    System.out.println("Converted input " + input + " to " + newInput);
+                    return testEval(newInput); // run us again
+                } else {
+                    System.out.println(verboseOutput);
+                }
+            }
+            return new EvalResult(result, output, error, e);
+        } finally {
             System.setOut(oldOut);
             System.setErr(oldErr);
-
-            String output = myOut.toString();
-            String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
-                                   "Captured output of " + input + " is above.\n";
-
-            if (!result.equals(expected)) {
-                System.err.println(verboseOutput);
-                Assert.fail("incorrect result when running with Truffle, got " + result + " for " + input);
-            }
-            if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
-                System.err.println("Truffle compilation failed for " + input);
-                System.err.println(verboseOutput);
-                Assert.fail("Truffle compilation failed");
-            }
-            if (!input.contains("junitWrapper")) {
-                // the test did not trigger compilation
-                String newInput = "{ junitWrapper <- function() { " + input + " }; junitWrapper(); junitWrapper() }";
-                System.out.println("Converted input " + input + " to " + newInput);
-                assertEval(newInput, expected);
-            } else {
-                System.out.println(verboseOutput);
-            }
-        } else {
-            String result = evalString(input);
-            Assert.assertEquals(expected, result);
         }
+    }
+
+    /** Asserts that given source evaluates to the expected result and that no errors were reported and no exceptions
+     * raised.
+     */
+    static void assertEval(String input, String expected) throws RecognitionException {
+        EvalResult result = testEval(input);
+        Assert.assertEquals("Evaluation result mismatch", expected, result.result);
+        Assert.assertFalse("Error marker was found", result.stderr.contains(ManageError.ERROR));
+        Assert.assertTrue("Exception was thrown!", result.exception == null);
+    }
+
+    /** Asserts that given source evaluates to given result and no errors, warnings or exceptions are reported or
+     * thrown.
+     */
+    static void assertEvalNoWarnings(String input, String expected) throws RecognitionException {
+        EvalResult result = testEval(input);
+        Assert.assertEquals("Evaluation result mismatch", expected, result.result);
+        Assert.assertFalse("Error marker was found", result.stderr.contains(ManageError.ERROR));
+        Assert.assertFalse("Warning marker was found", result.stderr.contains(ManageError.WARNING));
+        Assert.assertTrue("Exception was thrown!", result.exception == null);
+    }
+
+    /** Asserts that given source evaluation results in an error being reported and the exception thrown.
+     */
+    static void assertEvalError(String input, String expectedError) throws RecognitionException {
+        EvalResult result = testEval(input);
+        Assert.assertTrue("Output expected to contain error: "+expectedError,result.stderr.contains(expectedError));
+        Assert.assertTrue("Error marker not found.", result.stderr.contains(ManageError.ERROR));
+        Assert.assertTrue("Exception was not thrown", result.exception != null);
+    }
+
+    /** Asserts that given source evaluates to an expected result and that a warining is produced in the stderr that
+     * contains the specified text.
+     */
+    static void assertEvalWarning(String input, String expected, String expectedWarning) throws RecognitionException {
+        EvalResult result = testEval(input);
+        Assert.assertEquals("Evaluation result mismatch", expected, result.result);
+        Assert.assertTrue("Output expected to contain warning: "+expectedWarning, result.stderr.contains(expectedWarning));
+        Assert.assertTrue("Warning marker not found.", result.stderr.contains(ManageError.WARNING));
+        Assert.assertTrue("Exception was thrown!", result.exception == null);
     }
 
     static RAny eval(String input) throws RecognitionException {
