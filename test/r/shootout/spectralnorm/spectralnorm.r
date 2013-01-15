@@ -7,7 +7,7 @@
 
 spectralnorm <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 100L
-#    options(digits=10)
+    options(digits=10)
 
     eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
     eval_A_times_u <- function(u) {
@@ -43,9 +43,5 @@ spectralnorm <- function(args) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-#if (!exists("i_am_wrapper"))
-#    spectralnorm(commandArgs(trailingOnly=TRUE))
-
-run <- function(i) {
-    spectralnorm(i)
-}
+if (!exists("i_am_wrapper"))
+    spectralnorm(commandArgs(trailingOnly=TRUE))

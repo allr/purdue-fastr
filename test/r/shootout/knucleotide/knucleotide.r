@@ -24,6 +24,7 @@ sort_seq <- function(seq, len) {
     fs <- gen_freq(seq, len)
     seqs <- names(fs)
     inds <- order(-fs, seqs)
+#    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
     cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
         "\n")
 }
@@ -67,5 +68,19 @@ knucleotide <- function(args) {
         cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")
 }
 
-#if (!exists("i_am_wrapper"))
-#    knucleotide(commandArgs(trailingOnly=TRUE))
+paste. <- function (..., digits=16, sep=" ", collapse=NULL) {
+    args <- list(...)
+    if (length(args) == 0)
+        if (length(collapse) == 0) character(0)
+        else ""
+    else {
+        for(i in seq(along=args))
+            if(is.numeric(args[[i]])) 
+                args[[i]] <- as.character(round(args[[i]], digits))
+            else args[[i]] <- as.character(args[[i]])
+        .Internal(paste(args, sep, collapse))
+    }
+}
+
+if (!exists("i_am_wrapper"))
+    knucleotide(commandArgs(trailingOnly=TRUE))

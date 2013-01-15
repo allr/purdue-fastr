@@ -110,10 +110,5 @@ fastaredux <- function(args) {
     random_fasta(homosapiens, 5L * n)
 }
 
-#if (!exists("i_am_wrapper"))
-#    fastaredux(commandArgs(trailingOnly=TRUE))
-
-run <- function(i) {  
-    fastaredux(i)
-}
-
+if (!exists("i_am_wrapper"))
+    fastaredux(commandArgs(trailingOnly=TRUE))

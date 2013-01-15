@@ -6,7 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
-import r.data.*;
+import r.Console;
 import r.nodes.*;
 import r.parser.*;
 
@@ -22,15 +22,29 @@ public class ShootoutTestBase {
     // shootouts that take integer size as input
     public static void assertShootout(String benchDir, String benchFileBase, int size, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
-        String fileToRun = prepareSource(sourceFile, size, benchFileBase);
-        assertRun(fileToRun, expectedOutput, expectedErrorOutput, expectedResult);
+        assertRun(sourceFile, new String[] {"--args", Integer.toString(size)}, expectedOutput, expectedErrorOutput, expectedResult);
     }
 
     // shootouts that take input file name as input
     public static void assertShootout(String benchDir, String benchFileBase, String functionName, String inputFileName, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
-        String fileToRun = prepareSource(sourceFile, functionName, inputFileName, benchFileBase);
-        assertRun(fileToRun, expectedOutput, expectedErrorOutput, expectedResult);
+    }
+
+    public static void generateFastaOutput(int size, String captureFile) {
+        generateOutput("fastaredux", "fastaredux", size, captureFile);
+    }
+
+    public static void generateOutput(String benchDir, String benchFileBase, int size, String captureFile) {
+        String sourceFile = sourceFilePath(benchDir, benchFileBase);
+        Console.storeCommandLineArguments(new String[] {"--args", Integer.toString(size)});
+        RunResult result = run(sourceFile);
+        try {
+            PrintWriter out = new PrintWriter(captureFile);
+            out.print(result.output);
+            out.close();
+        } catch (IOException e) {
+            Assert.fail("I/O error while creating input for knucleotide: " + e.toString());
+        }
     }
 
     protected static String prepareSource(String code, int size, String benchName) {
@@ -119,7 +133,8 @@ public class ShootoutTestBase {
         return null;
     }
 
-    static void assertRun(String runFile, String expectedOutput, String expectedErrorOutput, String expectedResult) {
+    static void assertRun(String runFile, String[] args, String expectedOutput, String expectedErrorOutput, String expectedResult) {
+        Console.storeCommandLineArguments(args);
         RunResult result = run(runFile);
 
         if (expectedOutput != null && !expectedOutput.equals(result.output)) {

@@ -96,7 +96,7 @@ energy <- function() {
 
 nbody <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 1000L
-#    options(digits=9)
+    options(digits=9)
     offset_momentum()
     cat(energy(), "\n")
     for (i in 1:n)
@@ -104,6 +104,5 @@ nbody <- function(args) {
     cat(energy(), "\n")
 }
 
-run <- function(i) {
-  nbody(i)
-}
+if (!exists("i_am_wrapper"))
+    nbody(commandArgs(trailingOnly=TRUE))

@@ -29,5 +29,5 @@ reversecomplement <- function(args) {
     close(f)
 }
 
-#if (!exists("i_am_wrapper"))
-#    reversecomplement(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    reversecomplement(commandArgs(trailingOnly=TRUE))

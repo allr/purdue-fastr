@@ -1,7 +1,5 @@
 package r.shootout.regexdna;
 
-import java.io.*;
-
 import org.junit.*;
 
 import r.shootout.*;
@@ -10,18 +8,8 @@ public class TestRegexdna extends ShootoutTestBase {
 
     @Test
     public void testRegexdna() {
-
-        String sourceFile = sourceFilePath("fastaredux", "fastaredux");
-        String fileToRun = prepareSource(sourceFile, 1000, "fastaredux");
-        RunResult result = run(fileToRun);
-        String inputFile = ".tmp.regexdna.input";
-        try {
-            PrintWriter out = new PrintWriter(inputFile);
-            out.print(result.output);
-            out.close();
-        } catch (IOException e) {
-            Assert.fail("I/O error while creating input for regexdna: " + e.toString());
-        }
+        String inputFile = ".tmp.unit.regexdna.input";
+        generateFastaOutput(1000, inputFile);
         assertShootout("regexdna", "regexdna", "regexdna", inputFile,
 "agggtaaa|tttaccct 7495 \n" +
 "[cgt]gggtaaa|tttaccc[acg] 0 \n" +

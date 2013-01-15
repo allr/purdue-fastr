@@ -32,9 +32,5 @@ mandelbrot <- function(args) {
     }
 }
 
-#if (!exists("i_am_wrapper"))
-#    mandelbrot(commandArgs(trailingOnly=TRUE))
-
-run <- function(i) {
-  mandelbrot(i)
-}
+if (!exists("i_am_wrapper"))
+    mandelbrot(commandArgs(trailingOnly=TRUE))

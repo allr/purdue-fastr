@@ -3,9 +3,6 @@
 # http://shootout.alioth.debian.org/
 #
 # Contributed by Leo Osvald
-#
-# -----
-#   slightly hacked by Tomas
 # ------------------------------------------------------------------
 
 fannkuch <- function(n) {
@@ -59,7 +56,8 @@ fannkuch <- function(n) {
             if (!was_break) {
                 r <- n
                 if (!count[[r]]) {
-                    return(c(checksum, max_flip_count))
+                    cat(checksum, "\n", sep="")
+                    return(max_flip_count)
                 }
             }
             count[[r]] <- count[[r]] - 1L
@@ -67,6 +65,10 @@ fannkuch <- function(n) {
     }
 }
 
-run <- function(i) {
-    fannkuch(i)
+fannkuchredux <- function(args) {
+    n = if (length(args)) as.integer(args[[1]]) else 12L
+    cat("Pfannkuchen(", n, ") = ", fannkuch(n), "\n", sep="")
 }
+
+if (!exists("i_am_wrapper"))
+    fannkuchredux(commandArgs(trailingOnly=TRUE))

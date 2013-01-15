@@ -56,6 +56,5 @@ regexdna <- function(args) {
     cat("", len1, len2, nchar(str), sep="\n")
 }
 
-#if (!exists("i_am_wrapper"))
-#    regexdna(commandArgs(trailingOnly=TRUE))
-
+if (!exists("i_am_wrapper"))
+    regexdna(commandArgs(trailingOnly=TRUE))

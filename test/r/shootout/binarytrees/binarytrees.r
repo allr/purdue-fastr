@@ -17,10 +17,8 @@ tree <- function(item, depth) {
                 tree(right_item, next_depth)))
 }
 
-check <- function(tree) {
-    tmp <- tree[[2]]    
-    if(is.na(tmp[[1]])) tree[[1]] else tree[[1]] + check(tree[[2]]) - check(tree[[3]])
-}
+check <- function(tree)
+    if(is.na(tree[[2]][[1]])) tree[[1]] else tree[[1]] + check(tree[[2]]) - check(tree[[3]])
 
 binarytrees <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 10L
@@ -38,10 +36,7 @@ binarytrees <- function(args) {
         iterations <- as.integer(2^(max_depth - depth + min_depth))
         check_sum <- sum(sapply(
                 1:iterations,
-		function(i) { 
-                  check(tree(i, depth)) + check(tree(-i, depth))
-                }	
-        ))
+		function(i) check(tree(i, depth)) + check(tree(-i, depth))))
         cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check: ",
             check_sum, "\n")
     }
@@ -50,6 +45,5 @@ binarytrees <- function(args) {
         check(long_lived_tree), "\n")
 }
 
-run <- function(i) {
-    binarytrees(i)
-}
+if (!exists("i_am_wrapper"))
+    binarytrees(commandArgs(trailingOnly=TRUE))

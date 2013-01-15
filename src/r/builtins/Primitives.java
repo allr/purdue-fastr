@@ -85,6 +85,7 @@ public class Primitives {
         add("ncol", 1, 1, Dimensions.NCOL_FACTORY);
         add("new.env", 0, 3, Environment.NEWENV_FACTORY);
         add("nrow", 1, 1, Dimensions.NROW_FACTORY);
+        add("options", 0, -1, Options.FACTORY);
         add("order", 0, -1, Sort.ORDER_FACTORY);
         add("outer", 2, -1, Outer.FACTORY);
         add("paste", 0, -1, Paste.FACTORY);

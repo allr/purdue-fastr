@@ -62,7 +62,7 @@ repeat_fasta <- function(s, count) {
 }
 
 random_fasta <- function(genelist, count) {
-    psum <- cumsum(genelist[1,])   #!!! note coercion from string to double
+    psum <- cumsum(genelist[1,])
     while (count) {
 	line <- min(width, count)
         
@@ -85,9 +85,5 @@ fasta <- function(args) {
     random_fasta(homosapiens, 5L * n)
 }
 
-#if (!exists("i_am_wrapper"))
-#    fasta(commandArgs(trailingOnly=TRUE))
-
-run <- function(i) {
-  fasta(i)
-}
+if (!exists("i_am_wrapper"))
+    fasta(commandArgs(trailingOnly=TRUE))

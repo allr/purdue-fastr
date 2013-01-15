@@ -403,9 +403,5 @@ pidigits <- function(args) {
     }
 }
 
-#if (!exists("i_am_wrapper"))
-#    pidigits(commandArgs(trailingOnly=TRUE))
-
-run <- function(i) {
-  pidigits(i)
-}
+if (!exists("i_am_wrapper"))
+    pidigits(commandArgs(trailingOnly=TRUE))

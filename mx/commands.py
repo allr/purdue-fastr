@@ -1,8 +1,4 @@
 
-#
-# FIXME: many benchmarks use fasta output as input, should have a generic runner for these benchmarks
-#
-
 import os, sys, shutil, hashlib;
 from os.path import exists, join;
 import mx;
@@ -34,7 +30,7 @@ def mx_init():
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
-      'rgbenchmark': [rallbenchmarks, '']
+      'rgbenchmark': [rallbenchmarksGraal, '']
   }
   mx.commands.update(commands);
 
@@ -127,24 +123,96 @@ def runittestServer(args):
   runittest(args, [], 'server')
 
 def rallbenchmarksServer(args):
-	"""Run all benchmarks with the HotSpot server graal"""
-	rbenchmarks(args, [], 'server')
+  """Run all benchmarks with the HotSpot server VM"""
+  rbenchmarks(args, [], 'server')
 
-def rallbenchmarks(args):
-	"""Run all benchmarks on graal"""
-	rbenchmarks(args, ['-XX:-BootstrapGraal'], 'graal')
+def rallbenchmarksGraal(args):
+  """Run all benchmarks with the Graal VM"""
+  rbenchmarks(args, ['-XX:-BootstrapGraal'], 'graal')
 
 def rbenchmarks(args, vmArgs, vm):
-	rfannkuch(args, vmArgs, vm)
-	rbinarytrees(args, vmArgs, vm)
-	rspectralnorm(args, vmArgs, vm)
-	rspectralnorm(args, vmArgs, vm)
-	rnbody(args, vmArgs, vm)
-	rfasta(args, vmArgs, vm)
+  rbinarytrees(args, vmArgs, vm)
+  rfannkuch(args, vmArgs, vm)
+  rfasta(args, vmArgs, vm)  
+  rfastaredux(args, vmArgs, vm)  
+  rknucleotide(args, vmArgs, vm)  
+  rmandelbrot(args, vmArgs, vm)  
+  rnbody(args, vmArgs, vm)  
+  rpidigits(args, vmArgs, vm)  
+  rregexdna(args, vmArgs, vm)
+  rreversecomplement(args, vmArgs, vm)  
+  rspectralnorm(args, vmArgs, vm)  
 
 def runittestGraal(args):
   """Run unit tests with the Graal VM"""
   runittest(args, ['-XX:-BootstrapGraal'], 'graal')
+
+# ------------------
+
+def rconsole(vmArgs, vm, cArgs):
+  """Run R Console with the given VM"""
+  global gvmOut
+  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
+
+def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
+  """Run given shootout benchmark using given VM"""
+  if (len(args)==0):
+    arg = defaultArg
+  else:
+    arg = args[0]
+
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile)
+
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey', '-f', source, '--args', arg]);
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', source, '--args', arg]);
+  rconsole(vmArgs, vm, ['-f', source, '--args', arg]);
+
+def stripTrailingNULL(fname):
+  """Remove last 5 bytes from a file (the trailing NULL\n)"""
+
+  sinfo = os.stat(fname)
+  size = sinfo.st_size
+  file = open(fname, "r");
+  data = file.read(size - 5)
+  file.close() 
+  file = open(fname, "w")
+  file.write(data)
+  file.close()
+  
+def getFastaOutput(size):
+  """Run Fasta capturing the output to a file"""
+  
+  fname = ".tmp.fasta." + size + ".out";
+  if not os.path.exists(fname):
+    print("Generating input for Regexdna, size " + size + "...\n");
+    outputFile = open(fname, "w")
+    def out(line): 
+      outputFile.write(line)
+    global gvmOut 
+    gvmOut = out
+    rfastaServer([size])
+    gvmOut = None
+    outputFile.close()
+    print("Done.\n")
+
+  stripTrailingNULL(fname)
+  return fname
+
+
+def rshootoutFastaInput(args, vmArgs, vm, benchDir, benchFile, defaultArg):
+  """Run given shootout benchmark (that takes fasta output as input) using given VM"""
+
+  if (len(args)==0):
+    arg = defaultArg
+  else:
+    arg = args[0]
+
+  input = getFastaOutput(arg) 
+  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile)
+
+#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f', source, '--args', input]);
+#  rconsole(vmArgs, vm, ['--waitForKey', '-f', source, '--args', input]);
+  rconsole(vmArgs, vm, ['-f', source, '--args', input]);
 
 # ------------------
 
@@ -180,90 +248,19 @@ def rpidigits(args, vmArgs, vm):
   """Run Pidigits benchmark using the given VM"""
   rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "300");
 
-# ------------------
+def rknucleotide(args, vmArgs, vm):
+  """Run Knucleotide benchmark using the given VM"""
+  rshootoutFastaInput(args, vmArgs, vm, "knucleotide", "knucleotide.r", "5000000");
 
-def stripTrailingNULL(fname):
-  """Remove last 5 bytes from a file (the trailing NULL\n)"""
-
-  sinfo = os.stat(fname)
-  size = sinfo.st_size
-  file = open(fname, "r");
-  data = file.read(size - 5)
-  file.close() 
-  file = open(fname, "w")
-  file.write(data)
-  file.close()
-  
-def getFastaOutput(size):
-  """Run Fasta capturing the output to a file"""
-  
-  fname = ".tmp.fasta." + size + ".out";
-  if not os.path.exists(fname):
-    print("Generating input for Regexdna, size " + size + "...\n");
-    outputFile = open(fname, "w")
-    def out(line): 
-      outputFile.write(line)
-    global gvmOut 
-    gvmOut = out
-    rfastaServer([size])
-    gvmOut = None
-    outputFile.close()
-    print("Done.\n")
-
-  stripTrailingNULL(fname)
-  return fname
-
-
-def rconsole(vmArgs, vm, cArgs):
-  """Run R Console with the given VM"""
-  global gvmOut
-  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
-
-def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
-  """Run given shootout benchmark using given VM"""
-  if (len(args)==0):
-    arg = defaultArg
-  else:
-    arg = args[0]
-
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", benchDir, benchFile)
-  tmp = ".tmp." + benchDir + ".torun.r"
-
-  shutil.copyfile(source, tmp)
-  with open(tmp, "a") as f:
-    f.write("run(" + arg + ")\n")
-
-  if mx._opts.verbose:
-	print("Input file " + tmp + ": " + arg);
-  
-#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
-#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
-  rconsole(vmArgs, vm, ['-f', tmp]);
-
-  
 def rregexdna(args, vmArgs, vm):
   """Run Regexdna benchmark using the given VM"""
-  
-  if (len(args)==0):
-    size = "5000000"
-  else:
-    size = args[0]
-    
-  input = getFastaOutput(size) 
-      
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "regexdna", "regexdna.r")
-  tmp = ".tmp.regexdna.torun.r"
+  rshootoutFastaInput(args, vmArgs, vm, "regexdna", "regexdna.r", "5000000");
 
-  shutil.copyfile(source, tmp)
-  with open(tmp, "a") as f:
-    f.write("regexdna(\"" + input + "\")\n")
+def rreversecomplement(args, vmArgs, vm):
+  """Run Reversecomplement benchmark using the given VM"""
+  rshootoutFastaInput(args, vmArgs, vm, "reversecomplement", "reversecomplement.r", "5000000");
 
-  if mx._opts.verbose:
-	print("Input file " + tmp + ": " + arg);
-  
-#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
-#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
-  rconsole(vmArgs, vm, ['-f', tmp]);
+# -----------
 
 def rmandelbrot(args, vmArgs, vm):
   """Run Mandelbrot benchmark using the given VM"""
@@ -286,53 +283,7 @@ def rmandelbrot(args, vmArgs, vm):
   hash = hashlib.md5(data).hexdigest()
   print "Binary output has MD5 hash ", hash, "\n"
   
-def rreversecomplement(args, vmArgs, vm):
-  """Run Reversecomplement benchmark using the given VM"""
-  
-  if (len(args)==0):
-    size = "5000000"
-  else:
-    size = args[0]
-    
-  input = getFastaOutput(size) 
-      
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "reversecomplement", "reversecomplement.r")
-  tmp = ".tmp.reversecomplement.torun.r"
-
-  shutil.copyfile(source, tmp)
-  with open(tmp, "a") as f:
-    f.write("reversecomplement(\"" + input + "\")\n")
-
-  if mx._opts.verbose:
-	print("Input file " + tmp + ": " + arg);
-  
-#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
-#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
-  rconsole(vmArgs, vm, ['-f', tmp]);
-
-def rknucleotide(args, vmArgs, vm):
-  """Run Knucleotide benchmark using the given VM"""
-  
-  if (len(args)==0):
-    size = "5000000"
-  else:
-    size = args[0]
-    
-  input = getFastaOutput(size) 
-      
-  source = join(os.getcwd(), "..", "fastr", "test", "r", "shootout", "knucleotide", "knucleotide.r")
-  tmp = ".tmp.knucleotide.torun.r"
-
-  shutil.copyfile(source, tmp)
-  with open(tmp, "a") as f:
-    f.write("knucleotide(\"" + input + "\")\n")
-
-  if mx._opts.verbose:
-	print("Input file " + tmp + ": " + arg);
-  
-#  rconsole(vmArgs + ['-XX:-Inline'], vm, ['--waitForKey','-f',tmp]);
-#  rconsole(vmArgs, vm, ['--waitForKey', '-f', tmp]);
-  rconsole(vmArgs, vm, ['-f', tmp]);
+# ----------
 
 def runittest(args, vmArgs, vm): 
   """Run unit tests using the given VM""" 
