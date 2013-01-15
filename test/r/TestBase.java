@@ -136,7 +136,7 @@ public class TestBase {
         Assert.assertTrue("Exception was not thrown", result.exception != null);
     }
 
-    /** Asserts that given source evaluates to an expected result and that a warining is produced in the stderr that
+    /** Asserts that given source evaluates to an expected result and that a warning is produced in the stderr that
      * contains the specified text.
      */
     static void assertEvalWarning(String input, String expected, String expectedWarning) throws RecognitionException {
