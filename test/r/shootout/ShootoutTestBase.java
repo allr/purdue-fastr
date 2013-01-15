@@ -6,6 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
+import r.data.*;
 import r.nodes.*;
 import r.parser.*;
 

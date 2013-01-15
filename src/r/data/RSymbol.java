@@ -79,6 +79,23 @@ public final class RSymbol extends BaseObject implements RAny {
             RSymbol[] res = new RSymbol[table.size()];
             return table.values().toArray(res);
         }
+
+        private void cleanup() {
+            Iterator <Map.Entry<String, RSymbol>> entries = table.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry<String, RSymbol> e = entries.next();
+                RSymbol s = e.getValue();
+                if (s == RSymbol.NA_SYMBOL || s == RSymbol.EMPTY_SYMBOL) {
+                    continue;
+                } else {
+                    entries.remove();
+                }
+            }
+        }
+    }
+
+    public static void resetTable() {
+        symbolTable.cleanup();
     }
 
     @Override
