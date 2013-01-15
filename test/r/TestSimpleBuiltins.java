@@ -41,6 +41,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ seq(from=-10,to=-5,by=2) }", "-10.0, -8.0, -6.0");
         assertEval("{ seq(from=-10.4,to=-5.8,by=2.1) }", "-10.4, -8.3, -6.2");
         assertEval("{ seq(from=3L,to=-2L,by=-4.2) }", "3.0, -1.2000000000000002");
+
+        assertEval("{ seq(along=c(10,11,12)) }", "1L, 2L, 3L");
     }
 
     @Test

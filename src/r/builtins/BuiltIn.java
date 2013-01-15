@@ -184,7 +184,33 @@ public abstract class BuiltIn extends AbstractCall {
                             usedArgs[i] = true;
                             continue outerLoop;
                         }
-                    } // reachable even in non-error case - when threeDots is among parameter names
+                    } // reachable even in non-error case - when threeDots is among parameter names or for partial matches
+                }
+            }
+
+            for (int i = 0; i < nArgs; i++) { // partial matching by name
+                if (usedArgs[i] || argNames[i] == null) {
+                    continue;
+                }
+                boolean matchFound = false;
+                for (int j = 0; j < nParams; j++) {
+                    if (a.providedParams[j]) {
+                        continue;
+                    }
+                    String argStr = argNames[i].pretty();
+                    String paramStr = paramNames[j].pretty();
+                    if (paramStr.startsWith(argStr)) {
+                        // found a match
+                        if (matchFound) {
+                            throw RError.getGenericError(null,  "Argument " + i + " matches multiple formal arguments.");
+                        }
+
+                        a.argPositions[i] = j;
+                        a.paramPositions[j] = i;
+                        a.providedParams[j] = true;
+                        usedArgs[i] = true;
+                        matchFound = true;
+                    }
                 }
             }
 
