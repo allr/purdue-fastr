@@ -110,6 +110,8 @@ public class Primitives {
         add("substring", 2, 3, Substring.SUBSTRING_FACTORY);
         add("sum", 0, -1, Sum.FACTORY);
         add("sqrt", 1, 1, Sqrt.FACTORY);
+        add("t", 1, 1, Transpose.FACTORY);
+        add("t.default", 1, 1, Transpose.FACTORY);
         add("tolower", 1, 1, CharUtils.TOLOWER_FACTORY);
         add("toupper", 1, 1, CharUtils.TOUPPER_FACTORY);
         add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);

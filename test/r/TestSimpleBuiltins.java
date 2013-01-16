@@ -582,6 +582,15 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testTranspose() throws RecognitionException {
+        assertEval("{ t(1:3) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
+        assertEval("{ t(t(1:3)) }", "     [,1]\n[1,]   1L\n[2,]   2L\n[3,]   3L");
+        assertEval("{ t(t(t(1:3))) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
+        assertEval("{ t(matrix(1:6, nrow=2)) }", "     [,1] [,2]\n[1,]   1L   2L\n[2,]   3L   4L\n[3,]   5L   6L");
+        assertEval("{ t(t(matrix(1:6, nrow=2))) }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
