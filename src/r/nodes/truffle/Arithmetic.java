@@ -696,7 +696,7 @@ public class Arithmetic extends BaseR {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
-            double[] y = xcomp.getContent();
+            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -761,7 +761,7 @@ public class Arithmetic extends BaseR {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
-            double[] y = xcomp.getContent();
+            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -826,7 +826,7 @@ public class Arithmetic extends BaseR {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
-            double[] y = xcomp.getContent();
+            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -919,7 +919,7 @@ public class Arithmetic extends BaseR {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
-            double[] y = xcomp.getContent();
+            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];

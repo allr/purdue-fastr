@@ -43,6 +43,12 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- 1+2i; y <- 3+4i; x/y }", "0.44+0.08i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x-y }", "-2.0-2.0i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x*x*y/(x+y) }", "-1.9230769230769231+2.8846153846153846i");
+        assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y*y+x }", "-1.5-1.0i, -1.3-1.0i");
+        assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y-x }", "1.5+1.0i, 1.3+1.0i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y-x }", "4.0+3.0i, -7.0-5.0i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y+x }", "2.0-1.0i, -1.0+15.0i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y*x }", "-1.0-7.0i, -62.0-25.0i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y/x }", "-1.0+1.0i, 0.3486238532110092+0.5045871559633027i");
     }
 
     @Test
