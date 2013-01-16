@@ -147,7 +147,12 @@ public class TestBase {
         Assert.assertTrue("Exception was thrown!", result.exception == null);
     }
 
+    /** Evaluates the given R expression in the fresh context and returns the returned value.
+     */
     static RAny eval(String input) throws RecognitionException {
+        RSymbol.resetTable(); // reset the table of symbols before we do anything real
+        // TODO we do not really need to reset the context, but it seems to me as a reasonable thing to do
+        global = new RContext(1, true); // reset the context
         ASTNode astNode = TestPP.parse(input);
         return global.eval(astNode);
     }

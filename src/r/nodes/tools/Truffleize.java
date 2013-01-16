@@ -266,8 +266,6 @@ public class Truffleize implements Visitor {
         result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), rCall, remValueExpr);
     }
 
-    final RSymbol dropName = RSymbol.getSymbol("drop");
-    final RSymbol exactName = RSymbol.getSymbol("exact");
 
     @Override
     public void visit(AccessVector a) {
@@ -306,14 +304,14 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == dropName) {
+                if (names[i] == RSymbol.dropName) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
                 }
-                if (names[i] == exactName) {
+                if (names[i] == RSymbol.exactName) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }

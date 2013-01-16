@@ -4,19 +4,45 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
+import r.builtins.Primitives;
 import r.data.internal.*;
+import r.nodes.truffle.AbstractCall;
 
 public final class RSymbol extends BaseObject implements RAny {
+
+    private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
+    public static final RSymbol[] EMPTY_SYMBOL_ARRAY = new RSymbol[0];
+
+    /* Special symbols
+     *
+     * All special symbols that are stored in the global symbol table are to be defined here.
+     */
+
+    public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
+    public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
+
+    // from Truffleize
+    public static final RSymbol dropName = RSymbol.getSymbol("drop");
+    public static final RSymbol exactName = RSymbol.getSymbol("exact");
+
+    // from AbstractCall
+    public static final RSymbol threeDots = RSymbol.getSymbol("...");
+
+    /** Reinserts the special symbols to the table after the table has been reset clean.
+     */
+    protected static void reinsertSpecialSymbols() {
+        symbolTable.table.put("drop", dropName);
+        symbolTable.table.put("exact", exactName);
+        symbolTable.table.put("...", threeDots);
+        symbolTable.table.put(RString.NA, RSymbol.NA_SYMBOL);
+        symbolTable.table.put("", RSymbol.EMPTY_SYMBOL);
+    }
+
 
     final String name;
     // The next two fields are for the topLevel
     RAny value;
     int version;
-
-    private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
-    public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
-    public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
-    public static final RSymbol[] EMPTY_SYMBOL_ARRAY = new RSymbol[0];
 
     private RSymbol(String identifier) {
         name = identifier;
@@ -79,23 +105,20 @@ public final class RSymbol extends BaseObject implements RAny {
             RSymbol[] res = new RSymbol[table.size()];
             return table.values().toArray(res);
         }
-
-        private void cleanup() {
-            Iterator <Map.Entry<String, RSymbol>> entries = table.entrySet().iterator();
-            while (entries.hasNext()) {
-                Map.Entry<String, RSymbol> e = entries.next();
-                RSymbol s = e.getValue();
-                if (s == RSymbol.NA_SYMBOL || s == RSymbol.EMPTY_SYMBOL) {
-                    continue;
-                } else {
-                    entries.remove();
-                }
-            }
-        }
     }
 
+    /** Resets the symbol table.
+     *
+     * First clears the symbol table completely and then reinserts the special symbols.
+     */
     public static void resetTable() {
-        symbolTable.cleanup();
+        symbolTable.table.clear();
+        Primitives.initializePrimitives();
+        reinsertSpecialSymbols();
+    }
+
+    public static Set<String> symbols() {
+        return symbolTable.table.keySet();
     }
 
     @Override

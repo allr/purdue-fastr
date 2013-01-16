@@ -16,6 +16,11 @@ public class Primitives {
     private static Map<RSymbol, PrimitiveEntry> map;
     static {
         map = new HashMap<>();
+        initializePrimitives();
+    }
+
+    public static void initializePrimitives() {
+        map.clear();
         add(":", 2, 2, Colon.FACTORY);
         add("+", 1, 2, Operators.ADD_FACTORY);
         add("-", 1, 2, Operators.SUB_FACTORY);

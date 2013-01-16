@@ -227,7 +227,7 @@ public abstract class BuiltIn extends AbstractCall {
                         }
                         a.unusedArgs.add(i);
                     } else {
-                        if (paramNames[nextParam] == threeDots) {
+                        if (paramNames[nextParam] == RSymbol.threeDots) {
                             /* usedArgs[i] = true; - not needed */
                             a.argPositions[i] = nextParam;
                             a.paramPositions[nextParam] = i; // so record the last argument that was taken by ...
