@@ -591,6 +591,26 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testTypeCheck() throws RecognitionException {
+        assertEval("{ is.double(10L) }", "FALSE");
+        assertEval("{ is.double(10) }", "TRUE");
+        assertEval("{ is.double(\"10\") }", "FALSE");
+        assertEval("{ is.numeric(10L) }", "TRUE");
+        assertEval("{ is.numeric(10) }", "TRUE");
+        assertEval("{ is.numeric(TRUE) }", "FALSE");
+        assertEval("{ is.character(\"hi\") }", "TRUE");
+        assertEval("{ is.list(NULL) }", "FALSE");
+        assertEval("{ is.logical(NA) }", "TRUE");
+        assertEval("{ is.logical(1L) }", "FALSE");
+        assertEval("{ is.integer(1) }", "FALSE");
+        assertEval("{ is.integer(1L) }", "TRUE");
+        assertEval("{ is.complex(1i) }", "TRUE");
+        assertEval("{ is.complex(1) }", "FALSE");
+        assertEval("{ is.raw(raw()) }", "TRUE");
+
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

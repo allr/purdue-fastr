@@ -136,7 +136,7 @@ public class ArrayConstructor {
                 @Override
                 public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
                     if (args.length == 0) {
-                        return RLogical.EMPTY;
+                        return RRaw.EMPTY;
                     }
                     int len = extractArrayLength(args[0], ast);
                     return RRaw.RRawFactory.getUninitializedArray(len);
@@ -145,6 +145,6 @@ public class ArrayConstructor {
         }
     };
 
-    // TODO: complex constructor (it is more elaborate than constructors of the other types)
+    // TODO: complex constructor (it is more elaborate than constructors for the other types)
 
 }
