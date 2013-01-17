@@ -22,7 +22,6 @@ public class TestMandelbrot extends ShootoutTestBase {
                         "3f c0 \n" +
                         "07 c0 \n" +
                         "07 80 \n" +
-                        "01 00 \n"
-        	, null, "NULL");
+                        "01 00 \n", null, "NULL");
     }
 }
