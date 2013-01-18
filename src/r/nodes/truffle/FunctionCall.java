@@ -14,7 +14,14 @@ public abstract class FunctionCall extends AbstractCall {
     final RNode callableExpr;
 
     private static final boolean CAN_BYPASS_TRUFFLE = true;
-      // this feature is experimental-only, to be correct it would have to implement caching
+
+        // for profiling and testing only
+    private static final boolean ALWAYS_GENERIC_CALL = false;
+    private static final boolean ALWAYS_CACHED_GENERIC_FUNCTION_CALL = false;
+
+        // tuning, experiments
+    private static final boolean PREFER_GENERIC_CALL = true;  // use instead of cached generic function call
+    private static final boolean PREFER_SIMPLE_FUNCTION_CALL = false;   // use instead of trivial function call
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);
@@ -22,13 +29,27 @@ public abstract class FunctionCall extends AbstractCall {
     }
 
     public static FunctionCall getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+        if (ALWAYS_GENERIC_CALL) {
+            return new GenericCall(ast, callableExpr, argNames, argExprs);
+        }
+        if (ALWAYS_CACHED_GENERIC_FUNCTION_CALL) {
+            return getCachedGenericFunctionCall(ast, callableExpr, argNames, argExprs);
+        }
         for (int i = 0; i < argNames.length; i++) { // FIXME this test is kind of inefficient, part of this job can be done by splitArguments
-            if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are defaults args
-                return getCachedGenericFunctionCall(ast, callableExpr, argNames, argExprs);
+            if (argNames[i] != null || argExprs[i] == null) { // FIXME this test is a bit too strong, but I need a special node when there are default args
+
+                if (PREFER_GENERIC_CALL) {
+                    return new GenericCall(ast, callableExpr, argNames, argExprs);
+                } else {
+                    return getCachedGenericFunctionCall(ast, callableExpr, argNames, argExprs);
+                }
             }
         }
-//        return getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
-        return new TrivialFunctionCall(ast, callableExpr, argNames, argExprs);
+        if (PREFER_SIMPLE_FUNCTION_CALL) {
+            return getSimpleFunctionCall(ast, callableExpr, argNames, argExprs);
+        } else {
+            return new TrivialFunctionCall(ast, callableExpr, argNames, argExprs);
+        }
     }
 
     // This class is more or less useless since the cached version is always as efficient (or at least one test + affectation for nothing which is meaningless in this case)
@@ -82,6 +103,8 @@ public abstract class FunctionCall extends AbstractCall {
                 } else {
                     // exclude functions with default parameters
                     // because we preallocate the Object[] array with arguments for now, and default parameters could have a recursive call
+
+                    // also, the trivial calls on the callee side do not handle default arguments (do not traverse the arguments checking if any of them is null, etc)
                     RNode[] dfl = func.paramValues();
                     for (int i = 0; i < dfl.length; i++) {
                         if (dfl[i] != null) {
@@ -277,10 +300,12 @@ public abstract class FunctionCall extends AbstractCall {
 
     @Override
     public Object execute(RContext context, Frame callerFrame) {
-        RCallable tgt = (RCallable) callableExpr.execute(context, callerFrame);
+        RCallable callable = (RCallable) callableExpr.execute(context, callerFrame);
         try {
-            if (tgt instanceof RClosure) {
-                RClosure closure = (RClosure) tgt;
+            if (callable instanceof RClosure) {
+                // FIXME: this type check makes CachedGenericFunctionCall more expensive than GenericCall
+                // perhaps caching and pointer comparison always done instead of a typecheck would be faster
+                RClosure closure = (RClosure) callable;
                 Object[] argValues = matchParams(context, closure.function(), closure.environment(), callerFrame);
                 return closure.call(context, argValues);
             } else {
@@ -289,7 +314,7 @@ public abstract class FunctionCall extends AbstractCall {
         } catch (UnexpectedResultException e) {
             GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
             replace(n, "install GenericCall from FunctionCall");
-            return n.execute(context, callerFrame, tgt);
+            return n.execute(context, callerFrame, callable);
         }
     }
 
@@ -299,13 +324,13 @@ public abstract class FunctionCall extends AbstractCall {
         boolean lastWasFunction;
 
             // for functions
-        RClosure lastClosure;  // null when last wasn't function
+        RClosure lastClosure;  // null when last callable wasn't a function (closure)
         RFunction closureFunction;
         RSymbol[] functionArgNames;
         int[] functionArgPositions;
 
             // for builtins
-        RBuiltIn lastBuiltIn; // null when last wasn't builtin
+        RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin
         RSymbol builtInName;
         RNode builtInNode;
 
@@ -321,7 +346,8 @@ public abstract class FunctionCall extends AbstractCall {
 
         public Object execute(RContext context, Frame callerFrame, RCallable callable) {
             if (callable == lastClosure) {
-                return placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                return lastClosure.call(context, argValues);
             }
             if (callable == lastBuiltIn) {
                 return builtInNode.execute(context, callerFrame);
@@ -336,7 +362,8 @@ public abstract class FunctionCall extends AbstractCall {
                 }
                 lastClosure = closure;
                 lastBuiltIn = null;
-                return placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                return lastClosure.call(context, argValues);
             } else {
                 // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
