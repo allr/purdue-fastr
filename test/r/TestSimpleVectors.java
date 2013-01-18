@@ -101,6 +101,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ f<-function(x,i,v) { x<-1:5; x[i]<-v; x} ; f(c(1L,2L),1,FALSE) ; f(c(1L,2L),2,3) }", "1.0, 3.0, 3.0, 4.0, 5.0");
         assertEval("{ f<-function(x,i,v) { x<-1:5; x[i]<-v; x} ; f(c(1L,2L),1,FALSE) ; f(c(1L,2L),8,TRUE) }", "1L, 2L, 3L, 4L, 5L, NA, NA, 1L");
 
+        assertEval("{ a <- c(1L,2L,3L); a <- 1:5; a[3] <- TRUE; a }", "1L, 2L, 1L, 4L, 5L");
         assertEval("{ x <- 1:3 ; x[2] <- \"hi\"; x }", "\"1L\", \"hi\", \"3L\"");
         assertEval("{ x <- c(1,2,3) ; x[2] <- \"hi\"; x }", "\"1.0\", \"hi\", \"3.0\"");
         assertEval("{ x <- c(TRUE,FALSE,FALSE) ; x[2] <- \"hi\"; x }", "\"TRUE\", \"hi\", \"FALSE\"");
@@ -316,8 +317,24 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(1, list(2,3,4)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
         assertEval("{ x <- c(1L,2L,3L) ; l <- list(1) ; l[[1]] <- x ; x[2] <- 100L ; l[[1]] }", "1L, 2L, 3L");
         assertEval("{ l <- list(100) ; f <- function() { l[[1]] <- 2 } ; f() ; l }", "[[1]]\n100.0");
+        assertEval("{ l <- list(100,200,300,400,500) ; f <- function() { l[[3]] <- 2 } ; f() ; l }", "[[1]]\n100.0\n\n" +
+                "[[2]]\n200.0\n\n" +
+                "[[3]]\n300.0\n\n" +
+                "[[4]]\n400.0\n\n" +
+                "[[5]]\n500.0");
         assertEval("{ x <-2L ; y <- x; x[1] <- 211L ; y }", "2L");
         assertEval("{ f <- function() { l[1:2] <- x ; x[1] <- 211L  ; l[1] } ; l <- 1:3 ; x <- 10L ; f() }", "10L");
+    }
+
+    @Test
+    public void testStringUpdate() throws RecognitionException {
+        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; a[[3]] <- 'muhuhu'; a; }","\"hello\", NA, \"muhuhu\", NA, \"done\"");
+        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; b <- a; b[[3]] <- 'muhuhu'; b; }","\"hello\", NA, \"muhuhu\", NA, \"done\"");
+    }
+
+    @Test
+    public void testGenericUpdate() throws RecognitionException {
+        assertEval("{ a <- TRUE; a[[2]] <- FALSE; a; }","TRUE, FALSE");
     }
 
     @Test
