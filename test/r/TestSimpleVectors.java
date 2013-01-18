@@ -257,6 +257,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(a=1,b=2,c=3) ; l[[5]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
         assertEval("{ l <- list(a=1,b=2,c=3) ; l[[4]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
 
+        assertEval("{ l <- list(1,2); l[0] <- NULL; l}","[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEvalError("{ l <- list(1,2); l[[0]] }","attempt to select less than one element");
+
         // vector update
         assertEval("{ l <- list(1,2,3) ; l[c(2,3)] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
         assertEval("{ l <- list(1,2,3) ; l[c(2:3)] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
@@ -309,6 +312,16 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"z\")]] <- 100 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n  x   y     z\n1.0 2.0 100.0");
         assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\")]] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0");
         assertEval("{ l <- list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "$b\n2.0");
+        assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\",\"zz\")]] <- 100L ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n x  y  z   zz\n1L 2L 3L 100L");
+        assertEval("{ l<-list(a=TRUE,b=FALSE,c=list(d=TRUE,e=FALSE,f=c(x=TRUE,y=FALSE,z=TRUE))) ; l[[c(\"c\",\"f\",\"zz\")]] <- TRUE ; l }", "$a\nTRUE\n\n$b\nFALSE\n\n$c\n$c$d\nTRUE\n\n$c$e\nFALSE\n\n$c$f\n   x     y    z   zz\nTRUE FALSE TRUE TRUE");
+        assertEval("{ l<-list(a=\"a\",b=\"b\",c=list(d=\"cd\",e=\"ce\",f=c(x=\"cfx\",y=\"cfy\",z=\"cfz\"))) ; l[[c(\"c\",\"f\",\"zz\")]] <- \"cfzz\" ; l }", "$a\n\"a\"\n\n$b\n\"b\"\n\n$c\n$c$d\n\"cd\"\n\n$c$e\n\"ce\"\n\n$c$f\n    x     y     z     zz\n\"cfx\" \"cfy\" \"cfz\" \"cfzz\"");
+
+        assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"zz\")]] <- list(100) ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n$c$f$x\n1.0\n\n$c$f$y\n2.0\n\n$c$f$z\n3.0\n\n$c$f$zz\n$c$f$zz[[1]]\n100.0");
+        assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\")]] <- 100L ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n100L");
+        assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\")]] <- list(haha=\"gaga\") ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n$c$f$haha\n\"gaga\"");
+
+
+
 
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");
