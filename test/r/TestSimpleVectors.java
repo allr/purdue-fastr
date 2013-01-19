@@ -138,6 +138,11 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- double() ; l[c(TRUE,TRUE)] <-2 ; l}", "2.0, 2.0");
         assertEval("{ l <- double() ; l[c(FALSE,TRUE)] <-2 ; l}", "NA, 2.0");
 
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4,5); a}","\"a\", \"b\", \"4.0\", \"5.0\"");
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4L,5L); a}","\"a\", \"b\", \"4L\", \"5L\"");
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(TRUE,FALSE); a}","\"a\", \"b\", \"TRUE\", \"FALSE\"");
+
+
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[i]<-v ; x } ; f(1,1) ; f(1L,TRUE) ; f(2,TRUE) }", "1L, 1L, 3L, 4L, 5L");
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[[i]]<-v ; x } ; f(1,1) ; f(1L,TRUE) ; f(2,TRUE) }", "1L, 1L, 3L, 4L, 5L");
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[i]<-v ; x } ; f(3:2,1) ; f(1L,TRUE) ; f(2:4,4:2) }", "1L, 4L, 3L, 2L, 5L");
@@ -173,6 +178,25 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[\"d\"]<-4 ; x }", "  a   b   c   d\n1.0 2.0 3.0 4.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"e\")]<-c(4,5) ; x }", "  a   b   c   d   e\n1.0 2.0 3.0 4.0 5.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "  a   b   c   d\n5.0 2.0 3.0 4.0");
+
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[2:3] <- c(FALSE,FALSE); x }","TRUE, FALSE, FALSE, TRUE");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[3:2] <- c(FALSE,TRUE); x }","TRUE, TRUE, FALSE, TRUE");
+
+        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- 'x'; x}","\"a\", \"x\", \"x\", \"d\"");
+        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- c('x','y'); x}","\"a\", \"x\", \"y\", \"d\"");
+        assertEval("{ x <- c('a','b','c','d'); x[3:2] <- c('x','y'); x}","\"a\", \"y\", \"x\", \"d\"");
+
+        assertEval("{ x <- c('a','b','c','d'); x[c(TRUE,FALSE,TRUE)] <- c('x','y','z'); x }", "\"x\", \"b\", \"y\", \"z\"");
+
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- c(10L,20L,30L); x }","10L, 20L, 1L, 30L");
+        assertEval("{ x <- c(1L,1L,1L,1L); x[c(TRUE,TRUE,FALSE)] <- c('a','b','c'); x}","\"a\", \"b\", \"1L\", \"c\"");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- list(10L,20L,30L); x }","[[1]]\n10L\n\n[[2]]\n20L\n\n[[3]]\nTRUE\n\n[[4]]\n30L");
+
+        assertEval("{ x <- c(); x[c('a','b')] <- c(1L,2L); x }"," a  b\n1L 2L");
+        assertEval("{ x <- c(); x[c('a','b')] <- c(TRUE,FALSE); x }","   a     b\nTRUE FALSE");
+        assertEval("{ x <- c(); x[c('a','b')] <- c('a','b'); x }","  a   b\n\"a\" \"b\"");
+        assertEval("{ x <- list(); x[c('a','b')] <- c('a','b'); x }","$a\n\"a\"\n\n$b\n\"b\"");
+        assertEval("{ x <- list(); x[c('a','b')] <- list('a','b'); x }","$a\n\"a\"\n\n$b\n\"b\"");
     }
 
     @Test

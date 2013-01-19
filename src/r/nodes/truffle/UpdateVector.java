@@ -2477,13 +2477,13 @@ public abstract class UpdateVector extends BaseR {
             int ii = 0;
             if (noverwrites == 0) {
                 for (; ii < isize; ii++) {
-                    res.set(bsize + ii, typedValue.get(vi));
+                    // TODO will the ? check be lifted out of the loop, or should it be done explicitly
+                    res.set(bsize + ii, typedValue != null ? typedValue.get(vi) : listValue.get(vi));
                     vi++;
                     if (vi == vsize) {
                         vi = 0;
                     }
                 }
-                return res;
             } else {
                 // some overwrites (either update of an existing field, or a duplicate name in the update vector)
                 for (; ii < isize; ii++) {
@@ -2493,14 +2493,15 @@ public abstract class UpdateVector extends BaseR {
                     } else {
                         ni = targetOffsets[ii - firstOverwrite];
                     }
-                    res.set(ni, typedValue.get(vi));
+                    // TODO will the ? check be lifted out of the loop, or should it be done explicitly
+                    res.set(ni, typedValue != null ? typedValue.get(vi) : listValue.get(vi));
                     vi++;
                     if (vi == vsize) {
                         vi = 0;
                     }
                 }
-                return res;
             }
+            return res;
         }
     }
 
