@@ -1,7 +1,7 @@
 package r;
 
-import org.antlr.runtime.*;
-import org.junit.*;
+import org.antlr.runtime.RecognitionException;
+import org.junit.Test;
 
 public class TestSimpleVectors extends TestBase {
 
@@ -113,9 +113,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ a <- c(1,2,3) ; b <- a; a[2] <- 4L; a }", "1.0, 4.0, 3.0");
         assertEval("{ a <- c(1,2,3) ; b <- a; a[3] <- 4L; a }", "1.0, 2.0, 4.0");
         // logical value inserted to double vector
-        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[1]] <- TRUE; a }","1.0, 2.2, 2.3");
-        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[2]] <- TRUE; a }","2.1, 1.0, 2.3");
-        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[3]] <- TRUE; a }","2.1, 2.2, 1.0");
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[1]] <- TRUE; a }", "1.0, 2.2, 2.3");
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[2]] <- TRUE; a }", "2.1, 1.0, 2.3");
+        assertEval("{ a <- c(2.1,2.2,2.3); b <- a; a[[3]] <- TRUE; a }", "2.1, 2.2, 1.0");
         // logical value inserted into logical vector
         assertEval("{ a <- c(TRUE,TRUE,TRUE); b <- a; a[[1]] <- FALSE; a }", "FALSE, TRUE, TRUE");
         assertEval("{ a <- c(TRUE,TRUE,TRUE); b <- a; a[[2]] <- FALSE; a }", "TRUE, FALSE, TRUE");
@@ -138,9 +138,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- double() ; l[c(TRUE,TRUE)] <-2 ; l}", "2.0, 2.0");
         assertEval("{ l <- double() ; l[c(FALSE,TRUE)] <-2 ; l}", "NA, 2.0");
 
-        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4,5); a}","\"a\", \"b\", \"4.0\", \"5.0\"");
-        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4L,5L); a}","\"a\", \"b\", \"4L\", \"5L\"");
-        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(TRUE,FALSE); a}","\"a\", \"b\", \"TRUE\", \"FALSE\"");
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4,5); a}", "\"a\", \"b\", \"4.0\", \"5.0\"");
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(4L,5L); a}", "\"a\", \"b\", \"4L\", \"5L\"");
+        assertEval("{ a<- c('a','b','c','d'); a[3:4] <- c(TRUE,FALSE); a}", "\"a\", \"b\", \"TRUE\", \"FALSE\"");
 
 
         assertEval("{ f<-function(i,v) { x<-1:5 ; x[i]<-v ; x } ; f(1,1) ; f(1L,TRUE) ; f(2,TRUE) }", "1L, 1L, 3L, 4L, 5L");
@@ -179,24 +179,24 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"e\")]<-c(4,5) ; x }", "  a   b   c   d   e\n1.0 2.0 3.0 4.0 5.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "  a   b   c   d\n5.0 2.0 3.0 4.0");
 
-        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[2:3] <- c(FALSE,FALSE); x }","TRUE, FALSE, FALSE, TRUE");
-        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[3:2] <- c(FALSE,TRUE); x }","TRUE, TRUE, FALSE, TRUE");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[2:3] <- c(FALSE,FALSE); x }", "TRUE, FALSE, FALSE, TRUE");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[3:2] <- c(FALSE,TRUE); x }", "TRUE, TRUE, FALSE, TRUE");
 
-        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- 'x'; x}","\"a\", \"x\", \"x\", \"d\"");
-        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- c('x','y'); x}","\"a\", \"x\", \"y\", \"d\"");
-        assertEval("{ x <- c('a','b','c','d'); x[3:2] <- c('x','y'); x}","\"a\", \"y\", \"x\", \"d\"");
+        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- 'x'; x}", "\"a\", \"x\", \"x\", \"d\"");
+        assertEval("{ x <- c('a','b','c','d'); x[2:3] <- c('x','y'); x}", "\"a\", \"x\", \"y\", \"d\"");
+        assertEval("{ x <- c('a','b','c','d'); x[3:2] <- c('x','y'); x}", "\"a\", \"y\", \"x\", \"d\"");
 
         assertEval("{ x <- c('a','b','c','d'); x[c(TRUE,FALSE,TRUE)] <- c('x','y','z'); x }", "\"x\", \"b\", \"y\", \"z\"");
 
-        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- c(10L,20L,30L); x }","10L, 20L, 1L, 30L");
-        assertEval("{ x <- c(1L,1L,1L,1L); x[c(TRUE,TRUE,FALSE)] <- c('a','b','c'); x}","\"a\", \"b\", \"1L\", \"c\"");
-        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- list(10L,20L,30L); x }","[[1]]\n10L\n\n[[2]]\n20L\n\n[[3]]\nTRUE\n\n[[4]]\n30L");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- c(10L,20L,30L); x }", "10L, 20L, 1L, 30L");
+        assertEval("{ x <- c(1L,1L,1L,1L); x[c(TRUE,TRUE,FALSE)] <- c('a','b','c'); x}", "\"a\", \"b\", \"1L\", \"c\"");
+        assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[c(TRUE,TRUE,FALSE)] <- list(10L,20L,30L); x }", "[[1]]\n10L\n\n[[2]]\n20L\n\n[[3]]\nTRUE\n\n[[4]]\n30L");
 
-        assertEval("{ x <- c(); x[c('a','b')] <- c(1L,2L); x }"," a  b\n1L 2L");
-        assertEval("{ x <- c(); x[c('a','b')] <- c(TRUE,FALSE); x }","   a     b\nTRUE FALSE");
-        assertEval("{ x <- c(); x[c('a','b')] <- c('a','b'); x }","  a   b\n\"a\" \"b\"");
-        assertEval("{ x <- list(); x[c('a','b')] <- c('a','b'); x }","$a\n\"a\"\n\n$b\n\"b\"");
-        assertEval("{ x <- list(); x[c('a','b')] <- list('a','b'); x }","$a\n\"a\"\n\n$b\n\"b\"");
+        assertEval("{ x <- c(); x[c('a','b')] <- c(1L,2L); x }", " a  b\n1L 2L");
+        assertEval("{ x <- c(); x[c('a','b')] <- c(TRUE,FALSE); x }", "   a     b\nTRUE FALSE");
+        assertEval("{ x <- c(); x[c('a','b')] <- c('a','b'); x }", "  a   b\n\"a\" \"b\"");
+        assertEval("{ x <- list(); x[c('a','b')] <- c('a','b'); x }", "$a\n\"a\"\n\n$b\n\"b\"");
+        assertEval("{ x <- list(); x[c('a','b')] <- list('a','b'); x }", "$a\n\"a\"\n\n$b\n\"b\"");
     }
 
     @Test
@@ -281,8 +281,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(a=1,b=2,c=3) ; l[[5]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
         assertEval("{ l <- list(a=1,b=2,c=3) ; l[[4]] <- NULL ; l}", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
 
-        assertEval("{ l <- list(1,2); l[0] <- NULL; l}","[[1]]\n1.0\n\n[[2]]\n2.0");
-        assertEvalError("{ l <- list(1,2); l[[0]] }","attempt to select less than one element");
+        assertEval("{ l <- list(1,2); l[0] <- NULL; l}", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEvalError("{ l <- list(1,2); l[[0]] }", "attempt to select less than one element");
 
         // vector update
         assertEval("{ l <- list(1,2,3) ; l[c(2,3)] <- c(20,30) ; l }", "[[1]]\n1.0\n\n[[2]]\n20.0\n\n[[3]]\n30.0");
@@ -345,8 +345,6 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\")]] <- list(haha=\"gaga\") ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n$c$f$haha\n\"gaga\"");
 
 
-
-
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");
         assertEval("{ l<-list() ; x <- 1:3 ; l[[1]] <- x; x[2] <- 100L; l[[1]] }", "1L, 2L, 3L");
@@ -365,13 +363,13 @@ public class TestSimpleVectors extends TestBase {
 
     @Test
     public void testStringUpdate() throws RecognitionException {
-        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; a[[3]] <- 'muhuhu'; a; }","\"hello\", NA, \"muhuhu\", NA, \"done\"");
-        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; b <- a; b[[3]] <- 'muhuhu'; b; }","\"hello\", NA, \"muhuhu\", NA, \"done\"");
+        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; a[[3]] <- 'muhuhu'; a; }", "\"hello\", NA, \"muhuhu\", NA, \"done\"");
+        assertEval("{ a <- 'hello'; a[[5]] <- 'done'; b <- a; b[[3]] <- 'muhuhu'; b; }", "\"hello\", NA, \"muhuhu\", NA, \"done\"");
     }
 
     @Test
     public void testGenericUpdate() throws RecognitionException {
-        assertEval("{ a <- TRUE; a[[2]] <- FALSE; a; }","TRUE, FALSE");
+        assertEval("{ a <- TRUE; a[[2]] <- FALSE; a; }", "TRUE, FALSE");
     }
 
     @Test
@@ -414,6 +412,12 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ 1:3 %in% 1:10 }", "TRUE, TRUE, TRUE");
         assertEval("{ 1 %in% 1:10 }", "TRUE");
         assertEval("{ c(\"1L\",\"hello\") %in% 1:10 }", "TRUE, FALSE");
+    }
+
+    @Test
+    public void testEmptyUpdate() throws RecognitionException {
+        assertEval("{ a <- list(); a$a = 6; a; }", "$a\n6.0");
+        assertEval("{ a <- list(); a[['b']] = 6; a; }", "$b\n6.0");
     }
 
     @Test

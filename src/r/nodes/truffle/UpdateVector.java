@@ -1,18 +1,20 @@
 package r.nodes.truffle;
 
-import java.util.*;
-
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.nodes.UnexpectedResultException;
 import com.oracle.truffle.runtime.ContentStable;
+import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
-
-import r.*;
+import r.Convert;
+import r.RContext;
+import r.Utils;
 import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
-import r.errors.*;
-import r.nodes.*;
+import r.errors.RError;
+import r.nodes.ASTNode;
+
+import java.util.Arrays;
+import java.util.HashMap;
 
 // TODO: clean-up generic code using .getRef
 
@@ -24,12 +26,17 @@ import r.nodes.*;
 public abstract class UpdateVector extends BaseR {
 
     final RSymbol var;
-    @Stable RNode lhs;
-    @Stable @ContentStable RNode[] indexes;
-    @Stable RNode rhs;
+    @Stable
+    RNode lhs;
+    @Stable
+    @ContentStable
+    RNode[] indexes;
+    @Stable
+    RNode rhs;
     final boolean subset;
 
-    @Stable RNode assign;  // node which will assign the whole new vector to var
+    @Stable
+    RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
     final boolean isSuper;
 
@@ -121,7 +128,7 @@ public abstract class UpdateVector extends BaseR {
                     throw RError.getUnknownVariable(getAST());
                 }
                 base.ref(); // reading from parent, hence need to copy on update
-                            // ref once will make it shared unless it is stateless (like int sequence)
+                // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(context, base, index, value);
                 Utils.check(base != newBase);
                 RFrame.writeAtRef(frame, framePosition, newBase);
@@ -142,7 +149,7 @@ public abstract class UpdateVector extends BaseR {
 
     abstract RAny execute(RContext context, RAny base, RAny index, RAny value);
 
-        // FIXME: move these to some other file?
+    // FIXME: move these to some other file?
     public static Names expandNames(Names names, int newSize) {
         RSymbol[] oldSymbols = names.sequence();
         RSymbol[] symbols = new RSymbol[newSize];
@@ -243,7 +250,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException  {
+                        RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RInt) || !(value instanceof ScalarLogicalImpl)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -625,12 +632,13 @@ public abstract class UpdateVector extends BaseR {
                         }
                     }
                     if (DEBUG_UP) Utils.debug("update - ScalarNumericSelection" + dbg + " failed: " + f);
-                    switch(f) {
+                    switch (f) {
                         case INDEX_OUT_OF_BOUNDS:
                         case UNEXPECTED_TYPE:
                             Specialized sn = createGeneric();
                             replace(sn, "specialize ScalarNumericSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
+                            if (DEBUG_UP)
+                                Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
                             return sn.execute(context, base, index, value);
 
                         case NOT_ONE_ELEMENT_INDEX:
@@ -709,7 +717,9 @@ public abstract class UpdateVector extends BaseR {
                 }
                 return res;
             }
-            // appending
+            // appending, if names are empty, create them - this is for appending to empty lists and vectors
+            if (names == null)
+                names = new RArray.MappedNames();
             RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol));
             for (int i = 0; i < bsize; i++) {
                 res.set(i, typedBase.get(i));
@@ -764,7 +774,7 @@ public abstract class UpdateVector extends BaseR {
                     int nsize = i - 1;
                     RAny[] content = new RAny[nsize];
                     for (; j < size; j++) { // shallow copy
-                        content[j] =  base.getRAny(j);
+                        content[j] = base.getRAny(j);
                     }
                     for (; j < nsize; j++) {
                         content[j] = RList.NULL;
@@ -932,7 +942,8 @@ public abstract class UpdateVector extends BaseR {
                             if (index instanceof IntImpl.RIntSequence) {
                                 IntSequenceSelection is = new IntSequenceSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(is, "install IntSequenceSelection from GenericScalarSelection");
-                                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
+                                if (DEBUG_UP)
+                                    Utils.debug("update - replaced and re-executing with IntSequenceSelection");
                                 return is.execute(context, base, index, value);
                             }
                             if (index instanceof RInt || index instanceof RDouble) {
@@ -1387,7 +1398,7 @@ public abstract class UpdateVector extends BaseR {
                             res.set(i, typedValue.get(steps));
                             i += delta;
                             for (int j = 1; j < astep; j++) {
-                                res.set(i,  typedBase.get(i));
+                                res.set(i, typedBase.get(i));
                                 i += delta;
                             }
                         }
@@ -1396,7 +1407,7 @@ public abstract class UpdateVector extends BaseR {
                             res.set(i, listValue.getRAnyRef(steps));
                             i += delta;
                             for (int j = 1; j < astep; j++) {
-                                res.set(i,  typedBase.get(i));
+                                res.set(i, typedBase.get(i));
                                 i += delta;
                             }
                         }
@@ -1440,11 +1451,12 @@ public abstract class UpdateVector extends BaseR {
                 } catch (UnexpectedResultException e) {
                     Failure f = (Failure) e.getResult();
                     if (DEBUG_UP) Utils.debug("update - IntSequenceSelection" + dbg + " failed: " + f);
-                    switch(f) {
+                    switch (f) {
                         case UNEXPECTED_TYPE:
                             Specialized sn = createExtended();
                             replace(sn, "specialize IntSequenceSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
+                            if (DEBUG_UP)
+                                Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
                             return sn.execute(context, base, index, value);
 
                         default:
@@ -1712,9 +1724,9 @@ public abstract class UpdateVector extends BaseR {
                         res.set(i, typedBase.get(i));
                     } else {
                         if (typedValue != null) {
-                            res.set(i,  typedValue.get(j++));
+                            res.set(i, typedValue.get(j++));
                         } else {
-                            res.set(i,  listValue.getRAnyRef(j++));
+                            res.set(i, listValue.getRAnyRef(j++));
                         }
                         if (j == vsize) {
                             j = 0;
@@ -2308,12 +2320,13 @@ public abstract class UpdateVector extends BaseR {
                 } catch (UnexpectedResultException e) {
                     Failure f = (Failure) e.getResult();
                     if (DEBUG_UP) Utils.debug("update - LogicalSelection" + dbg + " failed: " + f);
-                    switch(f) {
+                    switch (f) {
                         case INDEX_OUT_OF_BOUNDS:
                         case UNEXPECTED_TYPE:
                             Specialized sn = createGeneric();
                             replace(sn, "specialize LogicalSelection");
-                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
+                            if (DEBUG_UP)
+                                Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
                             return sn.execute(context, base, index, value);
 
                         default:
@@ -2468,7 +2481,7 @@ public abstract class UpdateVector extends BaseR {
                     nnames = Names.create(nsymbols, nmap);
                 }
             }
-            RArray res = Utils.createArray(typedBase,  nsize, null, nnames);
+            RArray res = Utils.createArray(typedBase, nsize, null, nnames);
             for (int bi = 0; bi < bsize; bi++) {
                 res.set(bi, typedBase.get(bi));
             }
@@ -2687,7 +2700,7 @@ public abstract class UpdateVector extends BaseR {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - Subscript failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
-                  // rewriting itself only to handle the error, there is no way to recover
+                // rewriting itself only to handle the error, there is no way to recover
                 replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                 return gs.execute(context, base, index, value);

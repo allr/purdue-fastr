@@ -1,9 +1,9 @@
 package r.data;
 
-import java.util.*;
+import r.Utils;
+import r.data.internal.View;
 
-import r.*;
-import r.data.internal.*;
+import java.util.HashMap;
 
 // note: dimensions array should never be modified (only can be replaced, to allow sharing)
 // note: names object should never be modified (only can be replaced, to allow sharing)
@@ -11,22 +11,33 @@ public interface RArray extends RAny {
     int[] SCALAR_DIMENSIONS = new int[] {1, 1};
 
     int size();
+
     int[] dimensions(); // the returned array shall not be modified
+
     Names names();  // the returned array shall not be modified
 
     Object get(int i);
+
     Object getRef(int i);
+
     RAny boxedGet(int i);
+
     RAny boxedNamedGet(int i);
+
     RArray set(int i, Object val);
+
     RArray setDimensions(int[] dimensions);
+
     RArray setNames(Names names);
+
     boolean isNAorNaN(int i);
+
     int index(int i, int j);
 
     RArray subset(RAny keys);
 
     RArray subset(RInt index);
+
     RArray subset(RString names);
 
     RArray materialize();
@@ -42,6 +53,10 @@ public interface RArray extends RAny {
     public abstract static class Names {
         RSymbol[] names;
 
+        protected Names() {
+            this.names = new RSymbol[0];
+        }
+
         public Names(RSymbol[] names) {
             this.names = names;
         }
@@ -54,7 +69,7 @@ public interface RArray extends RAny {
 
         public static Names create(RSymbol[] names) {
 //            if (names.length > 10) {
-                return new MappedNames(names);
+            return new MappedNames(names);
 //            } else {
 //                return new SimpleNames(names);
 //            }
@@ -93,6 +108,7 @@ public interface RArray extends RAny {
         }
 
         public abstract HashMap<RSymbol, Integer> getMap();
+
         public abstract boolean keepsMap();
     }
 
@@ -128,6 +144,9 @@ public interface RArray extends RAny {
 
     public static final class MappedNames extends Names { // FIXME: implement a specialized hash map that takes less memory
         HashMap<RSymbol, Integer> namesMap; // NOTE: LinkedHashMap preserves the insertion order
+
+        public MappedNames() {
+        }
 
         public MappedNames(RSymbol[] names) {
             super(names);
@@ -177,6 +196,7 @@ public interface RArray extends RAny {
 
     public static class RListView extends View.RListView implements RList {
         final RArray arr;
+
         public RListView(RArray arr) {
             this.arr = arr;
         }
