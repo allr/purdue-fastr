@@ -4,7 +4,6 @@ import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
 
-import com.sun.org.apache.bcel.internal.generic.ACONST_NULL;
 import r.*;
 import r.builtins.*;
 import r.data.*;
