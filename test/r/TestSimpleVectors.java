@@ -415,4 +415,14 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ 1 %in% 1:10 }", "TRUE");
         assertEval("{ c(\"1L\",\"hello\") %in% 1:10 }", "TRUE, FALSE");
     }
+
+    @Test
+    public void testFieldAccess() throws RecognitionException {
+        assertEval("{ a <- list(a = 1, b = 2); a$a; }","1.0");
+        assertEval("{ a <- list(a = 1, b = 2); a$b; }","2.0");
+        assertEval("{ a <- list(a = 1, b = 2); a$c; }","$null\nNULL");
+        assertEval("{ a <- list(a = 1, b = 2); a$a <- 67; a; }","$a\n67.0\n\n$b\n2.0");
+        assertEval("{ a <- list(a = 1, b = 2); a$b <- 67; a; }","$a\n1.0\n\n$b\n67.0");
+        assertEval("{ a <- list(a = 1, b = 2); a$c <- 67; a; }","$a\n1.0\n\n$b\n2.0\n\n$c\n67.0");
+    }
 }

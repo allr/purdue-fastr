@@ -4,6 +4,7 @@ import com.oracle.truffle.nodes.control.*;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
 
+import com.sun.org.apache.bcel.internal.generic.ACONST_NULL;
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -146,8 +147,14 @@ public class Truffleize implements Visitor {
         result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, symbol);
     }
 
+    /** FieldAccess closely resembles the subset operator.
+     */
     @Override
-    public void visit(FieldAccess fieldAccess) {
+    public void visit(FieldAccess fa) {
+        ASTNode lhs = fa.lhs();
+        RNode n = createTree(lhs);
+        RNode[] index = new RNode[] { createTree(fa.fieldName()) };
+        result = new ReadVector.SimpleScalarIntSelection(fa, n, index, false);
     }
 
     @Override
@@ -360,6 +367,20 @@ public class Truffleize implements Visitor {
                 result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         }
+    }
+
+    /** Converts the field update ($ selector on topmost lhf of assignment a$x = xyz).
+     */
+    @Override
+    public void visit(UpdateField u) {
+        FieldAccess fa = u.getVector();
+        ASTNode varAccess = fa.lhs();
+        if (!(varAccess instanceof SimpleAccessVariable)) {
+            Utils.nyi("expecting vector name for vector update");
+        }
+        RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
+        RNode[] index = new RNode[] { createTree(fa.fieldName()) };
+        result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(),  var, createTree(varAccess), index, createTree(u.getRHS()), false);
     }
 
     @SuppressWarnings("unchecked")

@@ -3,11 +3,11 @@ package r.nodes;
 
 public class FieldAccess extends ASTNode {
     ASTNode lhs;
-    String name;
+    ASTNode fieldName;
 
     public FieldAccess(ASTNode value, String fieldName) {
         lhs = updateParent(value);
-        name = fieldName;
+        this.fieldName = Constant.createStringConstant(fieldName);
     }
 
     @Override
@@ -26,5 +26,13 @@ public class FieldAccess extends ASTNode {
             case FIELD: return new FieldAccess(value, fieldName);
         }
         throw new Error("No node implemented for: '" + op + "' (" + value + ": " + fieldName + ")");
+    }
+
+    public ASTNode lhs() {
+        return lhs;
+    }
+
+    public ASTNode fieldName() {
+        return fieldName;
     }
 }
