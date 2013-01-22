@@ -54,6 +54,7 @@ public abstract class WriteVariable extends BaseR {
                             reason = "installWriteLocalNode";
                         } else {
                             // this is only with reflective access
+                            // TODO: remove this? the reflective access should never go through WriteVariable
                             node = getWriteExtension(getAST(), symbol, expr);
                             reason = "installWriteExtensionNode (!!! only reflective access !!!)";
                             Utils.check(false, "unreachable as long as not doing any reflective writes");

@@ -19,7 +19,7 @@ public class Cat {
     private static final String[] paramNames = new String[]{"...", "sep"};
     private static final int ISEP = 1;
 
-    public static String catElement(RArray v, int i) {
+    public static String catElement(RArray v, int i) { // TODO: replace this by virtual calls, even cat can be important for performance (e.g. fasta)
         if (v instanceof RDouble) {
             return catElement((RDouble) v, i);
         }
