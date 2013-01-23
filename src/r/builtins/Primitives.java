@@ -138,35 +138,27 @@ public class Primitives {
         return Primitives.get(name, enclosing) != null;
     }
 
-    public static CallFactory getCallFactory(final RSymbol name, final RFunction enclosing) {
+    public static CallFactory getCallFactory(RSymbol name, RFunction enclosing) {
         final PrimitiveEntry pe = Primitives.get(name, enclosing);
         if (pe == null) {
             return null;
+        } else {
+            return pe.factory;
         }
-        return new CallFactory() {
+    }
 
-            @Override
-            public RSymbol name() {
-                return name;
-            }
-
-            @Override
-            public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-                int minArgs = pe.getMinArgs();
-                int maxArgs = pe.getMaxArgs();
-
-                if (minArgs != -1 && exprs.length < minArgs || maxArgs != -1 && exprs.length > maxArgs) {
-                    throw RError.getGenericError(call, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
-                }
-
-                return pe.factory.create(call, names, exprs);
-            }
-        };
+    public static RBuiltIn getBuiltIn(RSymbol name, RFunction enclosing) {
+        final PrimitiveEntry pe = Primitives.get(name, enclosing);
+        if (pe == null) {
+            return null;
+        } else {
+            return pe.builtIn;
+        }
     }
 
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {
         PrimitiveEntry pe = get(name);
-        if (pe != null && fun != null && fun.isInWriteSet(name)) {
+        if (pe != null && fun != null && fun.isInWriteSet(name)) {   // TODO: fix these checks
             Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
             if (false) Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
                          // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
@@ -184,9 +176,9 @@ public class Primitives {
         add(name, minArgs, maxArgs, body, PrimitiveEntry.PREFIX);
     }
 
-    private static void add(String name, int minArgs, int maxArgs, CallFactory body, int pp) {
+    private static void add(String name, int minArgs, int maxArgs, CallFactory body, int prettyPrint) {
         RSymbol sym = RSymbol.getSymbol(name);
         assert Utils.check(!map.containsKey(sym));
-        map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, pp));
+        map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, prettyPrint));
     }
 }

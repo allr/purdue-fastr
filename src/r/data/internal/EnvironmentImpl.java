@@ -251,12 +251,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
                     return res;
                 }
                 // builtins
-                CallFactory callFactory = Primitives.getCallFactory(name, null);
-                if (callFactory != null) {
-                    return new BuiltInImpl(callFactory);
-                } else {
-                    return null;
-                }
+                return Primitives.getBuiltIn(name, null);
             }
         }
 
@@ -280,12 +275,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
                 return (RCallable) res;
             }
             // builtins
-            CallFactory callFactory = Primitives.getCallFactory(name, null);
-            if (callFactory != null) {
-                return new BuiltInImpl(callFactory);
-            } else {
-                return null;
-            }
+            return Primitives.getBuiltIn(name, null);
         }
 
         @Override

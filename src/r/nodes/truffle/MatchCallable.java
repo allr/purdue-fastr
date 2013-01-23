@@ -26,11 +26,12 @@ public abstract class MatchCallable extends BaseR {
 
     public static RCallable matchNonVariable(ASTNode ast, RSymbol symbol) { // TODO: get rid of this (it is now in EnvironmentImpl.match)
         // builtins
-        CallFactory callFactory = Primitives.getCallFactory(symbol, null);
-        if (callFactory != null) {
-            return new BuiltInImpl(callFactory);
+        RBuiltIn builtIn = Primitives.getBuiltIn(symbol, null);
+        if (builtIn != null) {
+            return builtIn;
+        } else {
+            throw RError.getUnknownFunction(ast, symbol);
         }
-        throw RError.getUnknownFunction(ast, symbol);
     }
 
     public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {

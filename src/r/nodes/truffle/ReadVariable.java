@@ -26,11 +26,12 @@ public abstract class ReadVariable extends BaseR {
     // FIXME: merge this with REnvironment.GLOBAL
     public static RAny readNonVariable(ASTNode ast, RSymbol symbol) {
         // builtins
-        CallFactory callFactory = Primitives.getCallFactory(symbol, null);
-        if (callFactory != null) {
-            return new BuiltInImpl(callFactory);
+        RBuiltIn builtIn = Primitives.getBuiltIn(symbol, null);
+        if (builtIn != null) {
+            return builtIn;
+        } else {
+            throw RError.getUnknownVariable(ast, symbol);
         }
-        throw RError.getUnknownVariable(ast, symbol);
     }
 
     public static ReadVariable getUninitialized(ASTNode orig, RSymbol sym) {
