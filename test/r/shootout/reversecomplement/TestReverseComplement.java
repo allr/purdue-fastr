@@ -7,7 +7,7 @@ public class TestReverseComplement extends ShootoutTestBase {
     @Test
     public void testReverseComplement() {
         String inputFile = ".tmp.unit.reversecomplement.input";
-        generateFastaOutput(1000, inputFile);
+        generateFastaOutput(100, inputFile);
         assertShootout("reversecomplement", "reversecomplement", "reversecomplement", inputFile,
 ">ONE Homo sapiens alu\n" +
 "CCGGCCCGCGCCACCGAGTGCGGACATTAGGGTCGTGAAACCCTCCGGCTCCGCCCGCCT\n" +

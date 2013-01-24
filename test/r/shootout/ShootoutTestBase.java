@@ -28,6 +28,7 @@ public class ShootoutTestBase {
     // shootouts that take input file name as input
     public static void assertShootout(String benchDir, String benchFileBase, String functionName, String inputFileName, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
+        assertRun(sourceFile, new String[] {"--args", inputFileName}, expectedOutput, expectedErrorOutput, expectedResult);
     }
 
     public static void generateFastaOutput(int size, String captureFile) {
@@ -43,7 +44,7 @@ public class ShootoutTestBase {
             out.print(result.output);
             out.close();
         } catch (IOException e) {
-            Assert.fail("I/O error while creating input for knucleotide: " + e.toString());
+            Assert.fail("I/O error while creating FASTA output as input for other benchmarks: " + e.toString());
         }
     }
 
