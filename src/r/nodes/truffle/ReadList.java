@@ -7,7 +7,8 @@ import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-/** Read access to a list using the dollar selector.
+/**
+ * Read access to a list using the dollar selector.
  *
  * Works only on lists, fails otherwise (compatible with R >= 2.6). Because only string literals and symbols are
  * allowed, the symbol creation and lookup is precached and the field access only does the hashmap search in the names
@@ -21,8 +22,6 @@ public abstract class ReadList extends BaseR {
 
     @Stable
     RNode base;
-//    @ContentStable
-//    @Stable
     RSymbol index;
 
     protected ReadList(ASTNode orig, RNode list, String idx) {
@@ -38,14 +37,13 @@ public abstract class ReadList extends BaseR {
     }
 
 
-    /** As per R reference, should fail if not list or pairlist, otherwise the element should be returned.
-     */
+    /** As per R reference, should fail if not list or pairlist, otherwise the element should be returned. */
     abstract RAny execute(RContext context, RSymbol index, RAny list);
 
 
-    /** The class performing the field lookup. Because the dollar selector is a very special case, no rewrites are yet
+    /**
+     * The class performing the field lookup. Because the dollar selector is a very special case, no rewrites are yet
      * implemented, this is only to enable future's expansions.
-     *
      * TODO inline caching & object sealing & types?
      */
     public static class SimpleFieldSelect extends ReadList {
@@ -56,15 +54,18 @@ public abstract class ReadList extends BaseR {
 
         @Override
         RAny execute(RContext context, RSymbol index, RAny base) {
-            if (!(base instanceof RList))
+            if (!(base instanceof RList)) {
                 throw RError.getDollarSelectionRequiresRecursiveObject(this.base.getAST());
+            }
             RList list = (RList) base;
             RArray.Names names = list.names();
-            if (names == null) // return null if we have no names
+            if (names == null) { // return null if we have no names
                 return RNull.getNull();
+            }
             int i = names.map(index);
-            if (i == -1)
+            if (i == -1) {
                 return RNull.getNull();
+            }
             return list.getRAny(i); // list subscript does not preserve names
         }
     }
