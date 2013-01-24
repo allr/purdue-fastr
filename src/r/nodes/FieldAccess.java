@@ -3,11 +3,11 @@ package r.nodes;
 
 public class FieldAccess extends ASTNode {
     ASTNode lhs;
-    ASTNode fieldName;
+    String fieldName;
 
     public FieldAccess(ASTNode value, String fieldName) {
         lhs = updateParent(value);
-        this.fieldName = Constant.createStringConstant(fieldName);
+        this.fieldName = fieldName;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class FieldAccess extends ASTNode {
         return lhs;
     }
 
-    public ASTNode fieldName() {
+    public String fieldName() {
         return fieldName;
     }
 }

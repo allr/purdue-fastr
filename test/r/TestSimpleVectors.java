@@ -2,6 +2,7 @@ package r;
 
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
+import r.errors.RError;
 
 public class TestSimpleVectors extends TestBase {
 
@@ -424,9 +425,24 @@ public class TestSimpleVectors extends TestBase {
     public void testFieldAccess() throws RecognitionException {
         assertEval("{ a <- list(a = 1, b = 2); a$a; }", "1.0");
         assertEval("{ a <- list(a = 1, b = 2); a$b; }", "2.0");
-        assertEval("{ a <- list(a = 1, b = 2); a$c; }", "$null\nNULL");
+        assertEval("{ a <- list(a = 1, b = 2); a$c; }", "NULL");
         assertEval("{ a <- list(a = 1, b = 2); a$a <- 67; a; }", "$a\n67.0\n\n$b\n2.0");
         assertEval("{ a <- list(a = 1, b = 2); a$b <- 67; a; }", "$a\n1.0\n\n$b\n67.0");
         assertEval("{ a <- list(a = 1, b = 2); a$c <- 67; a; }", "$a\n1.0\n\n$b\n2.0\n\n$c\n67.0");
+        // make sure that dollar only works for lists
+        assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT);
+        // make sure that coercion returns warning
+        assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
     }
+
+    @Test
+    public void testAddingNamedItemsToNamelessVector() throws RecognitionException {
+        assertEval("{ a = c(1, 2); a[['a']] = 67; a; }", "           a\n1.0 2.0 67.0" );
+    }
+
+    @Test
+    public void testAddingNamedItemsToMixedVector() throws RecognitionException {
+        assertEval("{ a = c(a=1,2,3); a[['x']] = 67; a; }","  a            x\n1.0 2.0 3.0 67.0");
+    }
+
 }

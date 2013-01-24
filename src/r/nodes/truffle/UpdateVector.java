@@ -45,6 +45,31 @@ public abstract class UpdateVector extends BaseR {
 
     private static final boolean DEBUG_UP = false;
 
+    protected UpdateVector(UpdateVector from) {
+        super(from.ast);
+        this.var = from.var;
+        this.lhs = updateParent(from.lhs);  // lhs is always SimpleAccessVariable of var
+        this.indexes = from.indexes == null ? null : updateParent(from.indexes);
+        this.rhs = updateParent(from.rhs);
+        this.subset = from.subset;
+        this.isSuper = from.isSuper;
+
+        if (isSuper) { // FIXME: turn this switch into node rewriting?
+            RNode node = updateParent(new BaseR(ast) {
+                @Override
+                public final Object execute(RContext context, Frame frame) {
+                    return newVector;
+                }
+            });
+            this.assign = updateParent(SuperWriteVariable.getUninitialized(ast, var, node));
+        } else {
+//            this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
+            this.assign = null;
+        }
+
+
+    }
+
     UpdateVector(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
         this.var = var;
@@ -719,7 +744,7 @@ public abstract class UpdateVector extends BaseR {
             }
             // appending, if names are empty, create them - this is for appending to empty lists and vectors
             if (names == null)
-                names = new RArray.MappedNames();
+                names = new RArray.MappedNames(bsize);
             RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol));
             for (int i = 0; i < bsize; i++) {
                 res.set(i, typedBase.get(i));
@@ -2777,6 +2802,221 @@ public abstract class UpdateVector extends BaseR {
                 if (DEBUG_UP) Utils.debug("update - GenericSelection failed: " + f);
                 Utils.nyi("unsupported update");
                 return null;
+            }
+        }
+    }
+
+    // Dollar selection operator ---------------------------------------------------------------------------------------
+
+    public static abstract class DollarUpdateBase extends UpdateVector {
+
+
+        DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+            super(ast, isSuper, var, lhs, new RNode[] { index }, rhs, false);
+        }
+
+        DollarUpdateBase(DollarUpdateBase from) {
+            super(from);
+        }
+
+        protected final RList convertToList(RContext context, RAny base) {
+            context.warning(ast, RError.COERCING_LHS_TO_LIST);
+            return base.asList();
+        }
+
+        protected final int elementPos(RArray.Names names, RSymbol idx) {
+            return (names == null) ? -1 : names.map(idx);
+        }
+
+        protected final RAny appendToList(RArray base, RArray.Names names, int size, RAny value, RSymbol idx) {
+            // if names not empty, create them
+            if (names == null) {
+                names = new RArray.MappedNames(size);
+
+            }
+            RArray res = Utils.createArray(base, size + 1, base.dimensions(), UpdateVector.appendName(names, idx));
+            for (int i = 0; i < size; ++i)
+                res.set(i, base.get(i));
+            res.set(size,value);
+            return res;
+        }
+
+        protected final RAny updateList(RArray base, RArray.Names names, int size, RAny value, RSymbol idx, int pos) {
+            RArray res = Utils.createArray(base, size, base.dimensions(), names);
+            for (int i = 0; i < pos; ++i)
+                res.set(i, base.get(i));
+            for (int i = pos + 1; i < size; ++i)
+                res.set(i, base.get(i));
+            return updateListInPlace(base,value, pos);
+        }
+
+        protected final RAny updateListInPlace(RArray base, RAny value, int pos) {
+            base.set(pos,value);
+            return base;
+        }
+    }
+
+    public static class DollarListUpdate extends DollarUpdateBase {
+
+        static enum Failure {
+            notList,
+            sharedUpdate,
+            notUpdate,
+        }
+
+        public DollarListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+            super(ast, isSuper, var, lhs, index, rhs);
+        }
+
+        public DollarListUpdate(DollarUpdateBase from) {
+            super(from);
+        }
+
+        @Override
+        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            assert (index instanceof RString) : "this assumes we always have a constant";
+            try {
+                if (!(base instanceof RList))
+                    throw new UnexpectedResultException(Failure.notList);
+                RList list = (RList) base;
+                RArray.Names names = list.names();
+                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
+                int size = list.size();
+                int pos = elementPos(names, idx);
+                if (pos == -1)
+                    throw new UnexpectedResultException(Failure.notUpdate);
+                if (list.isShared())
+                    throw new UnexpectedResultException(Failure.sharedUpdate);
+                return updateListInPlace(list, value, pos);
+            } catch (UnexpectedResultException e) {
+                DollarUpdateBase x;
+                switch ((Failure)e.getResult()) {
+                    case notList:
+                        x = new DollarUpdate(this);
+                        replace(x, "not a list in assignment");
+                        return x.execute(context, base, index, value);
+                    case sharedUpdate:
+                        x = new DollarSharedUpdate(this);
+                        replace(x, "update of a shared list");
+                        return x.execute(context, base, index, value);
+                    case notUpdate:
+                        x = new DollarListAppend(this);
+                        replace(x, "list append");
+                        return x.execute(context, base, index, value);
+                }
+            }
+            assert (false);
+            return null;
+        }
+    }
+
+    public static class DollarSharedUpdate extends DollarUpdateBase {
+        static enum Failure {
+            notList,
+            notUpdate,
+        }
+
+        public DollarSharedUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+            super(ast, isSuper, var, lhs, index, rhs);
+        }
+
+        public DollarSharedUpdate(DollarUpdateBase from) {
+            super(from);
+        }
+
+        @Override
+        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            assert (index instanceof RString) : "this assumes we always have a constant";
+            try {
+                if (!(base instanceof RList))
+                    throw new UnexpectedResultException(Failure.notList);
+                RList list = (RList) base;
+                RArray.Names names = list.names();
+                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
+                int size = list.size();
+                int pos = elementPos(names, idx);
+                if (pos == -1)
+                    throw new UnexpectedResultException(Failure.notUpdate);
+                if (list.isShared())
+                    return updateList(list, names, size, value, idx, pos);
+                else
+                    return updateListInPlace(list, value, pos);
+            } catch (UnexpectedResultException e) {
+                DollarUpdateBase x;
+                switch ((Failure)e.getResult()) {
+                    case notList:
+                        x = new DollarUpdate(this);
+                        replace(x, "not a list in assignment");
+                        return x.execute(context, base, index, value);
+                    case notUpdate:
+                        x = new DollarListAppend(this);
+                        replace(x, "list append");
+                        return x.execute(context, base, index, value);
+                }
+            }
+            assert (false);
+            return null;
+        }
+    }
+
+    public static class DollarListAppend extends DollarUpdateBase {
+
+        public DollarListAppend(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+            super(ast, isSuper, var, lhs, index, rhs);
+        }
+
+        public DollarListAppend(DollarUpdateBase from) {
+            super(from);
+        }
+
+        @Override
+        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            assert (index instanceof RString) : "this assumes we always have a constant";
+            try {
+                if (!(base instanceof RList))
+                    throw new UnexpectedResultException(null);
+                RList list = (RList) base;
+                RArray.Names names = list.names();
+                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
+                int size = list.size();
+                int pos = elementPos(names, idx);
+                if (pos != -1)
+                    throw new UnexpectedResultException(null);
+                return appendToList(list, names, size, value, idx);
+            } catch (UnexpectedResultException e) {
+                DollarUpdateBase x = new DollarUpdate(this);
+                replace(x, "not a list or not append in assignment");
+                return x.execute(context, base, index, value);
+            }
+        }
+    }
+
+    public static class DollarUpdate extends DollarUpdateBase {
+
+        public DollarUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+            super(ast, isSuper, var, lhs, index, rhs);
+        }
+
+        public DollarUpdate(DollarUpdateBase from) {
+            super(from);
+        }
+
+        @Override
+        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            assert (index instanceof RString) : "this assumes we always have a constant";
+            RArray list = (base instanceof RList) ? (RList) base : convertToList(context, base);
+            RArray.Names names = list.names();
+            RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
+            int size = list.size();
+            int pos = elementPos(names, idx);
+            if (pos == -1) {
+                return appendToList(list, names, size, value, idx);
+            } else {
+                if (base.isShared()) {
+                    return updateList(list, names, size, value, idx, pos);
+                } else {
+                    return updateListInPlace(list, value, pos);
+                }
             }
         }
     }
