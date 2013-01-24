@@ -1,24 +1,23 @@
 package r.nodes.tools;
 
-import com.oracle.truffle.nodes.control.*;
+import com.oracle.truffle.nodes.control.BreakException;
+import com.oracle.truffle.nodes.control.ContinueException;
 import com.oracle.truffle.runtime.Frame;
 import com.oracle.truffle.runtime.Stable;
-
-import r.*;
-import r.builtins.*;
+import r.RContext;
+import r.Utils;
+import r.builtins.Primitives;
 import r.data.*;
-import r.errors.*;
+import r.errors.RError;
 import r.nodes.*;
-import r.nodes.Colon;
 import r.nodes.Constant;
 import r.nodes.Function;
 import r.nodes.FunctionCall;
 import r.nodes.If;
 import r.nodes.Not;
 import r.nodes.Sequence;
-import r.nodes.Sub;
-import r.nodes.UpdateVector;
 import r.nodes.UnaryMinus;
+import r.nodes.UpdateVector;
 import r.nodes.truffle.*;
 import r.nodes.truffle.ReplacementCall.RememberLast;
 
@@ -146,14 +145,14 @@ public class Truffleize implements Visitor {
         result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, symbol);
     }
 
-    /** FieldAccess closely resembles the subset operator.
+    /** FieldAccess closely resembles the subset operator, but uses the ReadList class which closely matches the
+     * functionality of String-typed selector from vectors.
      */
     @Override
     public void visit(FieldAccess fa) {
         ASTNode lhs = fa.lhs();
         RNode n = createTree(lhs);
-        RNode[] index = new RNode[] { createTree(fa.fieldName()) };
-        result = new ReadVector.SimpleScalarIntSelection(fa, n, index, false);
+        result = ReadList.simpleFieldSelect(fa, n, fa.fieldName());
     }
 
     @Override
@@ -372,14 +371,15 @@ public class Truffleize implements Visitor {
      */
     @Override
     public void visit(UpdateField u) {
+        /// FIXME this uses the old variant of $ selector that works also on vectors. Should be replaced.
         FieldAccess fa = u.getVector();
         ASTNode varAccess = fa.lhs();
         if (!(varAccess instanceof SimpleAccessVariable)) {
             Utils.nyi("expecting vector name for vector update");
         }
         RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
-        RNode[] index = new RNode[] { createTree(fa.fieldName()) };
-        result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(),  var, createTree(varAccess), index, createTree(u.getRHS()), false);
+        RNode index =  createTree(Constant.createStringConstant(fa.fieldName()));
+        result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), index, createTree(u.getRHS()));
     }
 
     @SuppressWarnings("unchecked")

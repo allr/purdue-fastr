@@ -1,7 +1,7 @@
 package r.errors;
 
-import r.data.*;
-import r.nodes.*;
+import r.data.RSymbol;
+import r.nodes.ASTNode;
 
 public abstract class RError extends RuntimeException {
 
@@ -106,6 +106,10 @@ public abstract class RError extends RuntimeException {
     public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
     public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
     public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
+
+    public static final String DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT = "$ operator is invalid for atomic vectors";
+
+    public static final String COERCING_LHS_TO_LIST = "Coercing LHS to a list";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -984,6 +988,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return UNKNOWN_VARIABLE;
+            }
+        };
+    }
+
+    public static RError getDollarSelectionRequiresRecursiveObject(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT;
             }
         };
     }

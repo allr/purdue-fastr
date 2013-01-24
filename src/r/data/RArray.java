@@ -148,6 +148,17 @@ public interface RArray extends RAny {
         public MappedNames() {
         }
 
+        public MappedNames(int size) {
+            super(createEmptySymbolArray(size));
+        }
+
+        private static RSymbol[] createEmptySymbolArray(int size) {
+            RSymbol[] n = new RSymbol[size];
+            for (int i = 0; i < n.length; ++i)
+                n[i] = RSymbol.EMPTY_SYMBOL;
+            return n;
+        }
+
         public MappedNames(RSymbol[] names) {
             super(names);
         }
@@ -219,6 +230,11 @@ public interface RArray extends RAny {
         @Override
         public void ref() {
             arr.ref();
+        }
+
+        @Override
+        public Names names() {
+            return arr.names();
         }
     }
 }
