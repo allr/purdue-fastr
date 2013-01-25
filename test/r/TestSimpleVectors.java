@@ -180,6 +180,9 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"e\")]<-c(4,5) ; x }", "  a   b   c   d   e\n1.0 2.0 3.0 4.0 5.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "  a   b   c   d\n5.0 2.0 3.0 4.0");
 
+        assertEval("{ a = c(1, 2); a[['a']] = 67; a; }", "           a\n1.0 2.0 67.0" );
+        assertEval("{ a = c(a=1,2,3); a[['x']] = 67; a; }","  a            x\n1.0 2.0 3.0 67.0");
+
         assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[2:3] <- c(FALSE,FALSE); x }", "TRUE, FALSE, FALSE, TRUE");
         assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[3:2] <- c(FALSE,TRUE); x }", "TRUE, TRUE, FALSE, TRUE");
 
@@ -433,16 +436,6 @@ public class TestSimpleVectors extends TestBase {
         assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT);
         // make sure that coercion returns warning
         assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
-    }
-
-    @Test
-    public void testAddingNamedItemsToNamelessVector() throws RecognitionException {
-        assertEval("{ a = c(1, 2); a[['a']] = 67; a; }", "           a\n1.0 2.0 67.0" );
-    }
-
-    @Test
-    public void testAddingNamedItemsToMixedVector() throws RecognitionException {
-        assertEval("{ a = c(a=1,2,3); a[['x']] = 67; a; }","  a            x\n1.0 2.0 3.0 67.0");
     }
 
 }
