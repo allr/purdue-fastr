@@ -11,35 +11,21 @@ public interface RArray extends RAny {
     int[] SCALAR_DIMENSIONS = new int[] {1, 1};
 
     int size();
-
     int[] dimensions(); // the returned array shall not be modified
-
     Names names();  // the returned array shall not be modified
 
     Object get(int i);
-
     Object getRef(int i);
-
     RAny boxedGet(int i);
-
     RAny boxedNamedGet(int i);
-
     RArray set(int i, Object val);
-
     RArray setDimensions(int[] dimensions);
-
     RArray setNames(Names names);
-
     boolean isNAorNaN(int i);
-
     int index(int i, int j);
-
     RArray subset(RAny keys);
-
     RArray subset(RInt index);
-
     RArray subset(RString names);
-
     RArray materialize();
 
     public static class RArrayUtils {
@@ -108,7 +94,6 @@ public interface RArray extends RAny {
         }
 
         public abstract HashMap<RSymbol, Integer> getMap();
-
         public abstract boolean keepsMap();
     }
 
