@@ -22,17 +22,12 @@ import java.util.*;
 public abstract class UpdateVector extends BaseR {
 
     final RSymbol var;
-    @Stable
-    RNode lhs;
-    @Stable
-    @ContentStable
-    RNode[] indexes;
-    @Stable
-    RNode rhs;
+    @Stable RNode lhs;
+    @Stable @ContentStable RNode[] indexes;
+    @Stable RNode rhs;
     final boolean subset;
 
-    @Stable
-    RNode assign;  // node which will assign the whole new vector to var
+    @Stable RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
     final boolean isSuper;
 
@@ -847,7 +842,7 @@ public abstract class UpdateVector extends BaseR {
                 throw RError.getReplacementZero(ast);
             }
             RList l = (RList) base;
-            int i = -1;
+            int i;
             if (index instanceof RInt) {
                 i = ((RInt) index).getInt(0);
                 return deleteElement(l, i, ast, subset);
@@ -898,7 +893,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 return ScalarNumericSelection.genericUpdate(base, RLogical.TRUE, value, subset, ast);
             }
-            int i = -1;
+            int i;
             if (index instanceof RInt) {
                 i = ((RInt) index).getInt(0);
             } else if (index instanceof RDouble) {
@@ -1694,7 +1689,7 @@ public abstract class UpdateVector extends BaseR {
                 int nsize = maxIndex;
                 Names names = base.names();
                 boolean expanding = false;
-                RArray res = null;
+                RArray res;
                 if (nsize <= bsize) {
                     nsize = bsize;
                     res = Utils.createArray(typedBase, nsize, dimensions, names);
@@ -2832,18 +2827,19 @@ public abstract class UpdateVector extends BaseR {
         /** Returns the position of the given symbol in the specified array names, or -1 if no such name exists in the
          * array.
          */
-        protected final int elementPos(RArray.Names names, RSymbol idx) {
+        protected static int elementPos(RArray.Names names, RSymbol idx) {
             return (names == null) ? -1 : names.map(idx);
         }
 
         /** Appends the given value to the list under specified name.
          */
-        protected final RAny appendToList(RArray base, RArray.Names names, int size, RAny value, RSymbol idx) {
+        protected static RAny appendToList(RArray base, RArray.Names names, int size, RAny value, RSymbol idx) {
             // if names not empty, create them
-            if (names == null) {
-                names = new RArray.MappedNames(size);
+            RArray.Names myNames = names;
+            if (myNames == null) {
+                myNames = new RArray.MappedNames(size);
             }
-            RArray res = Utils.createArray(base, size + 1, base.dimensions(), UpdateVector.appendName(names, idx));
+            RArray res = Utils.createArray(base, size + 1, base.dimensions(), UpdateVector.appendName(myNames, idx));
             for (int i = 0; i < size; ++i) {
                 res.set(i, base.get(i));
             }
@@ -2853,7 +2849,7 @@ public abstract class UpdateVector extends BaseR {
 
         /** Creates a copy of the given list and then updates the specified position in it.
          */
-        protected final RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
+        protected static RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
             RArray res = Utils.createArray(base, size, base.dimensions(), names);
             for (int i = 0; i < pos; ++i) {
                 res.set(i, base.get(i));
@@ -2867,7 +2863,7 @@ public abstract class UpdateVector extends BaseR {
         /** Updates the given list in place - its specified position is rewritten to the supplied value and the same
          * list is returned.
          */
-        protected final RAny updateListInPlace(RArray base, RAny value, int pos) {
+        protected static RAny updateListInPlace(RArray base, RAny value, int pos) {
             base.set(pos, value);
             return base;
         }
