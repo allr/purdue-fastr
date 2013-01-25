@@ -1,20 +1,16 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.nodes.UnexpectedResultException;
-import com.oracle.truffle.runtime.ContentStable;
-import com.oracle.truffle.runtime.Frame;
-import com.oracle.truffle.runtime.Stable;
+import com.oracle.truffle.runtime.*;
 import r.Convert;
-import r.RContext;
-import r.Utils;
+import r.*;
 import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 // TODO: clean-up generic code using .getRef
 
@@ -2886,9 +2882,9 @@ public abstract class UpdateVector extends BaseR {
     public static class DollarListUpdate extends DollarUpdateBase {
 
         static enum Failure {
-            notList,
-            sharedUpdate,
-            notUpdate,
+            NOT_A_LIST,
+            SHARED_UPDATE,
+            NOT_AN_UPDATE,
         }
 
         public DollarListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
@@ -2903,10 +2899,10 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override
         RAny execute(RContext context, RAny base, RAny index, RAny value) {
-            assert (index instanceof RString) : "this assumes we always have a constant";
+            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
-                    throw new UnexpectedResultException(Failure.notList);
+                    throw new UnexpectedResultException(Failure.NOT_A_LIST);
                 }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
@@ -2914,24 +2910,24 @@ public abstract class UpdateVector extends BaseR {
                 int size = list.size();
                 int pos = elementPos(names, idx);
                 if (pos == -1) {
-                    throw new UnexpectedResultException(Failure.notUpdate);
+                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
                 }
                 if (list.isShared()) {
-                    throw new UnexpectedResultException(Failure.sharedUpdate);
+                    throw new UnexpectedResultException(Failure.SHARED_UPDATE);
                 }
                 return updateListInPlace(list, value, pos);
             } catch (UnexpectedResultException e) {
                 DollarUpdateBase x;
                 switch ((Failure) e.getResult()) {
-                    case notList:
+                    case NOT_A_LIST:
                         x = new DollarUpdate(this);
                         replace(x, "not a list in assignment");
                         return x.execute(context, base, index, value);
-                    case sharedUpdate:
+                    case SHARED_UPDATE:
                         x = new DollarSharedListUpdate(this);
                         replace(x, "update of a shared list");
                         return x.execute(context, base, index, value);
-                    case notUpdate:
+                    case NOT_AN_UPDATE:
                         x = new DollarListAppend(this);
                         replace(x, "list append");
                         return x.execute(context, base, index, value);
@@ -2948,8 +2944,8 @@ public abstract class UpdateVector extends BaseR {
     public static class DollarSharedListUpdate extends DollarUpdateBase {
 
         static enum Failure {
-            notList,
-            notUpdate,
+            NOT_A_LIST,
+            NOT_AN_UPDATE,
         }
 
         public DollarSharedListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
@@ -2965,10 +2961,10 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override
         RAny execute(RContext context, RAny base, RAny index, RAny value) {
-            assert (index instanceof RString) : "this assumes we always have a constant";
+            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
-                    throw new UnexpectedResultException(Failure.notList);
+                    throw new UnexpectedResultException(Failure.NOT_A_LIST);
                 }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
@@ -2976,7 +2972,7 @@ public abstract class UpdateVector extends BaseR {
                 int size = list.size();
                 int pos = elementPos(names, idx);
                 if (pos == -1) {
-                    throw new UnexpectedResultException(Failure.notUpdate);
+                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
                 }
                 if (list.isShared()) {
                     return updateList(list, names, size, value, idx, pos);
@@ -2986,11 +2982,11 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 DollarUpdateBase x;
                 switch ((Failure) e.getResult()) {
-                    case notList:
+                    case NOT_A_LIST:
                         x = new DollarUpdate(this);
                         replace(x, "not a list in assignment");
                         return x.execute(context, base, index, value);
-                    case notUpdate:
+                    case NOT_AN_UPDATE:
                         x = new DollarListAppend(this);
                         replace(x, "list append");
                         return x.execute(context, base, index, value);
@@ -3018,7 +3014,7 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override
         RAny execute(RContext context, RAny base, RAny index, RAny value) {
-            assert (index instanceof RString) : "this assumes we always have a constant";
+            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
                     throw new UnexpectedResultException(null);
@@ -3056,7 +3052,7 @@ public abstract class UpdateVector extends BaseR {
         /// many rewrite possibilities
         @Override
         RAny execute(RContext context, RAny base, RAny index, RAny value) {
-            assert (index instanceof RString) : "this assumes we always have a constant";
+            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             RArray list = (base instanceof RList) ? (RList) base : convertToList(context, base);
             RArray.Names names = list.names();
             RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
