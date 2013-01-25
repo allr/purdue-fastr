@@ -2853,7 +2853,7 @@ public abstract class UpdateVector extends BaseR {
 
         /** Creates a copy of the given list and then updates the specified position in it.
          */
-        protected final RAny updateList(RArray base, RArray.Names names, int size, RAny value, RSymbol idx, int pos) {
+        protected final RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
             RArray res = Utils.createArray(base, size, base.dimensions(), names);
             for (int i = 0; i < pos; ++i) {
                 res.set(i, base.get(i));
@@ -2907,7 +2907,6 @@ public abstract class UpdateVector extends BaseR {
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
-                int size = list.size();
                 int pos = elementPos(names, idx);
                 if (pos == -1) {
                     throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
@@ -2975,7 +2974,7 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
                 }
                 if (list.isShared()) {
-                    return updateList(list, names, size, value, idx, pos);
+                    return updateList(list, names, size, value, pos);
                 } else {
                     return updateListInPlace(list, value, pos);
                 }
@@ -3062,7 +3061,7 @@ public abstract class UpdateVector extends BaseR {
                 return appendToList(list, names, size, value, idx);
             } else {
                 if (base.isShared()) {
-                    return updateList(list, names, size, value, idx, pos);
+                    return updateList(list, names, size, value, pos);
                 } else {
                     return updateListInPlace(list, value, pos);
                 }
