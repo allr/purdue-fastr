@@ -1099,7 +1099,7 @@ public class Arithmetic extends BaseR {
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             ComplexView res = new ComplexView(a, b, dim, names, depth, context, arit, ast);
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl)) {
                 return RComplexFactory.copy(res);
             }
             return res;
@@ -1263,7 +1263,7 @@ public class Arithmetic extends BaseR {
                     throw new RuntimeException("How come the view has only size 1?");
                 }
             }
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (a instanceof ScalarDoubleImpl && b instanceof ScalarDoubleImpl)) {
                 return RDoubleFactory.copy(res);
             }
             return res;
@@ -1377,7 +1377,7 @@ public class Arithmetic extends BaseR {
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             IntView res = new IntView(a, b, dim, names, depth, context, arit, ast);
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarIntImpl && b instanceof ScalarIntImpl)) {
                 return RIntFactory.copy(res);
             }
             return res;
