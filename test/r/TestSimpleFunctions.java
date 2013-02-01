@@ -4,7 +4,6 @@ import org.antlr.runtime.*;
 import org.junit.*;
 import org.junit.rules.*;
 
-import r.data.*;
 import r.errors.*;
 
 public class TestSimpleFunctions extends TestBase {

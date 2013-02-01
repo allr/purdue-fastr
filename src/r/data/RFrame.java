@@ -285,7 +285,7 @@ public final class RFrame  {
         Object val;
 
         val = f.getObject(pos + RESERVED_SLOTS);
-        if (val != null) {
+        if (val != null) {  // TODO: another node (one branch needs to have deopt)
             return Utils.cast(val);
         } else {
             return readViaWriteSetSlowPath(f, pos, symbol);

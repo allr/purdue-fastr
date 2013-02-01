@@ -141,7 +141,7 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(RContext context, Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
-                if (val == null) {
+                if (val == null) {  // TODO: another node
                     return readNonVariable(ast, symbol);
                 }
                 return val;
