@@ -1,11 +1,8 @@
 package r.nodes.tools;
 
-import com.oracle.truffle.nodes.control.BreakException;
-import com.oracle.truffle.nodes.control.ContinueException;
-import com.oracle.truffle.runtime.Frame;
-import com.oracle.truffle.runtime.Stable;
-import r.RContext;
-import r.Utils;
+import com.oracle.truffle.nodes.control.*;
+import com.oracle.truffle.runtime.*;
+import r.*;
 import r.builtins.Primitives;
 import r.data.*;
 import r.errors.RError;
@@ -364,6 +361,53 @@ public class Truffleize implements Visitor {
             } else {
                 result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
+        } else if (sa.convertedExpressions.length >= 2) {
+            // it might be a matrix
+            RNode drop = null;
+            RNode exact = null;
+            RNode isel = null;
+            RNode jsel = null;
+
+            RNode[] nodes = sa.convertedExpressions;
+            RSymbol[] names = sa.convertedNames;
+            int dims = 0;
+
+            for (int i = 0; i < nodes.length; i++) {
+                if (names[i] == RSymbol.dropName) {
+                    if (drop != null) {
+                        throw RError.getIncorrectSubscripts(a);
+                    }
+                    drop = nodes[i];
+                    continue;
+                }
+                if (names[i] == RSymbol.exactName) {
+                    if (exact != null) {
+                        throw RError.getIncorrectSubscripts(a);
+                    }
+                    exact = nodes[i];
+                    continue;
+                }
+                if (dims == 0) {
+                    isel = nodes[i]; // NOTE: nodes[i] can be legally null, e.g. in m[,1], isel is null
+                    dims++;
+                    continue;
+                }
+                if (dims == 1) {
+                    jsel = nodes[i];
+                    dims++;
+                    continue;
+                }
+                Utils.nyi("array indexing unsupported");
+            }
+            if (dims == 1) {
+                Utils.nyi("unsupported indexing style");
+            }
+            result = new UpdateMatrix(a, a.isSubset(), createTree(a.getVector()),
+                    ReadMatrix.createSelectorNode(a, a.isSubset(), isel),
+                    ReadMatrix.createSelectorNode(a, a.isSubset(), jsel),
+                    ReadMatrix.createDropOptionNode(a, drop),
+                    ReadMatrix.createExactOptionNode(a, exact),
+                    createTree(u.getRHS()));
         }
     }
 
