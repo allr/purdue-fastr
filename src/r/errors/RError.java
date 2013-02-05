@@ -913,6 +913,18 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getNotMultipleReplacement(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NOT_MULTIPLE_REPLACEMENT;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;

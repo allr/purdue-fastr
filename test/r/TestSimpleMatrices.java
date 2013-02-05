@@ -1,7 +1,8 @@
 package r;
 
-import org.antlr.runtime.*;
-import org.junit.*;
+import org.antlr.runtime.RecognitionException;
+import org.junit.Test;
+import r.errors.RError;
 
 
 public class TestSimpleMatrices extends TestBase {
@@ -30,5 +31,14 @@ public class TestSimpleMatrices extends TestBase {
 
         // element deletion
         assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[c(2,3,4,6)] <- NULL ; m }", "[[1]]\n1.0\n\n[[2]]\n5.0");
+
+        // proper update in place
+        assertEval("{ m <- matrix(1,2,2); m[1,1] = 6; m }", "     [,1] [,2]\n[1,]  6.0  1.0\n[2,]  1.0  1.0");
+        assertEval("{ m <- matrix(1,2,2); m[,1] = 7; m }", "     [,1] [,2]\n[1,]  7.0  1.0\n[2,]  7.0  1.0");
+        assertEval("{ m <- matrix(1,2,2); m[1,] = 7; m }", "     [,1] [,2]\n[1,]  7.0  7.0\n[2,]  1.0  1.0");
+        assertEval("{ m <- matrix(1,2,2); m[,1] = c(10,11); m }", "     [,1] [,2]\n[1,] 10.0  1.0\n[2,] 11.0  1.0");
+        // error in lengths
+        assertEvalError("{ m <- matrix(1,2,2); m[,1] = c(1,2,3,4); m }", RError.NOT_MULTIPLE_REPLACEMENT);
+
     }
 }
