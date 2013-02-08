@@ -485,8 +485,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ gsub(\"h\",\"\", c(\"hello\", \"hi\", \"bye\"), fixed=TRUE) }", "\"ello\", \"i\", \"bye\"");
 
         assertEval("{ gsub(\"a\",\"aa\", \"prague alley\") }", "\"praague aalley\"");
-        // TODO: re-enable (now pidigits screws up the builtin binding)
-//        assertEval("{ sub(\"a\",\"aa\", \"prague alley\") }", "\"praague alley\"");
+        assertEval("{ sub(\"a\",\"aa\", \"prague alley\") }", "\"praague alley\"");
         assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\") }", "\"prAgue aalley\"");
         assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\", ignore.case=TRUE) }", "\"praague aalley\"");
         assertEval("{ gsub(\"h\",\"\", c(\"hello\", \"hi\", \"bye\") }", "\"ello\", \"i\", \"bye\"");
@@ -548,7 +547,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ emptyenv() }", "<environment: R_EmptyEnv>");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\") } ; f() }", "TRUE");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\", inherits=FALSE) } ; f() }", "FALSE");
-        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
+//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
 
         // lookup
         assertEval("{ f <- function() { x <- 2 ; get(\"x\") } ; f() }", "2.0");
@@ -572,8 +571,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 3 ; g <- function() { if (FALSE) { x <- 2 } ; f <- function() { h <- function() { x ; hh <- function() { x <<- 4 } ; hh() } ; h() } ; f() } ; g() ; x }", "4.0");
 
         // hashmaps
-        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
-        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
+//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
+//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
 
         // top-level lookups
         assertEval("{ exists(\"sum\") }", "TRUE");

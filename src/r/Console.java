@@ -11,9 +11,6 @@ import r.nodes.Loop;
 import r.nodes.tools.*;
 import r.parser.*;
 
-/*
- * FIXME Is it the right package for Console ? Should maybe be in 'r' or 'r.tools'
- */
 public class Console {
 
     public static boolean DEBUG = Utils.getProperty("RConsole.debug", false);
@@ -25,7 +22,6 @@ public class Console {
     public static String[] trailingArgs; // For commandArgs(trailing=T)
     public static String[] commandArgs; // For commandArgs(trailing=F)
 
-    static int compilerThreshold = 1; // For --threshold
     static String inputFile;
     static boolean interactive;
     static boolean forceVisible;
@@ -60,16 +56,6 @@ public class Console {
                         protected void processOption(String name, String[] opts) {
                             System.out.println("Press ENTER to start...");
                             new Scanner(System.in).nextLine();
-                        }
-                    }, //
-                    new Option("--threshold", "Set compiler threshold (default: " + compilerThreshold + ")", 1) {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) {
-                            try {
-                                compilerThreshold = Integer.parseInt(opts[0]);
-                            } catch (NumberFormatException e) {
-                            }
                         }
                     }, //
                     new Option("--debug", "debug in 'text' or 'gui' mode", 1) {
@@ -141,7 +127,7 @@ public class Console {
         RLexer lexer = new RLexer();
         RParser parser = new RParser(null);
         ASTNode tree;
-        RContext context = new RContext(compilerThreshold, true); // note: uses debugging format
+        RContext context = new RContext(true); // note: uses debugging format
         StringBuilder incomplete = new StringBuilder();
 
         do {
@@ -157,9 +143,8 @@ public class Console {
                     printResult(tree, context.eval(tree));
                 }
             } catch (RecognitionException e) {
-                if (e.getUnexpectedType() != -1) { // if we reached EOF, the sentence is obviously finished and contains
-// a
-                    // parse error
+                if (e.getUnexpectedType() != -1) {
+                    // if we reached EOF, the sentence is obviously finished and contains a parse error
                     parseError(parser, e);
                     incomplete.setLength(0); // thus we reset the buffer
                 } else { // otherwise there is no parser error and we continue to parse
@@ -182,7 +167,7 @@ public class Console {
         try {
             ASTNode tree = parser.script();
             if (tree != null) {
-                printResult(tree, new RContext(compilerThreshold, false).eval(tree)); // use non-debugging format
+                printResult(tree, new RContext(false).eval(tree)); // use non-debugging format
             }
         } catch (RecognitionException e) {
             parseError(parser, e);

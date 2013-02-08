@@ -1,6 +1,8 @@
 package r.data;
 
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.api.*;
+import com.oracle.truffle.api.frame.*;
+
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
@@ -10,8 +12,10 @@ public interface RFunction {
     RSymbol[] paramNames();
     RNode[] paramValues();
     RNode body();
-    RClosure createClosure(Frame frame);
+    RClosure createClosure(MaterializedFrame frame);
     RSymbol[] localWriteSet();
+
+    CallTarget callTarget();
 
     ASTNode getSource();
 
@@ -21,19 +25,20 @@ public interface RFunction {
 
     public static final class ReadSetEntry {
 
-        public ReadSetEntry(RSymbol sym, int hops, int pos) {
+        public ReadSetEntry(RSymbol sym, int hops, FrameSlot slot) {
             symbol = sym;
-            frameHops = hops;
-            framePos = pos;
+            this.hops = hops;
+            this.slot = slot;
         }
 
         public final RSymbol symbol;
-        public final int frameHops;
-        public final int framePos;
+        public final int hops;
+        public final FrameSlot slot;
     }
 
     int positionInLocalWriteSet(RSymbol sym);
     int positionInLocalReadSet(RSymbol sym);
     ReadSetEntry getLocalReadSetEntry(RSymbol sym);
+    FrameSlot slotInWriteSet(RSymbol sym);
     boolean isInWriteSet(RSymbol sym);
 }

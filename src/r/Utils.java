@@ -14,7 +14,7 @@ public final class Utils {
         throw RError.getNYI(reason);
     }
 
-    @SuppressWarnings("unchecked")
+//    @SuppressWarnings("unchecked")
     public static <T> T cast(Object obj) {
         return (T) obj;
     }

@@ -1,10 +1,9 @@
 package r.builtins;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
-import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.internal.*;
@@ -147,17 +146,17 @@ public class Apply {
 
     public static class Lapply extends BuiltIn {
 
-        @Stable ValueProvider firstArgProvider;
-        @Stable CallableProvider callableProvider;
-        @Stable FunctionCall callNode;
+        @Child ValueProvider firstArgProvider;
+        @Child CallableProvider callableProvider;
+        @Child FunctionCall callNode;
         final int xPosition;
         final int funPosition;
 
         public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.callableProvider = updateParent(callableProvider);
-            this.firstArgProvider = updateParent(firstArgProvider);
-            this.callNode = updateParent(callNode);
+            this.callableProvider = adoptChild(callableProvider);
+            this.firstArgProvider = adoptChild(firstArgProvider);
+            this.callNode = adoptChild(callNode);
             this.xPosition = xPosition;
             this.funPosition = funPosition;
         }
@@ -526,17 +525,17 @@ public class Apply {
     // TODO: handle names
     public static class Sapply extends BuiltIn {
 
-        @Stable ValueProvider firstArgProvider;
-        @Stable CallableProvider callableProvider;
-        @Stable FunctionCall callNode;
+        @Child ValueProvider firstArgProvider;
+        @Child CallableProvider callableProvider;
+        @Child FunctionCall callNode;
         final int xPosition;
         final int funPosition;
 
         public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.callableProvider = updateParent(callableProvider);
-            this.firstArgProvider = updateParent(firstArgProvider);
-            this.callNode = updateParent(callNode);
+            this.callableProvider = adoptChild(callableProvider);
+            this.firstArgProvider = adoptChild(firstArgProvider);
+            this.callNode = adoptChild(callNode);
             this.xPosition = xPosition;
             this.funPosition = funPosition;
         }

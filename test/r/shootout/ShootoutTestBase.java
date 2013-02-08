@@ -13,7 +13,7 @@ import r.parser.*;
 
 public class ShootoutTestBase {
 
-    static RContext global = new RContext(1, false); // use non-debugging format, some shootouts depend on it
+    static RContext global = new RContext(false); // use non-debugging format, some shootouts depend on it
 
     public static String sourceFilePath(String benchDir, String benchFileBase) {
         return "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";

@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.Frame;
-import com.oracle.truffle.runtime.Stable;
+import com.oracle.truffle.api.frame.*;
+
 import r.RContext;
 import r.data.*;
 import r.errors.RError;
@@ -20,13 +20,12 @@ import r.nodes.ASTNode;
  */
 public abstract class ReadList extends BaseR {
 
-    @Stable
-    RNode base;
+    @Child RNode base;
     RSymbol index;
 
     protected ReadList(ASTNode orig, RNode list, String idx) {
         super(orig);
-        this.base = updateParent(list);
+        this.base = adoptChild(list);
         this.index = RSymbol.getSymbol(idx);
     }
 

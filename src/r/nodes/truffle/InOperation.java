@@ -2,22 +2,22 @@ package r.nodes.truffle;
 
 import java.util.*;
 
+import com.oracle.truffle.api.frame.*;
+
 import r.*;
 import r.data.*;
 import r.nodes.*;
 
-import com.oracle.truffle.runtime.*;
-
 // FIXME: this is a very unoptimized version
 // FIXME: could optimize "%in% names" using the hash-map stored in Names
 public class InOperation extends BaseR {
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
 
     public InOperation(ASTNode ast, RNode left, RNode right) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
     }
 
     @Override

@@ -1,25 +1,33 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.nodes.control.*;
-import com.oracle.truffle.runtime.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 public abstract class Loop extends BaseR {
 
-    @Stable RNode body;
+    @Child RNode body;
 
     private static final boolean DEBUG_LO = false;
 
     Loop(ASTNode ast, RNode body) {
         super(ast);
-        this.body = updateParent(body);
+        this.body = adoptChild(body);
+    }
+
+    public static final class BreakException extends ControlFlowException {
+        public static BreakException instance = new BreakException();
+        private static final long serialVersionUID = -7381797804423147124L;
+    }
+
+    public static final class ContinueException extends ControlFlowException {
+        public static ContinueException instance = new ContinueException();
+        private static final long serialVersionUID = -5960047826708655261L;
     }
 
     public static class Break extends BaseR {
@@ -29,7 +37,7 @@ public abstract class Loop extends BaseR {
 
         @Override
         public final RAny execute(RContext context, Frame frame) {
-            throw new BreakException();
+            throw BreakException.instance;
         }
     }
 
@@ -40,7 +48,7 @@ public abstract class Loop extends BaseR {
 
         @Override
         public final RAny execute(RContext context, Frame frame) {
-            throw new ContinueException();
+            throw ContinueException.instance;
         }
     }
 
@@ -70,10 +78,10 @@ public abstract class Loop extends BaseR {
 
     public static class While extends Loop {
 
-        @Stable RNode cond;
+        @Child RNode cond;
         public While(ASTNode ast, RNode cond, RNode body) {
             super(ast, body);
-            this.cond = updateParent(cond);
+            this.cond = adoptChild(cond);
         }
 
         @Override
@@ -112,12 +120,12 @@ public abstract class Loop extends BaseR {
 
     public abstract static class For extends Loop {
 
-        @Stable RNode range;
+        @Child RNode range;
         final RSymbol cvar;
 
         For(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
             super(ast, body);
-            this.range = updateParent(range);
+            this.range = adoptChild(range);
             this.cvar = cvar;
         }
 
@@ -139,7 +147,7 @@ public abstract class Loop extends BaseR {
                         sn = createToplevel(ast, cvar, range, body);
                         dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
                     } else {
-                        sn = create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
+                        sn = create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
                         dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
                     }
                     replace(sn, dbg);
@@ -169,7 +177,7 @@ public abstract class Loop extends BaseR {
                         if (frame == null) {
                             gn = Generic.createToplevel(ast, cvar, range, body);
                         } else {
-                            gn = Generic.create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
+                            gn = Generic.create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
                         }
                         replace(gn, "install Generic from IntSequenceRange");
                         return gn.execute(context, frame, rval);
@@ -189,7 +197,7 @@ public abstract class Loop extends BaseR {
                         final int step = sval.step();
                         try {
                             for (int i = from;; i += step) {
-                                RFrame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
+                                RFrameHeader.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -203,7 +211,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
+            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
                     public final RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
@@ -213,7 +221,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = from;; i += step) {
                                 // no ref needed because scalars do not have reference counts
-                                RFrame.writeAtNoRef(frame, position, RInt.RIntFactory.getScalar(i));
+                                RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -251,7 +259,7 @@ public abstract class Loop extends BaseR {
                         gn = createToplevel(ast, cvar, range, body);
                         dbg = "install Generic.TopLevel from Generic (uninitialized)";
                     } else {
-                        gn = create(ast, cvar, range, body, RFrame.getPositionInWS(frame, cvar));
+                        gn = create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
                         dbg = "install Generic from Generic (uninitialized)";
                     }
                     replace(gn, dbg);
@@ -271,7 +279,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
+                                RFrameHeader.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }
@@ -282,7 +290,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int position) {
+            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
                     public final RAny execute(RContext context, Frame frame, RAny rval) {
@@ -294,7 +302,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrame.writeAtRef(frame, position, vvalue);
+                                RFrameHeader.writeAtRef(frame, slot, vvalue);
                                 try {
                                     body.execute(context, frame);
                                 } catch (ContinueException ce) { }

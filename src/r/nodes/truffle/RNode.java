@@ -1,22 +1,16 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
 import r.data.*;
 import r.nodes.*;
-
-import com.oracle.truffle.*;
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
 
 public abstract class RNode extends Node {
 
     public ASTNode getAST() {
         return ((RNode) getParent()).getAST();
-    }
-
-    @Override
-    public final Object execute(Context context, Frame frame) {
-        return execute((RContext) context, frame);
     }
 
     public abstract Object execute(RContext context, Frame frame);

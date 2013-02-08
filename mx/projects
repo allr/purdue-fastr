@@ -4,9 +4,9 @@
 # fastr
 project@fastr@subDir=..
 project@fastr@sourceDirs=src,test
-project@fastr@dependencies=com.oracle.truffle,com.oracle.truffle.compiler,ANTLR
+project@fastr@dependencies=com.oracle.truffle.api,ANTLR,JUNIT
 project@fastr@javaCompliance=1.7
 
 # AntLR
-library@ANTLR@path=lib/antlr-runtime-3.4.jar
-library@ANTLR@urls=http://www.antlr.org/download//antlr-runtime-3.4.jar
+library@ANTLR@path=../graal/lib/antlr-runtime-3.5.jar
+library@ANTLR@urls=http://www.antlr3.org/download/antlr-runtime-3.5.jar

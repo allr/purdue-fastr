@@ -79,6 +79,10 @@ public final class RSymbol extends BaseObject implements RAny {
         return name;
     }
 
+    public String name() {
+        return name;
+    }
+
     public int id() { // TODO add a field for global numbering and use it !
         return hashCode(); // id = currentId++;
     }

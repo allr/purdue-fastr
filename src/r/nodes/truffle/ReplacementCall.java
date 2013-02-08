@@ -4,7 +4,7 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // TODO: support optimizations that avoid copying - that is, "ref" values if they are being duplicated by the update (like in UpdateVector)
 
@@ -13,9 +13,9 @@ import com.oracle.truffle.runtime.*;
 // the call passed must have SimpleAccessVariable of "var" as its first argument
 // and RememberLast (the value) as its last argument
 public class ReplacementCall extends BaseR {
-    @Stable RNode callNode;
-    @Stable RememberLast valueNode;
-    @Stable RNode assign;
+    @Child RNode callNode;
+    @Child RememberLast valueNode;
+    @Child RNode assign;
 
     final boolean isSuper;
 
@@ -24,19 +24,19 @@ public class ReplacementCall extends BaseR {
     public ReplacementCall(ASTNode ast, boolean isSuper, RSymbol var, RNode callNode, RememberLast valueNode) {
         super(ast);
         this.isSuper = isSuper;
-        this.callNode = updateParent(callNode);
-        this.valueNode = updateParent(valueNode);
+        this.callNode = adoptChild(callNode);
+        this.valueNode = adoptChild(valueNode);
 
-        RNode node = updateParent(new BaseR(ast) {
+        RNode node = adoptChild(new BaseR(ast) {
             @Override
             public final Object execute(RContext context, Frame frame) {
                 return newContent;
             }
         });
         if (isSuper) {
-            this.assign = updateParent(SuperWriteVariable.getUninitialized(ast, var, node));
+            this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {
-            this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
+            this.assign = adoptChild(WriteVariable.getUninitialized(ast, var, node));
         }
     }
 
@@ -48,7 +48,7 @@ public class ReplacementCall extends BaseR {
     }
 
     public static final class RememberLast extends BaseR {
-        @Stable RNode node;
+        @Child RNode node;
         Object lastValue;
 
         public RememberLast(ASTNode ast, RNode node) {

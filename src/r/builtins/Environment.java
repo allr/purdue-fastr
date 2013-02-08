@@ -11,7 +11,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 public class Environment {
 
@@ -79,7 +79,7 @@ public class Environment {
 
                     boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], context, ast) : DEFAULT_HASH;
                     REnvironment rootEnvironment = null;
-                    Frame parentFrame = null;
+                    MaterializedFrame parentFrame = null;
                     if (provided[IPARENT]) {
                         REnvironment env = parseParent(args[paramPositions[IPARENT]], context, ast);
                         parentFrame = env.frame();
@@ -87,8 +87,8 @@ public class Environment {
                             rootEnvironment = env;
                         }
                     } else {
-                        parentFrame = frame;
-                        if (frame == null) {
+                        parentFrame = frame.materialize();
+                        if (parentFrame == null) {
                             rootEnvironment = REnvironment.GLOBAL;
                         }
                     }
@@ -131,7 +131,7 @@ public class Environment {
             if (pos != null) {
                 return asEnvironment(context, frame, ast, pos, true);
             } else {
-                return frame == null ? REnvironment.GLOBAL : RFrame.getEnvironment(frame);
+                return frame == null ? REnvironment.GLOBAL : RFrameHeader.environment(frame);
             }
         }
     }
@@ -369,13 +369,13 @@ public class Environment {
                 if (idx == -1) {
                     if (frame != null) {
                         if (fakePromise) {
-                            return RFrame.getEnvironment(frame);
+                            return RFrameHeader.environment(frame);
                         } else {
-                            Frame parentFrame = RFrame.getParent(frame);
-                            if (parentFrame == null) {
+                            Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
+                            if (enclosingFrame == null) {
                                 return REnvironment.GLOBAL;
                             } else {
-                                return RFrame.getEnvironment(RFrame.getParent(frame));
+                                return RFrameHeader.environment(enclosingFrame);
                             }
                         }
                     } else {

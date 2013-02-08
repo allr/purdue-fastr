@@ -2,23 +2,23 @@ package r.nodes.truffle;
 
 import java.util.*;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
-
 // FIXME: do more performance optimizations
 // FIXME: probably could have distinct types for non-failing and failing selectors
 public class ReadMatrix extends BaseR {
 
-    @Stable RNode matrixExpr;
-    @Stable SelectorNode selIExpr;
-    @Stable SelectorNode selJExpr;
-    @Stable OptionNode dropExpr;
-    @Stable OptionNode exactExpr;
+    @Child RNode matrixExpr;
+    @Child SelectorNode selIExpr;
+    @Child SelectorNode selJExpr;
+    @Child OptionNode dropExpr;
+    @Child OptionNode exactExpr;
     final boolean subset;
 
     private static final boolean DEBUG_M = false;
@@ -26,11 +26,11 @@ public class ReadMatrix extends BaseR {
     public ReadMatrix(ASTNode ast, boolean subset, RNode matrixExpr, SelectorNode selIExpr, SelectorNode selJExpr, OptionNode dropExpr, OptionNode exactExpr) {
         super(ast);
         this.subset = subset;
-        this.matrixExpr = updateParent(matrixExpr);
-        this.selIExpr = updateParent(selIExpr);
-        this.selJExpr = updateParent(selJExpr);
-        this.dropExpr = updateParent(dropExpr);
-        this.exactExpr = updateParent(exactExpr);
+        this.matrixExpr = adoptChild(matrixExpr);
+        this.selIExpr = adoptChild(selIExpr);
+        this.selJExpr = adoptChild(selJExpr);
+        this.dropExpr = adoptChild(dropExpr);
+        this.exactExpr = adoptChild(exactExpr);
     }
 
     @Override
@@ -834,11 +834,11 @@ public class ReadMatrix extends BaseR {
     }
 
     public abstract static class SelectorNode extends BaseR {
-        @Stable RNode child;
+        @Child RNode child;
 
         public SelectorNode(ASTNode ast, RNode child) {
             super(ast);
-            this.child = updateParent(child);
+            this.child = adoptChild(child);
         }
 
         @Override
@@ -876,7 +876,7 @@ public class ReadMatrix extends BaseR {
         }
         return new OptionNode(ast) {
 
-            @Stable RNode child = updateParent(node);
+            @Child RNode child = adoptChild(node);
 
             @Override
             public int executeLogical(RContext context, Frame frame) {

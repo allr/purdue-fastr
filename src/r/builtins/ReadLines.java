@@ -13,7 +13,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // TODO: this is incomplete implementation of R semantics
 public class ReadLines {

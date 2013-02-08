@@ -1,9 +1,8 @@
 package r.builtins;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
-import r.Convert;
 import r.Convert.ConversionStatus;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;

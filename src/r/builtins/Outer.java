@@ -1,7 +1,6 @@
 package r.builtins;
 
-
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.builtins.Apply.*;
@@ -92,18 +91,18 @@ public class Outer {
     };
 
     public abstract static class OuterBuiltIn extends BuiltIn { // note: this class only exists so that we can call updateParent...
-        @Stable FunctionCall callNode;
-        @Stable CallableProvider callableProvider;
-        @Stable ValueProvider xArgProvider;
-        @Stable ValueProvider yArgProvider;
+        @Child FunctionCall callNode;
+        @Child CallableProvider callableProvider;
+        @Child ValueProvider xArgProvider;
+        @Child ValueProvider yArgProvider;
 
 
         public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, FunctionCall callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
             super(ast, argNames, argExprs);
-            this.callNode = updateParent(callNode);
-            this.callableProvider = updateParent(callableProvider);
-            this.xArgProvider = updateParent(xArgProvider);
-            this.yArgProvider = updateParent(yArgProvider);
+            this.callNode = adoptChild(callNode);
+            this.callableProvider = adoptChild(callableProvider);
+            this.xArgProvider = adoptChild(xArgProvider);
+            this.yArgProvider = adoptChild(yArgProvider);
         }
 
         public RAny outer(ASTNode ast, RContext context, Frame frame, RAny xarg, RAny yarg, RAny farg) {

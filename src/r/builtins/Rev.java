@@ -1,12 +1,12 @@
 package r.builtins;
 
+import com.oracle.truffle.api.frame.*;
+
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.runtime.*;
 
 // FIXME: could also do lazy rev of int sequence
 public class Rev {

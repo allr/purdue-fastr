@@ -1,9 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
-import com.oracle.truffle.runtime.Stable;
-import com.oracle.truffle.runtime.ContentStable;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
@@ -47,16 +45,16 @@ import r.nodes.*;
 //
 public abstract class ReadVector extends BaseR {
 
-    @Stable RNode lhs;
-    @ContentStable @Stable RNode[] indexes;
+    @Child RNode lhs;
+    @Children RNode[] indexes;
     final boolean subset;
 
     private static final boolean DEBUG_SEL = false;
 
     ReadVector(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
         super(ast);
-        this.lhs = updateParent(lhs);
-        this.indexes = updateParent(indexes);
+        this.lhs = adoptChild(lhs);
+        this.indexes = adoptChildren(indexes);
         this.subset = subset;
     }
 

@@ -1,8 +1,6 @@
 package r;
 
-import com.oracle.truffle.compiler.*;
-import com.oracle.truffle.debug.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.*;
 
 import r.data.*;
 import r.data.internal.*;
@@ -11,50 +9,28 @@ import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
-public class RContext implements Context {
+public class RContext {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
-    private final TruffleCompiler compiler;
+    public static RContext instance;
+
     private static RContext currentContext;
 
     private boolean debuggingFormat;
+    private boolean usesOptimizer;
 
     ManageError errorManager;
     Truffleize truffleize;
-    static boolean truffleCompilerNotAvailable = false;
 
-    public RContext(int compilerThreshold, boolean debuggingFormat) {
+    public RContext(boolean debuggingFormat) {
         init();
         this.debuggingFormat = debuggingFormat;
-
-        TruffleCompiler cmp;
-        if (!truffleCompilerNotAvailable) {
-            // only check once per VM instance (would need a more elaborate check to make re-checking possible)
-            try {
-                cmp = new TruffleCompilerImpl(compilerThreshold);
-            } catch (UnsatisfiedLinkError le) {
-                System.err.println("Not using the Truffle compiler as it is not available.");
-                truffleCompilerNotAvailable = true;
-                cmp = null;
-            }
-        } else {
-            cmp = null;
-        }
-        this.compiler = cmp;
+        instance = this; // FIXME: get rid of this
     }
 
-    RContext(int compilerThreshold) {
-        this(compilerThreshold, false);
-    }
-
-    RContext(TruffleCompiler compiler) {
-        init();
-        this.compiler = compiler;
-    }
-
-    RContext() {
-        this(null);
+    public boolean usesTruffleOptimizer() {
+       return usesOptimizer;
     }
 
     public static boolean debuggingFormat() {
@@ -64,7 +40,7 @@ public class RContext implements Context {
     public RAny eval(ASTNode expr) {
         currentContext = this;
         try {
-            return (RAny) truffleize.createLazyRootTree(expr).execute(this, topLevel());
+            return (RAny) truffleize.createLazyRootTree(expr).execute(this, null);
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
@@ -79,20 +55,13 @@ public class RContext implements Context {
     }
 
     private void init() {
+        usesOptimizer = Truffle.getRuntime().equals("Default Truffle Runtime");
         errorManager = new ManageError(System.err);
         truffleize = new Truffleize();
     }
 
-    public void close() {
-
-    }
-
     public RNode createNode(ASTNode expr) {
         return truffleize.createTree(expr);
-    }
-
-    public Frame topLevel() {
-        return null;
     }
 
     public void warning(ASTNode expr, String msg) {
@@ -117,24 +86,6 @@ public class RContext implements Context {
         if (errorManager != null) {
             errorManager.error(err);
         }
-    }
-
-    @Override
-    public TruffleCompiler getCompiler() {
-        return compiler;
-    }
-
-    @Override
-    public DebugInfoProvider getDebugInfoProvider() {
-        return null;
-    }
-
-    @Override
-    public void enter() {
-    }
-
-    @Override
-    public void leave() {
     }
 
     public static final int NCONNECTIONS = 128;

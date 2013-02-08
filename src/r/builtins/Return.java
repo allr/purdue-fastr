@@ -1,15 +1,22 @@
 package r.builtins;
 
-import com.oracle.truffle.nodes.control.ReturnException;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+
 // FIXME: Truffle can't handle BuiltIn1
 public class Return {
+
+    public static final class ReturnException extends ControlFlowException {
+        public static ReturnException instance = new ReturnException();
+        private static final long serialVersionUID = -9147675462255551205L;
+    }
+
     public static final CallFactory FACTORY = new CallFactory() {
 
         @Override
@@ -19,7 +26,7 @@ public class Return {
 
                     @Override
                     public final RAny doBuiltIn(RContext context, Frame frame) {
-                        RFrame.setReturnValue(frame, RNull.getNull());
+                        RFrameHeader.setReturnValue(frame, RNull.getNull());
                         throw ReturnException.instance;
                     }
 
@@ -30,7 +37,7 @@ public class Return {
 
                     @Override
                     public final RAny doBuiltIn(RContext context, Frame frame, RAny param) {
-                        RFrame.setReturnValue(frame, param);
+                        RFrameHeader.setReturnValue(frame, param);
                         throw ReturnException.instance;
                     }
                 };

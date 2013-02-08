@@ -4,17 +4,16 @@ import r.*;
 import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.*;
-import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 // TODO: re-visit this with eval in mind
 
 // this class is indeed very similar to ReadVariable
-// if there is a way to re-factor without incurring performance overhead, it might be worth trying (but unlikely, R has distinct code as well)
+// if there was a way to re-factor without incurring performance overhead, it might be worth trying (but unlikely, R has distinct code as well)
 
 public abstract class MatchCallable extends BaseR {
 
@@ -35,7 +34,7 @@ public abstract class MatchCallable extends BaseR {
     }
 
     public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {
-        RCallable res = RFrame.match(frame, symbol);
+        RCallable res = RFrameHeader.match(frame, symbol);
         if (res != null) {
             return res;
         }
@@ -43,7 +42,6 @@ public abstract class MatchCallable extends BaseR {
     }
 
 
-    // FIXME: the matching below does not fall-back to builtins, because currently we compile built-in invocation statically, disallowing override
     public static MatchCallable getUninitialized(ASTNode ast, RSymbol sym) {
         return new MatchCallable(ast, sym) {
 
@@ -63,28 +61,28 @@ public abstract class MatchCallable extends BaseR {
                         return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", context, frame);
                     }
 
-                    int pos = RFrame.getPositionInWS(frame, symbol);
-                    if (pos >= 0) {
-                        return replaceAndExecute(getMatchLocal(ast, symbol, pos), "installMatchLocal", context, frame);
+                    FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
+                    if (slot != null) {
+                        return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", context, frame);
                     }
 
-                    ReadSetEntry rse = RFrame.getRSEntry(frame, symbol);
+                    ReadSetEntry rse = RFrameHeader.readSetEntry(frame, symbol);
                     if (rse == null) {
                         return replaceAndExecute(getMatchTopLevel(ast, symbol), "installMatchTopLevel", context, frame);
                     } else {
-                        return replaceAndExecute(getMatchEnclosing(ast, symbol, rse.frameHops, rse.framePos), "installMatchEnclosing", context, frame);
+                        return replaceAndExecute(getMatchEnclosing(ast, symbol, rse.hops, rse.slot), "installMatchEnclosing", context, frame);
                     }
                 }
             }
         };
     }
 
-    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final int position) {
+    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final FrameSlot slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
-                RAny val = RFrame.matchViaWriteSet(frame, position, symbol);
+                RAny val = RFrameHeader.matchViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
@@ -93,12 +91,12 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
-    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final int position) {
+    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final FrameSlot slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
-                RAny val = RFrame.matchViaReadSet(frame, hops, position, symbol);
+                RAny val = RFrameHeader.matchViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
@@ -117,7 +115,7 @@ public abstract class MatchCallable extends BaseR {
                 RAny val; // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
-                    val = RFrame.matchFromExtension(frame, symbol, null);
+                    val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
                     if (val != null) {
                         return val;
                     }
@@ -128,7 +126,7 @@ public abstract class MatchCallable extends BaseR {
                 } else {
                     val = symbol.getValue();
                 }
-                if (val == null|| !(val instanceof RCallable)) {
+                if (val == null || !(val instanceof RCallable)) {
                     if (Primitives.STATIC_LOOKUP) {
                         throw RError.getUnknownFunction(ast, symbol);
                     } else {

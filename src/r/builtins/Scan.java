@@ -3,7 +3,7 @@ package r.builtins;
 import java.io.*;
 import java.util.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.Console;

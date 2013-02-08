@@ -81,7 +81,7 @@ public class Convert {
         return RDouble.NA;
     }
 
-    @SuppressWarnings("cast")
+//    @SuppressWarnings("cast")
     public static String double2string(double d) {
         if (!RDouble.RDoubleUtils.isNA(d)) {
             // FIXME use R rules

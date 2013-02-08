@@ -1,13 +1,12 @@
 package r.builtins;
 
-import com.oracle.truffle.runtime.Frame;
-
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
 
 public class Extreme {
 

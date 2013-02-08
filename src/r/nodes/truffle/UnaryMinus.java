@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
@@ -12,11 +12,11 @@ import r.nodes.*;
 // FIXME: scalar tests using instanceof
 
 public abstract class UnaryMinus extends BaseR {
-    @Stable RNode lhs;
+    @Child RNode lhs;
 
     UnaryMinus(ASTNode ast, RNode lhs) {
         super(ast);
-        this.lhs = updateParent(lhs);
+        this.lhs = adoptChild(lhs);
     }
 
     @Override

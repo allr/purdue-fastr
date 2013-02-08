@@ -1,9 +1,9 @@
 package r;
 
+import com.oracle.truffle.api.nodes.*;
+
 import r.data.*;
 import r.data.internal.*;
-
-import com.oracle.truffle.nodes.*;
 
 public class RValueConversion {
 
@@ -13,6 +13,7 @@ public class RValueConversion {
         }
         throw new UnexpectedResultException(value);
     }
+
     public static RArray expectScalar(RAny value) throws UnexpectedResultException {
         if (value instanceof RArray) {
             RArray array = (RArray) value;

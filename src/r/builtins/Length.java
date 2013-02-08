@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;

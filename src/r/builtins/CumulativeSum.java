@@ -12,7 +12,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: could be made much faster with direct access to the arrays (after materialization that is done anyway)
 public class CumulativeSum {
@@ -20,7 +20,7 @@ public class CumulativeSum {
     private static final String[] paramNames = new String[]{"x"};
     private static final int IX = 0;
 
-    public static RComplex cumsum(RComplex x, Context context, ASTNode ast) {
+    public static RComplex cumsum(RComplex x, RContext context, ASTNode ast) {
         RComplex input = x.materialize();
         int size = x.size();
         double[] content = new double[2 * size];
@@ -43,7 +43,7 @@ public class CumulativeSum {
         return RComplex.RComplexFactory.getFor(content); // drop dimensions
     }
 
-    public static RDouble cumsum(RDouble x, Context context, ASTNode ast) {
+    public static RDouble cumsum(RDouble x, RContext context, ASTNode ast) {
         RDouble input = x.materialize();
         int size = x.size();
         double[] content = new double[size];

@@ -1,8 +1,7 @@
 package r.nodes.tools;
 
-import com.oracle.truffle.nodes.control.*;
-import com.oracle.truffle.runtime.*;
-import r.*;
+import r.RContext;
+import r.Utils;
 import r.builtins.Primitives;
 import r.data.*;
 import r.errors.RError;
@@ -16,7 +15,10 @@ import r.nodes.Sequence;
 import r.nodes.UnaryMinus;
 import r.nodes.UpdateVector;
 import r.nodes.truffle.*;
+import r.nodes.truffle.Loop;
 import r.nodes.truffle.ReplacementCall.RememberLast;
+
+import com.oracle.truffle.api.frame.*;
 
 public class Truffleize implements Visitor {
 
@@ -25,15 +27,15 @@ public class Truffleize implements Visitor {
     public RNode createLazyRootTree(final ASTNode ast) {
         return new BaseR(ast) {
 
-            @Stable RNode node = updateParent(createLazyTree(ast));
+            @Child RNode node = adoptChild(createLazyTree(ast));
 
             @Override
             public final Object execute(RContext context, Frame frame) {
                 try {
                     return node.execute(context, frame);
-                } catch (ContinueException ce) {
+                } catch (Loop.ContinueException ce) {
                     throw RError.getNoLoopForBreakNext(ast);
-                } catch (BreakException be) {
+                } catch (Loop.BreakException be) {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
@@ -45,7 +47,7 @@ public class Truffleize implements Visitor {
         return result;
     }
 
-    @SuppressWarnings("static-method")
+//    @SuppressWarnings("static-method")
     private RNode createLazyTree(ASTNode ast) {
         return new LazyBuild(ast);
     }
@@ -65,11 +67,11 @@ public class Truffleize implements Visitor {
             ASTNode rhs = e.getRHS();
             ASTNode lhs = e.getLHS();
             if (rhs instanceof Constant) {
-                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(lhs), rtrueBranch, rfalseBranch, ((Constant) rhs).execute(null, null));
+                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(lhs), rtrueBranch, rfalseBranch, ((Constant) rhs).getValue());
                 return;
             }
             if (lhs instanceof Constant) {
-                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(rhs), rtrueBranch, rfalseBranch, ((Constant) lhs).execute(null, null));
+                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(rhs), rtrueBranch, rfalseBranch, ((Constant) lhs).getValue());
                 return;
             }
         }

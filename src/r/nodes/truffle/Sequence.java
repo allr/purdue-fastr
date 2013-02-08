@@ -1,19 +1,19 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.nodes.*;
 
-
 public class Sequence extends BaseR {
 
-    @ContentStable final RNode[] exprs;
+    @Children final RNode[] exprs;
 
     public Sequence(ASTNode ast, RNode[] exprs) {
         super(ast);
         this.exprs = exprs;
-        updateParent(exprs);
+        adoptChildren(exprs);
     }
 
     @Override

@@ -10,7 +10,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: does not fill in attributes yet (TODO this when custom attributes are supported)
 // FIXME: like SubStr and Sub, ignores "perl" and "useBytes", regexps are not quite like in R
@@ -118,7 +118,7 @@ public class RegExpr {
                     if (!perl) {
                         context.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
                     }
-                    Pattern p = Pattern.compile(pattern, (ignoreCase ? Pattern.CASE_INSENSITIVE : 0 ) | (fixed ? Pattern.LITERAL : 0));
+                    Pattern p = Pattern.compile(pattern, (ignoreCase ? Pattern.CASE_INSENSITIVE : 0) | (fixed ? Pattern.LITERAL : 0));
 
                     if (global) {
                         return gregexpr(p, text);

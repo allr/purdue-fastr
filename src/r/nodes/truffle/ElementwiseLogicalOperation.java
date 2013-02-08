@@ -1,5 +1,8 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
 import r.data.*;
 import r.data.RArray.*;
@@ -7,20 +10,16 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
-
-
 public abstract class ElementwiseLogicalOperation extends BaseR {
 
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
     final Operation op;
 
     public ElementwiseLogicalOperation(ASTNode ast, RNode left, Operation op, RNode right) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
         this.op = op;
     }
 

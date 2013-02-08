@@ -2,6 +2,8 @@ package r.nodes;
 
 import java.util.*;
 
+import com.oracle.truffle.api.frame.*;
+
 import r.*;
 import r.data.*;
 import r.data.RFunction.*;
@@ -157,9 +159,9 @@ public class Function extends ASTNode {
             RFunction p = parent;
             int hops = 1;
             while (p != null) {
-                int pos = p.positionInLocalWriteSet(s);
-                if (pos >= 0) {
-                    rsl.add(new ReadSetEntry(s, hops, pos));
+                FrameSlot slot = p.slotInWriteSet(s);
+                if (slot != null) {
+                    rsl.add(new ReadSetEntry(s, hops, slot));
                     break;
                 }
                 p = p.enclosing();
@@ -168,6 +170,7 @@ public class Function extends ASTNode {
         }
         return rsl.toArray(new ReadSetEntry[0]); // FIXME: rewrite this to get rid of allocation/copying
     }
+
     class FindAccesses extends BasicVisitor implements Visitor {
 
         Set<RSymbol> read;
@@ -230,10 +233,5 @@ public class Function extends ASTNode {
             written.add(((SimpleAccessVariable) v).getSymbol());
             n.visit_all(this);
         }
-
-//        @Override
-//        public void visit(AccessVector n) {
-//            n.visit_all(this); // includes a visit of the base of the vector
-//        }
     }
 }

@@ -1,25 +1,34 @@
 package r.data.internal;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
+import r.builtins.Return.*;
 import r.data.*;
 import r.nodes.Function;
 import r.nodes.truffle.*;
 
+// FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
+// FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
-public class FunctionImpl extends BaseObject implements RFunction {
+public class FunctionImpl extends RootNode implements RFunction {
 
     final RFunction enclosing;
     final Function source;
 
-    @ContentStable final RSymbol[] paramNames;
-    @ContentStable final RNode[] paramValues;
+    final RSymbol[] paramNames;
+    @Children final RNode[] paramValues;
     final RNode body;
 
-    @ContentStable final RSymbol[] writeSet;
+    final FrameDescriptor frameDescriptor;
+    final FrameSlot[] paramSlots;
+    final CallTarget callTarget;
+
+    final RSymbol[] writeSet;
     final int writeSetBloom;
-    @ContentStable final ReadSetEntry[] readSet;
+    final ReadSetEntry[] readSet;
     final int readSetBloom;
 
     private static final boolean DEBUG_CALLS = false;
@@ -50,6 +59,51 @@ public class FunctionImpl extends BaseObject implements RFunction {
             Utils.debug("  write set [" + writeSet.length + "]: " + printWriteSet(writeSet));
             Utils.debug("  read set  [" + readSet.length + "]: " + printReadSet(readSet));
         }
+
+        // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
+        int nparams = paramNames.length;
+        paramSlots = new FrameSlot[nparams];
+        frameDescriptor = new FrameDescriptor();
+        for (int i = 0; i < nparams; i++) {
+            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]);
+        }
+        for (int i = nparams; i < writeSet.length; i++) {
+            frameDescriptor.addFrameSlot(writeSet[i]);
+        }
+
+        callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
+    }
+
+    @Override
+    public Object execute(VirtualFrame frame) {
+        RFrameHeader h = RFrameHeader.header(frame);
+        Object[] args = h.arguments();
+        for (int i = 0; i < paramSlots.length; i++) {
+            RAny value = (RAny) args[i];  // FIXME: use RAny array instead?
+            if (value != null) {
+                frame.setObject(paramSlots[i], value);
+                value.ref();
+            } else {
+                RNode n = paramValues[i];
+                if (n != null) {
+                    value = (RAny) n.execute(RContext.instance, frame); // TODO: get rid of the context
+                    if (value != null) {
+                        frame.setObject(paramSlots[i], value);
+                        value.ref();
+                    }
+                    // NOTE: value can be null when a parameter is missing
+                    // NOTE: if such a parameter is not used by the function, R is happy
+                }
+            }
+        }
+
+        Object res;
+        try {
+            res = body.execute(RContext.instance, frame);
+        } catch (ReturnException re) {
+            res = h.returnValue();
+        }
+        return res;
     }
 
     private static String printWriteSet(RSymbol[] writeSet) {
@@ -82,9 +136,9 @@ public class FunctionImpl extends BaseObject implements RFunction {
             str.append(e.symbol.pretty());
             str.append(":");
             str.append("(");
-            str.append(e.frameHops);
+            str.append(e.hops);
             str.append(",");
-            str.append(e.framePos);
+            str.append(e.slot);
             str.append(")");
         }
         return str.toString();
@@ -160,8 +214,13 @@ public class FunctionImpl extends BaseObject implements RFunction {
     }
 
     @Override
-    public RClosure createClosure(Frame frame) {
-        return new ClosureImpl(this, frame);
+    public CallTarget callTarget() {
+        return callTarget;
+    }
+
+    @Override
+    public RClosure createClosure(MaterializedFrame enclosingEnvironment) {
+        return new ClosureImpl(this, enclosingEnvironment);
     }
 
     @Override
@@ -178,5 +237,10 @@ public class FunctionImpl extends BaseObject implements RFunction {
     @Override
     public RSymbol[] localWriteSet() {
         return writeSet;
+    }
+
+    @Override
+    public FrameSlot slotInWriteSet(RSymbol symbol) {
+        return frameDescriptor.findFrameSlot(symbol);
     }
 }

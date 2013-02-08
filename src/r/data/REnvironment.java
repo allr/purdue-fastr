@@ -1,10 +1,11 @@
 package r.data;
 
+import com.oracle.truffle.api.*;
+import com.oracle.truffle.api.frame.*;
+
 import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.runtime.*;
 
 
 public interface REnvironment extends RAny {
@@ -15,7 +16,7 @@ public interface REnvironment extends RAny {
 
     DummyFunction DUMMY_FUNCTION = new DummyFunction(); // a placeholder for no local variables, for Frames that do not belong to a real function
 
-    Frame frame();
+    MaterializedFrame frame();
     void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast);
     RAny get(RSymbol name, boolean inherits);
     boolean exists(RSymbol name, boolean inherits);
@@ -69,7 +70,7 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public RClosure createClosure(Frame frame) {
+        public RClosure createClosure(MaterializedFrame frame) {
             // TODO Auto-generated method stub
             return null;
         }
@@ -94,8 +95,17 @@ public interface REnvironment extends RAny {
 
         @Override
         public RSymbol[] localWriteSet() {
-            // TODO Auto-generated method stub
             return emptySet;
+        }
+
+        @Override
+        public FrameSlot slotInWriteSet(RSymbol sym) {
+            return null;
+        }
+
+        @Override
+        public CallTarget callTarget() {
+            return null;
         }
 
     }

@@ -1,10 +1,9 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
-import r.Convert;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -12,17 +11,17 @@ import r.nodes.*;
 
 
 public class If extends BaseR {
-    @Stable RNode cond;
-    @Stable RNode trueBranch;
-    @Stable RNode falseBranch;
+    @Child RNode cond;
+    @Child RNode trueBranch;
+    @Child RNode falseBranch;
 
     private static final boolean DEBUG_IF = false;
 
     public If(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
         super(ast);
-        this.cond = updateParent(cond);
-        this.trueBranch = updateParent(trueBranch);
-        this.falseBranch = updateParent(falseBranch);
+        this.cond = adoptChild(cond);
+        this.trueBranch = adoptChild(trueBranch);
+        this.falseBranch = adoptChild(falseBranch);
     }
 
     // The condition is treated as follows:
@@ -55,18 +54,18 @@ public class If extends BaseR {
 
     // scalar comparison against a constant
     public static class IfConst extends BaseR {
-        @Stable RNode cond;
-        @Stable RNode expr;
-        @Stable RNode trueBranch;
-        @Stable RNode falseBranch;
+        @Child RNode cond;
+        @Child RNode expr;
+        @Child RNode trueBranch;
+        @Child RNode falseBranch;
         final RAny constant;
 
         public IfConst(ASTNode ast, RNode cond, RNode expr, RNode trueBranch, RNode falseBranch, RAny constant) {
             super(ast);
-            this.cond = updateParent(cond);
-            this.expr = updateParent(expr);
-            this.trueBranch = updateParent(trueBranch);
-            this.falseBranch = updateParent(falseBranch);
+            this.cond = adoptChild(cond);
+            this.expr = adoptChild(expr);
+            this.trueBranch = adoptChild(trueBranch);
+            this.falseBranch = adoptChild(falseBranch);
             this.constant = constant;
         }
 

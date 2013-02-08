@@ -1,7 +1,8 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
@@ -15,8 +16,8 @@ import r.nodes.*;
 // FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
 public class Arithmetic extends BaseR {
 
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
     final ValueArithmetic arit;
 
     private static final boolean EAGER = false;
@@ -30,8 +31,8 @@ public class Arithmetic extends BaseR {
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
         this.arit = arit;
     }
 

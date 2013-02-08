@@ -2,16 +2,15 @@ package r.builtins;
 
 import java.io.*;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
-import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
 
 // FIXME: not quite the GNU-R output particularly for numbers; re-visit if some code could be removed once we have fully GNU-R string representation of numerics
 public class Cat {

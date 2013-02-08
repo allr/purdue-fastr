@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
@@ -11,11 +11,11 @@ import r.nodes.*;
 
 // FIXME: this could and should be performance optimized
 public abstract class Not extends BaseR {
-    @Stable RNode lhs;
+    @Child RNode lhs;
 
     Not(ASTNode ast, RNode lhs) {
         super(ast);
-        this.lhs = updateParent(lhs);
+        this.lhs = adoptChild(lhs);
     }
 
     @Override

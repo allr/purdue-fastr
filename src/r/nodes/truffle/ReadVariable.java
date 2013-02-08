@@ -1,13 +1,12 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.Frame;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.ReadSetEntry;
-import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -44,23 +43,23 @@ public abstract class ReadVariable extends BaseR {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     ReadVariable node;
-                    int pos;
+                    FrameSlot slot;
                     ReadSetEntry rse;
                     String reason;
 
-                    // FIXME: revisit this with eval in mind
+                    // FIXME: revisit this with eval and language objects in mind
                     if (frame == null) {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";
-                    } else if ((pos = RFrame.getPositionInWS(frame, symbol)) >= 0) {
-                        node = getReadLocal(getAST(), symbol, pos);
+                    } else if ((slot = RFrameHeader.findVariable(frame, symbol)) != null) {
+                        node = getReadLocal(getAST(), symbol, slot);
                         reason = "installReadLocalNode";
-                    } else if ((rse = RFrame.getRSEntry(frame, symbol)) == null) {
+                    } else if ((rse = RFrameHeader.readSetEntry(frame, symbol)) == null) {
                             // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
                         node = getReadTopLevel(getAST(), symbol);
                         reason = "installReadTopLevel";
                     } else {
-                        node = getReadEnclosing(getAST(), symbol, rse.frameHops, rse.framePos);
+                        node = getReadEnclosing(getAST(), symbol, rse.hops, rse.slot);
                         reason = "installReadEnclosingNode";
                     }
                     replace(node, reason);
@@ -71,32 +70,32 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final int position) {
+    public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
-                RAny val = RFrame.readViaWriteSet(frame, position, symbol);
+                RAny val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from position "+position); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+slot); }
                 return val;
             }
         };
     }
 
-    public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final int position) {
+    public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
         // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(RContext context, Frame frame) {
-                RAny val = RFrame.readViaReadSet(frame, hops, position, symbol);
+                RAny val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from position "+position+" hops "+hops); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from slot "+slot+" hops "+hops); }
                 return val;
             }
         };
@@ -116,7 +115,7 @@ public abstract class ReadVariable extends BaseR {
                 // (same as SuperWriteVariable)
 
                 if (version != symbol.getVersion()) {
-                    val = RFrame.readFromExtension(frame, symbol, null);
+                    val = RFrameHeader.readFromExtensionEntry(frame, symbol);
                     if (val == null) {
                         version = symbol.getVersion();
                         // oldFrame = frame;

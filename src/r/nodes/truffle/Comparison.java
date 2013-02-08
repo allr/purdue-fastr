@@ -1,10 +1,9 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
-import r.Convert;
 import r.data.*;
 import r.data.RArray.Names;
 import r.data.RLogical.RLogicalFactory;
@@ -18,15 +17,15 @@ import r.nodes.*;
 public class Comparison extends BaseR {
 
     final ValueComparison cmp;
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
 
     private static final boolean DEBUG_CMP = false;
 
     public Comparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
         this.cmp = cmp;
     }
 

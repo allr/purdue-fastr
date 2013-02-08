@@ -1,26 +1,25 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
-import r.Convert;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
-
-import com.oracle.truffle.nodes.*;
-import com.oracle.truffle.runtime.*;
 
 // FIXME: probably could get some performance improvement by specializing for pairs of types,
 // thus avoiding the cast nodes
 
 public abstract class LogicalOperation extends BaseR {
 
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
 
     public LogicalOperation(ASTNode ast, RNode left, RNode right) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
     }
 
     @Override
@@ -86,12 +85,12 @@ public abstract class LogicalOperation extends BaseR {
     // note: we can't use ConvertToLogicalOne, because of different error handling
     // FIXME: this could have more optimizations
     public abstract static class CastNode extends BaseR {
-        @Stable RNode child;
+        @Child RNode child;
         int iteration;
 
         public CastNode(ASTNode ast, RNode child, int iteration) {
             super(ast);
-            this.child = updateParent(child);
+            this.child = adoptChild(child);
             this.iteration = iteration;
         }
 

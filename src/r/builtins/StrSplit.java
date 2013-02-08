@@ -10,7 +10,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: this implementation is very slow and is only partial
 // the supported regular expressions may not be exactly like in GNU-R

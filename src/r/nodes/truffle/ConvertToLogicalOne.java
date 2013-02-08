@@ -1,22 +1,21 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
 
-import com.oracle.truffle.nodes.*;
-
 public abstract class ConvertToLogicalOne extends RNode {
 
-    @Stable RNode input;
+    @Child RNode input;
 
     private static final boolean DEBUG_C = false;
 
     private ConvertToLogicalOne(RNode input) {
-        this.input = updateParent(input);
+        this.input = adoptChild(input);
     }
 
     @Override

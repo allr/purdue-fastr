@@ -7,8 +7,7 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
-
+import com.oracle.truffle.api.frame.*;
 
 public class CharUtils {
 

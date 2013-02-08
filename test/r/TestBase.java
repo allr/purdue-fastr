@@ -6,13 +6,13 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.data.*;
-import r.errors.ManageError;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 
 public class TestBase {
 
-    static RContext global = new RContext(1, true); // use debugging format
+    static RContext global = new RContext(true); // use debugging format
 
     static String evalString(String input) throws RecognitionException {
         return eval(input).pretty();
@@ -55,10 +55,11 @@ public class TestBase {
             result = res;
             stdout = out;
             stderr = err;
-            if (e == null)
+            if (e == null) {
                 exception = null;
-            else
-                exception = e.getClass().getName()+e.getMessage();
+            } else {
+                exception = e.getClass().getName() + e.getMessage();
+            }
         }
     }
 
@@ -77,12 +78,12 @@ public class TestBase {
             Exception e = null;
             try {
               result = evalString(input);
-            } catch (Exception ex) {
+            } catch (RError ex) {
                 e = ex;
             }
             String output = out.toString();
             String error = err.toString();
-            if (global.getCompiler() != null) {
+            if (global.usesTruffleOptimizer()) {
                 String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
                         "Captured output of " + input + " is above.\n";
                 if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
@@ -131,7 +132,7 @@ public class TestBase {
      */
     static void assertEvalError(String input, String expectedError) throws RecognitionException {
         EvalResult result = testEval(input);
-        Assert.assertTrue("Output expected to contain error: "+expectedError,result.stderr.contains(expectedError));
+        Assert.assertTrue("Output expected to contain error: " + expectedError, result.stderr.contains(expectedError));
         Assert.assertTrue("Error marker not found.", result.stderr.contains(ManageError.ERROR));
         Assert.assertTrue("Exception was not thrown", result.exception != null);
     }
@@ -142,7 +143,7 @@ public class TestBase {
     static void assertEvalWarning(String input, String expected, String expectedWarning) throws RecognitionException {
         EvalResult result = testEval(input);
         Assert.assertEquals("Evaluation result mismatch", expected, result.result);
-        Assert.assertTrue("Output expected to contain warning: "+expectedWarning, result.stderr.contains(expectedWarning));
+        Assert.assertTrue("Output expected to contain warning: " + expectedWarning, result.stderr.contains(expectedWarning));
         Assert.assertTrue("Warning marker not found.", result.stderr.contains(ManageError.WARNING));
         Assert.assertTrue("Exception was thrown!", result.exception == null);
     }
@@ -152,7 +153,7 @@ public class TestBase {
     static RAny eval(String input) throws RecognitionException {
         RSymbol.resetTable(); // reset the table of symbols before we do anything real
         // TODO we do not really need to reset the context, but it seems to me as a reasonable thing to do
-        global = new RContext(1, true); // reset the context
+        global = new RContext(true); // reset the context
         ASTNode astNode = TestPP.parse(input);
         return global.eval(astNode);
     }

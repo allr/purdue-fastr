@@ -11,8 +11,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
-
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: very incomplete implementation of R semantics
 

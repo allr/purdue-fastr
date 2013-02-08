@@ -1,10 +1,5 @@
 package r.nodes;
 
-import com.oracle.truffle.runtime.*;
-
-import r.*;
-import r.data.*;
-
 public abstract class ASTNode {
 
     ASTNode parent;
@@ -39,11 +34,5 @@ public abstract class ASTNode {
             child.setParent(this);
         }
         return child;
-    }
-
-    // FIXME should be abstract ... but I'm too lazy
-    @SuppressWarnings("unused")
-    public RAny execute(RContext global, Frame frame) {
-        return RNull.getNull();
     }
 }

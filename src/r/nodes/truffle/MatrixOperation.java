@@ -1,21 +1,21 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.frame.*;
+
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-import com.oracle.truffle.runtime.*;
-
 public abstract class MatrixOperation extends BaseR {
 
-    @Stable RNode left;
-    @Stable RNode right;
+    @Child RNode left;
+    @Child RNode right;
 
     public MatrixOperation(ASTNode ast, RNode left, RNode right) {
         super(ast);
-        this.left = updateParent(left);
-        this.right = updateParent(right);
+        this.left = adoptChild(left);
+        this.right = adoptChild(right);
     }
 
     @Override

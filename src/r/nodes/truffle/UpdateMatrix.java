@@ -1,7 +1,8 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.UnexpectedResultException;
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 import r.*;
 import r.data.*;
 import r.errors.RError;
@@ -15,12 +16,12 @@ import r.nodes.ASTNode;
  */
 public class UpdateMatrix extends BaseR {
 
-    @Stable private RNode matrixExpr;
-    @Stable private ReadMatrix.SelectorNode selIExpr;
-    @Stable private ReadMatrix.SelectorNode selJExpr;
-    @Stable private ReadMatrix.OptionNode dropExpr;
-    @Stable private ReadMatrix.OptionNode exactExpr;
-    @Stable protected RNode rhs;
+    @Child private RNode matrixExpr;
+    @Child private ReadMatrix.SelectorNode selIExpr;
+    @Child private ReadMatrix.SelectorNode selJExpr;
+    @Child private ReadMatrix.OptionNode dropExpr;
+    @Child private ReadMatrix.OptionNode exactExpr;
+    @Child protected RNode rhs;
     private final boolean subset;
 
     private static final boolean DEBUG_M = false;
@@ -29,24 +30,17 @@ public class UpdateMatrix extends BaseR {
     public UpdateMatrix(ASTNode ast, boolean subset, RNode matrixExpr, ReadMatrix.SelectorNode selIExpr, ReadMatrix.SelectorNode selJExpr, ReadMatrix.OptionNode dropExpr, ReadMatrix.OptionNode exactExpr, RNode rhs) {
         super(ast);
         this.subset = subset;
-        this.matrixExpr = updateParent(matrixExpr);
-        this.selIExpr = updateParent(selIExpr);
-        this.selJExpr = updateParent(selJExpr);
-        this.dropExpr = updateParent(dropExpr);
-        this.exactExpr = updateParent(exactExpr);
-        this.rhs = updateParent(rhs);
+        this.matrixExpr = adoptChild(matrixExpr);
+        this.selIExpr = adoptChild(selIExpr);
+        this.selJExpr = adoptChild(selJExpr);
+        this.dropExpr = adoptChild(dropExpr);
+        this.exactExpr = adoptChild(exactExpr);
+        this.rhs = adoptChild(rhs);
     }
 
     /** Copy constructor used for node replacing. */
     protected UpdateMatrix(UpdateMatrix other) {
-        super(other.getAST());
-        this.subset = other.subset;
-        this.matrixExpr = updateParent(other.matrixExpr);
-        this.selIExpr = updateParent(other.selIExpr);
-        this.selJExpr = updateParent(other.selJExpr);
-        this.dropExpr = updateParent(other.dropExpr);
-        this.exactExpr = updateParent(other.exactExpr);
-        this.rhs = updateParent(other.rhs);
+        this(other.ast, other.subset, other.matrixExpr, other.selIExpr, other.selJExpr, other.dropExpr, other.exactExpr, other.rhs);
     }
 
 
@@ -118,7 +112,7 @@ public class UpdateMatrix extends BaseR {
         ReadMatrix.Selector selectorI = selI;
         ReadMatrix.Selector selectorJ = selJ;
 
-        for (; ; ) {
+        for (;;) {
             try {
                 return execute(context, base, m, n, selectorI, selectorJ, drop, exact, value);
             } catch (UnexpectedResultException e) {
@@ -159,8 +153,9 @@ public class UpdateMatrix extends BaseR {
             }
             RArray ary = (RArray) value;
             try {
-                if ((ary.size() != 1) || (!(ary instanceof RDouble))) // we are expecting double scalar
+                if ((ary.size() != 1) || (!(ary instanceof RDouble))) { // we are expecting double scalar
                     throw new UnexpectedResultException(null);
+                }
                 return super.execute(context, matrix, selI, selJ, drop, exact, ary);
             } catch (UnexpectedResultException e) {
                 UpdateMatrix u = new UpdateMatrixGeneric(this);

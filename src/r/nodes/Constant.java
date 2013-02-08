@@ -1,8 +1,5 @@
 package r.nodes;
 
-import com.oracle.truffle.runtime.*;
-
-import r.*;
 import r.Convert;
 import r.data.*;
 
@@ -13,11 +10,6 @@ public class Constant extends ASTNode {
 
     Constant(RAny val) {
         value = val;
-    }
-
-    @Override
-    public RAny execute(RContext global, Frame frame) {
-        return getValue();
     }
 
     public String prettyValue() {

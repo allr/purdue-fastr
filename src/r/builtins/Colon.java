@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
@@ -81,7 +81,7 @@ public class Colon {
         }
     }
 
-    @SuppressWarnings("cast")
+//    @SuppressWarnings("cast")
     public static RAny generic(ASTNode ast, RContext context, RAny arg0, RAny arg1) {
         if (arg0 instanceof RInt) {
             RInt a0rint = (RInt) arg0;

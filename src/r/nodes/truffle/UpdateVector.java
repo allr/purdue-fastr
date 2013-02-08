@@ -1,7 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.nodes.UnexpectedResultException;
-import com.oracle.truffle.runtime.*;
 import r.Convert;
 import r.*;
 import r.data.*;
@@ -11,6 +9,10 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 
 import java.util.*;
+
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+
 
 // TODO: clean-up generic code using .getRef
 
@@ -22,62 +24,41 @@ import java.util.*;
 public abstract class UpdateVector extends BaseR {
 
     final RSymbol var;
-    @Stable RNode lhs;
-    @Stable @ContentStable RNode[] indexes;
-    @Stable RNode rhs;
+    @Child RNode lhs;
+    @Children RNode[] indexes;
+    @Child RNode rhs;
     final boolean subset;
 
-    @Stable RNode assign;  // node which will assign the whole new vector to var
+    @Child RNode assign;  // node which will assign the whole new vector to var
     RAny newVector;
     final boolean isSuper;
 
-    int framePosition = -1;
-    boolean positionInitialized = false;
+    FrameSlot frameSlot = null;
+    boolean slotInitialized = false;
 
     private static final boolean DEBUG_UP = false;
 
     protected UpdateVector(UpdateVector from) {
-        super(from.ast);
-        this.var = from.var;
-        this.lhs = updateParent(from.lhs);  // lhs is always SimpleAccessVariable of var
-        this.indexes = from.indexes == null ? null : updateParent(from.indexes);
-        this.rhs = updateParent(from.rhs);
-        this.subset = from.subset;
-        this.isSuper = from.isSuper;
-
-        if (isSuper) { // FIXME: turn this switch into node rewriting?
-            RNode node = updateParent(new BaseR(ast) {
-                @Override
-                public final Object execute(RContext context, Frame frame) {
-                    return newVector;
-                }
-            });
-            this.assign = updateParent(SuperWriteVariable.getUninitialized(ast, var, node));
-        } else {
-//            this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
-            this.assign = null;
-        }
-
-
+        this(from.ast, from.isSuper, from.var, from.lhs, from.indexes, from.rhs, from.subset);
     }
 
     UpdateVector(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
         super(ast);
         this.var = var;
-        this.lhs = updateParent(lhs);  // lhs is always SimpleAccessVariable of var
-        this.indexes = updateParent(indexes);
-        this.rhs = updateParent(rhs);
+        this.lhs = adoptChild(lhs);  // lhs is always SimpleAccessVariable of var
+        this.indexes = adoptChildren(indexes);
+        this.rhs = adoptChild(rhs);
         this.subset = subset;
         this.isSuper = isSuper;
 
         if (isSuper) { // FIXME: turn this switch into node rewriting?
-            RNode node = updateParent(new BaseR(ast) {
+            RNode node = adoptChild(new BaseR(ast) {
                 @Override
                 public final Object execute(RContext context, Frame frame) {
                     return newVector;
                 }
             });
-            this.assign = updateParent(SuperWriteVariable.getUninitialized(ast, var, node));
+            this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {
 //            this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
             this.assign = null;
@@ -105,7 +86,7 @@ public abstract class UpdateVector extends BaseR {
 
         RAny base;
         if (frame != null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
-            base = (RAny) lhs.execute(context, RFrame.getParent(frame));
+            base = (RAny) lhs.execute(context, RFrameHeader.enclosingFrame(frame));
         } else {
             throw RError.getUnknownVariable(ast, var);
         }
@@ -124,22 +105,22 @@ public abstract class UpdateVector extends BaseR {
         RAny index = (RAny) indexes[0].execute(context, frame);
 
         if (frame != null) {
-            if (!positionInitialized) { // FIXME: turn this into node rewriting
-                framePosition = RFrame.getPositionInWS(frame, var);
-                positionInitialized = true;
+            if (!slotInitialized) { // FIXME: turn this into node rewriting
+                frameSlot = RFrameHeader.findVariable(frame, var);
+                slotInitialized = true;
             }
             // variable has a local slot
             // note: this always has to be the case because the variable is in the write set
             // FIXME: this won't work for reflections
-            Utils.check(framePosition >= 0);
-            RAny base = (RAny) frame.getObject(framePosition + RFrame.RESERVED_SLOTS);
+            assert Utils.check(frameSlot != null);
+            RAny base = (RAny) frame.getObject(frameSlot);
             if (base != null) {
                 RAny newBase = execute(context, base, index, value);
                 if (newBase != base) {
-                    RFrame.writeAtRef(frame, framePosition, newBase);
+                    RFrameHeader.writeAtRef(frame, frameSlot, newBase);
                 }
-            } else {
-                base = RFrame.readViaWriteSetSlowPath(frame, framePosition, var);
+            } else { // this should be uncommon
+                base = RFrameHeader.readViaWriteSetSlowPath(frame, var);
                 if (base == null) {
                     throw RError.getUnknownVariable(getAST());
                 }
@@ -147,7 +128,7 @@ public abstract class UpdateVector extends BaseR {
                 // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(context, base, index, value);
                 Utils.check(base != newBase);
-                RFrame.writeAtRef(frame, framePosition, newBase);
+                RFrameHeader.writeAtRef(frame, frameSlot, newBase);
             }
         } else {
             // variable is top-level
@@ -157,7 +138,7 @@ public abstract class UpdateVector extends BaseR {
             }
             RAny newBase = execute(context, base, index, value);
             if (newBase != base) {
-                RFrame.writeToTopLevelRef(var, newBase);
+                RFrameHeader.writeToTopLevelRef(var, newBase);
             }
         }
         return value;

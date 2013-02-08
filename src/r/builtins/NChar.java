@@ -6,7 +6,7 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: only partial semantics
 public class NChar {
@@ -33,7 +33,6 @@ public class NChar {
             AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
 
             if (provided[ITYPE] || provided[IALLOW_NA]) {
                 Utils.nyi();

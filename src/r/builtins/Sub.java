@@ -10,7 +10,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.runtime.*;
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: this does not really implement the R's regular expressions semantics (not even mentioning that there are 2 semantics supported
 //        by R, one perl and one non-perl

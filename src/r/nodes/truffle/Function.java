@@ -1,11 +1,11 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.runtime.Frame;
+
+import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
 import r.nodes.*;
-
 public class Function extends RNode {
     final RFunction function;
 
@@ -15,7 +15,7 @@ public class Function extends RNode {
 
     @Override
     public final Object execute(RContext context, Frame frame) {
-        return function.createClosure(frame);
+        return function.createClosure(frame == null ? null : frame.materialize());
     }
 
     @Override
