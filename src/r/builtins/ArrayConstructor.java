@@ -54,7 +54,7 @@ public class ArrayConstructor {
             }
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RString.EMPTY;
                     }
@@ -77,7 +77,7 @@ public class ArrayConstructor {
             }
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RDouble.EMPTY;
                     }
@@ -96,7 +96,7 @@ public class ArrayConstructor {
             }
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RInt.EMPTY;
                     }
@@ -115,7 +115,7 @@ public class ArrayConstructor {
             }
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RLogical.EMPTY;
                     }
@@ -134,7 +134,7 @@ public class ArrayConstructor {
             }
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (args.length == 0) {
                         return RRaw.EMPTY;
                     }

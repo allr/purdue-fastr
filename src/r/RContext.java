@@ -1,5 +1,7 @@
 package r;
 
+import java.util.*;
+
 import com.oracle.truffle.api.*;
 
 import r.data.*;
@@ -13,85 +15,93 @@ public class RContext {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", true);
 
-    public static RContext instance;
+    private static boolean debuggingFormat;
+    private static boolean usesTruffleOptimizer;
+    private static ManageError errorManager;
+    private static Truffleize truffleize;
 
-    private static RContext currentContext;
+    private static final int NCONNECTIONS = 128;
+    private static final Connection[] connections = new Connection[128];
 
-    private boolean debuggingFormat;
-    private boolean usesOptimizer;
-
-    ManageError errorManager;
-    Truffleize truffleize;
-
-    public RContext(boolean debuggingFormat) {
-        init();
-        this.debuggingFormat = debuggingFormat;
-        instance = this; // FIXME: get rid of this
+    static {
+        initialize(false);
     }
 
-    public boolean usesTruffleOptimizer() {
-       return usesOptimizer;
+    public static void initialize(boolean useDebuggingFormat) {
+        usesTruffleOptimizer = Truffle.getRuntime().equals("Default Truffle Runtime");
+        errorManager = new ManageError(System.err);
+        truffleize = new Truffleize();
+        debuggingFormat = useDebuggingFormat;
+        Arrays.fill(connections, null);
+    }
+
+    public static boolean usesTruffleOptimizer() {
+       return usesTruffleOptimizer;
     }
 
     public static boolean debuggingFormat() {
-        return currentContext.debuggingFormat;
+        return debuggingFormat;
     }
 
-    public RAny eval(ASTNode expr) {
-        currentContext = this;
+    public static boolean debuggingFormat(boolean useDebuggingFormat) {
+        boolean previous = debuggingFormat;
+        debuggingFormat = useDebuggingFormat;
+        return previous;
+    }
+
+    public static RAny eval(ASTNode expr, boolean useDebuggingFormat) {
+        debuggingFormat(useDebuggingFormat);
+        return eval(expr);
+        // NOTE: cannot reset to the original value of debuggingFormat here, because usually the pretty printer is invoked on the
+        //  results afterwards by the caller of eval; the pretty printer still depends on the correct setting of debugging format
+    }
+
+    public static RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createLazyRootTree(expr).execute(this, null);
+            return (RAny) truffleize.createLazyRootTree(expr).execute(null); // null means top-level
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
             }
             error(e);
         }
-        currentContext = null;
-        return RNull.getNull(); // this is not quite correct, since R doesn't print anything here
+        return RNull.getNull();
+        // F:this is not quite correct, since R doesn't print anything here
+        //
         // Solutions: Maybe a black hole type could be used here
         // : Set a flag in the context to say nothing to print
         // ... dunno ...
     }
 
-    private void init() {
-        usesOptimizer = Truffle.getRuntime().equals("Default Truffle Runtime");
-        errorManager = new ManageError(System.err);
-        truffleize = new Truffleize();
-    }
-
-    public RNode createNode(ASTNode expr) {
+    public static RNode createNode(ASTNode expr) {
         return truffleize.createTree(expr);
     }
 
-    public void warning(ASTNode expr, String msg) {
+    public static void warning(ASTNode expr, String msg) {
         if (errorManager != null) {
             errorManager.warning(expr, msg);
         }
     }
 
-    public void warning(RError err) {
+    public static void warning(RError err) {
         if (errorManager != null) {
             errorManager.warning(err);
         }
     }
 
-    public void error(ASTNode expr, String msg) {
+    public static void error(ASTNode expr, String msg) {
         if (errorManager != null) {
             errorManager.error(expr, msg);
         }
     }
 
-    public void error(RError err) {
+    public static void error(RError err) {
         if (errorManager != null) {
             errorManager.error(err);
         }
     }
 
-    public static final int NCONNECTIONS = 128;
-    public static final Connection[] connections = new Connection[128];
-
-    public int allocateConnection(Connection connection) {
+    public static int allocateConnection(Connection connection) {
         for (int i = 0; i < NCONNECTIONS; i++) {
             if (connections[i] == null) {
                 connections[i] = connection;
@@ -101,12 +111,12 @@ public class RContext {
         return -1;
     }
 
-    public void freeConnection(int i) {
-        Utils.check(connections[i] != null);
+    public static void freeConnection(int i) {
+        assert Utils.check(connections[i] != null);
         connections[i] = null;
     }
 
-    public Connection getConnection(int i) {
+    public static Connection getConnection(int i) {
         if (i >= 0 && i < NCONNECTIONS) {
             return connections[i];
         } else {

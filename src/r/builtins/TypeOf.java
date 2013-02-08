@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -17,7 +16,7 @@ public class TypeOf {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny value) {
+                public RAny doBuiltIn(Frame frame, RAny value) {
                     return RString.RStringFactory.getScalar(value.typeOf());
                 }
             };

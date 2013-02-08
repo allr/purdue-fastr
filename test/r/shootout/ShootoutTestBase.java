@@ -7,13 +7,12 @@ import org.junit.*;
 
 import r.*;
 import r.Console;
+import r.data.*;
 import r.nodes.*;
 import r.parser.*;
 
 
 public class ShootoutTestBase {
-
-    static RContext global = new RContext(false); // use non-debugging format, some shootouts depend on it
 
     public static String sourceFilePath(String benchDir, String benchFileBase) {
         return "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
@@ -114,7 +113,12 @@ public class ShootoutTestBase {
             PrintStream myErrPS = new PrintStream(myErr);
             System.setErr(myErrPS);
 
-            String result = global.eval(tree).pretty();
+            String result;
+            try {
+                result = RContext.eval(tree, false).pretty();
+            } finally {
+                RSymbol.resetTable(); // some tests may have overwritten some builtins
+            }
 
             myOutPS.flush();
             System.setOut(oldOut);

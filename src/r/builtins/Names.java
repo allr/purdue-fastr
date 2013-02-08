@@ -19,7 +19,7 @@ public class Names {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public final RAny doBuiltIn(Frame frame, RAny arg) {
                     if (arg instanceof RArray) {
                         RArray.Names sNames = ((RArray) arg).names();
                         if (sNames != null) {
@@ -42,7 +42,7 @@ public class Names {
             return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny x, RAny value) {
+                public final RAny doBuiltIn(Frame frame, RAny x, RAny value) {
                     if (!(x instanceof RArray)) {
                         throw RError.getNamesNonVector(ast);
                     }

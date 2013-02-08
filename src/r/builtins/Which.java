@@ -42,7 +42,7 @@ public class Which {
             j = 0;
             for (int i = 0; i < size; i++) {
                 if (input.getLogical(i) == RLogical.TRUE) {
-                    symbols[j++] = isymbols[i] ;
+                    symbols[j++] = isymbols[i];
                 }
             }
             names = RArray.Names.create(symbols);
@@ -60,7 +60,6 @@ public class Which {
             AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
 
             if (provided[IARR_IND] || provided[IUSE_NAMES]) {
                 Utils.nyi("arguments not yet implemented");
@@ -74,7 +73,7 @@ public class Which {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                    public RAny doBuiltIn(Frame frame, RAny arg) {
                         if (arg instanceof RLogical) {
                             return which((RLogical) arg);
                         } else {

@@ -433,7 +433,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ a <- list(a = 1, b = 2); a$b <- 67; a; }", "$a\n1.0\n\n$b\n67.0");
         assertEval("{ a <- list(a = 1, b = 2); a$c <- 67; a; }", "$a\n1.0\n\n$b\n2.0\n\n$c\n67.0");
         // make sure that dollar only works for lists
-        assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT);
+        assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_ATOMIC_VECTORS);
         // make sure that coercion returns warning
         assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
     }

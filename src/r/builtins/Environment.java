@@ -21,7 +21,7 @@ public class Environment {
             return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame) {
+                public RAny doBuiltIn(Frame frame) {
                     return REnvironment.EMPTY;
                 }
             };
@@ -40,16 +40,16 @@ public class Environment {
         private final boolean DEFAULT_HASH = true;
 
         // FIXME: note that R coerces to int instead of logical that one could expect here
-        private boolean parseHash(RAny arg, RContext context, ASTNode ast) { // not exactly R semantics
-            RInt i = Convert.coerceToIntWarning(arg, context, ast);
+        private boolean parseHash(RAny arg, ASTNode ast) { // not exactly R semantics
+            RInt i = Convert.coerceToIntWarning(arg, ast);
             if (i.size() > 0 && i.getInt(0) != 0) {
                 return true;
             }
             return DEFAULT_HASH;
         }
 
-        private int parseSize(RAny arg, RContext context, ASTNode ast) {
-            RInt i = Convert.coerceToIntWarning(arg, context, ast);
+        private int parseSize(RAny arg, ASTNode ast) {
+            RInt i = Convert.coerceToIntWarning(arg, ast);
             if (i.size() > 0) {
                 int v = i.getInt(0);
                 if (v != RInt.NA) {
@@ -59,7 +59,7 @@ public class Environment {
             return DEFAULT_SIZE;
         }
 
-        private REnvironment parseParent(RAny arg, RContext context, ASTNode ast) {
+        private REnvironment parseParent(RAny arg, ASTNode ast) {
             if (arg instanceof REnvironment) {
                 return (REnvironment) arg;
             }
@@ -75,13 +75,13 @@ public class Environment {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                    boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], context, ast) : DEFAULT_HASH;
+                    boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], ast) : DEFAULT_HASH;
                     REnvironment rootEnvironment = null;
                     MaterializedFrame parentFrame = null;
                     if (provided[IPARENT]) {
-                        REnvironment env = parseParent(args[paramPositions[IPARENT]], context, ast);
+                        REnvironment env = parseParent(args[paramPositions[IPARENT]], ast);
                         parentFrame = env.frame();
                         if (parentFrame == null) {
                             rootEnvironment = env;
@@ -95,7 +95,7 @@ public class Environment {
                     int size = DEFAULT_SIZE;
                     if (hash) {
                         if (provided[ISIZE]) {
-                            size = parseSize(args[paramPositions[ISIZE]], context, ast);
+                            size = parseSize(args[paramPositions[ISIZE]], ast);
                         }
                     }
 
@@ -105,7 +105,7 @@ public class Environment {
         }
     };
 
-    public static boolean parseInherits(RAny arg, RContext context, ASTNode ast) {
+    public static boolean parseInherits(RAny arg, ASTNode ast) {
         RLogical larg = arg.asLogical();
         int size = larg.size();
         if (size > 0) {
@@ -117,19 +117,19 @@ public class Environment {
         throw RError.getInvalidArgument(ast, "inherits");
     }
 
-    public static REnvironment parseEnvir(RAny arg, RContext context, ASTNode ast) {
+    public static REnvironment parseEnvir(RAny arg, ASTNode ast) {
         if (arg instanceof REnvironment) {
             return (REnvironment) arg;
         }
         throw RError.getInvalidArgument(ast,  "envir");
     }
 
-    public static REnvironment extractEnvironment(RAny envir, RAny pos, Frame frame, RContext context, ASTNode ast) {
+    public static REnvironment extractEnvironment(RAny envir, RAny pos, Frame frame, ASTNode ast) {
         if (envir != null) {
-            return parseEnvir(envir, context, ast);
+            return parseEnvir(envir, ast);
         } else {
             if (pos != null) {
-                return asEnvironment(context, frame, ast, pos, true);
+                return asEnvironment(frame, ast, pos, true);
             } else {
                 return frame == null ? REnvironment.GLOBAL : RFrameHeader.environment(frame);
             }
@@ -149,14 +149,14 @@ public class Environment {
 
         private final boolean DEFAULT_INHERITS = false;
 
-        private RSymbol parseX(RAny arg, RContext context, ASTNode ast) {
+        private RSymbol parseX(RAny arg, ASTNode ast) {
             if (arg instanceof RString) {
                 RString sarg = (RString) arg;
                 int size = sarg.size();
                 if (size > 0) {
                     String s = sarg.getString(0);
                     if (size > 1) {
-                        context.warning(ast, RError.ONLY_FIRST_VARIABLE_NAME);
+                        RContext.warning(ast, RError.ONLY_FIRST_VARIABLE_NAME);
                     }
                     return RSymbol.getSymbol(s);
                 }
@@ -180,15 +180,15 @@ public class Environment {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                    RSymbol name = parseX(args[paramPositions[IX]], context, ast);
+                    RSymbol name = parseX(args[paramPositions[IX]], ast);
                     RAny value = args[paramPositions[IVALUE]];
 
                     RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
                     RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
-                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
-                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, ast);
+                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], ast) : DEFAULT_INHERITS;
                     envir.assign(name, value, inherits, ast);
                     return value;
                 }
@@ -197,7 +197,7 @@ public class Environment {
     };
 
  // NOTE: get and assign have different failure modes for X
-    public static RSymbol parseXSilent(RAny arg, RContext context, ASTNode ast) {
+    public static RSymbol parseXSilent(RAny arg, ASTNode ast) {
         if (arg instanceof RString) {
             RString sarg = (RString) arg;
             int size = sarg.size();
@@ -237,15 +237,15 @@ public class Environment {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                    RSymbol name = parseXSilent(args[paramPositions[IX]], context, ast);
+                    RSymbol name = parseXSilent(args[paramPositions[IX]], ast);
 
                     RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
                     RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
-                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, ast);
 
-                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
+                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], ast) : DEFAULT_INHERITS;
 
                     RAny res = envir.get(name, inherits);
                     if (!inherits || res != null) { // FIXME: fix this for get on toplevel with inherits == false
@@ -287,14 +287,14 @@ public class Environment {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    RSymbol name = parseXSilent(args[paramPositions[IX]], context, ast);
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                    RSymbol name = parseXSilent(args[paramPositions[IX]], ast);
 
                     // FIXME: add support for frame argument
                     RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
                     RAny posArg = provided[IWHERE] ? args[paramPositions[IWHERE]] : null;
-                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, context, ast);
-                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], context, ast) : DEFAULT_INHERITS;
+                    REnvironment envir = extractEnvironment(envirArg, posArg, frame, ast);
+                    boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], ast) : DEFAULT_INHERITS;
 
                     boolean res = envir.exists(name, inherits);
                     if (res) {
@@ -330,16 +330,16 @@ public class Environment {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RAny nameArg = provided[INAME] ? args[paramPositions[INAME]] : null;
                     REnvironment envir;
                     if (nameArg != null) {
-                        envir = asEnvironment(context, frame, ast, nameArg, true);
+                        envir = asEnvironment(frame, ast, nameArg, true);
                     } else {
                         RAny envirArg = provided[IENVIR] ? args[paramPositions[IENVIR]] : null;
                         RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
-                        envir = extractEnvironment(envirArg, posArg, frame, context, ast);
+                        envir = extractEnvironment(envirArg, posArg, frame, ast);
                     }
                     String[] names = Convert.symbols2strings(envir.ls());
                     Arrays.sort(names);
@@ -350,11 +350,11 @@ public class Environment {
     };
 
 
-    public static REnvironment asEnvironment(RContext context, Frame frame, ASTNode ast, RAny arg) {
-        return asEnvironment(context, frame, ast, arg, false);
+    public static REnvironment asEnvironment(Frame frame, ASTNode ast, RAny arg) {
+        return asEnvironment(frame, ast, arg, false);
     }
 
-    public static REnvironment asEnvironment(RContext context, Frame frame, ASTNode ast, RAny arg, boolean fakePromise) {
+    public static REnvironment asEnvironment(Frame frame, ASTNode ast, RAny arg, boolean fakePromise) {
         if (arg instanceof REnvironment) {
             return (REnvironment) arg;
         }
@@ -406,8 +406,8 @@ public class Environment {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                    return asEnvironment(context, frame, ast, arg);
+                public RAny doBuiltIn(Frame frame, RAny arg) {
+                    return asEnvironment(frame, ast, arg);
                 }
             };
         }

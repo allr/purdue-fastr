@@ -20,12 +20,12 @@ public abstract class UnaryMinus extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
-        RAny value = (RAny) lhs.execute(context, frame);
-        return execute(context, value);
+    public final Object execute(Frame frame) {
+        RAny value = (RAny) lhs.execute(frame);
+        return execute(value);
     }
 
-    abstract RAny execute(RContext context, RAny value);
+    abstract RAny execute(RAny value);
 
     enum Failure {
         NOT_ONE_ELEMENT,
@@ -152,15 +152,15 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny value) {
+        public RAny execute(RAny value) {
             Specialized sn = createSimple(value);
             if (sn != null) {
                 replace(sn, "specialize Scalar");
-                return sn.execute(context, value);
+                return sn.execute(value);
             } else {
                 sn = createGeneric();
                 replace(sn, "specialize Scalar");
-                return sn.execute(context, value);
+                return sn.execute(value);
             }
         }
 
@@ -175,7 +175,7 @@ public abstract class UnaryMinus extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RAny value) {
+            public RAny execute(RAny value) {
                 try {
                     return minus.minus(value);
                 } catch (UnexpectedResultException e) {
@@ -183,11 +183,11 @@ public abstract class UnaryMinus extends BaseR {
                     if (f == Failure.UNEXPECTED_TYPE) {
                         Specialized sn = createGeneric();
                         replace(sn, "install Scalar.Generic from Scalar.Simple" + dbg);
-                        return sn.execute(context, value);
+                        return sn.execute(value);
                     } else {
                         GenericMinus n = new GenericMinus(ast, lhs);
                         replace(n, "install GenericMinus from Scalar" + dbg);
-                        return n.execute(context, value);
+                        return n.execute(value);
                     }
                 }
             }
@@ -200,7 +200,7 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RAny value) {
+        RAny execute(RAny value) {
 
             if (value instanceof RComplex) {
                 final RComplex cvalue = (RComplex) value;

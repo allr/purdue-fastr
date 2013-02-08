@@ -413,52 +413,52 @@ public class Convert {
         }
     }
 
-    public static RString coerceToStringWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+    public static RString coerceToStringWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         RString res = arg.asString(globalConversionStatus);
         if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
-            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             return res;
         }
     }
 
-    public static RComplex coerceToComplexWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+    public static RComplex coerceToComplexWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         RComplex res = arg.asComplex(globalConversionStatus);
         if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
-            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             return res;
         }
     }
 
 
-    public static RDouble coerceToDoubleWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+    public static RDouble coerceToDoubleWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         RDouble res = arg.asDouble(globalConversionStatus);
         if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
-            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             return res;
         }
     }
 
-    public static RInt coerceToIntWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+    public static RInt coerceToIntWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         RInt res = arg.asInt(globalConversionStatus);
         if (!globalConversionStatus.naIntroduced) {
             return res;
         } else {
-            context.warning(ast, RError.NA_INTRODUCED_COERCION);
+            RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             return res;
         }
     }
 
-    public static RRaw coerceToRawWarning(RAny arg, RContext context, ASTNode ast) { // WARNING: non-reentrant
+    public static RRaw coerceToRawWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         globalConversionStatus.outOfRange = false;
         RRaw res = arg.asRaw(globalConversionStatus);
@@ -466,11 +466,11 @@ public class Convert {
             if (!globalConversionStatus.outOfRange) {
                 // nothing
             } else {
-                context.warning(ast, RError.OUT_OF_RANGE);
+                RContext.warning(ast, RError.OUT_OF_RANGE);
             }
         } else {
-            context.warning(ast, RError.NA_INTRODUCED_COERCION);
-            context.warning(ast, RError.OUT_OF_RANGE);
+            RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
+            RContext.warning(ast, RError.OUT_OF_RANGE);
         }
         return res;
     }

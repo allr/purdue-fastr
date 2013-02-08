@@ -433,8 +433,8 @@ public class Rep {
         return null;
     }
 
-    public static RAny genericRepLengthOut(RContext context, ASTNode ast, RAny argX, RAny argLengthOut) {
-        RInt ilengthOut = Convert.coerceToIntWarning(argLengthOut, context, ast); // FIXME: not exactly R semantics, R will not produce warnings on coercion for arguments at indexes 2 and higher
+    public static RAny genericRepLengthOut(ASTNode ast, RAny argX, RAny argLengthOut) {
+        RInt ilengthOut = Convert.coerceToIntWarning(argLengthOut, ast); // FIXME: not exactly R semantics, R will not produce warnings on coercion for arguments at indexes 2 and higher
         int len;
         if (ilengthOut.size() == 1) {
             len = ilengthOut.getInt(0);
@@ -489,7 +489,7 @@ public class Rep {
             final boolean xfirst = paramPositions[IX] == 0;
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                     return genericRepInt(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                 }
             };
@@ -517,8 +517,8 @@ public class Rep {
                     final boolean xfirst = paramPositions[IX] == 0;
                     return new BuiltIn.BuiltIn2(call, names, exprs) {
                         @Override
-                        public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
-                            return genericRepLengthOut(context, ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                            return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                         }
                     };
 

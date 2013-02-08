@@ -23,18 +23,18 @@ public abstract class LogicalOperation extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
-        return RLogical.RLogicalFactory.getScalar(executeScalarLogical(context, frame));
+    public final Object execute(Frame frame) {
+        return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
     }
 
     @Override
-    public abstract int executeScalarLogical(RContext context, Frame frame);
+    public abstract int executeScalarLogical(Frame frame);
 
-    public final int extractValue(RContext context, Frame frame, RNode node) {
+    public final int extractValue(Frame frame, RNode node) {
         RNode curNode = node;
         for (;;) {
             try {
-                return curNode.executeScalarLogical(context, frame);
+                return curNode.executeScalarLogical(frame);
             } catch (UnexpectedResultException e) {
                 RNode newNode = createCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
                 replaceChild(curNode, newNode);
@@ -50,12 +50,12 @@ public abstract class LogicalOperation extends BaseR {
         }
 
         @Override
-        public int executeScalarLogical(RContext context, Frame frame) {
-            int leftValue = extractValue(context, frame, left);
+        public int executeScalarLogical(Frame frame) {
+            int leftValue = extractValue(frame, left);
             if (leftValue == RLogical.TRUE) {
                 return RLogical.TRUE;
             }
-            return extractValue(context, frame, right);
+            return extractValue(frame, right);
         }
     }
 
@@ -65,16 +65,16 @@ public abstract class LogicalOperation extends BaseR {
         }
 
         @Override
-        public int executeScalarLogical(RContext context, Frame frame) {
-            int leftValue = extractValue(context, frame, left);
+        public int executeScalarLogical(Frame frame) {
+            int leftValue = extractValue(frame, left);
             if (leftValue == RLogical.TRUE) {
-                return extractValue(context, frame, right);
+                return extractValue(frame, right);
             }
             if (leftValue == RLogical.FALSE) {
                 return RLogical.FALSE;
             }
             // leftValue == RLogical.NA
-            int rightValue = extractValue(context, frame, right);
+            int rightValue = extractValue(frame, right);
             if (rightValue == RLogical.FALSE) {
                 return RLogical.FALSE;
             }
@@ -95,14 +95,14 @@ public abstract class LogicalOperation extends BaseR {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
+        public final Object execute(Frame frame) {
             Utils.nyi("unreachable");
             return null;
         }
 
         @Override
-        public int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
-            RAny value = (RAny) child.execute(context, frame);
+        public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+            RAny value = (RAny) child.execute(frame);
             return extract(value);
         }
 

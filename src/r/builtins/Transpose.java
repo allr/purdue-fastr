@@ -18,7 +18,7 @@ public class Transpose {
 
             return new BuiltIn.BuiltIn1(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public RAny doBuiltIn(Frame frame, RAny arg) {
                     if (arg instanceof RArray) {
                         RArray a = (RArray) arg;
                         int[] dim = a.dimensions();

@@ -3,7 +3,6 @@ package r.builtins;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -29,17 +28,17 @@ public class TypeCheck {
             return new AbstractCall(call, names, exprs) {
 
                 @Override
-                public Object execute(RContext context, Frame frame) {
+                public Object execute(Frame frame) {
                     try {
-                        return RLogical.RLogicalFactory.getScalar(executeScalarLogical(context, frame));
+                        return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
                     } catch (UnexpectedResultException e) {
                         return e.getResult();
                     }
                 }
 
                 @Override
-                public int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
-                    RAny value = (RAny) argExprs[0].execute(context, frame);
+                public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+                    RAny value = (RAny) argExprs[0].execute(frame);
                     return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
                 }
             };

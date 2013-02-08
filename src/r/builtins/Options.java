@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -17,7 +16,7 @@ public class Options {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     return RNull.getNull();
                 }
 

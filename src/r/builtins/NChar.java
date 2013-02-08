@@ -43,7 +43,7 @@ public class NChar {
                 }
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame, RAny x) {
+                    public final RAny doBuiltIn(Frame frame, RAny x) {
                         return nchar(x.asString());
                     }
                 };

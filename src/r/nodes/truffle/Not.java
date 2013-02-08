@@ -3,7 +3,6 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -19,12 +18,12 @@ public abstract class Not extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
-        RAny value = (RAny) lhs.execute(context, frame);
-        return execute(context, value);
+    public final Object execute(Frame frame) {
+        RAny value = (RAny) lhs.execute(frame);
+        return execute(value);
     }
 
-    abstract RAny execute(RContext context, RAny value);
+    abstract RAny execute(RAny value);
 
     // when the argument is a logical scalar
     public static class LogicalScalar extends Not { // TODO: optimize this using scalar types and executeScalarLogical
@@ -33,7 +32,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RAny value) {
+        RAny execute(RAny value) {
             try {
                 if (!(value instanceof RLogical)) {
                     throw new UnexpectedResultException(null);
@@ -51,7 +50,7 @@ public abstract class Not extends BaseR {
             } catch (UnexpectedResultException e) {
                 RawScalar n = new RawScalar(ast, lhs);  // FIXME: also create a specialized note for a logical vector
                 replace(n, "install RawScalar from LogicalScalar");
-                return n.execute(context, value);
+                return n.execute(value);
             }
         }
     }
@@ -63,7 +62,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RAny value) {
+        RAny execute(RAny value) {
             try {
                 if (!(value instanceof RRaw)) {
                     throw new UnexpectedResultException(null);
@@ -77,7 +76,7 @@ public abstract class Not extends BaseR {
             } catch (UnexpectedResultException e) {
                 Generic gn = new Generic(ast, lhs);
                 replace(gn, "install Generic from LogicalScalar");
-                return gn.execute(context, value);
+                return gn.execute(value);
             }
         }
     }
@@ -88,7 +87,7 @@ public abstract class Not extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RAny value) {
+        RAny execute(RAny value) {
             if (value instanceof RLogical || value instanceof RDouble || value instanceof RInt) {
                 final RLogical lvalue = value.asLogical();
                 final int vsize = lvalue.size();

@@ -20,7 +20,7 @@ public class Sort {
 
     static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
-    public static int parseNALast(RAny arg, RContext context, ASTNode ast) {
+    public static int parseNALast(RAny arg, ASTNode ast) {
         warn.naIntroduced = false;
         RLogical a = arg.asLogical(); // will produce NAs when conversion is not possible
         int size = a.size();
@@ -36,7 +36,7 @@ public class Sort {
                 throw RError.getLengthZero(ast); // not exactly R's error message
             }
             // size > 1
-            context.warning(ast, RError.LENGTH_GT_1);
+            RContext.warning(ast, RError.LENGTH_GT_1);
             res = a.getLogical(0);
         }
         if (warn.naIntroduced) {
@@ -45,7 +45,7 @@ public class Sort {
         return res;
     }
 
-    public static boolean parseDecreasing(RAny arg, RContext context, ASTNode ast) {
+    public static boolean parseDecreasing(RAny arg, ASTNode ast) {
         RLogical a = arg.asLogical();
         int size = a.size();
         if (size >= 1) {
@@ -196,7 +196,7 @@ public class Sort {
     }
 
     // FIXME: could hand-inline two variants, one for naLast == NA and another for naLast != NA
-    public static RInt sort(RArray[] keys, final boolean decreasing, int naLast, RContext context, ASTNode ast) {
+    public static RInt sort(RArray[] keys, final boolean decreasing, int naLast, ASTNode ast) {
         final int nkeys = keys.length;
         int size = keys[0].size();
 
@@ -321,7 +321,7 @@ public class Sort {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                public final RAny doBuiltIn(Frame frame, RAny[] params) {
 
                     int nparams = params.length;
                     int nkeys = nparams;
@@ -329,7 +329,7 @@ public class Sort {
                     if (naLastPosition == -1) {
                         naLast = RLogical.TRUE;
                     } else {
-                        naLast = parseNALast(params[paramPositions[INA_LAST]], context, ast);
+                        naLast = parseNALast(params[paramPositions[INA_LAST]], ast);
                         nkeys--;
                     }
 
@@ -337,7 +337,7 @@ public class Sort {
                     if (decreasingPosition == -1) {
                         decreasing = false;
                     } else {
-                        decreasing = parseDecreasing(params[paramPositions[IDECREASING]], context, ast);
+                        decreasing = parseDecreasing(params[paramPositions[IDECREASING]], ast);
                         nkeys--;
                     }
 
@@ -365,7 +365,7 @@ public class Sort {
                                 throw RError.getArgumentNotVector(ast, i);
                             }
                         }
-                        return sort(keys, decreasing, naLast, context, ast);
+                        return sort(keys, decreasing, naLast, ast);
                     } else {
                         return RNull.getNull();
                     }

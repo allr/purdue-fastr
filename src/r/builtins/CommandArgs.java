@@ -21,7 +21,7 @@ public class CommandArgs {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame) {
+                    public RAny doBuiltIn(Frame frame) {
                         return RString.RStringFactory.getFor(Console.trailingArgs);
                     }
                 };
@@ -31,7 +31,7 @@ public class CommandArgs {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
+                public RAny doBuiltIn(Frame frame, RAny x) {
                     RLogical l;
                     if (x instanceof RLogical) {
                         l = (RLogical) x;
@@ -43,7 +43,7 @@ public class CommandArgs {
                         throw RError.getLengthZero(ast);
                     }
                     if (size > 1) {
-                        context.warning(ast, RError.LENGTH_GT_1);
+                        RContext.warning(ast, RError.LENGTH_GT_1);
                     }
                     int trailingOnly = l.getLogical(0);
                     if (trailingOnly == RLogical.TRUE) {

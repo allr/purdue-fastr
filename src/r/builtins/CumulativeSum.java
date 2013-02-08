@@ -20,7 +20,7 @@ public class CumulativeSum {
     private static final String[] paramNames = new String[]{"x"};
     private static final int IX = 0;
 
-    public static RComplex cumsum(RComplex x, RContext context, ASTNode ast) {
+    public static RComplex cumsum(RComplex x, ASTNode ast) {
         RComplex input = x.materialize();
         int size = x.size();
         double[] content = new double[2 * size];
@@ -43,7 +43,7 @@ public class CumulativeSum {
         return RComplex.RComplexFactory.getFor(content); // drop dimensions
     }
 
-    public static RDouble cumsum(RDouble x, RContext context, ASTNode ast) {
+    public static RDouble cumsum(RDouble x, ASTNode ast) {
         RDouble input = x.materialize();
         int size = x.size();
         double[] content = new double[size];
@@ -72,7 +72,7 @@ public class CumulativeSum {
         return RDouble.RDoubleFactory.getFor(content);
     }
 
-    public static RInt cumsum(RInt x, RContext context, ASTNode ast) {
+    public static RInt cumsum(RInt x, ASTNode ast) {
         RInt input = x.materialize();
         int size = x.size();
         int[] content = new int[size];
@@ -84,9 +84,9 @@ public class CumulativeSum {
                 if (value == RInt.NA) {
                     return finishWithNAs(content, i);
                 }
-                accum = Arithmetic.ADD.op(context, ast, accum, value);
+                accum = Arithmetic.ADD.op(ast, accum, value);
                 if (accum == RInt.NA) {
-                    context.warning(ast, RError.INTEGER_OVERFLOW);
+                    RContext.warning(ast, RError.INTEGER_OVERFLOW);
                     return finishWithNAs(content, i);
                 }
                 content[i] = accum;
@@ -117,30 +117,30 @@ public class CumulativeSum {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
+                public RAny doBuiltIn(Frame frame, RAny x) {
 
                     if (x instanceof RDouble) {
                         RDouble dx = (RDouble) x;
-                        return cumsum(dx, context, ast).setNames(dx.names());
+                        return cumsum(dx, ast).setNames(dx.names());
                     } else if (x instanceof RInt) {
                         RInt ix = (RInt) x;
-                        return cumsum(ix, context, ast).setNames(ix.names());
+                        return cumsum(ix, ast).setNames(ix.names());
                     } else if (x instanceof RLogical) {
                         RLogical lx = (RLogical) x;
-                        return cumsum(lx.asInt(), context, ast).setNames(lx.names());
+                        return cumsum(lx.asInt(), ast).setNames(lx.names());
                     } else if (x instanceof RComplex) {
                         RComplex cx = (RComplex) x;
-                        return cumsum(cx, context, ast).setNames(cx.names());
+                        return cumsum(cx, ast).setNames(cx.names());
                     } else if (x instanceof RRaw) {
                         RRaw rx = (RRaw) x;
-                        return cumsum(rx.asDouble(), context, ast).setNames(rx.names());
+                        return cumsum(rx.asDouble(), ast).setNames(rx.names());
                     } else if (x instanceof RNull) {
                         return RDouble.EMPTY;
                     }
 
                     if (x instanceof RString) {
                         RString sx = (RString) x;
-                        RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, context, ast), context, ast);
+                        RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, ast), ast);
                         return res.setNames(sx.names());
                     } else {
                         Utils.nyi("unsupported type");

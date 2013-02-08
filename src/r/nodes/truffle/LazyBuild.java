@@ -14,13 +14,13 @@ public class LazyBuild extends BaseR {
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public final Object execute(Frame frame) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
-            RNode node = context.createNode(getAST());
+            RNode node = RContext.createNode(getAST());
             replace(node, "expandLazyBuildNode");
-            return node.execute(context, frame);
+            return node.execute(frame);
         }
     }
 

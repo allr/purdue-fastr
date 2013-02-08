@@ -37,7 +37,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -64,7 +64,7 @@ public abstract class ReadVariable extends BaseR {
                     }
                     replace(node, reason);
                     if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" uninitialized rewritten: "+reason); }
-                    return node.execute(context, frame);
+                    return node.execute(frame);
                 }
             }
         };
@@ -74,7 +74,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
@@ -90,7 +90,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
@@ -107,7 +107,7 @@ public abstract class ReadVariable extends BaseR {
             int version;
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val;
 
                 // TODO check if 'version' is enough, I think the good test has to be:
@@ -137,7 +137,7 @@ public abstract class ReadVariable extends BaseR {
         return new ReadVariable(orig, sym) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null) {  // TODO: another node

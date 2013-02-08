@@ -3,7 +3,6 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.frame.*;
 
-import r.*;
 import r.data.*;
 import r.data.RFunction.*;
 import r.nodes.*;
@@ -22,32 +21,32 @@ public abstract class SuperWriteVariable extends BaseR {
     public static SuperWriteVariable getUninitialized(ASTNode orig, RSymbol sym, RNode rhs) {
         return new SuperWriteVariable(orig, sym, rhs) {
 
-            private Object replaceAndExecute(RNode node, String reason, RContext context, Frame frame) {
+            private Object replaceAndExecute(RNode node, String reason, Frame frame) {
                 replace(node, reason);
-                return node.execute(context, frame);
+                return node.execute(frame);
             }
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     Frame enclosingFrame = (frame != null) ? RFrameHeader.enclosingFrame(frame) : null;
 
                     if (enclosingFrame == null) {
-                        return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", context, frame);
+                        return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", frame);
                     }
 
                     FrameSlot slot = RFrameHeader.findVariable(enclosingFrame, symbol);
                     if (slot != null) {
-                        return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", context, frame);
+                        return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame);
                     }
 
                     ReadSetEntry rse = RFrameHeader.readSetEntry(enclosingFrame, symbol);
                     if (rse == null) {
-                        return replaceAndExecute(getWriteToTopLevel(ast, symbol, expr), "install WriteToTopLevel from SuperWriteVariable", context, frame);
+                        return replaceAndExecute(getWriteToTopLevel(ast, symbol, expr), "install WriteToTopLevel from SuperWriteVariable", frame);
                     } else {
-                        return replaceAndExecute(getWriteViaReadSet(ast, symbol, expr, rse.hops, rse.slot), "install WriteViaReadSet from SuperWriteVariable", context, frame);
+                        return replaceAndExecute(getWriteViaReadSet(ast, symbol, expr, rse.hops, rse.slot), "install WriteViaReadSet from SuperWriteVariable", frame);
                     }
                 }
             }
@@ -57,8 +56,8 @@ public abstract class SuperWriteVariable extends BaseR {
     public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final FrameSlot slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override
-            public Object execute(RContext context, Frame frame) {
-                RAny value = (RAny) expr.execute(context, frame);
+            public Object execute(Frame frame) {
+                RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaWriteSet(enclosing, slot, symbol, value);
                 assert done;
@@ -70,8 +69,8 @@ public abstract class SuperWriteVariable extends BaseR {
     public static SuperWriteVariable getWriteViaReadSet(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override
-            public final Object execute(RContext context, Frame frame) {
-                RAny value = (RAny) expr.execute(context, frame);
+            public final Object execute(Frame frame) {
+                RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaReadSetAndTopLevel(enclosing, hops, slot, symbol, value);
                 assert done;
@@ -86,8 +85,8 @@ public abstract class SuperWriteVariable extends BaseR {
             int version;
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
-                RAny value = (RAny) expr.execute(context, frame);
+            public final Object execute(Frame frame) {
+                RAny value = (RAny) expr.execute(frame);
                 Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
 
                 // TODO check if 'version' is enough, I think the good test has to be:

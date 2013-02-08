@@ -42,57 +42,57 @@ public class ColumnsRowsStats {
             this.stats = stats;
         }
 
-        public RAny stat(RContext context, ASTNode ast, RComplex x, boolean naRM) {
+        public RAny stat(ASTNode ast, RComplex x, boolean naRM) {
             int[] dim = x.dimensions();
             checkDimensions(ast, dim);
             double[] content = stats.stat(x, dim[0], dim[1], naRM); // real, imag, real, imag, ...
             return RComplex.RComplexFactory.getFor(content);
         }
 
-        public RAny stat(RContext context, ASTNode ast, RDouble x, boolean naRM) {
+        public RAny stat(ASTNode ast, RDouble x, boolean naRM) {
             int[] dim = x.dimensions();
             checkDimensions(ast, dim);
             double[] content = stats.stat(x, dim[0], dim[1], naRM);
             return RDouble.RDoubleFactory.getFor(content);
         }
 
-        public RAny stat(RContext context, ASTNode ast, RInt x, boolean naRM) {
+        public RAny stat(ASTNode ast, RInt x, boolean naRM) {
             int[] dim = x.dimensions();
             checkDimensions(ast, dim);
             double[] content = stats.stat(x, dim[0], dim[1], naRM);
             return RDouble.RDoubleFactory.getFor(content);
         }
 
-        public RAny stat(RContext context, ASTNode ast, RAny x, boolean naRM) {
+        public RAny stat(ASTNode ast, RAny x, boolean naRM) {
             if (x instanceof RDouble) {
-                return stat(context, ast, (RDouble) x, naRM);
+                return stat(ast, (RDouble) x, naRM);
             }
             if (x instanceof RInt) {
-                return stat(context, ast, (RInt) x, naRM);
+                return stat(ast, (RInt) x, naRM);
             }
             if (x instanceof RLogical) {
-                return stat(context, ast, ((RLogical) x).asInt(), naRM);
+                return stat(ast, ((RLogical) x).asInt(), naRM);
             }
             if (x instanceof RComplex) {
-                return stat(context, ast, (RComplex) x, naRM);
+                return stat(ast, (RComplex) x, naRM);
             }
             throw RError.getXNumeric(ast);
         }
 
-        public RAny stat(RContext context, ASTNode ast, RAny x, RAny naRM) {
+        public RAny stat(ASTNode ast, RAny x, RAny naRM) {
             if (naRM instanceof RLogical) {
                 RLogical lnaRM = (RLogical) naRM;
                 if (lnaRM.size() == 1) {
                     int l = lnaRM.getLogical(0);
                     if (l == RLogical.TRUE) {
-                        return stat(context, ast, x, true);
+                        return stat(ast, x, true);
                     }
                     if (l == RLogical.FALSE) {
-                        return stat(context, ast, x, false);
+                        return stat(ast, x, false);
                     }
                 }
             } else  if (naRM instanceof RDouble || naRM instanceof RInt) {
-                return stat(context, ast, x, naRM.asLogical());
+                return stat(ast, x, naRM.asLogical());
             }
             throw RError.getInvalidArgument(ast, "na.rm");
         }
@@ -115,8 +115,8 @@ public class ColumnsRowsStats {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
-                        return stat(context, ast, x, false);
+                    public RAny doBuiltIn(Frame frame, RAny x) {
+                        return stat(ast, x, false);
                     }
                 };
             }
@@ -133,15 +133,15 @@ public class ColumnsRowsStats {
                     return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                         @Override
-                        public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
-                            return stat(context, ast, (paramPositions[IX] == 0) ? arg0 : arg1, false);
+                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                            return stat(ast, (paramPositions[IX] == 0) ? arg0 : arg1, false);
                         }
                     };
                 } else {
                     return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                         @Override
-                        public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                             RAny x;
                             RAny naRM;
                             if (paramPositions[IX] == 0) {
@@ -151,7 +151,7 @@ public class ColumnsRowsStats {
                                 x = arg1;
                                 naRM = arg0;
                             }
-                            return stat(context, ast, x, naRM);
+                            return stat(ast, x, naRM);
                         }
                     };
                 }

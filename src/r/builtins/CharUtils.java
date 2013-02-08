@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.Convert;
 import r.data.*;
 import r.data.internal.*;
@@ -12,7 +11,7 @@ import com.oracle.truffle.api.frame.*;
 public class CharUtils {
 
     public abstract static class Operation {
-        abstract String op(RContext context, ASTNode ast, String input);
+        abstract String op(ASTNode ast, String input);
     }
 
     public static final class CharCallFactory extends CallFactory {
@@ -22,10 +21,10 @@ public class CharUtils {
             this.op = op;
         }
 
-        public RString convert(final RContext context, final ASTNode ast, final RString value) {
+        public RString convert(final ASTNode ast, final RString value) {
             final int size = value.size();
             if (value instanceof ScalarStringImpl) {
-                return RString.RStringFactory.getScalar(op.op(context, ast, value.getString(0)), value.dimensions());
+                return RString.RStringFactory.getScalar(op.op(ast, value.getString(0)), value.dimensions());
             } else {
                 return new View.RStringProxy<RString>(value) {
 
@@ -36,7 +35,7 @@ public class CharUtils {
 
                     @Override
                     public String getString(int i) {
-                        return op.op(context, ast, value.getString(i));
+                        return op.op(ast, value.getString(i));
                     }
                 };
             }
@@ -49,9 +48,9 @@ public class CharUtils {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny value) {
+                public RAny doBuiltIn(Frame frame, RAny value) {
                     RString str = Convert.coerceToStringError(value, ast);
-                    return convert(context, ast, str);
+                    return convert(ast, str);
                 }
 
             };
@@ -61,7 +60,7 @@ public class CharUtils {
     public static final CallFactory TOLOWER_FACTORY = new CharCallFactory(new Operation() {
 
         @Override
-        public String op(RContext context, ASTNode ast, String string) {
+        public String op(ASTNode ast, String string) {
             if (string != RString.NA) {
                 return string.toLowerCase();
             } else {
@@ -73,7 +72,7 @@ public class CharUtils {
     public static final CallFactory TOUPPER_FACTORY = new CharCallFactory(new Operation() {
 
         @Override
-        public String op(RContext context, ASTNode ast, String string) {
+        public String op(ASTNode ast, String string) {
             if (string != RString.NA) {
                 return string.toUpperCase();
             } else {

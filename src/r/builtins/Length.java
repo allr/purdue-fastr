@@ -19,7 +19,7 @@ public class Length {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public final RAny doBuiltIn(Frame frame, RAny arg) {
                     if (arg instanceof RArray) {
                         return RInt.RIntFactory.getScalar(((RArray) arg).size());
                     }
@@ -31,7 +31,7 @@ public class Length {
         }
     };
 
-    public static int parseNewLength(int value, RContext context, ASTNode ast) {
+    public static int parseNewLength(int value, ASTNode ast) {
         if (value >= 0) {
             return value;
         } else {
@@ -39,18 +39,18 @@ public class Length {
         }
     }
 
-    public static int parseNewLength(RAny value, RContext context, ASTNode ast) {
+    public static int parseNewLength(RAny value, ASTNode ast) {
         if (value instanceof RDouble) {
             RDouble dvalue = (RDouble) value;
             if (dvalue.size() == 1) {
-                return parseNewLength(Convert.double2int(dvalue.getDouble(0)), context, ast);
+                return parseNewLength(Convert.double2int(dvalue.getDouble(0)), ast);
             }
 
         }
         if (value instanceof RInt) {
             RInt ivalue = (RInt) value;
             if (ivalue.size() == 1) {
-                return parseNewLength(ivalue.getInt(0), context, ast);
+                return parseNewLength(ivalue.getInt(0), ast);
             }
         }
         throw RError.getInvalidUnnamedValue(ast);
@@ -84,11 +84,11 @@ public class Length {
             return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny x, RAny value) {
+                public final RAny doBuiltIn(Frame frame, RAny x, RAny value) {
                     if (!(x instanceof RArray)) {
                         throw RError.getInvalidUnnamedArgument(ast);
                     }
-                    int nlen = parseNewLength(value, context, ast);
+                    int nlen = parseNewLength(value, ast);
                     return changeSize((RArray) x, nlen);
                 }
             };

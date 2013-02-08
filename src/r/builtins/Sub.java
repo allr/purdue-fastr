@@ -25,29 +25,29 @@ public class Sub {
     private static final int IFIXED = 5;
     private static final int IUSE_BYTES = 6;
 
-    public static String parseScalarString(RContext context, ASTNode ast, RAny value, String argName) {
+    public static String parseScalarString(ASTNode ast, RAny value, String argName) {
         RString rstring = Convert.coerceToStringError(value, ast);
         int size = rstring.size();
         if (size == 1) {
             return rstring.getString(0);
         }
         if (size > 1) {
-            context.warning(ast, String.format(RError.ARGUMENT_ONLY_FIRST, argName));
+            RContext.warning(ast, String.format(RError.ARGUMENT_ONLY_FIRST, argName));
         }
         throw RError.getInvalidArgument(ast, argName);
     }
 
-    public static RString sub(RContext context, ASTNode ast, String pattern, String replacement, RString x, boolean ignoreCase, boolean perl, boolean fixed, boolean global) {
+    public static RString sub(ASTNode ast, String pattern, String replacement, RString x, boolean ignoreCase, boolean perl, boolean fixed, boolean global) {
         if (pattern == RString.NA || replacement == RString.NA) {
             return RString.RStringFactory.getNAArray(x.size());
         }
         if (!perl) {
-            context.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
+            RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
         }
         if (!fixed) {
-            return subRE(context, ast, pattern, replacement, x, ignoreCase, global);
+            return subRE(ast, pattern, replacement, x, ignoreCase, global);
         } else {
-            return subFixed(context, ast, pattern, replacement, x, ignoreCase, global);
+            return subFixed(ast, pattern, replacement, x, ignoreCase, global);
         }
     }
 
@@ -55,7 +55,7 @@ public class Sub {
         return replacementArg.replaceAll("\\\\([1-9])", "\\$$1");
     }
 
-    public static RString subRE(RContext context, ASTNode ast, String pattern, String replacementArg, RString x, boolean ignoreCase, boolean global) {
+    public static RString subRE(ASTNode ast, String pattern, String replacementArg, RString x, boolean ignoreCase, boolean global) {
         Pattern p = Pattern.compile(pattern, ignoreCase ? Pattern.CASE_INSENSITIVE : 0); // FIXME: can add UNICODE_CASE
         int size = x.size();
         String[] content = new String[size];
@@ -77,9 +77,8 @@ public class Sub {
     }
 
     // FIXME: wouldn't it be just faster & simpler to use Java's regexes with Pattern.LITERAL flag?
-
     // FIXME: this could use a better algorithm (same case is strsplit)
-    public static RString subFixed(RContext context, ASTNode ast, String patternArg, String replacement, RString xArg, boolean ignoreCase, boolean global) {
+    public static RString subFixed(ASTNode ast, String patternArg, String replacement, RString xArg, boolean ignoreCase, boolean global) {
         int size = xArg.size();
         String[] content = new String[size];
         if (patternArg.length() == 0) {
@@ -151,18 +150,18 @@ public class Sub {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (provided[IUSE_BYTES]) {
-                        context.warning(ast, "Ignoring useBytes.");
+                        RContext.warning(ast, "Ignoring useBytes.");
                     }
-                    String pattern = parseScalarString(context, ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
-                    String replacement = parseScalarString(context, ast, args[paramPositions[IREPLACEMENT]], paramNames[IREPLACEMENT]);
+                    String pattern = parseScalarString(ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
+                    String replacement = parseScalarString(ast, args[paramPositions[IREPLACEMENT]], paramNames[IREPLACEMENT]);
                     RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
                     boolean ignoreCase = provided[IIGNORE_CASE] ? Convert.checkFirstLogical(args[paramPositions[IIGNORE_CASE]], RLogical.TRUE) : false;
                     boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
                     boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
 
-                    return sub(context, ast, pattern, replacement, x, ignoreCase, perl, fixed, global);
+                    return sub(ast, pattern, replacement, x, ignoreCase, perl, fixed, global);
                 }
             };
         }

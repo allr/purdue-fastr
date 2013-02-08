@@ -30,26 +30,26 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public final int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
-        RAny lexpr = (RAny) left.execute(context, frame);
-        RAny rexpr = (RAny) right.execute(context, frame);
-        return executeScalarLogical(context, lexpr, rexpr);
+    public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+        RAny lexpr = (RAny) left.execute(frame);
+        RAny rexpr = (RAny) right.execute(frame);
+        return executeScalarLogical(lexpr, rexpr);
     }
 
-    public int executeScalarLogical(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+    public int executeScalarLogical(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
             ScalarComparison sc = ScalarComparison.createSpecialized(lexpr, rexpr, ast, left, right, cmp);
             replace(sc, "install ScalarComparison.Specialized from Comparison");
-            return sc.executeScalarLogical(context, lexpr, rexpr);
+            return sc.executeScalarLogical(lexpr, rexpr);
         }
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public final Object execute(Frame frame) {
         try {
-            return RLogical.RLogicalFactory.getScalar(executeScalarLogical(context, frame));
+            return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
         } catch (UnexpectedResultException e) {
             return e.getResult();
         }
@@ -64,7 +64,7 @@ public class Comparison extends BaseR {
         }
 
         public abstract static class Comparator {
-            public abstract int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException;
+            public abstract int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException;
         }
 
         enum Transition {
@@ -76,7 +76,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -93,7 +93,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -110,7 +110,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -127,7 +127,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -144,7 +144,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarLogicalImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarLogicalImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -161,7 +161,7 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarLogicalImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (!(lexpr instanceof ScalarLogicalImpl && rexpr instanceof ScalarIntImpl)) {
                             throw new UnexpectedResultException(Transition.COMMON_SCALAR);
                         }
@@ -179,7 +179,7 @@ public class Comparison extends BaseR {
             return createGeneric(ast, left, right, cmp);
         }
 
-        public static int generic(RContext context, RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
+        public static int generic(RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
             if (lexpr instanceof ScalarStringImpl) { // note: could make this shorter if we didn't care about Java-level boxing
@@ -237,28 +237,28 @@ public class Comparison extends BaseR {
         public static ScalarComparison createGeneric(final ASTNode ast, RNode left, RNode right, final ValueComparison cmp) {
             Comparator c = new Comparator() {
                 @Override
-                public int compare(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                    return generic(context, lexpr, rexpr, cmp, ast);
+                public int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    return generic(lexpr, rexpr, cmp, ast);
                 }
             };
             return new ScalarComparison(ast, left, right, cmp, c);
         }
 
         @Override
-        public final int executeScalarLogical(RContext context, RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+        public final int executeScalarLogical(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
             try {
-                return comp.compare(context, lexpr, rexpr);
+                return comp.compare(lexpr, rexpr);
             } catch (UnexpectedResultException e) {
                 Transition t = (Transition) e.getResult();
                 if (t == Transition.COMMON_SCALAR) {
                     ScalarComparison sc = createGeneric(ast, left, right, cmp);
                     replace(sc, "install CommonScalar from Comparison.Scalar");
-                    return sc.executeScalarLogical(context, lexpr, rexpr);
+                    return sc.executeScalarLogical(lexpr, rexpr);
                 } else {
                     if (DEBUG_CMP) Utils.debug("comparison - optimistic comparison failed, values are not scalar numbers");
                     VectorScalarComparison vs = new VectorScalarComparison(ast);
                     replace(vs, "specializeNumericVectorScalarComparison");
-                    Object res = vs.execute(context,lexpr, rexpr);
+                    Object res = vs.execute(lexpr, rexpr);
                     throw new UnexpectedResultException(res);
                 }
             }
@@ -272,13 +272,13 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            RAny lexpr = (RAny) left.execute(context, frame);
-            RAny rexpr = (RAny) right.execute(context, frame);
-            return execute(context, lexpr, rexpr);
+        public final Object execute(Frame frame) {
+            RAny lexpr = (RAny) left.execute(frame);
+            RAny rexpr = (RAny) right.execute(frame);
+            return execute(lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RAny lexpr, RAny rexpr) { // FIXME: some of these checks should be rewritten as we now enforce scalar representation
+        public Object execute(RAny lexpr, RAny rexpr) { // FIXME: some of these checks should be rewritten as we now enforce scalar representation
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -365,7 +365,7 @@ public class Comparison extends BaseR {
                 if (DEBUG_CMP) Utils.debug("comparison - 2nd level comparison failed (not int,double scalar and vector)");
                 GenericComparison vs = new GenericComparison(ast);
                 replace(vs, "genericComparison");
-                return vs.execute(context, lexpr, rexpr);
+                return vs.execute(lexpr, rexpr);
             }
         }
     }
@@ -377,43 +377,43 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            RAny lexpr = (RAny) left.execute(context, frame);
-            RAny rexpr = (RAny) right.execute(context, frame);
-            return execute(context, lexpr, rexpr);
+        public final Object execute(Frame frame) {
+            RAny lexpr = (RAny) left.execute(frame);
+            RAny rexpr = (RAny) right.execute(frame);
+            return execute(lexpr, rexpr);
         }
 
-        public Object execute(RContext context, RAny lexpr, RAny rexpr) {
+        public Object execute(RAny lexpr, RAny rexpr) {
             if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
             if (lexpr instanceof RString || rexpr instanceof RString) {
                 RString lstr = lexpr.asString();
                 RString rstr = rexpr.asString();
-                return Comparison.this.cmp.cmp(lstr, rstr, context, ast);
+                return Comparison.this.cmp.cmp(lstr, rstr, ast);
             }
             if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
                 RComplex lcmp = lexpr.asComplex();
                 RComplex rcmp = rexpr.asComplex();  // if the cast fails, a zero-length array is returned
-                return Comparison.this.cmp.cmp(lcmp, rcmp, context, ast);
+                return Comparison.this.cmp.cmp(lcmp, rcmp, ast);
             }
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                return Comparison.this.cmp.cmp(ldbl, rdbl, context, ast);
+                return Comparison.this.cmp.cmp(ldbl, rdbl, ast);
             }
             if (lexpr instanceof RInt || rexpr instanceof RInt) {
                 RInt lint = lexpr.asInt();
                 RInt rint = rexpr.asInt();
-                return Comparison.this.cmp.cmp(lint, rint, context, ast);
+                return Comparison.this.cmp.cmp(lint, rint, ast);
             }
             if (lexpr instanceof RLogical || rexpr instanceof RLogical) {
                 RLogical llog = lexpr.asLogical();
                 RLogical rlog = rexpr.asLogical();
-                return Comparison.this.cmp.cmp(llog, rlog, context, ast);
+                return Comparison.this.cmp.cmp(llog, rlog, ast);
             }
             if (lexpr instanceof RRaw || rexpr instanceof RRaw) {
                 RRaw lraw = lexpr.asRaw();
                 RRaw rraw = rexpr.asRaw();
-                return Comparison.this.cmp.cmp(lraw, rraw, context, ast);
+                return Comparison.this.cmp.cmp(lraw, rraw, ast);
             }
             Utils.nyi("unsupported case for comparison");
             return null;
@@ -532,7 +532,7 @@ public class Comparison extends BaseR {
             return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
 
-        public RLogical cmp(RString a, RString b, RContext context, ASTNode ast) {
+        public RLogical cmp(RString a, RString b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -564,11 +564,11 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
-        public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+        public RLogical cmp(RComplex a, RComplex b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -604,12 +604,12 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
 
-        public RLogical cmp(RDouble a, RDouble b, RContext context, ASTNode ast) {
+        public RLogical cmp(RDouble a, RDouble b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -641,11 +641,11 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
-        public RLogical cmp(RInt a, RInt b, RContext context, ASTNode ast) {
+        public RLogical cmp(RInt a, RInt b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -678,12 +678,11 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                Utils.debug("XXX");
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
-        public RLogical cmp(RLogical a, RLogical b, RContext context, ASTNode ast) {
+        public RLogical cmp(RLogical a, RLogical b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -716,11 +715,11 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
-        public RLogical cmp(RRaw a, RRaw b, RContext context, ASTNode ast) {
+        public RLogical cmp(RRaw a, RRaw b, ASTNode ast) {
             int na = a.size();
             int nb = b.size();
             int[] dimensions = Arithmetic.resultDimensions(ast, a, b);
@@ -748,7 +747,7 @@ public class Comparison extends BaseR {
             }
 
             if (ai != 0 || bi != 0) {
-                context.warning(ast, RError.LENGTH_NOT_MULTI);
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
             }
             return RLogical.RLogicalFactory.getFor(content, dimensions, names);
         }
@@ -822,7 +821,7 @@ public class Comparison extends BaseR {
                 return false;
             }
             @Override
-            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+            public RLogical cmp(RComplex a, RComplex b, ASTNode ast) {
                 throw RError.getComparisonComplex(ast);
             }
             @Override
@@ -851,7 +850,7 @@ public class Comparison extends BaseR {
                 return false;
             }
             @Override
-            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+            public RLogical cmp(RComplex a, RComplex b, ASTNode ast) {
                 throw RError.getComparisonComplex(ast);
             }
             @Override
@@ -880,7 +879,7 @@ public class Comparison extends BaseR {
                 return false;
             }
             @Override
-            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+            public RLogical cmp(RComplex a, RComplex b, ASTNode ast) {
                 throw RError.getComparisonComplex(ast);
             }
             @Override
@@ -909,7 +908,7 @@ public class Comparison extends BaseR {
                 return false;
             }
             @Override
-            public RLogical cmp(RComplex a, RComplex b, RContext context, ASTNode ast) {
+            public RLogical cmp(RComplex a, RComplex b, ASTNode ast) {
                 throw RError.getComparisonComplex(ast);
             }
             @Override

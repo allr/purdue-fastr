@@ -2,7 +2,6 @@ package r.builtins;
 
 import com.oracle.truffle.api.frame.*;
 
-import r.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.nodes.*;
@@ -38,7 +37,7 @@ public class Dimensions {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny x) {
+                public RAny doBuiltIn(Frame frame, RAny x) {
                     if (!(x instanceof RArray)) {
                         return RNull.getNull();
                     }

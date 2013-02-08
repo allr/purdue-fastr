@@ -45,7 +45,7 @@ public class Substring {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString text = args[paramPositions[ITEXT]].asString();
                     warn.naIntroduced = false;
                     RDouble first = args[paramPositions[IFIRST]].asDouble(warn);
@@ -56,9 +56,9 @@ public class Substring {
                         last = defaultLast;
                     }
 
-                    RString res = substring(text, first, last, context, ast);
+                    RString res = substring(text, first, last, ast);
                     if (warn.naIntroduced) {
-                        context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                        RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
                     }
                     return res;
                 }
@@ -94,15 +94,15 @@ public class Substring {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString x = args[paramPositions[IX]].asString();
                     warn.naIntroduced = false;
                     RDouble start = args[paramPositions[ISTART]].asDouble(warn);
                     RDouble stop = args[paramPositions[ISTOP]].asDouble(warn);
 
-                    RString res = substr(x, start, stop, context, ast);
+                    RString res = substr(x, start, stop, ast);
                     if (warn.naIntroduced) {
-                        context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                        RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
                     }
                     return res;
                 }
@@ -111,7 +111,7 @@ public class Substring {
         }
     };
 
-    public static RString substr(RString x, RDouble start, RDouble stop, RContext context, ASTNode ast) {
+    public static RString substr(RString x, RDouble start, RDouble stop, ASTNode ast) {
         int xsize = x.size();
         int startSize = start.size();
         int stopSize = stop.size();
@@ -153,7 +153,7 @@ public class Substring {
         return RString.RStringFactory.getFor(content);
     }
 
-    public static RString substring(RString text, RDouble first, RDouble last, RContext context, ASTNode ast) {
+    public static RString substring(RString text, RDouble first, RDouble last, ASTNode ast) {
         int textSize = text.size();
         int firstSize = first.size();
         int lastSize = last.size();

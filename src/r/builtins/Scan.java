@@ -29,8 +29,8 @@ public class Scan {
     private static final int INMAX = 2;
     private static final int IQUIET = 3;
 
-    public static int parseNMax(RAny arg, RContext context, ASTNode ast) {
-        RInt narg = Convert.coerceToIntWarning(arg, context, ast);
+    public static int parseNMax(RAny arg, ASTNode ast) {
+        RInt narg = Convert.coerceToIntWarning(arg, ast);
         if (narg.size() >= 1) {
             return narg.getInt(0);
         }
@@ -47,13 +47,13 @@ public class Scan {
 
     private static ConversionStatus cs = new ConversionStatus();
 
-    public static RString scanString(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RString scanString(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         String[] content = new String[size];
         return RString.RStringFactory.getFor(src.toArray(content));
     }
 
-    public static RComplex scanComplex(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RComplex scanComplex(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
         double[] content = new double[2 * size];
@@ -69,7 +69,7 @@ public class Scan {
         return RComplex.RComplexFactory.getFor(content);
     }
 
-    public static RDouble scanDouble(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RDouble scanDouble(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
         double[] content = new double[size];
@@ -83,7 +83,7 @@ public class Scan {
         return RDouble.RDoubleFactory.getFor(content);
     }
 
-    public static RInt scanInt(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RInt scanInt(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
         int[] content = new int[size];
@@ -97,7 +97,7 @@ public class Scan {
         return RInt.RIntFactory.getFor(content);
     }
 
-    public static RLogical scanLogical(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RLogical scanLogical(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
         int[] content = new int[size];
@@ -111,7 +111,7 @@ public class Scan {
         return RLogical.RLogicalFactory.getFor(content);
     }
 
-    public static RRaw scanRaw(ArrayList<String> src, RContext context, ASTNode ast) {
+    public static RRaw scanRaw(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
         cs.outOfRange = false;
@@ -127,24 +127,24 @@ public class Scan {
     }
 
 
-    public static RAny scan(ArrayList<String> src, RContext context, ASTNode ast, RAny what) {
+    public static RAny scan(ArrayList<String> src, ASTNode ast, RAny what) {
         if (what instanceof RString) {
-            return scanString(src, context, ast);
+            return scanString(src, ast);
         }
         if (what instanceof RDouble) {
-            return scanDouble(src, context, ast);
+            return scanDouble(src, ast);
         }
         if (what instanceof RInt) {
-            return scanInt(src, context, ast);
+            return scanInt(src, ast);
         }
         if (what instanceof RLogical) {
-            return scanLogical(src, context, ast);
+            return scanLogical(src, ast);
         }
         if (what instanceof RRaw) {
-            return scanRaw(src, context, ast);
+            return scanRaw(src, ast);
         }
         if (what instanceof RComplex) {
-            return scanComplex(src, context, ast);
+            return scanComplex(src, ast);
         }
         Utils.nyi("unsupported type");
         return null;
@@ -178,9 +178,9 @@ public class Scan {
 
             return new BuiltIn(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RAny what = provided[IWHAT] ? args[paramPositions[IWHAT]] : RDouble.EMPTY;
-                    int nmax = provided[INMAX] ? parseNMax(args[paramPositions[INMAX]], context, ast) : -1;
+                    int nmax = provided[INMAX] ? parseNMax(args[paramPositions[INMAX]], ast) : -1;
                     boolean quiet = provided[IQUIET] ? parseQuiet(args[paramPositions[IQUIET]]) : false;
 
                     if (what instanceof RList) {
@@ -198,7 +198,7 @@ public class Scan {
                     } else {
                         RAny conArg = args[paramPositions[IFILE]];
                         if (conArg instanceof RString) {
-                            String description = OpenConnection.getScalarString(conArg, context, ast, paramNames[IFILE]);
+                            String description = OpenConnection.getScalarString(conArg, ast, paramNames[IFILE]);
                             con = FileConnection.createOpened(description, defaultMode, ast);
                         } else if (conArg instanceof RInt) {
                             // FIXME: check if it is a connection once attributes are implemented
@@ -207,7 +207,7 @@ public class Scan {
                                 throw RError.getNotConnection(ast, paramNames[IFILE]);
                             }
                             int handle = iarg.getInt(0);
-                            con = context.getConnection(handle);
+                            con = RContext.getConnection(handle);
                             Utils.check(con != null);
                             if (con.isOpen()) {
                                 ConnectionMode mode = con.currentMode();
@@ -257,7 +257,7 @@ public class Scan {
                         if (!quiet) {
                             Console.println(String.format("Read %d item%s.", nread, nread == 1 ? "" : "s"));
                         }
-                        return scan(buf, context, ast, what);
+                        return scan(buf, ast, what);
                     } catch (IOException e) {
                         throw RError.getGenericError(ast, e.toString());
                     } finally {

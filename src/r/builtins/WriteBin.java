@@ -24,16 +24,16 @@ public class WriteBin {
     private static final int IENDIAN = 3;
     private static final int IUSE_BYTES = 4;
 
-    public static void write(RRaw arg, OutputStream output, RContext context, ASTNode ast) throws IOException {
+    public static void write(RRaw arg, OutputStream output, ASTNode ast) throws IOException {
         int size = arg.size();
         for (int i = 0; i < size; i++) {
             output.write(arg.getRaw(i));
         }
     }
 
-    public static void write(RAny arg, OutputStream output, RContext context, ASTNode ast) throws IOException {
+    public static void write(RAny arg, OutputStream output, ASTNode ast) throws IOException {
         if (arg instanceof RRaw) {
-            write((RRaw) arg, output, context, ast);
+            write((RRaw) arg, output, ast);
             return;
         }
         // FIXME support more types
@@ -64,14 +64,14 @@ public class WriteBin {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     Connection con = null;
                     boolean wasOpen = false;
 
                     RAny conArg = args[paramPositions[ICON]];
                     if (conArg instanceof RString) {
-                        String description = OpenConnection.getScalarString(conArg, context, ast, "description");
+                        String description = OpenConnection.getScalarString(conArg, ast, "description");
                         con = FileConnection.createOpened(description, defaultMode, ast);
                     } else if (conArg instanceof RInt) {
                         // FIXME: check if it is a connection once attributes are implemented
@@ -80,7 +80,7 @@ public class WriteBin {
                             throw RError.getNotConnection(ast, paramNames[ICON]);
                         }
                         int handle = iarg.getInt(0);
-                        con = context.getConnection(handle);
+                        con = RContext.getConnection(handle);
                         Utils.check(con != null);
                         if (con.isOpen()) {
                             ConnectionMode mode = con.currentMode();
@@ -99,7 +99,7 @@ public class WriteBin {
                     try {
                         BufferedOutputStream output = new BufferedOutputStream(con.output(ast));
                         try {
-                            write(args[paramPositions[IOBJECT]], output, context, ast);
+                            write(args[paramPositions[IOBJECT]], output, ast);
                             output.flush(); // FIXME: this flushes also the underlying file, which may not be the R semantics (?)
                         } catch (IOException e) {
                             throw RError.getGenericError(ast, e.toString());

@@ -5,7 +5,6 @@ import java.util.*;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -24,16 +23,15 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            return doBuiltIn(context, frame);
+        public final Object execute(Frame frame) {
+            return doBuiltIn(frame);
         }
 
-        public abstract RAny doBuiltIn(RContext context, Frame frame);
+        public abstract RAny doBuiltIn(Frame frame);
 
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-            // TODO or not runtime test, since it's not the entry point
-            return doBuiltIn(context, frame);
+        public final RAny doBuiltIn(Frame frame, RAny[] params) {
+            return doBuiltIn(frame);
         }
     }
 
@@ -44,16 +42,15 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame));
+        public final Object execute(Frame frame) {
+            return doBuiltIn(frame, (RAny) argExprs[0].execute(frame));
         }
 
-        public abstract RAny doBuiltIn(RContext context, Frame frame, RAny arg);
+        public abstract RAny doBuiltIn(Frame frame, RAny arg);
 
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-            // TODO or not runtime test, since it's not the entry point
-            return doBuiltIn(context, frame, params[0]);
+        public final RAny doBuiltIn(Frame frame, RAny[] params) {
+            return doBuiltIn(frame, params[0]);
         }
     }
 
@@ -64,15 +61,15 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            return doBuiltIn(context, frame, (RAny) argExprs[0].execute(context, frame), (RAny) argExprs[1].execute(context, frame));
+        public final Object execute(Frame frame) {
+            return doBuiltIn(frame, (RAny) argExprs[0].execute(frame), (RAny) argExprs[1].execute(frame));
         }
 
-        public abstract RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1);
+        public abstract RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1);
 
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-            return doBuiltIn(context, frame, params[0], params[1]);
+        public final RAny doBuiltIn(Frame frame, RAny[] params) {
+            return doBuiltIn(frame, params[0], params[1]);
         }
     }
 
@@ -92,7 +89,7 @@ public abstract class BuiltIn extends AbstractCall {
 
     public static RAny getConstantValue(RNode node) {
         if (node.getAST() instanceof r.nodes.Constant) {
-            return (RAny) node.execute(null, null);
+            return (RAny) node.execute(null);
         }
         return null;
     }
@@ -132,11 +129,11 @@ public abstract class BuiltIn extends AbstractCall {
         }
 
         @ExplodeLoop
-        private RAny[] evalArgs(RContext context, Frame frame) {
+        private RAny[] evalArgs(Frame frame) {
             int len = argExprs.length;
             RAny[] params = new RAny[nParams];
             for (int i = 0; i < len; i++) {
-                RAny val = (RAny) argExprs[i].execute(context, frame);
+                RAny val = (RAny) argExprs[i].execute(frame);
                 int pos = argPositions[i];
                 params[pos] = val;
             }
@@ -253,18 +250,18 @@ public abstract class BuiltIn extends AbstractCall {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        return doBuiltIn(context, frame, evalArgs(context, frame));
+    public Object execute(Frame frame) {
+        return doBuiltIn(frame, evalArgs(frame));
     }
 
-    public abstract RAny doBuiltIn(RContext context, Frame frame, RAny[] params);
+    public abstract RAny doBuiltIn(Frame frame, RAny[] params);
 
     @ExplodeLoop
-    private RAny[] evalArgs(RContext context, Frame frame) {
+    private RAny[] evalArgs(Frame frame) {
         int len = argExprs.length;
         RAny[] args = new RAny[len];
         for (int i = 0; i < len; i++) {
-            args[i] = (RAny) argExprs[i].execute(context, frame);
+            args[i] = (RAny) argExprs[i].execute(frame);
         }
         return args;
     }

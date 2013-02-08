@@ -2,7 +2,6 @@ package r.builtins;
 
 import com.oracle.truffle.api.frame.*;
 
-import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -16,7 +15,7 @@ public class Operators {
         return new BuiltIn.BuiltIn1(ast, names, exprs) {
 
             @Override
-            public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+            public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
                     return arg;
                 }

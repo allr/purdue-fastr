@@ -102,11 +102,11 @@ public class RegExpr {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (provided[IUSE_BYTES]) {
-                        context.warning(ast, "Ignoring useBytes.");
+                        RContext.warning(ast, "Ignoring useBytes.");
                     }
-                    String pattern = Sub.parseScalarString(context, ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
+                    String pattern = Sub.parseScalarString(ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
                     RString text = Convert.coerceToStringError(args[paramPositions[ITEXT]], ast);
                     boolean ignoreCase = provided[IIGNORE_CASE] ? Convert.checkFirstLogical(args[paramPositions[IIGNORE_CASE]], RLogical.TRUE) : false;
                     boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
@@ -116,7 +116,7 @@ public class RegExpr {
                         throw RError.getInvalidArgument(ast, paramNames[IPATTERN]);
                     }
                     if (!perl) {
-                        context.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
+                        RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
                     }
                     Pattern p = Pattern.compile(pattern, (ignoreCase ? Pattern.CASE_INSENSITIVE : 0) | (fixed ? Pattern.LITERAL : 0));
 

@@ -31,7 +31,7 @@ public class Apply {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
+        public final Object execute(Frame frame) {
             return value;
         }
 
@@ -55,11 +55,11 @@ public class Apply {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
+        public final Object execute(Frame frame) {
             return value;
         }
 
-        public void matchAndSet(ASTNode setAst, RContext context, Frame frame, RAny arg) {
+        public void matchAndSet(ASTNode setAst, Frame frame, RAny arg) {
             if (arg instanceof RCallable) {
                 value = (RCallable) arg;
                 return;
@@ -70,11 +70,11 @@ public class Apply {
                     throw RError.getNotFunction(ast);
                 }
                 RSymbol symbol = RSymbol.getSymbol(svalue.getString(0));
-                value = MatchCallable.matchGeneric(ast, context, frame, symbol); // will produce different error message from GNU-R
+                value = MatchCallable.matchGeneric(ast, frame, symbol); // will produce different error message from GNU-R
                 return;
             }
             if (callsiteSymbol != null) {
-                value = MatchCallable.matchGeneric(ast, context, frame, callsiteSymbol);
+                value = MatchCallable.matchGeneric(ast, frame, callsiteSymbol);
                 return;
             }
             throw RError.getNotFunction(setAst);
@@ -161,7 +161,7 @@ public class Apply {
             this.funPosition = funPosition;
         }
 
-        public static RAny generic(RContext context, Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) {
+        public static RAny generic(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) {
             if (!(argx instanceof RArray)) {
                 Utils.nyi("unsupported type");
             }
@@ -176,7 +176,7 @@ public class Apply {
             RAny[] content = new RAny[xsize];
             for (int i = 0; i < xsize; i++) {
                 firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
-                content[i] = (RAny) callNode.execute(context, frame);
+                content[i] = (RAny) callNode.execute(frame);
             }
             return RList.RListFactory.getFor(content, null, l.names());
         }
@@ -185,7 +185,7 @@ public class Apply {
             if (argxTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
                         if (!(argx instanceof RList))  {
                             throw new UnexpectedResultException(null);
                         }
@@ -194,7 +194,7 @@ public class Apply {
                         RAny[] content = new RAny[xsize];
                         for (int i = 0; i < xsize; i++) {
                             firstArgProvider.setValue(x.getRAny(i));
-                            content[i] = (RAny) callNode.execute(context, frame);
+                            content[i] = (RAny) callNode.execute(frame);
                         }
                         return RList.RListFactory.getFor(content, null, x.names());
                     }
@@ -204,7 +204,7 @@ public class Apply {
             if (argxTemplate instanceof RArray) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
                         if (argx instanceof RList || !(argx instanceof RArray))  {
                             throw new UnexpectedResultException(null);
                         }
@@ -213,7 +213,7 @@ public class Apply {
                         RAny[] content = new RAny[xsize];
                         for (int i = 0; i < xsize; i++) {
                             firstArgProvider.setValue(x.boxedGet(i));
-                            content[i] = (RAny) callNode.execute(context, frame);
+                            content[i] = (RAny) callNode.execute(frame);
                         }
                         return RList.RListFactory.getFor(content, null, x.names());                    }
                 };
@@ -225,38 +225,38 @@ public class Apply {
         public Specialized createGeneric() {
             ApplyFunc a = new ApplyFunc() {
                 @Override
-                public RAny apply(RContext context, Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
-                    return generic(context, frame, argx, firstArgProvider, callNode);
+                public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                    return generic(frame, argx, firstArgProvider, callNode);
                 }
             };
             return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
         }
 
-        public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
+        public RAny doApply(Frame frame, RAny argx, RAny argfun) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 Specialized sn = createSpecialized(argx);
                 if (sn != null) {
                     replace(sn, "install Specialized from Lapply");
-                    return sn.doApply(context, frame, argx, argfun);
+                    return sn.doApply(frame, argx, argfun);
                 } else {
                     sn = createGeneric();
                     replace(sn, "install Specialized<Generic> from Lapply");
-                    return sn.doApply(context, frame, argx, argfun);
+                    return sn.doApply(frame, argx, argfun);
                 }
             }
         }
 
         @Override
-        public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+        public RAny doBuiltIn(Frame frame, RAny[] args) {
             RAny argx = args[xPosition];
             RAny argfun = args[funPosition];
-            return doApply(context, frame, argx, argfun);
+            return doApply(frame, argx, argfun);
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(RContext context, Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException;
+            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException;
         }
 
         class Specialized extends Lapply {
@@ -268,14 +268,14 @@ public class Apply {
             }
 
             @Override
-            public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
+            public RAny doApply(Frame frame, RAny argx, RAny argfun) {
                 try {
-                    callableProvider.matchAndSet(ast, context, frame, argfun);
-                    return apply.apply(context, frame, argx, firstArgProvider, callNode);
+                    callableProvider.matchAndSet(ast, frame, argfun);
+                    return apply.apply(frame, argx, firstArgProvider, callNode);
                 } catch (UnexpectedResultException e) {
                     Specialized sn = createGeneric();
                     replace(sn, "install Specialized<Generic> from Lapply.Specialized");
-                    return sn.doApply(context, frame, argx, argfun);
+                    return sn.doApply(frame, argx, argfun);
                 }
             }
         }
@@ -590,7 +590,7 @@ public class Apply {
         }
 
         // TODO: support rownames, colnames (and names for a matrix result)
-        public static RAny generic(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
+        public static RAny generic(Frame frame, ArgIterator argIterator, Sapply sapply, RAny[] partialContent) {
 
             boolean hasRaw = false;
             boolean hasLogical = false;
@@ -617,7 +617,7 @@ public class Apply {
                 if (partialContent == null || content[i] == null) {
                     argIterator.setNext();
                     FunctionCall callNode = sapply.callNode;
-                    v = (RAny) callNode.execute(context, frame);
+                    v = (RAny) callNode.execute(frame);
                     content[i] = v;
                 } else {
                     v = content[i];
@@ -916,12 +916,12 @@ public class Apply {
             if (resTemplate instanceof RDouble && ((RDouble) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         double[] content = new double[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarDoubleImpl) {
                                 content[i] = ((ScalarDoubleImpl) v).getDouble();
                             } else { // NOTE: can also add Int and Logical support here
@@ -936,12 +936,12 @@ public class Apply {
             if (resTemplate instanceof RInt && ((RInt) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarIntImpl) {
                                content[i] = ((ScalarIntImpl) v).getInt();
                             } else { // NOTE: can also add Logical support here
@@ -956,12 +956,12 @@ public class Apply {
             if (resTemplate instanceof RLogical && ((RLogical) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarLogicalImpl) {
                                 content[i] = ((ScalarLogicalImpl) v).getLogical();
                             } else {
@@ -976,12 +976,12 @@ public class Apply {
             if (resTemplate instanceof RString && ((RString) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         String[] content = new String[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarStringImpl) {
                                 content[i] = ((ScalarStringImpl) v).getString();
                             } else {
@@ -996,12 +996,12 @@ public class Apply {
             if (resTemplate instanceof RComplex && ((RComplex) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         double[] content = new double[2 * xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarComplexImpl) {
                                 ScalarComplexImpl cv = (ScalarComplexImpl) v;
                                 content[2 * i] = cv.getReal();
@@ -1018,13 +1018,13 @@ public class Apply {
             if (resTemplate instanceof RList && ((RList) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         RAny[] content = new RAny[xsize];
                         boolean returnsList = false;
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             content[i] = v;
                             if (!returnsList) {
                                 if (v instanceof RList || v instanceof RNull) {
@@ -1050,12 +1050,12 @@ public class Apply {
             if (resTemplate instanceof RRaw && ((RRaw) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
                     @Override
-                    public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
                         int xsize = argIterator.size();
                         byte[] content = new byte[xsize];
                         for (int i = 0; i < xsize; i++) {
                             argIterator.setNext();
-                            RAny v = (RAny) sapply.callNode.execute(context, frame);
+                            RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof RRaw) {
                                 content[i] = ((RRaw) v).getRaw(0);
                             } else {
@@ -1070,7 +1070,7 @@ public class Apply {
             return null; // FIXME: should return generic by default?
         }
 
-        public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
+        public RAny doApply(Frame frame, RAny argx, RAny argfun) {
 
             try {
                 throw new UnexpectedResultException(null);
@@ -1078,7 +1078,7 @@ public class Apply {
                 if (!(argx instanceof RArray)) {
                     Utils.nyi("unsupported type");
                 }
-                callableProvider.matchAndSet(ast, context, frame, argfun);
+                callableProvider.matchAndSet(ast, frame, argfun);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
@@ -1086,7 +1086,7 @@ public class Apply {
                     Utils.nyi("unsupported type");
                     return null;
                 }
-                RAny res = generic(context, frame, argIterator, this, null);
+                RAny res = generic(frame, argIterator, this, null);
                 Specialized sn = createSpecialized(res, argIterator);
                 if (DEBUG_AP) Utils.debug("apply - rewrote initial generic to " + argIterator.toString() + " " + sn.dbg);
                 replace(sn, "install Specialized from Sapply");
@@ -1095,24 +1095,24 @@ public class Apply {
         }
 
         @Override
-        public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+        public RAny doBuiltIn(Frame frame, RAny[] args) {
             RAny argx = args[xPosition];
             RAny argfun = args[funPosition];
-            return doApply(context, frame, argx, argfun);
+            return doApply(frame, argx, argfun);
         }
 
         public Specialized createGeneric(ArgIterator argIterator) {
             ApplyFunc a = new ApplyFunc() {
                 @Override
-                public RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
-                    return generic(context, frame, argIterator, sapply, null);
+                public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    return generic(frame, argIterator, sapply, null);
                 }
             };
             return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<Generic>");
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(RContext context, Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException;
+            public abstract RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException;
         }
 
         class Specialized extends Sapply {
@@ -1128,8 +1128,8 @@ public class Apply {
             }
 
             @Override
-            public RAny doApply(RContext context, Frame frame, RAny argx, RAny argfun) {
-                callableProvider.matchAndSet(ast, context, frame, argfun);
+            public RAny doApply(Frame frame, RAny argx, RAny argfun) {
+                callableProvider.matchAndSet(ast, frame, argfun);
                 try {
                     argIterator.reset(firstArgProvider, argx);
                 } catch (UnexpectedResultException e) {
@@ -1137,17 +1137,17 @@ public class Apply {
                     Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, ai, apply, dbg);
                     if (DEBUG_AP) Utils.debug("apply - Specialized " + argIterator.toString() + " " + dbg  + " failed, rewriting to " + ai.toString() + dbg );
                     replace(sn, "install Specialized<Generic, ?> from Sapply.Specialized");
-                    return sn.doApply(context, frame, argx, argfun);
+                    return sn.doApply(frame, argx, argfun);
                 }
 
                 try {
-                    return apply.apply(context, frame, argIterator, this);
+                    return apply.apply(frame, argIterator, this);
                 } catch (UnexpectedResultException e) {
                     RAny[] partialContent = unpackPartial(e.getResult());
                     Specialized sn = createGeneric(argIterator);
                     if (DEBUG_AP) Utils.debug("apply - Specialized " + argIterator.toString() + " " + dbg + " failed, rewriting to " + sn.argIterator.toString() + " " + sn.dbg);
                     replace(sn, "install Specialized<?, Generic> from Sapply.Specialized");
-                    return generic(context, frame, argIterator, this, partialContent);
+                    return generic(frame, argIterator, this, partialContent);
                 }
             }
         }

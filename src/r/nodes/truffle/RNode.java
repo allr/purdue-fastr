@@ -13,14 +13,14 @@ public abstract class RNode extends Node {
         return ((RNode) getParent()).getAST();
     }
 
-    public abstract Object execute(RContext context, Frame frame);
+    public abstract Object execute(Frame frame);
 
-    public int executeScalarLogical(RContext context, Frame frame) throws UnexpectedResultException {
-        return RValueConversion.expectScalarLogical((RAny) execute(context, frame));
+    public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+        return RValueConversion.expectScalarLogical((RAny) execute(frame));
     }
 
-    public Object executeVoid(RContext context, Frame frame) {
-        execute(context, frame);
+    public Object executeVoid(Frame frame) {
+        execute(frame);
         return RNull.getNull();
     }
 }

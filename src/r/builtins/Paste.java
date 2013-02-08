@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
@@ -46,7 +45,7 @@ public class Paste {
         throw RError.getInvalidArgument(ast, "collapse");
     }
 
-    public static RString paste(RAny[] args, int realArgs, int sepPosition, int collapsePosition, RContext context, ASTNode ast) {
+    public static RString paste(RAny[] args, int realArgs, int sepPosition, int collapsePosition, ASTNode ast) {
 
         String separator = null;
         if (sepPosition == -1) {
@@ -67,7 +66,7 @@ public class Paste {
             if (i == sepPosition || i == collapsePosition) {
                 continue;
             }
-            RString s = Cast.genericAsString(context, ast, args[i]); // FIXME: can we remove R-level boxing?
+            RString s = Cast.genericAsString(ast, args[i]); // FIXME: can we remove R-level boxing?
             stringArgs[j++] = s;
             int ssize = s.size();
             if (ssize > maxLength) {
@@ -114,7 +113,7 @@ public class Paste {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(Frame frame) {
                         return RString.EMPTY;
                     }
 
@@ -138,8 +137,8 @@ public class Paste {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
-                    return paste(params, realArgs, sepPosition, collapsePosition, context, ast);
+                public final RAny doBuiltIn(Frame frame, RAny[] params) {
+                    return paste(params, realArgs, sepPosition, collapsePosition, ast);
                 }
             };
         }

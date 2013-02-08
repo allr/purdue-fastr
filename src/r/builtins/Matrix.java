@@ -77,7 +77,7 @@ public class Matrix {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RArray data = RLogical.BOXED_NA;
                     if (provided[IDATA]) {
@@ -117,12 +117,12 @@ public class Matrix {
                             if (dsize >= nCol) {
                                 nRow = dsize / nCol;
                                 if (nRow * nCol != dsize) {
-                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                                 }
                             } else {
                                 nRow = 1;
                                 if (nCol % dsize != 0) {
-                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                                 }
                             }
                         }
@@ -132,19 +132,19 @@ public class Matrix {
                             if (dsize >= nRow) {
                                 nCol = dsize / nRow;
                                 if (nCol * nRow != dsize) {
-                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                                 }
                             } else {
                                 nCol = 1;
                                 if (nRow % dsize != 0) {
-                                    context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                                 }
                             }
                             size = nRow * nCol;
                         } else {
                             size = nRow * nCol;
                             if (size % dsize != 0 && dsize % size != 0) {
-                                context.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                                RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                             }
                         }
                     }

@@ -102,18 +102,20 @@ public class Console {
 
     public static void main(String[] args) {
         storeCommandLineArguments(args);
+
         try {
             Option.processCommandLine(args, options);
             // TODO store this in a more appropriate place (needed for commandArgs())
         } catch (Exception e1) {
             return;
         }
-
         long before = System.nanoTime();
         try {
             if (interactive || inputFile == null) {
+                RContext.debuggingFormat(true);
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
+                RContext.debuggingFormat(false);
                 processFile(openANTLRStream(inputFile));
             }
         } catch (IOException e) {
@@ -127,7 +129,6 @@ public class Console {
         RLexer lexer = new RLexer();
         RParser parser = new RParser(null);
         ASTNode tree;
-        RContext context = new RContext(true); // note: uses debugging format
         StringBuilder incomplete = new StringBuilder();
 
         do {
@@ -140,7 +141,7 @@ public class Console {
                     if (DEBUG) {
                         debug(tree);
                     }
-                    printResult(tree, context.eval(tree));
+                    printResult(tree, RContext.eval(tree));
                 }
             } catch (RecognitionException e) {
                 if (e.getUnexpectedType() != -1) {
@@ -167,7 +168,7 @@ public class Console {
         try {
             ASTNode tree = parser.script();
             if (tree != null) {
-                printResult(tree, new RContext(false).eval(tree)); // use non-debugging format
+                printResult(tree, RContext.eval(tree)); // use non-debugging format
             }
         } catch (RecognitionException e) {
             parseError(parser, e);

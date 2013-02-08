@@ -18,7 +18,7 @@ public class Diagonal {
             return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny x, RAny value) {
+                public final RAny doBuiltIn(Frame frame, RAny x, RAny value) {
                     if (!(x instanceof RArray)) {
                         throw RError.getOnlyMatrixDiagonals(ast);
                     }

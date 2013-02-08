@@ -59,13 +59,13 @@ public class Colon {
         }
     }
 
-    public static void checkScalar(RArray a, ASTNode ast, RContext context) {
+    public static void checkScalar(RArray a, ASTNode ast) {
       int n = a.size();
       if (n == 0) {
           throw RError.getLengthZero(ast);
       }
       if (n > 1) {
-          context.warning(ast, String.format(RError.ONLY_FIRST_USED, n));
+          RContext.warning(ast, String.format(RError.ONLY_FIRST_USED, n));
       }
     }
 
@@ -81,23 +81,23 @@ public class Colon {
         }
     }
 
-//    @SuppressWarnings("cast")
-    public static RAny generic(ASTNode ast, RContext context, RAny arg0, RAny arg1) {
+    @SuppressWarnings("cast")
+    public static RAny generic(ASTNode ast, RAny arg0, RAny arg1) {
         if (arg0 instanceof RInt) {
             RInt a0rint = (RInt) arg0;
-            Colon.checkScalar(a0rint, ast, context);
+            Colon.checkScalar(a0rint, ast);
             int a0 = a0rint.getInt(0);
             Colon.checkNA(a0, ast);
             if (arg1 instanceof RInt) {
                 RInt a1rint = (RInt) arg1;
-                Colon.checkScalar(a1rint, ast, context);
+                Colon.checkScalar(a1rint, ast);
                 int a1 = a1rint.getInt(0);
                 Colon.checkNA(a1, ast);
                 return Colon.create(a0, a1);
             }
             if (arg1 instanceof RDouble) {
                 RDouble a1rdbl = (RDouble) arg1;
-                Colon.checkScalar(a1rdbl, ast, context);
+                Colon.checkScalar(a1rdbl, ast);
                 double a1 = a1rdbl.getDouble(0);
                 Colon.checkNAandNaN(a1, ast);
                 if (RDouble.RDoubleUtils.fitsRInt(a1)) {
@@ -112,7 +112,7 @@ public class Colon {
 
         if (arg0 instanceof RDouble) {
             RDouble a0rdbl = (RDouble) arg0;
-            Colon.checkScalar(a0rdbl, ast, context);
+            Colon.checkScalar(a0rdbl, ast);
             double a0 = a0rdbl.getDouble(0);
             Colon.checkNAandNaN(a0, ast);
             int ia0 = (int) a0;
@@ -120,14 +120,14 @@ public class Colon {
                 // note: nearly copy-paste from above, but we should rewrite to nodes anyway
                 if (arg1 instanceof RInt) {
                     RInt a1rint = (RInt) arg1;
-                    Colon.checkScalar(a1rint, ast, context);
+                    Colon.checkScalar(a1rint, ast);
                     int a1 = a1rint.getInt(0);
                     Colon.checkNA(a1, ast);
                     return Colon.create(ia0, a1);
                 }
                 if (arg1 instanceof RDouble) {
                     RDouble a1rdbl = (RDouble) arg1;
-                    Colon.checkScalar(a1rdbl, ast, context);
+                    Colon.checkScalar(a1rdbl, ast);
                     double a1 = a1rdbl.getDouble(0);
                     Colon.checkNAandNaN(a1, ast);
                     if (RDouble.RDoubleUtils.fitsRInt(a1)) {
@@ -142,7 +142,7 @@ public class Colon {
             } else {
                 if (arg1 instanceof RDouble) {
                     RDouble a1rdbl = (RDouble) arg1;
-                    Colon.checkScalar(a1rdbl, ast, context);
+                    Colon.checkScalar(a1rdbl, ast);
                     double a1 = a1rdbl.getDouble(0);
                     Colon.checkNAandNaN(a1, ast);
                     return Colon.create(a0, a1);
@@ -160,8 +160,8 @@ public class Colon {
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
-                    return generic(ast, context, arg0, arg1);
+                public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                    return generic(ast, arg0, arg1);
                 }
             };
         }

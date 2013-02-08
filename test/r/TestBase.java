@@ -12,8 +12,6 @@ import r.nodes.tools.*;
 
 public class TestBase {
 
-    static RContext global = new RContext(true); // use debugging format
-
     static String evalString(String input) throws RecognitionException {
         return eval(input).pretty();
     }
@@ -83,7 +81,7 @@ public class TestBase {
             }
             String output = out.toString();
             String error = err.toString();
-            if (global.usesTruffleOptimizer()) {
+            if (RContext.usesTruffleOptimizer()) {
                 String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
                         "Captured output of " + input + " is above.\n";
                 if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
@@ -148,13 +146,14 @@ public class TestBase {
         Assert.assertTrue("Exception was thrown!", result.exception == null);
     }
 
-    /** Evaluates the given R expression in the fresh context and returns the returned value.
+    /** Evaluates the given R expression and returns the returned value.
      */
     static RAny eval(String input) throws RecognitionException {
-        RSymbol.resetTable(); // reset the table of symbols before we do anything real
-        // TODO we do not really need to reset the context, but it seems to me as a reasonable thing to do
-        global = new RContext(true); // reset the context
         ASTNode astNode = TestPP.parse(input);
-        return global.eval(astNode);
+        try {
+            return RContext.eval(astNode, true);
+        } finally {
+            RSymbol.resetTable(); // some tests may have overwritten some builtins
+        }
     }
 }

@@ -2,7 +2,6 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.api.frame.*;
 
-import r.RContext;
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
@@ -30,14 +29,14 @@ public abstract class ReadList extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        RAny list = (RAny) base.execute(context, frame);
-        return execute(context, index, list);
+    public Object execute(Frame frame) {
+        RAny list = (RAny) base.execute(frame);
+        return execute(index, list);
     }
 
 
     /** As per R reference, should fail if not list or pairlist, otherwise the element should be returned. */
-    abstract RAny execute(RContext context, RSymbol index, RAny list);
+    abstract RAny execute(RSymbol index, RAny list);
 
 
     /**
@@ -52,9 +51,9 @@ public abstract class ReadList extends BaseR {
         }
 
         @Override
-        RAny execute(RContext context, RSymbol index, RAny base) {
+        RAny execute(RSymbol index, RAny base) {
             if (!(base instanceof RList)) {
-                throw RError.getDollarSelectionRequiresRecursiveObject(this.base.getAST());
+                throw RError.getDollarAtomicVectors(ast);
             }
             RList list = (RList) base;
             RArray.Names names = list.names();

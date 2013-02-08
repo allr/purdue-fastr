@@ -54,7 +54,7 @@ public abstract class UpdateVector extends BaseR {
         if (isSuper) { // FIXME: turn this switch into node rewriting?
             RNode node = adoptChild(new BaseR(ast) {
                 @Override
-                public final Object execute(RContext context, Frame frame) {
+                public final Object execute(Frame frame) {
                     return newVector;
                 }
             });
@@ -80,29 +80,29 @@ public abstract class UpdateVector extends BaseR {
         MAYBE_VECTOR_UPDATE,
     }
 
-    public final Object executeSuper(RContext context, Frame frame) {
-        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
-        RAny index = (RAny) indexes[0].execute(context, frame);
+    public final Object executeSuper(Frame frame) {
+        RAny value = (RAny) rhs.execute(frame); // note: order is important
+        RAny index = (RAny) indexes[0].execute(frame);
 
         RAny base;
         if (frame != null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
-            base = (RAny) lhs.execute(context, RFrameHeader.enclosingFrame(frame));
+            base = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
         } else {
             throw RError.getUnknownVariable(ast, var);
         }
 
-        newVector = execute(context, base, index, value);
-        assign.execute(context, frame);  // FIXME: may ref unnecessarily
+        newVector = execute(base, index, value);
+        assign.execute(frame);  // FIXME: may ref unnecessarily
         return value;
     }
 
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public final Object execute(Frame frame) {
         if (isSuper) {
-            return executeSuper(context, frame);
+            return executeSuper(frame);
         }
-        RAny value = (RAny) rhs.execute(context, frame); // note: order is important
-        RAny index = (RAny) indexes[0].execute(context, frame);
+        RAny value = (RAny) rhs.execute(frame); // note: order is important
+        RAny index = (RAny) indexes[0].execute(frame);
 
         if (frame != null) {
             if (!slotInitialized) { // FIXME: turn this into node rewriting
@@ -115,7 +115,7 @@ public abstract class UpdateVector extends BaseR {
             assert Utils.check(frameSlot != null);
             RAny base = (RAny) frame.getObject(frameSlot);
             if (base != null) {
-                RAny newBase = execute(context, base, index, value);
+                RAny newBase = execute(base, index, value);
                 if (newBase != base) {
                     RFrameHeader.writeAtRef(frame, frameSlot, newBase);
                 }
@@ -126,7 +126,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 base.ref(); // reading from parent, hence need to copy on update
                 // ref once will make it shared unless it is stateless (like int sequence)
-                RAny newBase = execute(context, base, index, value);
+                RAny newBase = execute(base, index, value);
                 Utils.check(base != newBase);
                 RFrameHeader.writeAtRef(frame, frameSlot, newBase);
             }
@@ -136,7 +136,7 @@ public abstract class UpdateVector extends BaseR {
             if (base == null) {
                 throw RError.getUnknownVariable(getAST());
             }
-            RAny newBase = execute(context, base, index, value);
+            RAny newBase = execute(base, index, value);
             if (newBase != base) {
                 RFrameHeader.writeToTopLevelRef(var, newBase);
             }
@@ -144,7 +144,7 @@ public abstract class UpdateVector extends BaseR {
         return value;
     }
 
-    abstract RAny execute(RContext context, RAny base, RAny index, RAny value);
+    abstract RAny execute(RAny base, RAny index, RAny value);
 
     // FIXME: move these to some other file?
     public static Names expandNames(Names names, int newSize) {
@@ -187,7 +187,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
 
             try {
@@ -197,12 +197,12 @@ public abstract class UpdateVector extends BaseR {
                 if (sn != null) {
                     replace(sn, "specialize ScalarNumericSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Simple");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 } else {
                     sn = createGeneric();
                     replace(sn, "specialize ScalarNumericSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 }
             }
         }
@@ -602,7 +602,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -636,14 +636,14 @@ public abstract class UpdateVector extends BaseR {
                             replace(sn, "specialize ScalarNumericSelection");
                             if (DEBUG_UP)
                                 Utils.debug("update - replaced and re-executing with ScalarNumericSelection.Generic");
-                            return sn.execute(context, base, index, value);
+                            return sn.execute(base, index, value);
 
                         case NOT_ONE_ELEMENT_INDEX:
                             if (!subset) {
                                 Subscript s = new Subscript(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(s, "install Subscript from ScalarNumericSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
-                                return s.execute(context, base, index, value);
+                                return s.execute(base, index, value);
                             }
                             // propagate below
 
@@ -651,7 +651,7 @@ public abstract class UpdateVector extends BaseR {
                             GenericScalarSelection gs = new GenericScalarSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericScalarSelection from ScalarNumericSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericScalarSelection");
-                            return gs.execute(context, base, index, value);
+                            return gs.execute(base, index, value);
                     }
                 }
             }
@@ -850,7 +850,7 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RAny update(RContext context, RArray base, RArray index, RArray value, ASTNode ast, boolean subset) throws UnexpectedResultException {
+        public static RAny update(RArray base, RArray index, RArray value, ASTNode ast, boolean subset) throws UnexpectedResultException {
             int vsize = value.size();
             if (vsize == 0) {
                 throw RError.getReplacementZero(ast);
@@ -886,7 +886,7 @@ public abstract class UpdateVector extends BaseR {
             if (i >= 0 || i == RInt.NA || !subset) {
                 if (vsize > 1) {
                     if (subset) {
-                        context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                        RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     } else {
                         if (!(base instanceof RList)) {
                             throw RError.getMoreElementsSupplied(ast);
@@ -905,7 +905,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericScalarSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -927,7 +927,7 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE);
                 }
                 RArray avalue = (RArray) value;
-                return update(context, abase, aindex, avalue, ast, subset);
+                return update(abase, aindex, avalue, ast, subset);
 
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -941,25 +941,25 @@ public abstract class UpdateVector extends BaseR {
                                 replace(is, "install IntSequenceSelection from GenericScalarSelection");
                                 if (DEBUG_UP)
                                     Utils.debug("update - replaced and re-executing with IntSequenceSelection");
-                                return is.execute(context, base, index, value);
+                                return is.execute(base, index, value);
                             }
                             if (index instanceof RInt || index instanceof RDouble) {
                                 NumericSelection ns = new NumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(ns, "install NumericSelection from GenericScalarSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
-                                return ns.execute(context, base, index, value);
+                                return ns.execute(base, index, value);
                             }
                             if (index instanceof RLogical) {
                                 LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                                 replace(ls, "install LogicalSelection from GenericScalarSelection");
                                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection");
-                                return ls.execute(context, base, index, value);
+                                return ls.execute(base, index, value);
                             }
                         } else {
                             Subscript s = new Subscript(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(s, "install Subscript from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with Subscript");
-                            return s.execute(context, base, index, value);
+                            return s.execute(base, index, value);
                         }
                         // propagate below
 
@@ -967,7 +967,7 @@ public abstract class UpdateVector extends BaseR {
                         GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
                         if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                        return gs.execute(context, base, index, value);
+                        return gs.execute(base, index, value);
                 }
             }
         }
@@ -985,7 +985,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
 
             try {
@@ -995,12 +995,12 @@ public abstract class UpdateVector extends BaseR {
                 if (sn != null) {
                     replace(sn, "specialize IntSequenceSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Simple");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 } else {
                     sn = createExtended();
                     replace(sn, "specialize IntSequenceSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 }
             }
         }
@@ -1429,7 +1429,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -1454,13 +1454,13 @@ public abstract class UpdateVector extends BaseR {
                             replace(sn, "specialize IntSequenceSelection");
                             if (DEBUG_UP)
                                 Utils.debug("update - replaced and re-executing with IntSequenceSelection.Extended");
-                            return sn.execute(context, base, index, value);
+                            return sn.execute(base, index, value);
 
                         default:
                             NumericSelection ns = new NumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(ns, "install NumericSelection from IntSequenceSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
-                            return ns.execute(context, base, index, value);
+                            return ns.execute(base, index, value);
                     }
                 }
             }
@@ -1587,7 +1587,7 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RArray genericUpdate(RArray base, RInt index, RArray value, RContext context, ASTNode ast, boolean subset) {
+        public static RArray genericUpdate(RArray base, RInt index, RArray value, ASTNode ast, boolean subset) {
             Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
@@ -1703,7 +1703,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 if (j != 0) {
-                    context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                 }
                 if (expanding && names != null) {
                     res = res.setNames(expandNames(names, nsize));
@@ -1735,7 +1735,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1754,14 +1754,14 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     throw new UnexpectedResultException(Failure.NOT_NUMERIC_INDEX);
                 }
-                return genericUpdate(abase, iindex, avalue, context, ast, subset);
+                return genericUpdate(abase, iindex, avalue, ast, subset);
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                 replace(gs, "install GenericSelection from NumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                return gs.execute(context, base, index, value);
+                return gs.execute(base, index, value);
             }
         }
     }
@@ -1777,7 +1777,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing LogicalSelection (uninitialized)");
             try {
                 throw new UnexpectedResultException(null);
@@ -1786,18 +1786,18 @@ public abstract class UpdateVector extends BaseR {
                 if (sn != null) {
                     replace(sn, "specialize LogicalSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Simple");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 } else {
                     sn = createGeneric();
                     replace(sn, "specialize LogicalSelection");
                     if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
-                    return sn.execute(context, base, index, value);
+                    return sn.execute(base, index, value);
                 }
             }
         }
 
         abstract class ValueCopy {
-            abstract RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException;
+            abstract RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException;
         }
 
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
@@ -1805,7 +1805,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                        RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RList)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -1851,7 +1851,7 @@ public abstract class UpdateVector extends BaseR {
                                 throw RError.getNASubscripted(ast);
                             }
                             if (vi != 0) {
-                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
                             return RList.RListFactory.getFor(content, base.dimensions(), base.names());
                         }
@@ -1864,7 +1864,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                        RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RDouble)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -1910,7 +1910,7 @@ public abstract class UpdateVector extends BaseR {
                                 throw RError.getNASubscripted(ast);
                             }
                             if (vi != 0) {
-                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
                             return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                         }
@@ -1923,7 +1923,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                        RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RInt)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -1969,7 +1969,7 @@ public abstract class UpdateVector extends BaseR {
                                 throw RError.getNASubscripted(ast);
                             }
                             if (vi != 0) {
-                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
                             return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                         }
@@ -1982,7 +1982,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                        RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RLogical)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -2026,7 +2026,7 @@ public abstract class UpdateVector extends BaseR {
                                 throw RError.getNASubscripted(ast);
                             }
                             if (vi != 0) {
-                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
                             return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
                         }
@@ -2039,7 +2039,7 @@ public abstract class UpdateVector extends BaseR {
                 if (valueTemplate instanceof RString) {
                     ValueCopy cpy = new ValueCopy() {
                         @Override
-                        RAny copy(RArray base, RLogical index, RAny value, RContext context) throws UnexpectedResultException {
+                        RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
                             if (!(base instanceof RString)) {
                                 throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
                             }
@@ -2083,7 +2083,7 @@ public abstract class UpdateVector extends BaseR {
                                 throw RError.getNASubscripted(ast);
                             }
                             if (vi != 0) {
-                                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
                             return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
                         }
@@ -2177,7 +2177,7 @@ public abstract class UpdateVector extends BaseR {
             return RList.RListFactory.getFor(content, bsize != nsize ? null : base.dimensions(), nsymbols == null ? null : Names.create(nsymbols));
         }
 
-        public static RAny genericUpdate(RArray base, RLogical index, RAny value, RContext context, ASTNode ast) {
+        public static RAny genericUpdate(RArray base, RLogical index, RAny value, ASTNode ast) {
             RArray typedBase;
             RArray typedValue;
             RList listValue = null;
@@ -2269,7 +2269,7 @@ public abstract class UpdateVector extends BaseR {
                 throw RError.getNASubscripted(ast);
             }
             if (vi != 0) {
-                context.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
             }
             if (expanding && names != null) {
                 res = res.setNames(expandNames(names, nsize));
@@ -2280,8 +2280,8 @@ public abstract class UpdateVector extends BaseR {
         public Specialized createGeneric() {
             ValueCopy cpy = new ValueCopy() {
                 @Override
-                RAny copy(RArray base, RLogical index, RAny value, RContext context) {
-                    return genericUpdate(base, index, value, context, ast);
+                RAny copy(RArray base, RLogical index, RAny value) {
+                    return genericUpdate(base, index, value, ast);
                 }
             };
             return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Generic>");
@@ -2298,7 +2298,7 @@ public abstract class UpdateVector extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+            public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing LogicalSelection" + dbg);
                 try {
                     if (!(base instanceof RArray)) {
@@ -2313,7 +2313,7 @@ public abstract class UpdateVector extends BaseR {
                         throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX);
                     }
                     RLogical lindex = (RLogical) index;
-                    return copy.copy(abase, lindex, avalue, context);
+                    return copy.copy(abase, lindex, avalue);
                 } catch (UnexpectedResultException e) {
                     Failure f = (Failure) e.getResult();
                     if (DEBUG_UP) Utils.debug("update - LogicalSelection" + dbg + " failed: " + f);
@@ -2324,13 +2324,13 @@ public abstract class UpdateVector extends BaseR {
                             replace(sn, "specialize LogicalSelection");
                             if (DEBUG_UP)
                                 Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
-                            return sn.execute(context, base, index, value);
+                            return sn.execute(base, index, value);
 
                         default:
                             GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(gs, "install GenericSelection from LogicalSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                            return gs.execute(context, base, index, value);
+                            return gs.execute(base, index, value);
                     }
                 }
             }
@@ -2378,7 +2378,7 @@ public abstract class UpdateVector extends BaseR {
             return RList.RListFactory.getFor(content, null, Names.create(nsymbols));
         }
 
-        public static RAny genericUpdate(RArray base, RString index, RAny value, RContext context, ASTNode ast) {
+        public static RAny genericUpdate(RArray base, RString index, RAny value, ASTNode ast) {
 
             int isize = index.size();
             if (isize == 1) {
@@ -2680,7 +2680,7 @@ public abstract class UpdateVector extends BaseR {
 
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing Subscript");
             try {
                 if (!(base instanceof RArray)) {
@@ -2700,7 +2700,7 @@ public abstract class UpdateVector extends BaseR {
                 // rewriting itself only to handle the error, there is no way to recover
                 replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                return gs.execute(context, base, index, value);
+                return gs.execute(base, index, value);
             }
         }
     }
@@ -2713,7 +2713,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -2752,16 +2752,16 @@ public abstract class UpdateVector extends BaseR {
                 }
                 RArray avalue = (RArray) value;
                 if (!subset && isize == 1) {
-                    return GenericScalarSelection.update(context, abase, aindex, avalue, ast, subset);
+                    return GenericScalarSelection.update(abase, aindex, avalue, ast, subset);
                 }
 
                 if (subset) {
                     if (aindex instanceof RDouble || aindex instanceof RInt) {
-                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, context, ast, true);
+                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, ast, true);
                     } else if (aindex instanceof RLogical) {
-                        return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, context, ast);
+                        return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, ast);
                     } else if (aindex instanceof RString) {
-                        return StringSelection.genericUpdate(abase, (RString) index, avalue, context, ast);
+                        return StringSelection.genericUpdate(abase, (RString) index, avalue, ast);
                     } else {
                         Utils.nyi("unsupported update");
                         return null;
@@ -2788,7 +2788,7 @@ public abstract class UpdateVector extends BaseR {
      * This class does not define the execute method and only acts as a common codebase for its descendants, where the
      * DollarListUpdate is the root of the hierarchy.
      */
-    public static abstract class DollarUpdateBase extends UpdateVector {
+    public abstract static class DollarUpdateBase extends UpdateVector {
 
         DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
             super(ast, isSuper, var, lhs, new RNode[] {index}, rhs, false);
@@ -2800,8 +2800,8 @@ public abstract class UpdateVector extends BaseR {
 
         /** Converts the given base to list, emitting the warning about coercion for R compatibility.
          */
-        protected final RList convertToList(RContext context, RAny base) {
-            context.warning(ast, RError.COERCING_LHS_TO_LIST);
+        protected final RList convertToList(RAny base) {
+            RContext.warning(ast, RError.COERCING_LHS_TO_LIST);
             return base.asList();
         }
 
@@ -2875,7 +2875,7 @@ public abstract class UpdateVector extends BaseR {
         /** Performs in place update of a list, or rewrites itself to the appropriate nodes.
          */
         @Override
-        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
@@ -2898,15 +2898,15 @@ public abstract class UpdateVector extends BaseR {
                     case NOT_A_LIST:
                         x = new DollarUpdate(this);
                         replace(x, "not a list in assignment");
-                        return x.execute(context, base, index, value);
+                        return x.execute(base, index, value);
                     case SHARED_UPDATE:
                         x = new DollarSharedListUpdate(this);
                         replace(x, "update of a shared list");
-                        return x.execute(context, base, index, value);
+                        return x.execute(base, index, value);
                     case NOT_AN_UPDATE:
                         x = new DollarListAppend(this);
                         replace(x, "list append");
-                        return x.execute(context, base, index, value);
+                        return x.execute(base, index, value);
                 }
             }
             assert (false);
@@ -2936,7 +2936,7 @@ public abstract class UpdateVector extends BaseR {
          * append instead of update.
          */
         @Override
-        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
@@ -2961,11 +2961,11 @@ public abstract class UpdateVector extends BaseR {
                     case NOT_A_LIST:
                         x = new DollarUpdate(this);
                         replace(x, "not a list in assignment");
-                        return x.execute(context, base, index, value);
+                        return x.execute(base, index, value);
                     case NOT_AN_UPDATE:
                         x = new DollarListAppend(this);
                         replace(x, "list append");
-                        return x.execute(context, base, index, value);
+                        return x.execute(base, index, value);
                 }
             }
             assert (false);
@@ -2989,7 +2989,7 @@ public abstract class UpdateVector extends BaseR {
         /** Performs the update or overwrites itself to the general case.
          */
         @Override
-        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             try {
                 if (!(base instanceof RList)) {
@@ -3007,7 +3007,7 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 DollarUpdateBase x = new DollarUpdate(this);
                 replace(x, "not a list or not append in assignment");
-                return x.execute(context, base, index, value);
+                return x.execute(base, index, value);
             }
         }
     }
@@ -3027,9 +3027,9 @@ public abstract class UpdateVector extends BaseR {
         /// TODO Are the specializations for the fast stuff worth it? This code looks smaller than the code with
         /// many rewrite possibilities
         @Override
-        RAny execute(RContext context, RAny base, RAny index, RAny value) {
+        RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
-            RArray list = (base instanceof RList) ? (RList) base : convertToList(context, base);
+            RArray list = (base instanceof RList) ? (RList) base : convertToList(base);
             RArray.Names names = list.names();
             RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
             int size = list.size();

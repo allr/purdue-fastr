@@ -28,7 +28,7 @@ public class Seq {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(Frame frame) {
                         return RInt.RIntFactory.getScalar(1);
                     }
 
@@ -62,7 +62,7 @@ public class Seq {
 
                               // note: does not implement the full semantics
                               @Override
-                              public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                              public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                                   RAny argfrom = args[paramPositions[IFROM]]; // FIXME: will this be optimized out?
                                   RAny argto = args[paramPositions[ITO]];
@@ -76,9 +76,9 @@ public class Seq {
                                   RArray ato = (RArray) argto;
                                   RArray aby = (RArray) argby;
 
-                                  Colon.checkScalar(afrom, ast, context);
-                                  Colon.checkScalar(ato, ast, context);
-                                  Colon.checkScalar(aby, ast, context);
+                                  Colon.checkScalar(afrom, ast);
+                                  Colon.checkScalar(ato, ast);
+                                  Colon.checkScalar(aby, ast);
 
                                       // FIXME: perhaps could be optimized for integer-only case
                                   double from = afrom.asDouble().getDouble(0);
@@ -141,7 +141,7 @@ public class Seq {
 
                               // note: does not implement the full semantics
                               @Override
-                              public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                              public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                                   RAny argfrom = args[paramPositions[IFROM]]; // FIXME: will this be optimized out ?
                                   RAny argto = args[paramPositions[ITO]];
@@ -155,9 +155,9 @@ public class Seq {
                                   RArray ato = (RArray) argto;
                                   RArray alengthOut = (RArray) arglengthOut;
 
-                                  Colon.checkScalar(afrom, ast, context);
-                                  Colon.checkScalar(ato, ast, context);
-                                  Colon.checkScalar(alengthOut, ast, context);
+                                  Colon.checkScalar(afrom, ast);
+                                  Colon.checkScalar(ato, ast);
+                                  Colon.checkScalar(alengthOut, ast);
 
                                   double from = afrom.asDouble().getDouble(0);
                                   double to = ato.asDouble().getDouble(0);
@@ -201,7 +201,7 @@ public class Seq {
 
                               // note: some error messages are not exactly like in R, but they are quite close
                               @Override
-                              public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                              public final RAny doBuiltIn(Frame frame, RAny arg) {
 
                                   if (arg instanceof RArray) {
                                       RArray aarg = (RArray) arg;
@@ -221,7 +221,7 @@ public class Seq {
 
                               // note: some error messages are not exactly like in R, but they are quite close
                               @Override
-                              public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                              public final RAny doBuiltIn(Frame frame, RAny arg) {
 
                                   if (arg instanceof RArray) {
                                       RArray aarg = (RArray) arg;
@@ -257,11 +257,11 @@ public class Seq {
 
                               // note: some error messages are not exactly like in R, but they are quite close
                               @Override
-                              public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                              public final RAny doBuiltIn(Frame frame, RAny arg) {
 
                                   if (arg instanceof RInt) {
                                       RInt lint = (RInt) arg;
-                                      Colon.checkScalar(lint, ast, context);
+                                      Colon.checkScalar(lint, ast);
                                       int li = lint.getInt(0);
                                       if (li == 0) {
                                           return RInt.EMPTY;
@@ -274,7 +274,7 @@ public class Seq {
                                   }
                                   if (arg instanceof RDouble) {
                                       RDouble ldbl = (RDouble) arg;
-                                      Colon.checkScalar(ldbl, ast, context);
+                                      Colon.checkScalar(ldbl, ast);
                                       double ld = ldbl.getDouble(0);
                                       if (RDouble.RDoubleUtils.isNAorNaN(ld) || ld < 0) {
                                           throw RError.getLengthNonnegative(ast);
@@ -292,7 +292,7 @@ public class Seq {
                                   }
                                   if (arg instanceof RLogical) {
                                       RLogical llog = (RLogical) arg;
-                                      Colon.checkScalar(llog, ast, context);
+                                      Colon.checkScalar(llog, ast);
                                       int ll = llog.getLogical(0);
                                       if (ll == RLogical.TRUE) {
                                           return RInt.BOXED_ONE;

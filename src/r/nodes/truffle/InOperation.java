@@ -21,15 +21,15 @@ public class InOperation extends BaseR {
     }
 
     @Override
-    public final  Object execute(RContext context, Frame frame) {
-        RAny leftValue = (RAny) left.execute(context, frame);
-        RAny rightValue = (RAny) right.execute(context, frame);
-        return execute(context, leftValue, rightValue);
+    public final  Object execute(Frame frame) {
+        RAny leftValue = (RAny) left.execute(frame);
+        RAny rightValue = (RAny) right.execute(frame);
+        return execute(leftValue, rightValue);
     }
 
     // TODO: this could be customized to elide cast view creation, boxing when creating a hash map
     // FIXME: could use some primitive collections library, e.g. Trove or PCJ?
-    public Object execute(RContext context, RAny left, RAny right) {
+    public Object execute(RAny left, RAny right) {
 
         RArray typedX;
         RArray typedTable;

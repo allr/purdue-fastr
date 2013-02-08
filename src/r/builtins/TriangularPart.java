@@ -20,7 +20,7 @@ public class TriangularPart {
 
         public abstract RArray triangular(int m, int n, boolean diag);
 
-        public RAny triangular(ASTNode ast, RContext context, RAny argx, boolean diag) {
+        public RAny triangular(ASTNode ast, RAny argx, boolean diag) {
             if (!(argx instanceof RArray)) {    // FIXME: this could be faster using node rewriting
                 Utils.nyi("unsupported (invalid) argument type");
                 return null;
@@ -38,7 +38,7 @@ public class TriangularPart {
             return null;
         }
 
-        public RAny triangular(ASTNode ast, RContext context, RAny argx, RAny argdiag) {
+        public RAny triangular(ASTNode ast, RAny argx, RAny argdiag) {
             if (argdiag instanceof RLogical || argdiag instanceof RDouble || argdiag instanceof RInt) { // FIXME: this could be faster using node rewriting
                 RArray diag = (RArray) argdiag;
                 int size = diag.size();
@@ -46,11 +46,11 @@ public class TriangularPart {
                     throw RError.getInvalidArgument(ast, "diag");
                 }
                 if (size > 1) {
-                    context.warning(ast, RError.LENGTH_GT_1);
+                    RContext.warning(ast, RError.LENGTH_GT_1);
                 }
                 int l = diag.asLogical().getLogical(0);
                 if (l != RLogical.NA) {
-                    return triangular(ast, context, argx, l == RLogical.TRUE);
+                    return triangular(ast, argx, l == RLogical.TRUE);
                 }
             }
             throw RError.getInvalidArgument(ast, "diag");
@@ -115,8 +115,8 @@ public class TriangularPart {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame, RAny argx) {
-                        return UPPER.triangular(ast, context, argx, false);
+                    public final RAny doBuiltIn(Frame frame, RAny argx) {
+                        return UPPER.triangular(ast, argx, false);
                     }
 
                 };
@@ -127,12 +127,12 @@ public class TriangularPart {
             }
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
 
                     if (paramPositions[IX] == 0) {
-                        return trian.triangular(ast, context, arg0, arg1);
+                        return trian.triangular(ast, arg0, arg1);
                     } else {
-                        return trian.triangular(ast, context, arg1, arg0);
+                        return trian.triangular(ast, arg1, arg0);
                     }
                 }
 

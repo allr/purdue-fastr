@@ -29,25 +29,25 @@ public class If extends BaseR {
     //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
     //   - a generic conversion node that can convert anything
     @Override
-    public final Object execute(RContext context, Frame frame) {
+    public final Object execute(Frame frame) {
         int ifVal;
 
         try {
             if (DEBUG_IF) Utils.debug("executing condition");
-            ifVal = cond.executeScalarLogical(context, frame);
+            ifVal = cond.executeScalarLogical(frame);
             if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (UnexpectedResultException e) {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
             replaceChild(cond, castNode);
-            ifVal = castNode.executeScalarLogical(context, result);
+            ifVal = castNode.executeScalarLogical(result);
         }
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
-            return trueBranch.execute(context, frame);
+            return trueBranch.execute(frame);
         } else if (ifVal == RLogical.FALSE) {
-            return falseBranch.execute(context, frame);
+            return falseBranch.execute(frame);
         }
         throw RError.getUnexpectedNA(getAST());
     }
@@ -70,23 +70,23 @@ public class If extends BaseR {
         }
 
         @Override
-        public final Object execute(RContext context, Frame frame) {
-            RAny value = (RAny) expr.execute(context, frame);
-            return execute(context, frame, value);
+        public final Object execute(Frame frame) {
+            RAny value = (RAny) expr.execute(frame);
+            return execute(frame, value);
         }
 
-        public Object execute(RContext context, Frame frame, RAny value) {
+        public Object execute(Frame frame, RAny value) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 Specialized s = Specialized.create(ast, cond, expr, trueBranch, falseBranch, constant, value);
                 if (s != null) {
                     replace(s, "install Specialized from IfConst");
-                    return s.execute(context, frame);
+                    return s.execute(frame);
                 } else {
                     If in = new If(ast, cond, trueBranch, falseBranch);
                     replace(in, "install If from IfConst");
-                    return in.execute(context, frame);
+                    return in.execute(frame);
                 }
             }
         }
@@ -196,19 +196,19 @@ public class If extends BaseR {
             }
 
             @Override
-            public final Object execute(RContext context, Frame frame, RAny value) {
+            public final Object execute(Frame frame, RAny value) {
                 try {
                     int ifVal = cmp.cmp(value);
                     if (ifVal == RLogical.TRUE) {
-                        return trueBranch.execute(context, frame);
+                        return trueBranch.execute(frame);
                     } else if (ifVal == RLogical.FALSE) {
-                        return falseBranch.execute(context, frame);
+                        return falseBranch.execute(frame);
                     }
                     throw RError.getUnexpectedNA(getAST());
                  } catch (UnexpectedResultException e) {
                      If in = new If(ast, cond, trueBranch, falseBranch);
                      replace(in, "install If from IfConst.Specialized");
-                     return in.execute(context, frame);
+                     return in.execute(frame);
                  }
             }
 

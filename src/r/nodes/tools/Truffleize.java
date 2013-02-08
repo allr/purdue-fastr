@@ -1,6 +1,5 @@
 package r.nodes.tools;
 
-import r.RContext;
 import r.Utils;
 import r.builtins.Primitives;
 import r.data.*;
@@ -30,9 +29,9 @@ public class Truffleize implements Visitor {
             @Child RNode node = adoptChild(createLazyTree(ast));
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 try {
-                    return node.execute(context, frame);
+                    return node.execute(frame);
                 } catch (Loop.ContinueException ce) {
                     throw RError.getNoLoopForBreakNext(ast);
                 } catch (Loop.BreakException be) {
@@ -47,7 +46,7 @@ public class Truffleize implements Visitor {
         return result;
     }
 
-//    @SuppressWarnings("static-method")
+    @SuppressWarnings("static-method")
     private RNode createLazyTree(ASTNode ast) {
         return new LazyBuild(ast);
     }
@@ -157,11 +156,12 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(SimpleAssignVariable assign) {
         RSymbol symbol = assign.getSymbol();
-        if (false && r.builtins.Primitives.get(symbol) != null) { // FIXME: pidigits uses a variable "c"
-            Utils.nyi(symbol.pretty() + ": we don't support variables over-shadowing primitives.");
-            // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
-            // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations
-        }
+//        if (false && r.builtins.Primitives.get(symbol) != null) {
+//            // FIXME: pidigits uses a variable "c"
+//            Utils.nyi(symbol.pretty() + ": we don't support variables over-shadowing primitives.");
+//            // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
+//            // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations
+//        }
         if (assign.isSuper()) {
             result = r.nodes.truffle.SuperWriteVariable.getUninitialized(assign, symbol, createTree(assign.getExpr()));
         } else {
@@ -281,7 +281,7 @@ public class Truffleize implements Visitor {
             } else {
               RNode e = sa.convertedExpressions[0];
               if (e instanceof r.nodes.truffle.Constant) {
-                  RAny v = (RAny) e.execute(null, null);
+                  RAny v = (RAny) e.execute(null);
                   if (v instanceof RDouble || v instanceof RInt) {
                       RInt iv = v.asInt();
                       if (iv.size() == 1) {

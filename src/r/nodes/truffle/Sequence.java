@@ -3,7 +3,6 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-import r.*;
 import r.nodes.*;
 
 public class Sequence extends BaseR {
@@ -18,11 +17,11 @@ public class Sequence extends BaseR {
 
     @Override
     @ExplodeLoop
-    public final Object execute(RContext context, Frame frame) {
+    public final Object execute(Frame frame) {
 
         Object res = null;
         for (RNode e : exprs) {
-            res = e.execute(context, frame);
+            res = e.execute(frame);
         }
         return res;
     }

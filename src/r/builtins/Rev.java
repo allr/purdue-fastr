@@ -89,7 +89,7 @@ public class Rev {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public RAny doBuiltIn(Frame frame, RAny arg) {
                     return rev(arg);
                 }
             };

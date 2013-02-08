@@ -1,12 +1,12 @@
 package r.nodes.truffle;
 
-import r.*;
 import r.data.*;
 import r.nodes.*;
 
 import com.oracle.truffle.api.frame.*;
 
-// TODO: support optimizations that avoid copying - that is, "ref" values if they are being duplicated by the update (like in UpdateVector)
+// TODO: support optimizations that avoid copying - that is, "ref" values if they are being duplicated by the update
+//       (like in UpdateVector)
 
 // FIXME: could get some performance for local variable updates (non-super assignment), e.g. like in UpdateVector
 
@@ -29,7 +29,7 @@ public class ReplacementCall extends BaseR {
 
         RNode node = adoptChild(new BaseR(ast) {
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 return newContent;
             }
         });
@@ -41,9 +41,9 @@ public class ReplacementCall extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        newContent = callNode.execute(context, frame);
-        assign.execute(context, frame);
+    public Object execute(Frame frame) {
+        newContent = callNode.execute(frame);
+        assign.execute(frame);
         return valueNode.lastValue();
     }
 
@@ -57,8 +57,8 @@ public class ReplacementCall extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
-            lastValue = node.execute(context, frame);
+        public Object execute(Frame frame) {
+            lastValue = node.execute(frame);
             return lastValue;
         }
 

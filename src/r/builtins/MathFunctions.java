@@ -14,7 +14,7 @@ import r.nodes.truffle.*;
 public class MathFunctions {
 
     public abstract static class Operation {
-        public abstract double op(RContext context, ASTNode ast, double value);
+        public abstract double op(ASTNode ast, double value);
     }
 
     // FIXME: probably should create a more complete framework for simple math function builtins (including type specialization, constant handling)
@@ -25,10 +25,10 @@ public class MathFunctions {
             this.op = op;
         }
 
-        public RDouble calc(final RContext context, final ASTNode ast, final RDouble value) {
+        public RDouble calc(final ASTNode ast, final RDouble value) {
             final int size = value.size();
             if (size == 1) {
-                return RDouble.RDoubleFactory.getScalar(op.op(context, ast, value.getDouble(0)), value.dimensions(), value.names());
+                return RDouble.RDoubleFactory.getScalar(op.op(ast, value.getDouble(0)), value.dimensions(), value.names());
             } else if (size > 0) {
                 return new View.RDoubleProxy<RDouble>(value) {
 
@@ -39,7 +39,7 @@ public class MathFunctions {
 
                     @Override
                     public double getDouble(int i) {
-                        return op.op(context, ast, value.getDouble(i));
+                        return op.op(ast, value.getDouble(i));
                     }
                 };
             } else {
@@ -54,9 +54,9 @@ public class MathFunctions {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny value) {
+                public RAny doBuiltIn(Frame frame, RAny value) {
                     if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
-                        return calc(context, ast, value.asDouble());
+                        return calc(ast, value.asDouble());
                     } else {
                         throw RError.getNonNumericMath(ast);
                     }
@@ -69,7 +69,7 @@ public class MathFunctions {
     public static final CallFactory LOG10_FACTORY = new NumericXArgCallFactory(new Operation() {
 
         @Override
-        public double op(RContext context, ASTNode ast, double value) {
+        public double op(ASTNode ast, double value) {
             return Math.log10(value);
         }
     });
@@ -80,7 +80,7 @@ public class MathFunctions {
         final double rLOG2 = 1 / Math.log(2.0);
 
         @Override
-        public double op(RContext context, ASTNode ast, double value) {
+        public double op(ASTNode ast, double value) {
             return Math.log(value) * rLOG2;
         }
     });
@@ -88,7 +88,7 @@ public class MathFunctions {
     public static final CallFactory LN_FACTORY = new NumericXArgCallFactory(new Operation() {
 
         @Override
-        public double op(RContext context, ASTNode ast, double value) {
+        public double op(ASTNode ast, double value) {
             return Math.log(value);
         }
     });

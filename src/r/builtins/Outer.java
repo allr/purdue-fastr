@@ -39,7 +39,7 @@ public class Outer {
             if (provided[IFUN]) {
                 RNode fnode = exprs[paramPositions[IFUN]];
                 if (fnode instanceof Constant) {
-                    RAny value = ((Constant) fnode).execute(null, null);
+                    RAny value = ((Constant) fnode).execute(null);
                     if (value instanceof RString) {
                         RString str = (RString) value;
                         if (str.size() == 1) {
@@ -79,12 +79,12 @@ public class Outer {
 
             return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
                     RAny x = args[paramPositions[IX]];
                     RAny y = args[paramPositions[IY]];
                     RAny f = args[paramPositions[IFUN]];
 
-                    return outer(ast, context, frame, x, y, f);
+                    return outer(ast, frame, x, y, f);
                 }
             };
         }
@@ -105,7 +105,7 @@ public class Outer {
             this.yArgProvider = adoptChild(yArgProvider);
         }
 
-        public RAny outer(ASTNode ast, RContext context, Frame frame, RAny xarg, RAny yarg, RAny farg) {
+        public RAny outer(ASTNode ast, Frame frame, RAny xarg, RAny yarg, RAny farg) {
             if (!(xarg instanceof RArray && yarg instanceof RArray)) {
                 Utils.nyi("unsupported type");
                 return null;
@@ -127,8 +127,8 @@ public class Outer {
 
             xArgProvider.setValue(expx);
             yArgProvider.setValue(expy);
-            callableProvider.matchAndSet(ast, context, frame, farg);
-            RArray res = (RArray) callNode.execute(context, frame);
+            callableProvider.matchAndSet(ast, frame, farg);
+            RArray res = (RArray) callNode.execute(frame);
 
             int[] dimx = x.dimensions();
             int[] dimy = y.dimensions();

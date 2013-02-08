@@ -36,7 +36,7 @@ public class List {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                public final RAny doBuiltIn(Frame frame, RAny[] params) {
                     Utils.ref(params);
                     return RList.RListFactory.getFor(params, null, fListNames); // shallow copy (in fact no copy)
                 }

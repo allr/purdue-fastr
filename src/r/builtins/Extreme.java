@@ -28,10 +28,10 @@ public class Extreme {
         }
 
         // result is RString scalar
-        public RAny extreme(RString arg, RContext context, ASTNode ast) {
+        public RAny extreme(RString arg, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
-                context.warning(ast, RError.NO_NONMISSING_MAX);
+                RContext.warning(ast, RError.NO_NONMISSING_MAX);
                 return op.emptySetExtreme();
             }
             String res = arg.getString(0);
@@ -49,10 +49,10 @@ public class Extreme {
         }
 
         // result is RDouble scalar
-        public RAny extreme(RDouble arg, RContext context, ASTNode ast) {
+        public RAny extreme(RDouble arg, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
-                context.warning(ast, RError.NO_NONMISSING_MAX);
+                RContext.warning(ast, RError.NO_NONMISSING_MAX);
                 return op.emptySetExtreme();
             }
             double res = arg.getDouble(0);
@@ -69,10 +69,10 @@ public class Extreme {
         }
 
         // result is RInt scalar (or RDouble +-infinity)
-        public RAny extreme(RInt arg, RContext context, ASTNode ast) {
+        public RAny extreme(RInt arg, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
-                context.warning(ast, RError.NO_NONMISSING_MAX);
+                RContext.warning(ast, RError.NO_NONMISSING_MAX);
                 return op.emptySetExtreme();
             }
             int res = arg.getInt(0);
@@ -89,10 +89,10 @@ public class Extreme {
         }
 
         // result is RInt scalar (or RDouble +-infinity)
-        public RAny extreme(RLogical arg, RContext context, ASTNode ast) {
+        public RAny extreme(RLogical arg, ASTNode ast) {
             int size = arg.size();
             if (size == 0) {
-                context.warning(ast, RError.NO_NONMISSING_MAX);
+                RContext.warning(ast, RError.NO_NONMISSING_MAX);
                 return op.emptySetExtreme();
             }
             int res = arg.getLogical(0);
@@ -109,18 +109,18 @@ public class Extreme {
         }
 
         // result is RDouble, RInt or RString scalar
-        public RAny extreme(RAny arg, RContext context, ASTNode ast) {
+        public RAny extreme(RAny arg, ASTNode ast) {
             if (arg instanceof RDouble) {
-                return extreme((RDouble) arg, context, ast);
+                return extreme((RDouble) arg, ast);
             }
             if (arg instanceof RInt) {
-                return extreme((RInt) arg, context, ast);
+                return extreme((RInt) arg, ast);
             }
             if (arg instanceof RLogical) {
-                return extreme((RLogical) arg, context, ast);
+                return extreme((RLogical) arg, ast);
             }
             if (arg instanceof RString) {
-                return extreme((RString) arg, context, ast);
+                return extreme((RString) arg, ast);
             }
             throw RError.getInvalidTypeArgument(ast, arg.typeOf());
         }
@@ -158,11 +158,11 @@ public class Extreme {
         }
 
         // args has length at least 2
-        public RAny extreme(RAny[] args, RContext context, ASTNode ast) {
+        public RAny extreme(RAny[] args, ASTNode ast) {
             int size = args.length;
-            RAny res = extreme(args[0], context, ast);
+            RAny res = extreme(args[0], ast);
             for (int i = 1; i < size; i++) {
-                res = extreme(res, extreme(args[i], context, ast));
+                res = extreme(res, extreme(args[i], ast));
             }
             return res;
         }
@@ -173,8 +173,8 @@ public class Extreme {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame) {
-                        context.warning(ast, RError.NO_NONMISSING_MAX);
+                    public RAny doBuiltIn(Frame frame) {
+                        RContext.warning(ast, RError.NO_NONMISSING_MAX);
                         return op.emptySetExtreme();
                     }
 
@@ -184,8 +184,8 @@ public class Extreme {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                        return extreme(arg, context, ast);
+                    public RAny doBuiltIn(Frame frame, RAny arg) {
+                        return extreme(arg, ast);
                     }
 
                 };
@@ -193,8 +193,8 @@ public class Extreme {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    return extreme(args, context, ast);
+                public RAny doBuiltIn(Frame frame, RAny[] args) {
+                    return extreme(args, ast);
                 }
             };
         }

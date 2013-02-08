@@ -26,8 +26,8 @@ public class ReadLines {
     private static final int IWARN = 3;
     private static final int IENCODING = 4;
 
-    public static int parseN(RAny arg, RContext context, ASTNode ast) { // FIXME: not exactly R semantics, R would ignore non-coerceable values at indexes 2 and higher
-        RInt narg = Convert.coerceToIntWarning(arg, context, ast);
+    public static int parseN(RAny arg, ASTNode ast) { // FIXME: not exactly R semantics, R would ignore non-coerceable values at indexes 2 and higher
+        RInt narg = Convert.coerceToIntWarning(arg, ast);
         if (narg.size() >= 1) {
             int n = narg.getInt(0);
             if (n != RInt.NA) {
@@ -37,7 +37,7 @@ public class ReadLines {
         throw RError.getInvalidArgument(ast, "n");
     }
 
-    public static boolean parseLogicalScalar(RAny arg, RContext context, ASTNode ast, String argName) { // FIXME: not exactly R semantics, R would ignore non-coerceable values at indexes 2 and higher
+    public static boolean parseLogicalScalar(RAny arg, ASTNode ast, String argName) { // FIXME: not exactly R semantics, R would ignore non-coerceable values at indexes 2 and higher
         RLogical larg = arg.asLogical();
         if (larg.size() >= 1) {
             int l = larg.getLogical(0);
@@ -69,11 +69,11 @@ public class ReadLines {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                    final int n = !provided[IN] ? -1 : parseN(args[paramPositions[IN]], context, ast);
-                    final boolean ok = !provided[IOK] ? true : parseLogicalScalar(args[paramPositions[IOK]], context, ast, paramNames[IOK]);
-                    final boolean warn = !provided[IWARN] ? true : parseLogicalScalar(args[paramPositions[IWARN]], context, ast, paramNames[IWARN]);
+                    final int n = !provided[IN] ? -1 : parseN(args[paramPositions[IN]], ast);
+                    final boolean ok = !provided[IOK] ? true : parseLogicalScalar(args[paramPositions[IOK]], ast, paramNames[IOK]);
+                    final boolean warn = !provided[IWARN] ? true : parseLogicalScalar(args[paramPositions[IWARN]], ast, paramNames[IWARN]);
 
                     Connection con = null;
                     boolean wasOpen = false;
@@ -84,7 +84,7 @@ public class ReadLines {
                     } else {
                         RAny conArg = args[paramPositions[ICON]];
                         if (conArg instanceof RString) {
-                            String description = OpenConnection.getScalarString(conArg, context, ast, "description");
+                            String description = OpenConnection.getScalarString(conArg, ast, "description");
                             con = FileConnection.createOpened(description, defaultMode, ast);
                         } else if (conArg instanceof RInt) {
                             // FIXME: check if it is a connection once attributes are implemented
@@ -93,7 +93,7 @@ public class ReadLines {
                                 throw RError.getNotConnection(ast, paramNames[ICON]);
                             }
                             int handle = iarg.getInt(0);
-                            con = context.getConnection(handle);
+                            con = RContext.getConnection(handle);
                             Utils.check(con != null);
                             if (con.isOpen()) {
                                 ConnectionMode mode = con.currentMode();

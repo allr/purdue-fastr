@@ -131,7 +131,7 @@ public class StrSplit {
         return RList.RListFactory.getFor(content);
     }
 
-    public static RAny strsplit(RContext context, ASTNode ast, RString x, RString split, boolean fixed, boolean perl) {
+    public static RAny strsplit(ASTNode ast, RString x, RString split, boolean fixed, boolean perl) {
         int splitSize = split.size();
         if (splitSize == 0) {
             return strSplitChars(x);
@@ -143,7 +143,7 @@ public class StrSplit {
         }
         if (!fixed) {
             if (!perl) {
-                context.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
+                RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
             }
             return strSplitRE(x, split);
         } else {
@@ -172,13 +172,13 @@ public class StrSplit {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
                     RString split = Convert.coerceToStringError(args[paramPositions[ISPLIT]], ast);
                     boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
                     boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
 
-                    return strsplit(context, ast, x, split, fixed, perl);
+                    return strsplit(ast, x, split, fixed, perl);
                 }
             };
         }

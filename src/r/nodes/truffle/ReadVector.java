@@ -79,13 +79,13 @@ public abstract class ReadVector extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        RAny base = (RAny) lhs.execute(context, frame);  // note: order is important
-        RAny index = (RAny) indexes[0].execute(context, frame);
-        return execute(context, index, base);
+    public Object execute(Frame frame) {
+        RAny base = (RAny) lhs.execute(frame);  // note: order is important
+        RAny index = (RAny) indexes[0].execute(frame);
+        return execute(index, base);
     }
 
-    abstract RAny execute(RContext context, RAny index, RAny vector);
+    abstract RAny execute(RAny index, RAny vector);
 
     private abstract static class Select {
         abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
@@ -146,7 +146,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny vector) {
+        public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarIntSelection");
             try {
                 if (!(vector instanceof RArray)) {
@@ -180,7 +180,7 @@ public abstract class ReadVector extends BaseR {
                         SimpleScalarDoubleSelection dbl = new SimpleScalarDoubleSelection(ast, lhs, indexes, subset, vector);
                         replace(dbl, "install SimpleScalarDoubleSelection from SimpleScalarIntSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleScalarDoubleSelection");
-                        return dbl.execute(context, index, vector);
+                        return dbl.execute(index, vector);
 
                     case NOT_ONE_ELEMENT:
                         if (subset) {
@@ -188,25 +188,25 @@ public abstract class ReadVector extends BaseR {
                                 SimpleIntSequenceSelection is = new SimpleIntSequenceSelection(ast, lhs, indexes, subset);
                                 replace(is, "install SimpleIntSequenceSelection from SimpleScalarIntSelection");
                                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleIntSequenceSelection");
-                                return is.execute(context, index, vector);
+                                return is.execute(index, vector);
                             } else {
                                 IntSelection is = new IntSelection(ast, lhs, indexes, subset);
                                 replace(is, "install IntSelection from SimpleScalarIntSelection");
                                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
-                                return is.execute(context, index, vector);
+                                return is.execute(index, vector);
                             }
                         } else {
                             Subscript s = new Subscript(ast, lhs, indexes, subset);
                             replace(s, "install Subscript from SimpleScalarIntSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
-                            return s.execute(context, index, vector);
+                            return s.execute(index, vector);
                         }
 
                     default:
                         GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                         replace(gen, "install GenericScalarSelection from SimpleScalarIntSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericScalarSelection");
-                        return gen.execute(context, index, vector);
+                        return gen.execute(index, vector);
 
                 }
             }
@@ -225,8 +225,8 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
-            RAny base = (RAny) lhs.execute(context, frame);
+        public Object execute(Frame frame) {
+            RAny base = (RAny) lhs.execute(frame);
             try {
                 if (!(base instanceof RArray)) {
                     throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE);
@@ -243,12 +243,12 @@ public abstract class ReadVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                 replace(gen, "");
-                return gen.execute(context, (RAny) indexes[0].execute(context, frame), base);
+                return gen.execute((RAny) indexes[0].execute(frame), base);
             }
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny vector) {
+        public RAny execute(RAny index, RAny vector) {
             return null;
         }
     }
@@ -263,7 +263,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny vector) {
+        public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarDoubleSelection");
             try {
                 if (!(index instanceof RDouble)) {
@@ -302,24 +302,24 @@ public abstract class ReadVector extends BaseR {
                             IntSelection is = new IntSelection(ast, lhs, indexes, subset);
                             replace(is, "install IntSelection from SimpleScalarDoubleSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
-                            return is.execute(context, index, vector);
+                            return is.execute(index, vector);
                         } else {
                             Subscript s = new Subscript(ast, lhs, indexes, subset);
                             replace(s, "install Subscript from SimpleScalarDoubleSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
-                            return s.execute(context, index, vector);
+                            return s.execute(index, vector);
                         }
                     case NOT_DOUBLE_INDEX:
                         if (index instanceof RString) {
                             SimpleScalarStringSelection ss = new SimpleScalarStringSelection(ast, lhs, indexes, subset, vector);
                             replace(ss, "install SimpleScalarStringSelection from SimpleScalarDoubleSelection");
-                            return ss.execute(context, index, vector);
+                            return ss.execute(index, vector);
                         }
                     default:
                         GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                         replace(gen, "install GenericScalarSelection from SimpleScalarDoubleSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericScalarSelection");
-                        return gen.execute(context, index, vector);
+                        return gen.execute(index, vector);
                 }
             }
         }
@@ -332,7 +332,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny vector) {
+        public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarStringSelection");
             try {
                 if (!(index instanceof RString)) {
@@ -365,18 +365,18 @@ public abstract class ReadVector extends BaseR {
                             StringSelection is = new StringSelection(ast, lhs, indexes, subset);
                             replace(is, "install StringSelection from SimpleScalarStringSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
-                            return is.execute(context, index, vector);
+                            return is.execute(index, vector);
                         } else {
                             Subscript s = new Subscript(ast, lhs, indexes, subset);
                             replace(s, "install Subscript from SimpleScalarStringSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
-                            return s.execute(context, index, vector);
+                            return s.execute(index, vector);
                         }
                     default:
                         GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                         replace(gen, "install GenericScalarSelection from SimpleScalarStringSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericScalarSelection");
-                        return gen.execute(context, index, vector);
+                        return gen.execute(index, vector);
                 }
             }
         }
@@ -574,7 +574,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny vector) {
+        public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericScalarSelection");
             try {
                 if (!(vector instanceof RArray)) {
@@ -598,18 +598,18 @@ public abstract class ReadVector extends BaseR {
                     SimpleLogicalSelection ls = new SimpleLogicalSelection(ast, lhs, indexes, subset);
                     replace(ls, "install SimpleLogicalSelection from GenericScalarSelection");
                     if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleLogicalSelection");
-                    return ls.execute(context, index, vector);
+                    return ls.execute(index, vector);
                 } else {
                     if (!subset) {
                         Subscript s = new Subscript(ast, lhs, indexes, subset);
                         replace(s, "install Subscript from GenericScalarSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with Subscript");
-                        return s.execute(context, index, vector);
+                        return s.execute(index, vector);
                     } else {
                         GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                         replace(gs, "install GenericSelection from GenericScalarSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                        return gs.execute(context, index, vector);
+                        return gs.execute(index, vector);
                     }
                 }
             }
@@ -625,7 +625,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleIntSequenceSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -682,13 +682,13 @@ public abstract class ReadVector extends BaseR {
                         IntSelection is = new IntSelection(ast, lhs, indexes, subset);
                         replace(is, "install IntSelection from SimpleIntSequenceSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
-                        return is.execute(context, index, base);
+                        return is.execute(index, base);
 
                     default:
                         GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                         replace(gs, "install GenericSelection from SimpleIntSequenceSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                        return gs.execute(context, index, base);
+                        return gs.execute(index, base);
                 }
             }
         }
@@ -1050,7 +1050,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing IntSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1073,7 +1073,7 @@ public abstract class ReadVector extends BaseR {
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                 replace(gs, "install GenericSelection from IntSelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                return gs.execute(context, index, base);
+                return gs.execute(index, base);
             }
         }
     }
@@ -1087,7 +1087,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleLogicalSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1132,13 +1132,13 @@ public abstract class ReadVector extends BaseR {
                         LogicalSelection ls = new LogicalSelection(ast, lhs, indexes, subset);
                         replace(ls, "install LogicalSelection from SimpleLogicalSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with LogicalSelection");
-                        return ls.execute(context, index, base);
+                        return ls.execute(index, base);
 
                     default:
                         GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                         replace(gs, "install GenericSelection from SimpleLogicalSelection");
                         if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                        return gs.execute(context, index, base);
+                        return gs.execute(index, base);
                 }
             }
         }
@@ -1250,7 +1250,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing LogicalSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1267,7 +1267,7 @@ public abstract class ReadVector extends BaseR {
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                 replace(gs, "install GenericSelection from LogicalSelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                return gs.execute(context, index, base);
+                return gs.execute(index, base);
             }
         }
     }
@@ -1306,7 +1306,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing StringSelection");
             try {
                 if (!(base instanceof RArray)) {
@@ -1324,7 +1324,7 @@ public abstract class ReadVector extends BaseR {
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
                 replace(gs, "install GenericSelection from StringSelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                return gs.execute(context, index, base);
+                return gs.execute(index, base);
             }
         }
     }
@@ -1502,7 +1502,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing Subscript");
             try {
                 if (!(base instanceof RArray)) {
@@ -1516,7 +1516,7 @@ public abstract class ReadVector extends BaseR {
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset); // rewriting itself only to handle the error, there is no way to recover
                 replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
-                return gs.execute(context, index, base);
+                return gs.execute(index, base);
             }
         }
     }
@@ -1528,7 +1528,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RContext context, RAny index, RAny base) {
+        public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericSelection");
             if (!(base instanceof RArray)) {
                 Utils.nyi("unsupported base");

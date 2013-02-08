@@ -19,13 +19,13 @@ public abstract class MatrixOperation extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        RAny l = (RAny) left.execute(context, frame);
-        RAny r = (RAny) right.execute(context, frame);
-        return execute(context, l, r);
+    public Object execute(Frame frame) {
+        RAny l = (RAny) left.execute(frame);
+        RAny r = (RAny) right.execute(frame);
+        return execute(l, r);
     }
 
-    public abstract Object execute(RContext context, RAny l, RAny r);
+    public abstract Object execute(RAny l, RAny r);
 
     // FIXME: unoptimized
     public static class MatrixProduct extends MatrixOperation {
@@ -136,7 +136,7 @@ public abstract class MatrixOperation extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RAny l, RAny r) {
+        public Object execute(RAny l, RAny r) {
 
             if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
                             (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
@@ -169,7 +169,7 @@ public abstract class MatrixOperation extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, RAny l, RAny r) {
+        public Object execute(RAny l, RAny r) {
 
             if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
                             (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {

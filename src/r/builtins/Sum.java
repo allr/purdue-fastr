@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
@@ -61,7 +60,7 @@ public class Sum {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(Frame frame) {
                         return RInt.BOXED_ZERO;
                     }
 
@@ -78,7 +77,7 @@ public class Sum {
             return new BuiltIn(call, names, exprs) {
 
               @Override
-              public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
+              public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                   boolean naRM = false;
                   if (!neverRemoveNA) {

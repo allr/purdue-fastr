@@ -19,7 +19,7 @@ public class Cast {
     static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
     public abstract static class Operation {
-        public abstract RAny genericCast(RContext context, ASTNode ast, RAny arg);
+        public abstract RAny genericCast(ASTNode ast, RAny arg);
         public abstract RAny getEmpty();
     }
 
@@ -36,7 +36,7 @@ public class Cast {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public RAny doBuiltIn(RContext context, Frame frame) {
+                    public RAny doBuiltIn(Frame frame) {
                         return op.getEmpty();
                     }
 
@@ -45,15 +45,15 @@ public class Cast {
             BuiltIn.ensureArgName(call, "x", names[0]);
             return new BuiltIn.BuiltIn1(call, names, exprs) {
                 @Override
-                public RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                    return op.genericCast(context, ast, arg);
+                public RAny doBuiltIn(Frame frame, RAny arg) {
+                    return op.genericCast(ast, arg);
                 }
             };
         }
     }
 
     // list
-    public static RAny genericAsList(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsList(ASTNode ast, RAny arg) {
         Utils.nyi();
         return null;
     }
@@ -127,7 +127,7 @@ public class Cast {
         return null;
     }
 
-    public static void listAsString(RContext context, ASTNode ast, StringBuilder str, RList list, boolean isRecursive) {
+    public static void listAsString(ASTNode ast, StringBuilder str, RList list, boolean isRecursive) {
         int size = list.size();
         if (!isRecursive) {
             for (int i = 0; i < size; i++) {
@@ -146,7 +146,7 @@ public class Cast {
                 RAny e = list.getRAny(i);
                 if (e instanceof RList) {
                     RList child = (RList) e;
-                    listAsString(context, ast, str, child, isRecursive(child));
+                    listAsString(ast, str, child, isRecursive(child));
                 } else {
                     str.append(deparse(e, true));
                 }
@@ -155,7 +155,7 @@ public class Cast {
         }
     }
 
-    public static RString genericAsString(RContext context, ASTNode ast, RAny arg) {
+    public static RString genericAsString(ASTNode ast, RAny arg) {
         if (!(arg instanceof RList)) {
             return (RString) arg.asString().stripAttributes();
         } else {
@@ -170,7 +170,7 @@ public class Cast {
                 return RString.RStringFactory.getFor(content);
             } else {
                 StringBuilder str = new StringBuilder();
-                listAsString(context, ast, str, list, true);
+                listAsString(ast, str, list, true);
                 return RString.RStringFactory.getScalar(str.toString());
             }
         }
@@ -180,8 +180,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsString(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsString(ast, arg);
                         }
 
                         @Override
@@ -191,7 +191,7 @@ public class Cast {
                     });
 
     // complex
-    public static RAny genericAsComplex(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsComplex(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             warn.naIntroduced = false;
             RList l = (RList) arg;
@@ -220,11 +220,11 @@ public class Cast {
                 }
             }
             if (warn.naIntroduced) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             return RComplex.RComplexFactory.getFor(content); // drop attributes
         } else {
-            return Convert.coerceToComplexWarning(arg, context, ast).stripAttributes();
+            return Convert.coerceToComplexWarning(arg, ast).stripAttributes();
         }
     }
 
@@ -232,8 +232,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsComplex(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsComplex(ast, arg);
                         }
 
                         @Override
@@ -243,7 +243,7 @@ public class Cast {
                     });
 
     // double
-    public static RAny genericAsDouble(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsDouble(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             warn.naIntroduced = false;
             RList l = (RList) arg;
@@ -269,11 +269,11 @@ public class Cast {
                 }
             }
             if (warn.naIntroduced) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             return RDouble.RDoubleFactory.getFor(content); // drop attributes
         } else {
-            return Convert.coerceToDoubleWarning(arg, context, ast).stripAttributes();
+            return Convert.coerceToDoubleWarning(arg, ast).stripAttributes();
         }
     }
 
@@ -281,8 +281,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsDouble(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsDouble(ast, arg);
                         }
 
                         @Override
@@ -292,7 +292,7 @@ public class Cast {
                     });
 
     // int
-    public static RAny genericAsInt(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsInt(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             warn.naIntroduced = false;
             RList l = (RList) arg;
@@ -318,11 +318,11 @@ public class Cast {
                 }
             }
             if (warn.naIntroduced) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             return RInt.RIntFactory.getFor(content); // drop attributes
         } else {
-            return Convert.coerceToIntWarning(arg, context, ast).stripAttributes();
+            return Convert.coerceToIntWarning(arg, ast).stripAttributes();
         }
     }
 
@@ -330,8 +330,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsInt(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsInt(ast, arg);
                         }
 
                         @Override
@@ -341,7 +341,7 @@ public class Cast {
                     });
 
     // logical
-    public static RAny genericAsLogical(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsLogical(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             RList l = (RList) arg;
             int size = l.size();
@@ -375,8 +375,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsLogical(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsLogical(ast, arg);
                         }
 
                         @Override
@@ -386,7 +386,7 @@ public class Cast {
                     });
 
     // raw
-    public static RAny genericAsRaw(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsRaw(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             warn.outOfRange = false;
             warn.naIntroduced = false;
@@ -415,17 +415,17 @@ public class Cast {
                 }
             }
             if (warn.naIntroduced) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
+                RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
             }
             if (warn.naIntroduced) {
-                context.warning(ast, RError.NA_INTRODUCED_COERCION);
-                context.warning(ast, RError.OUT_OF_RANGE);
+                RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
+                RContext.warning(ast, RError.OUT_OF_RANGE);
             } else if (warn.outOfRange) {
-                context.warning(ast, RError.OUT_OF_RANGE);
+                RContext.warning(ast, RError.OUT_OF_RANGE);
             }
             return RRaw.RRawFactory.getFor(content); // drop attributes
         } else {
-            return Convert.coerceToRawWarning(arg, context, ast).stripAttributes();
+            return Convert.coerceToRawWarning(arg, ast).stripAttributes();
         }
     }
 
@@ -433,8 +433,8 @@ public class Cast {
                     new Operation() {
 
                         @Override
-                        public RAny genericCast(RContext context, ASTNode ast, RAny arg) {
-                            return genericAsRaw(context, ast, arg);
+                        public RAny genericCast(ASTNode ast, RAny arg) {
+                            return genericAsRaw(ast, arg);
                         }
 
                         @Override
@@ -445,14 +445,14 @@ public class Cast {
 
     private static final String[] asVectorParamNames = new String[]{"x", "mode"};
 
-    public static RAny genericAsVector(RContext context, ASTNode ast, RAny arg) {
+    public static RAny genericAsVector(ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             return arg; // is it a bug of GNU-R that list attributes are not stripped?
         }
         return arg.stripAttributes();
     }
 
-    public static RAny genericAsVector(RContext context, ASTNode ast, RAny arg0, RAny arg1) {
+    public static RAny genericAsVector(ASTNode ast, RAny arg0, RAny arg1) {
         if (!(arg1 instanceof RString)) {
             throw RError.getInvalidMode(ast);
         }
@@ -463,25 +463,25 @@ public class Cast {
         String mode = ms.getString(0);
 
         if (mode.equals("any")) {
-            return genericAsVector(context, ast, arg0);
+            return genericAsVector(ast, arg0);
         }
         if (mode.equals("integer")) {
-            return genericAsInt(context, ast, arg0);
+            return genericAsInt(ast, arg0);
         }
         if (mode.equals("numeric") || mode.equals("double")) {
-            return genericAsDouble(context, ast, arg0);
+            return genericAsDouble(ast, arg0);
         }
         if (mode.equals("logical")) {
-            return genericAsLogical(context, ast, arg0);
+            return genericAsLogical(ast, arg0);
         }
         if (mode.equals("list")) {
-            return genericAsList(context, ast, arg0);
+            return genericAsList(ast, arg0);
         }
         if (mode.equals("character")) {
-            return genericAsString(context, ast, arg0);
+            return genericAsString(ast, arg0);
         }
         if (mode.equals("raw")) {
-            return genericAsRaw(context, ast, arg0);
+            return genericAsRaw(ast, arg0);
         }
         Utils.nyi("unsupported mode");
         return null;
@@ -500,8 +500,8 @@ public class Cast {
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
-                        return genericAsVector(context, ast, arg);
+                    public final RAny doBuiltIn(Frame frame, RAny arg) {
+                        return genericAsVector(ast, arg);
                     }
 
                 };
@@ -521,9 +521,9 @@ public class Cast {
             return new BuiltIn.BuiltIn2(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg0, RAny arg1) {
+                public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                     final boolean xfirst = paramPositions[IX] == 0;
-                    return genericAsVector(context, ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                    return genericAsVector(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                 }
             };
         }

@@ -83,6 +83,8 @@ public abstract class RError extends RuntimeException {
     public static final String NO_ENCLOSING_ENVIRONMENT = "no enclosing environment";
     public static final String ASSIGN_EMPTY = "cannot assign values in the empty environment";
     public static final String ARGUMENT_NOT_MATRIX = "argument is not a matrix";
+    public static final String DOLLAR_ATOMIC_VECTORS = "$ operator is invalid for atomic vectors";
+    public static final String COERCING_LHS_TO_LIST = "Coercing LHS to a list";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -106,10 +108,6 @@ public abstract class RError extends RuntimeException {
     public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
     public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
     public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
-
-    public static final String DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT = "$ operator is invalid for atomic vectors";
-
-    public static final String COERCING_LHS_TO_LIST = "Coercing LHS to a list";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -1004,14 +1002,14 @@ public abstract class RError extends RuntimeException {
         };
     }
 
-    public static RError getDollarSelectionRequiresRecursiveObject(ASTNode source) {
+    public static RError getDollarAtomicVectors(ASTNode source) {
         return new RErrorInExpr(source) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getMessage() {
-                return RError.DOLLAR_SELECTION_REQUIRES_RECURSIVE_OBJECT;
+                return RError.DOLLAR_ATOMIC_VECTORS;
             }
         };
     }

@@ -36,7 +36,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public final RAny execute(RContext context, Frame frame) {
+        public final RAny execute(Frame frame) {
             throw BreakException.instance;
         }
     }
@@ -47,7 +47,7 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public final RAny execute(RContext context, Frame frame) {
+        public final RAny execute(Frame frame) {
             throw ContinueException.instance;
         }
     }
@@ -58,12 +58,12 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public final RAny execute(RContext context, Frame frame) {
+        public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering repeat loop");
                 for (;;) {
                     try {
-                        body.execute(context, frame);
+                        body.execute(frame);
                     } catch (ContinueException ce) {
                         if (DEBUG_LO) Utils.debug("loop - repeat loop received continue exception");
                     }
@@ -85,19 +85,19 @@ public abstract class Loop extends BaseR {
         }
 
         @Override
-        public final RAny execute(RContext context, Frame frame) {
+        public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering while loop");
                 for (;;) {
                     try {
                         int condVal;
                         try {
-                            condVal = cond.executeScalarLogical(context, frame);
+                            condVal = cond.executeScalarLogical(frame);
                         } catch (UnexpectedResultException e) {
                             RAny result = (RAny) e.getResult();
                             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                             replaceChild(cond, castNode);
-                            condVal = castNode.executeScalarLogical(context, result);
+                            condVal = castNode.executeScalarLogical(result);
                         }
                         if (condVal == RLogical.FALSE) {
                             break;
@@ -105,7 +105,7 @@ public abstract class Loop extends BaseR {
                         if (condVal == RLogical.NA) {
                             throw RError.getUnexpectedNA(ast);
                         }
-                        body.execute(context, frame);
+                        body.execute(frame);
                     } catch (ContinueException ce) {
                         if (DEBUG_LO) Utils.debug("loop - while loop received continue exception");
                     }
@@ -136,7 +136,7 @@ public abstract class Loop extends BaseR {
             }
 
             @Override
-            public RAny execute(RContext context, Frame frame) {
+            public RAny execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -151,7 +151,7 @@ public abstract class Loop extends BaseR {
                         dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
                     }
                     replace(sn, dbg);
-                    return sn.execute(context, frame);
+                    return sn.execute(frame);
                 }
             }
 
@@ -161,8 +161,8 @@ public abstract class Loop extends BaseR {
                 }
 
                 @Override
-                public final RAny execute(RContext context, Frame frame) {
-                    RAny rval = (RAny) range.execute(context, frame);
+                public final RAny execute(Frame frame) {
+                    RAny rval = (RAny) range.execute(frame);
                     try {
                         if (!(rval instanceof IntImpl.RIntSequence)) {
                             throw new UnexpectedResultException(null);
@@ -170,7 +170,7 @@ public abstract class Loop extends BaseR {
                         IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
                         int size = sval.size();
                         try {
-                            return execute(context, frame, sval, size);
+                            return execute(frame, sval, size);
                         } catch (BreakException be) { }
                     } catch (UnexpectedResultException e) {
                         Generic gn;
@@ -180,18 +180,18 @@ public abstract class Loop extends BaseR {
                             gn = Generic.create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
                         }
                         replace(gn, "install Generic from IntSequenceRange");
-                        return gn.execute(context, frame, rval);
+                        return gn.execute(frame, rval);
                     }
                     return RNull.getNull();
                 }
 
-                public abstract RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size);
+                public abstract RAny execute(Frame frame, IntImpl.RIntSequence sval, int size);
             }
 
             public static Specialized createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
-                    public final RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
+                    public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -199,7 +199,7 @@ public abstract class Loop extends BaseR {
                             for (int i = from;; i += step) {
                                 RFrameHeader.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
-                                    body.execute(context, frame);
+                                    body.execute(frame);
                                 } catch (ContinueException ce) { }
                                 if (i == to) {
                                     break;
@@ -214,7 +214,7 @@ public abstract class Loop extends BaseR {
             public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
-                    public final RAny execute(RContext context, Frame frame, IntImpl.RIntSequence sval, int size) {
+                    public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -223,7 +223,7 @@ public abstract class Loop extends BaseR {
                                 // no ref needed because scalars do not have reference counts
                                 RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
                                 try {
-                                    body.execute(context, frame);
+                                    body.execute(frame);
                                 } catch (ContinueException ce) { }
                                 if (i == to) {
                                     break;
@@ -244,12 +244,12 @@ public abstract class Loop extends BaseR {
             }
 
             @Override
-            public final RAny execute(RContext context, Frame frame) {
-                RAny rval = (RAny) range.execute(context, frame);
-                return execute(context, frame, rval);
+            public final RAny execute(Frame frame) {
+                RAny rval = (RAny) range.execute(frame);
+                return execute(frame, rval);
             }
 
-            public RAny execute(RContext context, Frame frame, RAny rval) {
+            public RAny execute(Frame frame, RAny rval) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
@@ -263,14 +263,14 @@ public abstract class Loop extends BaseR {
                         dbg = "install Generic from Generic (uninitialized)";
                     }
                     replace(gn, dbg);
-                    return gn.execute(context, frame, rval);
+                    return gn.execute(frame, rval);
                 }
             }
 
             public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
-                    public final RAny execute(RContext context, Frame frame, RAny rval) {
+                    public final RAny execute(Frame frame, RAny rval) {
                         if (!(rval instanceof RArray)) {
                             throw RError.getInvalidForSequence(ast);
                         }
@@ -281,7 +281,7 @@ public abstract class Loop extends BaseR {
                                 RAny vvalue = arange.boxedGet(i);
                                 RFrameHeader.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
-                                    body.execute(context, frame);
+                                    body.execute(frame);
                                 } catch (ContinueException ce) { }
                             }
                         } catch (BreakException be) { }
@@ -293,7 +293,7 @@ public abstract class Loop extends BaseR {
             public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
-                    public final RAny execute(RContext context, Frame frame, RAny rval) {
+                    public final RAny execute(Frame frame, RAny rval) {
                         if (!(rval instanceof RArray)) {
                             throw RError.getInvalidForSequence(ast);
                         }
@@ -304,7 +304,7 @@ public abstract class Loop extends BaseR {
                                 RAny vvalue = arange.boxedGet(i);
                                 RFrameHeader.writeAtRef(frame, slot, vvalue);
                                 try {
-                                    body.execute(context, frame);
+                                    body.execute(frame);
                                 } catch (ContinueException ce) { }
                             }
                         } catch (BreakException be) { }

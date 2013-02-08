@@ -15,7 +15,7 @@ import r.nodes.truffle.*;
 
 public class OpenConnection {
 
-    public static String getScalarString(RAny arg, RContext context, ASTNode ast, String argName) {
+    public static String getScalarString(RAny arg, ASTNode ast, String argName) {
         if (arg instanceof RString) {
             RString s = (RString) arg;
             if (s.size() == 1) {
@@ -31,7 +31,7 @@ public class OpenConnection {
         public abstract Connection createUnopened(String description, ConnectionMode defaultMode);
         public abstract Connection createOpened(String description, ConnectionMode mode, ASTNode ast);
 
-        public RInt open(String description, String open, RContext context, ASTNode ast) {
+        public RInt open(String description, String open, ASTNode ast) {
             if (description.length() == 0) {
                 Utils.nyi("temporary file");
             }
@@ -47,7 +47,7 @@ public class OpenConnection {
                 con = createOpened(description, mode, ast);
             }
 
-            int handle = context.allocateConnection(con);
+            int handle = RContext.allocateConnection(con);
             if (handle != -1) {
                 return RInt.RIntFactory.getScalar(handle); // TODO: set proper attributes, class
             } else {
@@ -95,12 +95,12 @@ public class OpenConnection {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    String description = provided[IDESCRIPTION] ? getScalarString(args[paramPositions[IDESCRIPTION]], context, ast, fileParamNames[IDESCRIPTION]) : "";
-                    String open = provided[IOPEN] ? getScalarString(args[paramPositions[IOPEN]], context, ast, fileParamNames[IOPEN]) : "";
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                    String description = provided[IDESCRIPTION] ? getScalarString(args[paramPositions[IDESCRIPTION]], ast, fileParamNames[IDESCRIPTION]) : "";
+                    String open = provided[IOPEN] ? getScalarString(args[paramPositions[IOPEN]], ast, fileParamNames[IOPEN]) : "";
                     // FIXME: support additional arguments
 
-                    return OPEN_FILE.open(description, open, context, ast);
+                    return OPEN_FILE.open(description, open, ast);
                 }
             };
         }
@@ -145,12 +145,12 @@ public class OpenConnection {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] args) {
-                    String description = provided[IDESCRIPTION] ? getScalarString(args[paramPositions[IDESCRIPTION]], context, ast, pipeParamNames[IDESCRIPTION]) : "";
-                    String open = provided[IOPEN] ? getScalarString(args[paramPositions[IOPEN]], context, ast, fileParamNames[IOPEN]) : "";
+                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                    String description = provided[IDESCRIPTION] ? getScalarString(args[paramPositions[IDESCRIPTION]], ast, pipeParamNames[IDESCRIPTION]) : "";
+                    String open = provided[IOPEN] ? getScalarString(args[paramPositions[IOPEN]], ast, fileParamNames[IOPEN]) : "";
                     // FIXME: support additional arguments
 
-                    return OPEN_PIPE.open(description, open, context, ast);
+                    return OPEN_PIPE.open(description, open, ast);
                 }
             };
         }

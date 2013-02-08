@@ -34,18 +34,18 @@ public class ReadMatrix extends BaseR {
     }
 
     @Override
-    public Object execute(RContext context, Frame frame) {
-        RAny matrix = (RAny) matrixExpr.execute(context, frame);
-        Selector selI = selIExpr.executeSelector(context, frame);
-        Selector selJ = selJExpr.executeSelector(context, frame);
-        int drop = dropExpr.executeLogical(context, frame);  // FIXME: what is the correct execution order of these args?
-        int exact = exactExpr.executeLogical(context, frame);
+    public Object execute(Frame frame) {
+        RAny matrix = (RAny) matrixExpr.execute(frame);
+        Selector selI = selIExpr.executeSelector(frame);
+        Selector selJ = selJExpr.executeSelector(frame);
+        int drop = dropExpr.executeLogical(frame);  // FIXME: what is the correct execution order of these args?
+        int exact = exactExpr.executeLogical(frame);
 
-        return execute(context, matrix, selI, selJ, drop, exact);
+        return execute(matrix, selI, selJ, drop, exact);
     }
 
     // FIXME: could be specialized by matrix type to remove some boxing, virtual calls
-    public Object execute(RContext context, RAny matrix, Selector selI, Selector selJ, int drop, int exact) {
+    public Object execute(RAny matrix, Selector selI, Selector selJ, int drop, int exact) {
         if (!(matrix instanceof RArray)) {
             Utils.nyi("unsupported base");
             // TODO: ERROR object of type 'XXX' is not subsettable
@@ -64,29 +64,29 @@ public class ReadMatrix extends BaseR {
 
         for (;;) {
             try {
-                return execute(context, base, m, n, selectorI, selectorJ, drop, exact);
+                return execute(base, m, n, selectorI, selectorJ, drop, exact);
             } catch (UnexpectedResultException e) {
                 Selector failedSelector = (Selector) e.getResult();
                 if (failedSelector == selectorI) {
                     if (DEBUG_M) Utils.debug("Selector I failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorI.getIndex();
                     replaceChild(selIExpr, createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
-                    selectorI = selIExpr.executeSelector(context, index);
+                    selectorI = selIExpr.executeSelector(index);
                 } else {
                     // failedSelector == selectorJ
                     if (DEBUG_M) Utils.debug("Selector J failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorJ.getIndex();
                     replaceChild(selJExpr, createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
-                    selectorJ = selJExpr.executeSelector(context, index);
+                    selectorJ = selJExpr.executeSelector(index);
                 }
                 continue;
             }
         }
     }
 
-    public Object execute(RContext context, RArray base, int m, int n, Selector selI, Selector selJ, int drop, int exact) throws UnexpectedResultException {
-        selI.start(m, context, ast);
-        selJ.start(n, context, ast);
+    public Object execute(RArray base, int m, int n, Selector selI, Selector selJ, int drop, int exact) throws UnexpectedResultException {
+        selI.start(m, ast);
+        selJ.start(n, ast);
         int nm = selI.size();
         int nn = selJ.size();
         int nsize = nm * nn;
@@ -99,12 +99,12 @@ public class ReadMatrix extends BaseR {
         RArray res = Utils.createArray(base, nsize, ndim, null);
 
         for (int ni = 0; ni < nm; ni++) {
-            int i = selI.nextIndex(context, ast);
+            int i = selI.nextIndex(ast);
             if (i != RInt.NA) {
                 selJ.restart();
                 for (int nj = 0; nj < nn; nj++) {
                     int offset = nj * nm + ni;
-                    int j = selJ.nextIndex(context, ast);
+                    int j = selJ.nextIndex(ast);
                     if (j != RInt.NA) {
                         Object value;
                         value = base.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
@@ -132,10 +132,10 @@ public class ReadMatrix extends BaseR {
         public Transition getTransition() {
             return null;
         }
-        public abstract void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException;
+        public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
         public abstract void restart();
         public abstract int size();
-        public abstract int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException;
+        public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
         public abstract boolean isConstant();
     }
 
@@ -145,7 +145,7 @@ public class ReadMatrix extends BaseR {
         private int last = -1;
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
+        public void start(int dataSize, ASTNode ast) {
             size = dataSize;
             last = 0;
         }
@@ -161,7 +161,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) { // zero-based
+        public int nextIndex(ASTNode ast) { // zero-based
             return last++;
         }
 
@@ -180,7 +180,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
+        public void start(int dataSize, ASTNode ast) {
             if (index > dataSize) {
                 throw RError.getSubscriptBounds(ast);
             }
@@ -195,7 +195,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) {
+        public int nextIndex(ASTNode ast) {
             return index;
         }
 
@@ -228,7 +228,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
+        public void start(int dataSize, ASTNode ast) {
             this.dataSize = dataSize;
             offset = 0;
             transition = null;
@@ -245,7 +245,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             int value = index.getInt(offset++);
             if (value > 0) {
                 value--;
@@ -292,7 +292,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException {
+        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             if (index.size() == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
@@ -318,7 +318,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
@@ -345,7 +345,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) throws UnexpectedResultException {
+        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             int isize = index.size();
             if (isize == 1) {
                 int i = index.getInt(0);
@@ -380,7 +380,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
@@ -406,7 +406,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
+        public void start(int dataSize, ASTNode ast) {
 
             boolean hasNA = false;
             boolean hasNegative = false;
@@ -491,7 +491,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) {
+        public int nextIndex(ASTNode ast) {
             if (positiveSelection) {
                 int i = index.getInt(offset++);
                 while (i == 0) {
@@ -535,7 +535,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public void start(int dataSize, RContext context, ASTNode ast) {
+        public void start(int dataSize, ASTNode ast) {
             offset = 0;
             indexOffset = 0;
 
@@ -573,7 +573,7 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public int nextIndex(RContext context, ASTNode ast) {
+        public int nextIndex(ASTNode ast) {
             for (;;) {
                 int v = index.getLogical(indexOffset);
                 if (!reuse) {
@@ -615,12 +615,12 @@ public class ReadMatrix extends BaseR {
         return new SelectorNode(ast, child) {
 
             @Override
-            public Selector executeSelector(RContext context, Frame frame) {
+            public Selector executeSelector(Frame frame) {
                 return selector;
             }
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 return selector;
             }
         };
@@ -635,18 +635,18 @@ public class ReadMatrix extends BaseR {
             }
         }
         if (node.getAST() instanceof r.nodes.Constant) {
-            RAny index = (RAny) node.execute(null, null);
+            RAny index = (RAny) node.execute(null);
             return createSelectorNode(ast, subset, index, node, true, null);
         }
         return new SelectorNode(ast, node) {
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     SelectorNode sn = createSelectorNode(ast, subset, index, child, false, null);
                     replace(sn, "install SelectorNode from Uninitialized");
-                    return sn.executeSelector(context, index);
+                    return sn.executeSelector(index);
                 }
             }
 
@@ -733,7 +733,7 @@ public class ReadMatrix extends BaseR {
         return new SelectorNode(ast, child) {
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -744,7 +744,7 @@ public class ReadMatrix extends BaseR {
                     if (DEBUG_M) Utils.debug("SimpleNumericSubsetSelector failed in SelectorNode.execute (unexpected type), replacing.");
                     SelectorNode gn = createGenericSubsetSelectorNode(ast, child);
                     replace(gn, "install GenericSubsetSelectorNode from SimpleNumericSubsetSelectorNode");
-                    return gn.executeSelector(context, index);
+                    return gn.executeSelector(index);
                 }
             }
         };
@@ -755,7 +755,7 @@ public class ReadMatrix extends BaseR {
         return new SelectorNode(ast, child) {
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -766,7 +766,7 @@ public class ReadMatrix extends BaseR {
                     if (DEBUG_M) Utils.debug("SimpleSubscriptSelector failed in SelectorNode.execute (unexpected type), replacing.");
                     SelectorNode gn = createGenericSubscriptSelectorNode(ast, child);
                     replace(gn, "install GenericSubscriptSelectorNode from SimpleSubscriptSelectorNode");
-                    return gn.executeSelector(context, index);
+                    return gn.executeSelector(index);
                 }
             }
         };
@@ -777,7 +777,7 @@ public class ReadMatrix extends BaseR {
         return new SelectorNode(ast, child) {
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -788,7 +788,7 @@ public class ReadMatrix extends BaseR {
                     if (DEBUG_M) Utils.debug("SimpleScalarNumericSelector failed in SelectorNode.execute (unexpected type), replacing.");
                     SelectorNode gn = createSimpleNumericSubsetSelectorNode(ast, child);
                     replace(gn, "install SimpleNumericSubsetSelectorNode from SimpleScalarNumericSubsetSelectorNode");
-                    return gn.executeSelector(context, index);
+                    return gn.executeSelector(index);
                 }
             }
         };
@@ -801,7 +801,7 @@ public class ReadMatrix extends BaseR {
             final GenericLogicalSubsetSelector logicalSelector = new GenericLogicalSubsetSelector();
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble) {
                     numericSelector.setIndex(index.asInt());
                     return numericSelector;
@@ -822,7 +822,7 @@ public class ReadMatrix extends BaseR {
         return new SelectorNode(ast, child) {
 
             @Override
-            public Selector executeSelector(RContext context, RAny index) {
+            public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
                     selector.setIndex(index.asInt());
                     return selector;
@@ -842,25 +842,25 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
 
-        public Selector executeSelector(RContext context, Frame frame) {
-            RAny index = (RAny) child.execute(context, frame);
-            return executeSelector(context, index);
+        public Selector executeSelector(Frame frame) {
+            RAny index = (RAny) child.execute(frame);
+            return executeSelector(index);
 
         }
 
-        public abstract Selector executeSelector(RContext context, RAny index);
+        public abstract Selector executeSelector(RAny index);
     }
 
     public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
         return new OptionNode(ast) {
 
             @Override
-            public int executeLogical(RContext context, Frame frame) {
+            public int executeLogical(Frame frame) {
                 return value;
             }
         };
@@ -871,7 +871,7 @@ public class ReadMatrix extends BaseR {
             return createConstantOptionNode(ast, defaultValue);
         }
         if (node.getAST() instanceof r.nodes.Constant) {
-            RAny value = (RAny) node.execute(null, null);
+            RAny value = (RAny) node.execute(null);
             return createConstantOptionNode(ast, value.asLogical().getLogical(0));
         }
         return new OptionNode(ast) {
@@ -879,8 +879,8 @@ public class ReadMatrix extends BaseR {
             @Child RNode child = adoptChild(node);
 
             @Override
-            public int executeLogical(RContext context, Frame frame) {
-                RAny value = (RAny) child.execute(context, frame);
+            public int executeLogical(Frame frame) {
+                RAny value = (RAny) child.execute(frame);
                 return value.asLogical().getLogical(0);
             }
 
@@ -902,11 +902,11 @@ public class ReadMatrix extends BaseR {
         }
 
         @Override
-        public Object execute(RContext context, Frame frame) {
+        public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
 
-        public abstract int executeLogical(RContext context, Frame frame);
+        public abstract int executeLogical(Frame frame);
     }
 }

@@ -170,7 +170,7 @@ public class Cat {
                 return new BuiltIn.BuiltIn0(call, names, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(Frame frame) {
                         return RNull.getNull();
                     }
 
@@ -186,14 +186,14 @@ public class Cat {
             return new BuiltIn(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                public final RAny doBuiltIn(Frame frame, RAny[] params) {
                     // assume we are only printing strings and separator is an empty (single-element) string
                     try {
                         catStrings(stdOut, params, sepPosition, ast);
                     } catch (UnexpectedResultException e) {
                         RNode generic = new BuiltIn(ast, argNames, argExprs) {
                             @Override
-                            public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+                            public final RAny doBuiltIn(Frame frame, RAny[] params) {
                                 genericCat(stdOut, params, sepPosition, ast);
                                 return RNull.getNull();
                             }

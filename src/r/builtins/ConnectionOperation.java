@@ -22,17 +22,17 @@ public class ConnectionOperation {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public final RAny doBuiltIn(Frame frame, RAny arg) {
                     if (arg instanceof RInt) {
                         RInt iarg = (RInt) arg;
                         if (iarg.size() == 1) {
                             int cindex = iarg.getInt(0);
-                            Connection con = context.getConnection(cindex);
+                            Connection con = RContext.getConnection(cindex);
                             if (con != null) {
                                 if (con.isOpen()) {
                                     con.close(ast);
                                 }
-                                context.freeConnection(cindex);
+                                RContext.freeConnection(cindex);
                                 return RNull.getNull();
                             } else {
                                 throw RError.getInvalidConnection(ast);
@@ -56,12 +56,12 @@ public class ConnectionOperation {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(RContext context, Frame frame, RAny arg) {
+                public final RAny doBuiltIn(Frame frame, RAny arg) {
                     if (arg instanceof RInt) {
                         RInt iarg = (RInt) arg;
                         if (iarg.size() == 1) {
                             int cindex = iarg.getInt(0);
-                            Connection con = context.getConnection(cindex);
+                            Connection con = RContext.getConnection(cindex);
                             if (con != null) {
                                 con.flush(ast);
                                 return RNull.getNull();

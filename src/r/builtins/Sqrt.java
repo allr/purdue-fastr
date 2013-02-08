@@ -21,7 +21,7 @@ public class Sqrt {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(final RContext context, Frame frame, RAny arg) {
+                public final RAny doBuiltIn(Frame frame, RAny arg) {
                     RDouble typedArg;
 
                     if (arg instanceof RDouble) {
@@ -42,7 +42,7 @@ public class Sqrt {
                             } else {
                                 double res = Math.sqrt(d);
                                 if (RDouble.RDoubleUtils.isNAorNaN(res)) {
-                                    context.warning(ast, RError.NAN_PRODUCED);
+                                    RContext.warning(ast, RError.NAN_PRODUCED);
                                 }
                                 return res;
                             }

@@ -207,7 +207,7 @@ public class Combine {
         return new BuiltIn(ast, names, exprs) {
 
             @Override
-            public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+            public final RAny doBuiltIn(Frame frame, RAny[] params) {
                 return genericCombine(names, params);
             }
         };
@@ -221,7 +221,7 @@ public class Combine {
     }
 
     public abstract static class CombineAction {
-        public abstract RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException;
+        public abstract RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException;
     }
 
     public static class Specialized extends BuiltIn {
@@ -239,7 +239,7 @@ public class Combine {
         public static Specialized createTransition(ASTNode ast, RSymbol[] names, RNode[] exprs, final Transition t) {
             CombineAction a = new CombineAction() {
                 @Override
-                public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                     throw new UnexpectedResultException(t);
                 }
             };
@@ -253,7 +253,7 @@ public class Combine {
             if (typeTemplate instanceof ScalarStringImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         String[] content = new String[size];
                         for (int i = 0; i < size; i++) {
@@ -271,7 +271,7 @@ public class Combine {
             if (typeTemplate instanceof ScalarDoubleImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
@@ -289,7 +289,7 @@ public class Combine {
             if (typeTemplate instanceof ScalarIntImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
@@ -307,7 +307,7 @@ public class Combine {
             if (typeTemplate instanceof ScalarLogicalImpl) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
@@ -333,7 +333,7 @@ public class Combine {
             if (typeTemplate instanceof RDouble) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
@@ -360,7 +360,7 @@ public class Combine {
             if (typeTemplate instanceof RInt) {
                 CombineAction a = new CombineAction() {
                     @Override
-                    public final RAny combine(RContext context, Frame frame, RAny[] params) throws UnexpectedResultException {
+                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
@@ -383,9 +383,9 @@ public class Combine {
             return createTransition(ast, names, exprs, Transition.GENERIC);
         }
         @Override
-        public final RAny doBuiltIn(RContext context, Frame frame, RAny[] params) {
+        public final RAny doBuiltIn(Frame frame, RAny[] params) {
             try {
-                return combine.combine(context, frame, params);
+                return combine.combine(frame, params);
             } catch (UnexpectedResultException e) {
                 Transition t = (Transition) e.getResult();
                 Specialized s = null;
@@ -393,7 +393,7 @@ public class Combine {
                     case SIMPLE_SCALARS:
                         s = createSimpleScalars(ast, argNames, argExprs, params[0]);
                         replace(s, "install SimpleScalars in Combine.Specialized");
-                        return s.doBuiltIn(context, frame, params);
+                        return s.doBuiltIn(frame, params);
 
                     case CASTING_SCALARS:
                         RAny res = genericCombine(argNames, params);
@@ -432,7 +432,7 @@ public class Combine {
                 return new BuiltIn.BuiltIn0(call, collapsedNames, exprs) {
 
                     @Override
-                    public final RAny doBuiltIn(RContext context, Frame frame) {
+                    public final RAny doBuiltIn(Frame frame) {
                         return RNull.getNull();
                     }
 

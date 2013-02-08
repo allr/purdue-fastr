@@ -14,17 +14,17 @@ public abstract class FunctionCall extends AbstractCall {
 
     final RNode callableExpr;
 
-    private static final boolean CAN_BYPASS_TRUFFLE = true;
-
-        // for profiling and testing only
-    private static final boolean ALWAYS_GENERIC_CALL = false;
-    private static final boolean ALWAYS_CACHED_GENERIC_FUNCTION_CALL = false;
-
-        // tuning, experiments
-    private static final boolean PREFER_GENERIC_CALL = false;  // use instead of cached generic function call
-
-    private static final boolean PREFER_SIMPLE_FUNCTION_CALL = false;   // use instead of trivial function call
-    private static final boolean PREFER_TRIVIAL_FUNCTION_CALL = false;  // use instead of cached callable trivial function call
+//    private static final boolean CAN_BYPASS_TRUFFLE = true;
+//
+//        // for profiling and testing only
+//    private static final boolean ALWAYS_GENERIC_CALL = false;
+//    private static final boolean ALWAYS_CACHED_GENERIC_FUNCTION_CALL = false;
+//
+//        // tuning, experiments
+//    private static final boolean PREFER_GENERIC_CALL = false;  // use instead of cached generic function call
+//
+//    private static final boolean PREFER_SIMPLE_FUNCTION_CALL = false;   // use instead of trivial function call
+//    private static final boolean PREFER_TRIVIAL_FUNCTION_CALL = false;  // use instead of cached callable trivial function call
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);
@@ -356,8 +356,8 @@ public abstract class FunctionCall extends AbstractCall {
         return new FunctionCall(ast, callableExpr, argNames, argExprs) {
 
             @Override
-            protected final Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
-                return placeArgs(context, callerFrame, func.nparams());
+            protected final Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
+                return placeArgs(callerFrame, func.nparams());
             }
         };
     }
@@ -373,15 +373,15 @@ public abstract class FunctionCall extends AbstractCall {
     };
 
     @Override
-    public Object execute(RContext context, Frame callerFrame) {
-        RCallable callable = (RCallable) callableExpr.execute(context, callerFrame);
+    public Object execute(Frame callerFrame) {
+        RCallable callable = (RCallable) callableExpr.execute(callerFrame);
         try {
             if (callable instanceof RClosure) {
                 // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
                 RClosure closure = (RClosure) callable;
                 RFunction function = closure.function();
                 MaterializedFrame enclosingFrame = closure.enclosingFrame();
-                Object[] argValues = matchParams(context, function, enclosingFrame, callerFrame);
+                Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
                 RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
                 return function.callTarget().call(arguments);
             } else {
@@ -390,7 +390,7 @@ public abstract class FunctionCall extends AbstractCall {
         } catch (UnexpectedResultException e) {
             GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
             replace(n, "install GenericCall from FunctionCall");
-            return generic(context, callerFrame, callable);
+            return generic(callerFrame, callable);
         }
     }
 
@@ -399,14 +399,14 @@ public abstract class FunctionCall extends AbstractCall {
     // TODO: get rid of this (a private function should do the trick)
 
     RNode dummyNode;
-    public Object generic(RContext context, Frame callerFrame, RCallable callable) {
+    public Object generic(Frame callerFrame, RCallable callable) {
         if (callable instanceof RClosure) {
             RClosure closure = (RClosure) callable;
             RFunction function = closure.function();
             MaterializedFrame enclosingFrame = closure.enclosingFrame();
             RSymbol[] argsNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-            int[] argPositions = computePositions(context, function, argsNames);
-            Object[] argValues = placeArgs(context, callerFrame, argPositions, argsNames, function.nparams());
+            int[] argPositions = computePositions(function, argsNames);
+            Object[] argValues = placeArgs(callerFrame, argPositions, argsNames, function.nparams());
             RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
             return function.callTarget().call(arguments);
         } else {
@@ -414,7 +414,7 @@ public abstract class FunctionCall extends AbstractCall {
             RBuiltIn builtIn = (RBuiltIn) callable;
             dummyNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
             // FIXME: adoptChild should not be used outside constructor, but we'll get rid of this, anyway
-            return dummyNode.execute(context, callerFrame); // yikes, this can be slow
+            return dummyNode.execute(callerFrame); // yikes, this can be slow
         }
     }
 
@@ -441,15 +441,15 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
         @Override
-        public Object execute(RContext context, Frame callerFrame) {
-            RCallable callable = (RCallable) callableExpr.execute(context, callerFrame);
+        public Object execute(Frame callerFrame) {
+            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             }
             if (callable == lastBuiltIn) {
-                return builtInNode.execute(context, callerFrame);
+                return builtInNode.execute(callerFrame);
             }
             if (callable instanceof RClosure) {
                 RClosure closure = (RClosure) callable;
@@ -457,13 +457,13 @@ public abstract class FunctionCall extends AbstractCall {
                 if (function != closureFunction) {
                     closureFunction = function;
                     functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                    functionArgPositions = computePositions(context, closureFunction, functionArgNames);
+                    functionArgPositions = computePositions(closureFunction, functionArgNames);
                     functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(context, callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             } else {
@@ -476,23 +476,23 @@ public abstract class FunctionCall extends AbstractCall {
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
-                return builtInNode.execute(context, callerFrame);
+                return builtInNode.execute(callerFrame);
             }
         }
     }
 
-    protected Object[] matchParams(RContext context, RFunction func, Frame parentFrame, Frame callerFrame) {
+    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
         return null;
     }
 
     // providedArgNames is an output parameter, it should be an array of argExprs.length nulls before the call
     // FIXME: what do we need the parameter for?
 
-    protected final int[] computePositions(final RContext context, final RFunction func, RSymbol[] usedArgNames) {
-        return computePositions(context, func.paramNames(), usedArgNames);
+    protected final int[] computePositions(final RFunction func, RSymbol[] usedArgNames) {
+        return computePositions(func.paramNames(), usedArgNames);
     }
 
-    protected final int[] computePositions(final RContext context, RSymbol[] paramNames, RSymbol[] usedArgNames) {
+    protected final int[] computePositions(RSymbol[] paramNames, RSymbol[] usedArgNames) {
 
         int nArgs = argExprs.length;
         int nParams = paramNames.length;
@@ -522,7 +522,7 @@ public abstract class FunctionCall extends AbstractCall {
                 }
                 if (nextParam == nParams) {
                     // TODO either error or ``...''
-                    context.error(getAST(), RError.UNUSED_ARGUMENT + " (" + argExprs[i].getAST() + ")");
+                    RContext.error(getAST(), RError.UNUSED_ARGUMENT + " (" + argExprs[i].getAST() + ")");
                 }
                 if (argExprs[i] != null) {
                     usedArgNames[i] = paramNames[nextParam]; // This is for now useless but needed for ``...''
@@ -551,13 +551,12 @@ public abstract class FunctionCall extends AbstractCall {
     /**
      * Displace args provided at the good position in the frame.
      *
-     * @param context The global context (needed for warning ... and for know for evaluate)
      * @param callerFrame The frame to evaluate exprs (it's the last argument, since with promises, it should be removed or at least changed)
      * @param positions Where arguments need to be displaced (-1 means ``...'')
      * @param names Names of extra arguments (...).
      */
     @ExplodeLoop
-    protected final Object[] placeArgs(RContext context, Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
+    protected final Object[] placeArgs(Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
 
         Object[] argValues = new Object[nparams];
         int i;
@@ -566,28 +565,28 @@ public abstract class FunctionCall extends AbstractCall {
             if (p >= 0) {
                 RNode v = argExprs[i];
                 if (v != null) {
-                    argValues[p] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                    argValues[p] = argExprs[i].execute(callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                 }
             } else {
                 // TODO add to ``...''
                 // Note that names[i] contains a key if needed
-                context.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
+                RContext.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
             }
         }
         return argValues;
     }
 
     @ExplodeLoop
-    protected final Object[] placeArgs(RContext context, Frame callerFrame, int nparams) {
+    protected final Object[] placeArgs(Frame callerFrame, int nparams) {
         Object[] argValues = new Object[nparams];
         int i = 0;
 
         for (; i < argExprs.length; i++) {
             if (i < nparams) {
-                argValues[i] = argExprs[i].execute(context, callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                argValues[i] = argExprs[i].execute(callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
             } else {
                 // TODO either error or ``...''
-                context.error(argExprs[i].getAST(), RError.UNUSED_ARGUMENT);
+                RContext.error(argExprs[i].getAST(), RError.UNUSED_ARGUMENT);
             }
         }
         return argValues;

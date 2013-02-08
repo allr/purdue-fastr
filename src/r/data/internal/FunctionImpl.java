@@ -86,7 +86,7 @@ public class FunctionImpl extends RootNode implements RFunction {
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {
-                    value = (RAny) n.execute(RContext.instance, frame); // TODO: get rid of the context
+                    value = (RAny) n.execute(frame); // TODO: get rid of the context
                     if (value != null) {
                         frame.setObject(paramSlots[i], value);
                         value.ref();
@@ -99,7 +99,7 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         Object res;
         try {
-            res = body.execute(RContext.instance, frame);
+            res = body.execute(frame);
         } catch (ReturnException re) {
             res = h.returnValue();
         }

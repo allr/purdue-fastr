@@ -33,7 +33,7 @@ public abstract class MatchCallable extends BaseR {
         }
     }
 
-    public static RCallable matchGeneric(ASTNode ast, RContext context, Frame frame, RSymbol symbol) {
+    public static RCallable matchGeneric(ASTNode ast, Frame frame, RSymbol symbol) {
         RCallable res = RFrameHeader.match(frame, symbol);
         if (res != null) {
             return res;
@@ -45,32 +45,32 @@ public abstract class MatchCallable extends BaseR {
     public static MatchCallable getUninitialized(ASTNode ast, RSymbol sym) {
         return new MatchCallable(ast, sym) {
 
-            private Object replaceAndExecute(MatchCallable node, String reason, RContext context, Frame frame) {
+            private Object replaceAndExecute(MatchCallable node, String reason, Frame frame) {
                 replace(node, reason);
-                return node.execute(context, frame);
+                return node.execute(frame);
             }
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
 
                     if (frame == null) {
-                        return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", context, frame);
+                        return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", frame);
                     }
 
                     FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
                     if (slot != null) {
-                        return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", context, frame);
+                        return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", frame);
                     }
 
                     ReadSetEntry rse = RFrameHeader.readSetEntry(frame, symbol);
                     if (rse == null) {
-                        return replaceAndExecute(getMatchTopLevel(ast, symbol), "installMatchTopLevel", context, frame);
+                        return replaceAndExecute(getMatchTopLevel(ast, symbol), "installMatchTopLevel", frame);
                     } else {
-                        return replaceAndExecute(getMatchEnclosing(ast, symbol, rse.hops, rse.slot), "installMatchEnclosing", context, frame);
+                        return replaceAndExecute(getMatchEnclosing(ast, symbol, rse.hops, rse.slot), "installMatchEnclosing", frame);
                     }
                 }
             }
@@ -81,7 +81,7 @@ public abstract class MatchCallable extends BaseR {
         return new MatchCallable(ast, symbol) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.matchViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
@@ -95,7 +95,7 @@ public abstract class MatchCallable extends BaseR {
         return new MatchCallable(ast, symbol) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.matchViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
@@ -111,7 +111,7 @@ public abstract class MatchCallable extends BaseR {
             int version;
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 RAny val; // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
@@ -142,7 +142,7 @@ public abstract class MatchCallable extends BaseR {
         return new MatchCallable(ast, symbol) {
 
             @Override
-            public final Object execute(RContext context, Frame frame) {
+            public final Object execute(Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
                 if (val == null || !(val instanceof RCallable)) {

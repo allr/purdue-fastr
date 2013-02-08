@@ -73,7 +73,7 @@ public class Abs {
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
                 @Override
-                public final RAny doBuiltIn(final RContext context, Frame frame, RAny arg) { // FIXME: turn this into node rewriting
+                public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting
                     if (arg instanceof ScalarDoubleImpl) {
                         return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble()));
                     }
