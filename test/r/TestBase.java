@@ -126,6 +126,25 @@ public class TestBase {
         Assert.assertTrue("Exception was thrown!", result.exception == null);
     }
 
+    // FIXME: this can be done without text capture, using Junit's rules and expectedException
+    // FIXME: note, ExpectedException cannot be overriden, but one can implement a MethodRule
+
+//  @Rule
+//  public ExpectedException thrown = ExpectedException.none();
+//
+//  @Test(expected = RError.class)
+//  public void testUnused1() throws RecognitionException {
+//      evalString("{ x<-function(){1} ; x(y=1) }");
+//      Assert.fail("Should not be reached");
+//  }
+//
+//  @Test(expected = RError.class)
+//  public void testUnused2() throws RecognitionException {
+//      evalString("{ x<-function(){1} ; x(1) }");
+//      Assert.fail("Should not be reached");
+//  }
+
+
     /** Asserts that given source evaluation results in an error being reported and the exception thrown.
      */
     static void assertEvalError(String input, String expectedError) throws RecognitionException {

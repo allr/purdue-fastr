@@ -180,8 +180,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"e\")]<-c(4,5) ; x }", "  a   b   c   d   e\n1.0 2.0 3.0 4.0 5.0");
         assertEval("{ x<-c(a=1,b=2,c=3) ; x[c(\"d\",\"a\",\"d\",\"a\")]<-c(4,5) ; x }", "  a   b   c   d\n5.0 2.0 3.0 4.0");
 
-        assertEval("{ a = c(1, 2); a[['a']] = 67; a; }", "           a\n1.0 2.0 67.0" );
-        assertEval("{ a = c(a=1,2,3); a[['x']] = 67; a; }","  a            x\n1.0 2.0 3.0 67.0");
+        assertEval("{ a = c(1, 2); a[['a']] = 67; a; }", "           a\n1.0 2.0 67.0");
+        assertEval("{ a = c(a=1,2,3); a[['x']] = 67; a; }", "  a            x\n1.0 2.0 3.0 67.0");
 
         assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[2:3] <- c(FALSE,FALSE); x }", "TRUE, FALSE, FALSE, TRUE");
         assertEval("{ x <- c(TRUE,TRUE,TRUE,TRUE); x[3:2] <- c(FALSE,TRUE); x }", "TRUE, TRUE, FALSE, TRUE");
@@ -201,6 +201,10 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- c(); x[c('a','b')] <- c('a','b'); x }", "  a   b\n\"a\" \"b\"");
         assertEval("{ x <- list(); x[c('a','b')] <- c('a','b'); x }", "$a\n\"a\"\n\n$b\n\"b\"");
         assertEval("{ x <- list(); x[c('a','b')] <- list('a','b'); x }", "$a\n\"a\"\n\n$b\n\"b\"");
+
+        // negative tests
+        assertEvalWarning("{ x = c(1,2,3,4); x[x %% 2 == 0] <- c(1,2,3,4); }", "1.0, 2.0, 3.0, 4.0", RError.NOT_MULTIPLE_REPLACEMENT);
+        assertEvalError("{ x <- 1:3 ; x[c(-2, 1)] <- 10 }", RError.ONLY_0_MIXED);
     }
 
     @Test
@@ -339,7 +343,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"zz\")]] <- 100 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n  x   y   z    zz\n1.0 2.0 3.0 100.0");
         assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\",\"z\")]] <- 100 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0\n\n$c$f\n  x   y     z\n1.0 2.0 100.0");
         assertEval("{ l<-list(a=1,b=2,c=list(d=1,e=2,f=c(x=1,y=2,z=3))) ; l[[c(\"c\",\"f\")]] <- NULL ; l }", "$a\n1.0\n\n$b\n2.0\n\n$c\n$c$d\n1.0\n\n$c$e\n2.0");
-        assertEval("{ l <- list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "$b\n2.0");
+        assertEval("{ l<-list(a=1,b=2,c=3) ; l[c(\"a\",\"a\",\"a\",\"c\")] <- NULL ; l }", "$b\n2.0");
         assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\",\"zz\")]] <- 100L ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n x  y  z   zz\n1L 2L 3L 100L");
         assertEval("{ l<-list(a=TRUE,b=FALSE,c=list(d=TRUE,e=FALSE,f=c(x=TRUE,y=FALSE,z=TRUE))) ; l[[c(\"c\",\"f\",\"zz\")]] <- TRUE ; l }", "$a\nTRUE\n\n$b\nFALSE\n\n$c\n$c$d\nTRUE\n\n$c$e\nFALSE\n\n$c$f\n   x     y    z   zz\nTRUE FALSE TRUE TRUE");
         assertEval("{ l<-list(a=\"a\",b=\"b\",c=list(d=\"cd\",e=\"ce\",f=c(x=\"cfx\",y=\"cfy\",z=\"cfz\"))) ; l[[c(\"c\",\"f\",\"zz\")]] <- \"cfzz\" ; l }", "$a\n\"a\"\n\n$b\n\"b\"\n\n$c\n$c$d\n\"cd\"\n\n$c$e\n\"ce\"\n\n$c$f\n    x     y     z     zz\n\"cfx\" \"cfy\" \"cfz\" \"cfzz\"");
@@ -356,11 +360,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ l <- list(1, list(2,3,4)) ;  m <- l ; l[[c(2,1)]] <- 3 ; m[[2]][[1]] }", "2.0");
         assertEval("{ x <- c(1L,2L,3L) ; l <- list(1) ; l[[1]] <- x ; x[2] <- 100L ; l[[1]] }", "1L, 2L, 3L");
         assertEval("{ l <- list(100) ; f <- function() { l[[1]] <- 2 } ; f() ; l }", "[[1]]\n100.0");
-        assertEval("{ l <- list(100,200,300,400,500) ; f <- function() { l[[3]] <- 2 } ; f() ; l }", "[[1]]\n100.0\n\n" +
-                "[[2]]\n200.0\n\n" +
-                "[[3]]\n300.0\n\n" +
-                "[[4]]\n400.0\n\n" +
-                "[[5]]\n500.0");
+        assertEval("{ l <- list(100,200,300,400,500) ; f <- function() { l[[3]] <- 2 } ; f() ; l }", "[[1]]\n100.0\n\n[[2]]\n200.0\n\n[[3]]\n300.0\n\n[[4]]\n400.0\n\n[[5]]\n500.0");
         assertEval("{ x <-2L ; y <- x; x[1] <- 211L ; y }", "2L");
         assertEval("{ f <- function() { l[1:2] <- x ; x[1] <- 211L  ; l[1] } ; l <- 1:3 ; x <- 10L ; f() }", "10L");
     }
@@ -437,5 +437,4 @@ public class TestSimpleVectors extends TestBase {
         // make sure that coercion returns warning
         assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
     }
-
 }

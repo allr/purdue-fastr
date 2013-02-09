@@ -289,5 +289,6 @@ def runittest(args, vmArgs, vm):
   """Run unit tests using the given VM""" 
   
   classes = gmod._find_classes_with_annotations(mx.project('fastr'), None, ['@Test', '@Parameters'])
+  print "Classes are: ", classes
   gmod.vm( ['-esa', '-ea', '-cp', mx.classpath('fastr')] + vmArgs + ['org.junit.runner.JUnitCore'] + classes, vm )
   

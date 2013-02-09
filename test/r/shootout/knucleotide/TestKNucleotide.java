@@ -11,7 +11,7 @@ public class TestKNucleotide extends ShootoutTestBase {
     public void testKNucleotide() {
         String inputFile = ".tmp.unit.knucleotide.input";
         generateFastaOutput(10, inputFile);
-        assertShootout("knucleotide", "knucleotide", "knucleotide", inputFile,
+        assertShootout("knucleotide", "knucleotide", inputFile,
                         "t 38\n" +
 "g 24\n" +
 "a 20\n" +

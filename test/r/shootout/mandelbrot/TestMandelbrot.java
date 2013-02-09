@@ -9,7 +9,12 @@ import r.shootout.*;
 public class TestMandelbrot extends ShootoutTestBase {
     @Test
     public void testMandelbrot() {
-        assertShootout("mandelbrot", "mandelbrot", 100, null, null, "NULL"); // TODO: check the output (its a binary output from a child process)
+
+        // TODO: this test spawns a child process, which then dumps binary data to standard output
+        //       figure out how (if?) the output could be captured by the harness
+        // assertShootout("mandelbrot", "mandelbrot", 100, null, null, "NULL");
+
+        // a modification of the benchmark that does produces an ascii output (and does not create a pipe)
         assertShootout("mandelbrot", "mandelbrot-ascii", 10,
                         "P4\n" +
                         "10 10 \n" +

@@ -10,7 +10,7 @@ public class TestRegexdna extends ShootoutTestBase {
     public void testRegexdna() {
         String inputFile = ".tmp.unit.regexdna.input";
         generateFastaOutput(1000, inputFile);
-        assertShootout("regexdna", "regexdna", "regexdna", inputFile,
+        assertShootout("regexdna", "regexdna", inputFile,
 "agggtaaa|tttaccct 7495 \n" +
 "[cgt]gggtaaa|tttaccc[acg] 0 \n" +
 "a[act]ggtaaa|tttacc[agt]t 0 \n" +

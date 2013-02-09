@@ -611,6 +611,12 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testOverride() throws RecognitionException {
+        assertEval("{ sub <- function(x,y) { x - y }; sub(10,5) }", "5.0");
+        assertEval("{ sub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague alley\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

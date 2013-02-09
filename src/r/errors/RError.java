@@ -2,14 +2,16 @@ package r.errors;
 
 import r.data.RSymbol;
 import r.nodes.ASTNode;
+import r.nodes.tools.*;
+import r.nodes.truffle.*;
 
 public abstract class RError extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+
     public static final String LENGTH_GT_1 = "the condition has length > 1 and only the first element will be used";
     public static final String LENGTH_ZERO = "argument is of length zero";
     public static final String NA_UNEXP = "missing value where TRUE/FALSE needed";
-    public static final String UNUSED_ARGUMENT = "unused argument(s)";
     public static final String LENGTH_NOT_MULTI = "longer object length is not a multiple of shorter object length";
     public static final String INTEGER_OVERFLOW = "NAs produced by integer overflow";
     public static final String NA_OR_NAN = "NA/NaN argument";
@@ -108,6 +110,7 @@ public abstract class RError extends RuntimeException {
     public static final String ATTRIBUTE_VECTOR_SAME_LENGTH = "'%s' attribute [%d] must be the same length as the vector [%d]";
     public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
     public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
+    public static final String UNUSED_ARGUMENT = "unused argument(s) (%s)"; // FIXME: GNU-R gives a list of all unused arguments
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -150,18 +153,6 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return NA_UNEXP;
-            }
-        };
-    }
-
-    public static RError getUnusedArgument(ASTNode expr) {
-        return new RErrorInExpr(expr) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getMessage() {
-                return UNUSED_ARGUMENT;
             }
         };
     }
@@ -990,6 +981,23 @@ public abstract class RError extends RuntimeException {
 
     public static RError getMustBeEnviron(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.MUST_BE_ENVIRON, argName));
+    }
+
+    public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {
+        StringBuilder msg = new StringBuilder();
+
+        if (argName != null || argExpr != null) {
+            if (argName != null) {
+                msg.append(argName.pretty());
+            }
+            if (argExpr != null) {
+                if (argName != null) {
+                    msg.append(" = ");
+                }
+                msg.append(PrettyPrinter.prettyPrint(argExpr.getAST()));
+            }
+        }
+        return getGenericError(ast, String.format(RError.UNUSED_ARGUMENT, msg));
     }
 
     public static RError getUnknownVariable(ASTNode source) {

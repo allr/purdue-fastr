@@ -122,9 +122,6 @@ public class TriangularPart {
                 };
             }
             // names.length == 2
-            if (!provided[IDIAG]) {
-                throw RError.getUnusedArgument(call); // FIXME: should say which argument
-            }
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
                 public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {

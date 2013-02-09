@@ -521,8 +521,8 @@ public abstract class FunctionCall extends AbstractCall {
                     nextParam++;
                 }
                 if (nextParam == nParams) {
-                    // TODO either error or ``...''
-                    RContext.error(getAST(), RError.UNUSED_ARGUMENT + " (" + argExprs[i].getAST() + ")");
+                    // TODO support ``...''
+                    throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
                 }
                 if (argExprs[i] != null) {
                     usedArgNames[i] = paramNames[nextParam]; // This is for now useless but needed for ``...''
@@ -568,7 +568,7 @@ public abstract class FunctionCall extends AbstractCall {
                     argValues[p] = argExprs[i].execute(callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                 }
             } else {
-                // TODO add to ``...''
+                // TODO support ``...''
                 // Note that names[i] contains a key if needed
                 RContext.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
             }
@@ -583,10 +583,11 @@ public abstract class FunctionCall extends AbstractCall {
 
         for (; i < argExprs.length; i++) {
             if (i < nparams) {
-                argValues[i] = argExprs[i].execute(callerFrame); // FIXME this is wrong ! We have to build a promise at this point and not evaluate
+                // TODO: create a promise here, instead
+                argValues[i] = argExprs[i].execute(callerFrame);
             } else {
-                // TODO either error or ``...''
-                RContext.error(argExprs[i].getAST(), RError.UNUSED_ARGUMENT);
+                // TODO support ``...''
+                throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
             }
         }
         return argValues;

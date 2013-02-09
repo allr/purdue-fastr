@@ -15,7 +15,8 @@ import r.parser.*;
 public class ShootoutTestBase {
 
     public static String sourceFilePath(String benchDir, String benchFileBase) {
-        return "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
+        String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
+        return prefix + "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
     }
 
     // shootouts that take integer size as input
@@ -25,7 +26,7 @@ public class ShootoutTestBase {
     }
 
     // shootouts that take input file name as input
-    public static void assertShootout(String benchDir, String benchFileBase, String functionName, String inputFileName, String expectedOutput, String expectedErrorOutput, String expectedResult) {
+    public static void assertShootout(String benchDir, String benchFileBase, String inputFileName, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
         assertRun(sourceFile, new String[] {"--args", inputFileName}, expectedOutput, expectedErrorOutput, expectedResult);
     }
