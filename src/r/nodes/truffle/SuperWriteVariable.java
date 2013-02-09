@@ -42,11 +42,11 @@ public abstract class SuperWriteVariable extends BaseR {
                         return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame);
                     }
 
-                    ReadSetEntry rse = RFrameHeader.readSetEntry(enclosingFrame, symbol);
-                    if (rse == null) {
+                    EnclosingSlot eslot = RFrameHeader.findEnclosingVariable(enclosingFrame, symbol);
+                    if (eslot == null) {
                         return replaceAndExecute(getWriteToTopLevel(ast, symbol, expr), "install WriteToTopLevel from SuperWriteVariable", frame);
                     } else {
-                        return replaceAndExecute(getWriteViaReadSet(ast, symbol, expr, rse.hops, rse.slot), "install WriteViaReadSet from SuperWriteVariable", frame);
+                        return replaceAndExecute(getWriteViaEnclosingSlot(ast, symbol, expr, eslot.hops, eslot.slot), "install WriteViaReadSet from SuperWriteVariable", frame);
                     }
                 }
             }
@@ -66,13 +66,13 @@ public abstract class SuperWriteVariable extends BaseR {
         };
     }
 
-    public static SuperWriteVariable getWriteViaReadSet(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
+    public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override
             public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
-                boolean done = RFrameHeader.superWriteViaReadSetAndTopLevel(enclosing, hops, slot, symbol, value);
+                boolean done = RFrameHeader.superWriteViaEnclosingSlotAndTopLevel(enclosing, hops, slot, symbol, value);
                 assert done;
                 return value;
             }

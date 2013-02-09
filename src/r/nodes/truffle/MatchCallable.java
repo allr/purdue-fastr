@@ -66,7 +66,7 @@ public abstract class MatchCallable extends BaseR {
                         return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", frame);
                     }
 
-                    ReadSetEntry rse = RFrameHeader.readSetEntry(frame, symbol);
+                    EnclosingSlot rse = RFrameHeader.readSetEntry(frame, symbol);
                     if (rse == null) {
                         return replaceAndExecute(getMatchTopLevel(ast, symbol), "installMatchTopLevel", frame);
                     } else {

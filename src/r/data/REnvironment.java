@@ -36,7 +36,7 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public ReadSetEntry getLocalReadSetEntry(RSymbol sym) {
+        public EnclosingSlot getLocalReadSetEntry(RSymbol sym) {
             return null;
         }
 
@@ -46,7 +46,7 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public RFunction enclosing() {
+        public RFunction enclosingFunction() {
             // TODO Auto-generated method stub
             return null;
         }
@@ -99,7 +99,7 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public FrameSlot slotInWriteSet(RSymbol sym) {
+        public FrameSlot localSlot(RSymbol sym) {
             return null;
         }
 
@@ -108,6 +108,10 @@ public interface REnvironment extends RAny {
             return null;
         }
 
+        @Override
+        public EnclosingSlot enclosingSlot(RSymbol sym) {
+            return null;
+        }
     }
 
 }

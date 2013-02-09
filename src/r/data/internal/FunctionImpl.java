@@ -15,7 +15,7 @@ import r.nodes.truffle.*;
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
 public class FunctionImpl extends RootNode implements RFunction {
 
-    final RFunction enclosing;
+    final RFunction enclosingFunction;
     final Function source;
 
     final RSymbol[] paramNames;
@@ -28,17 +28,17 @@ public class FunctionImpl extends RootNode implements RFunction {
 
     final RSymbol[] writeSet;
     final int writeSetBloom;
-    final ReadSetEntry[] readSet;
+    final EnclosingSlot[] readSet;
     final int readSetBloom;
 
     private static final boolean DEBUG_CALLS = false;
 
-    public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosing, RSymbol[] writeSet, ReadSetEntry[] readSet) {
+    public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosingFunction, RSymbol[] writeSet, EnclosingSlot[] readSet) {
         this.source = source;
         this.paramNames = paramNames;
         this.paramValues = paramValues;
         this.body = body;
-        this.enclosing = enclosing;
+        this.enclosingFunction = enclosingFunction;
         this.writeSet = writeSet;
         this.readSet = readSet;
 
@@ -48,7 +48,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         for (RSymbol sym : writeSet) {
             wsBloom |= sym.hash();
         }
-        for (ReadSetEntry rse : readSet) {
+        for (EnclosingSlot rse : readSet) {
             rsBloom |= rse.symbol.hash();
         }
         this.readSetBloom = rsBloom;
@@ -124,10 +124,10 @@ public class FunctionImpl extends RootNode implements RFunction {
         return str.toString();
     }
 
-    private static String printReadSet(ReadSetEntry[] readSet) {
+    private static String printReadSet(EnclosingSlot[] readSet) {
         StringBuilder str = new StringBuilder();
         boolean first = true;
-        for (ReadSetEntry e : readSet) {
+        for (EnclosingSlot e : readSet) {
             if (first) {
                 first = false;
             } else {
@@ -168,7 +168,7 @@ public class FunctionImpl extends RootNode implements RFunction {
     // a version without allocation
     public int positionInLocalReadSet(RSymbol sym) {
         if (isIn(sym.hash(), readSetBloom)) {
-            ReadSetEntry[] rs = readSet;
+            EnclosingSlot[] rs = readSet;
             int len = rs.length;
             for (int i = 0; i < len; i++) {
                 if (rs[i].symbol == sym) {
@@ -179,7 +179,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         return -1;
     }
 
-    public ReadSetEntry getLocalReadSetEntry(RSymbol sym) {
+    public EnclosingSlot getLocalReadSetEntry(RSymbol sym) {
         int i = positionInLocalReadSet(sym);
         return (i == -1) ? null : readSet[i];
     }
@@ -204,8 +204,8 @@ public class FunctionImpl extends RootNode implements RFunction {
     }
 
     @Override
-    public RFunction enclosing() {
-        return enclosing;
+    public RFunction enclosingFunction() {
+        return enclosingFunction;
     }
 
     @Override
@@ -228,10 +228,10 @@ public class FunctionImpl extends RootNode implements RFunction {
         if (positionInLocalWriteSet(sym) != -1) {
             return true;
         }
-        if (enclosing == null) {
+        if (enclosingFunction == null) {
             return false;
         }
-        return enclosing.isInWriteSet(sym);
+        return enclosingFunction.isInWriteSet(sym);
     }
 
     @Override
@@ -240,7 +240,20 @@ public class FunctionImpl extends RootNode implements RFunction {
     }
 
     @Override
-    public FrameSlot slotInWriteSet(RSymbol symbol) {
+    public FrameSlot localSlot(RSymbol symbol) {
         return frameDescriptor.findFrameSlot(symbol);
+    }
+
+    @Override
+    public EnclosingSlot enclosingSlot(RSymbol symbol) {
+        int hops = 0;
+        for (RFunction func = enclosingFunction; func != null; func = func.enclosingFunction()) {
+            hops++;
+            FrameSlot slot = func.localSlot(symbol);
+            if (slot != null) {
+                return new EnclosingSlot(symbol, hops, slot);
+            }
+        }
+        return null;
     }
 }

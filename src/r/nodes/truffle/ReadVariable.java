@@ -6,7 +6,7 @@ import com.oracle.truffle.api.nodes.*;
 import r.*;
 import r.builtins.*;
 import r.data.*;
-import r.data.RFunction.ReadSetEntry;
+import r.data.RFunction.EnclosingSlot;
 import r.errors.*;
 import r.nodes.*;
 
@@ -44,7 +44,7 @@ public abstract class ReadVariable extends BaseR {
                 } catch (UnexpectedResultException e) {
                     ReadVariable node;
                     FrameSlot slot;
-                    ReadSetEntry rse;
+                    EnclosingSlot rse;
                     String reason;
 
                     // FIXME: revisit this with eval and language objects in mind

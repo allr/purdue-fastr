@@ -5,7 +5,7 @@ import java.util.*;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
-import r.data.RFunction.ReadSetEntry;
+import r.data.RFunction.EnclosingSlot;
 import r.data.internal.*;
 
 // TODO: finish implementation of root level (global environment, empty environment, correct behavior with super assignments, etc)

@@ -7,7 +7,7 @@ import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
 public interface RFunction {
-    RFunction enclosing();
+    RFunction enclosingFunction();
 
     RSymbol[] paramNames();
     RNode[] paramValues();
@@ -23,9 +23,9 @@ public interface RFunction {
     int nparams();
     // FIXME: will also need methods to modify a function
 
-    public static final class ReadSetEntry {
+    public static final class EnclosingSlot {
 
-        public ReadSetEntry(RSymbol sym, int hops, FrameSlot slot) {
+        public EnclosingSlot(RSymbol sym, int hops, FrameSlot slot) {
             symbol = sym;
             this.hops = hops;
             this.slot = slot;
@@ -38,7 +38,8 @@ public interface RFunction {
 
     int positionInLocalWriteSet(RSymbol sym);
     int positionInLocalReadSet(RSymbol sym);
-    ReadSetEntry getLocalReadSetEntry(RSymbol sym);
-    FrameSlot slotInWriteSet(RSymbol sym);
+    EnclosingSlot getLocalReadSetEntry(RSymbol sym);
+    FrameSlot localSlot(RSymbol sym);
+    EnclosingSlot enclosingSlot(RSymbol sym);
     boolean isInWriteSet(RSymbol sym);
 }

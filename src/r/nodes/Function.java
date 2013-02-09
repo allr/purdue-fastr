@@ -16,7 +16,7 @@ public class Function extends ASTNode {
     final ArgumentList signature;
     final ASTNode body;
 
-    private static final ReadSetEntry[] emptyReadSet = new ReadSetEntry[0];
+    private static final EnclosingSlot[] emptyReadSet = new EnclosingSlot[0];
 
     RFunction rfunction; // FIXME: is it ok this is not final?
 
@@ -109,7 +109,7 @@ public class Function extends ASTNode {
         }
 
         RSymbol[] writeSet = buildWriteSet(paramNames, written);
-        ReadSetEntry[] readSet = buildReadSet(enclosing, read);
+        EnclosingSlot[] readSet = buildReadSet(enclosing, read);
 
         FunctionImpl impl = new FunctionImpl(this, paramNames, paramValues, runnableBody, enclosing, writeSet, readSet);
         setRFunction(impl);
@@ -144,7 +144,7 @@ public class Function extends ASTNode {
         return writeSet;
     }
 
-    private static ReadSetEntry[] buildReadSet(RFunction parent, Set<RSymbol> origRSet) {
+    private static EnclosingSlot[] buildReadSet(RFunction parent, Set<RSymbol> origRSet) {
         // build read set
         if (parent == null || origRSet.isEmpty()) {
             if (DEBUG_FUNCTIONS) {
@@ -154,21 +154,21 @@ public class Function extends ASTNode {
             }
             return emptyReadSet;
         }
-        ArrayList<ReadSetEntry> rsl = new ArrayList<>();
+        ArrayList<EnclosingSlot> rsl = new ArrayList<>();
         for (RSymbol s : origRSet) {
             RFunction p = parent;
             int hops = 1;
             while (p != null) {
-                FrameSlot slot = p.slotInWriteSet(s);
+                FrameSlot slot = p.localSlot(s);
                 if (slot != null) {
-                    rsl.add(new ReadSetEntry(s, hops, slot));
+                    rsl.add(new EnclosingSlot(s, hops, slot));
                     break;
                 }
-                p = p.enclosing();
+                p = p.enclosingFunction();
                 hops++;
             }
         }
-        return rsl.toArray(new ReadSetEntry[0]); // FIXME: rewrite this to get rid of allocation/copying
+        return rsl.toArray(new EnclosingSlot[0]); // FIXME: rewrite this to get rid of allocation/copying
     }
 
     class FindAccesses extends BasicVisitor implements Visitor {
