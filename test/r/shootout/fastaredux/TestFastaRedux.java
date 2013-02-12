@@ -17,4 +17,16 @@ public class TestFastaRedux extends ShootoutTestBase {
 "taaatcttgtgcttcgttagaagtctcgactacgtgtagcctagtgtttg\n",
                         "", "NULL");
     }
+
+    @Test
+    public void testFastaReduxNaive() {
+        assertShootout("fastaredux", "fastaredux-naive", 10, // output same as Fasta
+">ONE Homo sapiens alu\n" +
+"GGCCGGGCGCGGTGGCTCAC\n" +
+">TWO IUB ambiguity codes\n" +
+"cttBtatcatatgctaKggNcataaaSatg\n" +
+">THREE Homo sapiens frequency\n" +
+"taaatcttgtgcttcgttagaagtctcgactacgtgtagcctagtgtttg\n",
+                        "", "NULL");
+    }
 }

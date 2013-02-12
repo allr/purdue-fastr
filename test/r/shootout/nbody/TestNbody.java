@@ -11,4 +11,10 @@ public class TestNbody extends ShootoutTestBase {
         assertShootout("nbody", "nbody", 6, "-0.1690751638285245 \n-0.16907389015486243 \n", "", "NULL");
     }
 
+    @Test
+    public void testNbodyNaive() {
+        assertShootout("nbody", "nbody-naive", 5, "-0.1690751638285245 \n-0.1690741048829929 \n", "", "NULL");
+        assertShootout("nbody", "nbody-naive", 6, "-0.1690751638285245 \n-0.16907389015486235 \n", "", "NULL");
+    }
+
 }

@@ -11,4 +11,9 @@ public class TestFannkuch extends ShootoutTestBase {
     public void testFannkuch() {
         assertShootout("fannkuch", "fannkuchredux", 5, "11\nPfannkuchen(5) = 7\n", "", "NULL");
     }
+
+    @Test
+    public void testFannkuchNaive() {
+        assertShootout("fannkuch", "fannkuchredux-naive", 5, "11\nPfannkuchen(5) = 7\n", "", "NULL");
+    }
 }

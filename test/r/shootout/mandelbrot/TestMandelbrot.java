@@ -29,4 +29,18 @@ public class TestMandelbrot extends ShootoutTestBase {
                         "07 80 \n" +
                         "01 00 \n", null, "NULL");
     }
+
+    @Test
+    public void testMandelbrotNoout() {
+
+        assertShootout("mandelbrot", "mandelbrot-noout", 10,
+                        "P4\n" +
+                        "10 10 \n", null, "NULL");
+    }
+
+    @Test
+    public void testMandelbrotNaive() {
+
+        assertShootout("mandelbrot", "mandelbrot-naive", 10, null, null, "NULL"); // FIXME: check binary output
+    }
 }
