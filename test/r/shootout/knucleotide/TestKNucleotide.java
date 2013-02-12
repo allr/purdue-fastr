@@ -6,8 +6,8 @@ import r.shootout.*;
 
 
 public class TestKNucleotide extends ShootoutTestBase {
-// TODO: re-enable when synthetic creation of environment is available
-//    @Test
+
+    @Test
     public void testKNucleotide() {
         String inputFile = ".tmp.unit.knucleotide.input";
         generateFastaOutput(10, inputFile);

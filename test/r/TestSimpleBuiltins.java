@@ -548,8 +548,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ emptyenv() }", "<environment: R_EmptyEnv>");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\") } ; f() }", "TRUE");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\", inherits=FALSE) } ; f() }", "FALSE");
-// TODO: re-enable
-//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
+        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
 
         // lookup
         assertEval("{ f <- function() { x <- 2 ; get(\"x\") } ; f() }", "2.0");
@@ -576,9 +575,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ f <- function() { x <- 1 ; g <- function() { h <- function() { x <<- 2 } ; h() } ; g() ; x } ; f() }", "2.0");
 
         // hashmaps
-// TODO: re-enable
-//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
-//        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
+        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
+        assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
 
         // top-level lookups
         assertEval("{ exists(\"sum\") }", "TRUE");

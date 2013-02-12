@@ -1,6 +1,8 @@
 package r.data.internal;
 
+import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.Convert.ConversionStatus;
@@ -24,13 +26,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
-    public String pretty() { // FIXME: clean this up when subclasses are implemented
-        if (this == REnvironment.EMPTY) {
-            return "<environment: R_EmptyEnv>";
-        }
-        if (this == REnvironment.GLOBAL) {
-            return "<environment: R_GlobalEnv>";
-        }
+    public String pretty() {
         Utils.check(frame != null);
         return "<environment: " + frame + "(" + this + ")>";
     }
@@ -185,12 +181,9 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         public static Custom create(MaterializedFrame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
-            Utils.nyi("waiting for Truffle support");
 
-//            MaterializedFrame newFrame = new MaterializedFrame(RFrame.RESERVED_SLOTS, parentFrame);
-//            newFrame.setObject(RFrame.FUNCTION_SLOT, REnvironment.DUMMY_FUNCTION);
-
-            MaterializedFrame newFrame = null;
+            RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
+            MaterializedFrame newFrame = Truffle.getRuntime().createMaterializedFrame(header);
             if (hash) {
                 RFrameHeader.installHashedExtension(newFrame, hashSize);
             } else {
