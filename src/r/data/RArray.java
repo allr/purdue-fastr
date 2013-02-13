@@ -139,8 +139,9 @@ public interface RArray extends RAny {
 
         private static RSymbol[] createEmptySymbolArray(int size) {
             RSymbol[] n = new RSymbol[size];
-            for (int i = 0; i < n.length; ++i)
+            for (int i = 0; i < n.length; ++i) {
                 n[i] = RSymbol.EMPTY_SYMBOL;
+            }
             return n;
         }
 

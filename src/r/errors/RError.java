@@ -111,6 +111,7 @@ public abstract class RError extends RuntimeException {
     public static final String SCAN_UNEXPECTED = "scan() expected '%s', got '%s'";
     public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
     public static final String UNUSED_ARGUMENT = "unused argument(s) (%s)"; // FIXME: GNU-R gives a list of all unused arguments
+    public static final String INFINITE_MISSING_VALUES = "infinite or missing values in '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -981,6 +982,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getMustBeEnviron(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.MUST_BE_ENVIRON, argName));
+    }
+
+    public static RError getInfiniteMissingValues(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.INFINITE_MISSING_VALUES, argName));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

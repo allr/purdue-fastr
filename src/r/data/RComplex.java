@@ -49,6 +49,11 @@ public interface RComplex extends RArray {
             }
             return false;
         }
+
+        @Override
+        public int hashCode() {
+            return (int) real;
+        }
     }
 
     public class RComplexUtils {
@@ -87,6 +92,14 @@ public interface RComplex extends RArray {
                 content[i] = Convert.complex2raw(real, imag, warn);
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
+        }
+        // NOTE: the array is shared with the argument for non-scalar types
+        public static double[] asDoubleArray(RComplex c) {
+            if (c.size() == 1) { // FIXME: necessary? protect against missed normalization
+                return new double[] {c.getReal(0), c.getImag(0)};
+            } else {
+                return ((ComplexImpl) c.materialize()).getContent();
+            }
         }
     }
 

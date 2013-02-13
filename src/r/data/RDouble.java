@@ -58,7 +58,14 @@ public interface RDouble extends RNumber {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
-
+        // NOTE: the array is shared with the argument for non-scalar types
+        public static double[] asDoubleArray(RDouble d) {
+            if (d.size() == 1) { // FIXME: necessary? protect against missed normalization
+                return new double[] {d.getDouble(0)};
+            } else {
+                return ((DoubleImpl) d.materialize()).getContent();
+            }
+        }
     }
     public class RDoubleFactory {
         public static ScalarDoubleImpl getScalar(double value) {

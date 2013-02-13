@@ -447,6 +447,16 @@ public class Convert {
         }
     }
 
+    public static RDouble coerceToDoubleError(RAny arg, ASTNode ast) { // WARNING: non-reentrant
+        globalConversionStatus.naIntroduced = false;
+        RDouble res = arg.asDouble(globalConversionStatus);
+        if (!globalConversionStatus.naIntroduced) {
+            return res;
+        } else {
+            throw RError.getCannotCoerce(ast, arg.typeOf(), RDouble.TYPE_STRING);
+        }
+    }
+
     public static RInt coerceToIntWarning(RAny arg, ASTNode ast) { // WARNING: non-reentrant
         globalConversionStatus.naIntroduced = false;
         RInt res = arg.asInt(globalConversionStatus);

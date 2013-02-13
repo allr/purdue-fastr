@@ -14,6 +14,7 @@ import r.nodes.truffle.*;
 //    (this is not fully implemented in R)
 public interface RAny {
 
+    String TYPE_STRING = "any";
     String typeOf();
 
     RAttributes getAttributes();

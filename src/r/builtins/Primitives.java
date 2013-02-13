@@ -61,6 +61,7 @@ public class Primitives {
         add("get", 1, 5, Environment.GET_FACTORY);
         add("gregexpr", 2, 6, RegExpr.GREGEXPR_FACTORY);
         add("gsub", 3, 7, Sub.GSUB_FACTORY);
+        add("eigen", 1, 4, Eigen.EIGEN_FACTORY);
         add("emptyenv", 0, 0, Environment.EMPTYENV_FACTORY);
         add("exists", 1, 6, Environment.EXISTS_FACTORY);
         add("file", 0, 5, OpenConnection.FILE_FACTORY);
