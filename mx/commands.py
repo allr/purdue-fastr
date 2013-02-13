@@ -14,19 +14,29 @@ def mx_init():
       'frtest': [frtest, ''],
       'r': [rconsoleServer, ''],
       'rg': [rconsoleGraal, ''],
-      'rgd': [rconsoleDebugGraal, ''],      
+      'rgd': [rconsoleDebugGraal, ''],
       'rfannkuch': [rfannkuchServer, '[size]'],
       'rgfannkuch': [rfannkuchGraal, '[size]'],
       'rbinarytrees': [rbinarytreesServer, '[size]'],
-      'rspectralnorm': [rspectralnormServer, '[size]'],      
+      'rgbinarytrees': [rbinarytreesGraal, '[size]'],
+      'rspectralnorm': [rspectralnormServer, '[size]'],
+      'rgspectralnorm': [rspectralnormGraal, '[size]'],
       'rnbody': [rnbodyServer, '[size]'],
+      'rgnbody': [rnbodyGraal, '[size]'],
       'rfasta': [rfastaServer, '[size]'],
+      'rgfasta': [rfastaGraal, '[size]'],
       'rfastaredux': [rfastareduxServer, '[size]'],
+      'rgfastaredux': [rfastareduxGraal, '[size]'],
       'rpidigits': [rpidigitsServer, '[size]'],
+      'rgpidigits': [rpidigitsGraal, '[size]'],
       'rregexdna': [rregexdnaServer, '[size]'],
-      'rmandelbrot': [rmandelbrotServer, '[size]'],      
+      'rgregexdna': [rregexdnaGraal, '[size]'],
+      'rmandelbrot': [rmandelbrotServer, '[size]'],
+      'rgmandelbrot': [rmandelbrotGraal, '[size]'],
       'rreversecomplement': [rreversecomplementServer, '[size]'],
-      'rknucleotide': [rknucleotideServer, '[size]'],      
+      'rgreversecomplement': [rreversecomplementGraal, '[size]'],
+      'rknucleotide': [rknucleotideServer, '[size]'],
+      'rgknucleotide': [rknucleotideGraal, '[size]'],
       'runittest': [runittestServer, ''],
       'rgunittest': [runittestGraal, ''],
       'rbenchmark': [rallbenchmarksServer, ''],
@@ -59,68 +69,108 @@ def frtest(args):
   gmod.vm( ['-XX:-BootstrapGraal', '-version'], vm = 'graal' ); 
   
 def rconsoleServer(args):
-  """Run R Console with the HotSpot server VM"""  
+  """Run R Console with the HotSpot server VM"""
   rconsole([], 'server', args)
   
 def rconsoleGraal(args):
-  """Run R Console with the Graal VM"""  
+  """Run R Console with the Graal VM"""
   rconsole(['-XX:-BootstrapGraal'], 'graal', args)
 
 def rconsoleDebugGraal(args):
-  """Run R Console with the Graal VM, debugging options"""  
+  """Run R Console with the Graal VM, debugging options"""
   rconsole(['-XX:-BootstrapGraal', '-G:+DumpOnError', '-G:Dump=Truffle', '-G:+PrintBinaryGraphs', '-G:+PrintCFG', '-esa'], 'graal', args)
 
 def rfannkuchServer(args):
-  """Run Fannkuch with the HotSpot server VM"""  
+  """Run Fannkuch with the HotSpot server VM"""
   rfannkuch(args, [], 'server')
 
 def rfannkuchGraal(args):
-  """Run Fannkuch with the Graal VM"""  
+  """Run Fannkuch with the Graal VM"""
   rfannkuch(args, ['-XX:-BootstrapGraal'], 'graal')
 
 def rbinarytreesServer(args):
-  """Run Binary Trees with the HotSpot server VM"""  
+  """Run Binary Trees with the HotSpot server VM"""
   rbinarytrees(args, [], 'server')
 
+def rbinarytreesGraal(args):
+  """Run Binary Trees with the Graal VM"""
+  rbinarytrees(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rspectralnormServer(args):
-  """Run Spectral Norm with the HotSpot server VM"""  
+  """Run Spectral Norm with the HotSpot server VM"""
   rspectralnorm(args, [], 'server')
 
+def rspectralnormGraal(args):
+  """Run Spectral Norm with the Graal VM"""
+  rspectralnorm(args, ['-XX:-BootstrapGraal'], 'graal')
+
+def rbinarytreesGraal(args):
+  """Run Spectral Norm with the Graal VM"""
+  rspectralnorm(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rnbodyServer(args):
-  """Run NBody with the HotSpot server VM"""  
+  """Run NBody with the HotSpot server VM"""
   rnbody(args, [], 'server')
 
+def rnbodyGraal(args):
+  """Run NBody with the Graal VM"""
+  rnbody(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rfastaServer(args):
-  """Run Fasta with the HotSpot server VM"""  
+  """Run Fasta with the HotSpot server VM"""
   rfasta(args, [], 'server')
 
+def rfastaGraal(args):
+  """Run Fasta with the Graal VM"""
+  rfasta(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rfastareduxServer(args):
-  """Run Fastaredux with the HotSpot server VM"""  
+  """Run Fastaredux with the HotSpot server VM"""
   rfastaredux(args, [], 'server')
 
+def rfastareduxGraal(args):
+  """Run Fastaredux with the Graal VM"""
+  rfastaredux(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rpidigitsServer(args):
-  """Run Pidigits with the HotSpot server VM"""  
+  """Run Pidigits with the HotSpot server VM"""
   rpidigits(args, [], 'server')
 
+def rpidigitsGraal(args):
+  """Run Pidigits with the Graal VM"""
+  rpidigits(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rregexdnaServer(args):
-  """Run Regexdna with the HotSpot server VM"""  
+  """Run Regexdna with the HotSpot server VM"""
   rregexdna(args, [], 'server')
 
+def rregexdnaGraal(args):
+  """Run Regexdna with the Graal VM"""
+  rregexdna(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rmandelbrotServer(args):
-  """Run Mandelbrot with the HotSpot server VM"""  
+  """Run Mandelbrot with the HotSpot server VM"""
   rmandelbrot(args, [], 'server')
 
+def rmandelbrotGraal(args):
+  """Run Mandelbrot with the Graal VM"""
+  rmandelbrot(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rreversecomplementServer(args):
-  """Run Reversecomplement with the HotSpot server VM"""  
+  """Run Reversecomplement with the HotSpot server VM"""
   rreversecomplement(args, [], 'server')
 
+def rreversecomplementGraal(args):
+  """Run Reversecomplement with the Graal VM"""
+  rreversecomplement(args, ['-XX:-BootstrapGraal'], 'graal')
+
 def rknucleotideServer(args):
-  """Run Knucleotide with the HotSpot server VM"""  
+  """Run Knucleotide with the HotSpot server VM"""
   rknucleotide(args, [], 'server')
 
-def runittestServer(args):
-  """Run unit tests with the HotSpot server VM"""
-  runittest(args, [], 'server')
+def rknucleotideGraal(args):
+  """Run Knucleotide with the Graal VM"""
+  rknucleotide(args, ['-XX:-BootstrapGraal'], 'graal')
 
 def rallbenchmarksServer(args):
   """Run all benchmarks with the HotSpot server VM"""
@@ -129,6 +179,16 @@ def rallbenchmarksServer(args):
 def rallbenchmarksGraal(args):
   """Run all benchmarks with the Graal VM"""
   rbenchmarks(args, ['-XX:-BootstrapGraal'], 'graal')
+
+def runittestServer(args):
+  """Run unit tests with the HotSpot server VM"""
+  runittest(args, [], 'server')
+
+def runittestGraal(args):
+  """Run unit tests with the Graal VM"""
+  runittest(args, ['-XX:-BootstrapGraal'], 'graal')
+
+# ------------------
 
 def rbenchmarks(args, vmArgs, vm):
   rbinarytrees(args, vmArgs, vm)
@@ -143,12 +203,6 @@ def rbenchmarks(args, vmArgs, vm):
   rreversecomplement(args, vmArgs, vm)  
   rspectralnorm(args, vmArgs, vm)  
 
-def runittestGraal(args):
-  """Run unit tests with the Graal VM"""
-  runittest(args, ['-XX:-BootstrapGraal'], 'graal')
-
-# ------------------
-
 def rconsole(vmArgs, vm, cArgs):
   """Run R Console with the given VM"""
   global gvmOut
@@ -156,6 +210,7 @@ def rconsole(vmArgs, vm, cArgs):
 
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   """Run given shootout benchmark using given VM"""
+
   if (len(args)==0):
     arg = defaultArg
   else:
@@ -218,47 +273,43 @@ def rshootoutFastaInput(args, vmArgs, vm, benchDir, benchFile, defaultArg):
 
 def rfannkuch(args, vmArgs, vm):
   """Run Fannkuch benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "fannkuch", "fannkuchredux.r", "10L");
+  rshootout(args, vmArgs, vm, "fannkuch", "fannkuchredux.r", "9");
 
 def rbinarytrees(args, vmArgs, vm):
   """Run Binary Trees benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "15L");
+  rshootout(args, vmArgs, vm, "binarytrees", "binarytrees.r", "14");
 
 def rspectralnorm(args, vmArgs, vm):
   """Run Spectral Norm benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "800L");
-
-def rspectralnorm(args, vmArgs, vm):
-  """Run Spectral Norm benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "800L");
+  rshootout(args, vmArgs, vm, "spectralnorm", "spectralnorm.r", "550");
 
 def rnbody(args, vmArgs, vm):
   """Run NBody benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "nbody", "nbody.r", "1000L");
+  rshootout(args, vmArgs, vm, "nbody", "nbody.r", "200000");
 
 def rfasta(args, vmArgs, vm):
   """Run Fasta benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "fasta", "fasta.r", "10000L");
+  rshootout(args, vmArgs, vm, "fasta", "fasta.r", "500000");
 
 def rfastaredux(args, vmArgs, vm):
   """Run Fastaredux benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "fastaredux", "fastaredux.r", "10000L");
+  rshootout(args, vmArgs, vm, "fastaredux", "fastaredux.r", "1000000");
 
 def rpidigits(args, vmArgs, vm):
   """Run Pidigits benchmark using the given VM"""
-  rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "300");
+  rshootout(args, vmArgs, vm, "pidigits", "pidigits.r", "220");
 
 def rknucleotide(args, vmArgs, vm):
   """Run Knucleotide benchmark using the given VM"""
-  rshootoutFastaInput(args, vmArgs, vm, "knucleotide", "knucleotide.r", "5000000");
+  rshootoutFastaInput(args, vmArgs, vm, "knucleotide", "knucleotide.r", "23000");
 
 def rregexdna(args, vmArgs, vm):
   """Run Regexdna benchmark using the given VM"""
-  rshootoutFastaInput(args, vmArgs, vm, "regexdna", "regexdna.r", "5000000");
+  rshootoutFastaInput(args, vmArgs, vm, "regexdna", "regexdna.r", "2500000");
 
 def rreversecomplement(args, vmArgs, vm):
   """Run Reversecomplement benchmark using the given VM"""
-  rshootoutFastaInput(args, vmArgs, vm, "reversecomplement", "reversecomplement.r", "5000000");
+  rshootoutFastaInput(args, vmArgs, vm, "reversecomplement", "reversecomplement.r", "2500000");
 
 # -----------
 
