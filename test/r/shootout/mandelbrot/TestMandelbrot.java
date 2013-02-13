@@ -41,6 +41,29 @@ public class TestMandelbrot extends ShootoutTestBase {
     @Test
     public void testMandelbrotNaive() {
 
-        assertShootout("mandelbrot", "mandelbrot-naive", 10, null, null, "NULL"); // FIXME: check binary output
+//        assertShootout("mandelbrot", "mandelbrot-naive", 10, null, null, "NULL"); // FIXME: binary output, like above
+        assertShootout("mandelbrot", "mandelbrot-naive-ascii", 10,
+                        "P4\n" +
+                        "10 10 \n" +
+                        "00 \n" +
+                        "00 \n" +
+                        "01 \n" +
+                        "00 \n" +
+                        "07 \n" +
+                        "80 \n" +
+                        "07 \n" +
+                        "c0 \n" +
+                        "3f \n" +
+                        "c0 \n" +
+                        "ff \n" +
+                        "80 \n" +
+                        "3f \n" +
+                        "c0 \n" +
+                        "07 \n" +
+                        "c0 \n" +
+                        "07 \n" +
+                        "80 \n" +
+                        "01 \n" +
+                        "00 \n", null, "NULL");
     }
 }

@@ -19,13 +19,13 @@ public class ShootoutTestBase {
         return prefix + "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
     }
 
-    // shootouts that take integer size as input
+    // shootouts that take an integer size as input
     public static void assertShootout(String benchDir, String benchFileBase, int size, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
         assertRun(sourceFile, new String[] {"--args", Integer.toString(size)}, expectedOutput, expectedErrorOutput, expectedResult);
     }
 
-    // shootouts that take input file name as input
+    // shootouts that take an input file name as input
     public static void assertShootout(String benchDir, String benchFileBase, String inputFileName, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         String sourceFile = sourceFilePath(benchDir, benchFileBase);
         assertRun(sourceFile, new String[] {"--args", inputFileName}, expectedOutput, expectedErrorOutput, expectedResult);
@@ -58,8 +58,7 @@ public class ShootoutTestBase {
         return prepareSource(code, lastLine, benchName);
     }
 
-
-    static String prepareSource(String code, String lastLine, String benchName) {
+    private static String prepareSource(String code, String lastLine, String benchName) {
         try {
             BufferedReader in = new BufferedReader(new FileReader(code));
             String tmp = ".tmp.unit." + benchName + ".torun.r";
@@ -139,7 +138,7 @@ public class ShootoutTestBase {
         return null;
     }
 
-    static void assertRun(String runFile, String[] args, String expectedOutput, String expectedErrorOutput, String expectedResult) {
+    private static void assertRun(String runFile, String[] args, String expectedOutput, String expectedErrorOutput, String expectedResult) {
         Console.storeCommandLineArguments(args);
         RunResult result = run(runFile);
 
@@ -154,7 +153,7 @@ public class ShootoutTestBase {
         }
     }
 
-    static void fail(String msg, RunResult result) {
+    private static void fail(String msg, RunResult result) {
         System.err.println(" --- " + msg + ":");
         System.err.println(" --- actual output: ");
         System.err.println(result.output);
