@@ -1561,4 +1561,137 @@ public abstract class ReadVector extends BaseR {
             return null;
         }
     }
+
+    /**
+     * Read access to a list using the dollar selector.
+     *
+     * Works only on lists, fails otherwise (compatible with R >= 2.6). Because only string literals and symbols are
+     * allowed, the symbol creation and lookup is precached and the field access only does the hashmap search in the names
+     * property of the list.
+     *
+     * If the list is empty, null element is returned, as if when the desired field is not present.
+     *
+     */
+    public abstract static class FieldSelection extends BaseR {
+
+        @Child RNode lhs;
+        final RSymbol index;
+
+        protected FieldSelection(ASTNode orig, RNode lhs, RSymbol index) {
+            super(orig);
+            this.lhs = adoptChild(lhs);
+            this.index = index;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny base = (RAny) lhs.execute(frame);
+            return execute(base);
+        }
+
+        /** As per R reference, should fail if not list or pairlist, otherwise the element should be returned. */
+        abstract RAny execute(RAny base);
+
+        public static class UninitializedSelection extends FieldSelection {
+
+            public UninitializedSelection(ASTNode parent, RNode lhs, RSymbol index) {
+                super(parent, lhs, index);
+            }
+
+            @Override
+            RAny execute(RAny base) {
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    if (base instanceof RList) {
+                        RList list = (RList) base;
+                        RArray.Names names = list.names();
+
+                        if (names != null) {
+                            int pos = names.map(index);
+                            if (pos == -1) {
+                                pos = names.mapPartial(index);
+                            }
+                            if (pos != -1) {
+                                FixedPositionSelection fp = new FixedPositionSelection(ast, lhs, index, pos, names);
+                                replace(fp, "install FixedPositionSelection from UninitializedSelection (Field)");
+                                if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with FixedPositionSelection");
+                                return fp.execute(base);
+                            }
+                        }
+                    }
+                    GenericSelection gs = new GenericSelection(ast, lhs, index);
+                    replace(gs, "install GenericSelection from SimpleSelection (Field)");
+                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
+                    return gs.execute(base);
+                }
+            }
+        }
+
+        public static class FixedPositionSelection extends FieldSelection {
+
+            final int fixedPosition;
+            final Names fixedNames;
+
+            public FixedPositionSelection(ASTNode parent, RNode lhs, RSymbol index, int fixedPosition, Names fixedNames) {
+                super(parent, lhs, index);
+                this.fixedPosition = fixedPosition;
+                this.fixedNames = fixedNames;
+            }
+
+            @Override
+            RAny execute(RAny base) {
+                try {
+                    if (base instanceof RList) {
+                        RList list = (RList) base;
+                        RArray.Names names = list.names();
+                        if (names == fixedNames) {
+                            return list.getRAny(fixedPosition);
+                        }
+                    }
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    GenericSelection gs = new GenericSelection(ast, lhs, index);
+                    replace(gs, "install GenericSelection from FixedPositionSelection (Field)");
+                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
+                    return gs.execute(base);
+                }
+            }
+        }
+
+        public static class GenericSelection extends FieldSelection {
+
+            int lastPosition = -1;
+            Names lastNames = null;
+
+            public GenericSelection(ASTNode parent, RNode lhs, RSymbol index) {
+                super(parent, lhs, index);
+            }
+
+            @Override
+            RAny execute(RAny base) {
+                if (!(base instanceof RList)) {
+                    throw RError.getDollarAtomicVectors(ast);
+                }
+                RList list = (RList) base;
+                RArray.Names names = list.names();
+                int pos;
+                if (names != lastNames) {
+                    pos = names.map(index);
+                    if (pos == -1) {
+                        pos = names.mapPartial(index);
+                    }
+                    lastPosition = pos;
+                    lastNames = names;
+                } else {
+                    pos = lastPosition;
+                }
+                if (pos == -1) {
+                    return RNull.getNull();
+                }
+                return list.getRAny(pos); // list subscript does not preserve names
+            }
+        }
+    }
+
 }

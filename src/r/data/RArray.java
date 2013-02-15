@@ -89,6 +89,26 @@ public interface RArray extends RAny {
             return res;
         }
 
+        public int mapPartial(RSymbol name) {
+            String sname = name.name();
+            if (sname == null) {
+                return -1; // FIXME: should this be allowed?
+            }
+
+            int res = -1;
+            for (int i = 0; i < names.length; i++) {
+                String sStored = names[i].name();
+                if (sStored != null && sStored.startsWith(sname)) {
+                    if (res == -1) {
+                        res = i;
+                    } else {
+                        return -1; // ambiguous match
+                    }
+                }
+            }
+            return res;
+        }
+
         public int size() {
             return names.length;
         }

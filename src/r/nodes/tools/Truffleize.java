@@ -150,7 +150,7 @@ public class Truffleize implements Visitor {
     public void visit(FieldAccess fa) {
         ASTNode lhs = fa.lhs();
         RNode n = createTree(lhs);
-        result = ReadList.simpleFieldSelect(fa, n, fa.fieldName());
+        result = new ReadVector.FieldSelection.UninitializedSelection(fa, n, RSymbol.getSymbol(fa.fieldName()));
     }
 
     @Override
