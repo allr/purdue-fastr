@@ -130,6 +130,7 @@ public class Eigen {
                     RAny resValues = RNull.getNull(); // TODO: init not needed when done with impl below
                     RAny resVectors = RNull.getNull();
 
+                    // ./src/modules/lapack/Lapack.c
                     if (!complex) {
                         if (symmetric) {
                             // symmetric real input matrix
@@ -231,7 +232,14 @@ public class Eigen {
                         }
 
                     } else {
-                        Utils.nyi("complex eigen");
+                        // TODO: port JLAPACK to the new LAPACK or find another library
+                        if (symmetric) {
+                            // symmetric complex input matrix
+                            Utils.nyi("ZHEEV not supported by netlib-java");
+                        } else {
+                            // general complex input matrix
+                            Utils.nyi("ZGEEV not supported by netlib-java");
+                        }
                         return null;
                     }
 
@@ -246,6 +254,8 @@ public class Eigen {
 
     // see ./src/library/base/R/eigen.R
     public static boolean isSymmetricDouble(double[] values, int n) {
+        assert Utils.check(values.length == n * n);
+        // TODO: attributes
 
         // xn = mean( abs( target ) ) .... => sumAbsTarget
         int size = values.length;
@@ -278,8 +288,44 @@ public class Eigen {
 
     // see library/base/all.R
     public static boolean isSymmetricComplex(double[] values, int n) {
-        Utils.nyi("complex isSymmetric.matrix");
-        return false;
+        assert Utils.check(values.length == n * n * 2);
+        // TODO: attributes
+
+        // xn = mean( abs( target ) ) .... => sumAbsTarget
+        int size = values.length;
+        double sumAbsTarget = 0;
+        int i = 0;
+        while (i < size) {
+            double real = values[i++];
+            double imag = values[i++];
+
+            sumAbsTarget += Math.sqrt(real * real + imag * imag);
+        }
+
+        // xy = mean( abs( target - current ) )
+        double sumAbsDiff = 0;
+        for (i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                int targetIndex = j * n + i;
+                int currentIndex = i * n + j;
+
+                double real = values[2 * targetIndex] - values[2 * currentIndex];
+                double imag = values[2 * targetIndex + 1] + values[2 * currentIndex + 1];
+
+                sumAbsDiff += Math.sqrt(real * real + imag * imag);
+            }
+        }
+
+        double meanAbsTarget = sumAbsTarget / size;
+        double metric;
+        if (RDouble.RDoubleUtils.isFinite(meanAbsTarget) && meanAbsTarget > tolerance) {
+            // relative equality check
+            metric = sumAbsDiff / sumAbsTarget;
+        } else {
+            // absolute equality check
+            metric = sumAbsDiff;
+        }
+        return metric <= tolerance;
     }
 
     public static double[] unscrambleComplexEigenVectors(double[] valuesImag, double[] scrambledVectors, int n) {
