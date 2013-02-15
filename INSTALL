@@ -155,4 +155,11 @@ This has been tested on Ubuntu/Linux 12.10 with JDK 1.7.0_11.
        ENABLE "additional actions"
          include "Remove trailing white spaces on all lines"
 
-   
+   configure checkstyle to ignore non-Java files
+     right-click on fastr in the package explorer
+     uncheck "Use simple configuration"
+     click on the config for all files  (Checks -(Local))
+     Edit
+     click on regex for file to include
+     Edit
+     use filter .java$
