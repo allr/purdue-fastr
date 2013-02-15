@@ -14,7 +14,7 @@ public final class Utils {
         throw RError.getNYI(reason);
     }
 
-//    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public static <T> T cast(Object obj) {
         return (T) obj;
     }
@@ -338,5 +338,16 @@ public final class Utils {
             b.append(' ');
         }
         b.append(s);
+    }
+
+    public static double[] reverse(double[] a) {
+        int size = a.length;
+        for (int i = 0; i < size / 2; i++) {
+            int other = size - 1 - i;
+            double tmp = a[i];
+            a[i] = a[other];
+            a[other] = tmp;
+        }
+        return a;
     }
 }

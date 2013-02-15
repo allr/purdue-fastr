@@ -58,12 +58,21 @@ public interface RDouble extends RNumber {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
-        // NOTE: the array is shared with the argument for non-scalar types
-        public static double[] asDoubleArray(RDouble d) {
-            if (d.size() == 1) { // FIXME: necessary? protect against missed normalization
+        public static double[] copyAsDoubleArray(RDouble d) {
+            int size = d.size();
+            if (size == 1) {
                 return new double[] {d.getDouble(0)};
             } else {
-                return ((DoubleImpl) d.materialize()).getContent();
+                double[] res = new double[size];
+
+                if (d instanceof DoubleImpl) {
+                    System.arraycopy(((DoubleImpl) d).getContent(), 0, res, 0, size);
+                } else {
+                    for (int i = 0; i < size; i++) {
+                        res[i] = d.getDouble(i);
+                    }
+                }
+                return res;
             }
         }
     }

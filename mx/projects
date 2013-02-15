@@ -4,9 +4,13 @@
 # fastr
 project@fastr@subDir=..
 project@fastr@sourceDirs=src,test
-project@fastr@dependencies=com.oracle.truffle.api,ANTLR,JUNIT
+project@fastr@dependencies=com.oracle.truffle.api,ANTLR,JUNIT,NETLIBJAVA,ARPACK
 project@fastr@javaCompliance=1.7
 
-# AntLR
+# needed libraries
 library@ANTLR@path=../graal/lib/antlr-runtime-3.5.jar
 library@ANTLR@urls=http://www.antlr3.org/download/antlr-runtime-3.5.jar
+library@NETLIBJAVA@path=../graal/lib/netlib-java-0.9.3.jar
+library@NETLIBJAVA@urls=http://netlib-java.googlecode.com/files/netlib-java-0.9.3.jar
+library@ARPACK@path=../graal/lib/arpack_combined_all.jar
+library@ARPACK@urls=http://downloads.sourceforge.net/project/f2j/f2j/jarpack-0.1/arpack_combined_all.jar

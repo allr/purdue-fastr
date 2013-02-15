@@ -93,6 +93,25 @@ public interface RComplex extends RArray {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
+        public static double[] copyAsDoubleArray(RComplex c) {
+            int size = c.size();
+            if (size == 1) {
+                return new double[] {c.getReal(0), c.getImag(0)};
+            } else {
+                int rawsize = size * 2;
+                double[] res = new double[rawsize];
+
+                if (c instanceof ComplexImpl) {
+                    System.arraycopy(((ComplexImpl) c).getContent(), 0, res, 0, rawsize);
+                } else {
+                    for (int i = 0; i < size; i++) {
+                        res[2 * i] = c.getReal(i);   // will be slow
+                        res[2 * i + 1] = c.getImag(i);
+                    }
+                }
+                return res;
+            }
+        }
         // NOTE: the array is shared with the argument for non-scalar types
         public static double[] asDoubleArray(RComplex c) {
             if (c.size() == 1) { // FIXME: necessary? protect against missed normalization

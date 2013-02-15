@@ -112,6 +112,8 @@ public abstract class RError extends RuntimeException {
     public static final String MUST_BE_ENVIRON = "'%s' must be an environment";
     public static final String UNUSED_ARGUMENT = "unused argument(s) (%s)"; // FIXME: GNU-R gives a list of all unused arguments
     public static final String INFINITE_MISSING_VALUES = "infinite or missing values in '%s'";
+    public static final String NON_SQUARE_MATRIX = "non-square matrix in '%s'";
+    public static final String LAPACK_ERROR = "error code %d from Lapack routine '%s'";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -986,6 +988,14 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInfiniteMissingValues(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.INFINITE_MISSING_VALUES, argName));
+    }
+
+    public static RError getNonSquareMatrix(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.NON_SQUARE_MATRIX, argName));
+    }
+
+    public static RError getLapackError(ASTNode ast, int code, String routine) {
+        return getGenericError(ast, String.format(RError.LAPACK_ERROR, code, routine));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

@@ -620,9 +620,25 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testEigen() throws RecognitionException {
+        // symmetric real input
+        assertEval("{ eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) }", "$values\n2.0, 0.0\n\n$vectors\n                   [,1]                [,2]\n[1,] 0.7071067811865475 -0.7071067811865475\n[2,] 0.7071067811865475  0.7071067811865475");
+        assertEval("{ eigen(10, only.values=FALSE) }", "$values\n10.0\n\n$vectors\n     [,1]\n[1,]  1.0");
+
+        // non-symmetric real input, real output
+        assertEval("{ eigen(matrix(c(1,2,2,3), nrow=2), only.values=FALSE) }", "$values\n4.23606797749979, -0.2360679774997897\n\n$vectors\n                   [,1]                [,2]\n[1,] 0.5257311121191335 -0.8506508083520399\n[2,] 0.8506508083520399  0.5257311121191335");
+        assertEval("{ eigen(matrix(c(1,2,3,4), nrow=2))$vectors }", "                    [,1]                [,2]\n[1,] -0.5657674649689923 -0.9093767091321241\n[2,] -0.8245648401323938 0.41597355791928425");
+        assertEval("{ eigen(matrix(c(1,2,3,4), nrow=2))$values }", "5.372281323269014, -0.3722813232690143");
+
+        // non-symmetric real input, complex output
+        // FIXME: GNUR is won't print the minus sign for negative zero
+        // FIXME: should implement "round" and start using it in tests
+        assertEval("{ eigen(matrix(c(3,-2,4,-1), nrow=2)) }", "$values\n1.0+2.0i, 1.0-2.0i\n\n$vectors\n                                       [,1]                                   [,2]\n[1,]                0.8164965809277259+0.0i               0.8164965809277259+-0.0i\n[2,] -0.4082482904638629+0.408248290463863i -0.4082482904638629-0.408248290463863i");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
-
 
 }
