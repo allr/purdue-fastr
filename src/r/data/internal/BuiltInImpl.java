@@ -4,6 +4,7 @@ import r.*;
 import r.Convert.*;
 import r.builtins.*;
 import r.data.*;
+import r.data.RAny.Attributes;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -145,4 +146,14 @@ public class BuiltInImpl implements RBuiltIn {
         return RBuiltIn.TYPE_STRING;
     }
 
+    @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi();
+        return null;
+    }
 }

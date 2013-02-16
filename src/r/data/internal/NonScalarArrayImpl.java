@@ -7,11 +7,12 @@ import r.data.*;
 
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
 // fixme - perhaps rename the class
-public abstract class NonScalarArrayImpl extends ArrayImpl {
+public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
 
     protected int[] dimensions; // the content shall never be modified once set
     protected Names names;
     protected int refcount;
+    protected Attributes attributes;
 
     @Override
     public final boolean isShared() {
@@ -35,6 +36,17 @@ public abstract class NonScalarArrayImpl extends ArrayImpl {
     @Override
     public NonScalarArrayImpl setDimensions(int[] dimensions) {
         this.dimensions = dimensions;
+        return this;
+    }
+
+    @Override
+    public Attributes attributes() {
+        return attributes;
+    }
+
+    @Override
+    public NonScalarArrayImpl setAttributes(Attributes attributes) {
+        this.attributes = attributes;
         return this;
     }
 

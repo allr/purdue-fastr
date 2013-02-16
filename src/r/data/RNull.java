@@ -141,6 +141,17 @@ public final class RNull implements RAny, RAttributes {
     }
 
     @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
     public int index(int i, int j) {
         Utils.nyi();
         return 0;

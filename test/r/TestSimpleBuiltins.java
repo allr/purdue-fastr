@@ -637,6 +637,12 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testAttributes() throws RecognitionException {
+        assertEval("{ x <- 1; attributes(x) }", "NULL");
+        assertEval("{ x <- 1; names(x) <- \"hello\" ; attributes(x) }", "$names\n\"hello\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }

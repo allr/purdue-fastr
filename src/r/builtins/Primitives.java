@@ -48,6 +48,10 @@ public class Primitives {
         add("as.logical", 0, -1, Cast.LOGICAL_FACTORY);
         add("as.raw", 0, -1, Cast.RAW_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
+        add("attr", 2, 3, Attributes.ATTR_FACTORY);
+        add("attr", 3, 3, Attributes.ATTR_REPLACEMENT_FACTORY);
+        add("attributes", 1, 1, Attributes.ATTRIBUTES_FACTORY);
+        add("attributes<-", 2, 2, Attributes.ATTRIBUTES_REPLACEMENT_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
         add("character", 0, 1, ArrayConstructor.STRING_FACTORY);
@@ -175,7 +179,7 @@ public class Primitives {
 
     private static void add(String name, int minArgs, int maxArgs, CallFactory body, int prettyPrint) {
         RSymbol sym = RSymbol.getSymbol(name);
-        assert Utils.check(!map.containsKey(sym));
+//        assert Utils.check(!map.containsKey(sym)); no longer holds (or should hold)
         map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, prettyPrint));
     }
 }

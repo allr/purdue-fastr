@@ -1,6 +1,7 @@
 package r.data;
 
 import r.Utils;
+import r.data.RAny.*;
 import r.data.internal.View;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public interface RArray extends RAny {
     RArray set(int i, Object val);
     RArray setDimensions(int[] dimensions);
     RArray setNames(Names names);
+    RArray setAttributes(Attributes attributes);
     boolean isNAorNaN(int i);
     int index(int i, int j);
     RArray subset(RAny keys);

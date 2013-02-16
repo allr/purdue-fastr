@@ -1,12 +1,13 @@
 package r.data;
 
+import java.util.*;
+
 import r.Convert.ConversionStatus;
-import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 // NOTE: error handling with casts is tricky, because different commands do it differently
-//  sometimes error is signalled by returning an NA
+//  sometimes error is signaled by returning an NA
 //  sometimes that comes with a warning that NAs have been introduced, but the warning is only given once for the whole vector even if multiple NAs are introduced
 //  but sometimes there is a different warning or even an error when the conversion is not possible
 //
@@ -17,7 +18,9 @@ public interface RAny {
     String TYPE_STRING = "any";
     String typeOf();
 
-    RAttributes getAttributes();
+    Attributes attributes();
+    RAny setAttributes(Attributes attributes);
+    RAttributes getAttributes(); // FIXME: remove
     RAny stripAttributes();
 
     String pretty();
@@ -46,4 +49,23 @@ public interface RAny {
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
+
+    public static class Attributes {
+        boolean shared;
+        LinkedHashMap<RSymbol, RAny> map;
+
+        boolean areShared() {
+            return shared;
+        }
+
+        Attributes markShared() {
+            shared = true;
+            return this;
+        }
+
+        LinkedHashMap<RSymbol, RAny> map() {
+            return map;
+        }
+
+    }
 }

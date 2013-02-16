@@ -5,6 +5,7 @@ import java.util.*;
 import r.*;
 import r.Convert.*;
 import r.builtins.Primitives;
+import r.data.RAny.*;
 import r.data.internal.*;
 import r.nodes.truffle.AbstractCall;
 
@@ -22,18 +23,22 @@ public final class RSymbol extends BaseObject implements RAny {
     public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
 
     // from Truffleize
-    public static final RSymbol dropName = RSymbol.getSymbol("drop");
-    public static final RSymbol exactName = RSymbol.getSymbol("exact");
+    public static final RSymbol DROP_SYMBOL = RSymbol.getSymbol("drop");
+    public static final RSymbol EXACT_SYMBOL = RSymbol.getSymbol("exact");
 
     // from AbstractCall
-    public static final RSymbol threeDots = RSymbol.getSymbol("...");
+    public static final RSymbol THREE_DOTS_SYMBOL = RSymbol.getSymbol("...");
+
+    // from Attributes
+    public static final RSymbol NAMES_SYMBOL = RSymbol.getSymbol("names");
+    public static final RSymbol DIM_SYMBOL = RSymbol.getSymbol("dim");
 
     /** Reinserts the special symbols to the table after the table has been reset clean.
      */
     protected static void reinsertSpecialSymbols() {
-        symbolTable.table.put("drop", dropName);
-        symbolTable.table.put("exact", exactName);
-        symbolTable.table.put("...", threeDots);
+        symbolTable.table.put("drop", DROP_SYMBOL);
+        symbolTable.table.put("exact", EXACT_SYMBOL);
+        symbolTable.table.put("...", THREE_DOTS_SYMBOL);
         symbolTable.table.put(RString.NA, RSymbol.NA_SYMBOL);
         symbolTable.table.put("", RSymbol.EMPTY_SYMBOL);
     }
@@ -239,4 +244,14 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
+    @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi();
+        return null;
+    }
 }

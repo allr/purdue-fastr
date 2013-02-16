@@ -8,6 +8,7 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.builtins.*;
 import r.data.*;
+import r.data.RAny.Attributes;
 import r.errors.*;
 import r.nodes.*;
 
@@ -322,5 +323,16 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         public String pretty() {
             return "<environment: R_EmptyEnv>";
         }
+    }
+
+    @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi();
+        return null;
     }
 }

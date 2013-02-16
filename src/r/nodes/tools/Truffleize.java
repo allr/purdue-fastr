@@ -308,14 +308,14 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == RSymbol.dropName) {
+                if (names[i] == RSymbol.DROP_SYMBOL) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
                 }
-                if (names[i] == RSymbol.exactName) {
+                if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
@@ -375,14 +375,14 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == RSymbol.dropName) {
+                if (names[i] == RSymbol.DROP_SYMBOL) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
                 }
-                if (names[i] == RSymbol.exactName) {
+                if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }

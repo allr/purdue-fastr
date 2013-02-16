@@ -61,6 +61,17 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
     }
 
     @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi("not supported");
+        return null;
+    }
+
+    @Override
     public int index(int i, int j) { // i-th row, j-th column indexed from 1
         int[] dims = dimensions();
         return i + (j - 1) * dims[1];
