@@ -75,6 +75,15 @@ public interface RDouble extends RNumber {
                 return res;
             }
         }
+        public static boolean hasNAorNaN(RDouble d) {
+            int size = d.size();
+            for (int i = 0; i < size; i++) {
+                if (isNAorNaN(d.getDouble(i))) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
     public class RDoubleFactory {
         public static ScalarDoubleImpl getScalar(double value) {
