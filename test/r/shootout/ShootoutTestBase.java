@@ -14,6 +14,10 @@ import r.parser.*;
 
 public class ShootoutTestBase {
 
+        // FIXME: support similar options for all tests
+    public static final boolean VERBOSE = false; // show the outputs of the running benchmarks
+    public static final boolean DEBUGGING_RUN = false; // run each benchmark first without capturing its output
+
     public static String sourceFilePath(String benchDir, String benchFileBase) {
         String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
         return prefix + "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
@@ -93,6 +97,7 @@ public class ShootoutTestBase {
     }
 
     protected static RunResult run(String inputFile) {
+
         System.err.println("Running file " + inputFile + "...");
         try {
             ANTLRFileStream runStream = new ANTLRFileStream(inputFile);
@@ -102,6 +107,17 @@ public class ShootoutTestBase {
             tokens.setTokenSource(lexer);
             RParser parser = new RParser(tokens);
             ASTNode tree = parser.script();
+
+            if (DEBUGGING_RUN) {
+                RContext.eval(tree, false).pretty();
+                RSymbol.resetTable();
+                runStream = new ANTLRFileStream(inputFile);
+                tokens = new CommonTokenStream();
+                lexer = new RLexer(runStream);
+                tokens.setTokenSource(lexer);
+                parser = new RParser(tokens);
+                tree = parser.script();
+            }
 
             PrintStream oldOut = System.out;
             ByteArrayOutputStream myOut = new ByteArrayOutputStream();
@@ -127,6 +143,11 @@ public class ShootoutTestBase {
 
             String output = myOut.toString();
             String errorOutput = myErr.toString();
+
+            if (VERBOSE) {
+                System.out.println(output);
+                System.err.println(errorOutput);
+            }
 
             return new RunResult(output, errorOutput, result);
 
