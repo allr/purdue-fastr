@@ -106,7 +106,7 @@ public interface RDouble extends RNumber {
             if (dimensions == null && values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions, null);
+            return new DoubleImpl(values, dimensions, null, null);
         }
         public static RDouble getUninitializedArray(int size) {
             if (size == 1) {
@@ -121,7 +121,7 @@ public interface RDouble extends RNumber {
             if (size == 1 && dimensions == null && names == null) {
                 return new ScalarDoubleImpl(0);
             }
-            return new DoubleImpl(new double[size], dimensions, names, false);
+            return new DoubleImpl(new double[size], dimensions, names, null, false);
         }
         public static RDouble getNAArray(int size) {
             return getNAArray(size, null);
@@ -132,10 +132,10 @@ public interface RDouble extends RNumber {
             }
             double[] content = new double[size];
             Arrays.fill(content, NA);
-            return new DoubleImpl(content, dimensions, null, false);
+            return new DoubleImpl(content, dimensions, null, null, false);
         }
         public static DoubleImpl getMatrixFor(double[] values, int m, int n) {
-            return new DoubleImpl(values, new int[] {m, n}, null, false);
+            return new DoubleImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RDouble copy(RDouble d) {
             if (d.size() == 1 && d.dimensions() == null && d.names() == null) {
@@ -156,7 +156,7 @@ public interface RDouble extends RNumber {
             if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions, names, false);
+            return new DoubleImpl(values, dimensions, names, null, false);
         }
         public static RDouble getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;

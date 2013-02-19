@@ -114,6 +114,7 @@ public abstract class RError extends RuntimeException {
     public static final String INFINITE_MISSING_VALUES = "infinite or missing values in '%s'";
     public static final String NON_SQUARE_MATRIX = "non-square matrix in '%s'";
     public static final String LAPACK_ERROR = "error code %d from Lapack routine '%s'";
+    public static final String MUST_BE_NONNULL_STRING = "'%s' must be non-null character string";
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -996,6 +997,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getLapackError(ASTNode ast, int code, String routine) {
         return getGenericError(ast, String.format(RError.LAPACK_ERROR, code, routine));
+    }
+
+    public static RError getMustBeNonNullString(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_NONNULL_STRING, argName));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

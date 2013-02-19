@@ -31,7 +31,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     public ListImpl(RList v, boolean valuesOnly) { // deep-copy
-                               // FIXME: why deep? do all callers need it deep?
+                               // TODO: why deep? do all callers need it deep?, should use reference counts instead
         content = new RAny[v.size()];
         for (int i = 0; i < content.length; i++) {
             RAny e = v.getRAny(i);

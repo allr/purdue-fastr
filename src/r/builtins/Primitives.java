@@ -49,7 +49,7 @@ public class Primitives {
         add("as.raw", 0, -1, Cast.RAW_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
         add("attr", 2, 3, Attributes.ATTR_FACTORY);
-        add("attr", 3, 3, Attributes.ATTR_REPLACEMENT_FACTORY);
+        add("attr<-", 3, 3, Attributes.ATTR_REPLACEMENT_FACTORY);
         add("attributes", 1, 1, Attributes.ATTRIBUTES_FACTORY);
         add("attributes<-", 2, 2, Attributes.ATTRIBUTES_REPLACEMENT_FACTORY);
         add("c", 0, -1, Combine.FACTORY);

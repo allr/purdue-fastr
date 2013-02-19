@@ -52,6 +52,20 @@ public class Dimensions {
         }
     }
 
+    // needed because dim is an attribute (for attr, attributes)
+    // TODO: add a replacement version
+    public static RAny getDim(RAny arg) {
+        if (!(arg instanceof RArray)) {
+            return RNull.getNull();
+        }
+        RArray arr = (RArray) arg;
+        int[] dim = arr.dimensions();
+        if (dim == null) {
+            return RNull.getNull();
+        }
+        return RInt.RIntFactory.getArray(dim);
+    }
+
     public static final CallFactory DIM_FACTORY = new DimensionsCallFactory(
                     new Operation() {
                         @Override

@@ -3,6 +3,7 @@ package r.data;
 import java.util.*;
 
 import r.Convert.ConversionStatus;
+import r.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -54,17 +55,50 @@ public interface RAny {
         boolean shared;
         LinkedHashMap<RSymbol, RAny> map;
 
-        boolean areShared() {
+        public Attributes() {
+            map = new LinkedHashMap<RSymbol, RAny>();
+            shared = false;
+        }
+
+        public boolean areShared() {
             return shared;
         }
 
-        Attributes markShared() {
+        public Attributes markShared() {
             shared = true;
             return this;
         }
 
-        LinkedHashMap<RSymbol, RAny> map() {
+        public LinkedHashMap<RSymbol, RAny> map() {
             return map;
+        }
+
+        public Attributes copy() {
+            Attributes nattr = new Attributes();
+            LinkedHashMap<RSymbol, RAny> nmap = nattr.map();
+
+            for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
+                // TODO: do we need deep copy? probably not, should use reference counts instead
+                // TODO: a similar issue applies to Utils.copyArray for RList (in ListImpl)
+                nmap.put(entry.getKey(), Utils.copyAny(entry.getValue()));
+            }
+            return nattr;
+        }
+
+        public Attributes getOrCopy() {
+            if (shared) {
+                return copy();
+            } else {
+                return this;
+            }
+        }
+
+        public static Attributes getOrCopy(Attributes attr) {
+            if (attr == null) {
+                return null;
+            } else {
+                return attr.getOrCopy();
+            }
         }
 
     }

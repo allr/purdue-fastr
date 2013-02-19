@@ -640,6 +640,13 @@ public class TestSimpleBuiltins extends TestBase {
     public void testAttributes() throws RecognitionException {
         assertEval("{ x <- 1; attributes(x) }", "NULL");
         assertEval("{ x <- 1; names(x) <- \"hello\" ; attributes(x) }", "$names\n\"hello\"");
+        assertEval("{ x <- 1:3 ; attr(x, \"myatt\") <- 2:4 ; attributes(x) }", "$myatt\n2L, 3L, 4L");
+        assertEval("{ x <- 1:3 ; attr(x, \"myatt\") <- 2:4 ; attr(x, \"myatt1\") <- \"hello\" ; attributes(x) }", "$myatt\n2L, 3L, 4L\n\n$myatt1\n\"hello\"");
+        assertEval("{ x <- 1:3 ; attr(x, \"myatt\") <- 2:4 ; y <- x; attr(x, \"myatt1\") <- \"hello\" ; attributes(y) }", "$myatt\n2L, 3L, 4L");
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"myatt\") <- 2:4 ; y <- x; attr(x, \"myatt1\") <- \"hello\" ; attributes(y) }", "$names\n\"a\", \"b\"\n\n$myatt\n2L, 3L, 4L");
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"names\") }", "\"a\", \"b\"");
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"na\") }", "\"a\", \"b\"");
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"mya\") <- 1; attr(x, \"b\") <- 2; attr(x, \"m\") }", "1.0");
     }
 
     @Test
