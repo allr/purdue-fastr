@@ -129,6 +129,7 @@ public class Primitives {
         add("tolower", 1, 1, CharUtils.TOLOWER_FACTORY);
         add("toupper", 1, 1, CharUtils.TOUPPER_FACTORY);
         add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);
+        add("unlist", 1, 3, Unlist.FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
         add("which", 1, 3, Which.FACTORY);
         add("writeBin", 2, 5, WriteBin.FACTORY);

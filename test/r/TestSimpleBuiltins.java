@@ -650,6 +650,12 @@ public class TestSimpleBuiltins extends TestBase {
     }
 
     @Test
+    public void testUnlist() throws RecognitionException {
+        assertEval("{ unlist(list(\"hello\", \"hi\")) }", "\"hello\", \"hi\"");
+        assertEval("{ unlist(list(a=\"hello\", b=\"hi\")) }", "      a    b\n\"hello\" \"hi\"");
+    }
+
+    @Test
     public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
