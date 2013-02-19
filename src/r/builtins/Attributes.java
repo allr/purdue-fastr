@@ -214,30 +214,40 @@ public class Attributes {
                     if (name == RSymbol.NAMES_SYMBOL) {
                         return Names.getNames(x);
                     }
-
                     // TODO: other special attributes
 
                     boolean exact = provided[IEXACT] ? parseExact(args[paramPositions[IEXACT]]) : false;
-                    if (!exact) {
-                        // unique partial matching
-                        if (name == RSymbol.NA_SYMBOL) {
-                            return RNull.getNull();
-                        }
+                    if (exact) {
+                        return RNull.getNull();
+                    }
 
-                        // partial matching
-                        RAny res = null;
+                    // unique partial matching
+                    if (name == RSymbol.NA_SYMBOL) {
+                        return RNull.getNull();
+                    }
 
-                        if (RSymbol.DIM_SYMBOL.name().startsWith(sname)) {
-                            res = Names.getNames(x); // note - dim is first checked
-                        }
-                        if (RSymbol.NAMES_SYMBOL.name().startsWith(sname)) {
-                            res = Names.getNames(x); // note - names does not have common prefix with dim
-                        }
+                    RAny res = null;
+                    if (RSymbol.DIM_SYMBOL.name().startsWith(sname)) {
+                        res = Names.getNames(x); // note - dim is first checked
+                    }
+                    if (RSymbol.NAMES_SYMBOL.name().startsWith(sname)) {
+                        res = Names.getNames(x); // note - names does not have common prefix with dim
+                    }
 
-                        if (attr != null) {
+                    if (attr != null) {
+                        if (attr.hasPartialMap()) {
+                            RSymbol fullName = attr.partialFind(name);
+                            if (fullName != null) {
+                                if (res != null) {
+                                    return RNull.getNull(); // not unique
+                                }
+                                res = attr.map().get(fullName);
+                            }
+                        } else {
                             Map<RSymbol, RAny> map = attr.map();
-
-                            // TODO: make this faster
+                            if (map.size() > 4096) {
+                                attr.createPartialMap();
+                            }
                             for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
                                 String sentry = entry.getKey().name();
                                 if (sentry.startsWith(sname)) {
@@ -248,13 +258,8 @@ public class Attributes {
                                 }
                             }
                         }
-
-                        if (res != null) {
-                            return res;
-                        }
                     }
-                    return RNull.getNull();
-
+                    return res != null ? res : RNull.getNull();
                 }
 
             };
@@ -309,7 +314,7 @@ public class Attributes {
 
                     if (attr == null) {
                         attr = new RAny.Attributes();
-                        attr.map().put(name, value);
+                        attr.put(name, value);
 
                         if (!xshared) {
                             return x.setAttributes(attr);
@@ -318,10 +323,8 @@ public class Attributes {
                         }
                     }
 
-                    Map<RSymbol, RAny> map  = attr.map();
-
                     if (!xshared && !attr.areShared()) {
-                        map.put(name, value);
+                        attr.put(name, value);
                         return x;
                     }
 
@@ -331,7 +334,7 @@ public class Attributes {
                     }
 
                     RAny.Attributes newAttr = attr.copy();
-                    newAttr.map().put(name, value);
+                    newAttr.put(name, value);
                     return x.setAttributes(newAttr);
                 }
 

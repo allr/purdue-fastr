@@ -77,6 +77,7 @@ public class Primitives {
         add("is.integer", 1, 1, TypeCheck.INT_FACTORY);
         add("is.list", 1, 1, TypeCheck.LIST_FACTORY);
         add("is.logical", 1, 1, TypeCheck.LOGICAL_FACTORY);
+        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.numeric", 1, 1, TypeCheck.NUMERIC_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
         add("is.raw", 1, 1, TypeCheck.RAW_FACTORY);

@@ -52,12 +52,98 @@ public interface RAny {
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 
     public static class Attributes {
-        boolean shared;
-        LinkedHashMap<RSymbol, RAny> map;
+        private boolean shared;
+        private LinkedHashMap<RSymbol, RAny> map;
+        private PartialEntry pmap;
+
+        public static class PartialEntry {
+            TreeMap<Character, PartialEntry> children;
+            RSymbol fullName;   // null means not present (RSymbol.NA_SYMBOL is not a valid attribute name)
+
+            public PartialEntry(RSymbol fullName) {
+                children = new TreeMap<Character, PartialEntry>();
+                this.fullName = fullName;
+            }
+
+            public PartialEntry() {
+                this(null);
+            }
+        }
 
         public Attributes() {
             map = new LinkedHashMap<RSymbol, RAny>();
             shared = false;
+        }
+
+        public void createPartialMap() {
+            assert Utils.check(pmap == null);
+
+            pmap = new PartialEntry();
+            for (RSymbol s : map.keySet()) {
+                partialAdd(s);
+            }
+        }
+
+        public void put(RSymbol key, RAny value) {
+            map.put(key, value);
+            if (pmap != null) {
+                partialAdd(key);
+            }
+        }
+
+        private void partialAdd(RSymbol symbol) {
+            char[] key = symbol.name().toCharArray();
+            PartialEntry root = pmap;
+            for (int i = 0; i < key.length - 1; i++) {
+                char k = key[i];
+                TreeMap<Character, PartialEntry> cmap = root.children;
+                root = cmap.get(k);
+                if (root == null) {
+                    root = new PartialEntry();
+                    cmap.put(k, root);
+                }
+            }
+            char k = key[key.length - 1];
+            TreeMap<Character, PartialEntry> cmap = root.children;
+            root = cmap.get(k);
+            if (root == null) {
+                cmap.put(k, new PartialEntry(symbol));
+            } else {
+                assert Utils.check(root.fullName == null);  // attributes have unique names
+                root.fullName = symbol;
+            }
+        }
+
+        public boolean hasPartialMap() {
+            return pmap != null;
+        }
+
+        public RSymbol partialFind(RSymbol partialName) {
+            assert Utils.check(pmap != null);
+            assert Utils.check(partialName != RSymbol.NA_SYMBOL);
+
+            return partialFind(partialName.name().toCharArray(), 0, pmap);
+        }
+
+        private RSymbol partialFind(char[] key, int keyStart, PartialEntry root) {
+            PartialEntry pe = root.children.get(key[keyStart]);
+            if (pe == null) {
+                return null;
+            }
+            int nextStart = keyStart + 1;
+            if (nextStart == key.length) {
+                // found a match, check if it is unique
+                return countPresentValues(pe) == 1 ? pe.fullName : null;
+            }
+            return partialFind(key, nextStart, pe); // recursion
+        }
+
+        private int countPresentValues(PartialEntry root) {
+            int cnt = root.fullName == null ? 0 : 1;
+            for (PartialEntry pe : root.children.values()) {
+                cnt += countPresentValues(pe);
+            }
+            return cnt;
         }
 
         public boolean areShared() {

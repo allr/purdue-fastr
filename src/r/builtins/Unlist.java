@@ -85,7 +85,18 @@ public class Unlist {
         }
         RAny xfirst = x.getRAny(0);
         RArray.Names names = x.names();
-
+        if (xfirst instanceof ScalarIntImpl) {
+            int[] content = new int[xsize];
+            for (int i = 0; i < xsize; i++) {
+                RAny elem = x.getRAny(i);
+                if (elem instanceof ScalarIntImpl) {
+                    content[i] = ((ScalarIntImpl) elem).getInt();
+                } else {
+                    return null;
+                }
+            }
+            return RInt.RIntFactory.getFor(content, null, useNames ? names : null);
+        }
         if (xfirst instanceof ScalarStringImpl) {
             String[] content = new String[xsize];
             for (int i = 0; i < xsize; i++) {
