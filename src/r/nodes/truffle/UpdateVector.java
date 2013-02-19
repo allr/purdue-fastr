@@ -496,6 +496,9 @@ public abstract class UpdateVector extends BaseR {
             } else if (base instanceof RString || value instanceof RString) {
                 typedBase = base.asString();
                 rawValue = value.asString().get(0);
+            } else if (base instanceof RComplex || value instanceof RComplex) {
+                typedBase = base.asComplex();
+                rawValue = value.asComplex().get(0);
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 rawValue = value.asDouble().get(0);

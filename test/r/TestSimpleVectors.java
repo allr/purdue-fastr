@@ -106,6 +106,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- 1:3 ; x[2] <- \"hi\"; x }", "\"1L\", \"hi\", \"3L\"");
         assertEval("{ x <- c(1,2,3) ; x[2] <- \"hi\"; x }", "\"1.0\", \"hi\", \"3.0\"");
         assertEval("{ x <- c(TRUE,FALSE,FALSE) ; x[2] <- \"hi\"; x }", "\"TRUE\", \"hi\", \"FALSE\"");
+        assertEval("{ x <- c(2,3,4) ; x[1] <- 3+4i ; x  }", "3.0+4.0i, 3.0+0.0i, 4.0+0.0i");
     }
 
     @Test
