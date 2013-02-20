@@ -1,12 +1,14 @@
 package r.data;
 
+import java.util.*;
+
 import r.Convert.ConversionStatus;
-import r.data.internal.*;
+import r.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 // NOTE: error handling with casts is tricky, because different commands do it differently
-//  sometimes error is signalled by returning an NA
+//  sometimes error is signaled by returning an NA
 //  sometimes that comes with a warning that NAs have been introduced, but the warning is only given once for the whole vector even if multiple NAs are introduced
 //  but sometimes there is a different warning or even an error when the conversion is not possible
 //
@@ -26,7 +28,9 @@ public interface RAny {
     String TYPE_STRING = "any";
     String typeOf();
 
-    RAttributes getAttributes();
+    Attributes attributes();
+    RAny setAttributes(Attributes attributes);
+    RAttributes getAttributes(); // FIXME: remove
     RAny stripAttributes();
 
     String pretty();
@@ -56,4 +60,141 @@ public interface RAny {
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 
+    public static class Attributes {
+        private boolean shared;
+        private LinkedHashMap<RSymbol, RAny> map;
+        private PartialEntry pmap;
+
+        public static class PartialEntry {
+            TreeMap<Character, PartialEntry> children;
+            RSymbol fullName;   // null means not present (RSymbol.NA_SYMBOL is not a valid attribute name)
+
+            public PartialEntry(RSymbol fullName) {
+                children = new TreeMap<Character, PartialEntry>();
+                this.fullName = fullName;
+            }
+
+            public PartialEntry() {
+                this(null);
+            }
+        }
+
+        public Attributes() {
+            map = new LinkedHashMap<RSymbol, RAny>();
+            shared = false;
+        }
+
+        public void createPartialMap() {
+            assert Utils.check(pmap == null);
+
+            pmap = new PartialEntry();
+            for (RSymbol s : map.keySet()) {
+                partialAdd(s);
+            }
+        }
+
+        public void put(RSymbol key, RAny value) {
+            map.put(key, value);
+            if (pmap != null) {
+                partialAdd(key);
+            }
+        }
+
+        private void partialAdd(RSymbol symbol) {
+            char[] key = symbol.name().toCharArray();
+            PartialEntry root = pmap;
+            for (int i = 0; i < key.length - 1; i++) {
+                char k = key[i];
+                TreeMap<Character, PartialEntry> cmap = root.children;
+                root = cmap.get(k);
+                if (root == null) {
+                    root = new PartialEntry();
+                    cmap.put(k, root);
+                }
+            }
+            char k = key[key.length - 1];
+            TreeMap<Character, PartialEntry> cmap = root.children;
+            root = cmap.get(k);
+            if (root == null) {
+                cmap.put(k, new PartialEntry(symbol));
+            } else {
+                assert Utils.check(root.fullName == null);  // attributes have unique names
+                root.fullName = symbol;
+            }
+        }
+
+        public boolean hasPartialMap() {
+            return pmap != null;
+        }
+
+        public RSymbol partialFind(RSymbol partialName) {
+            assert Utils.check(pmap != null);
+            assert Utils.check(partialName != RSymbol.NA_SYMBOL);
+
+            return partialFind(partialName.name().toCharArray(), 0, pmap);
+        }
+
+        private RSymbol partialFind(char[] key, int keyStart, PartialEntry root) {
+            PartialEntry pe = root.children.get(key[keyStart]);
+            if (pe == null) {
+                return null;
+            }
+            int nextStart = keyStart + 1;
+            if (nextStart == key.length) {
+                // found a match, check if it is unique
+                return countPresentValues(pe) == 1 ? pe.fullName : null;
+            }
+            return partialFind(key, nextStart, pe); // recursion
+        }
+
+        private int countPresentValues(PartialEntry root) {
+            int cnt = root.fullName == null ? 0 : 1;
+            for (PartialEntry pe : root.children.values()) {
+                cnt += countPresentValues(pe);
+            }
+            return cnt;
+        }
+
+        public boolean areShared() {
+            return shared;
+        }
+
+        public Attributes markShared() {
+            shared = true;
+            return this;
+        }
+
+        public LinkedHashMap<RSymbol, RAny> map() {
+            return map;
+        }
+
+        public Attributes copy() {
+            Attributes nattr = new Attributes();
+            LinkedHashMap<RSymbol, RAny> nmap = nattr.map();
+
+            for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
+                // TODO: do we need deep copy? probably not, should use reference counts instead
+                // TODO: a similar issue applies to Utils.copyArray for RList (in ListImpl)
+                nmap.put(entry.getKey(), Utils.copyAny(entry.getValue()));
+            }
+            return nattr;
+        }
+
+        public Attributes getOrCopy() {
+            if (shared) {
+                return copy();
+            } else {
+                return this;
+            }
+        }
+
+        public static Attributes getOrCopy(Attributes attr) {
+            if (attr == null) {
+                return null;
+            } else {
+                return attr.getOrCopy();
+            }
+        }
+
+    }
 }

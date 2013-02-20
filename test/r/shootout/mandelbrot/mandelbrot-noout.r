@@ -16,7 +16,7 @@ mandelbrot_noout <- function(args) {
 
     cat("P4\n")
     cat(n, n, "\n")
-    bin_con <- pipe("cat", "wb")
+    #bin_con <- pipe("cat", "wb")
     for (y in 0:(n-1)) {
         c <- 2 * 0:(n-1) / n - 1.5 + 1i * (2 * y / n - 1)
         z <- rep(0+0i, n)

@@ -319,6 +319,14 @@ public final class Utils {
         return null;
     }
 
+    public static RAny copyAny(RAny arg) {
+        if (arg instanceof RArray) {
+            return copyArray((RArray) arg);
+        }
+        Utils.nyi("unsupported type for copy");
+        return null;
+    }
+
     public static void ref(RAny[] values) {
         for (RAny v : values) {
             v.ref();

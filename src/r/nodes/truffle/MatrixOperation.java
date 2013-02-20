@@ -1,9 +1,12 @@
 package r.nodes.truffle;
 
+import org.netlib.blas.*;
+
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
@@ -11,6 +14,8 @@ public abstract class MatrixOperation extends BaseR {
 
     @Child RNode left;
     @Child RNode right;
+
+    private static final boolean USE_PRIMITIVE_ACCESS = false; // surprisingly primitive access in naive algo is not faster than getters
 
     public MatrixOperation(ASTNode ast, RNode left, RNode right) {
         super(ast);
@@ -110,6 +115,7 @@ public abstract class MatrixOperation extends BaseR {
             }
         }
 
+
         public static RDouble matrixTimesMatrix(ASTNode ast, RDouble a, RDouble b) {
             int[] dima = a.dimensions();
             int[] dimb = b.dimensions();
@@ -121,10 +127,27 @@ public abstract class MatrixOperation extends BaseR {
             }
             int p = dimb[1];
 
+            double[] res;
+            if (RDouble.RDoubleUtils.hasNAorNaN(a) || RDouble.RDoubleUtils.hasNAorNaN(b) || m == 0 || n == 0 || p == 0) {
+                if (USE_PRIMITIVE_ACCESS && a.size() > 1 && b.size() > 1) {
+                    res =  matrixTimesMatrixPrimitive(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
+                } else {
+                    res = matrixTimesMatrixGetters(a, b, m, n, p);
+                }
+            } else {
+                res = matrixTimesMatrixNative(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
+            }
+
+            return RDouble.RDoubleFactory.getFor(res, new int[] {m, p}, null);
+        }
+
+
+        public static double[] matrixTimesMatrixGetters(RDouble a, RDouble b, int m, int n, int p) {
+
             // a is m x n, b is n x p, result is m x p
             double[] content = new double[m * p];
-            for (int i = 0; i < m; i++) {
-                for (int j = 0; j < p; j++) {
+            for (int j = 0; j < p; j++) {
+                for (int i = 0; i < m; i++) {
                     double d = 0;
                     for (int k = 0; k < n; k++) {
                         d += a.getDouble(k * m + i) * b.getDouble(j * n + k);
@@ -132,7 +155,32 @@ public abstract class MatrixOperation extends BaseR {
                     content[j * m + i] = d;
                 }
             }
-            return RDouble.RDoubleFactory.getFor(content, new int[] {m, p}, null);
+            return content;
+        }
+
+        public static double[] matrixTimesMatrixPrimitive(double[] a, double[] b, int m, int n, int p) {
+            // surprisingly, this is not any faster than using .getDouble
+
+            // a is m x n, b is n x p, result is m x p
+            double[] content = new double[m * p];
+
+            for (int j = 0; j < p; j++) {
+                for (int i = 0; i < m; i++) {
+                    double d = 0;
+                    for (int k = 0; k < n; k++) {
+                        d += a[k * m + i] * b[j * n + k];
+                    }
+                    content[j * m + i] = d;
+                }
+            }
+            return content;
+        }
+
+        public static double[] matrixTimesMatrixNative(double[] a, double[] b, int m, int n, int p) {
+
+            double[] res = new double[m * p];
+            BLAS.getInstance().dgemm("N", "N", m, p, n, 1.0, a, m, b, n, 0.0, res, m);
+            return res;
         }
 
         @Override

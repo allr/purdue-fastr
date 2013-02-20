@@ -106,6 +106,7 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- 1:3 ; x[2] <- \"hi\"; x }", "\"1L\", \"hi\", \"3L\"");
         assertEval("{ x <- c(1,2,3) ; x[2] <- \"hi\"; x }", "\"1.0\", \"hi\", \"3.0\"");
         assertEval("{ x <- c(TRUE,FALSE,FALSE) ; x[2] <- \"hi\"; x }", "\"TRUE\", \"hi\", \"FALSE\"");
+        assertEval("{ x <- c(2,3,4) ; x[1] <- 3+4i ; x  }", "3.0+4.0i, 3.0+0.0i, 4.0+0.0i");
     }
 
     @Test
@@ -432,6 +433,16 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ a <- list(a = 1, b = 2); a$a <- 67; a; }", "$a\n67.0\n\n$b\n2.0");
         assertEval("{ a <- list(a = 1, b = 2); a$b <- 67; a; }", "$a\n1.0\n\n$b\n67.0");
         assertEval("{ a <- list(a = 1, b = 2); a$c <- 67; a; }", "$a\n1.0\n\n$b\n2.0\n\n$c\n67.0");
+        assertEval("{ v <- list(xb=1, b=2, aa=3, aa=4) ; v$aa }", "3.0");
+
+        // partial matching
+        assertEval("{ v <- list(xb=1, b=2, aa=3, aa=4) ; v$x }", "1.0");
+        assertEval("{ v <- list(xb=1, b=2, aa=3, aa=4) ; v$a }", "NULL");
+        assertEval("{ f <- function(v) { v$x } ; f(list(xa=1, xb=2, hello=3)) ; f(list(y=2,x=3)) }", "3.0");
+
+        // rewriting
+        assertEval("{ f <- function(v) { v$x } ; f(list(xa=1, xb=2, hello=3)) ; l <- list(y=2,x=3) ; f(l) ; l[[2]] <- 4 ; f(l) }", "4.0");
+
         // make sure that dollar only works for lists
         assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_ATOMIC_VECTORS);
         // make sure that coercion returns warning

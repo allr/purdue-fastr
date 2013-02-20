@@ -87,6 +87,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_NOT_MATRIX = "argument is not a matrix";
     public static final String DOLLAR_ATOMIC_VECTORS = "$ operator is invalid for atomic vectors";
     public static final String COERCING_LHS_TO_LIST = "Coercing LHS to a list";
+    public static final String ARGUMENT_NOT_LIST = "argument not a list";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -115,6 +116,7 @@ public abstract class RError extends RuntimeException {
     public static final String NON_SQUARE_MATRIX = "non-square matrix in '%s'";
     public static final String LAPACK_ERROR = "error code %d from Lapack routine '%s'";
     public static final String VALUE_OUT_OF_RANGE = "value out of range in '%s'";
+    public static final String MUST_BE_NONNULL_STRING = "'%s' must be non-null character string";
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
 
     public static final String DIMS_CONTAIN_NEGATIVE_VALUES = "the dims contain negative values";
@@ -977,6 +979,18 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getArgumentNotList(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.ARGUMENT_NOT_LIST;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -1056,6 +1070,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getLapackError(ASTNode ast, int code, String routine) {
         return getGenericError(ast, String.format(RError.LAPACK_ERROR, code, routine));
+    }
+
+    public static RError getMustBeNonNullString(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_NONNULL_STRING, argName));
     }
 
     public static RError getValueOutOfRange(ASTNode ast, String argName) {

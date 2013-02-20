@@ -46,6 +46,11 @@ public abstract class View extends ArrayImpl implements RArray {
     }
 
     @Override
+    public RArray setAttributes(Attributes attributes) {
+        return materialize().setAttributes(attributes);
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi(); // Do we have to bind on the view node or on the implementation
         return null;
@@ -204,6 +209,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Names names() {
             return orig.names();
         }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
+        }
     }
 
     public abstract static class RLogicalView extends View implements RLogical {
@@ -350,6 +360,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Names names() {
             return orig.names();
         }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
+        }
     }
 
     public abstract static class RIntView extends View implements RInt {
@@ -490,6 +505,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Names names() {
             return orig.names();
+        }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
         }
     }
 
@@ -637,6 +657,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Names names() {
             return orig.names();
         }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
+        }
     }
 
     public abstract static class RComplexView extends View implements RComplex {
@@ -782,6 +807,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Names names() {
             return orig.names();
+        }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
         }
     }
 
@@ -934,6 +964,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Names names() {
             return orig.names();
         }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
+        }
     }
 
     public abstract static class RListView extends View implements RList {
@@ -1074,6 +1109,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Names names() {
             return orig.names();
+        }
+
+        @Override
+        public Attributes attributes() {
+            return orig.attributes();
         }
     }
 }

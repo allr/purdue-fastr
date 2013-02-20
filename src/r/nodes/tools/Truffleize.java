@@ -150,7 +150,7 @@ public class Truffleize implements Visitor {
     public void visit(FieldAccess fa) {
         ASTNode lhs = fa.lhs();
         RNode n = createTree(lhs);
-        result = ReadList.simpleFieldSelect(fa, n, fa.fieldName());
+        result = new ReadVector.FieldSelection.UninitializedSelection(fa, n, RSymbol.getSymbol(fa.fieldName()));
     }
 
     @Override
@@ -310,13 +310,14 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == RSymbol.dropName) {
+                if (names[i] == RSymbol.DROP_SYMBOL) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
                 } else if (names[i] == RSymbol.exactName) {
+                if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
@@ -378,14 +379,14 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-/*                if (names[i] == RSymbol.dropName) {
+                if (names[i] == RSymbol.DROP_SYMBOL) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
                 } else */
-                if (names[i] == RSymbol.exactName) {
+                if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }

@@ -51,6 +51,10 @@ public class Primitives {
         add("as.logical", 0, -1, Cast.LOGICAL_FACTORY);
         add("as.raw", 0, -1, Cast.RAW_FACTORY);
         add("as.vector", 1, 2, Cast.VECTOR_FACTORY);
+        add("attr", 2, 3, Attributes.ATTR_FACTORY);
+        add("attr<-", 3, 3, Attributes.ATTR_REPLACEMENT_FACTORY);
+        add("attributes", 1, 1, Attributes.ATTRIBUTES_FACTORY);
+        add("attributes<-", 2, 2, Attributes.ATTRIBUTES_REPLACEMENT_FACTORY);
         add("c", 0, -1, Combine.FACTORY);
         add("cat", 0, -1, Cat.FACTORY);
         add("character", 0, 1, ArrayConstructor.STRING_FACTORY);
@@ -77,6 +81,7 @@ public class Primitives {
         add("is.integer", 1, 1, TypeCheck.INT_FACTORY);
         add("is.list", 1, 1, TypeCheck.LIST_FACTORY);
         add("is.logical", 1, 1, TypeCheck.LOGICAL_FACTORY);
+        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.numeric", 1, 1, TypeCheck.NUMERIC_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
         add("is.null", 1, 1, TypeCheck.NULL_FACTORY);
@@ -130,6 +135,7 @@ public class Primitives {
         add("tolower", 1, 1, CharUtils.TOLOWER_FACTORY);
         add("toupper", 1, 1, CharUtils.TOUPPER_FACTORY);
         add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);
+        add("unlist", 1, 3, Unlist.FACTORY);
         add("upper.tri", 1, 2, TriangularPart.UPPER_FACTORY);
         add("which", 1, 3, Which.FACTORY);
         add("writeBin", 2, 5, WriteBin.FACTORY);
@@ -180,7 +186,7 @@ public class Primitives {
 
     private static void add(String name, int minArgs, int maxArgs, CallFactory body, int prettyPrint) {
         RSymbol sym = RSymbol.getSymbol(name);
-        assert Utils.check(!map.containsKey(sym));
+//        assert Utils.check(!map.containsKey(sym)); no longer holds (or should hold)
         map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, prettyPrint));
     }
 }

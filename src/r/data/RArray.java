@@ -1,6 +1,7 @@
 package r.data;
 
 import r.Utils;
+import r.data.RAny.*;
 import r.data.internal.View;
 
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public interface RArray extends RAny {
     RArray setDimensions(int[] dimensions);
 
     RArray setNames(Names names);
-
+    RArray setAttributes(Attributes attributes);
     boolean isNAorNaN(int i);
 
     int index(int i, int j);
@@ -101,6 +102,26 @@ public interface RArray extends RAny {
                     res[i] = names[i].pretty();
                 } else {
                     res[i] = RString.NA;
+                }
+            }
+            return res;
+        }
+
+        public int mapPartial(RSymbol name) {
+            String sname = name.name();
+            if (sname == null) {
+                return -1; // FIXME: should this be allowed?
+            }
+
+            int res = -1;
+            for (int i = 0; i < names.length; i++) {
+                String sStored = names[i].name();
+                if (sStored != null && sStored.startsWith(sname)) {
+                    if (res == -1) {
+                        res = i;
+                    } else {
+                        return -1; // ambiguous match
+                    }
                 }
             }
             return res;

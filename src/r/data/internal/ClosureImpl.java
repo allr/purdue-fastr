@@ -5,6 +5,7 @@ import com.oracle.truffle.api.frame.*;
 import r.*;
 import r.Convert.*;
 import r.data.*;
+import r.data.RAny.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 
@@ -133,5 +134,16 @@ public class ClosureImpl extends BaseObject implements RClosure {
     @Override
     public String typeOf() {
         return RClosure.TYPE_STRING;
+    }
+
+    @Override
+    public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public RArray setAttributes(Attributes attributes) {
+        Utils.nyi();
+        return null;
     }
 }
