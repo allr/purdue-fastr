@@ -8,79 +8,81 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 
 
-/** Array update AST and its specializations.
- *
- *
- *
- *
- */
+/** Array update AST and its specializations. */
 public class UpdateArray extends Assignment.AssignmentNode {
 
     static final boolean DEBUG_UP = false;
 
-    /** determines whether [] or [[]] operators were used (subset == [])
-     */
+    /** determines whether [] or [[]] operators were used (subset == []). */
     final boolean subset;
 
-    /** Selector nodes for respective dimensions. These are likely to be rewritten.
-     */
-    @Children Selector.SelectorNode[] selectors;
+    /** Selector nodes for respective dimensions. These are likely to be rewritten. */
+    @Children
+    Selector.SelectorNode[] selectors;
 
-    /** Constructor from scratch.
-     */
+    /** Constructor from scratch. */
     public UpdateArray(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
         super(ast);
         this.subset = subset;
         this.selectors = new Selector.SelectorNode[selectors.length];
-        for (int i = 0; i < selectors.length; ++i)
+        for (int i = 0; i < selectors.length; ++i) {
             this.selectors[i] = adoptChild(selectors[i]);
+        }
     }
 
-    /** Copy constructor used in node replacements.
-     */
+    /** Copy constructor used in node replacements. */
     public UpdateArray(UpdateArray other) {
         super(other.ast);
         subset = other.subset;
         selectors = new Selector.SelectorNode[other.selectors.length];
-        for (int i = 0; i < selectors.length; ++i)
+        for (int i = 0; i < selectors.length; ++i) {
             selectors[i] = adoptChild(other.selectors[i]);
+        }
     }
 
 
-    /** Returns true if the given type (from) is implicitly convertible to the other type. So for example logical type
-     * is always convertible and string is only convertible to string itself.
+    /**
+     * Returns true if the given type (from) is implicitly convertible to the other type. So for example logical type is
+     * always convertible and string is only convertible to string itself.
      */
     protected final boolean isConvertible(RAny from, RAny to) {
-        if (from.getClass() == to.getClass()) // same types are always convertible.
+        if (from.getClass() == to.getClass()) { // same types are always convertible.
             return true;
-        if ((to instanceof RDouble) && (from instanceof RInt || from instanceof RDouble || from instanceof RLogical))
+        }
+        if ((to instanceof RDouble) && (from instanceof RInt || from instanceof RDouble || from instanceof RLogical)) {
             return true;
-        if ((to instanceof RInt) && (from instanceof RInt || from instanceof RLogical))
+        }
+        if ((to instanceof RInt) && (from instanceof RInt || from instanceof RLogical)) {
             return true;
-        if ((to instanceof RComplex) && (from instanceof RInt || from instanceof RDouble || from instanceof RComplex || from instanceof RLogical))
+        }
+        if ((to instanceof RComplex) && (from instanceof RInt || from instanceof RDouble || from instanceof RComplex || from instanceof RLogical)) {
             return true;
-        if (to instanceof RString) // everything is convertible to a string
+        }
+        if (to instanceof RString) { // everything is convertible to a string
             return true;
-        if ((to instanceof RLogical) && (from instanceof RLogical))
+        }
+        if ((to instanceof RLogical) && (from instanceof RLogical)) {
             return true;
+        }
         return false;
     }
 
 
-    /** The most general node only asks itself if the left hand side has to be copied.
-     *
-     * At the moment, this is very simple calculation: we do not copy the left hand side only if it is not shared,
-     * and if the rhs is a constant scalar(!) of the same type as the lhs, or of an easily convertible type.
-     *
+    /**
+     * The most general node only asks itself if the left hand side has to be copied.
+     * <p/>
+     * At the moment, this is very simple calculation: we do not copy the left hand side only if it is not shared, and
+     * if the rhs is a constant scalar(!) of the same type as the lhs, or of an easily convertible type.
+     * <p/>
      * In all other cases the copy node is first injected to the code.
      */
     @Override
     public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-        if ( !lhs.isShared()
-            && constRhs
-            && isConvertible(rhs, lhs)
-            && rhs instanceof RArray
-            && ((RArray) rhs).size() == 1) {
+        if (!lhs.isShared()
+                && constRhs
+                && isConvertible(rhs, lhs)
+                && rhs instanceof RArray
+                && ((RArray) rhs).size() == 1) {
             if (DEBUG_UP) Utils.debug("UpateArray -> RHSCompatible (no need of LHS copy)");
             return replace(new RHSCompatible(this)).execute(frame, lhs, rhs, constRhs);
         }
@@ -88,9 +90,10 @@ public class UpdateArray extends Assignment.AssignmentNode {
         return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs, constRhs);
     }
 
-    /** Initializes the selectors and runs the update method. If the selectors fail, replaces them and reruns the
-     * update method.
-     *
+    /**
+     * Initializes the selectors and runs the update method. If the selectors fail, replaces them and reruns the update
+     * method.
+     * <p/>
      * This method must be called by the execute methods of the update array specifications to proceed further. It
      * assumes (without checking) that the lhs and rhs arrays are of the same type.
      */
@@ -98,7 +101,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
         // this is safe even for the non-shared variant, because here we already have the copy, which is always
         // not shared
         if (lhs.isShared()) {
-            if (DEBUG_UP) Utils.debug(getClass().getSimpleName()+" -> Generalized");
+            if (DEBUG_UP) Utils.debug(getClass().getSimpleName() + " -> Generalized");
             return replace(new CopyLhs(this)).execute(frame, lhs, rhs, false);
         }
         Selector[] selectorsVal = new Selector[selectors.length];
@@ -117,7 +120,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
                         replaceChild(selectors[i], newSelector);
                         assert (selectors[i] == newSelector);
                         selectorsVal[i] = newSelector.executeSelector(index);
-                        if (DEBUG_UP) Utils.debug("Selector "+i+" changed...");
+                        if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
                     }
                 }
             }
@@ -125,13 +128,14 @@ public class UpdateArray extends Assignment.AssignmentNode {
     }
 
 
-    /** A basic in-place update of the selection.
-     *
+    /**
+     * A basic in-place update of the selection.
+     * <p/>
      * Updates the lhs array with the rhs array information using given selectors. Override this method for different
      * array manipulation.
      */
     protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-        int[] selSizes = Selector.initializeSelectors(lhs, selectors,ast);
+        int[] selSizes = Selector.initializeSelectors(lhs, selectors, ast);
         int rhsSize = rhs.size();
         int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
         if (!subset && (rhsSize > 1)) {
@@ -147,7 +151,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
         while (replacementSize >= rhsSize) {
             // loop over the dest offset and update the index vector, store the values
             for (int rhsOffset = 0; rhsOffset < rhsSize; ++rhsOffset) {
-                int lhsOffset = Selector.calculateSourceOffset(lhs,idx);
+                int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
                 // do nothing if lhsOffset is NA
                 if (lhsOffset != RInt.NA) {
                     lhs.set(lhsOffset, rhs.getRef(rhsOffset));
@@ -167,9 +171,10 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // Non-shared 
     // =================================================================================================================
 
-    /** Node which assumes that the LHS is not shared - more precisely that it either does not need to be copied, or
-     * has already been copied and it sees the copy. If the lhs and rhs types are the same, the node reqrites itself to
-     * the next step which is IdenticalTypes node, otherwise injects the CopyRhs node before the IdenticalTypes.
+    /**
+     * Node which assumes that the LHS is not shared - more precisely that it either does not need to be copied, or has
+     * already been copied and it sees the copy. If the lhs and rhs types are the same, the node reqrites itself to the
+     * next step which is IdenticalTypes node, otherwise injects the CopyRhs node before the IdenticalTypes.
      */
     protected static class RHSCompatible extends UpdateArray {
 
@@ -177,17 +182,18 @@ public class UpdateArray extends Assignment.AssignmentNode {
             super(other);
         }
 
-        /** The non-shared update assumes that the lhs is a non-shared array with the same type as rhs, or of a type to
+        /**
+         * The non-shared update assumes that the lhs is a non-shared array with the same type as rhs, or of a type to
          * which the rhs can be converted, so it just determines whether to replace itself with a rhs convertor node, or
          * whether to proceed directly to the IdenticalTypes node.
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
             if ((lhs instanceof RDouble && rhs instanceof RDouble)
-                || (lhs instanceof RInt && rhs instanceof RInt)
-                || (lhs instanceof RLogical && rhs instanceof RLogical)
-                || (lhs instanceof RString && rhs instanceof RString)
-                || (lhs instanceof RComplex && rhs instanceof RComplex)
+                    || (lhs instanceof RInt && rhs instanceof RInt)
+                    || (lhs instanceof RLogical && rhs instanceof RLogical)
+                    || (lhs instanceof RString && rhs instanceof RString)
+                    || (lhs instanceof RComplex && rhs instanceof RComplex)
                     || (lhs instanceof RRaw && rhs instanceof RRaw)) {
                 if (DEBUG_UP) Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
                 return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs, constRhs);
@@ -202,8 +208,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // IdenticalTypes
     // =================================================================================================================
 
-    /** Node at which the lhs and rhs are of the same type and can thus be immediately updated.
-     *
+    /**
+     * Node at which the lhs and rhs are of the same type and can thus be immediately updated.
+     * <p/>
      * If the rhs is constant scalar, uses the ConstScalar version of the update, otherwise uses the NonConst version.
      */
     protected static class IdenticalTypes extends UpdateArray {
@@ -212,11 +219,10 @@ public class UpdateArray extends Assignment.AssignmentNode {
             super(other);
         }
 
-        /** Rewrites itself to either ConstScalar updater, or to the more generic NonConst updater.
-         */
+        /** Rewrites itself to either ConstScalar updater, or to the more generic NonConst updater. */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if (constRhs && rhs instanceof RArray && ((RArray)rhs).size() ==1) {
+            if (constRhs && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
                 if (DEBUG_UP) Utils.debug("IdenticalTypes -> ConstScalar");
                 return replace(new ConstScalar<Object>(this)).execute(frame, lhs, rhs, constRhs);
             }
@@ -229,21 +235,21 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // Generalized
     // =================================================================================================================
 
-    /** The generalized fall-back node for array update.
-     *
+    /**
+     * The generalized fall-back node for array update.
+     * <p/>
      * Whenever the assumtions of specialized nodes in the update array node tree fail, the whole tree is rewritten to
      * this node, which does all:
-     *
-     * - makes copy of the LHS if required
-     * - makes copy of the RHS if required
-     * - runs the generalized update method with selectors and non-const non-scalar rhs vector (this will work for const
-     *   scalars too, just not with the greates speeds)
-     *
-     * In general, this node is used whenever the type information on lhs and rhs side of the update changes at runtime.
-     *
+     * <p/>
+     * - makes copy of the LHS if required - makes copy of the RHS if required - runs the generalized update method with
+     * selectors and non-const non-scalar rhs vector (this will work for const scalars too, just not with the greates
+     * speeds)
+     * <p/>
+     * In general, this node is used whenever the type information on lhs and rhs side of the update changes at
+     * runtime.
+     * <p/>
      * TODO Maybe by making the general case less aggressive and allowing for instance to recompute the copy LHS and
      * copy RHS arguments better results can be achieved.
-     *
      */
     protected static class Generalized extends UpdateArray {
 
@@ -251,10 +257,11 @@ public class UpdateArray extends Assignment.AssignmentNode {
             super(other);
         }
 
-        /** Replaces the whole updateArray tree of the given node by the Generalized node instance. This gets rid of
-         * any UpdateArray descendants, CopyLhs or CopyRhs nodes in the tree leaving in it only the Generalized node
-         * since it has all the required functionality.
-         *
+        /**
+         * Replaces the whole updateArray tree of the given node by the Generalized node instance. This gets rid of any
+         * UpdateArray descendants, CopyLhs or CopyRhs nodes in the tree leaving in it only the Generalized node since
+         * it has all the required functionality.
+         * <p/>
          * When replacing a node to the Generalized one, this method should always be used instead of simple replace.
          */
         public static Generalized replaceArrayUpdateTree(UpdateArray tree) {
@@ -270,8 +277,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             return root.replace(new Generalized(tree));
         }
 
-        /** This is the general case that performs all the computations at once. In the slowpath makes a copy of the
-         * lhs and determines if a copy of the rhs should be made and then runs the update of arrays for non-const rhs
+        /**
+         * This is the general case that performs all the computations at once. In the slowpath makes a copy of the lhs
+         * and determines if a copy of the rhs should be made and then runs the update of arrays for non-const rhs
          * values (this will work for the const values too, of course).
          */
         @Override
@@ -282,7 +290,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 try {
                     lhs = lhsImpl.copy(lhs);
                 } catch (UnexpectedResultException e) {
-                    assert (false): "unreachable";
+                    assert (false) : "unreachable";
                 }
             }
             // now check if we need to copy the RHS
@@ -291,17 +299,17 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 try {
                     rhs = rhsImpl.copy(rhs);
                 } catch (UnexpectedResultException e) {
-                    assert (false): "unreachable";
+                    assert (false) : "unreachable";
                 }
             }
             // we have lhs and rhs, if everything goes well, and is implemented they will be of the same type.
             // TODO However because not everything is implemented as of now, I am keeping the checks.
-            if ((lhs instanceof RInt && ! (rhs instanceof RInt))
-                    || (lhs instanceof RDouble && ! (rhs instanceof RDouble))
-                    || (lhs instanceof RLogical && ! (rhs instanceof RLogical))
-                    || (lhs instanceof RComplex && ! (rhs instanceof RComplex))
-                    || (lhs instanceof RString && ! (rhs instanceof RString))
-                    || (lhs instanceof RRaw && ! (rhs instanceof RRaw))) {
+            if ((lhs instanceof RInt && !(rhs instanceof RInt))
+                    || (lhs instanceof RDouble && !(rhs instanceof RDouble))
+                    || (lhs instanceof RLogical && !(rhs instanceof RLogical))
+                    || (lhs instanceof RComplex && !(rhs instanceof RComplex))
+                    || (lhs instanceof RString && !(rhs instanceof RString))
+                    || (lhs instanceof RRaw && !(rhs instanceof RRaw))) {
                 Utils.nyi("Unable to perform the update of the array - unimplemented copy");
             }
             return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
@@ -312,26 +320,29 @@ public class UpdateArray extends Assignment.AssignmentNode {
 // CopyLhs
 // =================================================================================================================
 
-    /** Special node that injects the copying of the lhs object when it is shared.
-     *
+    /**
+     * Special node that injects the copying of the lhs object when it is shared.
+     * <p/>
      * LHS is copied whenever the RHS is non-const non-scalar due to aliasing as well as whenever the lhs is shared, or
      * when its type has to change.
-     *
+     * <p/>
      * This is determined by the UpdateArray node. Here, the node only determines which copy should be used as copying
      * may also change the type of the lhs (i.e. when storing double into int array, etc).
-     *
+     * <p/>
      * First execution determines which copy/typecast should be used and rewrites to the specific case. Subsequent calls
      * check the type of the lhs for the copy and on failure rewrite the three to the Generalized array update.
-     *
+     * <p/>
      * Its child is the actual copying code (or CopyRhs)
-     *
      */
     protected static class CopyLhs extends UpdateArray {
 
-        @Child UpdateArray child;
+        @Child
+        UpdateArray child;
 
-        /** Standard constructor. The update array supplied is also used as the child (the update array node that will
-         * do the update, or at least proceed further like the optional copyRhs node). */
+        /**
+         * Standard constructor. The update array supplied is also used as the child (the update array node that will do
+         * the update, or at least proceed further like the optional copyRhs node).
+         */
         public CopyLhs(UpdateArray child) {
             super(child);
             this.child = adoptChild(child);
@@ -342,12 +353,13 @@ public class UpdateArray extends Assignment.AssignmentNode {
             this.child = adoptChild(other.child);
         }
 
-        /** Determines which copy method should be used for the lhs in given rhs settings.
-         *
+        /**
+         * Determines which copy method should be used for the lhs in given rhs settings.
+         * <p/>
          * When the RHS atomic type cannot fit to the LHS, then the LHS must be copied and its type changed to the
-         * dominating type of the RHS. This method determines if this situation occurs, or returns a simple copy of the lhs
-         * value implementation with no type changes.
-         *
+         * dominating type of the RHS. This method determines if this situation occurs, or returns a simple copy of the
+         * lhs value implementation with no type changes.
+         * <p/>
          * TODO: what to do with Raw values?
          */
         protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs) {
@@ -357,8 +369,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 case LOGICAL: // logical rhs will always fit
                     break;
                 case INT: // integer won't fit to logical
-                    if (lhsMode == RAny.Mode.LOGICAL)
+                    if (lhsMode == RAny.Mode.LOGICAL) {
                         return ValueCopy.LOGICAL_TO_INT;
+                    }
                     break;
                 case DOUBLE: // double does not fit to logical and int
                     switch (lhsMode) {
@@ -411,22 +424,23 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Replaces itself with the specialized node for the required copy/typecast of the lhs value, which is
+        /**
+         * Replaces itself with the specialized node for the required copy/typecast of the lhs value, which is
          * calculated from the lhs and rhs types.
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame,lhs,rhs, constRhs);
+            return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs, constRhs);
         }
 
-        /** Specialized copy node that expects the lhs to be of a particular type. Just calls the implementation in its
+        /**
+         * Specialized copy node that expects the lhs to be of a particular type. Just calls the implementation in its
          * execute method and then calls the child's execute on the copied lhs. If the copying fails, rewrites itself to
          * the generalized copy lhs node.
          */
         protected static class Specialized extends CopyLhs {
 
-            /** The copy/typecast method to be used.
-             */
+            /** The copy/typecast method to be used. */
             final ValueCopy.Impl impl;
 
             /** Standard constructor. */
@@ -435,7 +449,8 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 this.impl = copy;
             }
 
-            /** Copies the lhs and then executes the child of the copy lhs node (the assignment itself). Upon failure of
+            /**
+             * Copies the lhs and then executes the child of the copy lhs node (the assignment itself). Upon failure of
              * the copy code reqrites the whole tree to the general case.
              */
             @Override
@@ -455,17 +470,18 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // CopyRhs
     // =================================================================================================================
 
-    /** An optional node that typecasts (copies) the rhs so that it is of the same type as the lhs. This is not the most
+    /**
+     * An optional node that typecasts (copies) the rhs so that it is of the same type as the lhs. This is not the most
      * effective way, but simplifies the code greatly and since the typecasted updates are not that optimized, it may
      * still be ok. Works in the same way as the CopyLhs class.
      */
     protected static class CopyRhs extends UpdateArray {
 
-        /** Further update node that will be executed on the typecasted rhs.
-         */
-        @Child UpdateArray child;
+        /** Further update node that will be executed on the typecasted rhs. */
+        @Child
+        UpdateArray child;
 
-        /** Standard constructor. The given UpdateArray object will be used as a child.  */
+        /** Standard constructor. The given UpdateArray object will be used as a child. */
         public CopyRhs(UpdateArray child) {
             super(child);
             this.child = adoptChild(child);
@@ -476,7 +492,8 @@ public class UpdateArray extends Assignment.AssignmentNode {
             this.child = adoptChild(other.child);
         }
 
-        /** Determines which typecast to be used on the rhs to bring it to the same type as the lhs. If no such implicit
+        /**
+         * Determines which typecast to be used on the rhs to bring it to the same type as the lhs. If no such implicit
          * conversion exists, returns null - which should be an exceptional case of runtime type change.
          */
         protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs) {
@@ -521,7 +538,8 @@ public class UpdateArray extends Assignment.AssignmentNode {
             return null;
         }
 
-        /** Reqrites itself to the specialized copy rhs node which knows the typecast to run. If no such typecast can be
+        /**
+         * Reqrites itself to the specialized copy rhs node which knows the typecast to run. If no such typecast can be
          * found, reqrites itself to the generalized case.
          */
         @Override
@@ -531,15 +549,13 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
                 return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
             }
-            return replace(new Specialized(this,impl)).execute(frame, lhs, rhs, constRhs);
+            return replace(new Specialized(this, impl)).execute(frame, lhs, rhs, constRhs);
         }
 
-        /** Specialized CopyRhs version that knows the typecast to be used on the rhs.
-         */
+        /** Specialized CopyRhs version that knows the typecast to be used on the rhs. */
         protected static class Specialized extends CopyRhs {
 
-            /** Typecast for the rhs.
-             */
+            /** Typecast for the rhs. */
             final ValueCopy.Impl impl;
 
             public Specialized(CopyRhs other, ValueCopy.Impl impl) {
@@ -547,7 +563,8 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 this.impl = impl;
             }
 
-            /** Executes the child on the typecasted rhs and given lhs. If the typecast fails rewrites itself to the
+            /**
+             * Executes the child on the typecasted rhs and given lhs. If the typecast fails rewrites itself to the
              * generalized case.
              */
             @Override
@@ -568,29 +585,29 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // ConstScalar
     // =================================================================================================================
 
-    /** Scalar in place update with already converted primitive value.
-     *
+    /**
+     * Scalar in place update with already converted primitive value.
+     * <p/>
      * When the rhs is a constant scalar value which can be once converted to a primitive value, this node is then used
      * to determine the type of the lhs and then creates a special node that already holds the converted value.
-     *
-     * Its static inner classes are responsible for the typechecks on the lhs to ensure that the type is still valid
-     * and then calling the final update method.
+     * <p/>
+     * Its static inner classes are responsible for the typechecks on the lhs to ensure that the type is still valid and
+     * then calling the final update method.
      */
 
     public static class ConstScalar<T> extends UpdateArray {
 
-        /** The scalar rhs value, stored as a Java primitive
-         */
+        /** The scalar rhs value, stored as a Java primitive. */
         protected final T value;
 
-        /** Creates the node with no value attached, the general version of the node.
-         */
+        /** Creates the node with no value attached, the general version of the node. */
         public ConstScalar(UpdateArray other) {
             super(other);
             value = null;
         }
 
-        /** Creates a node with already computed constant value. This constructor is used in node rewriting when it is
+        /**
+         * Creates a node with already computed constant value. This constructor is used in node rewriting when it is
          * also supplied with the converted rhs value.
          */
         public ConstScalar(UpdateArray other, T value) {
@@ -599,26 +616,31 @@ public class UpdateArray extends Assignment.AssignmentNode {
         }
 
 
-        /** The execute method determines which special case to use and rewrites itself to it.
-         */
+        /** The execute method determines which special case to use and rewrites itself to it. */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if (lhs instanceof RDouble)
-                return replace(new ConstScalar.Double(this,rhs.asDouble().getDouble(0))).execute(frame, lhs, rhs, constRhs);
-            if (lhs instanceof RInt)
-                return replace(new ConstScalar.Integer(this,rhs.asInt().getInt(0))).execute(frame, lhs, rhs, constRhs);
-            if (lhs instanceof RLogical)
-                return replace(new Logical(this,rhs.asLogical().getLogical(0) == RLogical.TRUE)).execute(frame, lhs, rhs, constRhs);
-            if (lhs instanceof RString)
-                return replace(new Character(this,rhs.asString().getString(0))).execute(frame, lhs, rhs, constRhs);
-            if (lhs instanceof RComplex)
-                return replace(new Complex(this,rhs.asComplex())).execute(frame, lhs, rhs, constRhs);
+            if (lhs instanceof RDouble) {
+                return replace(new ConstScalar.Double(this, rhs.asDouble().getDouble(0))).execute(frame, lhs, rhs, constRhs);
+            }
+            if (lhs instanceof RInt) {
+                return replace(new ConstScalar.Integer(this, rhs.asInt().getInt(0))).execute(frame, lhs, rhs, constRhs);
+            }
+            if (lhs instanceof RLogical) {
+                return replace(new Logical(this, rhs.asLogical().getLogical(0) == RLogical.TRUE)).execute(frame, lhs, rhs, constRhs);
+            }
+            if (lhs instanceof RString) {
+                return replace(new Character(this, rhs.asString().getString(0))).execute(frame, lhs, rhs, constRhs);
+            }
+            if (lhs instanceof RComplex) {
+                return replace(new Complex(this, rhs.asComplex())).execute(frame, lhs, rhs, constRhs);
+            }
             Utils.nyi();
             return null;
         }
 
-        /** In place update using the scalar value given in the class. We already assume that the value argument is
-         * of the proper boxed type and therefore can share this code amongst the specialization classes.
+        /**
+         * In place update using the scalar value given in the class. We already assume that the value argument is of
+         * the proper boxed type and therefore can share this code amongst the specialization classes.
          */
         protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
             int[] selSizes = Selector.initializeSelectors(lhs, selectors, ast);
@@ -635,7 +657,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
             // loop over the update size
             for (int i = 0; i < updateSize; ++i) {
-                int lhsOffset = Selector.calculateSourceOffset(lhs,idx);
+                int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
                 // do nothing if lhsOffset is NA
                 if (lhsOffset != RInt.NA) {
                     lhs.set(lhsOffset, value);
@@ -646,8 +668,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             return lhs;
         }
 
-        /** Scalar update of double values.
-         *
+        /**
+         * Scalar update of double values.
+         * <p/>
          * Lhs must be RDouble otherwise rewrites itself back to the general node.
          */
         protected static class Double extends ConstScalar<java.lang.Double> {
@@ -658,7 +681,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RDouble)) {
+                if (!(lhs instanceof RDouble)) {
                     if (DEBUG_UP) Utils.debug("ConstScalar<double> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -666,8 +689,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Scalar update of integer values.
-         *
+        /**
+         * Scalar update of integer values.
+         * <p/>
          * Lhs must be RInt otherwise rewrites itself back to the general node.
          */
         protected static class Integer extends ConstScalar<java.lang.Integer> {
@@ -678,7 +702,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RInt)) {
+                if (!(lhs instanceof RInt)) {
                     if (DEBUG_UP) Utils.debug("ConstScalar<int> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -686,8 +710,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Scalar update of logical (boolean) values.
-         *
+        /**
+         * Scalar update of logical (boolean) values.
+         * <p/>
          * Lhs must be RLogical otherwise rewrites itself back to the general node.
          */
         protected static class Logical extends ConstScalar<Boolean> {
@@ -698,7 +723,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RLogical)) {
+                if (!(lhs instanceof RLogical)) {
                     if (DEBUG_UP) Utils.debug("ConstScalar<Logical> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -706,8 +731,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Scalar update for character (string) values.
-         *
+        /**
+         * Scalar update for character (string) values.
+         * <p/>
          * Lhs must be RString otherwise rewrites itself back to the general node.
          */
         protected static class Character extends ConstScalar<String> {
@@ -717,7 +743,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RString)) {
+                if (!(lhs instanceof RString)) {
                     if (DEBUG_UP) Utils.debug("ConstScalar<String> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -725,8 +751,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Scalar update for complex values.
-         *
+        /**
+         * Scalar update for complex values.
+         * <p/>
          * Lhs must be RComplex otherwise rewrites itself back to the general node.
          */
         protected static class Complex extends ConstScalar<RComplex> {
@@ -737,7 +764,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RComplex)) {
+                if (!(lhs instanceof RComplex)) {
                     if (DEBUG_UP) Utils.debug("ConstScalar<Complex> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -750,8 +777,9 @@ public class UpdateArray extends Assignment.AssignmentNode {
     // NonConst
     // =================================================================================================================
 
-    /** Nonconst update method.
-     *
+    /**
+     * Nonconst update method.
+     * <p/>
      * Upon first execution reqrites itself to the appropriate method checking only the lhs are rhs types are the same.
      */
     protected static class NonConst extends UpdateArray {
@@ -760,11 +788,13 @@ public class UpdateArray extends Assignment.AssignmentNode {
             super(other);
         }
 
-        /** If rhs and lhs are the same rewrites itself to the specialized case. It should never happen that in this
-         * node the lhs and rhs will be different (remember first executions step through copy lhs and copy rhs nodes
-         * which would make the lhs and rhs types the same.
+        /**
+         * If rhs and lhs are the same rewrites itself to the specialized case. It should never happen that in this node
+         * the lhs and rhs will be different (remember first executions step through copy lhs and copy rhs nodes which
+         * would make the lhs and rhs types the same.
          */
-        @Override public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
             if ((lhs instanceof RLogical) && (rhs instanceof RLogical)) {
                 if (DEBUG_UP) Utils.debug("NonConst -> Logical");
                 return replace(new Logical(this)).execute(frame, lhs, rhs, constRhs);
@@ -789,16 +819,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
             return null;
         }
 
-        /** Logical non-const update. If the lhs and rhs are not both logical, rewrites the tree to the general case.
-         */
-        protected final static class Logical extends NonConst {
+        /** Logical non-const update. If the lhs and rhs are not both logical, rewrites the tree to the general case. */
+        protected static final class Logical extends NonConst {
 
             public Logical(UpdateArray other) {
                 super(other);
             }
 
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RLogical) || (! (rhs instanceof RLogical))) {
+                if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) {
                     if (DEBUG_UP) Utils.debug("NonConst.Logical -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -806,16 +835,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Integer non-const update. If the lhs and rhs are not both integer, rewrites the tree to the general case.
-         */
-        protected final static class Integer extends NonConst {
+        /** Integer non-const update. If the lhs and rhs are not both integer, rewrites the tree to the general case. */
+        protected static final class Integer extends NonConst {
 
             public Integer(UpdateArray other) {
                 super(other);
             }
 
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RInt) || (! (rhs instanceof RInt))) {
+                if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) {
                     if (DEBUG_UP) Utils.debug("NonConst.Int -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -823,16 +851,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Double non-const update. If the lhs and rhs are not both double, rewrites the tree to the general case.
-         */
-        protected final static class Double extends NonConst {
+        /** Double non-const update. If the lhs and rhs are not both double, rewrites the tree to the general case. */
+        protected static final class Double extends NonConst {
 
             public Double(UpdateArray other) {
                 super(other);
             }
 
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RDouble) || (! (rhs instanceof RDouble))) {
+                if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) {
                     if (DEBUG_UP) Utils.debug("NonConst.Double -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -840,16 +867,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** Complex non-const update. If the lhs and rhs are not both complex, rewrites the tree to the general case.
-         */
-        protected final static class Complex extends NonConst {
+        /** Complex non-const update. If the lhs and rhs are not both complex, rewrites the tree to the general case. */
+        protected static final class Complex extends NonConst {
 
             public Complex(UpdateArray other) {
                 super(other);
             }
 
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RComplex) || (! (rhs instanceof RComplex))) {
+                if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) {
                     if (DEBUG_UP) Utils.debug("NonConst.Complex -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -857,16 +883,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
             }
         }
 
-        /** String non-const update. If the lhs and rhs are not both string, rewrites the tree to the general case.
-         */
-        protected final static class String extends NonConst {
+        /** String non-const update. If the lhs and rhs are not both string, rewrites the tree to the general case. */
+        protected static final class String extends NonConst {
 
             public String(UpdateArray other) {
                 super(other);
             }
 
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (! (lhs instanceof RString) || (! (rhs instanceof RString))) {
+                if (!(lhs instanceof RString) || (!(rhs instanceof RString))) {
                     if (DEBUG_UP) Utils.debug("NonConst.String -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
@@ -884,15 +909,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 // TODO I'd rather have this in a separate file as it can be used elsewhere too
 
 
-/** Holds the list of all possible copies / typecasts that can be done on vector and their implementations. Their names
+/**
+ * Holds the list of all possible copies / typecasts that can be done on vector and their implementations. Their names
  * are self explanatory.
  */
 class ValueCopy {
 
     // TODO this should somehow be part of RAny or something
 
-    /** Determines the mode of the given value.
-     */
+    /** Determines the mode of the given value. */
     public static RAny.Mode valueMode(RAny value) {
         if (value instanceof RInt) {
             return RAny.Mode.INT;
@@ -916,86 +941,99 @@ class ValueCopy {
     public static final Impl LOGICAL_TO_LOGICAL = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RLogical))
+            if (!(what instanceof RLogical)) {
                 throw new UnexpectedResultException(null);
+            }
             RLogical from = (RLogical) what;
             int[] result = new int[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getLogical(i);
-            return RLogical.RLogicalFactory.getArray(result,from.dimensions());
+            }
+            return RLogical.RLogicalFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl LOGICAL_TO_INT = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RLogical))
+            if (!(what instanceof RLogical)) {
                 throw new UnexpectedResultException(null);
+            }
             RLogical from = (RLogical) what;
             int[] result = new int[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2int(from.getLogical(i));
-            return RInt.RIntFactory.getArray(result,from.dimensions());
+            }
+            return RInt.RIntFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl INT_TO_INT = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RInt))
+            if (!(what instanceof RInt)) {
                 throw new UnexpectedResultException(null);
+            }
             RInt from = (RInt) what;
             int[] result = new int[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getInt(i);
+            }
             return RInt.RIntFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl LOGICAL_TO_DOUBLE = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RLogical))
+            if (!(what instanceof RLogical)) {
                 throw new UnexpectedResultException(null);
+            }
             RLogical from = (RLogical) what;
             double[] result = new double[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2double(from.getLogical(i));
-            return RDouble.RDoubleFactory.getArray(result,from.dimensions());
+            }
+            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl INT_TO_DOUBLE = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RInt))
+            if (!(what instanceof RInt)) {
                 throw new UnexpectedResultException(null);
+            }
             RInt from = (RInt) what;
             double[] result = new double[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.int2double(from.getInt(i));
-            return RDouble.RDoubleFactory.getArray(result,from.dimensions());
+            }
+            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl DOUBLE_TO_DOUBLE = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RDouble))
+            if (!(what instanceof RDouble)) {
                 throw new UnexpectedResultException(null);
+            }
             RDouble from = (RDouble) what;
             double[] result = new double[from.size()];
-            for (int i = 0; i < result.length; ++i)
+            for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getDouble(i);
-            return RDouble.RDoubleFactory.getArray(result,from.dimensions());
+            }
+            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl LOGICAL_TO_COMPLEX = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RLogical))
+            if (!(what instanceof RLogical)) {
                 throw new UnexpectedResultException(null);
+            }
             RLogical from = (RLogical) what;
             double[] real = new double[from.size()];
             double[] img = new double[real.length];
@@ -1005,13 +1043,14 @@ class ValueCopy {
             }
             return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl INT_TO_COMPLEX = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RInt))
+            if (!(what instanceof RInt)) {
                 throw new UnexpectedResultException(null);
+            }
             RInt from = (RInt) what;
             double[] real = new double[from.size()];
             double[] img = new double[real.length];
@@ -1021,13 +1060,14 @@ class ValueCopy {
             }
             return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl DOUBLE_TO_COMPLEX = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RDouble))
+            if (!(what instanceof RDouble)) {
                 throw new UnexpectedResultException(null);
+            }
             RDouble from = (RDouble) what;
             double[] real = new double[from.size()];
             double[] img = new double[real.length];
@@ -1037,13 +1077,14 @@ class ValueCopy {
             }
             return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl COMPLEX_TO_COMPLEX = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RComplex))
+            if (!(what instanceof RComplex)) {
                 throw new UnexpectedResultException(null);
+            }
             RComplex from = (RComplex) what;
             double[] real = new double[from.size()];
             double[] img = new double[real.length];
@@ -1053,13 +1094,14 @@ class ValueCopy {
             }
             return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl LOGICAL_TO_STRING = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RLogical))
+            if (!(what instanceof RLogical)) {
                 throw new UnexpectedResultException(null);
+            }
             RLogical from = (RLogical) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -1067,13 +1109,14 @@ class ValueCopy {
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl INT_TO_STRING = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RInt))
+            if (!(what instanceof RInt)) {
                 throw new UnexpectedResultException(null);
+            }
             RInt from = (RInt) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -1081,13 +1124,14 @@ class ValueCopy {
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl DOUBLE_TO_STRING = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RDouble))
+            if (!(what instanceof RDouble)) {
                 throw new UnexpectedResultException(null);
+            }
             RDouble from = (RDouble) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -1095,13 +1139,14 @@ class ValueCopy {
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl COMPLEX_TO_STRING = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RComplex))
+            if (!(what instanceof RComplex)) {
                 throw new UnexpectedResultException(null);
+            }
             RComplex from = (RComplex) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -1109,13 +1154,14 @@ class ValueCopy {
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     public static final Impl STRING_TO_STRING = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RString))
+            if (!(what instanceof RString)) {
                 throw new UnexpectedResultException(null);
+            }
             RString from = (RString) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -1123,14 +1169,15 @@ class ValueCopy {
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
-    } ;
+    };
 
     // TODO what to do with raw ??
     public static final Impl RAW_TO_RAW = new Impl() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (! (what instanceof RRaw))
+            if (!(what instanceof RRaw)) {
                 throw new UnexpectedResultException(null);
+            }
             RRaw from = (RRaw) what;
             byte[] result = new byte[from.size()];
             for (int i = 0; i < result.length; ++i) {

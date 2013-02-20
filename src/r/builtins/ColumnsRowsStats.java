@@ -79,7 +79,7 @@ public class ColumnsRowsStats {
                 return stat(ast, (RInt) x, naRM);
             }
             if (x instanceof RLogical) {
-                return stat(ast, ((RLogical) x).asInt(), naRM);
+                return stat(ast, x.asInt(), naRM);
             }
             if (x instanceof RComplex) {
                 return stat(ast, (RComplex) x, naRM);

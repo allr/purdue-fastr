@@ -60,7 +60,7 @@ public class Aperm {
                             RInt p = (RInt) perm;
                             for (int i = 0; i < result.length; ++i) {
                                 int x = p.getInt(i);
-                                if ((x<1) || (x > aryDim.length)) {
+                                if ((x < 1) || (x > aryDim.length)) {
                                     throw RError.getValueOutOfRange(ast, "perm");
                                 }
                                 --x;
@@ -90,7 +90,7 @@ public class Aperm {
                             RDouble p = (RDouble) perm;
                             for (int i = 0; i < result.length; ++i) {
                                 int x = (int) Math.floor(p.getDouble(i));
-                                if ((x<1) || (x > aryDim.length)) {
+                                if ((x < 1) || (x > aryDim.length)) {
                                     throw RError.getValueOutOfRange(ast, "perm");
                                 }
                                 --x;
@@ -103,11 +103,11 @@ public class Aperm {
                             }
 
                         } else if (perm instanceof RComplex) {
-                            RContext.warning(ast,RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
+                            RContext.warning(ast, RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
                             RComplex p = (RComplex) perm;
                             for (int i = 0; i < result.length; ++i) {
                                 int x = (int) Math.floor(p.getReal(i));
-                                if ((x<1) || (x > aryDim.length)) {
+                                if ((x < 1) || (x > aryDim.length)) {
                                     throw RError.getValueOutOfRange(ast, "perm");
                                 }
                                 --x;
@@ -126,8 +126,9 @@ public class Aperm {
                 }
 
                 private boolean parseResize(RAny[] params) {
-                    if (!provided[IRESIZE])
+                    if (!provided[IRESIZE]) {
                         return true;
+                    }
                     return params[paramPositions[IRESIZE]].asLogical().getLogical(0) != RLogical.FALSE;
                 }
 
@@ -161,7 +162,7 @@ public class Aperm {
                     int[] result = new int[dim.length];
                     result[0] = 1;
                     for (int i = 1; i < result.length; ++i) {
-                        result[i] = dim[i-1] * result[i-1];
+                        result[i] = dim[i - 1] * result[i - 1];
                     }
                     return result;
                 }
@@ -187,7 +188,7 @@ public class Aperm {
                     int[] resultIdx = new int[aryDim.length];
                     int[] dimMults = createDimMults(resultDim);
                     for (int i = 0; i < arySize; ++i) {
-                        perm(idx,resultIdx,perm);
+                        perm(idx, resultIdx, perm);
                         int offset = offset(resultIdx, dimMults);
                         result.set(offset, ary.get(i));
                         increment(idx, aryDim);

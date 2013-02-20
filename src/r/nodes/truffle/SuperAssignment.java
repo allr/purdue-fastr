@@ -21,7 +21,7 @@ public class SuperAssignment extends BaseR {
      */
     @Child RNode lhs;
 
-    /** RHS of the assignment operator == new values
+    /** RHS of the assignment operator == new values.
      */
     @Child RNode rhs;
 
@@ -112,8 +112,9 @@ public class SuperAssignment extends BaseR {
             RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
 
             newVector = assignment.execute(frame, lhsValue, rhsValue, false);
-            if (newVector != lhsValue)
+            if (newVector != lhsValue) {
                 writeBack.execute(frame);  // FIXME: may ref unnecessarily
+            }
             return rhsValue;
         }
     }
@@ -138,7 +139,7 @@ public class SuperAssignment extends BaseR {
             if (frame == null) { // TODO does this really has to be done once? (eval, etc? )
                 throw RError.getUnknownVariable(ast, lhsSymbol);
             }
-            return replace(new Resolved(this,(RAny) rhs.execute(frame))).execute(frame);
+            return replace(new Resolved(this, (RAny) rhs.execute(frame))).execute(frame);
         }
 
         /** Const resolved node. The frame is known not to be null and the rhs is const so not reevaluated.
@@ -158,8 +159,9 @@ public class SuperAssignment extends BaseR {
                 RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
 
                 newVector = assignment.execute(frame, lhsValue, rhsValue, false);
-                if (newVector != lhsValue)
+                if (newVector != lhsValue) {
                     writeBack.execute(frame);  // FIXME: may ref unnecessarily
+                }
                 return rhsValue;
             }
         }
