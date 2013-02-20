@@ -1562,7 +1562,7 @@ public abstract class ReadVector extends BaseR {
         }
     }
 
-    /**
+     /**
      * Read access to a list using the dollar selector.
      *
      * Works only on lists, fails otherwise (compatible with R >= 2.6). Because only string literals and symbols are
@@ -1693,5 +1693,5 @@ public abstract class ReadVector extends BaseR {
             }
         }
     }
-
 }
+

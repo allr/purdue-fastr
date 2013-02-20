@@ -315,26 +315,23 @@ public class Truffleize implements Visitor {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
-                    continue;
-                } else if (names[i] == RSymbol.exactName) {
-                if (names[i] == RSymbol.EXACT_SYMBOL) {
+                } else if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     exact = nodes[i];
-                    continue;
                 } else {
                     selectors[dims] = nodes[i];
                     ++dims;
-                    continue;
                 }
             }
             if (dims == 0) {
                 Utils.nyi("unsupported indexing style");
             }
             Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
-            for (int i = 0; i < selNodes.length; ++i)
+            for (int i = 0; i < selNodes.length; ++i) {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            }
             if (dims == 2) { // if matrix read, use the specialized matrix form
                 result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
                               selNodes,
@@ -379,14 +376,13 @@ public class Truffleize implements Visitor {
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == RSymbol.DROP_SYMBOL) {
+                /*if (names[i] == RSymbol.dropName) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
-                } else */
-                if (names[i] == RSymbol.EXACT_SYMBOL) {
+                } else */ if (names[i] == RSymbol.EXACT_SYMBOL) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }

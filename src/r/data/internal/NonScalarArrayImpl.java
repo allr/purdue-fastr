@@ -1,6 +1,7 @@
 package r.data.internal;
 
 import r.*;
+import r.data.RArray;
 
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
 // fixme - perhaps rename the class

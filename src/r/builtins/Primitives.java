@@ -84,7 +84,7 @@ public class Primitives {
         add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.numeric", 1, 1, TypeCheck.NUMERIC_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
-        add("is.null", 1, 1, TypeCheck.NULL_FACTORY);
+        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.raw", 1, 1, TypeCheck.RAW_FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
         add("length", 1, 1, Length.FACTORY);
