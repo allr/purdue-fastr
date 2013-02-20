@@ -168,7 +168,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
 
     public String pretty(StringBuilder indexPrefix) {
         if (dimensions != null) {
-            return matrixPretty();
+            return arrayPretty();
         }
         RSymbol[] snames = null;
         if (names() != null) {

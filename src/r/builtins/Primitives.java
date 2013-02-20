@@ -39,6 +39,9 @@ public class Primitives {
         add("&&", 2, 2, Operators.AND_FACTORY);
         add("!", 1, 1, Operators.NOT_FACTORY);
         add("abs", 1, 1, Abs.FACTORY);
+        add("aperm",1,3,Aperm.FACTORY);
+
+        add("array", 0, 3, Array.FACTORY);
         add("assign", 2, 6, Environment.ASSIGN_FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);
         add("as.complex", 0, -1, Cast.COMPLEX_FACTORY);
@@ -68,6 +71,7 @@ public class Primitives {
         add("eigen", 1, 4, Eigen.EIGEN_FACTORY);
         add("emptyenv", 0, 0, Environment.EMPTYENV_FACTORY);
         add("exists", 1, 6, Environment.EXISTS_FACTORY);
+        add("exp", 1, 1, Exp.FACTORY);
         add("file", 0, 5, OpenConnection.FILE_FACTORY);
         add("flush", 1, 1, ConnectionOperation.FLUSH_FACTORY);
         add("integer", 0, 1, ArrayConstructor.INT_FACTORY);
@@ -80,6 +84,7 @@ public class Primitives {
         add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.numeric", 1, 1, TypeCheck.NUMERIC_FACTORY);
         add("is.na", 1, 1, IsNA.FACTORY);
+        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
         add("is.raw", 1, 1, TypeCheck.RAW_FACTORY);
         add("lapply", 2, -1, Apply.LAPPLY_FACTORY);
         add("length", 1, 1, Length.FACTORY);

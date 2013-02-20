@@ -97,7 +97,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     @Override
     public String pretty() {
         if (dimensions != null) {
-            return matrixPretty();
+            return arrayPretty();
         }
         if (content.length == 0) {
             return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;

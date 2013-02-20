@@ -9,28 +9,43 @@ import java.util.HashMap;
 // note: dimensions array should never be modified (only can be replaced, to allow sharing)
 // note: names object should never be modified (only can be replaced, to allow sharing)
 public interface RArray extends RAny {
-    int[] SCALAR_DIMENSIONS = new int[] {1, 1};
+
+    int[] SCALAR_DIMENSIONS = new int[]{1, 1};
 
     int size();
+
     int[] dimensions(); // the returned array shall not be modified
+
     Names names();  // the returned array shall not be modified
 
     Object get(int i);
+
     Object getRef(int i);
+
     RAny boxedGet(int i);
+
     RAny boxedNamedGet(int i);
+
     RArray set(int i, Object val);
+
     RArray setDimensions(int[] dimensions);
+
     RArray setNames(Names names);
     RArray setAttributes(Attributes attributes);
     boolean isNAorNaN(int i);
+
     int index(int i, int j);
+
     RArray subset(RAny keys);
+
     RArray subset(RInt index);
+
     RArray subset(RString names);
+
     RArray materialize();
 
     public static class RArrayUtils {
+
         public static RArray markShared(RArray a) {
             a.ref();
             a.ref();
@@ -39,6 +54,7 @@ public interface RArray extends RAny {
     }
 
     public abstract static class Names {
+
         RSymbol[] names;
 
         protected Names() {
@@ -56,11 +72,11 @@ public interface RArray extends RAny {
         public abstract int map(RSymbol name);
 
         public static Names create(RSymbol[] names) {
-//            if (names.length > 10) {
+// if (names.length > 10) {
             return new MappedNames(names);
-//            } else {
-//                return new SimpleNames(names);
-//            }
+// } else {
+// return new SimpleNames(names);
+// }
         }
 
         public static Names create(RSymbol[] names, HashMap<RSymbol, Integer> preparedMap) {
@@ -116,11 +132,13 @@ public interface RArray extends RAny {
         }
 
         public abstract HashMap<RSymbol, Integer> getMap();
+
         public abstract boolean keepsMap();
     }
 
     // TODO: currently this is not used as vector update using names needs a hashmap anyway
-    public static final class SimpleNames extends Names { // FIXME: implement a specialized hash map that takes less memory
+    public static final class SimpleNames extends Names { // FIXME: implement a specialized hash map
+// that takes less memory
 
         public SimpleNames(RSymbol[] names) {
             super(names);
@@ -149,7 +167,9 @@ public interface RArray extends RAny {
         }
     }
 
-    public static final class MappedNames extends Names { // FIXME: implement a specialized hash map that takes less memory
+    public static final class MappedNames extends Names { // FIXME: implement a specialized hash map
+// that takes less memory
+
         HashMap<RSymbol, Integer> namesMap; // NOTE: LinkedHashMap preserves the insertion order
 
         public MappedNames() {
@@ -214,6 +234,7 @@ public interface RArray extends RAny {
     }
 
     public static class RListView extends View.RListView implements RList {
+
         final RArray arr;
 
         public RListView(RArray arr) {

@@ -16,6 +16,15 @@ import r.nodes.truffle.*;
 //    (this is not fully implemented in R)
 public interface RAny {
 
+    public static enum Mode {
+        LOGICAL,
+        INT,
+        DOUBLE,
+        COMPLEX,
+        STRING,
+        RAW
+    };
+
     String TYPE_STRING = "any";
     String typeOf();
 
