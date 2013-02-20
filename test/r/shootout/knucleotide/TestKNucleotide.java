@@ -99,4 +99,35 @@ public class TestKNucleotide extends ShootoutTestBase {
 "0\tGGTATTTTAATTTATAGT\t\n",
                         null, "NULL");
     }
+
+    @Test
+    public void testKNucleotideBrute3() {
+        String inputFile = ".tmp.unit.knucleotide.input";
+        generateFastaOutput(10, inputFile);
+        assertShootout("knucleotide", "knucleotide-brute3", inputFile,
+                        "T 38\n" +
+"G 24\n" +
+"A 20\n" +
+"C 18 \n" +
+"GT 14.285714285714286\n" +
+"CT 10.204081632653061\n" +
+"TA 10.204081632653061\n" +
+"TG 10.204081632653061\n" +
+"TT 10.204081632653061\n" +
+"AG 8.16326530612245\n" +
+"TC 8.16326530612245\n" +
+"AA 6.122448979591836\n" +
+"CG 6.122448979591836\n" +
+"AC 4.081632653061225\n" +
+"GA 4.081632653061225\n" +
+"GC 4.081632653061225\n" +
+"AT 2.0408163265306123\n" +
+"CC 2.0408163265306123 \n" +
+"0\tGGT\t\n" +
+"0\tGGTA\t\n" +
+"0\tGGTATT\t\n" +
+"0\tGGTATTTTAATT\t\n" +
+"0\tGGTATTTTAATTTATAGT\t\n",
+                        null, "NULL");
+    }
 }

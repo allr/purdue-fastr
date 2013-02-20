@@ -115,6 +115,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ c(x=1,y=2) }", "  x   y\n1.0 2.0");
         assertEval("{ c(x=1,2) }", "  x    \n1.0 2.0");
         assertEval("{ x <- 1:2 ; names(x) <- c(\"A\",NA) ; c(x,test=x) }", " A <NA> test.A test.NA\n1L   2L     1L      2L");
+        assertEval("{ c(a=1,b=2:3,list(x=FALSE))  }", "$a\n1.0\n\n$b1\n2L\n\n$b2\n3L\n\n$x\nFALSE");
+        assertEval("{ c(1,z=list(1,b=22,3)) }", "[[1]]\n1.0\n\n$z1\n1.0\n\n$z.b\n22.0\n\n$z3\n3.0");
     }
 
     @Test
@@ -653,6 +655,15 @@ public class TestSimpleBuiltins extends TestBase {
     public void testUnlist() throws RecognitionException {
         assertEval("{ unlist(list(\"hello\", \"hi\")) }", "\"hello\", \"hi\"");
         assertEval("{ unlist(list(a=\"hello\", b=\"hi\")) }", "      a    b\n\"hello\" \"hi\"");
+        assertEval("{ x <- list(a=1,b=2:3,list(x=FALSE)) ; unlist(x, recursive=FALSE) }", "$a\n1.0\n\n$b1\n2L\n\n$b2\n3L\n\n$x\nFALSE");
+        assertEval("{ x <- list(1,z=list(1,b=22,3)) ; unlist(x, recursive=FALSE) }", "[[1]]\n1.0\n\n$z1\n1.0\n\n$z.b\n22.0\n\n$z3\n3.0");
+        assertEval("{ x <- list(1,z=list(1,b=22,3)) ; unlist(x, recursive=FALSE, use.names=FALSE) }", "[[1]]\n1.0\n\n[[2]]\n1.0\n\n[[3]]\n22.0\n\n[[4]]\n3.0");
+        assertEval("{ x <- list(\"a\", c(\"b\", \"c\"), list(\"d\", list(\"e\"))) ; unlist(x) }", "\"a\", \"b\", \"c\", \"d\", \"e\"");
+        assertEval("{ x <- list(NULL, list(\"d\", list(), character())) ; unlist(x) }", "\"d\"");
+
+        assertEval("{ x <- list(a=list(\"1\",\"2\",b=\"3\",\"4\")) ; unlist(x) }", " a1  a2 a.b  a4\n\"1\" \"2\" \"3\" \"4\"");
+        assertEval("{ x <- list(a=list(\"1\",\"2\",b=list(\"3\"))) ; unlist(x) }", " a1  a2 a.b\n\"1\" \"2\" \"3\"");
+        assertEval("{ x <- list(a=list(1,FALSE,b=list(2:4))) ; unlist(x) }", " a1  a2 a.b1 a.b2 a.b3\n1.0 0.0  2.0  3.0  4.0");
     }
 
     @Test
