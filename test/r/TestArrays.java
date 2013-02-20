@@ -125,9 +125,170 @@ public class TestArrays extends TestBase {
     }
 
     @Test
-    public void testArrayComplexSelectors() {
+    public void testArrayUpdate() {
+
+        assertTrue("# update to matrix works\n" +
+                "a = matrix(1,2,2)\n" +
+                "a[1,2] = 3\n" +
+                "a[1,2] == 3");
+
+        assertTrue("# update to an array works\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "a[1,2,3] = 3\n" +
+                "a[1,2,3] == 3");
+
+        assertTrue("# update returns the rhs\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "(a[1,2,3] = 3) == 3\n");
+
+        assertTrue("# update of shared object does the copy\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "b = a\n" +
+                "b[1,2,3] = 3\n" +
+                "a[1,2,3] == 1 && b[1,2,3] == 3");
 
     }
+
+    @Test
+    public void testLhsCopy() {
+
+        assertTrue("# lhs gets upgraded to int\n" +
+                "a = array(TRUE,c(3,3,3))\n" +
+                "a[1,2,3] = 8L\n" +
+                "a[1,2,3] == 8");
+
+        assertTrue("# lhs logical gets upgraded to double\n" +
+                "a = array(TRUE,c(3,3,3))\n" +
+                "a[1,2,3] = 8.1\n" +
+                "a[1,2,3] == 8.1");
+
+        assertTrue("# lhs integer gets upgraded to double\n" +
+                "a = array(1L,c(3,3,3))\n" +
+                "a[1,2,3] = 8.1\n" +
+                "a[1,2,3] == 8.1");
+
+        assertTrue("# lhs logical gets upgraded to complex\n" +
+                "a = array(TRUE,c(3,3,3))\n" +
+                "a[1,2,3] = 2+3i\n" +
+                "a[1,2,3] == 2+3i");
+
+        assertTrue("# lhs integer gets upgraded to complex\n" +
+                "a = array(1L,c(3,3,3))\n" +
+                "a[1,2,3] = 2+3i\n" +
+                "a[1,2,3] == 2+3i");
+
+        assertTrue("# lhs double gets upgraded to complex\n" +
+                "a = array(1.3,c(3,3,3))\n" +
+                "a[1,2,3] = 2+3i\n" +
+                "a[1,2,3] == 2+3i");
+
+        assertTrue("# lhs logical gets upgraded to string\n" +
+                "a = array(TRUE,c(3,3,3))\n" +
+                "a[1,2,3] = \"2+3i\"\n" +
+                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"TRUE\"");
+
+        assertTrue("# lhs integer gets upgraded to string\n" +
+                "a = array(1L,c(3,3,3))\n" +
+                "a[1,2,3] = \"2+3i\"\n" +
+                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1L\"");
+
+        assertTrue("# lhs double gets upgraded to string\n" +
+                "a = array(1.5,c(3,3,3))\n" +
+                "a[1,2,3] = \"2+3i\"\n" +
+                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1.5\"");
+    }
+
+    @Test
+    public void testRhsCopy() {
+        assertTrue("# rhs logical gets upgraded to int\n" +
+                "a = array(7L,c(3,3,3))\n" +
+                "b = TRUE\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 1L && a[1,1,1] == 7L");
+
+        assertTrue("# rhs logical gets upgraded to double\n" +
+                "a = array(1.7,c(3,3,3))\n" +
+                "b = TRUE\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 1 && a[1,1,1] == 1.7");
+
+        assertTrue("# rhs logical gets upgraded to complex\n" +
+                "a = array(3+2i,c(3,3,3))\n" +
+                "b = TRUE\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 1 && a[1,1,1] == 3+2i ");
+
+        assertTrue("# rhs logical gets upgraded to string\n" +
+                "a = array(\"3+2i\",c(3,3,3))\n" +
+                "b = TRUE\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == \"TRUE\" && a[1,1,1] == \"3+2i\" ");
+
+        assertTrue("# rhs int gets upgraded to double\n" +
+                "a = array(1.7,c(3,3,3))\n" +
+                "b = 3L\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 3 && a[1,1,1] == 1.7");
+
+        assertTrue("# rhs int gets upgraded to complex\n" +
+                "a = array(3+2i,c(3,3,3))\n" +
+                "b = 4L\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 4 && a[1,1,1] == 3+2i ");
+
+        assertTrue("# rhs logical gets upgraded to string\n" +
+                "a = array(\"3+2i\",c(3,3,3))\n" +
+                "b = 7L\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == \"7L\" && a[1,1,1] == \"3+2i\" ");
+
+        assertTrue("# rhs double gets upgraded to complex\n" +
+                "a = array(3+2i,c(3,3,3))\n" +
+                "b = 4.2\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == 4.2 && a[1,1,1] == 3+2i ");
+
+        assertTrue("# rhs complex gets upgraded to string\n" +
+                "a = array(\"3+2i\",c(3,3,3))\n" +
+                "b = 2+3i\n" +
+                "a[1,2,3] = b\n" +
+                "a[1,2,3] == \"2.0+3.0i\" && a[1,1,1] == \"3+2i\" ");
+    }
+
+    @Test
+    public void testMultiDimensionalUpdate() {
+        assertTrue("# update matrix by vector, rows\n" +
+                "a = matrix(1,3,3)\n" +
+                "a[1,] = c(3,4,5)\n" +
+                "a[1,1] == 3 && a[1,2] == 4 && a[1,3] == 5");
+
+        assertTrue("# update matrix by vector, cols\n" +
+                "a = matrix(1,3,3)\n" +
+                "a[,1] = c(3,4,5)\n" +
+                "a[1,1] == 3 && a[2,1] == 4 && a[3,1] == 5");
+
+        assertTrue("# update array by vector, dim 3\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "a[1,1,] = c(3,4,5)\n" +
+                "a[1,1,1] == 3 && a[1,1,2] == 4 && a[1,1,3] == 5");
+
+        assertTrue("# update array by vector, dim 2\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "a[1,,1] = c(3,4,5)\n" +
+                "a[1,1,1] == 3 && a[1,2,1] == 4 && a[1,3,1] == 5");
+
+        assertTrue("# update array by vector, dim 1\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "a[,1,1] = c(3,4,5)\n" +
+                "a[1,1,1] == 3 && a[2,1,1] == 4 && a[3,1,1] == 5");
+
+        assertTrue("# update array by matrix\n" +
+                "a = array(1,c(3,3,3))\n" +
+                "a[1,,] = matrix(1:9,3,3)\n" +
+                "a[1,1,1] == 1 && a[1,3,1] == 3 && a[1,3,3] == 9");
+
+    }
+
 
     @Test
     public void testMatrixSimpleRead() {
