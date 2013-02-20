@@ -152,7 +152,7 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
 
     protected String namedPretty() {
         RArray.Names aNames = names();
-        Utils.check(aNames != null);
+        assert Utils.check(aNames != null);
         String[] names = aNames.asStringArray();
         int size = size();
         StringBuilder headers = new StringBuilder();

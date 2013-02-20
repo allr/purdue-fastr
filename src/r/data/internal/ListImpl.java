@@ -7,6 +7,10 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
 
     final RAny[] content;
 
+    public RAny[] getContent() {
+        return content;
+    }
+
     public ListImpl(RAny[] values, int[] dimensions, Names names, boolean doCopy) {
         if (doCopy) {
             content = new RAny[values.length];
@@ -258,5 +262,10 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     @Override
     public ListImpl doStrip() {
         return new ListImpl(content, null, null, false);
+    }
+
+    @Override
+    public ListImpl materialize() {
+        return this;
     }
 }

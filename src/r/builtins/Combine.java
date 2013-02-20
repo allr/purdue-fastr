@@ -9,8 +9,10 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// FIXME: set of specializations already implemented is biased by binarytrees benchmark
+// FIXME: the set of specializations already implemented is biased by the binarytrees benchmark
+
 // TODO: do more specializations, obvious opportunities include: vectors of same type, same result type, perhaps something for lists as well
+// TODO: implement "recursive" argument and note that once this is done, the code will become even closer to that of unlist (refactor)
 public class Combine {
 
     private static <T extends RArray, U extends T> int fillIn(U result, T input, int offset) {
@@ -22,6 +24,11 @@ public class Combine {
     }
 
     public static RAny genericCombine(RSymbol[] paramNames, RAny[] params) {
+        return genericCombine(paramNames, params, false);
+    }
+
+    // drop names (only used from unlist, in combine always false)
+    public static RAny genericCombine(RSymbol[] paramNames, RAny[] params, boolean dropNames) {
         int len = 0;
         boolean hasNames = (paramNames != null);
         boolean hasNull = false;
@@ -32,7 +39,7 @@ public class Combine {
         boolean hasDouble = false;
         boolean hasComplex = false;
         boolean hasString = false;
-        for (int i = 0; i < params.length; i++) {
+        for (int i = 0; i < params.length; i++) { // FIXME: maybe could refactor using the code in Unlist?
             RAny v = params[i];
 
             if (v instanceof RNull) {
@@ -59,13 +66,13 @@ public class Combine {
             }
             RArray a = (RArray) v;
             len += a.size();
-            if (a.names() != null) {
+            if (!dropNames && a.names() != null) {
                 hasNames = true;
             }
         }
         int offset = 0;
         RArray.Names newNames = null;
-        if (hasNames) {
+        if (!dropNames && hasNames) {
             RSymbol[] names = new RSymbol[len];
             int j = 0;
             for (int i = 0; i < params.length; i++) {
@@ -93,7 +100,7 @@ public class Combine {
                     }
                     String prefix = paramNames[i].pretty();
                     for (int k = 0; k < asize; k++) {
-                        String n = prefix + k;
+                        String n = prefix + (k + 1);
                         names[j++] = RSymbol.getSymbol(n);
                     }
                     continue;
@@ -105,10 +112,20 @@ public class Combine {
                     }
                     continue;
                 }
-                String prefix = paramNames[i].pretty() + ".";
+                String eprefix = paramNames[i].pretty();
+                String prefix = eprefix + ".";
                 for (int k = 0; k < asize; k++) {
-                    String n = prefix + Convert.prettyNA(aNames[k].pretty());
-                    names[j++] = RSymbol.getSymbol(n);
+                    RSymbol ksymbol = aNames[k];
+                    if (ksymbol == RSymbol.EMPTY_SYMBOL) {
+                        if (asize == 1) {
+                            names[j++] = paramNames[i];
+                        } else {
+                            names[j++] = RSymbol.getSymbol(eprefix + (k + 1));
+                        }
+                    } else {
+                        String n = prefix + Convert.prettyNA(aNames[k].pretty());
+                        names[j++] = RSymbol.getSymbol(n);
+                    }
                 }
             }
             newNames = RArray.Names.create(names);

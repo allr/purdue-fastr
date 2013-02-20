@@ -978,7 +978,7 @@ public abstract class View extends ArrayImpl implements RArray {
          }
 
         @Override
-        public RList materialize() {
+        public ListImpl materialize() {
             return RList.RListFactory.copy(this);
         }
 
