@@ -59,6 +59,11 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public RLogical setAttributes(Attributes attributes) {
+        return RLogical.RLogicalFactory.getFor(new int[] {value}, null, null, attributes);
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

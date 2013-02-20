@@ -245,7 +245,7 @@ public class Attributes {
                             }
                         } else {
                             Map<RSymbol, RAny> map = attr.map();
-                            if (map.size() > 4096) {
+                            if (map.size() > 4096) {  // TODO: fix this, not really working yet
                                 attr.createPartialMap();
                             }
                             for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {

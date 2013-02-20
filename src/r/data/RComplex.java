@@ -167,7 +167,7 @@ public interface RComplex extends RArray {
             if (size == 1 && dimensions == null && names == null) {
                 return new ScalarComplexImpl(0, 0);
             }
-            return new ComplexImpl(new double[2 * size], dimensions, names, false);
+            return new ComplexImpl(new double[2 * size], dimensions, names, null, false);
         }
         public static RComplex getNAArray(int size) {
             return getNAArray(size, null);
@@ -178,10 +178,10 @@ public interface RComplex extends RArray {
             }
             double[] content = new double[2 * size];
             Arrays.fill(content, RDouble.NA);
-            return new ComplexImpl(content, dimensions, null, false);
+            return new ComplexImpl(content, dimensions, null, null, false);
         }
         public static ComplexImpl getMatrixFor(double[] values, int m, int n) {
-            return new ComplexImpl(values, new int[] {m, n}, null, false);
+            return new ComplexImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RComplex copy(RComplex c) {
             if (c.size() == 1 && c.dimensions() == null && c.names() == null) {  // FIXME: rely instead on scalarization ?
@@ -202,7 +202,13 @@ public interface RComplex extends RArray {
             if (values.length == 2 && dimensions == null && names == null) {
                 return new ScalarComplexImpl(values[0], values[1]);
             }
-            return new ComplexImpl(values, dimensions, names, false);
+            return new ComplexImpl(values, dimensions, names, null, false);
+        }
+        public static RComplex getFor(double[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            if (values.length == 2 && dimensions == null && names == null && attributes == null) {
+                return new ScalarComplexImpl(values[0], values[1]);
+            }
+            return new ComplexImpl(values, dimensions, names, attributes, false);
         }
         public static RComplex getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;

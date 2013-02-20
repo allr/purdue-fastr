@@ -59,6 +59,11 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
+    public RString setAttributes(Attributes attributes) {
+        return RString.RStringFactory.getFor(new String[] {value}, null, null, attributes);
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

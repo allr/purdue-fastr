@@ -106,7 +106,7 @@ public interface RDouble extends RNumber {
             if (dimensions == null && values.length == 1) {
                 return new ScalarDoubleImpl(values[0]);
             }
-            return new DoubleImpl(values, dimensions, null, null);
+            return new DoubleImpl(values, dimensions, null);
         }
         public static RDouble getUninitializedArray(int size) {
             if (size == 1) {
@@ -157,6 +157,12 @@ public interface RDouble extends RNumber {
                 return new ScalarDoubleImpl(values[0]);
             }
             return new DoubleImpl(values, dimensions, names, null, false);
+        }
+        public static RDouble getFor(double[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null && attributes == null) {
+                return new ScalarDoubleImpl(values[0]);
+            }
+            return new DoubleImpl(values, dimensions, names, attributes, false);
         }
         public static RDouble getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;

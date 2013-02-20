@@ -19,7 +19,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         content = new int[size];
     }
 
-    public LogicalImpl(int[] values, int[] dimensions, Names names, boolean doCopy) {
+    public LogicalImpl(int[] values, int[] dimensions, Names names, Attributes attributes, boolean doCopy) {
         if (doCopy) {
             content = new int[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -28,14 +28,15 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         }
         this.dimensions = dimensions;
         this.names = names;
+        this.attributes = attributes;
     }
 
     public LogicalImpl(int[] values, int[] dimensions) {
-        this(values, dimensions, null, true);
+        this(values, dimensions, null, null, true);
     }
 
     public LogicalImpl(int[] values) {
-        this(values, null, null, true);
+        this(values, null, null, null, true);
     }
 
     public LogicalImpl(RLogical l, boolean valuesOnly) {
@@ -46,6 +47,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         if (!valuesOnly) {
             dimensions = l.dimensions();
             names = l.names();
+            attributes = l.attributes();
         }
     }
 
@@ -194,6 +196,6 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public LogicalImpl doStrip() {
-        return new LogicalImpl(content, null, null, false);
+        return new LogicalImpl(content, null, null, null, false);
     }
 }

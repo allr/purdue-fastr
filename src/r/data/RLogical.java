@@ -91,7 +91,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (size == 1 && dimensions == null && names == null) {
                 return new ScalarLogicalImpl(0);
             }
-            return new LogicalImpl(new int[size], dimensions, names, false);
+            return new LogicalImpl(new int[size], dimensions, names, null, false);
         }
         public static RLogical getNAArray(int size) {
             return getNAArray(size, null);
@@ -102,10 +102,10 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             int[] content = new int[size];
             Arrays.fill(content, NA);
-            return new LogicalImpl(content, dimensions, null, false);
+            return new LogicalImpl(content, dimensions, null, null, false);
         }
         public static LogicalImpl getMatrixFor(int[] values, int m, int n) {
-            return new LogicalImpl(values, new int[] {m, n}, null, false);
+            return new LogicalImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RLogical copy(RLogical l) {
             if (l.size() == 1 && l.dimensions() == null && l.names() == null) {
@@ -126,7 +126,13 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarLogicalImpl(values[0]);
             }
-            return new LogicalImpl(values, dimensions, names, false);
+            return new LogicalImpl(values, dimensions, names, null, false);
+        }
+        public static RLogical getFor(int[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null && attributes == null) {
+                return new ScalarLogicalImpl(values[0]);
+            }
+            return new LogicalImpl(values, dimensions, names, attributes, false);
         }
         public static RLogical getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;

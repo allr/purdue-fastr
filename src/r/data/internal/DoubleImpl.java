@@ -23,8 +23,9 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         this.names = names;
         this.attributes = attributes;
     }
-    public DoubleImpl(double[] values, int[] dimensions, Names names, Attributes attributes) {
-        this(values, dimensions, names, attributes, true);
+
+    public DoubleImpl(double[] values, int[] dimensions, Names names) {
+        this(values, dimensions, names, null, true);
     }
 
     public DoubleImpl(double[] values) {

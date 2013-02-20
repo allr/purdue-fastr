@@ -649,6 +649,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"names\") }", "\"a\", \"b\"");
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"na\") }", "\"a\", \"b\"");
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"mya\") <- 1; attr(x, \"b\") <- 2; attr(x, \"m\") }", "1.0");
+        assertEval("{ x <- 1:2; attr(x, \"aa\") <- 1 ; attr(x, \"ab\") <- 2; attr(x, \"bb\") <- 3; attr(x, \"b\") }", "3.0");
     }
 
     @Test

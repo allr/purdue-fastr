@@ -14,7 +14,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         return content;
     }
 
-    public ComplexImpl(double[] values, int[] dimensions, Names names, boolean doCopy) {
+    public ComplexImpl(double[] values, int[] dimensions, Names names, Attributes attributes, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -23,6 +23,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         }
         this.dimensions = dimensions;
         this.names = names;
+        this.attributes = attributes;
         size = values.length / 2;
     }
 
@@ -38,11 +39,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     }
 
     public ComplexImpl(double[] values, int[] dimensions) {
-        this(values, dimensions, null, true);
+        this(values, dimensions, null, null, true);
     }
 
     public ComplexImpl(double[] values) {
-        this(values, null, null, true);
+        this(values, null, null, null, true);
     }
 
     public ComplexImpl(int size) {
@@ -60,6 +61,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         if (!valuesOnly) {
             dimensions = c.dimensions();
             names = c.names();
+            attributes = c.attributes();
         }
     }
 
@@ -210,7 +212,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public ComplexImpl doStrip() {
-        return new ComplexImpl(content, null, null, false);
+        return new ComplexImpl(content, null, null, null, false);
     }
 
  }

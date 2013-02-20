@@ -60,6 +60,12 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
     }
 
     @Override
+    public RComplex setAttributes(Attributes attributes) {
+        return RComplex.RComplexFactory.getFor(new double[] {real, imag}, null, null, attributes);
+    }
+
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

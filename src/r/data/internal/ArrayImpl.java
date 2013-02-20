@@ -67,6 +67,7 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
 
     @Override
     public RArray setAttributes(Attributes attributes) {
+        Utils.debug("this is "+this);
         Utils.nyi("not supported");
         return null;
     }

@@ -17,7 +17,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         return content;
     }
 
-    public RawImpl(byte[] values, int[] dimensions, Names names, boolean doCopy) {
+    public RawImpl(byte[] values, int[] dimensions, Names names, Attributes attributes, boolean doCopy) {
         if (doCopy) {
             content = new byte[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -26,14 +26,15 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         }
         this.dimensions = dimensions;
         this.names = names;
+        this.attributes = attributes;
     }
 
     public RawImpl(byte[] values, int[] dimensions) {
-        this(values, dimensions, null, true);
+        this(values, dimensions, null, null, true);
     }
 
     public RawImpl(byte[] values) {
-        this(values, null, null, true);
+        this(values, null, null, null, true);
     }
 
     public RawImpl(RRaw r, boolean valuesOnly) {
@@ -44,6 +45,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         if (!valuesOnly) {
             dimensions = r.dimensions();
             names = r.names();
+            attributes = r.attributes();
         }
     }
 
@@ -187,7 +189,7 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
 
     @Override
     public RawImpl doStrip() {
-        return new RawImpl(content, null, null, false);
+        return new RawImpl(content, null, null, null, false);
     }
 
 }

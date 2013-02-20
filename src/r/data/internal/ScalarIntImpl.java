@@ -59,6 +59,11 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public RInt setAttributes(Attributes attributes) {
+        return RInt.RIntFactory.getFor(new int[] {value}, null, null, attributes);
+    }
+
+    @Override
     public boolean isNAorNaN(int i) {
         Utils.check(i == 0);
         return isNAorNaN();

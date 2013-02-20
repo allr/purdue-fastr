@@ -71,7 +71,7 @@ public interface RInt extends RNumber {
             if (size == 1 && dimensions == null && names == null) {
                 return new ScalarIntImpl(0);
             }
-            return new IntImpl(new int[size], dimensions, names, false);
+            return new IntImpl(new int[size], dimensions, names, null, false);
         }
         public static RInt getNAArray(int size) {
             return getNAArray(size, null);
@@ -82,10 +82,10 @@ public interface RInt extends RNumber {
             }
             int[] content = new int[size];
             Arrays.fill(content, NA);
-            return new IntImpl(content, dimensions, null, false);
+            return new IntImpl(content, dimensions, null, null, false);
         }
         public static IntImpl getMatrixFor(int[] values, int m, int n) {
-            return new IntImpl(values, new int[] {m, n}, null, false);
+            return new IntImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RInt copy(RInt i) {
             if (i.size() == 1 && i.dimensions() == null && i.names() == null) {
@@ -106,7 +106,13 @@ public interface RInt extends RNumber {
             if (values.length == 1 && dimensions == null && names == null) {
                 return new ScalarIntImpl(values[0]);
             }
-            return new IntImpl(values, dimensions, names, false);
+            return new IntImpl(values, dimensions, names, null, false);
+        }
+        public static RInt getFor(int[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null && attributes == null) {
+                return new ScalarIntImpl(values[0]);
+            }
+            return new IntImpl(values, dimensions, names, attributes, false);
         }
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);

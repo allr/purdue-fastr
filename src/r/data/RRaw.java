@@ -37,13 +37,13 @@ public interface RRaw extends RArray {
             return new RawImpl(size);
         }
         public static RawImpl getUninitializedArray(int size, int[] dimensions, Names names) {
-            return new RawImpl(new byte[size], dimensions, names, false);
+            return new RawImpl(new byte[size], dimensions, names, null, false);
         }
         public static RawImpl getZeroArray(int size) {
             return getUninitializedArray(size);
         }
         public static RawImpl getMatrixFor(byte[] values, int m, int n) {
-            return new RawImpl(values, new int[] {m, n}, null, false);
+            return new RawImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RawImpl copy(RRaw v) {
             return new RawImpl(v, false);
@@ -55,7 +55,10 @@ public interface RRaw extends RArray {
             return getFor(values, null, null);
         }
         public static RawImpl getFor(byte[] values, int[] dimensions, Names names) {  // re-uses values!
-            return new RawImpl(values, dimensions, names, false);
+            return new RawImpl(values, dimensions, names, null, false);
+        }
+        public static RawImpl getFor(byte[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            return new RawImpl(values, dimensions, names, attributes, false);
         }
         public static RRaw getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;
