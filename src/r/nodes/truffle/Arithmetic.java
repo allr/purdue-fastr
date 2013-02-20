@@ -866,6 +866,40 @@ public class Arithmetic extends BaseR {
     }
 
     public static final class Pow extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+
+        private static double[] _Z = new double[2];
+
+        private void cpow(double xr, double xi, double yr, double yi) {
+            cpow(xr, xi, yr, yi, _Z, 0);
+        }
+
+        private void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
+            if (xr == 0) {
+                if (yi == 0) {
+                    z[offset] = Math.pow(0,yr);
+                    z[offset+1] = xi;
+                } else {
+                    z[offset] = Double.NaN;
+                    z[offset+1] = Double.NaN;
+                }
+            } else {
+                double zr = Math.hypot(xr, xi);
+                double zi = Math.atan2(xi, xr);
+                double theta = zi * yr;
+                double rho;
+                if (yi == 0) {
+                    rho = Math.pow(zr, yr);
+                } else {
+                    zr = Math.log(zr);
+                    theta += zr * yi;
+                    rho = Math.exp(zr * yr - zi * yi);
+                }
+                z[offset] = rho * Math.cos(theta);
+                z[offset+1] = rho * Math.sin(theta);
+            }
+        }
+
+
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
             Utils.nyi();
@@ -873,7 +907,6 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            Utils.nyi();
             return -1;
         }
         @Override
@@ -890,10 +923,15 @@ public class Arithmetic extends BaseR {
             Utils.nyi();
             return null;
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names) {
-            Utils.nyi();
-            return null;
+        public RComplex op(ASTNode ast, ComplexImpl xcomp, double yr, double yi, int size, int[] dimensions, Names names) {
+            double[] x = xcomp.getContent();
+            double[] z = new double[x.length];
+            for (int i = 0; i < x.length; i += 2) {
+                cpow(x[i], x[i + 1], yr, yi, z, i);
+            }
+            return RComplex.RComplexFactory.getFor(z, dimensions, names);
         }
     }
 

@@ -5,8 +5,11 @@ import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.ScalarDoubleImpl;
 import r.errors.RError;
 import r.nodes.ASTNode;
+
+// TODO delete this file, its functionality has been replaced by UpdateArray
 
 /**
  * Matrix in place update
@@ -69,7 +72,7 @@ public class UpdateMatrix extends BaseR {
         }
         RArray ary = (RArray) value;
         try {
-            if ((ary.size() == 1) && (ary instanceof RDouble)) {
+            if (ary instanceof ScalarDoubleImpl) { // size == 1, type == double
                 if (rhs instanceof Constant) {
                     throw new UnexpectedResultException(Failure.CONSTANT_DOUBLE_SCALAR);
                 }

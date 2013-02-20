@@ -14,6 +14,15 @@ import r.nodes.truffle.*;
 //    (this is not fully implemented in R)
 public interface RAny {
 
+    public static enum Mode {
+        LOGICAL,
+        INT,
+        DOUBLE,
+        COMPLEX,
+        STRING,
+        RAW
+    };
+
     String TYPE_STRING = "any";
     String typeOf();
 
@@ -46,4 +55,5 @@ public interface RAny {
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
+
 }

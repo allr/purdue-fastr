@@ -114,6 +114,15 @@ public abstract class RError extends RuntimeException {
     public static final String INFINITE_MISSING_VALUES = "infinite or missing values in '%s'";
     public static final String NON_SQUARE_MATRIX = "non-square matrix in '%s'";
     public static final String LAPACK_ERROR = "error code %d from Lapack routine '%s'";
+    public static final String VALUE_OUT_OF_RANGE = "value out of range in '%s'";
+    public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
+
+    public static final String DIMS_CONTAIN_NEGATIVE_VALUES = "the dims contain negative values";
+    public static final String NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED = "negative length vectors are not allowed";
+
+    public static final String FIRST_ARG_MUST_BE_ARRAY = "invalid first argument, must be an array";
+    public static final String IMAGINARY_PARTS_DISCARDED_IN_COERCION = "imaginary parts discarded in coercion";
+
 
     public static RError getNYI(final String msg) {
         return new RError() {
@@ -905,6 +914,57 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getDimsContainNegativeValues(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.DIMS_CONTAIN_NEGATIVE_VALUES;
+            }
+        };
+    }
+
+    public static RError getNegativeLengthVectorsNotAllowed(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED;
+            }
+        };
+    }
+
+
+    public static RError getFirstArgMustBeArray(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.FIRST_ARG_MUST_BE_ARRAY;
+            }
+        };
+    }
+
+
+    public static RError getImaginaryPartsDiscardedInCoercion(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION;
+            }
+        };
+    }
+
+
     public static RError getNotMultipleReplacement(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
@@ -997,6 +1057,15 @@ public abstract class RError extends RuntimeException {
     public static RError getLapackError(ASTNode ast, int code, String routine) {
         return getGenericError(ast, String.format(RError.LAPACK_ERROR, code, routine));
     }
+
+    public static RError getValueOutOfRange(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.VALUE_OUT_OF_RANGE, argName));
+    }
+    public static RError getValueIsOfWrongLength(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.IS_OF_WRONG_LENGTH, argName));
+    }
+
+
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {
         StringBuilder msg = new StringBuilder();

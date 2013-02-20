@@ -23,15 +23,23 @@ public class ColumnsRowsStats {
         public abstract double[] stat(RComplex x, int m, int n, boolean naRM);
         public abstract double[] stat(RDouble x, int m, int n, boolean naRM);
         public abstract double[] stat(RInt x, int m, int n, boolean naRM);
+        public abstract int[] getResultDimension(int[] sourceDim);
     }
 
-    public static void checkDimensions(ASTNode ast, int[] dimensions) {
+    public static int[] checkDimensions(ASTNode ast, int[] dimensions) {
         if (dimensions == null || dimensions.length < 2) {
             throw RError.getXArrayTwo(ast);
         }
         if (dimensions.length > 2) {
-            Utils.nyi("unimplemented for arrays of more than 2 dimensions");
+            int[] result = new int[2];
+            result[0] = dimensions[0];
+            result[1] = 1;
+            for (int i = 1; i < dimensions.length; ++i) {
+                result[1] *= dimensions[i];
+            }
+            return result;
         }
+        return dimensions;
     }
 
     public static final class StatsFactory extends CallFactory {
@@ -44,23 +52,23 @@ public class ColumnsRowsStats {
 
         public RAny stat(ASTNode ast, RComplex x, boolean naRM) {
             int[] dim = x.dimensions();
-            checkDimensions(ast, dim);
-            double[] content = stats.stat(x, dim[0], dim[1], naRM); // real, imag, real, imag, ...
-            return RComplex.RComplexFactory.getFor(content);
+            int[] d = checkDimensions(ast, dim);
+            double[] content = stats.stat(x, d[0], d[1], naRM); // real, imag, real, imag, ...
+            return RComplex.RComplexFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
         }
 
         public RAny stat(ASTNode ast, RDouble x, boolean naRM) {
             int[] dim = x.dimensions();
-            checkDimensions(ast, dim);
-            double[] content = stats.stat(x, dim[0], dim[1], naRM);
-            return RDouble.RDoubleFactory.getFor(content);
+            int[] d = checkDimensions(ast, dim);
+            double[] content = stats.stat(x, d[0], d[1], naRM);
+            return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
         }
 
         public RAny stat(ASTNode ast, RInt x, boolean naRM) {
             int[] dim = x.dimensions();
-            checkDimensions(ast, dim);
-            double[] content = stats.stat(x, dim[0], dim[1], naRM);
-            return RDouble.RDoubleFactory.getFor(content);
+            int[] d = checkDimensions(ast, dim);
+            double[] content = stats.stat(x, d[0], d[1], naRM);
+            return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
         }
 
         public RAny stat(ASTNode ast, RAny x, boolean naRM) {
@@ -407,6 +415,13 @@ public class ColumnsRowsStats {
             public double[] stat(RInt x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, false, naRM);
             }
+
+            @Override
+            public int[] getResultDimension(int[] sourceDim) {
+                int[] result = new int[sourceDim.length - 1];
+                System.arraycopy(sourceDim, 1, result, 0, result.length);
+                return result;
+            }
         };
     }
 
@@ -424,6 +439,13 @@ public class ColumnsRowsStats {
             @Override
             public double[] stat(RInt x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, true, naRM);
+            }
+
+            @Override
+            public int[] getResultDimension(int[] sourceDim) {
+                int[] result = new int[sourceDim.length - 1];
+                System.arraycopy(sourceDim, 1, result, 0, result.length);
+                return result;
             }
         };
     }
@@ -443,6 +465,11 @@ public class ColumnsRowsStats {
             public double[] stat(RInt x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, false, naRM);
             }
+
+            @Override
+            public int[] getResultDimension(int[] sourceDim) {
+                return null; // row sum results have no dim
+            }
         };
     }
 
@@ -460,6 +487,10 @@ public class ColumnsRowsStats {
             @Override
             public double[] stat(RInt x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, true, naRM);
+            }
+            @Override
+            public int[] getResultDimension(int[] sourceDim) {
+                return null; // row means results have no dim
             }
         };
     }

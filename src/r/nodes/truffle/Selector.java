@@ -1,143 +1,120 @@
 package r.nodes.truffle;
 
-import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
-import r.*;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import r.Utils;
 import r.data.*;
-import r.errors.*;
-import r.nodes.*;
+import r.errors.RError;
+import r.nodes.ASTNode;
 
-// FIXME: do more performance optimizations
-// FIXME: probably could have distinct types for non-failing and failing selectors
-public class ReadMatrix extends BaseR {
+import java.util.Arrays;
 
-    @Child RNode matrixExpr;
-    @Child SelectorNode selIExpr;
-    @Child SelectorNode selJExpr;
-    @Child OptionNode dropExpr;
-    @Child OptionNode exactExpr;
-    final boolean subset;
+public abstract class Selector {
+
+    /** Initializes the selectors to their respective values using given source array.
+     *
+     * Returns the selector sizes array.
+     */
+    public static int[] initializeSelectors(RArray source, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        int[] sourceDim = source.dimensions();
+        int[] result = new int[selectors.length];
+        for (int i = 0; i < selectors.length; ++i) {
+            selectors[i].start(sourceDim[i], ast);
+            result[i] = selectors[i].size();
+        }
+        return result;
+    }
+
+    /** Calculates the result dimensions given the selector sizes. If the drop argument is true any dimension of size
+     * 1 is dropped and if the final result has only one dimension even that one is dropped (a vector will be returned
+     * in this case).
+     */
+    public static int[] calculateDestinationDimensions(int[] selSizes, boolean drop) {
+        int[] result = new int[0];
+        for (int i : selSizes) {
+            if (i>1 || !drop) {
+                result = Arrays.copyOf(result, result.length + 1);
+                result[result.length-1] = i;
+            }
+        }
+        return (result.length <= 1) ? null : result;
+    }
+
+    /** Calculates thee result size from the result dimensions calculated previously. The result size is simply the
+     * product of the dimensions.
+     */
+    public static int calculateSizeFromDimensions(int[] dim) {
+        int result = 1;
+        if (dim == null)
+            return result;
+        for (int i : dim)
+            result *= i;
+        return result;
+    }
+
+
+    /** Given the index vector, selector indices, sizes and the selectors themselves, increments the index vector by one
+     * returning true on overflow.
+     *
+     * Increments in different order starting from left to right so that the destination offset does not have to be
+     * recalculated each time.
+     *
+     * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
+     *            the source array as specified by the current selector.
+     * @param selIdx Selector index vector, contains the number of the value returned by the selector. This is used to
+     *               detect that a selector has overflown. Starts at 1 for the first value
+     * @param selSizes Size of the selector.
+     * @param selectors Selectors to be used in the increment.
+     */
+    public static boolean increment(int[] idx, int[] selIdx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        for (int i = 0; i < idx.length; ++i) {
+            if (selIdx[i] == selSizes[i]) {
+                if (selSizes[i] != 1) {
+                    selIdx[i] = 1;
+                    selectors[i].restart();
+                    idx[i] = selectors[i].nextIndex(ast);
+                }
+            } else {
+                ++selIdx[i];
+                idx[i] = selectors[i].nextIndex(ast);
+                return false; // no overflow
+            }
+        }
+        return true; // overflow
+    }
+
+    /** Calculates the source index from given index vector. If any of the index values is NA, then the result is NA
+     * itself.
+     */
+    public static int calculateSourceOffset(RArray source, int[] idx) {
+        int result = 0;
+        int m = 1;
+        int[] dims = source.dimensions();
+        for (int i = 0; i < idx.length; ++i) {
+            if (idx[i] == RInt.NA)
+                return RInt.NA;
+            result += idx[i] * m;
+            m *= dims[i];
+        }
+        return result;
+    }
+
 
     private static final boolean DEBUG_M = false;
 
-    public ReadMatrix(ASTNode ast, boolean subset, RNode matrixExpr, SelectorNode selIExpr, SelectorNode selJExpr, OptionNode dropExpr, OptionNode exactExpr) {
-        super(ast);
-        this.subset = subset;
-        this.matrixExpr = adoptChild(matrixExpr);
-        this.selIExpr = adoptChild(selIExpr);
-        this.selJExpr = adoptChild(selJExpr);
-        this.dropExpr = adoptChild(dropExpr);
-        this.exactExpr = adoptChild(exactExpr);
+    public void setIndex(RAny index) {
     }
-
-    @Override
-    public Object execute(Frame frame) {
-        RAny matrix = (RAny) matrixExpr.execute(frame);
-        Selector selI = selIExpr.executeSelector(frame);
-        Selector selJ = selJExpr.executeSelector(frame);
-        int drop = dropExpr.executeLogical(frame);  // FIXME: what is the correct execution order of these args?
-        int exact = exactExpr.executeLogical(frame);
-
-        return execute(matrix, selI, selJ, drop, exact);
+    public RAny getIndex() {
+        return null;
     }
-
-    // FIXME: could be specialized by matrix type to remove some boxing, virtual calls
-    public Object execute(RAny matrix, Selector selI, Selector selJ, int drop, int exact) {
-        if (!(matrix instanceof RArray)) {
-            Utils.nyi("unsupported base");
-            // TODO: ERROR object of type 'XXX' is not subsettable
-            return null;
-        }
-        RArray base = (RArray) matrix;
-        int[] dim = base.dimensions();
-        if (dim == null || dim.length != 2) {
-            throw RError.getIncorrectDimensions(ast);
-        }
-        int m = dim[0];
-        int n = dim[1];
-
-        Selector selectorI = selI;
-        Selector selectorJ = selJ;
-
-        for (;;) {
-            try {
-                return execute(base, m, n, selectorI, selectorJ, drop, exact);
-            } catch (UnexpectedResultException e) {
-                Selector failedSelector = (Selector) e.getResult();
-                if (failedSelector == selectorI) {
-                    if (DEBUG_M) Utils.debug("Selector I failed in ReadMatrix.execute, replacing.");
-                    RAny index = selectorI.getIndex();
-                    replaceChild(selIExpr, createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
-                    selectorI = selIExpr.executeSelector(index);
-                } else {
-                    // failedSelector == selectorJ
-                    if (DEBUG_M) Utils.debug("Selector J failed in ReadMatrix.execute, replacing.");
-                    RAny index = selectorJ.getIndex();
-                    replaceChild(selJExpr, createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
-                    selectorJ = selJExpr.executeSelector(index);
-                }
-                continue;
-            }
-        }
+    public Transition getTransition() {
+        return null;
     }
-
-    public Object execute(RArray base, int m, int n, Selector selI, Selector selJ, int drop, int exact) throws UnexpectedResultException {
-        selI.start(m, ast);
-        selJ.start(n, ast);
-        int nm = selI.size();
-        int nn = selJ.size();
-        int nsize = nm * nn;
-        int[] ndim;
-        if ((nm != 1 && nn != 1) || drop == RLogical.FALSE) {
-            ndim = new int[]{nm, nn};
-        } else {
-            ndim = null;
-        }
-        RArray res = Utils.createArray(base, nsize, ndim, null);
-
-        for (int ni = 0; ni < nm; ni++) {
-            int i = selI.nextIndex(ast);
-            if (i != RInt.NA) {
-                selJ.restart();
-                for (int nj = 0; nj < nn; nj++) {
-                    int offset = nj * nm + ni;
-                    int j = selJ.nextIndex(ast);
-                    if (j != RInt.NA) {
-                        Object value;
-                        value = base.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
-                        res.set(offset, value);
-                    } else {
-                        Utils.setNA(res, offset);
-                    }
-                }
-            } else {
-                for (int nj = 0; nj < nn; nj++) {
-                    Utils.setNA(res, nj * nm + ni);
-                }
-            }
-        }
-        return res;
-    }
-
-
-    public abstract static class Selector {
-        public void setIndex(RAny index) {
-        }
-        public RAny getIndex() {
-            return null;
-        }
-        public Transition getTransition() {
-            return null;
-        }
-        public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
-        public abstract void restart();
-        public abstract int size();
-        public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
-        public abstract boolean isConstant();
-    }
+    public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
+    public abstract void restart();
+    public abstract int size();
+    public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
+    public abstract boolean isConstant();
 
     // non-failing
     public static final class MissingSelector extends Selector {
@@ -504,8 +481,10 @@ public class ReadMatrix extends BaseR {
                 }
             } else {
                 // negative selection
-                while (omit[offset]) {
-                    offset++;
+                if (omit != null) {
+                    while (omit[offset]) {
+                        offset++;
+                    }
                 }
                 return offset++;
             }
@@ -707,7 +686,7 @@ public class ReadMatrix extends BaseR {
                         if (index.size() == 1) {
                             return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1));
                         }
-                     // FIXME: handle more cases? e.g. set of positive integer indexes
+                        // FIXME: handle more cases? e.g. set of positive integer indexes
                     }
                     if (subset) {
                         if (index.size() == 1) {
@@ -833,29 +812,6 @@ public class ReadMatrix extends BaseR {
         };
     }
 
-    public abstract static class SelectorNode extends BaseR {
-        @Child RNode child;
-
-        public SelectorNode(ASTNode ast, RNode child) {
-            super(ast);
-            this.child = adoptChild(child);
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            Utils.check(false, "unreachable");
-            return null;
-        }
-
-        public Selector executeSelector(Frame frame) {
-            RAny index = (RAny) child.execute(frame);
-            return executeSelector(index);
-
-        }
-
-        public abstract Selector executeSelector(RAny index);
-    }
-
     public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
         return new OptionNode(ast) {
 
@@ -909,4 +865,34 @@ public class ReadMatrix extends BaseR {
 
         public abstract int executeLogical(Frame frame);
     }
+
+    // =================================================================================================================
+    // Selector node
+    // =================================================================================================================
+    public static abstract class SelectorNode extends BaseR {
+
+        @Child RNode child;
+
+        public SelectorNode(ASTNode ast, RNode child) {
+            super(ast);
+            this.child = adoptChild(child);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            Utils.check(false, "unreachable");
+            return null;
+        }
+
+        public Selector executeSelector(Frame frame) {
+            RAny index = (RAny) child.execute(frame);
+            return executeSelector(index);
+
+        }
+
+        public abstract Selector executeSelector(RAny index);
+
+    }
+
+
 }

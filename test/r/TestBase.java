@@ -37,6 +37,14 @@ public class TestBase {
 
     }
 
+    static void assertTrue(String input) {
+        try {
+            assertEval(input,"TRUE");
+        } catch (Throwable t) {
+            Assert.assertTrue(false);
+        }
+    }
+
     /** A simple class that holds the resulr of a test evaluation.
      *
      * Contains the actual result reported by eval, the captured std err and std out of the execution and the message
@@ -75,7 +83,7 @@ public class TestBase {
             String result = "";
             Exception e = null;
             try {
-              result = evalString(input);
+                result = evalString(input);
             } catch (RError ex) {
                 e = ex;
             }

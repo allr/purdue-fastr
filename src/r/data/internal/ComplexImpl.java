@@ -117,7 +117,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     @Override
     public String pretty() {
         if (dimensions != null) {
-            return matrixPretty();
+            return arrayPretty();
         }
         if (size == 0) {
             return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;

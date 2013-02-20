@@ -271,6 +271,7 @@ public class Truffleize implements Visitor {
     }
 
 
+    // TODO This has to be changed for partial matching so that exact is checked also for vectors
     @Override
     public void visit(AccessVector a) {
         SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
@@ -297,11 +298,12 @@ public class Truffleize implements Visitor {
             }
             return;
         }
-        if (sa.convertedExpressions.length >= 2) { // matrix ?
+        // array & matrix read
+        if (sa.convertedExpressions.length >= 2) { // array or matrix ?
+
             RNode drop = null;
             RNode exact = null;
-            RNode isel = null;
-            RNode jsel = null;
+            RNode[] selectors = new RNode[sa.convertedExpressions.length];
 
             RNode[] nodes = sa.convertedExpressions;
             RSymbol[] names = sa.convertedNames;
@@ -314,34 +316,35 @@ public class Truffleize implements Visitor {
                     }
                     drop = nodes[i];
                     continue;
-                }
-                if (names[i] == RSymbol.exactName) {
+                } else if (names[i] == RSymbol.exactName) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     exact = nodes[i];
                     continue;
-                }
-                if (dims == 0) {
-                    isel = nodes[i]; // NOTE: nodes[i] can be legally null, e.g. in m[,1], isel is null
-                    dims++;
+                } else {
+                    selectors[dims] = nodes[i];
+                    ++dims;
                     continue;
                 }
-                if (dims == 1) {
-                    jsel = nodes[i];
-                    dims++;
-                    continue;
-                }
-                Utils.nyi("array indexing unsupported");
             }
-            if (dims == 1) {
+            if (dims == 0) {
                 Utils.nyi("unsupported indexing style");
             }
-            result = new ReadMatrix(a, a.isSubset(), createTree(a.getVector()),
-                            ReadMatrix.createSelectorNode(a, a.isSubset(), isel),
-                            ReadMatrix.createSelectorNode(a, a.isSubset(), jsel),
-                            ReadMatrix.createDropOptionNode(a, drop),
-                            ReadMatrix.createExactOptionNode(a, exact));
+            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
+            for (int i = 0; i < selNodes.length; ++i)
+                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            if (dims == 2) { // if matrix read, use the specialized matrix form
+                result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
+                              selNodes,
+                              ReadArray.createDropOptionNode(a, drop),
+                              ReadArray.createExactOptionNode(a, exact));
+            } else { // otherwise use the generalized array read
+              result = new ReadArray.GeneralizedRead(a, a.isSubset(), createTree(a.getVector()),
+                              selNodes,
+                              ReadArray.createDropOptionNode(a, drop),
+                              ReadArray.createExactOptionNode(a, exact));
+            }
             return;
         }
         Utils.nyi("unsupported indexing style");
@@ -364,52 +367,56 @@ public class Truffleize implements Visitor {
                 result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         } else if (sa.convertedExpressions.length >= 2) {
-            // it might be a matrix
-            RNode drop = null;
+
+            // TODO is drop meaningful for updates??
+            // RNode drop = null;
             RNode exact = null;
-            RNode isel = null;
-            RNode jsel = null;
+            RNode[] selectors = new RNode[sa.convertedExpressions.length];
 
             RNode[] nodes = sa.convertedExpressions;
             RSymbol[] names = sa.convertedNames;
             int dims = 0;
 
             for (int i = 0; i < nodes.length; i++) {
-                if (names[i] == RSymbol.dropName) {
+/*                if (names[i] == RSymbol.dropName) {
                     if (drop != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     drop = nodes[i];
                     continue;
-                }
+                } else */
                 if (names[i] == RSymbol.exactName) {
                     if (exact != null) {
                         throw RError.getIncorrectSubscripts(a);
                     }
                     exact = nodes[i];
                     continue;
-                }
-                if (dims == 0) {
-                    isel = nodes[i]; // NOTE: nodes[i] can be legally null, e.g. in m[,1], isel is null
-                    dims++;
+                } else {
+                    selectors[dims] = nodes[i];
+                    ++dims;
                     continue;
                 }
-                if (dims == 1) {
-                    jsel = nodes[i];
-                    dims++;
-                    continue;
-                }
-                Utils.nyi("array indexing unsupported");
             }
-            if (dims == 1) {
+            if (dims == 0) {
                 Utils.nyi("unsupported indexing style");
             }
-            result = new UpdateMatrix(a, a.isSubset(), createTree(a.getVector()),
-                    ReadMatrix.createSelectorNode(a, a.isSubset(), isel),
-                    ReadMatrix.createSelectorNode(a, a.isSubset(), jsel),
-                    ReadMatrix.createDropOptionNode(a, drop),
-                    ReadMatrix.createExactOptionNode(a, exact),
-                    createTree(u.getRHS()));
+            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
+            for (int i = 0; i < selNodes.length; ++i)
+                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            // Create the assignment, or superassignment nodes
+            ASTNode varAccess = a.getVector();
+            RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
+            if (!(varAccess instanceof SimpleAccessVariable)) {
+                Utils.nyi("expecting matrix name for matrix update");
+            }
+            if (u.isSuper()) {
+                result = SuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), new UpdateArray(a, selNodes, a.isSubset()));
+            } else {
+                result = Assignment.create(a, var, createTree(u.getRHS()), new UpdateArray(a, selNodes, a.isSubset()));
+                return;
+            }
+        } else {
+            Utils.nyi("Unsupported indexing style");
         }
     }
 

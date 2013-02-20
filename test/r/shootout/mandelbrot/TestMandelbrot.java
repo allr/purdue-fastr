@@ -66,4 +66,15 @@ public class TestMandelbrot extends ShootoutTestBase {
                         "01 \n" +
                         "00 \n", null, "NULL");
     }
+
+    @Test
+    public void testMandelbrotNooutNaive() {
+
+        assertShootout("mandelbrot", "mandelbrot-noout-naive", 10,
+                "P4\n" +
+                        "10 10 \n", null, "NULL");
+    }
+
 }
+
+

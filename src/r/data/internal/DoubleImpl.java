@@ -8,6 +8,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
 
+
     public double[] getContent() {
         return content;
     }
@@ -92,7 +93,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     @Override
     public String pretty() {
         if (dimensions != null) {
-            return matrixPretty();
+            return arrayPretty();
         }
         if (content.length == 0) {
             return (names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING;

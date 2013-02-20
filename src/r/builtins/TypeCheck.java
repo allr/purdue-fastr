@@ -116,4 +116,12 @@ public class TypeCheck {
         }
 
     });
+    public static final CallFactory NULL_FACTORY = new CheckCallFactory(new CheckAction() {
+
+        @Override
+        public boolean is(RAny arg) {
+            return arg == RNull.getNull();
+        }
+
+    });
 }
