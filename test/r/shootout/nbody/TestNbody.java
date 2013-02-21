@@ -24,6 +24,12 @@ public class TestNbody extends ShootoutTestBase {
     }
 
     @Test
+    public void testNbody2() {
+        assertShootout("nbody", "nbody-2", 5, "-0.1690751638285245 \n-0.16907410488299296 \n", "", "NULL");
+        assertShootout("nbody", "nbody-2", 6, "-0.1690751638285245 \n-0.16907389015486243 \n", "", "NULL");
+    }
+
+    @Test
     public void testNbody3() {
         assertShootout("nbody", "nbody-3", 5, "-0.1690751638285245 \n-0.16907410488299296 \n", "", "NULL");
         assertShootout("nbody", "nbody-3", 6, "-0.1690751638285245 \n-0.16907389015486243 \n", "", "NULL");
