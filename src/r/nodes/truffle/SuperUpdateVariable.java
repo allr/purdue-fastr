@@ -1,19 +1,20 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-/** A super assignment node. Works similarly to the Assignment node, but uses the super assignment instead.
+/** A super assignment node. Works similarly to the UpdateVariable node, but uses the super assignment instead.
  *
  * Reqrites itself to either const rhs (does not reevaluate rhs on each entry) or non const variant and on its first
  * execution checks the frame to be not null.
  *
- * The const / non-const distincition is done in the create method as in Assignment and no rewrite on runtime is used
+ * The const / non-const distincition is done in the create method as in UpdateVariable and no rewrite on runtime is used
  * for this.
  */
-public class SuperAssignment extends BaseR {
+public class SuperUpdateVariable extends BaseR {
 
     final RSymbol lhsSymbol;
 
@@ -25,9 +26,9 @@ public class SuperAssignment extends BaseR {
      */
     @Child RNode rhs;
 
-    /** Assignment node performing the assignment itself.
+    /** UpdateVariable node performing the assignment itself.
      */
-    @Child Assignment.AssignmentNode assignment;
+    @Child UpdateVariable.AssignmentNode assignment;
 
     /** Writeback node that stores the information to the super frame.
      */
@@ -43,17 +44,21 @@ public class SuperAssignment extends BaseR {
      *
      * Based on rhs being constant uses the non-const, or const versions of the supperassignment.
      */
-    public static SuperAssignment create(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, Assignment.AssignmentNode assignment) {
-        if (rhs instanceof Constant) {
-            return new SuperAssignment.Const(orig, lhsSymbol, lhs, rhs, assignment);
-        } else {
-            return new SuperAssignment(orig, lhsSymbol, lhs, rhs, assignment);
+    public static SuperUpdateVariable create(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            if (rhs instanceof Constant) {
+                return new SuperUpdateVariable.Const(orig, lhsSymbol, lhs, rhs, assignment);
+            } else {
+                return new SuperUpdateVariable(orig, lhsSymbol, lhs, rhs, assignment);
+            }
         }
     }
 
     /** Creates the superassignment node.
      */
-    protected SuperAssignment(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, Assignment.AssignmentNode assignment) {
+    protected SuperUpdateVariable(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
         super(orig);
         this.lhsSymbol = lhsSymbol;
         this.lhs = adoptChild(lhs);
@@ -70,7 +75,7 @@ public class SuperAssignment extends BaseR {
 
     /** Copy constructor for the replacement calls.
      */
-    protected SuperAssignment(SuperAssignment other) {
+    protected SuperUpdateVariable(SuperUpdateVariable other) {
         super(other.getAST());
         this.lhsSymbol = other.lhsSymbol;
         this.lhs = adoptChild(other.lhs);
@@ -89,19 +94,23 @@ public class SuperAssignment extends BaseR {
      */
     @Override
     public Object execute(Frame frame) {
-        if (frame == null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
-            throw RError.getUnknownVariable(ast, lhsSymbol);
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            if (frame == null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
+                throw RError.getUnknownVariable(ast, lhsSymbol);
+            }
+            return replace(new NonConstResolved(this)).execute(frame);
         }
-        return replace(new NonConstResolved(this)).execute(frame);
     }
 
     /** Frame resolved (not null) version of the non const super assignment.
      *
      * Obtains the lhs, executes the assignment and if the result differs, writebacks the new value.
      */
-    protected static class NonConstResolved extends SuperAssignment {
+    protected static class NonConstResolved extends SuperUpdateVariable {
 
-        protected NonConstResolved(SuperAssignment other) {
+        protected NonConstResolved(SuperUpdateVariable other) {
             super(other);
         }
 
@@ -123,23 +132,27 @@ public class SuperAssignment extends BaseR {
      *
      * Checks the frame is not null, then evaluates the rhs once and converts to the const resolved node.
      */
-    protected static class Const extends SuperAssignment {
+    protected static class Const extends SuperUpdateVariable {
 
-        protected Const(SuperAssignment other) {
+        protected Const(SuperUpdateVariable other) {
             super(other);
         }
 
-        protected Const(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, Assignment.AssignmentNode assignment) {
+        protected Const(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
             super(orig, lhsSymbol, lhs, rhs, assignment);
         }
 
 
             @Override
         public Object execute(Frame frame) {
-            if (frame == null) { // TODO does this really has to be done once? (eval, etc? )
-                throw RError.getUnknownVariable(ast, lhsSymbol);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if (frame == null) { // TODO does this really has to be done once? (eval, etc? )
+                    throw RError.getUnknownVariable(ast, lhsSymbol);
+                }
+                return replace(new Resolved(this, (RAny) rhs.execute(frame))).execute(frame);
             }
-            return replace(new Resolved(this, (RAny) rhs.execute(frame))).execute(frame);
         }
 
         /** Const resolved node. The frame is known not to be null and the rhs is const so not reevaluated.
@@ -148,7 +161,7 @@ public class SuperAssignment extends BaseR {
 
             final RAny rhsValue;
 
-            protected Resolved(SuperAssignment other, RAny rhsValue) {
+            protected Resolved(SuperUpdateVariable other, RAny rhsValue) {
                 super(other);
                 this.rhsValue = rhsValue;
             }

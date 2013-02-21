@@ -7,9 +7,6 @@ import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-import javax.xml.crypto.KeySelectorResult;
-import java.util.Arrays;
-
 /**
  * A multi-dimensional read.
  * 
@@ -44,6 +41,10 @@ public abstract class ReadArray extends BaseR {
 
     @Child OptionNode exact;
 
+    final int[] selSizes;
+    final int[] idx;
+    final int[] selIdx;
+
     /**
      * Constructor from scratch.
      */
@@ -56,6 +57,9 @@ public abstract class ReadArray extends BaseR {
             this.selectors[i] = adoptChild(selectors[i]);
         this.drop = adoptChild(dropExpr);
         this.exact = adoptChild(exactExpr);
+        this.selSizes = new int[selectors.length];
+        this.idx = new int[selectors.length];
+        this.selIdx = new int[selectors.length];
     }
 
     /**
@@ -70,6 +74,9 @@ public abstract class ReadArray extends BaseR {
             selectors[i] = adoptChild(other.selectors[i]);
         this.drop = adoptChild(other.drop);
         this.exact = adoptChild(other.exact);
+        this.selSizes = other.selSizes;
+        this.idx = other.idx;
+        this.selIdx = other.selIdx;
     }
 
     /**
@@ -218,15 +225,13 @@ public abstract class ReadArray extends BaseR {
          */
         @Override
         public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
-            int[] selSizes = Selector.initializeSelectors(source, selectors, ast);
+            Selector.initializeSelectors(source, selectors, ast, selSizes);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, drop);
             int destSize = Selector.calculateSizeFromDimensions(destDim);
             if (!subset && (destSize > 1))
                 throw RError.getSelectMoreThanOne(getAST());
             RArray dest = Utils.createArray(source, destSize, destDim, null);
             // fill in the index vector
-            int[] idx = new int[selectors.length];
-            int[] selIdx = new int[selectors.length];
             for (int i = 0; i < idx.length; ++i) {
                 idx[i] = selectors[i].nextIndex(ast);
                 selIdx[i] = 1; // start at one so that overflow and carry works

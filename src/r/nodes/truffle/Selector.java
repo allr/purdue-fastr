@@ -15,14 +15,12 @@ public abstract class Selector {
      *
      * Returns the selector sizes array.
      */
-    public static int[] initializeSelectors(RArray source, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+    public static void initializeSelectors(RArray source, Selector[] selectors, ASTNode ast, int[] selSizes) throws UnexpectedResultException {
         int[] sourceDim = source.dimensions();
-        int[] result = new int[selectors.length];
         for (int i = 0; i < selectors.length; ++i) {
             selectors[i].start(sourceDim[i], ast);
-            result[i] = selectors[i].size();
+            selSizes[i] = selectors[i].size();
         }
-        return result;
     }
 
     /** Calculates the result dimensions given the selector sizes. If the drop argument is true any dimension of size

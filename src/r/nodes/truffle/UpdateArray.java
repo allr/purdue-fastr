@@ -8,7 +8,7 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 
 /** Array update AST and its specializations. */
-public class UpdateArray extends Assignment.AssignmentNode {
+public class UpdateArray extends UpdateVariable.AssignmentNode {
 
     static final boolean DEBUG_UP = false;
 
@@ -18,6 +18,11 @@ public class UpdateArray extends Assignment.AssignmentNode {
     /** Selector nodes for respective dimensions. These are likely to be rewritten. */
     @Children Selector.SelectorNode[] selectors;
 
+    final Selector[] selectorsVal;
+    final int[] selSizes;
+    final int[] idx;
+    final int[] selIdx;
+
     /** Constructor from scratch. */
     public UpdateArray(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
         super(ast);
@@ -26,6 +31,10 @@ public class UpdateArray extends Assignment.AssignmentNode {
         for (int i = 0; i < selectors.length; ++i) {
             this.selectors[i] = adoptChild(selectors[i]);
         }
+        selectorsVal = new Selector[selectors.length];
+        selSizes = new int[selectors.length];
+        idx = new int[selectors.length];
+        selIdx = new int[selectors.length];
     }
 
     /** Copy constructor used in node replacements. */
@@ -36,6 +45,10 @@ public class UpdateArray extends Assignment.AssignmentNode {
         for (int i = 0; i < selectors.length; ++i) {
             selectors[i] = adoptChild(other.selectors[i]);
         }
+        selectorsVal = other.selectorsVal;
+        selSizes = other.selSizes;
+        idx = other.idx;
+        selIdx = other.selIdx;
     }
 
     /**
@@ -75,14 +88,16 @@ public class UpdateArray extends Assignment.AssignmentNode {
      */
     @Override
     public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-        if (!lhs.isShared() && constRhs && isConvertible(rhs, lhs) && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
-            if (DEBUG_UP)
-                Utils.debug("UpateArray -> RHSCompatible (no need of LHS copy)");
-            return replace(new RHSCompatible(this)).execute(frame, lhs, rhs, constRhs);
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            if (!lhs.isShared() && constRhs && isConvertible(rhs, lhs) && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
+                if (DEBUG_UP) Utils.debug("UpateArray -> RHSCompatible (no need of LHS copy)");
+                return replace(new RHSCompatible(this)).execute(frame, lhs, rhs, constRhs);
+            }
+            if (DEBUG_UP) Utils.debug("UpateArray -> CopyLHS");
+            return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs, constRhs);
         }
-        if (DEBUG_UP)
-            Utils.debug("UpateArray -> CopyLHS");
-        return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs, constRhs);
     }
 
     /**
@@ -97,32 +112,33 @@ public class UpdateArray extends Assignment.AssignmentNode {
         // this is safe even for the non-shared variant, because here we already have the copy,
 // which is always
         // not shared
-        if (lhs.isShared()) {
-            if (DEBUG_UP)
-                Utils.debug(getClass().getSimpleName() + " -> Generalized");
-            return replace(new CopyLhs(this)).execute(frame, lhs, rhs, false);
-        }
-        Selector[] selectorsVal = new Selector[selectors.length];
-        for (int i = 0; i < selectorsVal.length; ++i) {
-            selectorsVal[i] = selectors[i].executeSelector(frame);
-        }
-        while (true) {
-            try {
-                return update(lhs, rhs, selectorsVal);
-            } catch (UnexpectedResultException e) {
-                Selector failedSelector = (Selector) e.getResult();
-                for (int i = 0; i < selectorsVal.length; ++i) {
-                    if (selectorsVal[i] == failedSelector) {
-                        RAny index = failedSelector.getIndex();
-                        Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectors[i], false, failedSelector.getTransition());
-                        replaceChild(selectors[i], newSelector);
-                        assert (selectors[i] == newSelector);
-                        selectorsVal[i] = newSelector.executeSelector(index);
-                        if (DEBUG_UP)
-                            Utils.debug("Selector " + i + " changed...");
+        try {
+            if (lhs.isShared()) {
+                throw new UnexpectedResultException(null);
+            }
+            for (int i = 0; i < selectorsVal.length; ++i) {
+                selectorsVal[i] = selectors[i].executeSelector(frame);
+            }
+            while (true) {
+                try {
+                    return update(lhs, rhs, selectorsVal);
+                } catch (UnexpectedResultException e) {
+                    Selector failedSelector = (Selector) e.getResult();
+                    for (int i = 0; i < selectorsVal.length; ++i) {
+                        if (selectorsVal[i] == failedSelector) {
+                            RAny index = failedSelector.getIndex();
+                            Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectors[i], false, failedSelector.getTransition());
+                            replaceChild(selectors[i], newSelector);
+                            assert (selectors[i] == newSelector);
+                            selectorsVal[i] = newSelector.executeSelector(index);
+                            if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
+                        }
                     }
                 }
             }
+        } catch (UnexpectedResultException e) {
+            if (DEBUG_UP) Utils.debug(getClass().getSimpleName() + " -> Generalized");
+            return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, false);
         }
     }
 
@@ -132,16 +148,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
      * Updates the lhs array with the rhs array information using given selectors. Override this
      * method for different array manipulation.
      */
+
     protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-        int[] selSizes = Selector.initializeSelectors(lhs, selectors, ast);
+        Selector.initializeSelectors(lhs, selectors, ast, selSizes);
         int rhsSize = rhs.size();
         int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
         if (!subset && (rhsSize > 1)) {
             throw RError.getSelectMoreThanOne(getAST());
         }
         // fill in the index vector
-        int[] idx = new int[selectors.length];
-        int[] selIdx = new int[selectors.length];
         for (int i = 0; i < idx.length; ++i) {
             idx[i] = selectors[i].nextIndex(ast);
             selIdx[i] = 1; // start at one so that overflow and carry works
@@ -189,17 +204,18 @@ public class UpdateArray extends Assignment.AssignmentNode {
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
-                            (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)) {
-                if (DEBUG_UP)
-                    Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
-                return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
+                                (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)) {
+                    if (DEBUG_UP) Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
+                    return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if (DEBUG_UP) Utils.debug("RHSCompatible -> CopyRhs (IdenticalTypes as child)");
+                return replace(new CopyRhs(new IdenticalTypes(this))).execute(frame, lhs, rhs, constRhs);
             }
-            if (DEBUG_UP)
-                Utils.debug("RHSCompatible -> CopyRhs (IdenticalTypes as child)");
-            return replace(new CopyRhs(new IdenticalTypes(this))).execute(frame, lhs, rhs, constRhs);
         }
-
     }
 
     // =================================================================================================================
@@ -221,14 +237,16 @@ public class UpdateArray extends Assignment.AssignmentNode {
         /** Rewrites itself to either ConstScalar updater, or to the more generic NonConst updater. */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if (constRhs && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
-                if (DEBUG_UP)
-                    Utils.debug("IdenticalTypes -> ConstScalar");
-                return replace(new ConstScalar<Object>(this)).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if (constRhs && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
+                    if (DEBUG_UP) Utils.debug("IdenticalTypes -> ConstScalar");
+                    return replace(new ConstScalar<Object>(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if (DEBUG_UP) Utils.debug("IdenticalTypes -> NonConst");
+                return replace(new NonConst(this)).execute(frame, lhs, rhs, constRhs);
             }
-            if (DEBUG_UP)
-                Utils.debug("IdenticalTypes -> NonConst");
-            return replace(new NonConst(this)).execute(frame, lhs, rhs, constRhs);
         }
     }
 
@@ -269,13 +287,11 @@ public class UpdateArray extends Assignment.AssignmentNode {
         public static Generalized replaceArrayUpdateTree(UpdateArray tree) {
             Node root = tree;
             if (root.getParent() instanceof CopyRhs) {
-                if (DEBUG_UP)
-                    Utils.debug("Replacing update tree - skipping copy rhs node");
+                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy rhs node");
                 root = root.getParent();
             }
             if (root.getParent() instanceof CopyLhs) {
-                if (DEBUG_UP)
-                    Utils.debug("Replacing update tree - skipping copy lhs node");
+                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy lhs node");
                 root = root.getParent();
             }
             return root.replace(new Generalized(tree));
@@ -411,9 +427,8 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 default:
                     Utils.nyi("unable to determine which copy to use for LHS");
             }
-            // if we are here that means rhs fits to lhs ok, but we still must make a copy,
-// therefore make a non-typecasting
-            // copy of the lhs
+            // if we are here that means rhs fits to lhs ok, but we still must make a copy, therefore make a
+            // non-typecasting copy of the lhs
             switch (lhsMode) {
                 case LOGICAL:
                     return ValueCopy.LOGICAL_TO_LOGICAL;
@@ -436,7 +451,11 @@ public class UpdateArray extends Assignment.AssignmentNode {
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+              return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs, constRhs);
+            }
         }
 
         /**
@@ -464,8 +483,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 try {
                     lhs = impl.copy(lhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP)
-                        Utils.debug("CopyLhs.Specialized -> Generalized");
+                    if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
                 return child.execute(frame, lhs, rhs, constRhs);
@@ -552,13 +570,16 @@ public class UpdateArray extends Assignment.AssignmentNode {
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs);
-            if (impl == null) {
-                if (DEBUG_UP)
-                    Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
-                return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs);
+                if (impl == null) {
+                    if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
+                    return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                }
+                return replace(new Specialized(this, impl)).execute(frame, lhs, rhs, constRhs);
             }
-            return replace(new Specialized(this, impl)).execute(frame, lhs, rhs, constRhs);
         }
 
         /** Specialized CopyRhs version that knows the typecast to be used on the rhs. */
@@ -581,8 +602,7 @@ public class UpdateArray extends Assignment.AssignmentNode {
                 try {
                     rhs = impl.copy(rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP)
-                        Utils.debug("CopyRhs.Specialized -> Generalized");
+                    if (DEBUG_UP) Utils.debug("CopyRhs.Specialized -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
                 return child.execute(frame, lhs, rhs, constRhs);
@@ -629,23 +649,27 @@ public class UpdateArray extends Assignment.AssignmentNode {
         /** The execute method determines which special case to use and rewrites itself to it. */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if (lhs instanceof RDouble) {
-                return replace(new ConstScalar.Double(this, rhs.asDouble().getDouble(0))).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if (lhs instanceof RDouble) {
+                    return replace(new ConstScalar.Double(this, rhs.asDouble().getDouble(0))).execute(frame, lhs, rhs, constRhs);
+                }
+                if (lhs instanceof RInt) {
+                    return replace(new ConstScalar.Integer(this, rhs.asInt().getInt(0))).execute(frame, lhs, rhs, constRhs);
+                }
+                if (lhs instanceof RLogical) {
+                    return replace(new Logical(this, rhs.asLogical().getLogical(0) == RLogical.TRUE)).execute(frame, lhs, rhs, constRhs);
+                }
+                if (lhs instanceof RString) {
+                    return replace(new Character(this, rhs.asString().getString(0))).execute(frame, lhs, rhs, constRhs);
+                }
+                if (lhs instanceof RComplex) {
+                    return replace(new Complex(this, rhs.asComplex())).execute(frame, lhs, rhs, constRhs);
+                }
+                Utils.nyi();
+                return null;
             }
-            if (lhs instanceof RInt) {
-                return replace(new ConstScalar.Integer(this, rhs.asInt().getInt(0))).execute(frame, lhs, rhs, constRhs);
-            }
-            if (lhs instanceof RLogical) {
-                return replace(new Logical(this, rhs.asLogical().getLogical(0) == RLogical.TRUE)).execute(frame, lhs, rhs, constRhs);
-            }
-            if (lhs instanceof RString) {
-                return replace(new Character(this, rhs.asString().getString(0))).execute(frame, lhs, rhs, constRhs);
-            }
-            if (lhs instanceof RComplex) {
-                return replace(new Complex(this, rhs.asComplex())).execute(frame, lhs, rhs, constRhs);
-            }
-            Utils.nyi();
-            return null;
         }
 
         /**
@@ -655,14 +679,12 @@ public class UpdateArray extends Assignment.AssignmentNode {
          */
         @Override
         protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            int[] selSizes = Selector.initializeSelectors(lhs, selectors, ast);
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
             int updateSize = Selector.calculateSizeFromDimensions(selSizes);
             if (!subset && (updateSize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
             }
             // fill in the index vector
-            int[] idx = new int[selectors.length];
-            int[] selIdx = new int[selectors.length];
             for (int i = 0; i < idx.length; ++i) {
                 idx[i] = selectors[i].nextIndex(ast);
                 selIdx[i] = 1; // start at one so that overflow and carry works
@@ -693,12 +715,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RDouble)) {
-                    if (DEBUG_UP)
-                        Utils.debug("ConstScalar<double> -> Generalized");
+                try {
+                    if (!(lhs instanceof RDouble)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("ConstScalar<double> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, null);
             }
         }
 
@@ -715,12 +740,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RInt)) {
-                    if (DEBUG_UP)
-                        Utils.debug("ConstScalar<int> -> Generalized");
+                try {
+                    if (!(lhs instanceof RInt)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("ConstScalar<int> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, null);
             }
         }
 
@@ -737,12 +765,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RLogical)) {
-                    if (DEBUG_UP)
-                        Utils.debug("ConstScalar<Logical> -> Generalized");
+                try {
+                    if (!(lhs instanceof RLogical)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("ConstScalar<Logical> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, null);
             }
         }
 
@@ -759,12 +790,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RString)) {
-                    if (DEBUG_UP)
-                        Utils.debug("ConstScalar<String> -> Generalized");
+                try {
+                    if (!(lhs instanceof RString)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("ConstScalar<String> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, null);
             }
         }
 
@@ -781,12 +815,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RComplex)) {
-                    if (DEBUG_UP)
-                        Utils.debug("ConstScalar<Complex> -> Generalized");
+                try {
+                    if (!(lhs instanceof RComplex)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("ConstScalar<Complex> -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, null);
             }
         }
     }
@@ -814,33 +851,32 @@ public class UpdateArray extends Assignment.AssignmentNode {
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-            if ((lhs instanceof RLogical) && (rhs instanceof RLogical)) {
-                if (DEBUG_UP)
-                    Utils.debug("NonConst -> Logical");
-                return replace(new Logical(this)).execute(frame, lhs, rhs, constRhs);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                if ((lhs instanceof RLogical) && (rhs instanceof RLogical)) {
+                    if (DEBUG_UP) Utils.debug("NonConst -> Logical");
+                    return replace(new Logical(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if ((lhs instanceof RInt) && (rhs instanceof RInt)) {
+                    if (DEBUG_UP) Utils.debug("NonConst -> Integer");
+                    return replace(new Integer(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if ((lhs instanceof RDouble) && (rhs instanceof RDouble)) {
+                    if (DEBUG_UP) Utils.debug("NonConst -> Double");
+                    return replace(new Double(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if ((lhs instanceof RComplex) && (rhs instanceof RComplex)) {
+                    if (DEBUG_UP) Utils.debug("NonConst -> Complex");
+                    return replace(new Complex(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                if ((lhs instanceof RString) && (rhs instanceof RString)) {
+                    if (DEBUG_UP) Utils.debug("NonConst -> String");
+                    return replace(new String(this)).execute(frame, lhs, rhs, constRhs);
+                }
+                Utils.nyi();
+                return null;
             }
-            if ((lhs instanceof RInt) && (rhs instanceof RInt)) {
-                if (DEBUG_UP)
-                    Utils.debug("NonConst -> Integer");
-                return replace(new Integer(this)).execute(frame, lhs, rhs, constRhs);
-            }
-            if ((lhs instanceof RDouble) && (rhs instanceof RDouble)) {
-                if (DEBUG_UP)
-                    Utils.debug("NonConst -> Double");
-                return replace(new Double(this)).execute(frame, lhs, rhs, constRhs);
-            }
-            if ((lhs instanceof RComplex) && (rhs instanceof RComplex)) {
-                if (DEBUG_UP)
-                    Utils.debug("NonConst -> Complex");
-                return replace(new Complex(this)).execute(frame, lhs, rhs, constRhs);
-            }
-            if ((lhs instanceof RString) && (rhs instanceof RString)) {
-                if (DEBUG_UP)
-                    Utils.debug("NonConst -> String");
-                return replace(new String(this)).execute(frame, lhs, rhs, constRhs);
-            }
-            Utils.nyi();
-            return null;
         }
 
         /**
@@ -855,12 +891,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) {
-                    if (DEBUG_UP)
-                        Utils.debug("NonConst.Logical -> Generalized");
+                try {
+                    if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonConst.Logical -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             }
         }
 
@@ -876,12 +915,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) {
-                    if (DEBUG_UP)
-                        Utils.debug("NonConst.Int -> Generalized");
+                try {
+                    if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonConst.Int -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             }
         }
 
@@ -897,12 +939,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) {
-                    if (DEBUG_UP)
-                        Utils.debug("NonConst.Double -> Generalized");
+                try {
+                    if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonConst.Double -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             }
         }
 
@@ -918,12 +963,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) {
-                    if (DEBUG_UP)
-                        Utils.debug("NonConst.Complex -> Generalized");
+                try {
+                    if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonConst.Complex -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             }
         }
 
@@ -939,12 +987,15 @@ public class UpdateArray extends Assignment.AssignmentNode {
 
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                if (!(lhs instanceof RString) || (!(rhs instanceof RString))) {
-                    if (DEBUG_UP)
-                        Utils.debug("NonConst.String -> Generalized");
+                try {
+                    if (!(lhs instanceof RString) || (!(rhs instanceof RString))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonConst.String -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
                 }
-                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             }
         }
     }
@@ -1165,7 +1216,7 @@ class ValueCopy {
             RLogical from = (RLogical) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
-                result[i] = Convert.prettyNA(Convert.logical2string(from.getLogical(i)));
+                result[i] = Convert.logical2string(from.getLogical(i));
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
@@ -1181,7 +1232,7 @@ class ValueCopy {
             RInt from = (RInt) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
-                result[i] = Convert.prettyNA(Convert.int2string(from.getInt(i)));
+                result[i] = Convert.int2string(from.getInt(i));
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
@@ -1197,7 +1248,7 @@ class ValueCopy {
             RDouble from = (RDouble) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
-                result[i] = Convert.prettyNA(Convert.double2string(from.getDouble(i)));
+                result[i] = Convert.double2string(from.getDouble(i));
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }
@@ -1213,7 +1264,7 @@ class ValueCopy {
             RComplex from = (RComplex) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
-                result[i] = Convert.prettyNA(Convert.complex2string(from.getReal(i), from.getImag(i)));
+                result[i] = Convert.complex2string(from.getReal(i), from.getImag(i));
             }
             return RString.RStringFactory.getArray(result, from.dimensions());
         }

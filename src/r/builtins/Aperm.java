@@ -56,70 +56,22 @@ public class Aperm {
                         if (perm.size() != aryDim.length) {
                             throw RError.getValueIsOfWrongLength(ast, "perm");
                         }
-                        if (perm instanceof RInt) {
-                            RInt p = (RInt) perm;
-                            for (int i = 0; i < result.length; ++i) {
-                                int x = p.getInt(i);
-                                if ((x < 1) || (x > aryDim.length)) {
-                                    throw RError.getValueOutOfRange(ast, "perm");
-                                }
-                                --x;
-                                result[i] = x;
-                                if (usedIndices[x] == true) {
-                                    throw RError.getInvalidArgument(ast, "perm");
-                                } else {
-                                    usedIndices[x] = true;
-                                }
-                            }
-                        } else if (perm instanceof RLogical) {
-                            RLogical p = (RLogical) perm;
-                            for (int i = 0; i < result.length; ++i) {
-                                int x = p.getLogical(i);
-                                if ((x < 1) || (x > aryDim.length)) {
-                                    throw RError.getValueOutOfRange(ast, "perm");
-                                }
-                                --x;
-                                result[i] = x;
-                                if (usedIndices[x] == true) {
-                                    throw RError.getInvalidArgument(ast, "perm");
-                                } else {
-                                    usedIndices[x] = true;
-                                }
-                            }
-                        } else if (perm instanceof RDouble) {
-                            RDouble p = (RDouble) perm;
-                            for (int i = 0; i < result.length; ++i) {
-                                int x = (int) Math.floor(p.getDouble(i));
-                                if ((x < 1) || (x > aryDim.length)) {
-                                    throw RError.getValueOutOfRange(ast, "perm");
-                                }
-                                --x;
-                                result[i] = x;
-                                if (usedIndices[x] == true) {
-                                    throw RError.getInvalidArgument(ast, "perm");
-                                } else {
-                                    usedIndices[x] = true;
-                                }
-                            }
-
-                        } else if (perm instanceof RComplex) {
+                        if (perm instanceof RComplex) {
                             RContext.warning(ast, RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
-                            RComplex p = (RComplex) perm;
-                            for (int i = 0; i < result.length; ++i) {
-                                int x = (int) Math.floor(p.getReal(i));
-                                if ((x < 1) || (x > aryDim.length)) {
-                                    throw RError.getValueOutOfRange(ast, "perm");
-                                }
-                                --x;
-                                result[i] = x;
-                                if (usedIndices[x] == true) {
-                                    throw RError.getInvalidArgument(ast, "perm");
-                                } else {
-                                    usedIndices[x] = true;
-                                }
+                        }
+                        RInt p = perm.asInt();
+                        for (int i = 0; i < result.length; ++i) {
+                            int x = p.getInt(i);
+                            if ((x < 1) || (x > aryDim.length)) {
+                                throw RError.getValueOutOfRange(ast, "perm");
                             }
-                        } else {
-                            Utils.nyi("dimnames not implemented yet");
+                            --x;
+                            result[i] = x;
+                            if (usedIndices[x] == true) {
+                                throw RError.getInvalidArgument(ast, "perm");
+                            } else {
+                                usedIndices[x] = true;
+                            }
                         }
                     }
                     return result;
