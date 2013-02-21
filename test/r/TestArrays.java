@@ -9,329 +9,240 @@ public class TestArrays extends TestBase {
 
     @Test
     public void testArrayBuiltin() throws RecognitionException {
-        assertTrue("# array with no arguments produces array of length 1\n" +
-                "a = array()\n" +
-                "length(a) == 1\n");
+        // array with no arguments produces array of length 1
+        assertTrue("{ a = array(); length(a) == 1; }");
 
-        assertTrue("# empty arg has first element NA\n" +
-                "a = array()\n" +
-                "is.na(a[1])\n");
+        // empty arg has first element NA
+        assertTrue("{ a = array(); is.na(a[1]); }");
 
-// dimnames not implemented yet
-//        assertTrue("# dimension names of empty array are null\n" +
-//                "a = array()\n" +
-//                "is.null(dimnames(a))\n");
+        // dimnames not implemented yet
+        // dimension names of empty array are null
+        // assertTrue("{ a = array(); is.null(dimnames(a)); }");
 
-        assertTrue("# empty array has single dimension that is 1\n" +
-                "a <- array()\n" +
-                "dim(a) == 1\n");
+        // empty array has single dimension that is 1
+        assertTrue("{ a <- array(); dim(a) == 1; }");
 
-        assertTrue("# wrapping in arrays work even when prohibited by help\n" +
-                "a = array(1:10, dim = c(2,6))\n" +
-                "length(a) == 12\n");
+        // wrapping in arrays work even when prohibited by help
+        assertTrue("{ a = array(1:10, dim = c(2,6)); length(a) == 12; }");
 
         // negative length vectors are not allowed is the error reported by gnu-r
-        assertEvalError("# negative dims not allowed by R, special GNU message\n" +
-                "array(dim=c(-2,2))\n",RError.DIMS_CONTAIN_NEGATIVE_VALUES);
+        // negative dims not allowed by R, special GNU message
+        assertEvalError("{ array(dim=c(-2,2)); }", RError.DIMS_CONTAIN_NEGATIVE_VALUES);
 
-        assertEvalError("# negative dims not allowed\n" +
-                "array(dim=c(-2,-2))\n",RError.DIMS_CONTAIN_NEGATIVE_VALUES);
+        // negative dims not allowed
+        assertEvalError("{ array(dim=c(-2,-2)); }", RError.DIMS_CONTAIN_NEGATIVE_VALUES);
 
-        assertTrue("# zero dimension array has length 0\n" +
-                "length(array(dim=c(1,0,2,3))) == 0\n");
+        // zero dimension array has length 0
+        assertTrue("{ length(array(dim=c(1,0,2,3))) == 0; }");
 
-        assertTrue("# double dimensions work and are rounded down always\n" +
-                "a = dim(array(dim=c(2.1,2.9,3.1,4.7)))\n" +
-                "a[1] == 2 && a[2] == 2 && a[3] == 3 && a[4] == 4\n");
+        // double dimensions work and are rounded down always
+        assertTrue("{ a = dim(array(dim=c(2.1,2.9,3.1,4.7))); a[1] == 2 && a[2] == 2 && a[3] == 3 && a[4] == 4; }");
     }
 
     @Test
     public void testMatrixBuiltin() throws RecognitionException {
-        assertTrue("# empty matrix length is 1\n" +
-                "length(matrix()) == 1\n");
+        // empty matrix length is 1
+        assertTrue("{ length(matrix()) == 1; }");
     }
 
 
     @Test
     public void testArraySimpleRead() throws RecognitionException {
-        assertTrue("# simple read;\n" +
-                "a = array(1:27,c(3,3,3));\n" +
-                "a[1,1,1] == 1 && a[3,3,3] == 27 && a[1,2,3] == 22 && a[3,2,1] == 6");
+        // simple read
+        assertTrue("{ a = array(1:27,c(3,3,3)); a[1,1,1] == 1 && a[3,3,3] == 27 && a[1,2,3] == 22 && a[3,2,1] == 6; }");
 
-        assertTrue("# empty selectors reads the whole array\n" +
-                "a = array(1:27, c(3,3,3))\n" +
-                "b = a[,,]\n" +
-                "d = dim(b)\n" +
-                "d[1] == 3 && d[2] == 3 && d[3] == 3\n");
+        // empty selectors reads the whole array
+        assertTrue("{ a = array(1:27, c(3,3,3)); b = a[,,]; d = dim(b); d[1] == 3 && d[2] == 3 && d[3] == 3; }");
 
-        assertTrue("# dimensions of 1 are dropped\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a = dim(a[,1,])\n" +
-                "length(a) == 2 && a[1] == 3 && a[2] == 3\n");
+        // dimensions of 1 are dropped
+        assertTrue("{ a = array(1,c(3,3,3)); a = dim(a[,1,]); length(a) == 2 && a[1] == 3 && a[2] == 3; }");
 
-        assertTrue("# when all dimensions are dropped, dim is null\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "is.null(dim(a[1,1,1]))");
+        // when all dimensions are dropped, dim is null
+        assertTrue("{ a = array(1,c(3,3,3)); is.null(dim(a[1,1,1])); }");
 
-        assertTrue("# last dimension is dropped\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "is.null(dim(a[1,1,]))\n");
+        // last dimension is dropped
+        assertTrue("{ a = array(1,c(3,3,3)); is.null(dim(a[1,1,])); } ");
 
-        assertTrue("# dimensions of 1 are not dropped when requested\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a = dim(a[1,1,1, drop = FALSE])\n" +
-                "length(a) == 3 && a[1] == 1 && a[2] == 1 && a[3] == 1\n");
+        // dimensions of 1 are not dropped when requested
+        assertTrue("{ a = array(1,c(3,3,3)); a = dim(a[1,1,1, drop = FALSE]); length(a) == 3 && a[1] == 1 && a[2] == 1 && a[3] == 1; }");
 
+        // fallback to one dimensional read
+        assertTrue("{ a = array(1:27, c(3,3,3)); a[1] == 1 && a[27] == 27 && a[22] == 22 && a[6] == 6; }");
 
-
-        assertTrue("# fallback to one dimensional read\n" +
-                "a = array(1:27, c(3,3,3))\n" +
-                "a[1] == 1 && a[27] == 27 && a[22] == 22 && a[6] == 6");
-
-        assertEvalError("# error when different dimensions given\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[2,2]\n",RError.INCORRECT_DIMENSIONS);
+        // error when different dimensions given
+        assertEvalError("{ a = array(1,c(3,3,3)); a[2,2]; }", RError.INCORRECT_DIMENSIONS);
 
     }
 
     @Test
     public void testArraySubsetAndSelection() throws RecognitionException {
-        assertTrue("#subset operator works for arrays\n" +
-                "array(1,c(3,3,3))[1,1,1] == 1");
+        // subset operator works for arrays
+        assertTrue("{ array(1,c(3,3,3))[1,1,1] == 1; }");
 
-        assertTrue("#selection operator works for arrays\n" +
-                "array(1,c(3,3,3))[[1,1,1]] == 1");
+        // selection operator works for arrays
+        assertTrue("{ array(1,c(3,3,3))[[1,1,1]] == 1; }");
 
-        assertEvalError("#selection on multiple elements fails in arrays\n" +
-                "array(1,c(3,3,3))[[,,]]",String.format(RError.INVALID_SUBSCRIPT_TYPE,"symbol"));
+        // selection on multiple elements fails in arrays
+        assertEvalError("{ array(1,c(3,3,3))[[,,]]; }", String.format(RError.INVALID_SUBSCRIPT_TYPE, "symbol"));
 
-        assertEvalError("#selection on multiple elements fails in arrays\n" +
-                "array(1,c(3,3,3))[[c(1,2),1,1]]", RError.SELECT_MORE_1);
+        // selection on multiple elements fails in arrays
+        assertEvalError("{ array(1,c(3,3,3))[[c(1,2),1,1]]; }", RError.SELECT_MORE_1);
     }
 
     @Test
     public void testMatrixSubsetAndSelection() throws RecognitionException {
-        assertTrue("#subset operator works for matrices\n" +
-                "matrix(1,3,3)[1,1] == 1");
+        // subset operator works for matrices
+        assertTrue("{ matrix(1,3,3)[1,1] == 1; }");
 
-        assertTrue("#selection operator works for arrays\n" +
-                "matrix(1,3,3)[[1,1]] == 1");
+        // selection operator works for arrays
+        assertTrue("{ matrix(1,3,3)[[1,1]] == 1; }");
 
-        assertEvalError("#selection on multiple elements fails in matrices with empty selector\n" +
-                "matrix(1,3,3)[[,]]",String.format(RError.INVALID_SUBSCRIPT_TYPE,"symbol"));
+        // selection on multiple elements fails in matrices with empty selector
+        assertEvalError("{ matrix(1,3,3)[[,]]; }", String.format(RError.INVALID_SUBSCRIPT_TYPE, "symbol"));
 
-        assertEvalError("#selection on multiple elements fails in matrices\n" +
-                "matrix(1,3,3)[[c(1,2),1]]", RError.SELECT_MORE_1);
+        // selection on multiple elements fails in matrices
+        assertEvalError("{ matrix(1,3,3)[[c(1,2),1]]; }", RError.SELECT_MORE_1);
     }
 
     @Test
     public void testArrayUpdate() {
+        // update to matrix works
+        assertTrue("{ a = matrix(1,2,2); a[1,2] = 3; a[1,2] == 3; }");
 
-        assertTrue("# update to matrix works\n" +
-                "a = matrix(1,2,2)\n" +
-                "a[1,2] = 3\n" +
-                "a[1,2] == 3");
+        // update to an array works
+        assertTrue("{ a = array(1,c(3,3,3)); a[1,2,3] = 3; a[1,2,3] == 3; }");
 
-        assertTrue("# update to an array works\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[1,2,3] = 3\n" +
-                "a[1,2,3] == 3");
+        // update returns the rhs
+        assertTrue("{ a = array(1,c(3,3,3)); (a[1,2,3] = 3) == 3; }");
 
-        assertTrue("# update returns the rhs\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "(a[1,2,3] = 3) == 3\n");
-
-        assertTrue("# update of shared object does the copy\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "b = a\n" +
-                "b[1,2,3] = 3\n" +
-                "a[1,2,3] == 1 && b[1,2,3] == 3");
+        // update of shared object does the copy
+        assertTrue("{ a = array(1,c(3,3,3)); b = a; b[1,2,3] = 3; a[1,2,3] == 1 && b[1,2,3] == 3; }");
 
     }
 
     @Test
     public void testLhsCopy() {
+        // lhs gets upgraded to int
+        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 8L; a[1,2,3] == 8; }");
 
-        assertTrue("# lhs gets upgraded to int\n" +
-                "a = array(TRUE,c(3,3,3))\n" +
-                "a[1,2,3] = 8L\n" +
-                "a[1,2,3] == 8");
+        // lhs logical gets upgraded to double
+        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 8.1; a[1,2,3] == 8.1; }");
 
-        assertTrue("# lhs logical gets upgraded to double\n" +
-                "a = array(TRUE,c(3,3,3))\n" +
-                "a[1,2,3] = 8.1\n" +
-                "a[1,2,3] == 8.1");
+        // lhs integer gets upgraded to double
+        assertTrue("{ a = array(1L,c(3,3,3)); a[1,2,3] = 8.1; a[1,2,3] == 8.1; }");
 
-        assertTrue("# lhs integer gets upgraded to double\n" +
-                "a = array(1L,c(3,3,3))\n" +
-                "a[1,2,3] = 8.1\n" +
-                "a[1,2,3] == 8.1");
+        // lhs logical gets upgraded to complex
+        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 2+3i; a[1,2,3] == 2+3i; }");
 
-        assertTrue("# lhs logical gets upgraded to complex\n" +
-                "a = array(TRUE,c(3,3,3))\n" +
-                "a[1,2,3] = 2+3i\n" +
-                "a[1,2,3] == 2+3i");
+        // lhs integer gets upgraded to complex
+        assertTrue("{ a = array(1L,c(3,3,3)); a[1,2,3] = 2+3i; a[1,2,3] == 2+3i; }");
 
-        assertTrue("# lhs integer gets upgraded to complex\n" +
-                "a = array(1L,c(3,3,3))\n" +
-                "a[1,2,3] = 2+3i\n" +
-                "a[1,2,3] == 2+3i");
+        // lhs double gets upgraded to complex
+        assertTrue("{ a = array(1.3,c(3,3,3)); a[1,2,3] = 2+3i; a[1,2,3] == 2+3i; }");
 
-        assertTrue("# lhs double gets upgraded to complex\n" +
-                "a = array(1.3,c(3,3,3))\n" +
-                "a[1,2,3] = 2+3i\n" +
-                "a[1,2,3] == 2+3i");
+        // lhs logical gets upgraded to string
+        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = \"2+3i\"; a[1,2,3] == \"2+3i\" && a[1,1,1] == \"TRUE\"; }");
 
-        assertTrue("# lhs logical gets upgraded to string\n" +
-                "a = array(TRUE,c(3,3,3))\n" +
-                "a[1,2,3] = \"2+3i\"\n" +
-                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"TRUE\"");
+        // lhs integer gets upgraded to string
+        assertTrue("{ a = array(1L,c(3,3,3)); a[1,2,3] = \"2+3i\"; a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1L\"; }");
 
-        assertTrue("# lhs integer gets upgraded to string\n" +
-                "a = array(1L,c(3,3,3))\n" +
-                "a[1,2,3] = \"2+3i\"\n" +
-                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1L\"");
-
-        assertTrue("# lhs double gets upgraded to string\n" +
-                "a = array(1.5,c(3,3,3))\n" +
-                "a[1,2,3] = \"2+3i\"\n" +
-                "a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1.5\"");
+        // lhs double gets upgraded to string
+        assertTrue("{ a = array(1.5,c(3,3,3)); a[1,2,3] = \"2+3i\"; a[1,2,3] == \"2+3i\" && a[1,1,1] == \"1.5\"; }");
     }
 
     @Test
     public void testRhsCopy() {
-        assertTrue("# rhs logical gets upgraded to int\n" +
-                "a = array(7L,c(3,3,3))\n" +
-                "b = TRUE\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 1L && a[1,1,1] == 7L");
+        // rhs logical gets upgraded to int
+        assertTrue("{ a = array(7L,c(3,3,3)); b = TRUE; a[1,2,3] = b; a[1,2,3] == 1L && a[1,1,1] == 7L; }");
 
-        assertTrue("# rhs logical gets upgraded to double\n" +
-                "a = array(1.7,c(3,3,3))\n" +
-                "b = TRUE\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 1 && a[1,1,1] == 1.7");
+        // rhs logical gets upgraded to double
+        assertTrue("{ a = array(1.7,c(3,3,3)); b = TRUE; a[1,2,3] = b; a[1,2,3] == 1 && a[1,1,1] == 1.7; }");
 
-        assertTrue("# rhs logical gets upgraded to complex\n" +
-                "a = array(3+2i,c(3,3,3))\n" +
-                "b = TRUE\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 1 && a[1,1,1] == 3+2i ");
+        // rhs logical gets upgraded to complex
+        assertTrue("{ a = array(3+2i,c(3,3,3)); b = TRUE; a[1,2,3] = b; a[1,2,3] == 1 && a[1,1,1] == 3+2i; } ");
 
-        assertTrue("# rhs logical gets upgraded to string\n" +
-                "a = array(\"3+2i\",c(3,3,3))\n" +
-                "b = TRUE\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == \"TRUE\" && a[1,1,1] == \"3+2i\" ");
+        // rhs logical gets upgraded to string
+        assertTrue("{ a = array(\"3+2i\",c(3,3,3)); b = TRUE; a[1,2,3] = b; a[1,2,3] == \"TRUE\" && a[1,1,1] == \"3+2i\"; }");
 
-        assertTrue("# rhs int gets upgraded to double\n" +
-                "a = array(1.7,c(3,3,3))\n" +
-                "b = 3L\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 3 && a[1,1,1] == 1.7");
+        // rhs int gets upgraded to double
+        assertTrue("{ a = array(1.7,c(3,3,3)); b = 3L; a[1,2,3] = b; a[1,2,3] == 3 && a[1,1,1] == 1.7; }");
 
-        assertTrue("# rhs int gets upgraded to complex\n" +
-                "a = array(3+2i,c(3,3,3))\n" +
-                "b = 4L\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 4 && a[1,1,1] == 3+2i ");
+        // rhs int gets upgraded to complex
+        assertTrue("{ a = array(3+2i,c(3,3,3)); b = 4L; a[1,2,3] = b; a[1,2,3] == 4 && a[1,1,1] == 3+2i; }");
 
-        assertTrue("# rhs logical gets upgraded to string\n" +
-                "a = array(\"3+2i\",c(3,3,3))\n" +
-                "b = 7L\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == \"7L\" && a[1,1,1] == \"3+2i\" ");
+        // rhs logical gets upgraded to string
+        assertTrue("{ a = array(\"3+2i\",c(3,3,3)); b = 7L; a[1,2,3] = b; a[1,2,3] == \"7L\" && a[1,1,1] == \"3+2i\"; }");
 
-        assertTrue("# rhs double gets upgraded to complex\n" +
-                "a = array(3+2i,c(3,3,3))\n" +
-                "b = 4.2\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == 4.2 && a[1,1,1] == 3+2i ");
+        // rhs double gets upgraded to complex
+        assertTrue("{ a = array(3+2i,c(3,3,3)); b = 4.2; a[1,2,3] = b; a[1,2,3] == 4.2 && a[1,1,1] == 3+2i; }");
 
-        assertTrue("# rhs complex gets upgraded to string\n" +
-                "a = array(\"3+2i\",c(3,3,3))\n" +
-                "b = 2+3i\n" +
-                "a[1,2,3] = b\n" +
-                "a[1,2,3] == \"2.0+3.0i\" && a[1,1,1] == \"3+2i\" ");
+        // rhs complex gets upgraded to string
+        assertTrue("{ a = array(\"3+2i\",c(3,3,3)); b = 2+3i; a[1,2,3] = b; a[1,2,3] == \"2.0+3.0i\" && a[1,1,1] == \"3+2i\"; }");
     }
 
     @Test
     public void testMultiDimensionalUpdate() {
-        assertTrue("# update matrix by vector, rows\n" +
-                "a = matrix(1,3,3)\n" +
-                "a[1,] = c(3,4,5)\n" +
-                "a[1,1] == 3 && a[1,2] == 4 && a[1,3] == 5");
+        // update matrix by vector, rows
+        assertTrue("{ a = matrix(1,3,3); a[1,] = c(3,4,5); a[1,1] == 3 && a[1,2] == 4 && a[1,3] == 5; }");
 
-        assertTrue("# update matrix by vector, cols\n" +
-                "a = matrix(1,3,3)\n" +
-                "a[,1] = c(3,4,5)\n" +
-                "a[1,1] == 3 && a[2,1] == 4 && a[3,1] == 5");
+        // update matrix by vector, cols
+        assertTrue("{ a = matrix(1,3,3); a[,1] = c(3,4,5); a[1,1] == 3 && a[2,1] == 4 && a[3,1] == 5; }");
 
-        assertTrue("# update array by vector, dim 3\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[1,1,] = c(3,4,5)\n" +
-                "a[1,1,1] == 3 && a[1,1,2] == 4 && a[1,1,3] == 5");
+        // update array by vector, dim 3
+        assertTrue("{ a = array(1,c(3,3,3)); a[1,1,] = c(3,4,5); a[1,1,1] == 3 && a[1,1,2] == 4 && a[1,1,3] == 5; }");
 
-        assertTrue("# update array by vector, dim 2\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[1,,1] = c(3,4,5)\n" +
-                "a[1,1,1] == 3 && a[1,2,1] == 4 && a[1,3,1] == 5");
+        // update array by vector, dim 2
+        assertTrue("{ a = array(1,c(3,3,3)); a[1,,1] = c(3,4,5); a[1,1,1] == 3 && a[1,2,1] == 4 && a[1,3,1] == 5; }");
 
-        assertTrue("# update array by vector, dim 1\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[,1,1] = c(3,4,5)\n" +
-                "a[1,1,1] == 3 && a[2,1,1] == 4 && a[3,1,1] == 5");
+        // update array by vector, dim 1
+        assertTrue("{ a = array(1,c(3,3,3)); a[,1,1] = c(3,4,5); a[1,1,1] == 3 && a[2,1,1] == 4 && a[3,1,1] == 5; }");
 
-        assertTrue("# update array by matrix\n" +
-                "a = array(1,c(3,3,3))\n" +
-                "a[1,,] = matrix(1:9,3,3)\n" +
-                "a[1,1,1] == 1 && a[1,3,1] == 3 && a[1,3,3] == 9");
+        // update array by matrix
+        assertTrue("{ a = array(1,c(3,3,3)); a[1,,] = matrix(1:9,3,3); a[1,1,1] == 1 && a[1,3,1] == 3 && a[1,3,3] == 9; }");
 
     }
 
 
     @Test
     public void testMatrixSimpleRead() {
-        assertTrue("# last dimension is dropped;\n" +
-                "a = matrix(1,3,3);\n" +
-                "is.null(dim(a[1,]));\n");
-
+        // last dimension is dropped
+        assertTrue("{ a = matrix(1,3,3); is.null(dim(a[1,])); }");
     }
 
 
     @Test
     public void testDefinitions() throws RecognitionException {
-        assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
-        assertEval("{ m <- matrix(1:6, ncol=3, byrow=TRUE) ; m }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
-        assertEval("{ m <- matrix(1:6, nrow=2, byrow=TRUE) ; m }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
-        assertEval("{ m <- matrix() ; m }", "     [,1]\n[1,]   NA");
+        assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) \nm }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
+        assertEval("{ m <- matrix(1:6, ncol=3, byrow=TRUE) \nm }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
+        assertEval("{ m <- matrix(1:6, nrow=2, byrow=TRUE) \nm }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   4L   5L   6L");
+        assertEval("{ m <- matrix() \nm }", "     [,1]\n[1,]   NA");
         assertEval("{ matrix( (1:6) * (1+3i), nrow=2 ) }", "         [,1]      [,2]      [,3]\n[1,] 1.0+3.0i  3.0+9.0i 5.0+15.0i\n[2,] 2.0+6.0i 4.0+12.0i 6.0+18.0i");
         assertEval("{ matrix( as.raw(101:106), nrow=2 ) }", "     [,1] [,2] [,3]\n[1,]   65   67   69\n[2,]   66   68   6a");
     }
 
     @Test
     public void testSelection() throws RecognitionException {
-        assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=3) ; m[0] }", "numeric(0)");
-        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[0] }", "list()");
-        assertEval("{ m <- matrix(1:6, nrow=2) ; m[upper.tri(m)] }", "3L, 5L, 6L");
+        assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=3) \nm[0] }", "numeric(0)");
+        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) \nm[0] }", "list()");
+        assertEval("{ m <- matrix(1:6, nrow=2) \nm[upper.tri(m)] }", "3L, 5L, 6L");
     }
 
     @Test
     public void testUpdate() throws RecognitionException {
-        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[[2]] <- list(100) ; m }", "       [,1] [,2]\n[1,]    1.0  4.0\n[2,] List,1  5.0\n[3,]    3.0  6.0");
-        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[2] <- list(100) ; m }", "      [,1] [,2]\n[1,]   1.0  4.0\n[2,] 100.0  5.0\n[3,]   3.0  6.0");
-        assertEval("{ m <- matrix(1:6, nrow=3) ; m[2] <- list(100) ; m }", "[[1]]\n1L\n\n[[2]]\n100.0\n\n[[3]]\n3L\n\n[[4]]\n4L\n\n[[5]]\n5L\n\n[[6]]\n6L");
+        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) \nm[[2]] <- list(100) \nm }", "       [,1] [,2]\n[1,]    1.0  4.0\n[2,] List,1  5.0\n[3,]    3.0  6.0");
+        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) \nm[2] <- list(100) \nm }", "      [,1] [,2]\n[1,]   1.0  4.0\n[2,] 100.0  5.0\n[3,]   3.0  6.0");
+        assertEval("{ m <- matrix(1:6, nrow=3) \nm[2] <- list(100) \nm }", "[[1]]\n1L\n\n[[2]]\n100.0\n\n[[3]]\n3L\n\n[[4]]\n4L\n\n[[5]]\n5L\n\n[[6]]\n6L");
 
         // element deletion
-        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) ; m[c(2,3,4,6)] <- NULL ; m }", "[[1]]\n1.0\n\n[[2]]\n5.0");
+        assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) \nm[c(2,3,4,6)] <- NULL \nm }", "[[1]]\n1.0\n\n[[2]]\n5.0");
 
         // proper update in place
-        assertEval("{ m <- matrix(1,2,2); m[1,1] = 6; m }", "     [,1] [,2]\n[1,]  6.0  1.0\n[2,]  1.0  1.0");
-        assertEval("{ m <- matrix(1,2,2); m[,1] = 7; m }", "     [,1] [,2]\n[1,]  7.0  1.0\n[2,]  7.0  1.0");
-        assertEval("{ m <- matrix(1,2,2); m[1,] = 7; m }", "     [,1] [,2]\n[1,]  7.0  7.0\n[2,]  1.0  1.0");
-        assertEval("{ m <- matrix(1,2,2); m[,1] = c(10,11); m }", "     [,1] [,2]\n[1,] 10.0  1.0\n[2,] 11.0  1.0");
+        assertEval("{ m <- matrix(1,2,2)\nm[1,1] = 6\nm }", "     [,1] [,2]\n[1,]  6.0  1.0\n[2,]  1.0  1.0");
+        assertEval("{ m <- matrix(1,2,2)\nm[,1] = 7\nm }", "     [,1] [,2]\n[1,]  7.0  1.0\n[2,]  7.0  1.0");
+        assertEval("{ m <- matrix(1,2,2)\nm[1,] = 7\nm }", "     [,1] [,2]\n[1,]  7.0  7.0\n[2,]  1.0  1.0");
+        assertEval("{ m <- matrix(1,2,2)\nm[,1] = c(10,11)\nm }", "     [,1] [,2]\n[1,] 10.0  1.0\n[2,] 11.0  1.0");
         // error in lengths
-        assertEvalError("{ m <- matrix(1,2,2); m[,1] = c(1,2,3,4); m }", RError.NOT_MULTIPLE_REPLACEMENT);
+        assertEvalError("{ m <- matrix(1,2,2)\nm[,1] = c(1,2,3,4)\nm }", RError.NOT_MULTIPLE_REPLACEMENT);
 
     }
 }

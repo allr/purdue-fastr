@@ -672,4 +672,93 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
 
+    @Test
+    public void testAperm() throws RecognitionException {
+        // default argument for permutation is transpose
+        assertTrue("{ a = array(1:4,c(2,2)); b = aperm(a); (a[1,1] == b[1,1]) && (a[1,2] == b[2,1]) && (a[2,1] == b[1,2]) && (a[2,2] == b[2,2]); }");
+
+        // default for resize is true
+        assertTrue("{ a = array(1:24,c(2,3,4)); b = aperm(a); dim(b)[1] == 4 && dim(b)[2] == 3 && dim(b)[3] == 2; }");
+
+        // no resize does not change the dimensions
+        assertTrue("{ a = array(1:24,c(2,3,4)); b = aperm(a, resize=FALSE); dim(b)[1] == 2 && dim(b)[2] == 3 && dim(b)[3] == 4; }");
+
+        // correct structure with resize
+        assertTrue("{ a = array(1:24,c(2,3,4)); b = aperm(a, c(2,3,1)); a[1,2,3] == b[2,3,1]; }");
+
+        // correct structure on cubic array
+        assertTrue("{ a = array(1:24,c(3,3,3)); b = aperm(a, c(2,3,1)); a[1,2,3] == b[2,3,1] && a[2,3,1] == b[3,1,2] && a[3,1,2] == b[1,2,3]; }");
+
+        // correct structure on cubic array with no resize
+        assertTrue("{ a = array(1:24,c(3,3,3)); b = aperm(a, c(2,3,1), resize = FALSE); a[1,2,3] == b[2,3,1] && a[2,3,1] == b[3,1,2] && a[3,1,2] == b[1,2,3]; }");
+
+        // correct structure without resize
+        assertTrue("{ a = array(1:24,c(2,3,4)); b = aperm(a, c(2,3,1), resize = FALSE); a[1,2,3] == b[2,1,2]; }");
+
+        // first argument not an array
+        assertEvalError("{ aperm(c(1,2,3)); }", "nvalid first argument, must be an array");
+
+        // invalid perm length
+        assertEvalError("{ aperm(array(1,c(3,3,3)), c(1,2)); }", "'perm' is of wrong length");
+
+        // perm is not a permutation vector
+        assertEvalError("{ aperm(array(1,c(3,3,3)), c(1,2,1)); }", "invalid 'perm' argument");
+
+        // perm value out of bounds
+        assertEvalError("{ aperm(array(1,c(3,3,3)), c(1,2,0)); }", "value out of range in 'perm'");
+
+        // perm specified in complex numbers produces warning
+        assertEvalWarning("{ aperm(array(1:27,c(3,3,3)), c(1+1i,3+3i,2+2i))[1,2,3] == array(1:27,c(3,3,3))[1,3,2]; }", "TRUE", "imaginary parts discarded in coercion");
+    }
+
+    @Test
+    public void testColStatsMatrix() {
+        // colSums on matrix drop dimension
+        assertTrue("{ a = colSums(matrix(1:12,3,4)); is.null(dim(a)); }");
+
+        // colSums on matrix have correct length
+        assertTrue("{ a = colSums(matrix(1:12,3,4)); length(a) == 4; }");
+
+        // colSums on matrix have correct values
+        assertTrue("{ a = colSums(matrix(1:12,3,4)); a[1] == 6 && a[2] == 15 && a[3] == 24 && a[4] == 33; }");
+    }
+
+    @Test
+    public void testColStatsArray() {
+        // colSums on array have correct dimension
+        assertTrue("{ a = colSums(array(1:24,c(2,3,4))); d = dim(a); d[1] == 3 && d[2] == 4; }");
+
+        // colSums on array have correct length
+        assertTrue("{ a = colSums(array(1:24,c(2,3,4))); length(a) == 12; }");
+
+        // colSums on array have correct values
+        assertTrue("{ a = colSums(array(1:24,c(2,3,4))); a[1,1] == 3 && a[2,2] == 19 && a[3,3] == 35 && a[3,4] == 47; }");
+    }
+
+    @Test
+    public void testRowStats() {
+        // rowSums on matrix drop dimension
+        assertTrue("{ a = rowSums(matrix(1:12,3,4)); is.null(dim(a)); }");
+
+        // rowSums on matrix have correct length
+        assertTrue("{ a = rowSums(matrix(1:12,3,4)); length(a) == 3; }");
+
+        // rowSums on matrix have correct values
+        assertTrue("{ a = rowSums(matrix(1:12,3,4)); a[1] == 22 && a[2] == 26 && a[3] == 30; }");
+    }
+
+    @Test
+    public void testRowStatsArray() {
+        // rowSums on array have no dimension
+        assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); is.null(dim(a)); }");
+
+        // row on array have correct length
+        assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); length(a) == 2; }");
+
+        // rowSums on array have correct values
+        assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); a[1] == 144 && a[2] == 156; }");
+    }
+    
+
+
 }
