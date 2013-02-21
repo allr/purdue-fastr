@@ -1050,7 +1050,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getLogical(i);
             }
-            return RLogical.RLogicalFactory.getArray(result, from.dimensions());
+            return RLogical.RLogicalFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1066,7 +1066,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2int(from.getLogical(i));
             }
-            return RInt.RIntFactory.getArray(result, from.dimensions());
+            return RInt.RIntFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1082,7 +1082,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getInt(i);
             }
-            return RInt.RIntFactory.getArray(result, from.dimensions());
+            return RInt.RIntFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1098,7 +1098,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2double(from.getLogical(i));
             }
-            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1114,7 +1114,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.int2double(from.getInt(i));
             }
-            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1130,7 +1130,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getDouble(i);
             }
-            return RDouble.RDoubleFactory.getArray(result, from.dimensions());
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1142,13 +1142,12 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RLogical from = (RLogical) what;
-            double[] real = new double[from.size()];
-            double[] img = new double[real.length];
-            for (int i = 0; i < real.length; ++i) {
-                real[i] = from.getLogical(i);
+            double[] result = new double[from.size() * 2];
+            for (int i = 0; i < result.length >> 1; ++i) {
+                result[i << 1] = from.getLogical(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1160,13 +1159,12 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RInt from = (RInt) what;
-            double[] real = new double[from.size()];
-            double[] img = new double[real.length];
-            for (int i = 0; i < real.length; ++i) {
-                real[i] = from.getInt(i);
+            double[] result = new double[from.size() * 2];
+            for (int i = 0; i < result.length >> 1; ++i) {
+                result[i << 1] = from.getInt(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1178,13 +1176,12 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RDouble from = (RDouble) what;
-            double[] real = new double[from.size()];
-            double[] img = new double[real.length];
-            for (int i = 0; i < real.length; ++i) {
-                real[i] = from.getDouble(i);
+            double[] result = new double[from.size() * 2];
+            for (int i = 0; i < result.length >> 1; ++i) {
+                result[i << 1] = from.getDouble(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1196,13 +1193,12 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RComplex from = (RComplex) what;
-            double[] real = new double[from.size()];
-            double[] img = new double[real.length];
-            for (int i = 0; i < real.length; ++i) {
-                real[i] = from.getReal(i);
-                img[i] = from.getImag(i);
+            double[] result = new double[from.size() * 2];
+            for (int i = 0; i < result.length >> 1; ++i) {
+                result[i << 1 ] = from.getReal(i);
+                result[(i << 1) + 1] = from.getImag(i);
             }
-            return RComplex.RComplexFactory.getArray(real, img, from.dimensions());
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1218,7 +1214,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2string(from.getLogical(i));
             }
-            return RString.RStringFactory.getArray(result, from.dimensions());
+            return RString.RStringFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1234,7 +1230,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.int2string(from.getInt(i));
             }
-            return RString.RStringFactory.getArray(result, from.dimensions());
+            return RString.RStringFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1250,7 +1246,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.double2string(from.getDouble(i));
             }
-            return RString.RStringFactory.getArray(result, from.dimensions());
+            return RString.RStringFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1266,7 +1262,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.complex2string(from.getReal(i), from.getImag(i));
             }
-            return RString.RStringFactory.getArray(result, from.dimensions());
+            return RString.RStringFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1282,7 +1278,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getString(i);
             }
-            return RString.RStringFactory.getArray(result, from.dimensions());
+            return RString.RStringFactory.getFor(result, from.dimensions(), null);
         }
     };
 
@@ -1299,7 +1295,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getRaw(i);
             }
-            return RRaw.RRawFactory.getArray(result, from.dimensions());
+            return RRaw.RRawFactory.getFor(result, from.dimensions(), null);
         }
     };
 
