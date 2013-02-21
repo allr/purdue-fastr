@@ -118,25 +118,21 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public String pretty() {
-        if (dimensions != null) {
-            return arrayPretty();
-        }
-        if (size == 0) {
-            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
-        }
-        if (names() != null) {
-            return namedPretty();
-        }
-        String fst = Convert.prettyNA(Convert.complex2string(content[0], content[1]));
-        if (size == 1) {
-            return fst;
-        }
         StringBuilder str = new StringBuilder();
-        str.append(fst);
-        for (int i = 1; i < size; i++) {
-            str.append(", ");
-            str.append(Convert.prettyNA(Convert.complex2string(content[2 * i], content[2 * i + 1])));
+        if (dimensions != null) {
+            str.append(arrayPretty());
+        } else if (size == 0) {
+            str.append((names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING);
+        } else if (names() != null) {
+            str.append(namedPretty());
+        } else {
+            str.append(Convert.prettyNA(Convert.complex2string(content[0], content[1])));
+            for (int i = 1; i < size; i++) {
+                str.append(", ");
+                str.append(Convert.prettyNA(Convert.complex2string(content[2 * i], content[2 * i + 1])));
+            }
         }
+        str.append(attributesPretty());
         return str.toString();
     }
 

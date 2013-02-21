@@ -142,6 +142,11 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public Attributes attributesRef() {
+        return null;
+    }
+
+    @Override
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;

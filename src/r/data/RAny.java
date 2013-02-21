@@ -29,8 +29,8 @@ public interface RAny {
     String typeOf();
 
     Attributes attributes();
+    Attributes attributesRef();
     RAny setAttributes(Attributes attributes);
-    RAttributes getAttributes(); // FIXME: remove
     RAny stripAttributes();
 
     String pretty();
@@ -65,6 +65,8 @@ public interface RAny {
         private LinkedHashMap<RSymbol, RAny> map;
         private PartialEntry pmap;
 
+        public static final boolean PROPAGATE_PARTIAL_MAP = true;
+
         public static class PartialEntry {
             TreeMap<Character, PartialEntry> children;
             RSymbol fullName;   // null means not present (RSymbol.NA_SYMBOL is not a valid attribute name)
@@ -94,9 +96,14 @@ public interface RAny {
         }
 
         public void put(RSymbol key, RAny value) {
-            map.put(key, value);
-            if (pmap != null) {
-                partialAdd(key);
+            if (pmap == null) {
+                map.put(key, value);
+            } else {
+                boolean present = map.containsKey(key);
+                map.put(key, value);
+                if (!present) {
+                    partialAdd(key);
+                }
             }
         }
 
@@ -173,10 +180,16 @@ public interface RAny {
             LinkedHashMap<RSymbol, RAny> nmap = nattr.map();
 
             for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
-                // TODO: do we need deep copy? probably not, should use reference counts instead
+                // TODO: do we need a deep copy? probably not, should use reference counts instead
                 // TODO: a similar issue applies to Utils.copyArray for RList (in ListImpl)
                 nmap.put(entry.getKey(), Utils.copyAny(entry.getValue()));
             }
+
+            if (PROPAGATE_PARTIAL_MAP) {
+                nattr.pmap = pmap;
+                pmap = null;
+            }
+
             return nattr;
         }
 

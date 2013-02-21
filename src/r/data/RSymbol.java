@@ -250,6 +250,11 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override
+    public Attributes attributesRef() {
+        return null;
+    }
+
+    @Override
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;

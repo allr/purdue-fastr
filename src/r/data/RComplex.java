@@ -163,11 +163,11 @@ public interface RComplex extends RArray {
         public static RComplex getUninitializedNonScalarArray(int size) {
             return new ComplexImpl(size);
         }
-        public static RComplex getUninitializedArray(int size, int[] dimensions, Names names) {
-            if (size == 1 && dimensions == null && names == null) {
+        public static RComplex getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            if (size == 1 && dimensions == null && names == null && attributes == null) {
                 return new ScalarComplexImpl(0, 0);
             }
-            return new ComplexImpl(new double[2 * size], dimensions, names, null, false);
+            return new ComplexImpl(new double[2 * size], dimensions, names, attributes, false);
         }
         public static RComplex getNAArray(int size) {
             return getNAArray(size, null);
@@ -184,7 +184,7 @@ public interface RComplex extends RArray {
             return new ComplexImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RComplex copy(RComplex c) {
-            if (c.size() == 1 && c.dimensions() == null && c.names() == null) {  // FIXME: rely instead on scalarization ?
+            if (c.size() == 1 && c.dimensions() == null && c.names() == null && c.attributes() == null) {  // FIXME: rely instead on scalarization ?
                 return new ScalarComplexImpl(c.getReal(0), c.getImag(0));
             }
             return new ComplexImpl(c, false);

@@ -5,18 +5,13 @@ import r.Convert.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// FIXME: why should RNull implement RAttributes? (note that NULL cannot have attributes)
-public final class RNull implements RAny, RAttributes {
+// FIXME: do we need RNull to implement RArray ? (vector code depends on it, but doesn't it feel wrong?)
+public final class RNull implements RArray {
     String TYPE_STRING = "NULL";
 
     private static RNull instance = new RNull();
 
     private RNull() {
-    }
-
-    @Override
-    public RAttributes getAttributes() {
-        return this;
     }
 
     @Override
@@ -142,6 +137,11 @@ public final class RNull implements RAny, RAttributes {
 
     @Override
     public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public Attributes attributesRef() {
         return null;
     }
 

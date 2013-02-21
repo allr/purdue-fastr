@@ -1,7 +1,9 @@
 package r.data.internal;
 
+import java.util.*;
+
 import r.*;
-import r.data.RArray;
+import r.data.*;
 
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
 // fixme - perhaps rename the class
@@ -43,6 +45,15 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
     }
 
     @Override
+    public Attributes attributesRef() {
+        if (attributes == null) {
+            return null;
+        } else {
+            return attributes.markShared();
+        }
+    }
+
+    @Override
     public NonScalarArrayImpl setAttributes(Attributes attributes) {
         this.attributes = attributes;
         return this;
@@ -71,12 +82,13 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
      * that will be reported as overflow when changed.
      */
     public static boolean increment(int[] idx, int[] dim, final int ignoreDigits) {
-        for (int i = idx.length-1; i >= ignoreDigits; --i) {
+        for (int i = idx.length - 1; i >= ignoreDigits; --i) {
             ++idx[i];
-            if (idx[i] > dim[i])
+            if (idx[i] > dim[i]) {
                 idx[i] = 1;
-            else
+            } else {
                 return false;
+            }
         }
         return true;
     }
@@ -94,8 +106,9 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
                 StringBuilder sb = new StringBuilder();
                 sb.append("[1] ");
                 for (int i = 0; i < dimensions[0]; ++i) {
-                    if (i != 0)
+                    if (i != 0) {
                         sb.append(" ");
+                    }
                     sb.append(boxedGet(i).prettyMatrixElement());
                 }
                 return sb.toString();
@@ -105,17 +118,20 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
             default: // 3 and more dimensional arrays, printed in 2D chunks
             {
                 int[] m = new int[dimensions.length];
-                for (int i = 0; i < m.length-1; ++i)
+                for (int i = 0; i < m.length - 1; ++i) {
                     m[i] = 1;
+                }
                 int offset = 0;
                 int msize = dimensions[0] * dimensions[1];
                 StringBuilder sb = new StringBuilder();
-                while (! increment(m, dimensions, 2)) {
-                    if (offset != 0)
+                while (!increment(m, dimensions, 2)) {
+                    if (offset != 0) {
                         sb.append("\n\n");
+                    }
                     sb.append(", ");
-                    for (int i = 2; i < m.length; ++i)
+                    for (int i = 2; i < m.length; ++i) {
                         sb.append(", " + m[i]);
+                    }
                     sb.append("\n\n");
                     matrixPretty(sb, offset);
                     offset += msize;
@@ -187,12 +203,27 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
         }
     }
 
-
     protected String matrixPretty() {
         Utils.check(dimensions != null);
         Utils.check(dimensions.length == 2);
         StringBuilder sb = new StringBuilder();
-        matrixPretty(sb,0);
+        matrixPretty(sb, 0);
         return sb.toString();
+    }
+
+    protected String attributesPretty() {
+        StringBuilder str = new StringBuilder();
+        Attributes a = attributes();
+        if (a != null) {
+            for (Map.Entry<RSymbol, RAny> e : a.map().entrySet()) {
+                str.append("\n");
+                str.append("attr(,\"");
+                str.append(e.getKey().pretty());
+                str.append("\")");
+                str.append("\n");
+                str.append(e.getValue().pretty());
+            }
+        }
+        return str.toString();
     }
 }

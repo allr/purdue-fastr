@@ -22,6 +22,8 @@ import r.nodes.truffle.*;
 
 public class Attributes {
 
+    private static final int PARTIAL_MAP_THRESHOLD = 256;
+
     public static int countSpecialAttributes(RAny a) {
         int cnt = 0;
         if (a instanceof RArray) {
@@ -245,7 +247,7 @@ public class Attributes {
                             }
                         } else {
                             Map<RSymbol, RAny> map = attr.map();
-                            if (map.size() > 4096) {  // TODO: fix this, not really working yet
+                            if (map.size() > PARTIAL_MAP_THRESHOLD) {  // TODO: fix this, not really working yet
                                 attr.createPartialMap();
                             }
                             for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {

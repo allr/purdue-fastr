@@ -135,7 +135,7 @@ public class Aperm {
                     int[] perm = parsePermutation(aryDim, params);
                     boolean resize = parseResize(params);
                     int[] resultDim = calculateResizedDimension(aryDim, perm);
-                    RArray result = Utils.createArray(ary, arySize, resize ? resultDim : aryDim, ary.names());
+                    RArray result = Utils.createArray(ary, arySize, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
                     int[] idx = new int[aryDim.length];
                     int[] resultIdx = new int[aryDim.length];
                     int[] dimMults = createDimMults(resultDim);

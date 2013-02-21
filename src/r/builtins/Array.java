@@ -11,9 +11,9 @@ import r.nodes.truffle.*;
 
 /**
  * Array builtin.
- * 
+ *
  * array(data = NA, dim = length(data), dimnames = NULL)
- * 
+ *
  */
 public class Array {
     /**
@@ -82,11 +82,13 @@ public class Array {
                         RDouble d = (RDouble) dim;
                         result = new int[d.size()];
                         for (int i = 0; i < result.length; ++i) {
-                            if (d.isNAorNaN(i))
+                            if (d.isNAorNaN(i)) {
                                 throw RError.getNegativeLengthVectorsNotAllowed(ast);
+                            }
                             int x = (int) Math.floor(d.getDouble(i));
-                            if (x < 0)
+                            if (x < 0) {
                                 throw RError.getDimsContainNegativeValues(ast);
+                            }
                             result[i] = x;
                             size *= x;
                         }
@@ -94,8 +96,9 @@ public class Array {
                         RLogical d = (RLogical) dim;
                         result = new int[d.size()];
                         for (int i = 0; i < result.length; ++i) {
-                            if (d.isNAorNaN(i))
+                            if (d.isNAorNaN(i)) {
                                 throw RError.getNegativeLengthVectorsNotAllowed(ast);
+                            }
                             int x = d.getLogical(i);
                             result[i] = x;
                             size *= x;
@@ -104,8 +107,9 @@ public class Array {
                         RString d = (RString) dim;
                         result = new int[d.size()];
                         for (int i = 0; i < result.length; ++i) {
-                            if (d.isNAorNaN(i))
+                            if (d.isNAorNaN(i)) {
                                 throw RError.getNegativeLengthVectorsNotAllowed(ast);
+                            }
                             int x;
                             try {
                                 x = (int) Math.floor(Double.parseDouble(d.getString(i)));
@@ -152,15 +156,16 @@ public class Array {
                     // at the moment, we do not support dimnames
                     assert (dimnames == null) : "dimnames not supported yet";
                     // create the array
-                    RArray result = Utils.createArray(source, size, dim, null);
+                    RArray result = Utils.createArray(source, size, dim, null, null);
                     int ssize = source.size();
                     int si = 0;
                     // fill it with source values
                     for (int i = 0; i < size; ++i) {
                         result.set(i, source.get(si));
                         ++si;
-                        if (si == ssize)
+                        if (si == ssize) {
                             si = 0;
+                        }
                     }
                     return result;
                 }

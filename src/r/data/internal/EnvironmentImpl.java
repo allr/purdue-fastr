@@ -331,6 +331,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
+    public Attributes attributesRef() {
+        return null;
+    }
+
+    @Override
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;

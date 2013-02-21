@@ -9,12 +9,12 @@ import r.nodes.ASTNode;
 
 /**
  * A multi-dimensional read.
- * 
+ *
  * arrayname '[' [first index] , [second index] { , [ other index]} [ , drop = ] ']'
- * 
+ *
  * There are no node rewrites, but the selection operator nodes have their selector nodes which tend
  * to be overwritten.
- * 
+ *
  * The special case for matrices is determined statically when # of dimensions is 2.
  */
 public abstract class ReadArray extends BaseR {
@@ -82,7 +82,7 @@ public abstract class ReadArray extends BaseR {
     /**
      * Execute method which evaluates the lhs, selectors and optional expressions, checks that the
      * array selection can proceed and then proceeds optionally replacing the falling selectors.
-     * 
+     *
      * The valued variant of execute is called for the production of the result, on failure the
      * responsible selector is replaced and the valued variant is called again.
      */
@@ -127,7 +127,7 @@ public abstract class ReadArray extends BaseR {
 
     /**
      * Abstract method that should create the selection of the array and return it.
-     * 
+     *
      * The given selectors may fail resulting in the exception being thrown, in which case they will
      * be replaced with more general ones.
      */
@@ -197,9 +197,9 @@ public abstract class ReadArray extends BaseR {
 
     /**
      * Generalized selector operator that works with arrays of arbitraty number of dimensions.
-     * 
+     *
      * Uses the selector index mechanism and reverse incrementing to create the selection result.
-     * 
+     *
      * At the moment does not perform any rewriting as the matrix - array distinction is known
      * static time from the parser.
      */
@@ -215,11 +215,11 @@ public abstract class ReadArray extends BaseR {
 
         /**
          * Returns the selection array or vector.
-         * 
+         *
          * The selSizes array contains sizes of the selectors (number of elements that will be
          * returned by it). The idx array contains the indices returned by the selectors (that is
          * the indices used to compute the source offset).
-         * 
+         *
          * The selIdx array contains the position in the selector (when this is equal to the
          * selector size the selector has overflown).
          */
@@ -230,7 +230,7 @@ public abstract class ReadArray extends BaseR {
             int destSize = Selector.calculateSizeFromDimensions(destDim);
             if (!subset && (destSize > 1))
                 throw RError.getSelectMoreThanOne(getAST());
-            RArray dest = Utils.createArray(source, destSize, destDim, null);
+            RArray dest = Utils.createArray(source, destSize, destDim, null, null); // drop attributes
             // fill in the index vector
             for (int i = 0; i < idx.length; ++i) {
                 idx[i] = selectors[i].nextIndex(ast);
@@ -251,7 +251,7 @@ public abstract class ReadArray extends BaseR {
 
     /**
      * Matrix specialization for the array selection.
-     * 
+     *
      * Works on 2D arrays. This code used to be in ReadMatrix class. No rewrites are being done at
      * the moment.
      */
@@ -287,7 +287,7 @@ public abstract class ReadArray extends BaseR {
             } else {
                 ndim = null;
             }
-            RArray res = Utils.createArray(source, nsize, ndim, null);
+            RArray res = Utils.createArray(source, nsize, ndim, null, null); // drop attributes
 
             for (int ni = 0; ni < nm; ni++) {
                 int i = selI.nextIndex(ast);

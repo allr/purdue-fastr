@@ -11,7 +11,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         return content;
     }
 
-    public ListImpl(RAny[] values, int[] dimensions, Names names, boolean doCopy) {
+    public ListImpl(RAny[] values, int[] dimensions, Names names, Attributes attributes, boolean doCopy) {
         if (doCopy) {
             content = new RAny[values.length];
             System.arraycopy(values, 0, content, 0, values.length);
@@ -20,14 +20,15 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         }
         this.dimensions = dimensions;
         this.names = names;
+        this.attributes = attributes;
     }
 
     public ListImpl(RAny[] values) {
-        this(values, null, null, true);
+        this(values, null, null, null, true);
     }
 
     public ListImpl(RAny[] values, int[] dimensions, Names names) {
-        this(values, dimensions, names, true);
+        this(values, dimensions, names, null, true);
     }
 
     public ListImpl(int size) {
@@ -44,6 +45,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         if (!valuesOnly) {
             dimensions = v.dimensions();
             names = v.names();
+            attributes = v.attributes();
         }
     }
 
@@ -56,7 +58,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
             dimensions = null;
             return this;
         }
-        ListImpl v = new ListImpl(content, null, null, false); // note: re-uses current values
+        ListImpl v = new ListImpl(content, null, null, null, false); // note: re-uses current values
         v.refcount = refcount; // mark the new integer shared
         return v;
     }
@@ -167,18 +169,16 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
 
     public String pretty(StringBuilder indexPrefix) {
+        StringBuilder str = new StringBuilder();
         if (dimensions != null) {
-            return arrayPretty();
-        }
-        RSymbol[] snames = null;
-        if (names() != null) {
-            snames = names().sequence();
-        }
-
-        if (content.length == 0) {
-            return (names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING;
+            str.append(arrayPretty());
+        } else if (content.length == 0) {
+            str.append((names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING);
         } else {
-            StringBuilder str = new StringBuilder();
+            RSymbol[] snames = null;
+            if (names() != null) {
+                snames = names().sequence();
+            }
             for (int i = 0; i < content.length; i++) {
                 if (i >= 1) {
                     str.append("\n\n");
@@ -204,8 +204,9 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
                     str.append(v.pretty());
                 }
             }
-            return str.toString();
         }
+        str.append(attributesPretty());
+        return str.toString();
     }
 
     @Override
@@ -261,7 +262,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
 
     @Override
     public ListImpl doStrip() {
-        return new ListImpl(content, null, null, false);
+        return new ListImpl(content, null, null, null, false);
     }
 
     @Override

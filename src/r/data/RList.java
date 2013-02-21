@@ -21,7 +21,7 @@ public interface RList extends RArray {
 
     public class RListFactory {
         public static ListImpl getScalar(RAny value) {
-            return new ListImpl(new RAny[]{value}, null, null, false);
+            return new ListImpl(new RAny[]{value}, null, null, null, false);
         }
         public static ListImpl getArray(RAny... values) {
             return new ListImpl(values);
@@ -32,8 +32,8 @@ public interface RList extends RArray {
         public static ListImpl getUninitializedNonScalarArray(int size) {
             return new ListImpl(size);
         }
-        public static ListImpl getUninitializedArray(int size, int[] dimensions, Names names) {
-            return new ListImpl(new RAny[size], dimensions, names);
+        public static ListImpl getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            return new ListImpl(new RAny[size], dimensions, names, attributes, false);
         }
         public static ListImpl getNullArray(int size) {
             ListImpl v = getUninitializedArray(size);
@@ -55,7 +55,10 @@ public interface RList extends RArray {
             return getFor(values, dimensions, null);
         }
         public static ListImpl getFor(RAny[] values, int[] dimensions, Names names) {  // re-uses values!
-            return new ListImpl(values, dimensions, names, false);
+            return new ListImpl(values, dimensions, names, null, false);
+        }
+        public static ListImpl getFor(RAny[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
+            return new ListImpl(values, dimensions, names, attributes, false);
         }
         public static ListImpl getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;

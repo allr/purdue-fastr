@@ -153,11 +153,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RArray subset(RInt index) {
             return RRaw.RRawFactory.subset(this, index);
         }
@@ -183,11 +178,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -303,11 +293,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RArray subset(RInt index) {
             return RLogical.RLogicalFactory.subset(this, index);
         }
@@ -334,11 +319,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -449,11 +429,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RArray subset(RInt index) {
             return RInt.RIntFactory.subset(this, index);
         }
@@ -480,11 +455,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -595,11 +565,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RDouble set(int i, double val) {
             return materialize().set(i, val);
         }
@@ -631,11 +596,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -746,11 +706,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RComplex set(int i, double real, double imag) {
             return materialize().set(i, real, imag);
         }
@@ -782,11 +737,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -907,11 +857,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RArray subset(RInt index) {
             return RString.RStringFactory.subset(this, index);
         }
@@ -938,11 +883,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
@@ -1046,11 +986,6 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
-        public RAttributes getAttributes() {
-            return null;
-        }
-
-        @Override
         public RArray subset(RInt index) {
             return RList.RListFactory.subset(this, index);
         }
@@ -1084,11 +1019,6 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public int size() {
             return orig.size();
-        }
-
-        @Override
-        public RAttributes getAttributes() {
-            return orig.getAttributes();
         }
 
         @Override
