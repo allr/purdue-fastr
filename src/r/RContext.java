@@ -27,8 +27,8 @@ public class RContext {
     private static final Connection[] connections = new Connection[128];
 
     static {
-        System.out.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
-        System.out.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
+        System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
+        System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
         initialize(false);
     }
 
