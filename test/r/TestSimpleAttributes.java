@@ -42,7 +42,6 @@ public class TestSimpleAttributes extends TestBase {
         assertEval("{ x <- as.raw(1:2);  attr(x, \"hi\") <- 2 ;  x & x }", "01, 02");
         assertEval("{ x <- 1:2 ;  attr(x, \"hi\") <- 2 ;  !x  }", "FALSE, FALSE");
         assertEval("{ x <- c(a=FALSE,b=TRUE) ;  attr(x, \"hi\") <- 2 ;  !x  }", "   a     b\nTRUE FALSE");
-
     }
 
     @Test
@@ -53,9 +52,14 @@ public class TestSimpleAttributes extends TestBase {
     }
 
     @Test
-    public void testPropagationOther() throws RecognitionException {
-        assertEval("{ x <- 1:2;  attr(x, \"hi\") <- 2 ;  x == x }", "TRUE, TRUE");
-
+    public void testArrayPropagation() throws RecognitionException {
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"myatt\") <- 1; x[c(1,1)] }", "  a   a\n1.0 1.0");
+        assertEval("{ x <- c(a=1, b=2) ; attr(x, \"myatt\") <- 1; x[\"a\"] <- 2 ; x }", "  a   b\n2.0 2.0\nattr(,\"myatt\")\n1.0");
+        assertEval("{ x <- c(a=TRUE, b=FALSE) ; attr(x, \"myatt\") <- 1; x[2] <- 2 ; x }", "  a   b\n1.0 2.0\nattr(,\"myatt\")\n1.0");
+        assertEval("{ x <- TRUE ; attr(x, \"myatt\") <- 1; x[2] <- 2 ; x }", "1.0, 2.0\nattr(,\"myatt\")\n1.0");
+        assertEval("{ x <- TRUE ; attr(x, \"myatt\") <- 1; x[1] <- 2 ; x }", "2.0\nattr(,\"myatt\")\n1.0");
+        assertEval("{ m <- matrix(rep(1,4), nrow=2) ; attr(m, \"a\") <- 1 ;  m[2,2] <- 1+1i ; m }", "         [,1]     [,2]\n[1,] 1.0+0.0i 1.0+0.0i\n[2,] 1.0+0.0i 1.0+1.0i\nattr(,\"a\")\n1.0");
+        assertEval("{ a <- array(c(1,1), dim=c(1,2)) ; attr(a, \"a\") <- 1 ;  a[1,1] <- 1+1i ; a }", "         [,1]     [,2]\n[1,] 1.0+1.0i 1.0+0.0i\nattr(,\"a\")\n1.0");
     }
 
     @Test
@@ -91,4 +95,8 @@ public class TestSimpleAttributes extends TestBase {
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"myatt\") <- 1; unlist(list(x,x)) }", "  a   b   a   b\n1.0 2.0 1.0 2.0");
     }
 
+    @Test
+    public void testOtherPropagation() throws RecognitionException {
+        assertEval("{ x <- 1:2;  attr(x, \"hi\") <- 2 ;  x == x }", "TRUE, TRUE");
+    }
 }
