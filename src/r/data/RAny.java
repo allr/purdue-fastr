@@ -23,7 +23,7 @@ public interface RAny {
         COMPLEX,
         STRING,
         RAW
-    };
+    }
 
     String TYPE_STRING = "any";
     String typeOf();

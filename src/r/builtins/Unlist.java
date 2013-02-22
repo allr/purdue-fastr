@@ -300,7 +300,7 @@ public class Unlist {
 
     public static RAny genericUnlist(RList x, boolean recursive, boolean useNames) {
 
-        RAny res = speculativeUnlist(x, recursive, useNames);
+        RAny res = speculativeUnlist(x, useNames);
         if (res != null) {
             return res;
         }
@@ -338,7 +338,7 @@ public class Unlist {
         } else if (alist.hasRaw) {
             target = RRaw.RRawFactory.getUninitializedArray(size);
             fill(target, symbols, x, Cast.RAW);
-        } else{
+        } else {
             Utils.nyi("unsupported case");
             return null;
         }
@@ -346,7 +346,7 @@ public class Unlist {
     }
 
     // speculate all elements are scalars of the same (selected array) type
-    public static RAny speculativeUnlist(RList x, boolean recursive, boolean useNames) {
+    public static RAny speculativeUnlist(RList x, boolean useNames) {
 
         int xsize = x.size();
         if (xsize == 0) {

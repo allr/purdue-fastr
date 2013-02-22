@@ -98,12 +98,13 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
 
     @Override
     public RArray stripAttributes() {
-        if (dimensions() == null && names() == null) {
+        if (dimensions() == null && names() == null && attributes() == null) {
             return this;
         }
         if (!isShared()) {
             setDimensions(null);
             setNames(null);
+            setAttributes(null);
             return this;
         }
         return doStrip();

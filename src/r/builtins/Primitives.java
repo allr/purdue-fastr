@@ -39,8 +39,7 @@ public class Primitives {
         add("&&", 2, 2, Operators.AND_FACTORY);
         add("!", 1, 1, Operators.NOT_FACTORY);
         add("abs", 1, 1, Abs.FACTORY);
-        add("aperm",1,3,Aperm.FACTORY);
-
+        add("aperm", 1, 3, Aperm.FACTORY);
         add("array", 0, 3, Array.FACTORY);
         add("assign", 2, 6, Environment.ASSIGN_FACTORY);
         add("as.character", 0, -1, Cast.STRING_FACTORY);

@@ -45,7 +45,7 @@ public class Sub {
             RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
         }
         if (!fixed) {
-            return subRE(ast, pattern, replacement, x, ignoreCase, global);
+            return subRE(pattern, replacement, x, ignoreCase, global);
         } else {
             return subFixed(ast, pattern, replacement, x, ignoreCase, global);
         }
@@ -55,7 +55,7 @@ public class Sub {
         return replacementArg.replaceAll("\\\\([1-9])", "\\$$1");
     }
 
-    public static RString subRE(ASTNode ast, String pattern, String replacementArg, RString x, boolean ignoreCase, boolean global) {
+    public static RString subRE(String pattern, String replacementArg, RString x, boolean ignoreCase, boolean global) {
         Pattern p = Pattern.compile(pattern, ignoreCase ? Pattern.CASE_INSENSITIVE : 0); // FIXME: can add UNICODE_CASE
         int size = x.size();
         String[] content = new String[size];

@@ -24,16 +24,16 @@ public class WriteBin {
     private static final int IENDIAN = 3;
     private static final int IUSE_BYTES = 4;
 
-    public static void write(RRaw arg, OutputStream output, ASTNode ast) throws IOException {
+    public static void write(RRaw arg, OutputStream output) throws IOException {
         int size = arg.size();
         for (int i = 0; i < size; i++) {
             output.write(arg.getRaw(i));
         }
     }
 
-    public static void write(RAny arg, OutputStream output, ASTNode ast) throws IOException {
+    public static void write(RAny arg, OutputStream output) throws IOException {
         if (arg instanceof RRaw) {
-            write((RRaw) arg, output, ast);
+            write((RRaw) arg, output);
             return;
         }
         // FIXME support more types
@@ -99,7 +99,7 @@ public class WriteBin {
                     try {
                         BufferedOutputStream output = new BufferedOutputStream(con.output(ast));
                         try {
-                            write(args[paramPositions[IOBJECT]], output, ast);
+                            write(args[paramPositions[IOBJECT]], output);
                             output.flush(); // FIXME: this flushes also the underlying file, which may not be the R semantics (?)
                         } catch (IOException e) {
                             throw RError.getGenericError(ast, e.toString());

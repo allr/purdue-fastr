@@ -20,7 +20,7 @@ public class CumulativeSum {
     private static final String[] paramNames = new String[]{"x"};
     private static final int IX = 0;
 
-    public static RComplex cumsum(RComplex x, ASTNode ast) {
+    public static RComplex cumsum(RComplex x) {
         RComplex input = x.materialize();
         int size = x.size();
         double[] content = new double[2 * size];
@@ -43,7 +43,7 @@ public class CumulativeSum {
         return RComplex.RComplexFactory.getFor(content); // drop dimensions
     }
 
-    public static RDouble cumsum(RDouble x, ASTNode ast) {
+    public static RDouble cumsum(RDouble x) {
         RDouble input = x.materialize();
         int size = x.size();
         double[] content = new double[size];
@@ -121,7 +121,7 @@ public class CumulativeSum {
 
                     if (x instanceof RDouble) {
                         RDouble dx = (RDouble) x;
-                        return cumsum(dx, ast).setNames(dx.names());
+                        return cumsum(dx).setNames(dx.names());
                     } else if (x instanceof RInt) {
                         RInt ix = (RInt) x;
                         return cumsum(ix, ast).setNames(ix.names());
@@ -130,17 +130,17 @@ public class CumulativeSum {
                         return cumsum(lx.asInt(), ast).setNames(lx.names());
                     } else if (x instanceof RComplex) {
                         RComplex cx = (RComplex) x;
-                        return cumsum(cx, ast).setNames(cx.names());
+                        return cumsum(cx).setNames(cx.names());
                     } else if (x instanceof RRaw) {
                         RRaw rx = (RRaw) x;
-                        return cumsum(rx.asDouble(), ast).setNames(rx.names());
+                        return cumsum(rx.asDouble()).setNames(rx.names());
                     } else if (x instanceof RNull) {
                         return RDouble.EMPTY;
                     }
 
                     if (x instanceof RString) {
                         RString sx = (RString) x;
-                        RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, ast), ast);
+                        RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, ast));
                         return res.setNames(sx.names());
                     } else {
                         Utils.nyi("unsupported type");

@@ -89,11 +89,11 @@ public interface RDouble extends RNumber {
         public static ScalarDoubleImpl getScalar(double value) {
             return new ScalarDoubleImpl(value);
         }
-        public static RDouble getScalar(double value, int[] dimensions, Names names) {
-            if (dimensions == null && names == null) {
+        public static RDouble getScalar(double value, int[] dimensions, Names names, Attributes attributes) {
+            if (dimensions == null && names == null && attributes == null) {
                 return new ScalarDoubleImpl(value);
             } else {
-                return getFor(new double[] {value}, dimensions, names);
+                return getFor(new double[] {value}, dimensions, names, attributes);
             }
         }
         public static RDouble getArray(double... values) {

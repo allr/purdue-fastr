@@ -1,7 +1,6 @@
 package r.data;
 
 import r.Utils;
-import r.data.RAny.*;
 import r.data.internal.View;
 
 import java.util.HashMap;
@@ -15,31 +14,23 @@ public interface RArray extends RAny {
     int size();
 
     int[] dimensions(); // the returned array shall not be modified
-
     Names names();  // the returned array shall not be modified
 
     Object get(int i);
-
     Object getRef(int i);
-
     RAny boxedGet(int i);
-
     RAny boxedNamedGet(int i);
-
     RArray set(int i, Object val);
 
     RArray setDimensions(int[] dimensions);
-
     RArray setNames(Names names);
     RArray setAttributes(Attributes attributes);
+    RArray stripAttributes();
+
     boolean isNAorNaN(int i);
-
     int index(int i, int j);
-
     RArray subset(RAny keys);
-
     RArray subset(RInt index);
-
     RArray subset(RString names);
 
     RArray materialize();
@@ -137,8 +128,9 @@ public interface RArray extends RAny {
     }
 
     // TODO: currently this is not used as vector update using names needs a hashmap anyway
-    public static final class SimpleNames extends Names { // FIXME: implement a specialized hash map
-// that takes less memory
+    // FIXME: implement a specialized hash map that takes less memory
+
+    public static final class SimpleNames extends Names {
 
         public SimpleNames(RSymbol[] names) {
             super(names);
@@ -167,8 +159,7 @@ public interface RArray extends RAny {
         }
     }
 
-    public static final class MappedNames extends Names { // FIXME: implement a specialized hash map
-// that takes less memory
+    public static final class MappedNames extends Names {
 
         HashMap<RSymbol, Integer> namesMap; // NOTE: LinkedHashMap preserves the insertion order
 

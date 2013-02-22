@@ -6,8 +6,6 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.data.internal.*;
 
-// FIXME: add conversion to scalar representation to copies (also other types that have scalar representations)
-
 public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";

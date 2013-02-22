@@ -51,6 +51,20 @@ public abstract class View extends ArrayImpl implements RArray {
     }
 
     @Override
+    public RArray stripAttributes() {
+        // FIXME: this is quite unfortunate that we have to materialize; note that the ProxyViews are used for explicit casts,
+        // where attributes should be dropped (and stripAttributes gets called, forcing materialization). At the same time, they
+        // are used for unary math operations that should preserve attributes.
+
+        // FIXME: we should probably have two versions of a proxy, one that would no be preserving attributes would be for the casts.
+        // But then all code would have to be updated, so that it gets the attributes from the original value where it is available.
+        if (dimensions() == null && names() == null && attributes() == null) {
+            return this;
+        }
+        return materialize().stripAttributes();
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi(); // Do we have to bind on the view node or on the implementation
         return null;

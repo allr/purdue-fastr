@@ -65,14 +65,15 @@ public class Diagonal {
                         throw RError.getReplacementDiagonalLength(ast);
                     }
 
-                    RArray res = Utils.createArray(typedX, m * n, dim, null, null);
+                    RArray res = Utils.createArray(typedX, m * n, dim, null, x.attributesRef());
                     int vi = 0;
 
                     for (int i = 0; i < m; i++) {
                         for (int j = 0; j < n; j++) {
                             int xindex = j * m + i;
                             if (i != j) {
-                                res.set(xindex, typedX.getRef(xindex));   // TODO: revisit whether ref is needed (note non-local read but local write)
+                                res.set(xindex, typedX.getRef(xindex));
+                                // TODO: revisit whether ref is needed (note non-local read but local write)
                             } else {
                                 res.set(xindex, typedValue.getRef(vi++));
                                 if (vi == vsize) {
