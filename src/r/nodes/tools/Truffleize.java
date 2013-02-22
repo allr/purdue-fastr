@@ -407,9 +407,9 @@ public class Truffleize implements Visitor {
                 Utils.nyi("expecting matrix name for matrix update");
             }
             if (u.isSuper()) {
-                result = SuperUpdateVariable.create(a, var, createTree(varAccess), createTree(u.getRHS()), new UpdateArray(a, selNodes, a.isSubset()));
+                result = SuperUpdateVariable.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
             } else {
-                result = UpdateVariable.create(a, var, createTree(u.getRHS()), new UpdateArray(a, selNodes, a.isSubset()));
+                result = UpdateVariable.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
                 return;
             }
         } else {

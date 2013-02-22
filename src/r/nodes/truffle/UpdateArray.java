@@ -24,8 +24,20 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
     final int[] idx;
     final int[] selIdx;
 
-    /** Constructor from scratch. */
-    public UpdateArray(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
+    /** Returns the array update node, or if the peephole chain optimizations are enabled returns the update node
+     * prefixed with the optimizer node.
+     *
+     * // TODO peepholer is currently not used as all optimizations are visible from the first execution.
+     */
+    public static UpdateVariable.AssignmentNode create(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
+        UpdateArray ary = new UpdateArray(ast, selectors, subset);
+        return ary;
+    }
+
+
+    /** Constructor from scratch. Use the static method create so that the peephole chain optimizer can be injected to
+     * the update tree if required. */
+    protected UpdateArray(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
         super(ast);
         this.subset = subset;
         this.selectors = new Selector.SelectorNode[selectors.length];
@@ -39,7 +51,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
     }
 
     /** Copy constructor used in node replacements. */
-    public UpdateArray(UpdateArray other) {
+    protected UpdateArray(UpdateArray other) {
         super(other.ast);
         subset = other.subset;
         selectors = new Selector.SelectorNode[other.selectors.length];
@@ -80,6 +92,8 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
 
     /**
      * The most general node only asks itself if the left hand side has to be copied.
+     *
+     * If the direct optimizations are enabled they are tested and the respective nodes are created.
      * <p/>
      * At the moment, this is very simple calculation: we do not copy the left hand side only if it
      * is not shared, and if the rhs is a constant scalar(!) of the same type as the lhs, or of an
@@ -92,6 +106,27 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS) {
+                if (!lhs.isShared()) {
+                    if ((lhs instanceof IntImpl) && (rhs instanceof IntImpl)) {
+                        return replace(new IntToIntDirect(this)).execute(frame, lhs, rhs);
+                    } else if (lhs instanceof DoubleImpl) {
+                        if (rhs instanceof IntImpl) {
+                            return replace(new IntToDoubleDirect(this)).execute(frame, lhs, rhs);
+                        } else if (rhs instanceof DoubleImpl) {
+                            return replace(new DoubleToDoubleDirect(this)).execute(frame, lhs, rhs);
+                        }
+                    } else if (lhs instanceof ComplexImpl) {
+                        if (rhs instanceof IntImpl) {
+                            return replace(new IntToComplexDirect(this)).execute(frame, lhs, rhs);
+                        } else if (rhs instanceof DoubleImpl) {
+                            return replace(new DoubleToComplexDirect(this)).execute(frame, lhs, rhs);
+                        } else if (rhs instanceof ComplexImpl) {
+                            return replace(new ComplexToComplexDirect(this)).execute(frame, lhs, rhs);
+                        }
+                    }
+                }
+            }
             if (!lhs.isShared()
                     && isConvertible(rhs, lhs)
                     && rhs instanceof RArray
@@ -1100,6 +1135,406 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
+        }
+    }
+
+    // =================================================================================================================
+    // Direct specializations
+    // =================================================================================================================
+
+    /** Integer update to integer direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct access, then we can
+     * never alias and if we do alias we have the meaning less statement a[,,] = a
+     */
+    protected static class IntToIntDirect extends UpdateArray {
+
+
+        protected IntToIntDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof IntImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
+                    lhs = ValueCopy.INT_TO_INT_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            int[] lhsVal = ((IntImpl) lhs).getContent();
+            int[] rhsVal = ((IntImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
+        }
+    }
+
+    /** Integer update to double direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe lhs and rhs can never alias here in our implementation
+     */
+    protected static class IntToDoubleDirect extends UpdateArray {
+
+
+        protected IntToDoubleDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof DoubleImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
+                    lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            double[] lhsVal = ((DoubleImpl) lhs).getContent();
+            int[] rhsVal = ((IntImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
+        }
+    }
+
+    /** Double update to double direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct access, then we can
+     * never alias and if we do alias we have the meaning less statement a[,,] = a
+     */
+    protected static class DoubleToDoubleDirect extends UpdateArray {
+
+
+        protected DoubleToDoubleDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
+                    lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            double[] lhsVal = ((DoubleImpl) lhs).getContent();
+            double[] rhsVal = ((DoubleImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
+        }
+    }
+
+    /** Integer update to complex direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe lhs and rhs can never alias here in our implementation
+     */
+    protected static class IntToComplexDirect extends UpdateArray {
+
+
+        protected IntToComplexDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
+                    lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            double[] lhsVal = ((ComplexImpl) lhs).getContent();
+            int[] rhsVal = ((IntImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
+                        lhsVal[lhsOffset << 1] = 0;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
+        }
+    }
+
+    /** Double update to complex direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe lhs and rhs can never alias here in our implementation
+     */
+    protected static class DoubleToComplexDirect extends UpdateArray {
+
+
+        protected DoubleToComplexDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
+                    lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            double[] lhsVal = ((ComplexImpl) lhs).getContent();
+            double[] rhsVal = ((DoubleImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
+                        lhsVal[lhsOffset << 1] = 0;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
+        }
+    }
+
+    /** Complex update to complex direct specialization.
+     *
+     * Only checks that direct access can be obtained to both lhs and to rhs, then copies the lhs if the lhs and rhs may
+     * alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one for truffle
+     *
+     * TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct access, then we can
+     * never alias and if we do alias we have the meaning less statement a[,,] = a
+     */
+    protected static class ComplexToComplexDirect extends UpdateArray {
+
+
+        protected ComplexToComplexDirect(UpdateArray other) {
+            super(other);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || (lhs.isShared())) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
+                    lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                }
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+            double[] lhsVal = ((ComplexImpl) lhs).getContent();
+            double[] rhsVal = ((ComplexImpl) rhs).getContent();
+            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+            if (!subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(getAST());
+            }
+            // fill in the index vector
+            for (int i = 0; i < idx.length; ++i) {
+                idx[i] = selectors[i].nextIndex(ast);
+                selIdx[i] = 1; // start at one so that overflow and carry works
+            }
+            while (replacementSize >= rhsVal.length) {
+                // loop over the dest offset and update the index vector, store the values
+                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset << 1];
+                        lhsVal[(lhsOffset << 1) + 1] = rhsVal[(rhsOffset << 1) + 1];
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                replacementSize -= rhsVal.length;
+            }
+            if (replacementSize != 0) {
+                throw RError.getNotMultipleReplacement(ast);
+            }
+            // return the lhs so that it can be updated by parent, if required
+            return lhs;
         }
     }
 

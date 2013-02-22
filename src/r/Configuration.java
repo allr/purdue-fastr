@@ -21,4 +21,15 @@ public class Configuration {
      */
     public static final boolean ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS = true;
 
+    /** If set to true, then the lhs is not copied if the direct optimizations can decide that the lhs and rhs do not
+     * alias. This is easy to check because in direct specializations they must all be non-views, so just their pointer
+     * comparison will do.
+     */
+    public static final boolean ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS = true;
+
+    /** If enabled, non-typecasting numeric updates (int, double, complex) with non-shared lhs are optimized into
+     * single node without the rhs typecast node.
+     */
+    public static final boolean ARRAY_UPDATE_DIRECT_SPECIALIZATIONS = true;
+
 }
