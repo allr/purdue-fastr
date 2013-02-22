@@ -20,4 +20,5 @@ public class Configuration {
      * copying the rhs.
      */
     public static final boolean ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS = true;
+
 }

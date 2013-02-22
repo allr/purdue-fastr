@@ -37,7 +37,7 @@ public class UpdateVariable extends BaseR {
          * @param rhs   Right hand side (assign from)
          * @return Left hand side object after assignment.
          */
-        public abstract RAny execute(Frame frame, RAny lhs, RAny rhs, boolean rhsIsConst);
+        public abstract RAny execute(Frame frame, RAny lhs, RAny rhs);
 
         /** Calls to execute method on frame only are *not* supported. */
         @Override
@@ -165,7 +165,7 @@ public class UpdateVariable extends BaseR {
                     lhsValue.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                 }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue, false);
+                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
                 }
@@ -210,7 +210,7 @@ public class UpdateVariable extends BaseR {
                     lhsValue.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                 }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal, true);
+                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
                 }
@@ -244,7 +244,7 @@ public class UpdateVariable extends BaseR {
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), lhs);
                 }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue, false);
+                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeToTopLevelRef(lhs, newLhs);
                 }
@@ -274,7 +274,7 @@ public class UpdateVariable extends BaseR {
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), lhs);
                 }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal, true);
+                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeToTopLevelRef(lhs, newLhs);
                 }

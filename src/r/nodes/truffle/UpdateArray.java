@@ -88,16 +88,19 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      * In all other cases the copy node is first injected to the code.
      */
     @Override
-    public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+    public RAny execute(Frame frame, RAny lhs, RAny rhs) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
-            if (!lhs.isShared() && constRhs && isConvertible(rhs, lhs) && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
+            if (!lhs.isShared()
+                    && isConvertible(rhs, lhs)
+                    && rhs instanceof RArray
+                    && ((RArray) rhs).size() == 1) {
                 if (DEBUG_UP) Utils.debug("UpateArray -> RHSCompatible (no need of LHS copy)");
-                return replace(new RHSCompatible(this)).execute(frame, lhs, rhs, constRhs);
+                return replace(new RHSCompatible(this)).execute(frame, lhs, rhs);
             }
             if (DEBUG_UP) Utils.debug("UpateArray -> CopyLHS");
-            return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs, constRhs);
+            return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs);
         }
     }
 
@@ -139,7 +142,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         } catch (UnexpectedResultException e) {
             if (DEBUG_UP) Utils.debug(getClass().getSimpleName() + " -> Generalized");
-            return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, false);
+            return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
         }
     }
 
@@ -204,17 +207,17 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * IdenticalTypes node.
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
                                 (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)) {
                     if (DEBUG_UP) Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
-                    return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs, constRhs);
+                    return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs);
                 }
                 if (DEBUG_UP) Utils.debug("RHSCompatible -> CopyRhs (IdenticalTypes as child)");
-                return replace(new CopyRhs(new IdenticalTypes(this))).execute(frame, lhs, rhs, constRhs);
+                return replace(new CopyRhs(new IdenticalTypes(this))).execute(frame, lhs, rhs);
             }
         }
     }
@@ -227,7 +230,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      * Node at which the lhs and rhs are of the same type and can thus be immediately updated.
      * <p/>
      * If the rhs is constant scalar, uses the ConstScalar version of the update, otherwise uses the
-     * NonConst version.
+     * NonScalar version.
      */
     protected static class IdenticalTypes extends UpdateArray {
 
@@ -235,18 +238,18 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             super(other);
         }
 
-        /** Rewrites itself to either ConstScalar updater, or to the more generic NonConst updater. */
+        /** Rewrites itself to either ConstScalar updater, or to the more generic NonScalar updater. */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                if (constRhs && rhs instanceof RArray && ((RArray) rhs).size() == 1) {
+                if (rhs instanceof RArray && ((RArray) rhs).size() == 1) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> ConstScalar");
-                    return replace(new ConstScalar<Object>(this)).execute(frame, lhs, rhs, constRhs);
+                    return replace(new Scalar(this)).execute(frame, lhs, rhs);
                 }
-                if (DEBUG_UP) Utils.debug("IdenticalTypes -> NonConst");
-                return replace(new NonConst(this)).execute(frame, lhs, rhs, constRhs);
+                if (DEBUG_UP) Utils.debug("IdenticalTypes -> NonScalar");
+                return replace(new NonScalar(this)).execute(frame, lhs, rhs);
             }
         }
     }
@@ -305,7 +308,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * of course).
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             // 1) check if we need to copy the LHS side
             ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs);
             if (lhsImpl != null) {
@@ -451,11 +454,11 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * value, which is calculated from the lhs and rhs types.
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-              return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs, constRhs);
+              return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs);
             }
         }
 
@@ -480,14 +483,14 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
              * itself). Upon failure of the copy code reqrites the whole tree to the general case.
              */
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     lhs = impl.copy(lhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
-                return child.execute(frame, lhs, rhs, constRhs);
+                return child.execute(frame, lhs, rhs);
             }
         }
     }
@@ -570,16 +573,16 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * such typecast can be found, reqrites itself to the generalized case.
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs);
                 if (impl == null) {
                     if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
-                    return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
-                return replace(new Specialized(this, impl)).execute(frame, lhs, rhs, constRhs);
+                return replace(new Specialized(this, impl)).execute(frame, lhs, rhs);
             }
         }
 
@@ -599,238 +602,313 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
              * rewrites itself to the generalized case.
              */
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     rhs = impl.copy(rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyRhs.Specialized -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
-                return child.execute(frame, lhs, rhs, constRhs);
+                return child.execute(frame, lhs, rhs);
             }
         }
 
     }
 
-    // =================================================================================================================
-    // ConstScalar
-    // =================================================================================================================
 
-    /**
-     * Scalar in place update with already converted primitive value.
-     * <p/>
-     * When the rhs is a constant scalar value which can be once converted to a primitive value,
-     * this node is then used to determine the type of the lhs and then creates a special node that
-     * already holds the converted value.
-     * <p/>
-     * Its static inner classes are responsible for the typechecks on the lhs to ensure that the
-     * type is still valid and then calling the final update method.
+    // =================================================================================================================
+    // Scalar
+    // =================================================================================================================
+    /** Update by a scalar variable.
      */
+    public static class Scalar extends UpdateArray {
 
-    public static class ConstScalar<T> extends UpdateArray {
-
-        /** The scalar rhs value, stored as a Java primitive. */
-        protected final T value;
-
-        /** Creates the node with no value attached, the general version of the node. */
-        public ConstScalar(UpdateArray other) {
+        public Scalar(UpdateArray other) {
             super(other);
-            value = null;
         }
 
-        /**
-         * Creates a node with already computed constant value. This constructor is used in node
-         * rewriting when it is also supplied with the converted rhs value.
-         */
-        public ConstScalar(UpdateArray other, T value) {
-            super(other);
-            this.value = value;
-        }
-
-        /** The execute method determines which special case to use and rewrites itself to it. */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                if (lhs instanceof RDouble) {
-                    return replace(new ConstScalar.Double(this, rhs.asDouble().getDouble(0))).execute(frame, lhs, rhs, constRhs);
+                if (rhs instanceof RInt) {
+                    return replace(new Int(this)).execute(frame, lhs, rhs);
+                } else if (rhs instanceof RDouble) {
+                    return replace(new Double(this)).execute(frame, lhs, rhs);
+                } else if (rhs instanceof RComplex) {
+                    return replace(new Complex(this)).execute(frame, lhs, rhs);
+                } else if (rhs instanceof RLogical) {
+                    return replace(new Logical(this)).execute(frame, lhs, rhs);
+                } else if (rhs instanceof RString) {
+                    return replace(new String(this)).execute(frame, lhs, rhs);
+                } else {
+                    return replace(new NonScalar.Raw(this)).execute(frame, lhs, rhs);
                 }
-                if (lhs instanceof RInt) {
-                    return replace(new ConstScalar.Integer(this, rhs.asInt().getInt(0))).execute(frame, lhs, rhs, constRhs);
-                }
-                if (lhs instanceof RLogical) {
-                    return replace(new Logical(this, rhs.asLogical().getLogical(0) == RLogical.TRUE)).execute(frame, lhs, rhs, constRhs);
-                }
-                if (lhs instanceof RString) {
-                    return replace(new Character(this, rhs.asString().getString(0))).execute(frame, lhs, rhs, constRhs);
-                }
-                if (lhs instanceof RComplex) {
-                    return replace(new Complex(this, rhs.asComplex())).execute(frame, lhs, rhs, constRhs);
-                }
-                Utils.nyi();
-                return null;
             }
         }
 
-        /**
-         * In place update using the scalar value given in the class. We already assume that the
-         * value argument is of the proper boxed type and therefore can share this code amongst the
-         * specialization classes.
+        /** Array update with logical scalar.
+         *
+         * Uses direct access and RHS one time evaluation for the array update.
          */
-        @Override
-        protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-            int updateSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (updateSize > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
-            }
-            // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
-            }
-            // loop over the update size
-            for (int i = 0; i < updateSize; ++i) {
-                int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                // do nothing if lhsOffset is NA
-                if (lhsOffset != RInt.NA) {
-                    lhs.set(lhsOffset, value);
-                }
-                Selector.increment(idx, selIdx, selSizes, selectors, ast);
-            }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
-        }
+        public static class Logical extends Scalar {
 
-        /**
-         * Scalar update of double values.
-         * <p/>
-         * Lhs must be RDouble otherwise rewrites itself back to the general node.
-         */
-        protected static class Double extends ConstScalar<java.lang.Double> {
-
-            public Double(UpdateArray other, double value) {
-                super(other, value);
+            public Logical(UpdateArray other) {
+                super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RDouble)) {
+                    if ((!(rhs instanceof ScalarLogicalImpl)) || (!(lhs instanceof LogicalImpl))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, null);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("ConstScalar<double> -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
-            }
-        }
-
-        /**
-         * Scalar update of integer values.
-         * <p/>
-         * Lhs must be RInt otherwise rewrites itself back to the general node.
-         */
-        protected static class Integer extends ConstScalar<java.lang.Integer> {
-
-            public Integer(UpdateArray other, int value) {
-                super(other, value);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
-                try {
-                    if (!(lhs instanceof RInt)) {
-                        throw new UnexpectedResultException(null);
-                    }
-                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
-                } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("ConstScalar<int> -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+            protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+                Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                if (!subset && (updateSize > 1)) {
+                    throw RError.getSelectMoreThanOne(getAST());
                 }
+                // get lhs value and rhs
+                int[] lhsVal = ((LogicalImpl) lhs).getContent();
+                int rhsVal = ((RLogical) rhs).getLogical(0);
+                // fill in the index vector
+                for (int i = 0; i < idx.length; ++i) {
+                    idx[i] = selectors[i].nextIndex(ast);
+                    selIdx[i] = 1; // start at one so that overflow and carry works
+                }
+                // loop over the update size
+                for (int i = 0; i < updateSize; ++i) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                // return the lhs so that it can be updated by parent, if required
+                return lhs;
             }
         }
 
-        /**
-         * Scalar update of logical (boolean) values.
-         * <p/>
-         * Lhs must be RLogical otherwise rewrites itself back to the general node.
+        /** Array update with int scalar.
+         *
+         * Uses direct access and RHS one time evaluation for the array update.
          */
-        protected static class Logical extends ConstScalar<Boolean> {
+        public static class Int extends Scalar {
 
-            public Logical(UpdateArray other, boolean value) {
-                super(other, value);
+            public Int(UpdateArray other) {
+                super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RLogical)) {
+                    if ((!(rhs instanceof ScalarIntImpl)) || (!(lhs instanceof IntImpl))) {
                         throw new UnexpectedResultException(null);
                     }
-                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("ConstScalar<Logical> -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
+            }
+
+            @Override
+            protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+                Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                if (!subset && (updateSize > 1)) {
+                    throw RError.getSelectMoreThanOne(getAST());
+                }
+                // get lhs value and rhs
+                int[] lhsVal = ((IntImpl) lhs).getContent();
+                int rhsVal = ((RInt) rhs).getInt(0);
+                // fill in the index vector
+                for (int i = 0; i < idx.length; ++i) {
+                    idx[i] = selectors[i].nextIndex(ast);
+                    selIdx[i] = 1; // start at one so that overflow and carry works
+                }
+                // loop over the update size
+                for (int i = 0; i < updateSize; ++i) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                // return the lhs so that it can be updated by parent, if required
+                return lhs;
             }
         }
 
-        /**
-         * Scalar update for character (string) values.
-         * <p/>
-         * Lhs must be RString otherwise rewrites itself back to the general node.
+        /** Array update with double scalar.
+         *
+         * Uses direct access and RHS one time evaluation for the array update.
          */
-        protected static class Character extends ConstScalar<String> {
+        public static class Double extends Scalar {
 
-            public Character(UpdateArray other, String value) {
-                super(other, value);
+            public Double(UpdateArray other) {
+                super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RString)) {
+                    if ((!(rhs instanceof ScalarDoubleImpl)) || (!(lhs instanceof DoubleImpl))) {
                         throw new UnexpectedResultException(null);
                     }
-                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("ConstScalar<String> -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
+            }
+
+            @Override
+            protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+                Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                if (!subset && (updateSize > 1)) {
+                    throw RError.getSelectMoreThanOne(getAST());
+                }
+                // get lhs value and rhs
+                double[] lhsVal = ((DoubleImpl) lhs).getContent();
+                double rhsVal = ((RDouble) rhs).getDouble(0);
+                // fill in the index vector
+                for (int i = 0; i < idx.length; ++i) {
+                    idx[i] = selectors[i].nextIndex(ast);
+                    selIdx[i] = 1; // start at one so that overflow and carry works
+                }
+                // loop over the update size
+                for (int i = 0; i < updateSize; ++i) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                // return the lhs so that it can be updated by parent, if required
+                return lhs;
             }
         }
 
-        /**
-         * Scalar update for complex values.
-         * <p/>
-         * Lhs must be RComplex otherwise rewrites itself back to the general node.
+        /** Array update with complex scalar.
+         *
+         * Uses direct access and RHS one time evaluation for the array update.
          */
-        protected static class Complex extends ConstScalar<RComplex> {
+        public static class Complex extends Scalar {
 
-            public Complex(UpdateArray other, RComplex value) {
-                super(other, value);
+            public Complex(UpdateArray other) {
+                super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RComplex)) {
+                    if ((!(rhs instanceof ScalarComplexImpl)) || (!(lhs instanceof ComplexImpl))) {
                         throw new UnexpectedResultException(null);
                     }
-                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("ConstScalar<Complex> -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
+            }
+
+            @Override
+            protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+                Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                if (!subset && (updateSize > 1)) {
+                    throw RError.getSelectMoreThanOne(getAST());
+                }
+                // get lhs value and rhs
+                double[] lhsVal = ((ComplexImpl) lhs).getContent();
+                double re = ((RComplex) rhs).getReal(0);
+                double im = ((RComplex) rhs).getImag(0);
+                // fill in the index vector
+                for (int i = 0; i < idx.length; ++i) {
+                    idx[i] = selectors[i].nextIndex(ast);
+                    selIdx[i] = 1; // start at one so that overflow and carry works
+                }
+                // loop over the update size
+                for (int i = 0; i < updateSize; ++i) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset << 1] = re;
+                        lhsVal[(lhsOffset << 1) + 1] = im;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                // return the lhs so that it can be updated by parent, if required
+                return lhs;
+            }
+        }
+
+        /** Array update with String scalar.
+         *
+         * Uses direct access and RHS one time evaluation for the array update.
+         */
+        public static class String extends Scalar {
+
+            public String(UpdateArray other) {
+                super(other);
+            }
+
+            @Override
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+                try {
+                    if ((!(rhs instanceof ScalarStringImpl)) || (!(lhs instanceof StringImpl))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                }
+            }
+
+            @Override
+            protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+                Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                if (!subset && (updateSize > 1)) {
+                    throw RError.getSelectMoreThanOne(getAST());
+                }
+                // get lhs value and rhs
+                java.lang.String[] lhsVal = ((StringImpl) lhs).getContent();
+                java.lang.String rhsVal = ((RString) rhs).getString(0);
+                // fill in the index vector
+                for (int i = 0; i < idx.length; ++i) {
+                    idx[i] = selectors[i].nextIndex(ast);
+                    selIdx[i] = 1; // start at one so that overflow and carry works
+                }
+                // loop over the update size
+                for (int i = 0; i < updateSize; ++i) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    // do nothing if lhsOffset is NA
+                    if (lhsOffset != RInt.NA) {
+                        lhsVal[lhsOffset] = rhsVal;
+                    }
+                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                }
+                // return the lhs so that it can be updated by parent, if required
+                return lhs;
             }
         }
     }
 
+
     // =================================================================================================================
-    // NonConst
+    // NonScalar
     // =================================================================================================================
 
     /**
@@ -839,9 +917,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      * Upon first execution reqrites itself to the appropriate method checking only the lhs are rhs
      * types are the same.
      */
-    protected static class NonConst extends UpdateArray {
+    protected static class NonScalar extends UpdateArray {
 
-        public NonConst(UpdateArray other) {
+        public NonScalar(UpdateArray other) {
             super(other);
         }
 
@@ -851,29 +929,29 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * step through copy lhs and copy rhs nodes which would make the lhs and rhs types the same.
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 if ((lhs instanceof RLogical) && (rhs instanceof RLogical)) {
-                    if (DEBUG_UP) Utils.debug("NonConst -> Logical");
-                    return replace(new Logical(this)).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar -> Logical");
+                    return replace(new Logical(this)).execute(frame, lhs, rhs);
                 }
                 if ((lhs instanceof RInt) && (rhs instanceof RInt)) {
-                    if (DEBUG_UP) Utils.debug("NonConst -> Integer");
-                    return replace(new Integer(this)).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar -> Integer");
+                    return replace(new Integer(this)).execute(frame, lhs, rhs);
                 }
                 if ((lhs instanceof RDouble) && (rhs instanceof RDouble)) {
-                    if (DEBUG_UP) Utils.debug("NonConst -> Double");
-                    return replace(new Double(this)).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar -> Double");
+                    return replace(new Double(this)).execute(frame, lhs, rhs);
                 }
                 if ((lhs instanceof RComplex) && (rhs instanceof RComplex)) {
-                    if (DEBUG_UP) Utils.debug("NonConst -> Complex");
-                    return replace(new Complex(this)).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar -> Complex");
+                    return replace(new Complex(this)).execute(frame, lhs, rhs);
                 }
                 if ((lhs instanceof RString) && (rhs instanceof RString)) {
-                    if (DEBUG_UP) Utils.debug("NonConst -> String");
-                    return replace(new String(this)).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar -> String");
+                    return replace(new String(this)).execute(frame, lhs, rhs);
                 }
                 Utils.nyi();
                 return null;
@@ -884,22 +962,22 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * Logical non-const update. If the lhs and rhs are not both logical, rewrites the tree to
          * the general case.
          */
-        protected static final class Logical extends NonConst {
+        protected static final class Logical extends NonScalar {
 
             public Logical(UpdateArray other) {
                 super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("NonConst.Logical -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar.Logical -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -908,22 +986,22 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * Integer non-const update. If the lhs and rhs are not both integer, rewrites the tree to
          * the general case.
          */
-        protected static final class Integer extends NonConst {
+        protected static final class Integer extends NonScalar {
 
             public Integer(UpdateArray other) {
                 super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("NonConst.Int -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar.Int -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -932,22 +1010,22 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * Double non-const update. If the lhs and rhs are not both double, rewrites the tree to the
          * general case.
          */
-        protected static final class Double extends NonConst {
+        protected static final class Double extends NonScalar {
 
             public Double(UpdateArray other) {
                 super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("NonConst.Double -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar.Double -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -956,22 +1034,22 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * Complex non-const update. If the lhs and rhs are not both complex, rewrites the tree to
          * the general case.
          */
-        protected static final class Complex extends NonConst {
+        protected static final class Complex extends NonScalar {
 
             public Complex(UpdateArray other) {
                 super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("NonConst.Complex -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar.Complex -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -980,22 +1058,46 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * String non-const update. If the lhs and rhs are not both string, rewrites the tree to the
          * general case.
          */
-        protected static final class String extends NonConst {
+        protected static final class String extends NonScalar {
 
             public String(UpdateArray other) {
                 super(other);
             }
 
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs, boolean constRhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
                     if (!(lhs instanceof RString) || (!(rhs instanceof RString))) {
                         throw new UnexpectedResultException(null);
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    if (DEBUG_UP) Utils.debug("NonConst.String -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs, constRhs);
+                    if (DEBUG_UP) Utils.debug("NonScalar.String -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                }
+            }
+        }
+
+        /**
+         * Raw non-scalar update. If the lhs and rhs are not both raw, rewrites the tree to the
+         * general case.
+         */
+        protected static final class Raw extends NonScalar {
+
+            public Raw(UpdateArray other) {
+                super(other);
+            }
+
+            @Override
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+                try {
+                    if (!(lhs instanceof RRaw) || (!(rhs instanceof RRaw))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonScalar.Raw -> Generalized");
+                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1334,7 +1436,7 @@ class ValueCopy {
     public static final Impl DOUBLE_TO_STRING = new Impl() {
 
         @Override
-        public final RAny copy(RAny what) throws UnexpectedResultException {
+       public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof RDouble)) {
                 throw new UnexpectedResultException(null);
             }
