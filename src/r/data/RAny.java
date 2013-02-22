@@ -166,6 +166,13 @@ public interface RAny {
             return shared;
         }
 
+        public static Attributes markShared(Attributes a) {
+            if (a != null) {
+                a.shared = true;
+            }
+            return a;
+        }
+
         public Attributes markShared() {
             shared = true;
             return this;

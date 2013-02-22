@@ -5,9 +5,7 @@ import java.util.*;
 import r.*;
 import r.Convert.*;
 import r.builtins.Primitives;
-import r.data.RAny.*;
 import r.data.internal.*;
-import r.nodes.truffle.AbstractCall;
 
 public final class RSymbol extends BaseObject implements RAny {
 
@@ -18,6 +16,8 @@ public final class RSymbol extends BaseObject implements RAny {
      *
      * All special symbols that are stored in the global symbol table are to be defined here.
      */
+    // FIXME: we should find a better way, this reinsertion just for the tests, and it is very error prone, forgetting to add
+    // a symbol here or to reinsert below leads to unpredictable results when running tests
 
     public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
     public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
@@ -33,16 +33,25 @@ public final class RSymbol extends BaseObject implements RAny {
     public static final RSymbol NAMES_SYMBOL = RSymbol.getSymbol("names");
     public static final RSymbol DIM_SYMBOL = RSymbol.getSymbol("dim");
 
+    // from Rep
+    public static final RSymbol TIMES_SYMBOL = RSymbol.getSymbol("times");
+
+    protected static void reinsert(RSymbol s) {
+        symbolTable.table.put(s.name(), s);
+    }
+
     /** Reinserts the special symbols to the table after the table has been reset clean.
      */
     protected static void reinsertSpecialSymbols() {
-        symbolTable.table.put("drop", DROP_SYMBOL);
-        symbolTable.table.put("exact", EXACT_SYMBOL);
-        symbolTable.table.put("...", THREE_DOTS_SYMBOL);
-        symbolTable.table.put(RString.NA, RSymbol.NA_SYMBOL);
-        symbolTable.table.put("", RSymbol.EMPTY_SYMBOL);
+        reinsert(NA_SYMBOL);
+        reinsert(EMPTY_SYMBOL);
+        reinsert(DROP_SYMBOL);
+        reinsert(EXACT_SYMBOL);
+        reinsert(THREE_DOTS_SYMBOL);
+        reinsert(NAMES_SYMBOL);
+        reinsert(DIM_SYMBOL);
+        reinsert(TIMES_SYMBOL);
     }
-
 
     final String name;
     // The next two fields are for the topLevel
@@ -122,8 +131,8 @@ public final class RSymbol extends BaseObject implements RAny {
      */
     public static void resetTable() {
         symbolTable.table.clear();
-        Primitives.initializePrimitives();
         reinsertSpecialSymbols();
+        Primitives.initializePrimitives();
     }
 
     public static Set<String> symbols() {

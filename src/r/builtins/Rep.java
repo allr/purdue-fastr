@@ -510,7 +510,7 @@ public class Rep {
             if (names.length == 2) {
                 int otherPos = paramPositions[IX] == 0 ? 1 : 0;
                 RSymbol otherName = names[otherPos];
-                if (otherName == null || otherName == RSymbol.getSymbol("times")) {
+                if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) {
                     return REPINT_FACTORY.create(call, names, exprs);
                 }
                 if (otherName == RSymbol.getSymbol("length.out")) {
