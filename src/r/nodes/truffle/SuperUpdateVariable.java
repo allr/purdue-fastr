@@ -120,7 +120,7 @@ public class SuperUpdateVariable extends BaseR {
 
             RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
 
-            newVector = assignment.execute(frame, lhsValue, rhsValue, false);
+            newVector = assignment.execute(frame, lhsValue, rhsValue);
             if (newVector != lhsValue) {
                 writeBack.execute(frame);  // FIXME: may ref unnecessarily
             }
@@ -171,7 +171,7 @@ public class SuperUpdateVariable extends BaseR {
 
                 RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
 
-                newVector = assignment.execute(frame, lhsValue, rhsValue, false);
+                newVector = assignment.execute(frame, lhsValue, rhsValue);
                 if (newVector != lhsValue) {
                     writeBack.execute(frame);  // FIXME: may ref unnecessarily
                 }

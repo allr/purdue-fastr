@@ -123,7 +123,7 @@ public class TestArrays extends TestBase {
     @Test
     public void testLhsCopy() {
         // lhs gets upgraded to int
-        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 8L; a[1,2,3] == 8; }");
+        assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 8L; a[1,2,3] == 8L; }");
 
         // lhs logical gets upgraded to double
         assertTrue("{ a = array(TRUE,c(3,3,3)); a[1,2,3] = 8.1; a[1,2,3] == 8.1; }");
