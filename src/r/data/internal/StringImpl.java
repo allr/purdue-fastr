@@ -98,33 +98,33 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
 
     @Override
     public String pretty() {
-        if (dimensions != null) {
-            return arrayPretty();
-        }
-        if (content.length == 0) {
-            return (names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING;
-        }
-        if (names() != null) {
-            return namedPretty();
-        }
         StringBuilder str = new StringBuilder();
-        if (content[0] != RString.NA) {
-            str.append("\"");
-            str.append(content[0]); // FIXME: quote
-            str.append("\"");
+        if (dimensions != null) {
+            str.append(arrayPretty());
+        } else if (content.length == 0) {
+            str.append((names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING);
+        } else if (names() != null) {
+            str.append(namedPretty());
         } else {
-            str.append("NA");
-        }
-        for (int i = 1; i < content.length; i++) {
-            str.append(", ");
-            if (content[i] != RString.NA) {
+            if (content[0] != RString.NA) {
                 str.append("\"");
-                str.append(content[i]); // FIXME: quote
+                str.append(content[0]); // FIXME: quote
                 str.append("\"");
             } else {
                 str.append("NA");
             }
+            for (int i = 1; i < content.length; i++) {
+                str.append(", ");
+                if (content[i] != RString.NA) {
+                    str.append("\"");
+                    str.append(content[i]); // FIXME: quote
+                    str.append("\"");
+                } else {
+                    str.append("NA");
+                }
+            }
         }
+        str.append(attributesPretty());
         return str.toString();
     }
 

@@ -46,6 +46,8 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- c(a=1, b=2, c=3) ; x[0] }", "named numeric(0)");
         assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[\"b\"] }", "  b\n2.0");
         assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[\"d\"] }", "  d\n4.0");
+
+        assertEval("{ x <- 1 ; attr(x, \"hi\") <- 2; x[2] <- 2; attr(x, \"hi\") }", "2.0");
     }
 
     @Test

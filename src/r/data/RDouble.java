@@ -117,11 +117,11 @@ public interface RDouble extends RNumber {
         public static RDouble getUninitializedNonScalarArray(int size) {
             return new DoubleImpl(size);
         }
-        public static RDouble getUninitializedArray(int size, int[] dimensions, Names names) {
-            if (size == 1 && dimensions == null && names == null) {
+        public static RDouble getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            if (size == 1 && dimensions == null && names == null && attributes == null) {
                 return new ScalarDoubleImpl(0);
             }
-            return new DoubleImpl(new double[size], dimensions, names, null, false);
+            return new DoubleImpl(new double[size], dimensions, names, attributes, false);
         }
         public static RDouble getNAArray(int size) {
             return getNAArray(size, null);
@@ -138,7 +138,7 @@ public interface RDouble extends RNumber {
             return new DoubleImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RDouble copy(RDouble d) {
-            if (d.size() == 1 && d.dimensions() == null && d.names() == null) {
+            if (d.size() == 1 && d.dimensions() == null && d.names() == null && d.attributes() == null) {
                 return new ScalarDoubleImpl(d.getDouble(0));
             }
             return new DoubleImpl(d, false);

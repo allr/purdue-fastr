@@ -67,11 +67,11 @@ public interface RInt extends RNumber {
         public static RInt getUninitializedNonScalarArray(int size) {
             return new IntImpl(size);
         }
-        public static RInt getUninitializedArray(int size, int[] dimensions, Names names) {
-            if (size == 1 && dimensions == null && names == null) {
+        public static RInt getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            if (size == 1 && dimensions == null && names == null && attributes == null) {
                 return new ScalarIntImpl(0);
             }
-            return new IntImpl(new int[size], dimensions, names, null, false);
+            return new IntImpl(new int[size], dimensions, names, attributes, false);
         }
         public static RInt getNAArray(int size) {
             return getNAArray(size, null);
@@ -88,7 +88,7 @@ public interface RInt extends RNumber {
             return new IntImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RInt copy(RInt i) {
-            if (i.size() == 1 && i.dimensions() == null && i.names() == null) {
+            if (i.size() == 1 && i.dimensions() == null && i.names() == null && i.attributes() == null) {
                 return new ScalarIntImpl(i.getInt(0));
             }
             return new IntImpl(i, false);

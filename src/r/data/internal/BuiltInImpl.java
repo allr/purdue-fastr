@@ -34,11 +34,6 @@ public class BuiltInImpl implements RBuiltIn {
     }
 
     @Override
-    public RAttributes getAttributes() {
-        return null;
-    }
-
-    @Override
     public RAny stripAttributes() {
         return this;
     }
@@ -148,6 +143,11 @@ public class BuiltInImpl implements RBuiltIn {
 
     @Override
     public Attributes attributes() {
+        return null;
+    }
+
+    @Override
+    public Attributes attributesRef() {
         return null;
     }
 

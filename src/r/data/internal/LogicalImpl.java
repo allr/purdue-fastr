@@ -157,25 +157,21 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public String pretty() {
-        if (dimensions != null) {
-            return arrayPretty();
-        }
-        if (content.length == 0) {
-            return names() == null ? EMPTY_STRING : NAMED_EMPTY_STRING;
-        }
-        if (names() != null) {
-            return namedPretty();
-        }
-        String fst = Convert.prettyNA(Convert.logical2string(content[0]));
-        if (content.length == 1) {
-            return fst;
-        }
         StringBuilder str = new StringBuilder();
-        str.append(fst);
-        for (int i = 1; i < content.length; i++) {
-            str.append(", ");
-            str.append(Convert.prettyNA(Convert.logical2string(content[i])));
+        if (dimensions != null) {
+            str.append(arrayPretty());
+        } else if (content.length == 0) {
+            str.append((names() == null) ? EMPTY_STRING : NAMED_EMPTY_STRING);
+        } else if (names() != null) {
+            str.append(namedPretty());
+        } else {
+            str.append(Convert.prettyNA(Convert.logical2string(content[0])));
+            for (int i = 1; i < content.length; i++) {
+                str.append(", ");
+                str.append(Convert.prettyNA(Convert.logical2string(content[i])));
+            }
         }
+        str.append(attributesPretty());
         return str.toString();
     }
 

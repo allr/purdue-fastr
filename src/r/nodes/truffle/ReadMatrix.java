@@ -96,7 +96,7 @@ public class ReadMatrix extends BaseR {
         } else {
             ndim = null;
         }
-        RArray res = Utils.createArray(base, nsize, ndim, null);
+        RArray res = Utils.createArray(base, nsize, ndim, null, null); // drop attributes
 
         for (int ni = 0; ni < nm; ni++) {
             int i = selI.nextIndex(ast);

@@ -102,11 +102,11 @@ public interface RString extends RArray {
         public static RString getUninitializedNonScalarArray(int size) {
             return new StringImpl(size);
         }
-        public static RString getUninitializedArray(int size, int[] dimensions, Names names) {
-            if (size == 1 && dimensions == null && names == null) {
+        public static RString getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            if (size == 1 && dimensions == null && names == null && attributes == null) {
                 return new ScalarStringImpl(NA);
             }
-            return new StringImpl(new String[size], dimensions, names, null, false);
+            return new StringImpl(new String[size], dimensions, names, attributes, false);
         }
         public static RString getNAArray(int size) {
             return getNAArray(size, null);
@@ -125,7 +125,7 @@ public interface RString extends RArray {
             return new StringImpl(values, new int[] {m, n}, null, null, false);
         }
         public static RString copy(RString s) {
-            if (s.size() == 1 && s.dimensions() == null && s.names() == null) {
+            if (s.size() == 1 && s.dimensions() == null && s.names() == null && s.attributes() == null) {
                 return new ScalarStringImpl(s.getString(0));
             }
             return new StringImpl(s, false);

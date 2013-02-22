@@ -238,7 +238,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
+                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -269,7 +269,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = ibase.getInt(i);
                                 }
-                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
+                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -303,7 +303,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -334,7 +334,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -365,7 +365,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = dbase.getDouble(i);
                                 }
-                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -399,7 +399,7 @@ public abstract class UpdateVector extends BaseR {
                                 for (; i < bsize; i++) {
                                     content[i] = lbase.getLogical(i);
                                 }
-                                return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
+                                return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
                         }
                     };
@@ -432,7 +432,7 @@ public abstract class UpdateVector extends BaseR {
                             for (; i < bsize; i++) { // shallow copy
                                 content[i] = lbase.getRAny(i);
                             }
-                            return RList.RListFactory.getFor(content, base.dimensions(), base.names());
+                            return RList.RListFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                         }
                     }
                 };
@@ -463,7 +463,7 @@ public abstract class UpdateVector extends BaseR {
                             for (; i < bsize; i++) {
                                 content[i] = sbase.getString(i);
                             }
-                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
+                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                         }
                     }
                 };
@@ -516,7 +516,7 @@ public abstract class UpdateVector extends BaseR {
             if (pos > 0) {
                 if (pos <= bsize) {
                     int zpos = pos - 1;
-                    RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                     int i = 0;
                     for (; i < zpos; i++) {
                         res.set(i, typedBase.get(i));
@@ -529,7 +529,7 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     int zpos = pos - 1;
                     int nsize = zpos + 1;
-                    RArray res = Utils.createArray(typedBase, nsize, names != null); // drop dimensions
+                    RArray res = Utils.createArray(typedBase, nsize, names != null).setAttributes(base.attributesRef()); // drop dimensions
                     int i = 0;
                     for (; i < bsize; i++) {
                         res.set(i, typedBase.get(i));
@@ -561,7 +561,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 int keep = -pos - 1;
                 Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
-                RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                 int i = 0;
                 for (; i < keep; i++) {
                     res.set(i, rawValue);
@@ -706,7 +706,7 @@ public abstract class UpdateVector extends BaseR {
             }
             if (pos != -1) {
                 // updating
-                RArray res = Utils.createArray(typedBase, bsize, dimensions, names);
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                 int i = 0;
                 for (; i < pos; i++) {
                     res.set(i, typedBase.get(i));
@@ -718,9 +718,10 @@ public abstract class UpdateVector extends BaseR {
                 return res;
             }
             // appending, if names are empty, create them - this is for appending to empty lists and vectors
-            if (names == null)
+            if (names == null) {
                 names = new RArray.MappedNames(bsize);
-            RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol));
+            }
+            RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol), base.attributesRef());
             for (int i = 0; i < bsize; i++) {
                 res.set(i, typedBase.get(i));
             }
@@ -1377,7 +1378,7 @@ public abstract class UpdateVector extends BaseR {
                     if (isize != vsize) {
                         throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH);
                     }
-                    RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names());
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names(), base.attributesRef());
                     int i = 0;
                     for (; i < imin; i++) {
                         res.set(i, typedBase.get(i));
@@ -1676,11 +1677,11 @@ public abstract class UpdateVector extends BaseR {
                 RArray res;
                 if (nsize <= bsize) {
                     nsize = bsize;
-                    res = Utils.createArray(typedBase, nsize, dimensions, names);
+                    res = Utils.createArray(typedBase, nsize, dimensions, names, base.attributesRef());
                 } else {
                     expanding = true;
                     // drop dimensions
-                    res = Utils.createArray(typedBase, nsize, names != null);
+                    res = Utils.createArray(typedBase, nsize, names != null).setAttributes(base.attributesRef());
                 }
 
                 // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
@@ -1717,7 +1718,7 @@ public abstract class UpdateVector extends BaseR {
                 if (hasPositive || hasNA) {
                     throw RError.getOnlyZeroMixed(ast);
                 }
-                RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names());
+                RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names(), base.attributesRef());
                 int j = 0;
                 for (int i = 0; i < bsize; i++) {
                     if (omit[i]) {
@@ -2231,12 +2232,12 @@ public abstract class UpdateVector extends BaseR {
             if (isize <= bsize) {
                 nsize = bsize;
                 expanding = false;
-                res = Utils.createArray(typedBase, nsize, dimensions, names);
+                res = Utils.createArray(typedBase, nsize, dimensions, names, base.attributesRef());
             } else {
                 expanding = true;
                 // drop dimensions
                 nsize = isize;
-                res = Utils.createArray(typedBase, nsize, names != null);
+                res = Utils.createArray(typedBase, nsize, names != null).setAttributes(base.attributesRef());
             }
             int ii = 0;
             int vi = 0;
@@ -2481,7 +2482,7 @@ public abstract class UpdateVector extends BaseR {
                     nnames = Names.create(nsymbols, nmap);
                 }
             }
-            RArray res = Utils.createArray(typedBase, nsize, null, nnames);
+            RArray res = Utils.createArray(typedBase, nsize, null, nnames, base.attributesRef());
             for (int bi = 0; bi < bsize; bi++) {
                 res.set(bi, typedBase.get(bi));
             }
@@ -2823,7 +2824,7 @@ public abstract class UpdateVector extends BaseR {
             if (myNames == null) {
                 myNames = new RArray.MappedNames(size);
             }
-            RArray res = Utils.createArray(base, size + 1, base.dimensions(), UpdateVector.appendName(myNames, idx));
+            RArray res = Utils.createArray(base, size + 1, base.dimensions(), UpdateVector.appendName(myNames, idx), base.attributesRef());
             for (int i = 0; i < size; ++i) {
                 res.set(i, base.get(i));
             }
@@ -2834,7 +2835,7 @@ public abstract class UpdateVector extends BaseR {
         /** Creates a copy of the given list and then updates the specified position in it.
          */
         protected static RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
-            RArray res = Utils.createArray(base, size, base.dimensions(), names);
+            RArray res = Utils.createArray(base, size, base.dimensions(), names, base.attributesRef());
             for (int i = 0; i < pos; ++i) {
                 res.set(i, base.get(i));
             }

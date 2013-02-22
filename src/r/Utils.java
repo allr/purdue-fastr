@@ -1,6 +1,7 @@
 package r;
 
 import r.data.*;
+import r.data.RAny.Attributes;
 import r.data.RArray.Names;
 import r.errors.*;
 
@@ -105,27 +106,27 @@ public final class Utils {
         return null;
     }
 
-    public static RArray createArray(RAny type, int size, int[] dimensions, Names names) {
+    public static RArray createArray(RAny type, int size, int[] dimensions, Names names, Attributes attributes) {
         if (type instanceof RInt) {
-            return RInt.RIntFactory.getUninitializedArray(size, dimensions, names);
+            return RInt.RIntFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RDouble) {
-            return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions, names);
+            return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RLogical) {
-            return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions, names);
+            return RLogical.RLogicalFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RList) {
-            return RList.RListFactory.getUninitializedArray(size, dimensions, names);
+            return RList.RListFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RString) {
-            return RString.RStringFactory.getUninitializedArray(size, dimensions, names);
+            return RString.RStringFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RRaw) {
-            return RRaw.RRawFactory.getUninitializedArray(size, dimensions, names);
+            return RRaw.RRawFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         if (type instanceof RComplex) {
-            return RComplex.RComplexFactory.getUninitializedArray(size, dimensions, names);
+            return RComplex.RComplexFactory.getUninitializedArray(size, dimensions, names, attributes);
         }
         Utils.nyi("unsupported array type");
         return null;
