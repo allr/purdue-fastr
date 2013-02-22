@@ -84,7 +84,7 @@ public class Outer {
                     RAny y = args[paramPositions[IY]];
                     RAny f = args[paramPositions[IFUN]];
 
-                    return outer(ast, frame, x, y, f);
+                    return outer(frame, x, y, f);
                 }
             };
         }
@@ -105,7 +105,7 @@ public class Outer {
             this.yArgProvider = adoptChild(yArgProvider);
         }
 
-        public RAny outer(ASTNode ast, Frame frame, RAny xarg, RAny yarg, RAny farg) {
+        public RAny outer(Frame frame, RAny xarg, RAny yarg, RAny farg) {
             if (!(xarg instanceof RArray && yarg instanceof RArray)) {
                 Utils.nyi("unsupported type");
                 return null;

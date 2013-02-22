@@ -219,6 +219,11 @@ public class Rep {
                     return orig.getRaw(i % origSize);
                 }
 
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
+                }
+
             };
         } else {
             return RRawFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -244,6 +249,11 @@ public class Rep {
                 @Override
                 public int getLogical(int i) {
                     return orig.getLogical(i % origSize);
+                }
+
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
                 }
             };
         } else {
@@ -272,6 +282,11 @@ public class Rep {
                 public int getInt(int i) {
                     return orig.getInt(i % origSize);
                 }
+
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
+                }
             };
         } else {
             return RIntFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -297,6 +312,11 @@ public class Rep {
                 @Override
                 public double getDouble(int i) {
                     return orig.getDouble(i % origSize);
+                }
+
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
                 }
 
             };
@@ -330,6 +350,11 @@ public class Rep {
                 public double getImag(int i) {
                     return orig.getImag(i % origSize);
                 }
+
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
+                }
             };
         } else {
             return RComplexFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -355,6 +380,11 @@ public class Rep {
                 @Override
                 public String getString(int i) {
                     return orig.getString(i % origSize);
+                }
+
+                @Override
+                public Attributes attributes() { // drop attributes
+                    return null;
                 }
             };
         } else {

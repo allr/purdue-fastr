@@ -28,7 +28,7 @@ public class MathFunctions {
         public RDouble calc(final ASTNode ast, final RDouble value) {
             final int size = value.size();
             if (size == 1) {
-                return RDouble.RDoubleFactory.getScalar(op.op(ast, value.getDouble(0)), value.dimensions(), value.names());
+                return RDouble.RDoubleFactory.getScalar(op.op(ast, value.getDouble(0)), value.dimensions(), value.names(), value.attributesRef());
             } else if (size > 0) {
                 return new View.RDoubleProxy<RDouble>(value) {
 

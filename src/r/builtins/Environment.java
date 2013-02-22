@@ -32,12 +32,12 @@ public class Environment {
 
         private final String[] paramNames = new String[] {"hash", "parent", "size"};
 
-        private final int IHASH = 0;
-        private final int IPARENT = 1;
-        private final int ISIZE = 2;
+        private static final int IHASH = 0;
+        private static final int IPARENT = 1;
+        private static final int ISIZE = 2;
 
-        private final int DEFAULT_SIZE = 29;
-        private final boolean DEFAULT_HASH = true;
+        private static final int DEFAULT_SIZE = 29;
+        private static final boolean DEFAULT_HASH = true;
 
         // FIXME: note that R coerces to int instead of logical that one could expect here
         private boolean parseHash(RAny arg, ASTNode ast) { // not exactly R semantics
@@ -141,13 +141,13 @@ public class Environment {
         // "immediate" argument is ignored by GNU-R
         private final String[] paramNames = new String[] {"x", "value", "pos", "envir", "inherits", "immediate"};
 
-        private final int IX = 0;
-        private final int IVALUE = 1;
-        private final int IPOS = 2;
-        private final int IENVIR = 3;
-        private final int IINHERITS = 4;
+        private static final int IX = 0;
+        private static final int IVALUE = 1;
+        private static final int IPOS = 2;
+        private static final int IENVIR = 3;
+        private static final int IINHERITS = 4;
 
-        private final boolean DEFAULT_INHERITS = false;
+        private static final boolean DEFAULT_INHERITS = false;
 
         private RSymbol parseX(RAny arg, ASTNode ast) {
             if (arg instanceof RString) {
@@ -213,13 +213,13 @@ public class Environment {
 
         private final String[] paramNames = new String[] {"x", "pos", "envir", "mode", "inherits"};
 
-        private final int IX = 0;
-        private final int IPOS = 1;
-        private final int IENVIR = 2;
-        private final int IMODE = 3;
-        private final int IINHERITS = 4;
+        private static final int IX = 0;
+        private static final int IPOS = 1;
+        private static final int IENVIR = 2;
+        private static final int IMODE = 3;
+        private static final int IINHERITS = 4;
 
-        private final boolean DEFAULT_INHERITS = true;
+        private static final boolean DEFAULT_INHERITS = true;
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -262,14 +262,14 @@ public class Environment {
 
         private final String[] paramNames = new String[] {"x", "where", "envir", "frame", "mode", "inherits"};
 
-        private final int IX = 0;
-        private final int IWHERE = 1;
-        private final int IENVIR = 2;
-        private final int IFRAME = 3;
-        private final int IMODE = 4;
-        private final int IINHERITS = 5;
+        private static final int IX = 0;
+        private static final int IWHERE = 1;
+        private static final int IENVIR = 2;
+        private static final int IFRAME = 3;
+        private static final int IMODE = 4;
+        private static final int IINHERITS = 5;
 
-        private final boolean DEFAULT_INHERITS = true;
+        private static final boolean DEFAULT_INHERITS = true;
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -311,11 +311,11 @@ public class Environment {
 
         private final String[] paramNames = new String[] {"name", "pos", "envir", "all.names", "pattern"};
 
-        private final int INAME = 0;
-        private final int IPOS = 1;
-        private final int IENVIR = 2;
-        private final int IALLNAMES = 3;
-        private final int IPATTERN = 4;
+        private static final int INAME = 0;
+        private static final int IPOS = 1;
+        private static final int IENVIR = 2;
+        private static final int IALLNAMES = 3;
+        private static final int IPATTERN = 4;
 
         @Override
         public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -341,9 +341,9 @@ public class Environment {
                         RAny posArg = provided[IPOS] ? args[paramPositions[IPOS]] : null;
                         envir = extractEnvironment(envirArg, posArg, frame, ast);
                     }
-                    String[] names = Convert.symbols2strings(envir.ls());
-                    Arrays.sort(names);
-                    return RString.RStringFactory.getFor(names);
+                    String[] varNames = Convert.symbols2strings(envir.ls());
+                    Arrays.sort(varNames);
+                    return RString.RStringFactory.getFor(varNames);
                 }
             };
         }

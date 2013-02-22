@@ -35,7 +35,7 @@ public class Transpose {
                             int m = dim[0];
                             int n = dim[1];
                             int[] ndim = new int[] {n, m};
-                            RArray res = Utils.createArray(a, size);
+                            RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
                             for (int i = 0; i < m; i++) {
                                 for (int j = 0; j < n; j++) {
                                     res.set(i * n + j, a.getRef(j * m + i));

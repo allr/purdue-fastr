@@ -64,7 +64,7 @@ public class Aperm {
                 boolean[] usedIndices = new boolean[result.length];
                 RArray perm = (RArray) params[paramPositions[IPERM]];
                 if (perm.size() != aryDim.length) {
-                    throw RError.getValueIsOfWrongLength(ast, "perm");
+                    throw RError.getValueIsOfWrongLength(ast, paramNames[IPERM]);
                 }
                 if (perm instanceof RComplex) {
                     RContext.warning(ast, RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
@@ -73,12 +73,12 @@ public class Aperm {
                 for (int i = 0; i < result.length; ++i) {
                     int x = p.getInt(i);
                     if ((x < 1) || (x > aryDim.length)) {
-                        throw RError.getValueOutOfRange(ast, "perm");
+                        throw RError.getValueOutOfRange(ast, paramNames[IPERM]);
                     }
                     --x;
                     result[i] = x;
                     if (usedIndices[x] == true) {
-                        throw RError.getInvalidArgument(ast, "perm");
+                        throw RError.getInvalidArgument(ast, paramNames[IPERM]);
                     } else {
                         usedIndices[x] = true;
                     }
@@ -98,7 +98,7 @@ public class Aperm {
 
         /** Using given permutation, permutes source and stores the result in dest.
          */
-        protected final void perm(int[] source, int[] dest,  int[] perm) {
+        protected static final void perm(int[] source, int[] dest,  int[] perm) {
             for (int i = 0; i < perm.length; ++i) {
                 dest[i] = source[perm[i]];
             }
@@ -107,7 +107,7 @@ public class Aperm {
         /** Increments the given index using the dimensions provided. The least significant value is the one on the
          * left (index 0). Does not check for overflow.
          */
-        protected final void increment(int[] idx, int[] dim) {
+        protected static final void increment(int[] idx, int[] dim) {
             int i = 0;
             while (i < idx.length) {
                 ++idx[i];
@@ -122,7 +122,7 @@ public class Aperm {
         /** Given the curent index and precomputed multipliers of the respective index positions calculates the offset
          * to a vector from the index into dimensions.
          */
-        protected final int offset(int[] idx, int[] mults) {
+        protected static final int offset(int[] idx, int[] mults) {
             int result = 0;
             for (int i = 0; i < idx.length; ++i) {
                 result += idx[i] * mults[i];
@@ -132,7 +132,7 @@ public class Aperm {
 
         /** Calculates the dimension multipliers that are used later in the offset method.
          */
-        protected final int[] createDimMults(int[] dim) {
+        protected static final int[] createDimMults(int[] dim) {
             int[] result = new int[dim.length];
             result[0] = 1;
             for (int i = 1; i < result.length; ++i) {
@@ -143,7 +143,7 @@ public class Aperm {
 
         /** Calculates the resized dimensions for the aperm builtin.
          */
-        protected final int[] calculateResizedDimension(int[] aryDim, int[] perm) {
+        protected static final int[] calculateResizedDimension(int[] aryDim, int[] perm) {
             int[] result = new int[aryDim.length];
             for (int i = 0; i < perm.length; ++i) {
                 result[i] = aryDim[perm[i]];
@@ -172,7 +172,7 @@ public class Aperm {
             int arySize = ary.size();
             int[] aryDim = ary.dimensions();
             int[] resultDim = calculateResizedDimension(aryDim, perm);
-            RArray result = Utils.createArray(ary, arySize, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
+            RArray result = Utils.createArray(ary, arySize, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             int[] idx = new int[aryDim.length];
             int[] resultIdx = new int[aryDim.length];
             int[] dimMults = createDimMults(resultDim);
@@ -243,7 +243,7 @@ public class Aperm {
                     dest[offset] = source[i];
                     increment(idx, aryDim);
                 }
-                return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
+                return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
@@ -279,7 +279,7 @@ public class Aperm {
                     dest[offset] = source[i];
                     increment(idx, aryDim);
                 }
-                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
+                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
@@ -316,7 +316,7 @@ public class Aperm {
                     dest[(offset << 1) + 1] = source[(i << 1) + 1];
                     increment(idx, aryDim);
                 }
-                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
+                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }

@@ -20,7 +20,7 @@ public class TriangularPart {
 
         public abstract RArray triangular(int m, int n, boolean diag);
 
-        public RAny triangular(ASTNode ast, RAny argx, boolean diag) {
+        public RAny triangular(RAny argx, boolean diag) {
             if (!(argx instanceof RArray)) {    // FIXME: this could be faster using node rewriting
                 Utils.nyi("unsupported (invalid) argument type");
                 return null;
@@ -43,17 +43,17 @@ public class TriangularPart {
                 RArray diag = (RArray) argdiag;
                 int size = diag.size();
                 if (size == 0) {
-                    throw RError.getInvalidArgument(ast, "diag");
+                    throw RError.getInvalidArgument(ast, paramNames[IDIAG]);
                 }
                 if (size > 1) {
                     RContext.warning(ast, RError.LENGTH_GT_1);
                 }
                 int l = diag.asLogical().getLogical(0);
                 if (l != RLogical.NA) {
-                    return triangular(ast, argx, l == RLogical.TRUE);
+                    return triangular(argx, l == RLogical.TRUE);
                 }
             }
-            throw RError.getInvalidArgument(ast, "diag");
+            throw RError.getInvalidArgument(ast, paramNames[IDIAG]);
         }
     }
 
@@ -116,12 +116,15 @@ public class TriangularPart {
 
                     @Override
                     public final RAny doBuiltIn(Frame frame, RAny argx) {
-                        return UPPER.triangular(ast, argx, false);
+                        return UPPER.triangular(argx, false);
                     }
 
                 };
             }
             // names.length == 2
+            if (!provided[IDIAG]) {
+                BuiltIn.missingArg(call, paramNames[IDIAG]);
+            }
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override
                 public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {

@@ -351,8 +351,8 @@ public class Sort {
                             }
                             RAny p = params[i];
                             if (p instanceof RArray) {
-                                RArray a = (RArray) p;
-                                int size = a.size();
+                                RArray arr = (RArray) p;
+                                int size = arr.size();
                                 if (size != asize) {
                                     if (asize == -1) {
                                         asize = size;
@@ -360,7 +360,7 @@ public class Sort {
                                         throw RError.getArgumentLengthsDiffer(ast);
                                     }
                                 }
-                                keys[j++] = a.materialize();
+                                keys[j++] = arr.materialize();
                             } else {
                                 throw RError.getArgumentNotVector(ast, i);
                             }

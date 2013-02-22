@@ -19,6 +19,11 @@ public class Rev {
             public String getString(int i) {
                 return orig.getString(size - i);
             }
+
+            @Override
+            public Attributes attributes() { // drop attributes
+                return null;
+            }
         };
     }
 
@@ -29,6 +34,11 @@ public class Rev {
             @Override
             public int getLogical(int i) {
                 return orig.getLogical(size - i);
+            }
+
+            @Override
+            public Attributes attributes() { // drop attributes
+                return null;
             }
         };
     }
@@ -41,6 +51,11 @@ public class Rev {
             public int getInt(int i) {
                 return orig.getInt(size - i);
             }
+
+            @Override
+            public Attributes attributes() { // drop attributes
+                return null;
+            }
         };
     }
 
@@ -52,30 +67,53 @@ public class Rev {
             public double getDouble(int i) {
                 return orig.getDouble(size - i);
             }
+
+            @Override
+            public Attributes attributes() { // drop attributes
+                return null;
+            }
         };
     }
 
+    // FIXME: should do type-specialization
     public static RAny rev(RAny arg) {
-        if (arg instanceof RDouble) {
-            return rev((RDouble) arg);
-        }
-        if (arg instanceof RInt) {
-            return rev((RInt) arg);
-        }
-        if (arg instanceof RLogical) {
-            return rev((RLogical) arg);
-        }
-        if (arg instanceof RString) {
-            return rev((RString) arg);
-        }
 
         // default implementation
         if (!(arg instanceof RArray)) {
             Utils.nyi("unsupported type");
+            return null;
         }
         RArray a = (RArray) arg;
-        int size =  a.size();
-        RArray res = Utils.createArray(arg, size);
+        RArray.Names names = a.names();
+        int size;
+        if (names == null) {
+            if (arg instanceof RDouble) {
+                return rev((RDouble) arg);
+            }
+            if (arg instanceof RInt) {
+                return rev((RInt) arg);
+            }
+            if (arg instanceof RLogical) {
+                return rev((RLogical) arg);
+            }
+            if (arg instanceof RString) {
+                return rev((RString) arg);
+            }
+            size = a.size();
+        } else {
+            // reverse names
+
+            RSymbol[] symbols = names.sequence();
+            size = a.size();
+            assert Utils.check(size == symbols.length);
+            RSymbol[] rsymbols = new RSymbol[size];
+            for (int i = 0; i < size; i++) {
+                rsymbols[i] = symbols[size - i - 1];
+            }
+            names = RArray.Names.create(rsymbols);
+        }
+
+        RArray res = Utils.createArray(a, size, null, names, null); // drop attributes
         for (int i = 0; i < size; i++) {
             res.set(i, a.getRef(size - 1 - i));
         }
