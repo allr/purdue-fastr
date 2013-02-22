@@ -208,11 +208,7 @@ public abstract class UnaryMinus extends BaseR {
                 if (vsize == 0) {
                     throw RError.getInvalidArgTypeUnary(ast);
                 }
-                return new View.RComplexView() {
-                    @Override
-                    public int size() {
-                        return vsize;
-                    }
+                return new View.RComplexProxy<RComplex>(cvalue) {
 
                     @Override
                     public double getReal(int i) {
@@ -233,16 +229,6 @@ public abstract class UnaryMinus extends BaseR {
                             return d;
                         }
                     }
-
-                    @Override
-                    public boolean isSharedReal() {
-                        return cvalue.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        cvalue.ref();
-                    }
                 };
             }
             if (value instanceof RDouble) {
@@ -251,11 +237,7 @@ public abstract class UnaryMinus extends BaseR {
                 if (vsize == 0) {
                     throw RError.getInvalidArgTypeUnary(ast);
                 }
-                return new View.RDoubleView() {
-                    @Override
-                    public int size() {
-                        return vsize;
-                    }
+                return new View.RDoubleProxy<RDouble>(dvalue) {
 
                     @Override
                     public double getDouble(int i) {
@@ -266,16 +248,6 @@ public abstract class UnaryMinus extends BaseR {
                             return -d;
                         }
                     }
-
-                    @Override
-                    public boolean isSharedReal() {
-                        return dvalue.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        dvalue.ref();
-                    }
                 };
             }
             if (value instanceof RInt || value instanceof RLogical) {
@@ -284,11 +256,7 @@ public abstract class UnaryMinus extends BaseR {
                 if (vsize == 0) {
                     throw RError.getInvalidArgTypeUnary(ast);
                 }
-                return new View.RIntView() {
-                    @Override
-                    public int size() {
-                        return vsize;
-                    }
+                return new View.RIntProxy<RInt>(ivalue) {
 
                     @Override
                     public int getInt(int i) {
@@ -298,16 +266,6 @@ public abstract class UnaryMinus extends BaseR {
                         } else {
                             return -v;
                         }
-                    }
-
-                    @Override
-                    public boolean isSharedReal() {
-                        return ivalue.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        ivalue.ref();
                     }
                 };
             }

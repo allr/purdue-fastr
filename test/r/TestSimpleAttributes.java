@@ -35,6 +35,18 @@ public class TestSimpleAttributes extends TestBase {
         assertEval("{ x <- 1:2;  attr(x, \"hi\") <- 2 ; y <- 2:3 ; attr(y,\"hello\") <- 3; x+y }", "3L, 5L\nattr(,\"hello\")\n3.0\nattr(,\"hi\")\n2.0");
         assertEval("{ x <- 1;  attr(x, \"hi\") <- 1+2 ; y <- 2:3 ; attr(y, \"zz\") <- 2; x+y }", "3.0, 4.0\nattr(,\"zz\")\n2.0");
         assertEval("{ x <- 1:2 ;  attr(x, \"hi\") <- 3 ; attr(x, \"hihi\") <- 10 ; y <- 2:3 ; attr(y,\"zz\") <- 2; attr(y,\"hi\") <-3; attr(y,\"bye\") <- 4 ; x+y }", "3L, 5L\nattr(,\"zz\")\n2.0\nattr(,\"hi\")\n3.0\nattr(,\"bye\")\n4.0\nattr(,\"hihi\")\n10.0");
+
+        assertEval("{ x <- c(a=1,b=2) ;  attr(x, \"hi\") <- 2 ;  -x  }", "   a    b\n-1.0 -2.0\nattr(,\"hi\")\n2.0");
+
+    }
+
+    @Test
+    public void testNonPropagation() throws RecognitionException {
+        assertEval("{ x <- 1:2;  attr(x, \"hi\") <- 2 ;  x & x }", "TRUE, TRUE");
+        assertEval("{ x <- as.raw(1:2);  attr(x, \"hi\") <- 2 ;  x & x }", "01, 02");
+        assertEval("{ x <- 1:2;  attr(x, \"hi\") <- 2 ;  x == x }", "TRUE, TRUE");
+        assertEval("{ x <- 1:2 ;  attr(x, \"hi\") <- 2 ;  !x  }", "FALSE, FALSE");
+        assertEval("{ x <- c(a=FALSE,b=TRUE) ;  attr(x, \"hi\") <- 2 ;  !x  }", "   a     b\nTRUE FALSE");
     }
 
     @Test

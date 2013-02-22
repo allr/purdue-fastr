@@ -173,6 +173,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RRawProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -314,6 +315,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RLogicalProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -450,6 +452,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RIntProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -591,6 +594,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RDoubleProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -732,6 +736,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RComplexProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -878,6 +883,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RStringProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override
@@ -1014,6 +1020,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public RListProxy(O orig) {
             this.orig = orig;
+            Attributes.markShared(orig.attributes());
         }
 
         @Override

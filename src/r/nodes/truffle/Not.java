@@ -34,18 +34,14 @@ public abstract class Not extends BaseR {
         @Override
         RAny execute(RAny value) {
             try {
-                if (!(value instanceof RLogical)) {
+                if (value instanceof ScalarLogicalImpl) {
+                    switch(((ScalarLogicalImpl) value).getLogical()) {
+                        case RLogical.TRUE: return RLogical.BOXED_FALSE;
+                        case RLogical.FALSE: return RLogical.BOXED_TRUE;
+                        default: return RLogical.BOXED_NA;
+                    }
+                } else {
                     throw new UnexpectedResultException(null);
-                }
-                RLogical lvalue = (RLogical) value;
-                if (lvalue.size() != 1) {
-                    throw new UnexpectedResultException(null);
-                }
-                int l = lvalue.getLogical(0);
-                switch(l) {
-                    case RLogical.TRUE: return RLogical.BOXED_FALSE;
-                    case RLogical.FALSE: return RLogical.BOXED_TRUE;
-                    default: return RLogical.BOXED_NA;
                 }
             } catch (UnexpectedResultException e) {
                 RawScalar n = new RawScalar(ast, lhs);  // FIXME: also create a specialized note for a logical vector
@@ -68,7 +64,8 @@ public abstract class Not extends BaseR {
                     throw new UnexpectedResultException(null);
                 }
                 RRaw rvalue = (RRaw) value;
-                if (rvalue.size() != 1) {
+                // TODO: get rid of this, perhaps by creating a ScalarRawImpl type
+                if (rvalue.size() != 1 || rvalue.dimensions() != null || rvalue.names() != null || rvalue.attributes() != null) {
                     throw new UnexpectedResultException(null);
                 }
                 byte b = rvalue.getRaw(0);
@@ -90,13 +87,8 @@ public abstract class Not extends BaseR {
         RAny execute(RAny value) {
             if (value instanceof RLogical || value instanceof RDouble || value instanceof RInt) {
                 final RLogical lvalue = value.asLogical();
-                final int vsize = lvalue.size();
 
-                return new View.RLogicalView() {
-                    @Override
-                    public int size() {
-                        return vsize;
-                    }
+                return new View.RLogicalProxy<RLogical>(lvalue) {
 
                     @Override
                     public int getLogical(int i) {
@@ -111,25 +103,16 @@ public abstract class Not extends BaseR {
                     }
 
                     @Override
-                    public boolean isSharedReal() {
-                        return lvalue.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        lvalue.ref();
+                    public Attributes attributes() {
+                        return null; // drop attributes
+                        // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
                 };
             }
             if (value instanceof RRaw) {
                 final RRaw rvalue = (RRaw) value;
-                final int vsize = rvalue.size();
 
-                return new View.RRawView() {
-                    @Override
-                    public int size() {
-                        return vsize;
-                    }
+                return new View.RRawProxy<RRaw>(rvalue) {
 
                     @Override
                     public byte getRaw(int i) {
@@ -138,13 +121,9 @@ public abstract class Not extends BaseR {
                     }
 
                     @Override
-                    public boolean isSharedReal() {
-                        return rvalue.isShared();
-                    }
-
-                    @Override
-                    public void ref() {
-                        rvalue.ref();
+                    public Attributes attributes() {
+                        return null; // drop attributes
+                        // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
                 };
             }
