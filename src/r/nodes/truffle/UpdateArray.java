@@ -4,6 +4,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.*;
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
@@ -399,7 +400,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                         case LOGICAL:
                             return ValueCopy.LOGICAL_TO_DOUBLE;
                         case INT:
-                            return ValueCopy.INT_TO_DOUBLE;
+                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof IntImpl) ? ValueCopy.INT_TO_DOUBLE_DIRECT : ValueCopy.INT_TO_DOUBLE;
                     }
                     break;
                 case COMPLEX: // complex does not fit to logical, int and double
@@ -407,9 +408,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                         case LOGICAL:
                             return ValueCopy.LOGICAL_TO_COMPLEX;
                         case INT:
-                            return ValueCopy.INT_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof IntImpl) ? ValueCopy.INT_TO_COMPLEX_DIRECT : ValueCopy.INT_TO_COMPLEX;
                         case DOUBLE:
-                            return ValueCopy.DOUBLE_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_COMPLEX_DIRECT : ValueCopy.DOUBLE_TO_COMPLEX;
                     }
                     break;
                 case STRING: // string only fits into a string
@@ -433,11 +434,11 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 case LOGICAL:
                     return ValueCopy.LOGICAL_TO_LOGICAL;
                 case INT:
-                    return ValueCopy.INT_TO_INT;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof IntImpl) ? ValueCopy.INT_TO_INT_DIRECT : ValueCopy.INT_TO_INT;
                 case DOUBLE:
-                    return ValueCopy.DOUBLE_TO_DOUBLE;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_DOUBLE_DIRECT : ValueCopy.DOUBLE_TO_DOUBLE;
                 case COMPLEX:
-                    return ValueCopy.COMPLEX_TO_COMPLEX;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof ComplexImpl) ? ValueCopy.COMPLEX_TO_COMPLEX_DIRECT : ValueCopy.COMPLEX_TO_COMPLEX;
                 case STRING:
                     return ValueCopy.STRING_TO_STRING;
                 default:
@@ -535,7 +536,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                         case LOGICAL:
                             return ValueCopy.LOGICAL_TO_DOUBLE;
                         case INT:
-                            return ValueCopy.INT_TO_DOUBLE;
+                            return (Configuration.ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS &&  rhs instanceof IntImpl) ? ValueCopy.INT_TO_DOUBLE_DIRECT : ValueCopy.INT_TO_DOUBLE;
                     }
                     break;
                 case COMPLEX:
@@ -543,9 +544,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                         case LOGICAL:
                             return ValueCopy.LOGICAL_TO_COMPLEX;
                         case INT:
-                            return ValueCopy.INT_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS &&  rhs instanceof IntImpl) ? ValueCopy.INT_TO_COMPLEX_DIRECT : ValueCopy.INT_TO_COMPLEX;
                         case DOUBLE:
-                            return ValueCopy.DOUBLE_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS &&  rhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_COMPLEX_DIRECT : ValueCopy.DOUBLE_TO_COMPLEX;
                     }
                     break;
                 case STRING:
@@ -1011,6 +1012,11 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
 /**
  * Holds the list of all possible copies / typecasts that can be done on vector and their
  * implementations. Their names are self explanatory.
+ *
+ * the _DIRECT suffixed copies utilize the direct access to the source array and fail if the direct access cannot be
+ * obtained. Direct access is supported only for numeric (int, double, complex) arrays and can be turned on or off for
+ * either LHS or RHS by updating the flags ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS or
+ * ARRAY_UPDATE_RHS_VALUECOPY_DIRECT_ACCESS.
  */
 class ValueCopy {
 
@@ -1050,7 +1056,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getLogical(i);
             }
-            return RLogical.RLogicalFactory.getFor(result, from.dimensions(), null);
+            return RLogical.RLogicalFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1066,7 +1072,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2int(from.getLogical(i));
             }
-            return RInt.RIntFactory.getFor(result, from.dimensions(), null);
+            return RInt.RIntFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1082,7 +1088,21 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getInt(i);
             }
-            return RInt.RIntFactory.getFor(result, from.dimensions(), null);
+            return RInt.RIntFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Impl INT_TO_INT_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof IntImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RInt old = (RInt) what;
+            int[] from = ((IntImpl) what).getContent();
+            int[] result = new int[from.length];
+            System.arraycopy(from, 0, result, 0, result.length);
+            return RInt.RIntFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
     };
 
@@ -1098,7 +1118,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2double(from.getLogical(i));
             }
-            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1114,7 +1134,23 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.int2double(from.getInt(i));
             }
-            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Impl INT_TO_DOUBLE_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof IntImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RInt old = (RInt) what;
+            int[] from = ((IntImpl) what).getContent();
+            double[] result = new double[from.length];
+            for (int i = 0; i < result.length; ++i) {
+                result[i] = from[i];
+            }
+            return RDouble.RDoubleFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
     };
 
@@ -1130,7 +1166,21 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getDouble(i);
             }
-            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), null);
+            return RDouble.RDoubleFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Impl DOUBLE_TO_DOUBLE_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof DoubleImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RDouble old = (RDouble) what;
+            double[] from = ((DoubleImpl) what).getContent();
+            double[] result = new double[from.length];
+            System.arraycopy(from, 0, result, 0, result.length);
+            return RDouble.RDoubleFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
     };
 
@@ -1147,7 +1197,7 @@ class ValueCopy {
                 result[i << 1] = from.getLogical(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1164,9 +1214,26 @@ class ValueCopy {
                 result[i << 1] = from.getInt(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
+
+    public static final Impl INT_TO_COMPLEX_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof IntImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RInt old = (RInt) what;
+            int[] from = ((IntImpl) what).getContent();
+            double[] result = new double[from.length * 2];
+            for (int i = 0; i < from.length; ++i) {
+                result[i << 1] = from[i];
+            }
+            return RComplex.RComplexFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
+        }
+    };
+
 
     public static final Impl DOUBLE_TO_COMPLEX = new Impl() {
 
@@ -1181,7 +1248,23 @@ class ValueCopy {
                 result[i << 1] = from.getDouble(i);
                 // img[i] is 0
             }
-            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Impl DOUBLE_TO_COMPLEX_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof DoubleImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RDouble old = (RDouble) what;
+            double[] from = ((DoubleImpl) what).getContent();
+            double[] result = new double[from.length * 2];
+            for (int i = 0; i < from.length; ++i) {
+                result[i << 1] = from[i];
+            }
+            return RComplex.RComplexFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
     };
 
@@ -1198,7 +1281,21 @@ class ValueCopy {
                 result[i << 1 ] = from.getReal(i);
                 result[(i << 1) + 1] = from.getImag(i);
             }
-            return RComplex.RComplexFactory.getFor(result, from.dimensions(), null);
+            return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Impl COMPLEX_TO_COMPLEX_DIRECT = new Impl() {
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof ComplexImpl)) {
+                throw new UnexpectedResultException(null);
+            }
+            RComplex old = (RComplex) what;
+            double[] from = ((ComplexImpl) what).getContent();
+            double[] result = new double[from.length];
+            System.arraycopy(from, 0, result, 0, result.length);
+            return RComplex.RComplexFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
     };
 
@@ -1214,7 +1311,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.logical2string(from.getLogical(i));
             }
-            return RString.RStringFactory.getFor(result, from.dimensions(), null);
+            return RString.RStringFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1230,7 +1327,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.int2string(from.getInt(i));
             }
-            return RString.RStringFactory.getFor(result, from.dimensions(), null);
+            return RString.RStringFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1246,7 +1343,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.double2string(from.getDouble(i));
             }
-            return RString.RStringFactory.getFor(result, from.dimensions(), null);
+            return RString.RStringFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1262,7 +1359,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = Convert.complex2string(from.getReal(i), from.getImag(i));
             }
-            return RString.RStringFactory.getFor(result, from.dimensions(), null);
+            return RString.RStringFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1278,7 +1375,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getString(i);
             }
-            return RString.RStringFactory.getFor(result, from.dimensions(), null);
+            return RString.RStringFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
@@ -1295,7 +1392,7 @@ class ValueCopy {
             for (int i = 0; i < result.length; ++i) {
                 result[i] = from.getRaw(i);
             }
-            return RRaw.RRawFactory.getFor(result, from.dimensions(), null);
+            return RRaw.RRawFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
     };
 
