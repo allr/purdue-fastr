@@ -243,7 +243,7 @@ public class Aperm {
                     dest[offset] = source[i];
                     increment(idx, aryDim);
                 }
-                return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names());
+                return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
@@ -279,7 +279,7 @@ public class Aperm {
                     dest[offset] = source[i];
                     increment(idx, aryDim);
                 }
-                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names());
+                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
@@ -316,7 +316,7 @@ public class Aperm {
                     dest[(offset << 1) + 1] = source[(i << 1) + 1];
                     increment(idx, aryDim);
                 }
-                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names());
+                return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), ary.attributesRef());
             } catch (UnexpectedResultException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
