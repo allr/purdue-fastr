@@ -187,21 +187,27 @@ public class IsNA {
         }
 
         @Override
+        public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+            RAny arg = (RAny) argExprs[0].execute(frame);
+            return executeScalarNonNALogical(frame, arg);
+        }
+
+        @Override
         public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
             RAny arg = (RAny) argExprs[0].execute(frame);
-            return executeScalarLogical(frame, arg);
+            return executeScalarNonNALogical(frame, arg);
         }
 
         @Override
         public final Object execute(Frame frame) {
             try {
-                return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
+                return RLogical.RLogicalFactory.getScalar(executeScalarNonNALogical(frame));
             } catch (UnexpectedResultException e) {
                 return e.getResult();
             }
         }
 
-        public final int executeScalarLogical(Frame frame, RAny arg) throws UnexpectedResultException {
+        public final int executeScalarNonNALogical(Frame frame, RAny arg) throws UnexpectedResultException {
             try {
                 return isNA.isNA(frame, arg);
             } catch (UnexpectedResultException e) {
@@ -211,7 +217,7 @@ public class IsNA {
                     case SCALAR:
                         s = createScalar(ast, argNames, argExprs, arg);
                         replace(s, "install SimpleScalars in IsNA.Specialized");
-                        return s.executeScalarLogical(frame, arg);
+                        return s.executeScalarNonNALogical(frame, arg);
 
                     case GENERIC:
                     default:

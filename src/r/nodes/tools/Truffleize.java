@@ -75,7 +75,11 @@ public class Truffleize implements Visitor {
             }
         }
 
-        result = new r.nodes.truffle.If(ast, rcond, rtrueBranch, rfalseBranch);
+        if (falseBranch == null) {
+            result = new r.nodes.truffle.If.IfNoElse(ast, rcond, rtrueBranch);
+        } else {
+            result = new r.nodes.truffle.If.IfElse(ast, rcond, rtrueBranch, rfalseBranch);
+        }
     }
 
     @Override

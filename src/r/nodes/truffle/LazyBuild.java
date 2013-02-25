@@ -24,4 +24,26 @@ public class LazyBuild extends BaseR {
         }
     }
 
+    @Override
+    public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            RNode node = RContext.createNode(getAST());
+            replace(node, "expandLazyBuildNode");
+            return node.executeScalarLogical(frame);
+        }
+    }
+
+    @Override
+    public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+        try {
+            throw new UnexpectedResultException(null);
+        } catch (UnexpectedResultException e) {
+            RNode node = RContext.createNode(getAST());
+            replace(node, "expandLazyBuildNode");
+            return node.executeScalarNonNALogical(frame);
+        }
+    }
+
 }

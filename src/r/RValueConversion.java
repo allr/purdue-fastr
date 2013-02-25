@@ -14,6 +14,16 @@ public class RValueConversion {
         throw new UnexpectedResultException(value);
     }
 
+    public static int expectScalarNonNALogical(RAny value) throws UnexpectedResultException {
+        if (value instanceof ScalarLogicalImpl) {
+            int res = ((ScalarLogicalImpl) value).getLogical();
+            if (res != RLogical.NA) {
+                return res;
+            }
+        }
+        throw new UnexpectedResultException(value);
+    }
+
     public static RArray expectScalar(RAny value) throws UnexpectedResultException {
         if (value instanceof RArray) {
             RArray array = (RArray) value;

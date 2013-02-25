@@ -52,6 +52,80 @@ public class If extends BaseR {
         throw RError.getUnexpectedNA(getAST());
     }
 
+    public static class IfNoElse extends BaseR {
+        @Child RNode cond;
+        @Child RNode trueBranch;
+
+        public IfNoElse(ASTNode ast, RNode cond, RNode trueBranch) {
+            super(ast);
+            this.cond = adoptChild(cond);
+            this.trueBranch = adoptChild(trueBranch);
+        }
+
+        @Override
+        public final Object execute(Frame frame) {
+            int ifVal;
+
+            try {
+                ifVal = cond.executeScalarNonNALogical(frame);
+            } catch (UnexpectedResultException e) {
+                RAny result = (RAny) e.getResult();
+                ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+                ifVal = castNode.executeScalarLogical(result);
+
+                If ifnode = new If(ast, castNode, trueBranch, r.nodes.truffle.Constant.getNull());
+                replace(ifnode, "install generic If from IfNoElse");
+                if (ifVal == RLogical.NA) {
+                    throw RError.getUnexpectedNA(getAST());
+                }
+            }
+
+            if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
+                return trueBranch.execute(frame);
+            } else {
+                return RNull.getNull();
+            }
+        }
+    }
+
+    public static class IfElse extends BaseR {
+        @Child RNode cond;
+        @Child RNode trueBranch;
+        @Child RNode falseBranch;
+
+        public IfElse(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
+            super(ast);
+            this.cond = adoptChild(cond);
+            this.trueBranch = adoptChild(trueBranch);
+            this.falseBranch = adoptChild(falseBranch);
+        }
+
+        @Override
+        public final Object execute(Frame frame) {
+            int ifVal;
+
+            try {
+                ifVal = cond.executeScalarNonNALogical(frame);
+            } catch (UnexpectedResultException e) {
+                RAny result = (RAny) e.getResult();
+                ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+                ifVal = castNode.executeScalarLogical(result);
+
+                If ifnode = new If(ast, castNode, trueBranch, falseBranch);
+                replace(ifnode, "install generic If from IfNoElse");
+                if (ifVal == RLogical.NA) {
+                    throw RError.getUnexpectedNA(getAST());
+                }
+            }
+
+            if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
+                return trueBranch.execute(frame);
+            } else {
+                return falseBranch.execute(frame);
+            }
+        }
+    }
+
     // scalar comparison against a constant
     public static class IfConst extends BaseR {
         @Child RNode cond;

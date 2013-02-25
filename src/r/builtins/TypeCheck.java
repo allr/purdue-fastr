@@ -41,6 +41,12 @@ public class TypeCheck {
                     RAny value = (RAny) argExprs[0].execute(frame);
                     return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
                 }
+
+                @Override
+                public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+                    RAny value = (RAny) argExprs[0].execute(frame);
+                    return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
+                }
             };
         }
     }

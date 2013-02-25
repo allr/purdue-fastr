@@ -152,6 +152,88 @@ public abstract class FunctionCall extends AbstractCall {
                 return builtInNode.execute(callerFrame);
             }
         }
+
+        // FIXME: essentially copy paste of execute
+        @Override
+        public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
+            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            if (callable == lastClosure) {
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
+                return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
+            }
+            if (callable == lastBuiltIn) {
+                return builtInNode.executeScalarLogical(callerFrame);
+            }
+            if (callable instanceof RClosure) {
+                RClosure closure = (RClosure) callable;
+                RFunction function = closure.function();
+                if (function != closureFunction) {
+                    closureFunction = function;
+                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
+                    functionArgPositions = computePositions(closureFunction, functionArgNames);
+                    functionCallTarget = function.callTarget();
+                }
+                closureEnclosingFrame = closure.enclosingFrame();
+                lastClosure = closure;
+                lastBuiltIn = null;
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
+                return  RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
+            } else {
+                // callable instanceof RBuiltin
+                RBuiltIn builtIn = (RBuiltIn) callable;
+                RSymbol name = builtIn.name();
+                if (name != builtInName) {
+                    builtInName = name;
+                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                }
+                lastBuiltIn = builtIn;
+                lastClosure = null;
+                return builtInNode.executeScalarLogical(callerFrame);
+            }
+        }
+
+        // FIXME: essentially copy paste of execute
+        @Override
+        public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
+            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            if (callable == lastClosure) {
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
+                return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
+            }
+            if (callable == lastBuiltIn) {
+                return builtInNode.executeScalarNonNALogical(callerFrame);
+            }
+            if (callable instanceof RClosure) {
+                RClosure closure = (RClosure) callable;
+                RFunction function = closure.function();
+                if (function != closureFunction) {
+                    closureFunction = function;
+                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
+                    functionArgPositions = computePositions(closureFunction, functionArgNames);
+                    functionCallTarget = function.callTarget();
+                }
+                closureEnclosingFrame = closure.enclosingFrame();
+                lastClosure = closure;
+                lastBuiltIn = null;
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
+                return  RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
+            } else {
+                // callable instanceof RBuiltin
+                RBuiltIn builtIn = (RBuiltIn) callable;
+                RSymbol name = builtIn.name();
+                if (name != builtInName) {
+                    builtInName = name;
+                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                }
+                lastBuiltIn = builtIn;
+                lastClosure = null;
+                return builtInNode.executeScalarNonNALogical(callerFrame);
+            }
+        }
     }
 
     protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
