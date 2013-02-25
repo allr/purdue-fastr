@@ -408,7 +408,7 @@ public class Arithmetic extends BaseR {
                          return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
                      }
                  };
-                 return createLeftConst(ast, left, right, arit, c, "<ScalarComplex, ConstScalarNumber>");
+                 return createRightConst(ast, left, right, arit, c, "<ScalarComplex, ConstScalarNumber>");
             }
             // non-const is double and const is complex
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarComplexImpl)) {
@@ -449,7 +449,7 @@ public class Arithmetic extends BaseR {
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, 0, rreal, rimag), arit.opImag(ast, lreal, 0, rreal, rimag));
                     }
                 };
-                return createLeftConst(ast, left, right, arit, c, "<ScalarDouble, ConstScalarComplex>");
+                return createRightConst(ast, left, right, arit, c, "<ScalarDouble, ConstScalarComplex>");
            }
             // non-const is double
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
@@ -674,6 +674,7 @@ public class Arithmetic extends BaseR {
         }
 
         public static SpecializedConst createLeftConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
+            assert Utils.check(left instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
                 @Override
                 public Object execute(Frame frame) {
@@ -684,6 +685,7 @@ public class Arithmetic extends BaseR {
         }
 
         public static SpecializedConst createRightConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
+            assert Utils.check(right instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
                 @Override
                 public Object execute(Frame frame) {
