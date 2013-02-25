@@ -710,6 +710,10 @@ public abstract class UpdateVector extends BaseR {
             }
             if (pos != -1) {
                 // updating
+                if (base == typedBase && !base.isShared()) {
+                    base.set(pos, rawValue);
+                    return base;
+                }
                 RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                 int i = 0;
                 for (; i < pos; i++) {
