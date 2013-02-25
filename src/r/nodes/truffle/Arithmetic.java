@@ -265,7 +265,7 @@ public class Arithmetic extends BaseR {
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                             }
-                        } else if (rexpr instanceof ScalarIntImpl) {
+                        } else if (lexpr instanceof ScalarIntImpl) {
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             boolean leftIsNA = lint == RInt.NA;
                             if (rexpr instanceof ScalarDoubleImpl) {
@@ -336,6 +336,7 @@ public class Arithmetic extends BaseR {
                     Specialized sn = createSpecializedMultiType(lexpr, rexpr, ast, left, right, arit);
                     if (sn != null) {
                         replace(sn, "install SpecializedMultiType from Specialized");
+                        return sn.execute(lexpr, rexpr);
                     }
                 }
                 Specialized gn = createGeneric(ast, left, right, arit);

@@ -1,11 +1,14 @@
 package r.builtins;
 
+import java.util.*;
+
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.builtins.Apply.*;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.Constant;
@@ -116,11 +119,19 @@ public class Outer {
             int xsize = x.size();
             int ysize = y.size();
 
-            RArray expy = expandYVector(y, ysize, xsize);
-            RArray expx = null;
+            RArray expy;
+            if (y instanceof DoubleImpl) {
+                expy = expandYVector((DoubleImpl) y, ysize, xsize);
+            } else {
+                expy = expandYVector(y, ysize, xsize);
+            }
+            RArray expx;
             if (xsize > 0) {
-//                int count = (int) Math.ceil((double) expy.size() / (double) xsize);
-                expx = expandXVector(x, xsize, ysize);
+                if (x instanceof DoubleImpl) {
+                    expx = expandXVector((DoubleImpl) x, xsize, ysize);
+                } else {
+                    expx = expandXVector(x, xsize, ysize);
+                }
             } else {
                 expx = x;
             }
@@ -173,6 +184,21 @@ public class Outer {
         return res;
     }
 
+    public static RDouble expandYVector(DoubleImpl yarg, int ysize, int count) {
+        int size = ysize;
+        int nsize = size * count;
+        double[] y = yarg.getContent();
+
+        double[] res = new double[nsize];
+        int offset = 0;
+        for (int elem = 0; elem < size; elem++) {
+            double v = y[elem];
+            Arrays.fill(res, offset, offset + count, v);
+            offset += count;
+        }
+        return RDouble.RDoubleFactory.getFor(res);
+    }
+
     public static RArray expandXVector(RArray x, int xsize, int count) {
         int nsize = xsize * count;
 
@@ -185,6 +211,18 @@ public class Outer {
             offset += xsize;
         }
         return res;
+    }
+
+    public static RDouble expandXVector(DoubleImpl xarg, int xsize, int count) {
+        int nsize = xsize * count;
+        double[] x = xarg.getContent();
+        double[] res = new double[nsize];
+        int offset = 0;
+        for (int rep = 0; rep < count; rep++) {
+            System.arraycopy(x, 0, res, offset, x.length);
+            offset += xsize;
+        }
+        return RDouble.RDoubleFactory.getFor(res);
     }
 }
 
