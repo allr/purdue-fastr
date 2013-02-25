@@ -206,7 +206,10 @@ def rbenchmarks(args, vmArgs, vm):
 def rconsole(vmArgs, vm, cArgs):
   """Run R Console with the given VM"""
   global gvmOut
-  gmod.vm( vmArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
+
+  extraArgs = [];
+#  extraArgs = ['-XX:-Inline'];
+  gmod.vm( vmArgs + extraArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
 
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):
   """Run given shootout benchmark using given VM"""

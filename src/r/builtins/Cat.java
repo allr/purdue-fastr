@@ -264,8 +264,10 @@ public class Cat {
                 public final RAny doBuiltIn(Frame frame, RAny[] params) {
                     // assume we are only printing strings and separator is an empty (single-element) string
                     try {
-//                        catStrings(stdOut, params, sepPosition, ast);
-                        catScalarStringsNoCopy(stdOut, params, sepPosition, ast);
+//                        catStringsBuilder(stdOut, params, sepPosition, ast);
+                        catStrings(stdOut, params, sepPosition, ast);
+// not so much better than catStrings, and fasta uses non-scalar strings, so we would need yet another node
+//                        catScalarStringsNoCopy(stdOut, params, sepPosition, ast);
                     } catch (UnexpectedResultException e) {
                         RNode generic = new BuiltIn(ast, argNames, argExprs) {
                             @Override
