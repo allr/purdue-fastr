@@ -2,9 +2,6 @@ package r;
 
 import java.util.*;
 
-import org.netlib.blas.*;
-import org.netlib.lapack.*;
-
 import com.oracle.truffle.api.*;
 
 import r.data.*;
@@ -27,8 +24,6 @@ public class RContext {
     private static final Connection[] connections = new Connection[128];
 
     static {
-        System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
-        System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
         initialize(false);
     }
 

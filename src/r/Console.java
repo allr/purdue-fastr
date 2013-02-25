@@ -4,10 +4,11 @@ import java.io.*;
 import java.util.Scanner;
 
 import org.antlr.runtime.*;
+import org.netlib.blas.*;
+import org.netlib.lapack.*;
 
 import r.data.*;
 import r.nodes.*;
-import r.nodes.Loop;
 import r.nodes.tools.*;
 import r.parser.*;
 
@@ -113,6 +114,8 @@ public class Console {
         try {
             if (interactive || inputFile == null) {
                 RContext.debuggingFormat(true);
+                System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
+                System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 RContext.debuggingFormat(false);
