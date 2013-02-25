@@ -516,6 +516,10 @@ public abstract class UpdateVector extends BaseR {
             if (pos > 0) {
                 if (pos <= bsize) {
                     int zpos = pos - 1;
+                    if (base == typedBase && !base.isShared()) {
+                        base.set(zpos, rawValue);
+                        return base;
+                    }
                     RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                     int i = 0;
                     for (; i < zpos; i++) {
@@ -2538,6 +2542,7 @@ public abstract class UpdateVector extends BaseR {
             RAny res = null;
             RList parent = null;
             int parentIndex = -1;
+            boolean onSharedPath = false;
             if (isize > 1) {
                 for (; i < isize - 1; i++) {  // shallow copy
                     if (!(b instanceof RList)) {
@@ -2548,26 +2553,38 @@ public abstract class UpdateVector extends BaseR {
                     int bsize = l.size();
                     int isel = ReadVector.Subscript.convertDereferencingIndex(indexv, i, bsize, ast);
 
-                    RAny[] content = new RAny[bsize];
-                    int k = 0;
-                    int j = 0;
-                    for (; j < isel; j++) { // shallow copy
-                        content[k++] = l.getRAny(j);
+                    if (l.isShared()) {
+                        onSharedPath = true;
                     }
-                    j++; // skip
-                    k++;
-                    for (; j < bsize; j++) { // shallow copy
-                        content[k++] = l.getRAny(j);
-                    }
-                    RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names());
-                    if (parent != null) {
-                        parent.set(parentIndex, newList);
+                    if (onSharedPath) {
+                        RAny[] content = new RAny[bsize];
+                        int k = 0;
+                        int j = 0;
+                        for (; j < isel; j++) { // shallow copy
+                            content[k++] = l.getRAnyRef(j);
+                        }
+                        j++; // skip
+                        k++;
+                        for (; j < bsize; j++) { // shallow copy
+                            content[k++] = l.getRAnyRef(j);
+                        }
+                        RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names()); // FIXME: this copy can be unnecessary
+                        if (parent != null) {
+                            parent.set(parentIndex, newList);
+                        } else {
+                            res = newList;
+                        }
+                        parent = newList;
+                        b = l.getRAnyRef(isel); // shallow copy
                     } else {
-                        res = newList;
+                        if (parent == null) {
+                            res = l;
+                        }
+                        parent = l;
+                        b = l.getRAny(isel); // shallow copy
                     }
-                    parent = newList;
                     parentIndex = isel;
-                    b = l.getRAny(isel); // shallow copy
+
                 }
             }
             // selection at the last level
