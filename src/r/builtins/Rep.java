@@ -24,6 +24,8 @@ import com.oracle.truffle.api.frame.*;
 // TODO: support list argument
 public class Rep {
 
+    public static final boolean EAGER = true; // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
+
     private static final String[] repIntParamNames = new String[]{"x", "times"};
     private static final String[] repParamNames = new String[]{"x", "..."};
 
@@ -195,13 +197,16 @@ public class Rep {
     }
 
     public static RArray.Names repNames(RArray.Names origNames, int origSize, int size) {
+        if (origNames == null) {
+            return null;
+        }
         return RArray.Names.create(rep(origNames.sequence(), origSize, size));
     }
 
     public static RRaw repInt(final RRaw orig, final int origSize, final int size) {
 
         RArray.Names names = orig.names();
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RRawProxy<RRaw>(orig) {
 
                 @Override
@@ -233,7 +238,7 @@ public class Rep {
     public static RLogical repInt(final RLogical orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RLogicalProxy<RLogical>(orig) {
 
                 @Override
@@ -265,7 +270,7 @@ public class Rep {
     public static RInt repInt(final RInt orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RIntProxy<RInt>(orig) {
 
                 @Override
@@ -296,7 +301,7 @@ public class Rep {
     public static RDouble repInt(final RDouble orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RDoubleProxy<RDouble>(orig) {
 
                 @Override
@@ -328,7 +333,7 @@ public class Rep {
     public static RComplex repInt(final RComplex orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RComplexProxy<RComplex>(orig) {
 
                 @Override
@@ -364,7 +369,7 @@ public class Rep {
     public static RString repInt(final RString orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
-        if (names == null) {
+        if (!EAGER && names == null) {
             return new View.RStringProxy<RString>(orig) {
 
                 @Override
