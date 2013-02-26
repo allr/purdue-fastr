@@ -32,4 +32,14 @@ public class Configuration {
      */
     public static final boolean ARRAY_UPDATE_DIRECT_SPECIALIZATIONS = true;
 
+    /** Determines if the Generalized case of the ArrayUpdate attempts to use the update methods from the direct
+     * specializations, or not.
+     */
+    public static final boolean ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED = true;
+
+    /** If true, the latest direct specialization for the Generalized cache is cached and is tested first in next run
+     * for the UpdateArray (the UpdateType enum).
+     */
+    public static final boolean ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED_CACHE = true;
+
 }

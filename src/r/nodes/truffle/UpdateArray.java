@@ -311,8 +311,21 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      */
     protected static class Generalized extends UpdateArray {
 
+        static enum UpdateType {
+            GENERALIZED,
+            INT_TO_INT_DIRECT,
+            INT_TO_DOUBLE_DIRECT,
+            DOUBLE_TO_DOUBLE_DIRECT,
+            INT_TO_COMPLEX_DIRECT,
+            DOUBLE_TO_COMPLEX_DIRECT,
+            COMPLEX_TO_COMPLEX_DIRECT,
+        }
+
+        UpdateType updateType;
+
         public Generalized(UpdateArray other) {
             super(other);
+            updateType = UpdateType.GENERALIZED;
         }
 
         /**
@@ -344,6 +357,64 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
+                if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED_CACHE) {
+                    // check if we have a reason to believe that we are specialized, and if so, just use the simple checks to
+                    // confirm and proceed
+                    switch (updateType) {
+                        case INT_TO_INT_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof IntImpl && rhs instanceof IntImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                        case INT_TO_DOUBLE_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof IntImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                        case DOUBLE_TO_DOUBLE_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof DoubleImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                        case INT_TO_COMPLEX_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof IntImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                        case DOUBLE_TO_COMPLEX_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof DoubleImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                        case COMPLEX_TO_COMPLEX_DIRECT:
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof ComplexImpl)
+                                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            break;
+                    }
+                }
+                updateType = UpdateType.GENERALIZED;
+                // if the cached specialized version does not apply, try if another specialized version can be used and
+                // use it
+                if (lhs != rhs) {
+                    if (lhs instanceof IntImpl && rhs instanceof IntImpl) {
+                        updateType = UpdateType.INT_TO_INT_DIRECT;
+                    } else if (lhs instanceof DoubleImpl) {
+                        if (rhs instanceof IntImpl) {
+                            updateType = UpdateType.INT_TO_DOUBLE_DIRECT;
+                        } else if (rhs instanceof DoubleImpl) {
+                            updateType = UpdateType.DOUBLE_TO_DOUBLE_DIRECT;
+                        }
+                    } else if (lhs instanceof ComplexImpl) {
+                        if (rhs instanceof IntImpl) {
+                            updateType = UpdateType.INT_TO_COMPLEX_DIRECT;
+                        } else if (rhs instanceof DoubleImpl) {
+                            updateType = UpdateType.DOUBLE_TO_COMPLEX_DIRECT;
+                        } else if (rhs instanceof ComplexImpl) {
+                            updateType = UpdateType.COMPLEX_TO_COMPLEX_DIRECT;
+                        }
+                    }
+                    if (updateType != UpdateType.GENERALIZED) {
+                        return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                    }
+                }
+            }
+            // none of the specializations is applicable, proceed with the very general case
             // 1) check if we need to copy the LHS side
             ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs);
             if (lhsImpl != null) {
@@ -371,6 +442,29 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 Utils.nyi("Unable to perform the update of the array - unimplemented copy");
             }
             return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+        }
+
+        @Override protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
+                switch (updateType) {
+                    case INT_TO_INT_DIRECT:
+                        return IntToIntDirect.doUpdate(this, lhs, rhs, selectors);
+                    case INT_TO_DOUBLE_DIRECT:
+                        return IntToDoubleDirect.doUpdate(this, lhs, rhs, selectors);
+                    case DOUBLE_TO_DOUBLE_DIRECT:
+                        return DoubleToDoubleDirect.doUpdate(this, lhs, rhs, selectors);
+                    case INT_TO_COMPLEX_DIRECT:
+                        return IntToComplexDirect.doUpdate(this, lhs, rhs, selectors);
+                    case DOUBLE_TO_COMPLEX_DIRECT:
+                        return DoubleToComplexDirect.doUpdate(this, lhs, rhs, selectors);
+                    case COMPLEX_TO_COMPLEX_DIRECT:
+                        return ComplexToComplexDirect.doUpdate(this, lhs, rhs, selectors);
+                    default:
+                        return super.update(lhs, rhs, selectors);
+                }
+            } else {
+                return super.update(lhs, rhs, selectors);
+            }
         }
     }
 
@@ -1174,37 +1268,44 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             int[] lhsVal = ((IntImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
                 for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
@@ -1239,37 +1340,44 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
                 for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
@@ -1305,37 +1413,44 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
                 for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
@@ -1370,38 +1485,45 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
                 for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
                         lhsVal[lhsOffset << 1] = 0;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
@@ -1436,38 +1558,45 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
                 for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
                         lhsVal[lhsOffset << 1] = 0;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
@@ -1503,38 +1632,46 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             }
         }
 
-        @Override
-        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
-            Selector.initializeSelectors(lhs, selectors, ast, selSizes);
+        /** Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
+         * one.
+         */
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((ComplexImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
-            if (!subset && (rhsVal.length > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
+            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            if (!node.subset && (rhsVal.length > 1)) {
+                throw RError.getSelectMoreThanOne(node.ast);
             }
             // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
+            for (int i = 0; i < node.idx.length; ++i) {
+                node.idx[i] = selectors[i].nextIndex(node.ast);
+                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
-            while (replacementSize >= rhsVal.length) {
+            int rsize = rhsVal.length / 2;
+            while (replacementSize >= rsize) {
                 // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
+                for (int rhsOffset = 0; rhsOffset < rsize; ++rhsOffset) {
+                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset << 1];
                         lhsVal[(lhsOffset << 1) + 1] = rhsVal[(rhsOffset << 1) + 1];
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
-                replacementSize -= rhsVal.length;
+                replacementSize -= rsize;
             }
             if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(ast);
+                throw RError.getNotMultipleReplacement(node.ast);
             }
             // return the lhs so that it can be updated by parent, if required
             return lhs;
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
+            return doUpdate(this, lhs, rhs, selectors);
         }
     }
 
