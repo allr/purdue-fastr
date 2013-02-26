@@ -23,7 +23,9 @@ import r.nodes.*;
 
 // rewriting of vector selection nodes:
 //
-// *SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
+// DoubleBaseSimpleSelection.ScalarDoubleSelection -> DoubleBaseSimpleSelection.ScalarIntSelection -> (ctd below)
+//
+// >SimpleScalarIntSelection   -> SimpleScalarDoubleSelection -> GenericScalarSelection -> GenericSelection
 //                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> SimpleLogicalSelection -> LogicalSelection -> GenericSelection
 //                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> SimpleLogicalSelection -> GenericSelection
 //                             -> SimpleScalarDoubleSelection -> GenericScalarSelection -> Subscript -> GenericSelection
@@ -250,6 +252,71 @@ public abstract class ReadVector extends BaseR {
         @Override
         public RAny execute(RAny index, RAny vector) {
             return null;
+        }
+    }
+
+    // when the base is DoubleImpl and the index is a scalar*impl (and a simple case, e.g. within bounds)
+    public abstract static class DoubleBaseSimpleSelection extends ReadVector {
+        public DoubleBaseSimpleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+            super(ast, lhs, indexes, subset);
+        }
+
+        public static class ScalarIntSelection extends DoubleBaseSimpleSelection {
+            public ScalarIntSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+                super(ast, lhs, indexes, subset);
+            }
+
+            @Override
+            public RAny execute(RAny index, RAny vector) {
+                try {
+                    if (!(index instanceof ScalarIntImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    int i = (((ScalarIntImpl) index).getInt()) - 1;
+                    if (!(vector instanceof DoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double[] base = ((DoubleImpl) vector).getContent();
+                    if (i < 0 || i >= base.length) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return RDouble.RDoubleFactory.getScalar(base[i]);
+
+                } catch (UnexpectedResultException e) {
+                    ScalarDoubleSelection ns = new ScalarDoubleSelection(ast, lhs, indexes, subset);
+                    replace(ns, "install DoubleBaseSimpleSelection.ScalarDoubleSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
+                    return ns.execute(index, vector);
+                }
+            }
+        }
+
+        public static class ScalarDoubleSelection extends DoubleBaseSimpleSelection {
+            public ScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+                super(ast, lhs, indexes, subset);
+            }
+
+            @Override
+            public RAny execute(RAny index, RAny vector) {
+                try {
+                    if (!(index instanceof ScalarDoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
+                    if (!(vector instanceof DoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double[] base = ((DoubleImpl) vector).getContent();
+                    if (i < 0 || i >= base.length) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return RDouble.RDoubleFactory.getScalar(base[i]);
+
+                } catch (UnexpectedResultException e) {
+                    SimpleScalarIntSelection is = new SimpleScalarIntSelection(ast, lhs, indexes, subset);
+                    replace(is, "install SimpleScalarIntSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
+                    return is.execute(index, vector);
+                }
+            }
         }
     }
 

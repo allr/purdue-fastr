@@ -298,7 +298,7 @@ public class Truffleize implements Visitor {
                       }
                   }
               }
-              result = new ReadVector.SimpleScalarIntSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
+              result = new ReadVector.DoubleBaseSimpleSelection.ScalarIntSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             }
             return;
         }
