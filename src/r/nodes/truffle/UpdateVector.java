@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import r.Convert;
 import r.*;
 import r.data.*;
 import r.data.RArray.Names;
@@ -173,6 +172,93 @@ public abstract class UpdateVector extends BaseR {
         System.arraycopy(oldSymbols, 0, symbols, 0, size);
         symbols[size] = newName;
         return Names.create(symbols);
+    }
+
+    // for an update of a materialized double private vector using a double scalar,
+    //   indexed by a scalar (only simple cases)
+    public abstract static class DoubleBaseSimpleSelection extends UpdateVector {
+        public DoubleBaseSimpleSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
+        }
+
+        public static class ScalarIntSelection extends DoubleBaseSimpleSelection {
+            public ScalarIntSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
+            }
+
+            @Override
+            public RAny execute(RAny base, RAny index, RAny value) {
+                try {
+                    if (!(index instanceof ScalarIntImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    int i = (((ScalarIntImpl) index).getInt()) - 1;
+                    if (!(base instanceof DoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    DoubleImpl dibase = (DoubleImpl) base;
+                    if (dibase.isShared()) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double[] dbase = dibase.getContent();
+                    if (i < 0 || i >= dbase.length) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    if (!(value instanceof ScalarDoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double dvalue = ((ScalarDoubleImpl) value).getDouble();
+
+                    dbase[i] = dvalue;
+
+                    return dibase;
+                } catch (UnexpectedResultException e) {
+                    ScalarDoubleSelection ns = new ScalarDoubleSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                    replace(ns, "install DoubleBaseSimpleSelection.ScalarDoubleSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
+                    return ns.execute(base, index, value);
+                }
+            }
+        }
+
+        public static class ScalarDoubleSelection extends DoubleBaseSimpleSelection {
+            public ScalarDoubleSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
+            }
+
+            @Override
+            public RAny execute(RAny base, RAny index, RAny value) {
+                try {
+                    if (!(index instanceof ScalarDoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
+
+                    if (!(base instanceof DoubleImpl)) {  // FIXME: extract to a static method? (without performance overhead)
+                        throw new UnexpectedResultException(null);
+                    }
+                    DoubleImpl dibase = (DoubleImpl) base;
+                    if (dibase.isShared()) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double[] dbase = dibase.getContent();
+                    if (i < 0 || i >= dbase.length) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    if (!(value instanceof ScalarDoubleImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    double dvalue = ((ScalarDoubleImpl) value).getDouble();
+
+                    dbase[i] = dvalue;
+
+                    return dibase;
+                } catch (UnexpectedResultException e) {
+                    ScalarNumericSelection ns = new ScalarNumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                    replace(ns, "install ScalarNumericSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
+                    return ns.execute(base, index, value);
+                }
+            }
+        }
     }
 
     // for a numeric (int, double) scalar index

@@ -327,6 +327,13 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public Object execute(Frame frame) {
+            RAny lexpr = (RAny) left.execute(frame);
+            RAny rexpr = (RAny) right.execute(frame);
+            return execute(lexpr, rexpr);
+        }
+
+        @Override
         public final Object execute(RAny lexpr, RAny rexpr) {
             try {
                 return calc.calc(lexpr, rexpr);
