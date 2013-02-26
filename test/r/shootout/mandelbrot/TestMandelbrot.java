@@ -2,6 +2,7 @@ package r.shootout.mandelbrot;
 
 import org.junit.*;
 
+import r.Console;
 import r.shootout.*;
 
 // TODO: this test does not check its output, because the output is not correctly captured
@@ -71,8 +72,8 @@ public class TestMandelbrot extends ShootoutTestBase {
     public void testMandelbrotNooutNaive() {
 
         assertShootout("mandelbrot", "mandelbrot-noout-naive", 10,
-                "P4\n" +
-                        "10 10 \n", null, "NULL");
+                       "P4\n" +
+                       "10 10 \n", null, "NULL");
     }
 
 }
