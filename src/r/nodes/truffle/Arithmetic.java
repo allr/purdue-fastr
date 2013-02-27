@@ -248,7 +248,7 @@ public class Arithmetic extends BaseR {
                             if (lint == RInt.NA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
@@ -304,7 +304,7 @@ public class Arithmetic extends BaseR {
                                     if (isNA) {
                                         return RInt.BOXED_NA;
                                     }
-                                    return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                    return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                                 }
                             }
                         }
@@ -581,7 +581,7 @@ public class Arithmetic extends BaseR {
                             if (isLeftNA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
@@ -617,7 +617,7 @@ public class Arithmetic extends BaseR {
                             if (isRightNA || lint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
@@ -699,7 +699,7 @@ public class Arithmetic extends BaseR {
                                 if (isLeftNA || rint == RInt.NA) {
                                     return RInt.BOXED_NA;
                                 }
-                                return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
                             }
@@ -767,7 +767,7 @@ public class Arithmetic extends BaseR {
                                 if (isRightNA || lint == RInt.NA) {
                                     return RInt.BOXED_NA;
                                 }
-                                return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
                             }
@@ -922,6 +922,13 @@ public class Arithmetic extends BaseR {
         public abstract double op(ASTNode ast, double a, double b);
         public abstract int op(ASTNode ast, int a, int b);
 
+        public int opWarnOverflow(ASTNode ast, int a, int b) {
+            int res = op(ast, a, b);
+            if (res == RInt.NA) {
+                RContext.warning(ast, RError.INTEGER_OVERFLOW);
+            }
+            return res;
+        }
         public double op(ASTNode ast, double a, int b) {
             return op(ast, a, (double) b);
         }
@@ -1138,9 +1145,9 @@ public class Arithmetic extends BaseR {
 
         private static double[] _Z = new double[2];
 
-        private static void cpow(double xr, double xi, double yr, double yi) {
-            cpow(xr, xi, yr, yi, _Z, 0);
-        }
+//        private static void cpow(double xr, double xi, double yr, double yi) {
+//            cpow(xr, xi, yr, yi, _Z, 0);
+//        }
 
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
             if (xr == 0) {
@@ -1294,8 +1301,12 @@ public class Arithmetic extends BaseR {
             if (b != 0) {
                 return (int) Math.floor((double) a / (double) b); // FIXME: this is R implementation, can we do faster without floating point?
             } else {
-                return RInt.NA;
+                return RInt.NA; // FIXME: the outer layers will turn this into an "integer overflow" warning, but no such warning is given in GNU-R
             }
+        }
+        @Override
+        public int opWarnOverflow(ASTNode ast, int a, int b) {
+            return op(ast, a, b);
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1343,8 +1354,12 @@ public class Arithmetic extends BaseR {
                     return (int) fmod(ast, a, b);
                 }
             } else {
-                return RInt.NA;
+                return RInt.NA; // FIXME: the outer layers will turn this into an "integer overflow" warning, but no such warning is given in GNU-R
             }
+        }
+        @Override
+        public int opWarnOverflow(ASTNode ast, int a, int b) {
+            return op(ast, a, b);
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {

@@ -161,4 +161,12 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ a <- as.raw(200) ; b <- as.raw(1) ; a | b }", "c9");
         assertEval("{ a <- as.raw(201) ; b <- as.raw(1) ; a & b }", "01");
     }
+
+    @Test
+    public void testIntegerOverflow() throws RecognitionException {
+        assertEvalWarning("{ x <- 2147483647L ; x + 1L }", "NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ x <- 2147483647L ; x * x }", "NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ x <- -2147483647L ; x - 2L }", "NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ x <- -2147483647L ; x - 1L }", "NA", "NAs produced by integer overflow");
+    }
 }
