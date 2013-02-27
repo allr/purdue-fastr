@@ -160,18 +160,59 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(SimpleAssignVariable assign) {
         RSymbol symbol = assign.getSymbol();
+        ASTNode valueNode = assign.getExpr();
+
 //        if (false && r.builtins.Primitives.get(symbol) != null) {
 //            // FIXME: pidigits uses a variable "c"
 //            Utils.nyi(symbol.pretty() + ": we don't support variables over-shadowing primitives.");
 //            // NOTE: we could support this as long as the value assigned isn't a function, but checking that would be expensive
 //            // it may become cheaper once/if we type-specialize assignment nodes, at some point when we do boxing optimizations
 //        }
+
+        // optimize expressions like x <- x + 1
+        // more precisely x <- binaryOp(x,Constant) or y <- binaryOp(Constant, y)
+
+        r.nodes.truffle.Arithmetic.ValueArithmetic arit = getValueArithmetic(valueNode);
+
+        if (false && arit != null) {
+            BinaryOperation bin = (BinaryOperation) valueNode;
+            ASTNode binLHS = bin.getLHS();
+            ASTNode binRHS = bin.getRHS();
+            SimpleAccessVariable binVar = null;
+            Constant constNode = null;
+
+            if (binLHS instanceof SimpleAccessVariable) {
+                binVar = (SimpleAccessVariable) binLHS;
+            } else if (binRHS instanceof SimpleAccessVariable) {
+                binVar = (SimpleAccessVariable) binRHS;
+            }
+            if (binLHS instanceof Constant) {
+                constNode = (Constant) binLHS;
+            } else if (binRHS instanceof Constant) {
+                constNode = (Constant) binRHS;
+            }
+            if (binVar != null && constNode != null) {
+                RSymbol binVarSymbol = binVar.getSymbol();
+                if (binVarSymbol == symbol) {
+                    if (!assign.isSuper()) {
+                        RNode rLHS = createTree(binLHS);
+                        RNode rRHS = createTree(binRHS);
+                        RNode rConst = (binLHS instanceof Constant) ? rLHS : rRHS;
+//                        UpdateVariable.AssignmentNode computeNode = new r.nodes.truffle.Arithmetic(bin, rLHS, rRHS, arit);
+                        // TODO: finish this !!! (cannot use UpdateVariable, because it would not return the full rhs of the assignment (e.g. would return 1 for  x<-x+1)
+//                        result = r.nodes.truffle.UpdateVariable.create(assign, binVarSymbol, rConst, computeNode);
+//                        return;
+                    }
+                }
+            }
+        }
+
         if (assign.isSuper()) {
-            result = r.nodes.truffle.SuperWriteVariable.getUninitialized(assign, symbol, createTree(assign.getExpr()));
+            result = r.nodes.truffle.SuperWriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         } else {
             // Truffle does not like Lazy...
             //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
-            result = r.nodes.truffle.WriteVariable.getUninitialized(assign, symbol, createTree(assign.getExpr()));
+            result = r.nodes.truffle.WriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         }
 
     }
@@ -403,8 +444,9 @@ public class Truffleize implements Visitor {
                 Utils.nyi("unsupported indexing style");
             }
             Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
-            for (int i = 0; i < selNodes.length; ++i)
+            for (int i = 0; i < selNodes.length; ++i) {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            }
             // Create the assignment, or superassignment nodes
             ASTNode varAccess = a.getVector();
             RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
@@ -412,9 +454,9 @@ public class Truffleize implements Visitor {
                 Utils.nyi("expecting matrix name for matrix update");
             }
             if (u.isSuper()) {
-                result = SuperUpdateVariable.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
             } else {
-                result = UpdateVariable.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
                 return;
             }
         } else {
@@ -478,14 +520,45 @@ public class Truffleize implements Visitor {
         result = new r.nodes.truffle.Comparison(gt, createTree(gt.getLHS()), createTree(gt.getRHS()), r.nodes.truffle.Comparison.getGT());
     }
 
+    public static r.nodes.truffle.Arithmetic.ValueArithmetic getValueArithmetic(ASTNode ast) {
+        if (ast instanceof Add) {
+            return r.nodes.truffle.Arithmetic.ADD;
+        }
+        if (ast instanceof Mult) {
+            return r.nodes.truffle.Arithmetic.MULT;
+        }
+        if (ast instanceof IntegerDiv) {
+            return r.nodes.truffle.Arithmetic.INTEGER_DIV;
+        }
+        if (ast instanceof Mod) {
+            return r.nodes.truffle.Arithmetic.MOD;
+        }
+        if (ast instanceof Pow) {
+            return r.nodes.truffle.Arithmetic.POW;
+        }
+        if (ast instanceof Div) {
+            return r.nodes.truffle.Arithmetic.DIV;
+        }
+        if (ast instanceof Sub) {
+            return r.nodes.truffle.Arithmetic.SUB;
+        }
+        return null;
+    }
+
+    private void visitArithmetic(BinaryOperation op) {
+        r.nodes.truffle.Arithmetic.ValueArithmetic arit = getValueArithmetic(op);
+        assert Utils.check(arit != null);
+        result = new r.nodes.truffle.Arithmetic(op, createTree(op.getLHS()), createTree(op.getRHS()), arit);
+    }
+
     @Override
     public void visit(Add add) {
-        result = new r.nodes.truffle.Arithmetic(add, createTree(add.getLHS()), createTree(add.getRHS()), r.nodes.truffle.Arithmetic.ADD);
+        visitArithmetic(add);
     }
 
     @Override
     public void visit(Mult mult) {
-        result = new r.nodes.truffle.Arithmetic(mult, createTree(mult.getLHS()), createTree(mult.getRHS()), r.nodes.truffle.Arithmetic.MULT);
+        visitArithmetic(mult);
     }
 
     @Override
@@ -500,7 +573,7 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(IntegerDiv div) {
-        result = new r.nodes.truffle.Arithmetic(div, createTree(div.getLHS()), createTree(div.getRHS()), r.nodes.truffle.Arithmetic.INTEGER_DIV);
+        visitArithmetic(div);
     }
 
     @Override
@@ -510,22 +583,22 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(Mod mod) {
-        result = new r.nodes.truffle.Arithmetic(mod, createTree(mod.getLHS()), createTree(mod.getRHS()), r.nodes.truffle.Arithmetic.MOD);
+        visitArithmetic(mod);
     }
 
     @Override
     public void visit(Pow pow) {
-        result = new r.nodes.truffle.Arithmetic(pow, createTree(pow.getLHS()), createTree(pow.getRHS()), r.nodes.truffle.Arithmetic.POW);
+        visitArithmetic(pow);
     }
 
     @Override
     public void visit(Div div) {
-        result = new r.nodes.truffle.Arithmetic(div, createTree(div.getLHS()), createTree(div.getRHS()), r.nodes.truffle.Arithmetic.DIV);
+        visitArithmetic(div);
     }
 
     @Override
     public void visit(Sub sub) {
-        result = new r.nodes.truffle.Arithmetic(sub, createTree(sub.getLHS()), createTree(sub.getRHS()), r.nodes.truffle.Arithmetic.SUB);
+        visitArithmetic(sub);
     }
 
     @Override

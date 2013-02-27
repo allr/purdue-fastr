@@ -17,6 +17,7 @@ import r.nodes.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
 // FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
+
 public class Arithmetic extends BaseR {
 
     @Child RNode left;
@@ -49,6 +50,22 @@ public class Arithmetic extends BaseR {
         RAny rexpr = (RAny) right.execute(frame);
         return execute(lexpr, rexpr);
     }
+
+//    @Override
+//    public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//        try {
+//            throw new UnexpectedResultException(null);
+//        } catch (UnexpectedResultException e) {
+//            if (left instanceof Constant) {
+//                return (RAny) execute(((Constant) left).value(), variableValue);
+//            } else if (right instanceof Constant) {
+//                return (RAny) execute(variableValue, ((Constant) right).value());
+//            } else {
+//                Utils.nyi("unreachable");
+//                return null;
+//            }
+//        }
+//    }
 
     public Object execute(RAny lexpr, RAny rexpr) {
         try {
@@ -836,6 +853,12 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createLeftConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
             assert Utils.check(left instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+
+//                @Override
+//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//                    return (RAny) execute(null, variableValue);
+//                }
+
                 @Override
                 public Object execute(Frame frame) {
                     RAny rexpr = (RAny) right.execute(frame);
@@ -847,6 +870,12 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createRightConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
             assert Utils.check(right instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+
+//                @Override
+//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//                    return (RAny) execute(variableValue, null);
+//                }
+
                 @Override
                 public Object execute(Frame frame) {
                     RAny lexpr = (RAny) left.execute(frame);

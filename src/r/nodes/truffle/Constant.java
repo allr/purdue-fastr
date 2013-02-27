@@ -22,4 +22,8 @@ public class Constant extends BaseR {
     public static RNode getNull() {
         return new Constant(null, RNull.getNull());
     }
+
+    public RAny value() {
+        return value;
+    }
 }
