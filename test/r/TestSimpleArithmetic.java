@@ -168,5 +168,10 @@ public class TestSimpleArithmetic extends TestBase {
         assertEvalWarning("{ x <- 2147483647L ; x * x }", "NA", "NAs produced by integer overflow");
         assertEvalWarning("{ x <- -2147483647L ; x - 2L }", "NA", "NAs produced by integer overflow");
         assertEvalWarning("{ x <- -2147483647L ; x - 1L }", "NA", "NAs produced by integer overflow");
+        assertEvalNoWarnings("{ 3L %/% 0L }", "NA");
+        assertEvalNoWarnings("{ 3L %% 0L }", "NA");
+        assertEvalNoWarnings("{ c(3L,3L) %/% 0L }", "NA, NA");
+        assertEvalNoWarnings("{ c(3L,3L) %% 0L }", "NA, NA");
+
     }
 }

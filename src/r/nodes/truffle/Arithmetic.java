@@ -921,18 +921,19 @@ public class Arithmetic extends BaseR {
 
         public abstract double op(ASTNode ast, double a, double b);
         public abstract int op(ASTNode ast, int a, int b);
+        public abstract void emitOverflowWarning(ASTNode ast);
 
-        public int opWarnOverflow(ASTNode ast, int a, int b) {
+        public final int opWarnOverflow(ASTNode ast, int a, int b) {
             int res = op(ast, a, b);
             if (res == RInt.NA) {
-                RContext.warning(ast, RError.INTEGER_OVERFLOW);
+                emitOverflowWarning(ast);
             }
             return res;
         }
-        public double op(ASTNode ast, double a, int b) {
+        public final double op(ASTNode ast, double a, int b) {
             return op(ast, a, (double) b);
         }
-        public double op(ASTNode ast, int a, double b) {
+        public final double op(ASTNode ast, int a, double b) {
             return op(ast, (double) a, b);
         }
 
@@ -967,6 +968,10 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RInt.NA;
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1034,6 +1039,10 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
@@ -1097,6 +1106,10 @@ public class Arithmetic extends BaseR {
             } else {
                 return RInt.NA;
             }
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1196,6 +1209,10 @@ public class Arithmetic extends BaseR {
             return -1;
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            Utils.nyi("unreachable");
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             Utils.nyi();
             return null;
@@ -1229,6 +1246,10 @@ public class Arithmetic extends BaseR {
         public int op(ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            Utils.nyi("unreachable");
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1301,12 +1322,12 @@ public class Arithmetic extends BaseR {
             if (b != 0) {
                 return (int) Math.floor((double) a / (double) b); // FIXME: this is R implementation, can we do faster without floating point?
             } else {
-                return RInt.NA; // FIXME: the outer layers will turn this into an "integer overflow" warning, but no such warning is given in GNU-R
+                return RInt.NA;
             }
         }
         @Override
-        public int opWarnOverflow(ASTNode ast, int a, int b) {
-            return op(ast, a, b);
+        public void emitOverflowWarning(ASTNode ast) {
+            // no warning
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1354,12 +1375,12 @@ public class Arithmetic extends BaseR {
                     return (int) fmod(ast, a, b);
                 }
             } else {
-                return RInt.NA; // FIXME: the outer layers will turn this into an "integer overflow" warning, but no such warning is given in GNU-R
+                return RInt.NA;
             }
         }
         @Override
-        public int opWarnOverflow(ASTNode ast, int a, int b) {
-            return op(ast, a, b);
+        public void emitOverflowWarning(ASTNode ast) {
+            // no warning
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1772,7 +1793,7 @@ public class Arithmetic extends BaseR {
                 int res = arit.op(ast, aint, bint);
                 if (res == RInt.NA && !overflown) {
                     overflown = true;
-                    RContext.warning(ast, RError.INTEGER_OVERFLOW);
+                    arit.emitOverflowWarning(ast);
                 }
                 return res;
             }
