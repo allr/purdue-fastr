@@ -10,6 +10,7 @@ import r.data.RFunction.EnclosingSlot;
 import r.errors.*;
 import r.nodes.*;
 
+// FIXME: the frame slot lookup can be done statically, like in ArithmeticUpdateVariable
 // TODO: needs to be updated with eval in mind (e.g. correct handling of top-level vs. empty environment)
 public abstract class ReadVariable extends BaseR {
 

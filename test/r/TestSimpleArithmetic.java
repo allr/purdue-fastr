@@ -174,4 +174,11 @@ public class TestSimpleArithmetic extends TestBase {
         assertEvalNoWarnings("{ c(3L,3L) %% 0L }", "NA, NA");
 
     }
+
+    @Test
+    public void testArithmeticUpdate() throws RecognitionException {
+        assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- x + 1L ; x } ; f(FALSE) }", "4.0");
+        assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- 1L + x ; x } ; f(FALSE) }", "4.0");
+        assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- x - 1L ; x } ; f(FALSE) }", "2.0");
+    }
 }

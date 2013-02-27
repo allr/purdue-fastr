@@ -3,6 +3,7 @@ package r.nodes.tools;
 import r.Utils;
 import r.builtins.Primitives;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.*;
 import r.nodes.Constant;
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.frame.*;
 public class Truffleize implements Visitor {
 
     RNode result;
+    public static final boolean DEBUG_SPECIAL_NODES = false;
 
     public RNode createLazyRootTree(final ASTNode ast) {
         return new BaseR(ast) {
@@ -174,7 +176,7 @@ public class Truffleize implements Visitor {
 
         r.nodes.truffle.Arithmetic.ValueArithmetic arit = getValueArithmetic(valueNode);
 
-        if (false && arit != null) {
+        if (arit != null) {
             BinaryOperation bin = (BinaryOperation) valueNode;
             ASTNode binLHS = bin.getLHS();
             ASTNode binRHS = bin.getRHS();
@@ -193,15 +195,30 @@ public class Truffleize implements Visitor {
             }
             if (binVar != null && constNode != null) {
                 RSymbol binVarSymbol = binVar.getSymbol();
-                if (binVarSymbol == symbol) {
-                    if (!assign.isSuper()) {
-                        RNode rLHS = createTree(binLHS);
-                        RNode rRHS = createTree(binRHS);
-                        RNode rConst = (binLHS instanceof Constant) ? rLHS : rRHS;
-//                        UpdateVariable.AssignmentNode computeNode = new r.nodes.truffle.Arithmetic(bin, rLHS, rRHS, arit);
-                        // TODO: finish this !!! (cannot use UpdateVariable, because it would not return the full rhs of the assignment (e.g. would return 1 for  x<-x+1)
-//                        result = r.nodes.truffle.UpdateVariable.create(assign, binVarSymbol, rConst, computeNode);
-//                        return;
+                RFunction encFunction =  getEnclosingFunction(assign);
+                FrameSlot slot = null;
+                if (encFunction != null) {
+                    slot = encFunction.localSlot(binVarSymbol);
+                }
+                if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != null) {
+                    int cValue = ((ScalarIntImpl) constNode.getValue()).getInt();
+                    if (cValue == 1) {
+                        if (valueNode instanceof Add) {
+                            // integer increment
+                            if (DEBUG_SPECIAL_NODES) {
+                                Utils.debug("increment node at " + PrettyPrinter.prettyPrint(assign));
+                            }
+                            result = new ArithmeticUpdateVariable.ScalarIntLocalIncrement(assign, slot);
+                            return;
+                        }
+                        if (binLHS instanceof SimpleAccessVariable && valueNode instanceof Sub) {
+                            // integer decrement
+                            if (DEBUG_SPECIAL_NODES) {
+                                Utils.debug("decrement node at " + PrettyPrinter.prettyPrint(assign));
+                            }
+                            result = new ArithmeticUpdateVariable.ScalarIntLocalDecrement(assign, slot);
+                            return;
+                        }
                     }
                 }
             }
