@@ -6,15 +6,15 @@ import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-/** A super assignment node. Works similarly to the UpdateVariable node, but uses the super assignment instead.
+/** A super assignment node. Works similarly to the UpdateArrayAssignment node, but uses the super assignment instead.
  *
- * Reqrites itself to either const rhs (does not reevaluate rhs on each entry) or non const variant and on its first
+ * Requires itself to either const rhs (does not reevaluate rhs on each entry) or non const variant and on its first
  * execution checks the frame to be not null.
  *
- * The const / non-const distincition is done in the create method as in UpdateVariable and no rewrite on runtime is used
+ * The const / non-const distinction is done in the create method as in UpdateVariable and no rewrite on runtime is used
  * for this.
  */
-public class SuperUpdateVariable extends BaseR {
+public class UpdateArraySuperAssignment extends BaseR {
 
     final RSymbol lhsSymbol;
 
@@ -28,7 +28,7 @@ public class SuperUpdateVariable extends BaseR {
 
     /** UpdateVariable node performing the assignment itself.
      */
-    @Child UpdateVariable.AssignmentNode assignment;
+    @Child UpdateArrayAssignment.AssignmentNode assignment;
 
     /** Writeback node that stores the information to the super frame.
      */
@@ -44,21 +44,21 @@ public class SuperUpdateVariable extends BaseR {
      *
      * Based on rhs being constant uses the non-const, or const versions of the supperassignment.
      */
-    public static SuperUpdateVariable create(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
+    public static UpdateArraySuperAssignment create(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateArrayAssignment.AssignmentNode assignment) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
             if (rhs instanceof Constant) {
-                return new SuperUpdateVariable.Const(orig, lhsSymbol, lhs, rhs, assignment);
+                return new UpdateArraySuperAssignment.Const(orig, lhsSymbol, lhs, rhs, assignment);
             } else {
-                return new SuperUpdateVariable(orig, lhsSymbol, lhs, rhs, assignment);
+                return new UpdateArraySuperAssignment(orig, lhsSymbol, lhs, rhs, assignment);
             }
         }
     }
 
     /** Creates the superassignment node.
      */
-    protected SuperUpdateVariable(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
+    protected UpdateArraySuperAssignment(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateArrayAssignment.AssignmentNode assignment) {
         super(orig);
         this.lhsSymbol = lhsSymbol;
         this.lhs = adoptChild(lhs);
@@ -75,7 +75,7 @@ public class SuperUpdateVariable extends BaseR {
 
     /** Copy constructor for the replacement calls.
      */
-    protected SuperUpdateVariable(SuperUpdateVariable other) {
+    protected UpdateArraySuperAssignment(UpdateArraySuperAssignment other) {
         super(other.getAST());
         this.lhsSymbol = other.lhsSymbol;
         this.lhs = adoptChild(other.lhs);
@@ -108,9 +108,9 @@ public class SuperUpdateVariable extends BaseR {
      *
      * Obtains the lhs, executes the assignment and if the result differs, writebacks the new value.
      */
-    protected static class NonConstResolved extends SuperUpdateVariable {
+    protected static class NonConstResolved extends UpdateArraySuperAssignment {
 
-        protected NonConstResolved(SuperUpdateVariable other) {
+        protected NonConstResolved(UpdateArraySuperAssignment other) {
             super(other);
         }
 
@@ -132,13 +132,13 @@ public class SuperUpdateVariable extends BaseR {
      *
      * Checks the frame is not null, then evaluates the rhs once and converts to the const resolved node.
      */
-    protected static class Const extends SuperUpdateVariable {
+    protected static class Const extends UpdateArraySuperAssignment {
 
-        protected Const(SuperUpdateVariable other) {
+        protected Const(UpdateArraySuperAssignment other) {
             super(other);
         }
 
-        protected Const(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateVariable.AssignmentNode assignment) {
+        protected Const(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateArrayAssignment.AssignmentNode assignment) {
             super(orig, lhsSymbol, lhs, rhs, assignment);
         }
 
@@ -161,7 +161,7 @@ public class SuperUpdateVariable extends BaseR {
 
             final RAny rhsValue;
 
-            protected Resolved(SuperUpdateVariable other, RAny rhsValue) {
+            protected Resolved(UpdateArraySuperAssignment other, RAny rhsValue) {
                 super(other);
                 this.rhsValue = rhsValue;
             }
@@ -179,9 +179,4 @@ public class SuperUpdateVariable extends BaseR {
             }
         }
     }
-
-
-
-
-
 }

@@ -6,13 +6,23 @@ import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
-public class UpdateVariable extends BaseR {
+// implements the assignment part of an array update
+//
+// for vector update xSymbol [ indexNode ] <- newValueNode
+//   lhs is xSymbol
+//   rhs is newValueNode
+//
+//   UpdateVariable will call assignmentNode.execute( currentValue(xSymbol), newValue )
+//     assignmentNode.execute returns the new value of x
+//   UpdateVariable then assigns newValueOfX to xSymbol
 
-    public static UpdateVariable create(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
+public class UpdateArrayAssignment extends BaseR {
+
+    public static UpdateArrayAssignment create(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
         if (rhs instanceof Constant) {
-            return new UpdateVariable.Const(orig, lhs, rhs, assignment);
+            return new UpdateArrayAssignment.Const(orig, lhs, rhs, assignment);
         } else {
-            return new UpdateVariable(orig, lhs, rhs, assignment);
+            return new UpdateArrayAssignment(orig, lhs, rhs, assignment);
         }
     }
 
@@ -52,15 +62,13 @@ public class UpdateVariable extends BaseR {
     final RSymbol lhs;
 
     /** RHS of the assignment operator == new values. */
-    @Child
-    RNode rhs;
+    @Child RNode rhs;
 
     /** UpdateVariable node performing the assignment itself. */
-    @Child
-    AssignmentNode assignment;
+    @Child AssignmentNode assignment;
 
 
-    protected UpdateVariable(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
+    protected UpdateArrayAssignment(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
         super(orig);
         this.lhs = lhs;
         this.rhs = adoptChild(rhs);
@@ -68,7 +76,7 @@ public class UpdateVariable extends BaseR {
     }
 
     /** Copy constructor for the replacement calls. */
-    protected UpdateVariable(UpdateVariable other) {
+    protected UpdateArrayAssignment(UpdateArrayAssignment other) {
         super(other.getAST());
         this.lhs = other.lhs;
         this.rhs = adoptChild(other.rhs);
@@ -94,14 +102,14 @@ public class UpdateVariable extends BaseR {
     }
 
     /** Basic assignment for const rhs values. */
-    public static class Const extends UpdateVariable {
+    public static class Const extends UpdateArrayAssignment {
 
         protected Const(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
             super(orig, lhs, rhs, assignment);
             assert (rhs instanceof Constant) : "for non-constant RHS use UpdateVariable class";
         }
 
-        protected Const(UpdateVariable other) {
+        protected Const(UpdateArrayAssignment other) {
             super(other);
         }
 
@@ -130,7 +138,7 @@ public class UpdateVariable extends BaseR {
      * The assignment already knows its frameslot. If the frameslot is null, the node rewrites itself to the general
      * assignment. If the frame is null, the node rewrites itself to the top level assignment.
      */
-    protected static class Local extends UpdateVariable {
+    protected static class Local extends UpdateArrayAssignment {
 
         public static enum Failure {
             NULL_FRAME,
@@ -140,7 +148,7 @@ public class UpdateVariable extends BaseR {
         final FrameSlot frameSlot;
 
         /** Copy constructor from the assignment node and a frameslot Specification. */
-        protected Local(UpdateVariable other, FrameSlot frameSlot) {
+        protected Local(UpdateArrayAssignment other, FrameSlot frameSlot) {
             super(other);
             this.frameSlot = frameSlot;
         }
@@ -148,10 +156,10 @@ public class UpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                if (frame == null) {
+                if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
                 }
-                if (frameSlot == null) {
+                if (frameSlot == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
                 RAny rhsValue = (RAny) rhs.execute(frame);
@@ -175,7 +183,7 @@ public class UpdateVariable extends BaseR {
                     case NULL_FRAME:
                         return replace(new TopLevel(this)).execute(frame);
                     case NULL_SLOT:
-                        return replace(new UpdateVariable(this)).execute(frame);
+                        return replace(new UpdateArrayAssignment(this)).execute(frame);
                 }
             }
             return null;
@@ -186,7 +194,7 @@ public class UpdateVariable extends BaseR {
 
         final RAny rhsVal;
 
-        protected ConstLocal(UpdateVariable other, FrameSlot slot, RAny rhs) {
+        protected ConstLocal(UpdateArrayAssignment other, FrameSlot slot, RAny rhs) {
             super(other, slot);
             rhsVal = rhs;
         }
@@ -194,10 +202,10 @@ public class UpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                if (frame == null) {
+                if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
                 }
-                if (frameSlot == null) {
+                if (frameSlot == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
                 RAny lhsValue = (RAny) frame.getObject(frameSlot);
@@ -227,16 +235,16 @@ public class UpdateVariable extends BaseR {
         }
     }
 
-    protected static class TopLevel extends UpdateVariable {
+    protected static class TopLevel extends UpdateArrayAssignment {
 
-        protected TopLevel(UpdateVariable other) {
+        protected TopLevel(UpdateArrayAssignment other) {
             super(other);
         }
 
         @Override
         public Object execute(Frame frame) {
             try {
-                if (frame != null) {
+                if (frame != null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(null);
                 }
                 RAny rhsValue = (RAny) rhs.execute(frame);
@@ -250,7 +258,8 @@ public class UpdateVariable extends BaseR {
                 }
                 return rhsValue;
             } catch (UnexpectedResultException e) {
-                return replace(new UpdateVariable(this)).execute(frame);
+                // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
+                return replace(new UpdateArrayAssignment(this)).execute(frame);
             }
         }
     }
@@ -259,7 +268,7 @@ public class UpdateVariable extends BaseR {
 
         final RAny rhsVal;
 
-        protected ConstTopLevel(UpdateVariable other, RAny rhs) {
+        protected ConstTopLevel(UpdateArrayAssignment other, RAny rhs) {
             super(other);
             rhsVal = rhs;
         }
@@ -267,7 +276,7 @@ public class UpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                if (frame != null) {
+                if (frame != null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(null);
                 }
                 RAny lhsValue = lhs.getValue();
@@ -280,6 +289,7 @@ public class UpdateVariable extends BaseR {
                 }
                 return rhsVal;
             } catch (UnexpectedResultException e) {
+             // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
                 return replace(new Const(this)).execute(frame);
             }
         }
