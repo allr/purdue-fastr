@@ -17,6 +17,7 @@ import r.nodes.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
 // FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
+
 public class Arithmetic extends BaseR {
 
     @Child RNode left;
@@ -49,6 +50,22 @@ public class Arithmetic extends BaseR {
         RAny rexpr = (RAny) right.execute(frame);
         return execute(lexpr, rexpr);
     }
+
+//    @Override
+//    public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//        try {
+//            throw new UnexpectedResultException(null);
+//        } catch (UnexpectedResultException e) {
+//            if (left instanceof Constant) {
+//                return (RAny) execute(((Constant) left).value(), variableValue);
+//            } else if (right instanceof Constant) {
+//                return (RAny) execute(variableValue, ((Constant) right).value());
+//            } else {
+//                Utils.nyi("unreachable");
+//                return null;
+//            }
+//        }
+//    }
 
     public Object execute(RAny lexpr, RAny rexpr) {
         try {
@@ -231,7 +248,7 @@ public class Arithmetic extends BaseR {
                             if (lint == RInt.NA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
@@ -287,7 +304,7 @@ public class Arithmetic extends BaseR {
                                     if (isNA) {
                                         return RInt.BOXED_NA;
                                     }
-                                    return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                    return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                                 }
                             }
                         }
@@ -564,7 +581,7 @@ public class Arithmetic extends BaseR {
                             if (isLeftNA || rint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
@@ -600,7 +617,7 @@ public class Arithmetic extends BaseR {
                             if (isRightNA || lint == RInt.NA) {
                                 return RInt.BOXED_NA;
                             }
-                            return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                            return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
@@ -682,7 +699,7 @@ public class Arithmetic extends BaseR {
                                 if (isLeftNA || rint == RInt.NA) {
                                     return RInt.BOXED_NA;
                                 }
-                                return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
                             }
@@ -750,7 +767,7 @@ public class Arithmetic extends BaseR {
                                 if (isRightNA || lint == RInt.NA) {
                                     return RInt.BOXED_NA;
                                 }
-                                return RInt.RIntFactory.getScalar(arit.op(ast, lint, rint));
+                                return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
                             }
@@ -836,6 +853,12 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createLeftConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
             assert Utils.check(left instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+
+//                @Override
+//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//                    return (RAny) execute(null, variableValue);
+//                }
+
                 @Override
                 public Object execute(Frame frame) {
                     RAny rexpr = (RAny) right.execute(frame);
@@ -847,6 +870,12 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createRightConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
             assert Utils.check(right instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
+
+//                @Override
+//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+//                    return (RAny) execute(variableValue, null);
+//                }
+
                 @Override
                 public Object execute(Frame frame) {
                     RAny lexpr = (RAny) left.execute(frame);
@@ -892,11 +921,19 @@ public class Arithmetic extends BaseR {
 
         public abstract double op(ASTNode ast, double a, double b);
         public abstract int op(ASTNode ast, int a, int b);
+        public abstract void emitOverflowWarning(ASTNode ast);
 
-        public double op(ASTNode ast, double a, int b) {
+        public final int opWarnOverflow(ASTNode ast, int a, int b) {
+            int res = op(ast, a, b);
+            if (res == RInt.NA) {
+                emitOverflowWarning(ast);
+            }
+            return res;
+        }
+        public final double op(ASTNode ast, double a, int b) {
             return op(ast, a, (double) b);
         }
-        public double op(ASTNode ast, int a, double b) {
+        public final double op(ASTNode ast, int a, double b) {
             return op(ast, (double) a, b);
         }
 
@@ -931,6 +968,10 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RInt.NA;
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -998,6 +1039,10 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
@@ -1063,6 +1108,10 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            RContext.warning(ast, RError.INTEGER_OVERFLOW);
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
@@ -1109,9 +1158,9 @@ public class Arithmetic extends BaseR {
 
         private static double[] _Z = new double[2];
 
-        private static void cpow(double xr, double xi, double yr, double yi) {
-            cpow(xr, xi, yr, yi, _Z, 0);
-        }
+//        private static void cpow(double xr, double xi, double yr, double yi) {
+//            cpow(xr, xi, yr, yi, _Z, 0);
+//        }
 
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
             if (xr == 0) {
@@ -1160,6 +1209,10 @@ public class Arithmetic extends BaseR {
             return -1;
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            Utils.nyi("unreachable");
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             Utils.nyi();
             return null;
@@ -1193,6 +1246,10 @@ public class Arithmetic extends BaseR {
         public int op(ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            Utils.nyi("unreachable");
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1269,6 +1326,10 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            // no warning
+        }
+        @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
         }
@@ -1316,6 +1377,10 @@ public class Arithmetic extends BaseR {
             } else {
                 return RInt.NA;
             }
+        }
+        @Override
+        public void emitOverflowWarning(ASTNode ast) {
+            // no warning
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1728,7 +1793,7 @@ public class Arithmetic extends BaseR {
                 int res = arit.op(ast, aint, bint);
                 if (res == RInt.NA && !overflown) {
                     overflown = true;
-                    RContext.warning(ast, RError.INTEGER_OVERFLOW);
+                    arit.emitOverflowWarning(ast);
                 }
                 return res;
             }

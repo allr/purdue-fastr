@@ -21,6 +21,7 @@ public class Sequence extends BaseR {
 
         Object res = null;
         for (RNode e : exprs) {
+            res = null; // NOTE: this line is important, it allows the GC to clean-up temporaries
             res = e.execute(frame);
         }
         return res;

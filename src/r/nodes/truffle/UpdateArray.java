@@ -9,7 +9,7 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 
 /** Array update AST and its specializations. */
-public class UpdateArray extends UpdateVariable.AssignmentNode {
+public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     static final boolean DEBUG_UP = false;
 
@@ -29,7 +29,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      *
      * // TODO peepholer is currently not used as all optimizations are visible from the first execution.
      */
-    public static UpdateVariable.AssignmentNode create(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
+    public static UpdateArrayAssignment.AssignmentNode create(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
         return new UpdateArray(ast, selectors, subset);
     }
 
