@@ -131,6 +131,7 @@ public class Array {
                 /**
                  * Parses the dimnames. TODO not yet implemented.
                  */
+                @SuppressWarnings("unused")
                 private String[][] parseDimnames(RAny dimnames, int[] dim) {
                     Utils.nyi("dimnames are not yet implemented");
                     return null;

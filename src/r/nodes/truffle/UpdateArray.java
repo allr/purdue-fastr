@@ -17,7 +17,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
     final boolean subset;
 
     /** Selector nodes for respective dimensions. These are likely to be rewritten. */
-    @Children Selector.SelectorNode[] selectors;
+    @Children Selector.SelectorNode[] selectorNodes;
 
     final Selector[] selectorsVal;
     final int[] selSizes;
@@ -30,8 +30,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      * // TODO peepholer is currently not used as all optimizations are visible from the first execution.
      */
     public static UpdateVariable.AssignmentNode create(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
-        UpdateArray ary = new UpdateArray(ast, selectors, subset);
-        return ary;
+        return new UpdateArray(ast, selectors, subset);
     }
 
 
@@ -40,9 +39,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
     protected UpdateArray(ASTNode ast, Selector.SelectorNode[] selectors, boolean subset) {
         super(ast);
         this.subset = subset;
-        this.selectors = new Selector.SelectorNode[selectors.length];
+        this.selectorNodes = new Selector.SelectorNode[selectors.length];
         for (int i = 0; i < selectors.length; ++i) {
-            this.selectors[i] = adoptChild(selectors[i]);
+            this.selectorNodes[i] = adoptChild(selectors[i]);
         }
         selectorsVal = new Selector[selectors.length];
         selSizes = new int[selectors.length];
@@ -54,9 +53,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
     protected UpdateArray(UpdateArray other) {
         super(other.ast);
         subset = other.subset;
-        selectors = new Selector.SelectorNode[other.selectors.length];
-        for (int i = 0; i < selectors.length; ++i) {
-            selectors[i] = adoptChild(other.selectors[i]);
+        selectorNodes = new Selector.SelectorNode[other.selectorNodes.length];
+        for (int i = 0; i < selectorNodes.length; ++i) {
+            selectorNodes[i] = adoptChild(other.selectorNodes[i]);
         }
         selectorsVal = other.selectorsVal;
         selSizes = other.selSizes;
@@ -68,7 +67,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
      * Returns true if the given type (from) is implicitly convertible to the other type. So for
      * example logical type is always convertible and string is only convertible to string itself.
      */
-    protected final boolean isConvertible(RAny from, RAny to) {
+    protected static boolean isConvertible(RAny from, RAny to) {
         if (from.getClass() == to.getClass()) { // same types are always convertible.
             return true;
         }
@@ -156,7 +155,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 throw new UnexpectedResultException(null);
             }
             for (int i = 0; i < selectorsVal.length; ++i) {
-                selectorsVal[i] = selectors[i].executeSelector(frame);
+                selectorsVal[i] = selectorNodes[i].executeSelector(frame);
             }
             while (true) {
                 try {
@@ -166,9 +165,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                     for (int i = 0; i < selectorsVal.length; ++i) {
                         if (selectorsVal[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
-                            Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectors[i], false, failedSelector.getTransition());
-                            replaceChild(selectors[i], newSelector);
-                            assert (selectors[i] == newSelector);
+                            Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorNodes[i], false, failedSelector.getTransition());
+                            replaceChild(selectorNodes[i], newSelector);
+                            assert (selectorNodes[i] == newSelector);
                             selectorsVal[i] = newSelector.executeSelector(index);
                             if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
                         }
@@ -356,35 +355,43 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
          * of course).
          */
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhsParam) {
+            RAny lhs = lhsParam;
+            RAny rhs = rhsParam;
             if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
                 if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED_CACHE) {
                     // check if we have a reason to believe that we are specialized, and if so, just use the simple checks to
                     // confirm and proceed
                     switch (updateType) {
                         case INT_TO_INT_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof IntImpl && rhs instanceof IntImpl)
+                            if ((lhs != rhs) && lhs instanceof IntImpl && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                         case INT_TO_DOUBLE_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof IntImpl)
+                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                         case DOUBLE_TO_DOUBLE_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof DoubleImpl)
+                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof DoubleImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                         case INT_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof IntImpl)
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                         case DOUBLE_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof DoubleImpl)
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof DoubleImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                         case COMPLEX_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof ComplexImpl)
+                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof ComplexImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                            }
                             break;
                     }
                 }
@@ -612,7 +619,8 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
              * itself). Upon failure of the copy code reqrites the whole tree to the general case.
              */
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
+                RAny lhs = lhsParam;
                 try {
                     lhs = impl.copy(lhs);
                 } catch (UnexpectedResultException e) {
@@ -660,8 +668,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
             RAny.Mode rhsMode = ValueCopy.valueMode(rhs);
             switch (lhsMode) {
                 case INT:
-                    if (rhsMode == RAny.Mode.LOGICAL)
+                    if (rhsMode == RAny.Mode.LOGICAL) {
                         return ValueCopy.LOGICAL_TO_INT;
+                    }
                     break;
                 case DOUBLE:
                     switch (rhsMode) {
@@ -731,7 +740,8 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
              * rewrites itself to the generalized case.
              */
             @Override
-            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            public RAny execute(Frame frame, RAny lhs, RAny rhsParam) {
+                RAny rhs = rhsParam;
                 try {
                     rhs = impl.copy(rhs);
                 } catch (UnexpectedResultException e) {
@@ -1326,8 +1336,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
+                RAny lhs = lhsParam;
                 if (!(lhs instanceof DoubleImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
                     throw new UnexpectedResultException(null);
                 }
@@ -1336,7 +1347,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1399,8 +1410,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
+                RAny lhs = lhsParam;
                 if (!(lhs instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
                     throw new UnexpectedResultException(null);
                 }
@@ -1409,7 +1421,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1544,8 +1556,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
+                RAny lhs = lhsParam;
                 if (!(lhs instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
                     throw new UnexpectedResultException(null);
                 }
@@ -1554,7 +1567,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1618,8 +1631,9 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
+                RAny lhs = lhsParam;
                 if (!(lhs instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || (lhs.isShared())) {
                     throw new UnexpectedResultException(null);
                 }
@@ -1628,7 +1642,7 @@ public class UpdateArray extends UpdateVariable.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 

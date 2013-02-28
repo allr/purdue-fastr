@@ -20,7 +20,7 @@ import r.nodes.ASTNode;
 public abstract class ReadArray extends BaseR {
 
     /**
-     * determines whether [] or [[]] operators were used (subset == [])
+     * determines whether [] or [[]] operators were used (subset == []).
      */
     final boolean subset;
 
@@ -32,10 +32,10 @@ public abstract class ReadArray extends BaseR {
     /**
      * Selector nodes for respective dimensions. These are likely to be rewritten.
      */
-    @Children Selector.SelectorNode[] selectors;
+    @Children Selector.SelectorNode[] selectorsNodes;
 
     /**
-     * Drop expression, assumed true or false
+     * Drop expression, assumed true or false.
      */
     @Child OptionNode drop;
 
@@ -52,9 +52,10 @@ public abstract class ReadArray extends BaseR {
         super(ast);
         this.subset = subset;
         this.lhs = adoptChild(lhs);
-        this.selectors = new Selector.SelectorNode[selectors.length];
-        for (int i = 0; i < selectors.length; ++i)
-            this.selectors[i] = adoptChild(selectors[i]);
+        this.selectorsNodes = new Selector.SelectorNode[selectors.length];
+        for (int i = 0; i < selectors.length; ++i) {
+            this.selectorsNodes[i] = adoptChild(selectors[i]);
+        }
         this.drop = adoptChild(dropExpr);
         this.exact = adoptChild(exactExpr);
         this.selSizes = new int[selectors.length];
@@ -69,9 +70,10 @@ public abstract class ReadArray extends BaseR {
         super(other.ast);
         subset = other.subset;
         lhs = adoptChild(other.lhs);
-        selectors = new Selector.SelectorNode[selectors.length];
-        for (int i = 0; i < selectors.length; ++i)
-            selectors[i] = adoptChild(other.selectors[i]);
+        selectorsNodes = new Selector.SelectorNode[selectorsNodes.length];
+        for (int i = 0; i < selectorsNodes.length; ++i) {
+            selectorsNodes[i] = adoptChild(other.selectorsNodes[i]);
+        }
         this.drop = adoptChild(other.drop);
         this.exact = adoptChild(other.exact);
         this.selSizes = other.selSizes;
@@ -89,12 +91,11 @@ public abstract class ReadArray extends BaseR {
     @Override
     public Object execute(Frame frame) {
         RAny lhsVal = (RAny) lhs.execute(frame);
-        Selector[] selectorsVal = new Selector[selectors.length];
+        Selector[] selectorsVal = new Selector[selectorsNodes.length];
         for (int i = 0; i < selectorsVal.length; ++i) {
-            selectorsVal[i] = selectors[i].executeSelector(frame);
+            selectorsVal[i] = selectorsNodes[i].executeSelector(frame);
         }
-        boolean dropVal = drop.executeLogical(frame) != 0;  // FIXME: what is the correct execution
-// order of these args?
+        boolean dropVal = drop.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
         int exactVal = exact.executeLogical(frame);
 
         if (!(lhsVal instanceof RArray)) {
@@ -103,8 +104,9 @@ public abstract class ReadArray extends BaseR {
             return null;
         }
         RArray array = (RArray) lhsVal;
-        if (array.dimensions().length != selectors.length)
+        if (array.dimensions().length != selectorsNodes.length) {
             throw RError.getIncorrectDimensions(getAST());
+        }
         while (true) {
             try {
                 return execute(array, selectorsVal, dropVal, exactVal);
@@ -112,12 +114,11 @@ public abstract class ReadArray extends BaseR {
                 Selector failedSelector = (Selector) e.getResult();
                 for (int i = 0; i < selectorsVal.length; ++i) {
                     if (selectorsVal[i] == failedSelector) {
-                        // TODO This is probably not a proper way how to replace a child in an array
-// of children??
+                        // TODO This is probably not a proper way how to replace a child in an array of children??
                         RAny index = failedSelector.getIndex();
-                        Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectors[i], false, failedSelector.getTransition());
-                        replaceChild(selectors[i], newSelector);
-                        assert (selectors[i] == newSelector);
+                        Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorsNodes[i], false, failedSelector.getTransition());
+                        replaceChild(selectorsNodes[i], newSelector);
+                        assert (selectorsNodes[i] == newSelector);
                         selectorsVal[i] = newSelector.executeSelector(index);
                     }
                 }
@@ -131,6 +132,7 @@ public abstract class ReadArray extends BaseR {
      * The given selectors may fail resulting in the exception being thrown, in which case they will
      * be replaced with more general ones.
      */
+    @SuppressWarnings("hiding")
     public abstract Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException;
 
     // =================================================================================================================
@@ -223,13 +225,15 @@ public abstract class ReadArray extends BaseR {
          * The selIdx array contains the position in the selector (when this is equal to the
          * selector size the selector has overflown).
          */
+        @SuppressWarnings("hiding")
         @Override
         public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
             Selector.initializeSelectors(source, selectors, ast, selSizes);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, drop);
             int destSize = Selector.calculateSizeFromDimensions(destDim);
-            if (!subset && (destSize > 1))
+            if (!subset && (destSize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
+            }
             RArray dest = Utils.createArray(source, destSize, destDim, null, null); // drop attributes
             // fill in the index vector
             for (int i = 0; i < idx.length; ++i) {
@@ -239,10 +243,11 @@ public abstract class ReadArray extends BaseR {
             // loop over the dest offset and update the index vector
             for (int offset = 0; offset < destSize; ++offset) {
                 int sourceOffset = Selector.calculateSourceOffset(source, idx);
-                if (sourceOffset == RInt.NA)
+                if (sourceOffset == RInt.NA) {
                     Utils.setNA(dest, offset);
-                else
+                } else {
                     dest.set(offset, source.getRef(sourceOffset));
+                }
                 Selector.increment(idx, selIdx, selSizes, selectors, ast);
             }
             return dest;
@@ -265,9 +270,9 @@ public abstract class ReadArray extends BaseR {
             super(other);
         }
 
-        // TODO change order of the matrix loops so that offset does not have to be always
-// calculated like it is done in
+        // TODO change order of the matrix loops so that offset does not have to be always calculated like it is done in
         // the generalized case.
+        @SuppressWarnings("hiding")
         @Override
         public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
             Selector selI = selectors[0];
@@ -280,8 +285,9 @@ public abstract class ReadArray extends BaseR {
             int nm = selI.size();
             int nn = selJ.size();
             int nsize = nm * nn;
-            if (!subset && (nsize > 1))
+            if (!subset && (nsize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
+            }
             if ((nm != 1 && nn != 1) || !drop) {
                 ndim = new int[]{nm, nn};
             } else {
@@ -298,8 +304,7 @@ public abstract class ReadArray extends BaseR {
                         int j = selJ.nextIndex(ast);
                         if (j != RInt.NA) {
                             Object value;
-                            value = source.getRef(j * m + i); // FIXME: check overflow? (the same is
-// at many locations, whenever indexing a matrix)
+                            value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
                             res.set(offset, value);
                         } else {
                             Utils.setNA(res, offset);

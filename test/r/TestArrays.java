@@ -40,7 +40,7 @@ public class TestArrays extends TestBase {
     }
 
     @Test
-    public void testMatrixBuiltin() throws RecognitionException {
+    public void testMatrixBuiltin() {
         // empty matrix length is 1
         assertTrue("{ length(matrix()) == 1; }");
     }
