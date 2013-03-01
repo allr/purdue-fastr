@@ -325,6 +325,11 @@ public interface RRaw extends RArray {
             value.ref();
             index.ref();
         }
+
+        @Override
+        public boolean dependsOn(RAny v) {
+            return value.dependsOn(v) || index.dependsOn(v);
+        }
     }
 
     public static class RRawExclusion extends View.RRawView implements RRaw {
@@ -364,6 +369,11 @@ public interface RRaw extends RArray {
         @Override
         public void ref() {
             orig.ref();
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
         }
     }
 }

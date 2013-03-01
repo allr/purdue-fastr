@@ -1154,13 +1154,60 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    public static final class Pow extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+    public static final class Pow extends ValueArithmetic {
 
-        private static double[] _Z = new double[2];
+        private static void reciprocal(double[] z, int offset) {
+            double re = z[offset];
+            double im = z[offset + 1];
+            double denom = re * re + im * im;
+            z[offset] = re / denom;
+            z[offset + 1] = -im / denom;
+        }
 
-//        private static void cpow(double xr, double xi, double yr, double yi) {
-//            cpow(xr, xi, yr, yi, _Z, 0);
-//        }
+        // R_cpow_n in complex.c
+        private static void cpow(double xr, double xi, int k, double[] z, int offset) {
+            if (k == 0) {
+                z[offset] = 1;
+                z[offset + 1] = 0; // FIXME: perhaps should rely on cleared z
+                return;
+            }
+            if (k == 1) {
+                z[offset] = xr;
+                z[offset + 1] = xi;
+                return;
+            }
+            if (k < 0) {
+                cpow(xr, xi, -k, z, offset); // x^(-k)
+                reciprocal(z, offset);
+                return;
+            }
+            double xre = xr; // "x"
+            double xim = xi;
+            double zre = 1;  // "z"
+            double zim = 0;
+            double tmp = 0;
+            int kk = k;
+            while (kk > 0) {
+                if ((kk & 1) != 0) {
+                    // "z = z * X"
+                    tmp = zre * xre - zim * xim;
+                    zim = xim * zre + xre * zim;
+                    zre = tmp;
+
+                    if (kk == 1) {
+                        break;
+                    }
+                }
+                kk = kk / 2;
+                // "X = X * X"
+                tmp = xre * xre - xim * xim;
+                xim = 2 * xre * xim;
+                xre = tmp;
+
+            }
+            z[offset] = zre;
+            z[offset + 1] = zim;
+        }
 
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
             if (xr == 0) {
@@ -1171,34 +1218,45 @@ public class Arithmetic extends BaseR {
                     z[offset] = Double.NaN;
                     z[offset + 1] = Double.NaN;
                 }
-            } else {
-                double zr = Math.hypot(xr, xi);
-                double zi = Math.atan2(xi, xr);
-                double theta = zi * yr;
-                double rho;
-                if (yi == 0) {
-                    rho = Math.pow(zr, yr);
-                } else {
-                    zr = Math.log(zr);
-                    theta += zr * yi;
-                    rho = Math.exp(zr * yr - zi * yi);
-                }
-                z[offset] = rho * Math.cos(theta);
-                z[offset + 1] = rho * Math.sin(theta);
+                return;
             }
+
+            if (yi == 0) {
+                int k = (int) yr;
+                if (yr == k && Math.abs(k) <= 65536) {
+                    cpow(xr, xi, k, z, offset);
+                    return;
+                }
+            }
+
+            double zr = Math.hypot(xr, xi);
+            double zi = Math.atan2(xi, xr);
+            double theta = zi * yr;
+            double rho;
+            if (yi == 0) {
+                rho = Math.pow(zr, yr);
+            } else {
+                zr = Math.log(zr);
+                theta += zr * yi;
+                rho = Math.exp(zr * yr - zi * yi);
+            }
+            z[offset] = rho * Math.cos(theta);
+            z[offset + 1] = rho * Math.sin(theta);
         }
 
+        private static final double[] TMP_Z = new double[2];
 
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            Utils.nyi();
-            return -1;
+            cpow(a, b, c, d, TMP_Z, 0);
+            return TMP_Z[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            Utils.nyi();
-            return -1;
+            cpow(a, b, c, d, TMP_Z, 0); // FIXME: remember last values? would a boxed version be faster?
+            return TMP_Z[1];
         }
+
         @Override
         public double op(ASTNode ast, double a, double b) {
             return Math.pow(a, b); // FIXME: check that the R rules correspond to Java
@@ -1214,8 +1272,14 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
-            Utils.nyi();
-            return null;
+            double[] x = xcomp.getContent();
+            double[] y = ycomp.getContent();
+            double[] z = new double[x.length];
+            for (int i = 0; i < x.length; i += 2) {
+                cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
+            }
+            RComplex res = RComplex.RComplexFactory.getFor(z, dimensions, names);
+            return res;
         }
 
         @Override
@@ -1223,9 +1287,10 @@ public class Arithmetic extends BaseR {
             double[] x = xcomp.getContent();
             double[] z = new double[x.length];
             for (int i = 0; i < x.length; i += 2) {
-                cpow(x[i], x[i + 1], yr, yi, z, i);
+                cpow(x[i], x[i + 1], yr, yi, z, i); // FIXME: extract some checks on the exponent here
             }
-            return RComplex.RComplexFactory.getFor(z, dimensions, names);
+            RComplex res = RComplex.RComplexFactory.getFor(z, dimensions, names);
+            return res;
         }
     }
 
@@ -1400,7 +1465,7 @@ public class Arithmetic extends BaseR {
     public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
     public static final Mod MOD = new Mod();
 
-    static class ComplexView extends View.RComplexView implements RComplex {
+    public static class ComplexView extends View.RComplexView implements RComplex {
         final RComplex a;
         final RComplex b;
         final int na;
@@ -1556,6 +1621,11 @@ public class Arithmetic extends BaseR {
         public Attributes attributes() {
             return attributes;
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
+        }
     }
 
     static class DoubleView extends View.RDoubleView implements RDouble {
@@ -1705,6 +1775,11 @@ public class Arithmetic extends BaseR {
         public Attributes attributes() {
             return attributes;
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
+        }
     }
 
     static class IntView extends View.RIntView implements RInt {
@@ -1823,6 +1898,11 @@ public class Arithmetic extends BaseR {
         @Override
         public Attributes attributes() {
             return attributes;
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
         }
     }
 

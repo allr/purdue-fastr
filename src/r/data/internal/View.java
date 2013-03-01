@@ -80,6 +80,11 @@ public abstract class View extends ArrayImpl implements RArray {
         return true;
     }
 
+    @Override
+    public boolean dependsOn(RAny value) {
+        return true; // a safe default, but should be overridden for performance whenever possible
+    }
+
     public abstract static class RRawView extends View implements RRaw {
         @Override
         public Object get(int i) {
@@ -218,6 +223,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Attributes attributes() {
             return orig.attributes();
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
         }
     }
 
@@ -361,6 +371,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Attributes attributes() {
             return orig.attributes();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     public abstract static class RIntView extends View implements RInt {
@@ -497,6 +512,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Attributes attributes() {
             return orig.attributes();
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
         }
     }
 
@@ -640,6 +660,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Attributes attributes() {
             return orig.attributes();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     public abstract static class RComplexView extends View implements RComplex {
@@ -781,6 +806,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Attributes attributes() {
             return orig.attributes();
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
         }
     }
 
@@ -929,6 +959,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public Attributes attributes() {
             return orig.attributes();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     public abstract static class RListView extends View implements RList {
@@ -1065,6 +1100,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public Attributes attributes() {
             return orig.attributes();
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
         }
     }
 }

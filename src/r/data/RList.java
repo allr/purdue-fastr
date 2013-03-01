@@ -112,6 +112,11 @@ public interface RList extends RArray {
         public void ref() {
             orig.ref();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     // indexes must all be positive
@@ -154,6 +159,11 @@ public interface RList extends RArray {
         public void ref() {
             value.ref();
             index.ref();
+        }
+
+        @Override
+        public boolean dependsOn(RAny v) {
+            return value.dependsOn(v) || index.dependsOn(v);
         }
     }
 }

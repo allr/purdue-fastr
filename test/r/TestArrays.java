@@ -118,6 +118,9 @@ public class TestArrays extends TestBase {
         // update of shared object does the copy
         assertTrue("{ a = array(1,c(3,3,3)); b = a; b[1,2,3] = 3; a[1,2,3] == 1 && b[1,2,3] == 3; }");
 
+        // update where rhs depends on the lhs
+        assertTrue("{ x <- array(c(1,2,3), dim=c(3,1,1)) ; x[1:2,1,1] <- sqrt(x[2:1]) ; x[1] == sqrt(2) && x[2] == 1 && x[3] == 3 }");
+
     }
 
     @Test

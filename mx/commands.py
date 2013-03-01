@@ -209,6 +209,11 @@ def rconsole(vmArgs, vm, cArgs):
 
   extraArgs = [];
 #  extraArgs = ['-XX:-Inline'];
+#  extraArgs = ['-verbose:gc'];
+#  extraArgs = ['-XX:+PrintGCDetails','-XX:+PrintHeapAtGC','-XX:+PrintHeapAtGCExtended'];
+#  extraArgs = ['-Xmx6500m', '-verbose:gc'];
+#  extraArgs = ['-Xmx2g', '-verbose:gc'];
+  extraArgs = ['-Xmx4g'];
   gmod.vm( vmArgs + extraArgs + ['-cp', mx.classpath("fastr") , 'r.Console' ] + cArgs, vm = vm, out = gvmOut); 
 
 def rshootout(args, vmArgs, vm, benchDir, benchFile, defaultArg):

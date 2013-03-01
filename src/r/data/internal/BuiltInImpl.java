@@ -156,4 +156,9 @@ public class BuiltInImpl implements RBuiltIn {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
+    }
 }

@@ -193,7 +193,7 @@ public class Convert {
 
     public static String complex2string(double real, double imag) {
         if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
-            String sgn = (imag >= 0) ? "+" : "";
+            String sgn = (imag >= 0 || Double.isNaN(imag)) ? "+" : "";
             return double2string(real) + sgn + double2string(imag) + "i"; // FIXME: could elide some NA checks through hand-inlining
         }
         return RString.NA;

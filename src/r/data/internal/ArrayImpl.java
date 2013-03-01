@@ -188,4 +188,9 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         RSymbol s = names.sequence()[i];
         return ((RArray) res).setNames(Names.create(new RSymbol[] {s}));
      }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return value == this;
+    }
 }

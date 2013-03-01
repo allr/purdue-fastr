@@ -453,6 +453,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- c(a=1, b=10) ; c(log(x), log10(x), log2(x)) }", "  a                 b   a   b   a                  b\n0.0 2.302585092994046 0.0 1.0 0.0 3.3219280948873626");
 
         assertEval("{ sqrt(c(a=9,b=81)) }", "  a   b\n3.0 9.0");
+
+        assertEval("{ exp(c(1+1i,-2-3i)) }", "1.4686939399158854+2.2873552871788427i, -0.13398091492954262-0.019098516261135196i");
+        assertEval("{ exp(1+2i) }", "-1.1312043837568138+2.471726672004819i");
+
     }
 
     @Test
@@ -758,7 +762,7 @@ public class TestSimpleBuiltins extends TestBase {
         // rowSums on array have correct values
         assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); a[1] == 144 && a[2] == 156; }");
     }
-    
+
 
 
 }

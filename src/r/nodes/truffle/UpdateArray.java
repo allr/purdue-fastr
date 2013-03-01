@@ -148,8 +148,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      */
     protected final RAny executeAndUpdateSelectors(Frame frame, RArray lhs, RArray rhs) {
         // this is safe even for the non-shared variant, because here we already have the copy,
-// which is always
-        // not shared
+        // which is never shared
         try {
             if (lhs.isShared()) {
                 throw new UnexpectedResultException(null);
@@ -422,17 +421,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
             }
             // none of the specializations is applicable, proceed with the very general case
-            // 1) check if we need to copy the LHS side
-            ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs);
-            if (lhsImpl != null) {
-                try {
-                    lhs = lhsImpl.copy(lhs);
-                } catch (UnexpectedResultException e) {
-                    assert (false) : "unreachable";
-                }
-            }
-            // now check if we need to copy the RHS
-            ValueCopy.Impl rhsImpl = CopyRhs.determineCopyImplementation(lhs, rhs);
+
+            // 1. copy the rhs
+            ValueCopy.Impl rhsImpl = CopyRhs.determineCopyImplementation(lhs, rhs); // can be null if no copy is needed
             if (rhsImpl != null) {
                 try {
                     rhs = rhsImpl.copy(rhs);
@@ -440,14 +431,22 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     assert (false) : "unreachable";
                 }
             }
-            // we have lhs and rhs, if everything goes well, and is implemented they will be of the
-// same type.
-            // TODO However because not everything is implemented as of now, I am keeping the
-// checks.
-            if ((lhs instanceof RInt && !(rhs instanceof RInt)) || (lhs instanceof RDouble && !(rhs instanceof RDouble)) || (lhs instanceof RLogical && !(rhs instanceof RLogical)) ||
-                            (lhs instanceof RComplex && !(rhs instanceof RComplex)) || (lhs instanceof RString && !(rhs instanceof RString)) || (lhs instanceof RRaw && !(rhs instanceof RRaw))) {
-                Utils.nyi("Unable to perform the update of the array - unimplemented copy");
+
+            // now the type of lhs <= type of rhs
+            ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs); // will not be null, will be an upcast or a duplicate
+            if (!(lhsImpl instanceof ValueCopy.Duplicate) || lhs.isShared() || rhs.dependsOn(lhs)) {
+                try {
+                    lhs = lhsImpl.copy(lhs);
+                } catch (UnexpectedResultException e) {
+                    assert (false) : "unreachable";
+                }
             }
+            // now the type of lhs == the type of rhs
+
+            // TODO However because not everything is implemented as of now, I am keeping the checks.
+            assert Utils.check((lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
+                            (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RRaw && rhs instanceof RRaw),
+                            "Unable to perform the update of the array - unimplemented copy");
             return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
         }
 
@@ -594,7 +593,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-              return replace(new Specialized(this, determineCopyImplementation(lhs, rhs))).execute(frame, lhs, rhs);
+                ValueCopy.Impl copy =  determineCopyImplementation(lhs, rhs);
+                if (copy instanceof ValueCopy.Duplicate) {
+                    return replace(new SpecializedDuplicate(this, (ValueCopy.Duplicate) copy)).execute(frame, lhs, rhs);
+                } else {
+                    return replace(new Specialized(this, copy)).execute(frame, lhs, rhs);
+                }
             }
         }
 
@@ -627,6 +631,38 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");
                     return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
+                return child.execute(frame, lhs, rhs);
+            }
+        }
+
+        protected static class SpecializedDuplicate extends CopyLhs {
+
+            final ValueCopy.Duplicate impl;
+
+            public SpecializedDuplicate(CopyLhs other, ValueCopy.Duplicate copy) {
+                super(other);
+                assert Utils.check(!(child instanceof CopyRhs));
+                // in the current code, the child won't be copying the rhs
+                // if that changes, the execute method below should be modified not to pay attention to whether the _old_ rhs
+                // does depend on the lhs, because it will be copied by the child node
+
+                this.impl = copy;
+            }
+
+            @Override
+            public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
+                RAny lhs;
+                if (lhsParam.isShared() || rhs.dependsOn(lhsParam)) {
+                    try {
+                        lhs = impl.copy(lhsParam);
+                    } catch (UnexpectedResultException e) {
+                        if (DEBUG_UP) Utils.debug("CopyLhs.SpecializedDuplicate -> Generalized");
+                        return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                    }
+                } else {
+                    lhs = lhsParam;
+                }
+
                 return child.execute(frame, lhs, rhs);
             }
         }
@@ -1732,7 +1768,14 @@ class ValueCopy {
         public abstract RAny copy(RAny what) throws UnexpectedResultException;
     }
 
-    public static final Impl LOGICAL_TO_LOGICAL = new Impl() {
+    protected abstract static class Upcast extends Impl {
+    }
+
+    protected abstract static class Duplicate extends Impl {
+    }
+
+
+    public static final Duplicate LOGICAL_TO_LOGICAL = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1748,7 +1791,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl LOGICAL_TO_INT = new Impl() {
+    public static final Upcast LOGICAL_TO_INT = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1764,7 +1807,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_INT = new Impl() {
+    public static final Duplicate INT_TO_INT = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1780,7 +1823,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_INT_DIRECT = new Impl() {
+    public static final Duplicate INT_TO_INT_DIRECT = new Duplicate() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof IntImpl)) {
@@ -1794,7 +1837,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl LOGICAL_TO_DOUBLE = new Impl() {
+    public static final Upcast LOGICAL_TO_DOUBLE = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1810,7 +1853,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_DOUBLE = new Impl() {
+    public static final Upcast INT_TO_DOUBLE = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1826,7 +1869,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_DOUBLE_DIRECT = new Impl() {
+    public static final Upcast INT_TO_DOUBLE_DIRECT = new Upcast() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof IntImpl)) {
@@ -1842,7 +1885,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl DOUBLE_TO_DOUBLE = new Impl() {
+    public static final Duplicate DOUBLE_TO_DOUBLE = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1858,7 +1901,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl DOUBLE_TO_DOUBLE_DIRECT = new Impl() {
+    public static final Duplicate DOUBLE_TO_DOUBLE_DIRECT = new Duplicate() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof DoubleImpl)) {
@@ -1872,7 +1915,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl LOGICAL_TO_COMPLEX = new Impl() {
+    public static final Upcast LOGICAL_TO_COMPLEX = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1889,7 +1932,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_COMPLEX = new Impl() {
+    public static final Upcast INT_TO_COMPLEX = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1906,7 +1949,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_COMPLEX_DIRECT = new Impl() {
+    public static final Upcast INT_TO_COMPLEX_DIRECT = new Upcast() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof IntImpl)) {
@@ -1923,7 +1966,7 @@ class ValueCopy {
     };
 
 
-    public static final Impl DOUBLE_TO_COMPLEX = new Impl() {
+    public static final Upcast DOUBLE_TO_COMPLEX = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1940,7 +1983,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl DOUBLE_TO_COMPLEX_DIRECT = new Impl() {
+    public static final Upcast DOUBLE_TO_COMPLEX_DIRECT = new Upcast() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof DoubleImpl)) {
@@ -1956,7 +1999,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl COMPLEX_TO_COMPLEX = new Impl() {
+    public static final Duplicate COMPLEX_TO_COMPLEX = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -1973,7 +2016,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl COMPLEX_TO_COMPLEX_DIRECT = new Impl() {
+    public static final Impl COMPLEX_TO_COMPLEX_DIRECT = new Duplicate() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof ComplexImpl)) {
@@ -1987,7 +2030,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl LOGICAL_TO_STRING = new Impl() {
+    public static final Upcast LOGICAL_TO_STRING = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -2003,7 +2046,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl INT_TO_STRING = new Impl() {
+    public static final Upcast INT_TO_STRING = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -2019,7 +2062,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl DOUBLE_TO_STRING = new Impl() {
+    public static final Upcast DOUBLE_TO_STRING = new Upcast() {
 
         @Override
        public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -2035,7 +2078,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl COMPLEX_TO_STRING = new Impl() {
+    public static final Upcast COMPLEX_TO_STRING = new Upcast() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -2051,7 +2094,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl STRING_TO_STRING = new Impl() {
+    public static final Duplicate STRING_TO_STRING = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
@@ -2068,7 +2111,7 @@ class ValueCopy {
     };
 
     // TODO what to do with raw ??
-    public static final Impl RAW_TO_RAW = new Impl() {
+    public static final Duplicate RAW_TO_RAW = new Duplicate() {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {

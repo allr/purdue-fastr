@@ -215,4 +215,9 @@ public final class RNull implements RArray {
     public String typeOf() {
         return TYPE_STRING;
     }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
+    }
 }

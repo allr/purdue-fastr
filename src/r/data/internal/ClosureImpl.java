@@ -151,4 +151,9 @@ public class ClosureImpl extends BaseObject implements RClosure {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
+    }
 }
