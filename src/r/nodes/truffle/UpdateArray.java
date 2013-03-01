@@ -358,7 +358,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         public RAny execute(Frame frame, RAny lhsParam, RAny rhsParam) {
             RAny lhs = lhsParam;
             RAny rhs = rhsParam;
-            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED && !lhs.isShared()) {
                 if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED_CACHE) {
                     // check if we have a reason to believe that we are specialized, and if so, just use the simple checks to
                     // confirm and proceed
