@@ -72,6 +72,12 @@ public class TestSimpleArrays extends TestBase {
         // error when different dimensions given
         assertEvalError("{ a = array(1,c(3,3,3)); a[2,2]; }", RError.INCORRECT_DIMENSIONS);
 
+        // calculating result dimensions
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,1] ; x[1] == 1 && x[2] == 2 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- dim(m[1:2,1,1]) ; is.null(x) }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- dim(m[1:2,1,1,drop=FALSE]) ; x[1] == 2 && x[2] == 1 && x[3] == 1 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,integer()] ; d <- dim(x) ; length(x) == 0 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,integer()] ; d <- dim(x) ; d[1] == 2 && d[2] == 0 }");
     }
 
     @Test

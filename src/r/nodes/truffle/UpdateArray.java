@@ -189,7 +189,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     protected RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
         Selector.initializeSelectors(lhs, selectors, ast, selSizes);
         int rhsSize = rhs.size();
-        int replacementSize = Selector.calculateSizeFromDimensions(selSizes);
+        int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
         if (!subset && (rhsSize > 1)) {
             throw RError.getSelectMoreThanOne(getAST());
         }
@@ -848,7 +848,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
                 Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (!subset && (updateSize > 1)) {
                     throw RError.getSelectMoreThanOne(getAST());
                 }
@@ -899,7 +899,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
                 Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (!subset && (updateSize > 1)) {
                     throw RError.getSelectMoreThanOne(getAST());
                 }
@@ -950,7 +950,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
                 Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (!subset && (updateSize > 1)) {
                     throw RError.getSelectMoreThanOne(getAST());
                 }
@@ -1001,7 +1001,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
                 Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (!subset && (updateSize > 1)) {
                     throw RError.getSelectMoreThanOne(getAST());
                 }
@@ -1054,7 +1054,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs, Selector[] selectors) throws UnexpectedResultException {
                 Selector.initializeSelectors(lhs, selectors, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromDimensions(selSizes);
+                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (!subset && (updateSize > 1)) {
                     throw RError.getSelectMoreThanOne(getAST());
                 }
@@ -1321,7 +1321,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             int[] lhsVal = ((IntImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }
@@ -1394,7 +1394,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }
@@ -1468,7 +1468,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }
@@ -1540,7 +1540,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }
@@ -1614,7 +1614,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }
@@ -1689,7 +1689,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((ComplexImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromDimensions(node.selSizes);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
             if (!node.subset && (rhsVal.length > 1)) {
                 throw RError.getSelectMoreThanOne(node.ast);
             }

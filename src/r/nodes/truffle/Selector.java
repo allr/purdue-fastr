@@ -28,25 +28,43 @@ public abstract class Selector {
      * in this case).
      */
     public static int[] calculateDestinationDimensions(int[] selSizes, boolean drop) {
-        int[] result = new int[0];
-        for (int i : selSizes) {
-            if (i>1 || !drop) {
-                result = Arrays.copyOf(result, result.length + 1);
-                result[result.length-1] = i;
+
+        if (!drop) {
+            return selSizes;
+        }
+        int nones = 0;
+        for (int s : selSizes) {
+            if (s == 1) {
+                nones++;
             }
         }
-        return (result.length <= 1) ? null : result;
+        if (nones == 0) {
+            return selSizes;
+        }
+        if (nones >= selSizes.length - 1) {
+            return null;
+        }
+        int[] res = new int[selSizes.length - nones];
+        int i = 0;
+        for (int s : selSizes) {
+            if (s != 1) {
+                res[i++] = s;
+            }
+        }
+        return res;
     }
 
-    /** Calculates thee result size from the result dimensions calculated previously. The result size is simply the
-     * product of the dimensions.
+    /** Calculates the selection size from selector sizes (their product).
      */
-    public static int calculateSizeFromDimensions(int[] dim) {
+    public static int calculateSizeFromSelectorSizes(int[] selectorSizes) {
+
+        if (selectorSizes == null) {
+            return 0;
+        }
         int result = 1;
-        if (dim == null)
-            return result;
-        for (int i : dim)
+        for (int i : selectorSizes) {
             result *= i;
+        }
         return result;
     }
 
