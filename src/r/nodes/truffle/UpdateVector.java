@@ -2104,8 +2104,7 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base.asLogical();
                     typedValue = value.asLogical();
                 } else {
-                    Utils.nyi("unsupported vector types");
-                    return null;
+                    throw Utils.nyi("unsupported vector types");
                 }
             }
             int bsize = base.size();
@@ -2307,7 +2306,7 @@ public abstract class UpdateVector extends BaseR {
             RSymbol[] bsymbols;
             HashMap<RSymbol, Integer> nmap;
             if (bnames == null) {
-                nmap = new HashMap<RSymbol, Integer>(bsize);
+                nmap = new HashMap<>(bsize);
                 bsymbols = null;
             } else {
                 nmap = bnames.getMap();
@@ -2522,9 +2521,7 @@ public abstract class UpdateVector extends BaseR {
                 }
             }
             // selection at the last level
-            if (!(b instanceof RArray)) {
-                Utils.nyi("unuspported base type");
-            }
+            if (!(b instanceof RArray)) { throw Utils.nyi("unuspported base type"); }
             RArray a = (RArray) b;
             if (value instanceof RNull) {
                 if (a instanceof RList) {
@@ -2606,8 +2603,7 @@ public abstract class UpdateVector extends BaseR {
                         } else if (aindex instanceof RNull) {
                             return lbase;
                         } else {
-                            Utils.nyi("unsupported update");
-                            return null;
+                            throw Utils.nyi("unsupported update");
                         }
                     }
                 }
@@ -2623,8 +2619,7 @@ public abstract class UpdateVector extends BaseR {
                     } else if (aindex instanceof RString) {
                         return StringSelection.genericUpdate(abase, (RString) index, avalue, ast);
                     } else {
-                        Utils.nyi("unsupported update");
-                        return null;
+                        throw Utils.nyi("unsupported update");
                     }
                 } else {
                     return Subscript.executeSubscript(aindex, abase, avalue, ast);
@@ -2632,8 +2627,7 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericSelection failed: " + f);
-                Utils.nyi("unsupported update");
-                return null;
+                throw Utils.nyi("unsupported update");
             }
         }
     }
