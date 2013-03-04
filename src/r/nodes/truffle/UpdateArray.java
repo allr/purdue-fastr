@@ -1556,7 +1556,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
-                        lhsVal[lhsOffset << 1] = 0;
+                        lhsVal[(lhsOffset << 1) + 1] = 0;
                     }
                     Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
@@ -1630,7 +1630,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     // do nothing if lhsOffset is NA
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
-                        lhsVal[lhsOffset << 1] = 0;
+                        lhsVal[(lhsOffset << 1) + 1] = 0;
                     }
                     Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
                 }
