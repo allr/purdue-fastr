@@ -61,14 +61,24 @@ public abstract class UpdateVector extends BaseR {
             });
             this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {
-            // this.assign = updateParent(WriteVariable.getUninitialized(ast,
-            // var, node));
+            // this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
             this.assign = null;
         }
     }
 
     enum Failure {
-        NOT_ARRAY_BASE, NOT_ONE_ELEMENT_INDEX, NOT_NUMERIC_INDEX, NOT_LOGICAL_INDEX, NOT_ARRAY_INDEX, NOT_INT_SEQUENCE_INDEX, INDEX_OUT_OF_BOUNDS, NOT_ONE_ELEMENT_VALUE, NOT_ARRAY_VALUE, UNEXPECTED_TYPE, NOT_SAME_LENGTH, MAYBE_VECTOR_UPDATE,
+        NOT_ARRAY_BASE,
+        NOT_ONE_ELEMENT_INDEX,
+        NOT_NUMERIC_INDEX,
+        NOT_LOGICAL_INDEX,
+        NOT_ARRAY_INDEX,
+        NOT_INT_SEQUENCE_INDEX,
+        INDEX_OUT_OF_BOUNDS,
+        NOT_ONE_ELEMENT_VALUE,
+        NOT_ARRAY_VALUE,
+        UNEXPECTED_TYPE,
+        NOT_SAME_LENGTH,
+        MAYBE_VECTOR_UPDATE,
     }
 
     public final Object executeSuper(Frame frame) {
@@ -76,8 +86,7 @@ public abstract class UpdateVector extends BaseR {
         RAny index = (RAny) indexes[0].execute(frame);
 
         RAny base;
-        if (frame != null) { // FIXME: turn this guard into node rewriting, it
-                             // only has to be done once
+        if (frame != null) { // FIXME: turn this guard into node rewriting, it only has to be done once
             base = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
         } else {
             throw RError.getUnknownVariable(ast, var);
@@ -99,8 +108,7 @@ public abstract class UpdateVector extends BaseR {
                 slotInitialized = true;
             }
             // variable has a local slot
-            // note: this always has to be the case because the variable is in
-            // the write set
+            // note: this always has to be the case because the variable is in the write set
             // FIXME: this won't work for reflections
             assert Utils.check(frameSlot != null);
             RAny base = (RAny) frame.getObject(frameSlot);
@@ -112,9 +120,8 @@ public abstract class UpdateVector extends BaseR {
             } else { // this should be uncommon
                 base = RFrameHeader.readViaWriteSetSlowPath(frame, var);
                 if (base == null) { throw RError.getUnknownVariable(getAST()); }
-                base.ref(); // reading from parent, hence need to copy on update
-                // ref once will make it shared unless it is stateless (like int
-                // sequence)
+                base.ref(); // reading from parent, hence need to copy on update 
+                // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(base, index, value);
                 Utils.check(base != newBase);
                 RFrameHeader.writeAtRef(frame, frameSlot, newBase);
@@ -162,8 +169,7 @@ public abstract class UpdateVector extends BaseR {
         return Names.create(symbols);
     }
 
-    // for an update of a materialized double private vector using a double
-    // scalar,
+    // for an update of a materialized double private vector using a double scalar,
     // indexed by a scalar (only simple cases)
     public abstract static class DoubleBaseSimpleSelection extends UpdateVector {
         public DoubleBaseSimpleSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -208,10 +214,7 @@ public abstract class UpdateVector extends BaseR {
                     if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
                     int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
 
-                    if (!(base instanceof DoubleImpl)) { // FIXME: extract to a
-                                                         // static method?
-                                                         // (without performance
-                                                         // overhead)
+                    if (!(base instanceof DoubleImpl)) { // FIXME: extract to a static method? (without performance overhead)
                         throw new UnexpectedResultException(null);
                     }
                     DoubleImpl dibase = (DoubleImpl) base;
@@ -233,10 +236,8 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
-    // for a numeric (int, double) scalar index
-    // first installs an uninitialized node
-    // this node rewrites itself to type-specialized nodes for simple
-    // assignment, or to a generic node
+    // for a numeric (int, double) scalar index, first installs an uninitialized node
+    // this node rewrites itself to type-specialized nodes for simple assignment, or to a generic node
     // the specialized nodes can rewrite themselves to the generic node
     // rewrites to GenericScalarSelection when types change or otherwise needed
     public static class ScalarNumericSelection extends UpdateVector {
@@ -490,17 +491,9 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
-        // FIXME: the asXXX functions will allocate boxes, probably should
-        // create asXXXScalar() casts
-        public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) { // FIXME:
-                                                                                                          // avoid
-                                                                                                          // some
-                                                                                                          // copying
-                                                                                                          // here
-                                                                                                          // but
-                                                                                                          // careful
-                                                                                                          // about
-                                                                                                          // lists
+        // FIXME: the asXXX functions will allocate boxes, probably should create asXXXScalar() casts
+        public static RAny genericUpdate(RArray base, int pos, RAny value, boolean subset, ASTNode ast) {
+            // FIXME: avoid some copying here but careful about lists
             RArray typedBase;
             Object rawValue;
             int[] dimensions = base.dimensions();
@@ -584,8 +577,7 @@ public abstract class UpdateVector extends BaseR {
                     if (pos != -1 && pos != -2) { throw RError.getSelectMoreThanOne(ast); }
                 }
                 int keep = -pos - 1;
-                Utils.refIfRAny(rawValue); // ref once again to make sure it is
-                                           // treated as shared
+                Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
                 RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                 int i = 0;
                 for (; i < keep; i++) {
@@ -683,9 +675,7 @@ public abstract class UpdateVector extends BaseR {
             int[] dimensions = base.dimensions();
             Names names = base.names();
 
-            if (value instanceof RList) { // FIXME: this code gets copied around
-                                          // a few times, could it be refactored
-                                          // without a performance penalty?
+            if (value instanceof RList) { // FIXME: this code gets copied around a few times, could it be refactored without a performance penalty?
                 if (base instanceof RList) {
                     typedBase = base;
                 } else {
@@ -738,8 +728,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 return res;
             }
-            // appending, if names are empty, create them - this is for
-            // appending to empty lists and vectors
+            // appending, if names are empty, create them - this is for appending to empty lists and vectors
             if (names == null) {
                 names = RArray.Names.create(bsize);
             }
@@ -753,13 +742,11 @@ public abstract class UpdateVector extends BaseR {
     }
 
     // any update when the selector is a scalar
-    // includes deletion of list elements (FIXME: perhaps could move that out
-    // into a special node?)
+    // includes deletion of list elements (FIXME: perhaps could move that out into a special node?)
     // rewrites itself if the update is in fact vector-like (subset with logical
     // index, multi-value subset with negative number index)
     // rewrites for other cases (vector selection)
-    // so the contract is that this can handle any subscript with a single-value
-    // index
+    // so the contract is that this can handle any subscript with a single-value index
     public static class GenericScalarSelection extends UpdateVector {
 
         public GenericScalarSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
@@ -783,8 +770,7 @@ public abstract class UpdateVector extends BaseR {
                 content[j] = base.getRAny(i++);
             }
             Names bnames = base.names();
-            return RList.RListFactory.getFor(content, null, bnames == null ? null : removeName(bnames, index)); // drop
-                                                                                                                // dimensions
+            return RList.RListFactory.getFor(content, null, bnames == null ? null : removeName(bnames, index)); // drop dimensions
         }
 
         public static RAny deleteElement(RList base, int i, ASTNode ast, boolean subset) {
@@ -795,8 +781,7 @@ public abstract class UpdateVector extends BaseR {
                     // remove element i
                     return deleteElement(base, zi, size);
                 } else if (subset && i > size) {
-                    // note that we could have this branch just for
-                    // "i > size + 1", however, not quite, because
+                    // note that we could have this branch just for "i > size + 1", however, not quite, because
                     // when i == size + 1, subset drops dimensions
                     int j = 0;
                     int nsize = i - 1;
@@ -1009,15 +994,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         // specialized for type combinations (base vector, value written)
-        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) { // FIXME:
-                                                                                 // could
-                                                                                 // reduce
-                                                                                 // copying
-                                                                                 // when
-                                                                                 // value
-                                                                                 // is
-                                                                                 // not
-                                                                                 // shared
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+            // FIXME: could reduce copying when value is not shared
             if (baseTemplate instanceof RList) {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
@@ -1057,12 +1035,10 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) { // shallow
-                                                                          // copy
+                            for (int steps = 0; steps < isize; steps++) { // shallow copy
                                 content[i] = typedValue.getRAnyRef(steps);
                                 i += delta;
-                                for (int j = 1; j < astep; j++) { // shallow
-                                                                  // copy
+                                for (int j = 1; j < astep; j++) { // shallow copy
                                     content[i] = typedBase.getRAny(i);
                                     i += delta;
                                 }
@@ -1480,10 +1456,8 @@ public abstract class UpdateVector extends BaseR {
             if (!hasNegative) {
                 int nullsToAdd = 0;
                 if (maxIndex > (bsize + 1)) {
-                    // there were indexes "above" the base vector, but perhaps
-                    // not all were mentioned
-                    // for all non-mentioned we have to add NULL at the end of
-                    // the new list
+                    // there were indexes "above" the base vector, but perhaps not all were mentioned
+                    // for all non-mentioned we have to add NULL at the end of the new list
                     final int aboveSize = maxIndex - bsize;
                     boolean[] aboveSelected = new boolean[aboveSize];
                     int natrue = 0;
@@ -1641,8 +1615,7 @@ public abstract class UpdateVector extends BaseR {
                     res = Utils.createArray(typedBase, nsize, names != null).setAttributes(base.attributesRef());
                 }
 
-                // FIXME: this may lead to unnecessary computation and copying
-                // if the base is a complex view
+                // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
                 int i = 0;
                 for (; i < bsize; i++) {
                     res.set(i, typedBase.get(i));
@@ -1794,8 +1767,7 @@ public abstract class UpdateVector extends BaseR {
                                 if (v == RLogical.NA) {
                                     hasNA = true;
                                 }
-                                content[bi] = typedBase.getRAny(bi); // shallow
-                                                                     // copy
+                                content[bi] = typedBase.getRAny(bi); // shallow copy
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
@@ -2040,8 +2012,7 @@ public abstract class UpdateVector extends BaseR {
                 return RList.RListFactory.getFor(content, ntrue != 0 ? null : base.dimensions(), nsymbols == null ? null : Names.create(nsymbols));
             }
             if (isize > bsize) {
-                // for each "non-TRUE" element above base vector size we have to
-                // add NULL to the vector
+                // for each "non-TRUE" element above base vector size we have to add NULL to the vector
                 int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, bsize);
                 int natrue = RLogical.RLogicalUtils.truesInRange(index, bsize, isize);
                 int nullsToAdd = isize - bsize - natrue;
@@ -2073,15 +2044,7 @@ public abstract class UpdateVector extends BaseR {
             int rep = bsize / isize;
             int lsize = bsize - rep * isize;
             int ntrue = RLogical.RLogicalUtils.truesInRange(index, 0, isize);
-            int nltrue = RLogical.RLogicalUtils.truesInRange(index, 0, lsize); // TRUEs
-                                                                               // in
-                                                                               // the
-                                                                               // last
-                                                                               // cycle
-                                                                               // of
-                                                                               // index
-                                                                               // over
-                                                                               // base
+            int nltrue = RLogical.RLogicalUtils.truesInRange(index, 0, lsize); // TRUEs in the last cycle of index over base
 
             int nsize = bsize - (ntrue * rep + nltrue);
             RAny[] content = new RAny[nsize];
@@ -2409,8 +2372,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
             } else {
-                // some overwrites (either update of an existing field, or a
-                // duplicate name in the update vector)
+                // some overwrites (either update of an existing field, or a duplicate name in the update vector)
                 for (; ii < isize; ii++) {
                     int ni;
                     if (ii < firstOverwrite) {
@@ -2418,8 +2380,7 @@ public abstract class UpdateVector extends BaseR {
                     } else {
                         ni = targetOffsets[ii - firstOverwrite];
                     }
-                    // TODO will the ? check be lifted out of the loop, or
-                    // should it be done explicitly
+                    // TODO will the ? check be lifted out of the loop, or should it be done explicitly
                     res.set(ni, typedValue != null ? typedValue.get(vi) : listValue.get(vi));
                     vi++;
                     if (vi == vsize) {
@@ -2440,12 +2401,8 @@ public abstract class UpdateVector extends BaseR {
             Utils.check(!subset);
         }
 
-        public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) { // FIXME:
-                                                                                                  // check
-                                                                                                  // handling
-                                                                                                  // of
-                                                                                                  // dimensions
-                                                                                                  // here
+        public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) {
+            // FIXME: check handling of dimensions here
             final int isize = index.size();
             if (isize == 0) { throw RError.getSelectLessThanOne(ast); }
             int i = 0;
@@ -2477,12 +2434,8 @@ public abstract class UpdateVector extends BaseR {
                         for (; j < bsize; j++) { // shallow copy
                             content[k++] = l.getRAnyRef(j);
                         }
-                        RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names()); // FIXME:
-                                                                                                       // this
-                                                                                                       // copy
-                                                                                                       // can
-                                                                                                       // be
-                                                                                                       // unnecessary
+                        RList newList = RList.RListFactory.getFor(content, l.dimensions(), l.names());
+                        // FIXME: this copy can be unnecessary
                         if (parent != null) {
                             parent.set(parentIndex, newList);
                         } else {
@@ -2575,14 +2528,8 @@ public abstract class UpdateVector extends BaseR {
             RArray a = (RArray) b;
             if (value instanceof RNull) {
                 if (a instanceof RList) {
-                    b = GenericScalarSelection.deleteElement((RList) a, index.getString(i)); // TODO:
-                                                                                             // call
-                                                                                             // directly
-                                                                                             // a
-                                                                                             // method
-                                                                                             // for
-                                                                                             // string
-                                                                                             // index
+                    b = GenericScalarSelection.deleteElement((RList) a, index.getString(i));
+                    // TODO: call directly a method for string index
                 } else {
                     throw RError.getMoreElementsSupplied(ast);
                 }
@@ -2591,8 +2538,7 @@ public abstract class UpdateVector extends BaseR {
                     throw RError.getMoreElementsSupplied(ast);
                 } else {
                     b = ScalarStringSelection.genericUpdate(a, index.getString(i), value, false, ast);
-                    // FIXME: ScalarNumericSelection.genericUpdate is
-                    // unnecessarily heavy-weight for a valid positive index
+                    // FIXME: ScalarNumericSelection.genericUpdate is  unnecessarily heavy-weight for a valid positive index
                 }
             }
             if (parent == null) {
@@ -2622,8 +2568,7 @@ public abstract class UpdateVector extends BaseR {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - Subscript failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
-                // rewriting itself only to handle the error, there is no way to
-                // recover
+                // rewriting itself only to handle the error, there is no way to recover
                 replace(gs, "install GenericSelection from Subscript");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                 return gs.execute(base, index, value);
@@ -2937,8 +2882,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         // / TODO Are the specializations for the fast stuff worth it? This code
-        // looks smaller than the code with
-        // / many rewrite possibilities
+        // looks smaller than the code with many rewrite possibilities
         @Override RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
             RArray list = (base instanceof RList) ? (RList) base : convertToList(base);
