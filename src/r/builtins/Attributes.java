@@ -141,16 +141,12 @@ class Attributes {
             BuiltIn.ensureArgName(call, "obj", names[0]);
             return new BuiltIn.BuiltIn2(call, names, exprs) {
                 @Override public RAny doBuiltIn(Frame frame, RAny obj, RAny value) {
-                    if (obj.attributes() == null) {
-                        obj.setAttributes(new RAny.Attributes());
-                    }
-                    RAny.Attributes attr = obj.attributes();
-                    if (value == RNull.getNull()) {
-                        obj.setAttributes(new RAny.Attributes());
-                    }
+                    RAny.Attributes attr = new RAny.Attributes();
+                    obj = obj.setAttributes(attr);
+                    if (value == RNull.getNull()) { return obj; }
                     if (!(value instanceof RList)) { throw new Error("FIXME"); }
                     RList val = (RList) value;
-                    if (val.size() != val.names().size()) { throw new Error("Length mismatch"); }
+                    if (val.names() == null) { throw new Error("no names"); }
                     RSymbol[] vnames = val.names().sequence();
                     for (int i = 0; i < val.size(); i++) {
                         RAny v = val.getRAny(i);
@@ -164,7 +160,7 @@ class Attributes {
                             attr.put(s, v);
                         }
                     }
-                    return null;
+                    return obj;
                 }
             };
         }
