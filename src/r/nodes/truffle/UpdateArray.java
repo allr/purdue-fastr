@@ -130,10 +130,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     && isConvertible(rhs, lhs)
                     && rhs instanceof RArray
                     && ((RArray) rhs).size() == 1) {
-                if (DEBUG_UP) Utils.debug("UpateArray -> RHSCompatible (no need of LHS copy)");
+                if (DEBUG_UP) Utils.debug("UpdateArray -> RHSCompatible (no need of LHS copy)");
                 return replace(new RHSCompatible(this)).execute(frame, lhs, rhs);
             }
-            if (DEBUG_UP) Utils.debug("UpateArray -> CopyLHS");
+            if (DEBUG_UP) Utils.debug("UpdateArray -> CopyLHS");
             return replace(new CopyLhs(new RHSCompatible(this))).execute(frame, lhs, rhs);
         }
     }
@@ -224,7 +224,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     /**
      * Node which assumes that the LHS is not shared - more precisely that it either does not need
      * to be copied, or has already been copied and it sees the copy. If the lhs and rhs types are
-     * the same, the node reqrites itself to the next step which is IdenticalTypes node, otherwise
+     * the same, the node rewrites itself to the next step which is IdenticalTypes node, otherwise
      * injects the CopyRhs node before the IdenticalTypes.
      */
     protected static class RHSCompatible extends UpdateArray {
@@ -294,12 +294,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     /**
      * The generalized fall-back node for array update.
      * <p/>
-     * Whenever the assumtions of specialized nodes in the update array node tree fail, the whole
+     * Whenever the assumptions of specialized nodes in the update array node tree fail, the whole
      * tree is rewritten to this node, which does all:
      * <p/>
      * - makes copy of the LHS if required - makes copy of the RHS if required - runs the
      * generalized update method with selectors and non-const non-scalar rhs vector (this will work
-     * for const scalars too, just not with the greates speeds)
+     * for const scalars too, just not with the greatest speeds)
      * <p/>
      * In general, this node is used whenever the type information on lhs and rhs side of the update
      * changes at runtime.
