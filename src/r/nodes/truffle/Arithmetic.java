@@ -29,8 +29,6 @@ public class Arithmetic extends BaseR {
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
-    private static final boolean PROFILE_DOUBLE_VIEWS = false;  // only works with EAGER == false and best with LIMIT_VIEW_DEPTH == false
-
     private static final boolean EAGER_COMPLEX = true;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
@@ -327,10 +325,28 @@ public class Arithmetic extends BaseR {
                         RComplex rcmp = rexpr.asComplex();
                         return ComplexView.create(lcmp, rcmp, arit, ast);
                     }
-                    if (returnsDouble || lexpr instanceof RDouble || rexpr instanceof RDouble) {
+                    if (returnsDouble) {
                         RDouble ldbl = lexpr.asDouble();
-                        RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                        return DoubleView.create(ldbl, rdbl, arit, ast);
+                        RDouble rdbl = rexpr.asDouble();
+                        return doubleBinary(ldbl, rdbl, arit, ast);
+                    }
+                    if (lexpr instanceof RDouble) {
+                        RDouble ldbl = lexpr.asDouble();
+                        if (rexpr instanceof RDouble) {
+                            return doubleBinary(ldbl, (RDouble) rexpr, arit, ast);
+                        } else if (rexpr instanceof RInt) {
+                            return doubleBinary(ldbl, (RInt) rexpr, arit, ast);
+                        } else {
+                            return doubleBinary(ldbl, rexpr.asDouble(), arit, ast);
+                        }
+                    }
+                    if (rexpr instanceof RDouble) {
+                        RDouble rdbl = rexpr.asDouble();
+                        if (lexpr instanceof RInt) {
+                            return doubleBinary((RInt) lexpr, rdbl, arit, ast);
+                        } else {
+                            return doubleBinary(lexpr.asDouble(), rdbl, arit, ast);
+                        }
                     }
                     if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                         RInt lint = lexpr.asInt();
@@ -788,6 +804,7 @@ public class Arithmetic extends BaseR {
             if (leftConst) {
                 final boolean leftComplex = leftTemplate instanceof RComplex;
                 final boolean leftDouble = leftTemplate instanceof RDouble;
+                final boolean leftInt = leftTemplate instanceof RInt;
                 final boolean leftLogicalOrInt = leftTemplate instanceof RLogical || leftTemplate instanceof RInt; // FIXME: does this pre-allocation pay off?
                 final RComplex lcmp = (leftComplex) ? (RComplex) leftTemplate : leftTemplate.asComplex();
                 final RDouble ldbl = (leftDouble) ? (RDouble) leftTemplate : leftTemplate.asDouble();
@@ -799,9 +816,25 @@ public class Arithmetic extends BaseR {
                             RComplex rcmp = rexpr.asComplex();
                             return ComplexView.create(lcmp, rcmp, arit, ast);
                         }
-                        if (returnsDouble || leftDouble || rexpr instanceof RDouble) {
-                            RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            return DoubleView.create(ldbl, rdbl, arit, ast);
+                        if (returnsDouble) {
+                            return doubleBinary(ldbl, rexpr.asDouble(), arit, ast);
+                        }
+                        if (leftDouble) {
+                            if (rexpr instanceof RDouble) {
+                                return doubleBinary(ldbl, (RDouble) rexpr, arit, ast);
+                            } else if (rexpr instanceof RInt) {
+                                return doubleBinary(ldbl, (RInt) rexpr, arit, ast);
+                            } else {
+                                return doubleBinary(ldbl, rexpr.asDouble(), arit, ast);
+                            }
+                        }
+                        if (rexpr instanceof RDouble) {
+                            RDouble rdbl = (RDouble) rexpr;
+                            if (leftInt) {
+                                return doubleBinary(lint, rdbl, arit, ast);
+                            } else {
+                                return doubleBinary(ldbl, rdbl, arit, ast);
+                            }
                         }
                         if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt rint = rexpr.asInt();
@@ -815,6 +848,7 @@ public class Arithmetic extends BaseR {
             if (rightConst) {
                 final boolean rightComplex = rightTemplate instanceof RComplex;
                 final boolean rightDouble = rightTemplate instanceof RDouble;
+                final boolean rightInt = rightTemplate instanceof RInt;
                 final boolean rightLogicalOrInt = rightTemplate instanceof RLogical || rightTemplate instanceof RInt;
                 final RComplex rcmp = (rightComplex) ? (RComplex) rightTemplate : rightTemplate.asComplex();
                 final RDouble rdbl = (rightDouble) ? (RDouble) rightTemplate : rightTemplate.asDouble();
@@ -826,9 +860,25 @@ public class Arithmetic extends BaseR {
                             RComplex lcmp = lexpr.asComplex();
                             return ComplexView.create(lcmp, rcmp, arit, ast);
                         }
-                        if (returnsDouble || rightDouble || lexpr instanceof RDouble) {
-                            RDouble ldbl = lexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                            return DoubleView.create(ldbl, rdbl, arit, ast);
+                        if (returnsDouble) {
+                            return doubleBinary(lexpr.asDouble(), rdbl, arit, ast);
+                        }
+                        if (rightDouble) {
+                            if (lexpr instanceof RDouble) {
+                                return doubleBinary((RDouble) lexpr, rdbl, arit, ast);
+                            } else if (lexpr instanceof RInt) {
+                                return doubleBinary((RInt) lexpr, rdbl, arit, ast);
+                            } else {
+                                return doubleBinary(lexpr.asDouble(), rdbl, arit, ast);
+                            }
+                        }
+                        if (lexpr instanceof RDouble) {
+                            RDouble ldbl = (RDouble) lexpr;
+                            if (rightInt) {
+                                return doubleBinary(ldbl, rint, arit, ast);
+                            } else {
+                                return doubleBinary(lexpr.asDouble(), rdbl, arit, ast);
+                            }
                         }
                         if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt lint = lexpr.asInt();
@@ -1628,11 +1678,104 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    static class DoubleView extends View.RDoubleView implements RDouble {
+    public static RDouble doubleBinary(RDouble a, RDouble b, ValueArithmetic arit, ASTNode ast) {
+        int depth = 0;
+        if (LIMIT_VIEW_DEPTH) {
+            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
+            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
+            depth = adepth + bdepth + 1;
+        }
+        int[] dim = resultDimensions(ast, a, b);
+        Names names = resultNames(ast, a, b);
+        Attributes attributes = resultAttributes(ast, a, b);
+        int na = a.size();
+        int nb = b.size();
+        DoubleView res;
+
+        if (na == nb) {
+            res = new DoubleView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (nb == 1 && na > 0) {
+            res = new DoubleView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (na == 1 && nb > 0) {
+            res = new DoubleView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
+        } else {
+            int n = resultSize(ast, na, nb);
+            res = new DoubleView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
+        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
+            return RDouble.RDoubleFactory.copy(res);
+        }
+        return res;
+    }
+
+    // FIXME: try to reduce copy-paste, but may not be easy without harming performance
+    public static RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) {
+        int depth = 0;
+        if (LIMIT_VIEW_DEPTH) {
+            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
+            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
+            depth = adepth + bdepth + 1;
+        }
+        int[] dim = resultDimensions(ast, a, b);
+        Names names = resultNames(ast, a, b);
+        Attributes attributes = resultAttributes(ast, a, b);
+        int na = a.size();
+        int nb = b.size();
+        RDouble res;
+
+        if (na == nb) {
+            res = new DoubleViewForDoubleInt.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (nb == 1 && na > 0) {
+            res = new DoubleView.VectorScalar(a, b.asDouble(), dim, names, attributes, na, depth, arit, ast);
+        } else if (na == 1 && nb > 0) {
+            res = new DoubleView.ScalarVector(a, b.asDouble(), dim, names, attributes, nb, depth, arit, ast);
+        } else {
+            int n = resultSize(ast, na, nb);
+            res = new DoubleView.Generic(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
+            return RDouble.RDoubleFactory.copy(res);
+        }
+        return res;
+    }
+
+    // FIXME: try to reduce copy-paste, but may not be easy without harming performance
+    public static RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) {
+        int depth = 0;
+        if (LIMIT_VIEW_DEPTH) {
+            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
+            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
+            depth = adepth + bdepth + 1;
+        }
+        int[] dim = resultDimensions(ast, a, b);
+        Names names = resultNames(ast, a, b);
+        Attributes attributes = resultAttributes(ast, a, b);
+        int na = a.size();
+        int nb = b.size();
+        RDouble res;
+
+        if (na == nb) {
+            res = new DoubleView.EqualSize(a.asDouble(), b, dim, names, attributes, na, depth, arit, ast);
+        } else if (nb == 1 && na > 0) {
+            res = new DoubleViewForIntDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (na == 1 && nb > 0) {
+            res = new DoubleView.ScalarVector(a.asDouble(), b, dim, names, attributes, nb, depth, arit, ast);
+        } else {
+            int n = resultSize(ast, na, nb);
+            res = new DoubleView.Generic(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
+            return RDouble.RDoubleFactory.copy(res);
+        }
+        return res;
+    }
+
+
+    // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
+    // int and double combinations; unfortunately, that leads to slower execution
+    abstract static class DoubleView extends View.RDoubleView implements RDouble {
         final RDouble a;
         final RDouble b;
-        final int na;
-        final int nb;
         final int n;
         final int[] dimensions;
         final Names names;
@@ -1644,143 +1787,335 @@ public class Arithmetic extends BaseR {
         // limiting view depth
         private int depth;  // total views involved
 
-        // profiling
-        private int profileUsage; // at creation time, what was the total usage of both children  PLUS all local calls to getDouble
-        private int profileDepth; // max of child depths at creation time
-
-        public static RDouble create(RDouble a, RDouble b, ValueArithmetic arit, ASTNode ast) {
-            int depth = 0;
-            if (LIMIT_VIEW_DEPTH) {
-                int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth : 0;
-                int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth : 0;
-                depth = adepth + bdepth + 1;
-            }
-            int[] dim = resultDimensions(ast, a, b);
-            Names names = resultNames(ast, a, b);
-            Attributes attributes = resultAttributes(ast, a, b);
-            DoubleView res = new DoubleView(a, b, dim, names, attributes, depth, arit, ast);
-            if (PROFILE_DOUBLE_VIEWS) {
-                int d = 1;
-                int ausa = 0;
-                int busa = 0;
-                if (a instanceof DoubleView) {
-                    d = ((DoubleView) a).profileDepth + 1;
-                    ausa = ((DoubleView) a).profileUsage;
-                }
-                if (b instanceof DoubleView) {
-                    int bd = ((DoubleView) b).profileDepth + 1;
-                    if (bd > d) {
-                        d = bd;
-                    }
-                    busa = ((DoubleView) b).profileUsage;
-                }
-                res.profileDepth = d;
-                res.profileUsage = ausa + busa;
-                int asize = a.size();
-                int bsize = b.size();
-                int size = (asize > bsize) ? asize : bsize;
-                Utils.debug("CREATED DOUBLE VIEW DEPTH " + d + " SIZE " + size + " USAGE " + (ausa + busa) + " A-USAGE " + ausa + " B-USAGE " + busa);
-
-                if (size == 1) {
-                    throw new RuntimeException("How come the view has only size 1?");
-                }
-            }
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (a instanceof ScalarDoubleImpl && b instanceof ScalarDoubleImpl)) {
-                return RDoubleFactory.copy(res);
-            }
-            return res;
-        }
-
-        public DoubleView(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int depth, ValueArithmetic arit, ASTNode ast) {
+        public DoubleView(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
-            na = a.size();
-            nb = b.size();
-            this.depth = depth;
-
-            this.arit = arit;
-            this.ast = ast;
             this.dimensions = dimensions;
             this.names = names;
             this.attributes = attributes;
-
-            if (na > nb) {
-                n = na;
-                if ((n / nb) * nb != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            } else {
-                n = nb;
-                if ((n / na) * na != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            }
+            this.n = n;
+            this.depth = depth;
+            this.arit = arit;
+            this.ast = ast;
         }
 
         @Override
-        public int size() {
+        public final int size() {
             return n;
         }
 
         @Override
-        public double getDouble(int i) {
-
-            if (PROFILE_DOUBLE_VIEWS) {
-                profileUsage++;
-            }
-
-            int ai;
-            int bi;
-            if (i >= na) {
-                ai = i % na;
-                bi = i;
-            } else if (i >= nb) {
-                bi = i % nb;
-                ai = i;
-            } else {
-                ai = i;
-                bi = i;
-            }
-            double adbl = a.getDouble(ai);
-            double bdbl = b.getDouble(bi);
-            if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
-                return RDouble.NA;
-            } else {
-                return arit.op(ast, adbl, bdbl);
-            }
-         }
-
-        @Override
-        public boolean isSharedReal() {
+        public final boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
         @Override
-        public void ref() {
+        public final void ref() {
             a.ref();
             b.ref();
         }
 
         @Override
-        public int[] dimensions() {
+        public final int[] dimensions() {
             return dimensions;
         }
 
         @Override
-        public Names names() {
+        public final Names names() {
             return names;
         }
 
         @Override
-        public Attributes attributes() {
+        public final Attributes attributes() {
             return attributes;
         }
 
         @Override
-        public boolean dependsOn(RAny value) {
+        public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
+
+        public final int depth() {
+            return depth;
+        }
+
+        static final class Generic extends DoubleView implements RDouble {
+            final int na;
+            final int nb;
+
+            public Generic(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                nb = b.size();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int ai;
+                int bi;
+                if (i >= na) {
+                    ai = i % na;
+                    bi = i;
+                } else if (i >= nb) {
+                    bi = i % nb;
+                    ai = i;
+                } else {
+                    ai = i;
+                    bi = i;
+                }
+                double adbl = a.getDouble(ai);
+                double bdbl = b.getDouble(bi);
+                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
+
+        static final class EqualSize extends DoubleView implements RDouble {
+
+            public EqualSize(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                double adbl = a.getDouble(i);
+                double bdbl = b.getDouble(i);
+                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
+
+        static final class VectorScalar extends DoubleView implements RDouble {
+
+            final boolean isNA;
+            final double bdbl;
+
+            public VectorScalar(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                bdbl = b.getDouble(0);
+                isNA = RDouble.RDoubleUtils.isNA(bdbl);
+            }
+
+            @Override
+            public double getDouble(int i) {
+                double adbl = a.getDouble(i);
+                if (isNA || RDouble.RDoubleUtils.isNA(adbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
+
+        // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
+        static final class ScalarVector extends DoubleView implements RDouble {
+
+            final boolean isNA;
+            final double adbl;
+
+            public ScalarVector(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                adbl = a.getDouble(0);
+                isNA = RDouble.RDoubleUtils.isNA(adbl);
+            }
+
+            @Override
+            public double getDouble(int i) {
+                double bdbl = b.getDouble(i);
+                if (isNA || RDouble.RDoubleUtils.isNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
     }
+
+
+    // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
+    abstract static class DoubleViewForDoubleInt extends View.RDoubleView implements RDouble {
+        final RDouble a;
+        final RInt b;
+        final int n;
+        final int[] dimensions;
+        final Names names;
+        final Attributes attributes;
+
+        final ValueArithmetic arit;
+        final ASTNode ast;
+
+        // limiting view depth
+        private int depth;  // total views involved
+
+        public DoubleViewForDoubleInt(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            this.a = a;
+            this.b = b;
+            this.dimensions = dimensions;
+            this.names = names;
+            this.attributes = attributes;
+            this.n = n;
+            this.depth = depth;
+            this.arit = arit;
+            this.ast = ast;
+        }
+
+        @Override
+        public final int size() {
+            return n;
+        }
+
+        @Override
+        public final boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public final void ref() {
+            a.ref();
+            b.ref();
+        }
+
+        @Override
+        public final int[] dimensions() {
+            return dimensions;
+        }
+
+        @Override
+        public final Names names() {
+            return names;
+        }
+
+        @Override
+        public final Attributes attributes() {
+            return attributes;
+        }
+
+        @Override
+        public final boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
+        }
+
+        public final int depth() {
+            return depth;
+        }
+
+        static final class EqualSizeVectorVector extends DoubleViewForDoubleInt implements RDouble {
+
+            public EqualSizeVectorVector(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                double adbl = a.getDouble(i);
+                int bint = b.getInt(i);
+                if (RDouble.RDoubleUtils.isNA(adbl) || bint == RInt.NA) {
+                    return RDouble.NA;
+                }
+                return arit.op(ast, adbl, bint);
+             }
+        }
+    }
+
+ // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
+    abstract static class DoubleViewForIntDouble extends View.RDoubleView implements RDouble {
+        final RInt a;
+        final RDouble b;
+        final int n;
+        final int[] dimensions;
+        final Names names;
+        final Attributes attributes;
+
+        final ValueArithmetic arit;
+        final ASTNode ast;
+
+        // limiting view depth
+        private int depth;  // total views involved
+
+        public DoubleViewForIntDouble(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            this.a = a;
+            this.b = b;
+            this.dimensions = dimensions;
+            this.names = names;
+            this.attributes = attributes;
+            this.n = n;
+            this.depth = depth;
+            this.arit = arit;
+            this.ast = ast;
+        }
+
+        @Override
+        public final int size() {
+            return n;
+        }
+
+        @Override
+        public final boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public final void ref() {
+            a.ref();
+            b.ref();
+        }
+
+        @Override
+        public final int[] dimensions() {
+            return dimensions;
+        }
+
+        @Override
+        public final Names names() {
+            return names;
+        }
+
+        @Override
+        public final Attributes attributes() {
+            return attributes;
+        }
+
+        @Override
+        public final boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
+        }
+
+        public final int depth() {
+            return depth;
+        }
+
+        static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
+
+            final boolean isNA;
+            final double bdbl;
+
+            public VectorScalar(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                bdbl = b.getDouble(0);
+                isNA = RDouble.RDoubleUtils.isNA(bdbl);
+            }
+
+            @Override
+            public double getDouble(int i) {
+                double aint = a.getInt(i);
+                if (isNA || aint == RInt.NA) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, aint, bdbl);
+                }
+            }
+        }
+    }
+
 
     static class IntView extends View.RIntView implements RInt {
         final RInt a;
@@ -1992,6 +2327,22 @@ public class Arithmetic extends BaseR {
             res.put(ae.getKey(), value);
         }
         return res;
+    }
+
+    public static int resultSize(ASTNode ast, int na, int nb) {
+        int n;
+        if (na > nb) {
+            n = na;
+            if ((n / nb) * nb != n) {
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+        } else {
+            n = nb;
+            if ((n / na) * na != n) {
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+        }
+        return n;
     }
 }
 
