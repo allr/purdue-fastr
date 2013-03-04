@@ -11,76 +11,69 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// NOTE: GNU-R keeps the ordering of attributes based on when they've been set, including to some level the common (here "special")
-// attributes like name, dim, class, etc. We do not keep the ordering of specially handled attributes, and of these in respect to
-// the other attributes. Fixing this would be possible but not without a performance overhead.
-
-// FIXME: for now we only have special attributes, which need special handling on setters and getters and which are stored outside the RAny.Attributes
-//        and then custom attributes, which do not need any special handling on setters and getters, and are stored in the RAny.Attributes
-//
-//        but in the future, we will need also attributes with special handling, but stored in the RAny.Attributes
-
-public class Attributes {
+/**
+ * Implements attributes. For performance reasons, names and dimension
+ * attributes are treated specially. This has one drawback: the order of insert
+ * of these special attributes is not preserved. ((FIXME: change that))
+ */
+class Attributes {
 
     private static final int PARTIAL_MAP_THRESHOLD = 256;
 
-    public static int countSpecialAttributes(RAny a) {
-        int cnt = 0;
-        if (a instanceof RArray) {
-            RArray arr = (RArray) a;
-            if (arr.dimensions() != null) {
-                cnt++;
-            }
-            if (arr.names() != null) {
-                cnt++;
-            }
-        }
-        return cnt;
+    /**
+     * Return the count of special attributes present. There are at most two:
+     * "dimensions" and "names"
+     */
+    private static int countSpecialAttributes(RAny a) {
+        if (!(a instanceof RArray)) { return 0; }
+        RArray arr = (RArray) a;
+        int i = arr.dimensions() == null ? 0 : 1;
+        int j = arr.names() == null ? 0 : 1;
+        return i + j;
     }
 
-    public static RInt dimensionsAsVector(int[] dimensions) {
+    private static RInt dimensionsAsVector(int[] dimensions) {
         return RInt.RIntFactory.getFor(dimensions);
     }
 
-    public static RString namesAsVector(RArray.Names names) {
+    private static RString namesAsVector(RArray.Names names) {
         return RString.RStringFactory.getFor(names.asStringArray());
     }
 
-    // when there are no custom attributes
-    public static RAny specialAttributesAsList(RAny value) {
+    /** When there are no custom attributes. */
+    private static RAny specialAttributesAsList(RAny value) {
         int size = countSpecialAttributes(value);
-        if (size == 0) {
-            return RNull.getNull(); // no custom attributes
-        }
+        if (size == 0) { return RNull.getNull(); } // no custom attributes
         RAny[] acontent = new RAny[size];
         RSymbol[] anames = new RSymbol[size];
-
         fillSpecialAttributes(acontent, anames, 0, value);
         return RList.RListFactory.getFor(acontent, null, RArray.Names.create(anames));
     }
 
-    public static void fillSpecialAttributes(RAny[] content, RSymbol[] names, int start, RAny value) {
-
+    /**
+     * This method will extract names and dimensions attributes from the value
+     * argument. Argument start indicates where in the content and names arrays
+     * the inserts should be made.
+     */
+    private static void fillSpecialAttributes(RAny[] content, RSymbol[] names, int start, RAny value) {
+        if (!(value instanceof RArray)) { return; } // When is this the case?
+        RArray arr = (RArray) value;
         int i = start;
-        if (value instanceof RArray) {
-            RArray arr = (RArray) value;
-            int[] dim = arr.dimensions();
-            if (dim != null) {
-                content[i] = dimensionsAsVector(dim);
-                names[i] = RSymbol.DIM_SYMBOL;
-                i++;
-            }
-            RArray.Names vnames = arr.names();
-            if (vnames != null) {
-                content[i] = namesAsVector(vnames);
-                names[i] = RSymbol.NAMES_SYMBOL;
-                i++;
-            }
+        if (arr.dimensions() != null) {
+            content[i] = dimensionsAsVector(arr.dimensions());
+            names[i] = RSymbol.DIM_SYMBOL;
+            i++;
+        }
+        if (arr.names() != null) {
+            content[i] = namesAsVector(arr.names());
+            names[i] = RSymbol.NAMES_SYMBOL;
         }
     }
 
-    public static void fillCustomAttributes(RAny[] content, RSymbol[] names, int start, Map<RSymbol, RAny> map) {
-
+    /**
+     * Add all non-special attributes to content and names.
+     */
+    private static void fillAttributes(RAny[] content, RSymbol[] names, int start, Map<RSymbol, RAny> map) {
         int i = start;
         for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
             content[i] = entry.getValue();
@@ -89,259 +82,270 @@ public class Attributes {
         }
     }
 
+    /**
+     * "attributes(obj)"
+     * 
+     * <pre>
+     * obj -- an object
+     * </pre>
+     * 
+     * The names of a pairlist are not stored as attributes, but are reported as
+     * if they were.
+     */
     public static final CallFactory ATTRIBUTES_FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             BuiltIn.ensureArgName(call, "obj", names[0]);
-
             return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny arg) {
                     RAny.Attributes attr = arg.attributes();
-                    if (attr == null) {
-                        return specialAttributesAsList(arg);
-                    } else {
-                        Map<RSymbol, RAny> map = attr.map();
-                        int nspecial = countSpecialAttributes(arg);
-                        int ncustom = map.size();
-                        int size = nspecial + ncustom;
-
-                        RAny[] acontent = new RAny[size];
-                        RSymbol[] anames = new RSymbol[size];
-
-                        fillSpecialAttributes(acontent, anames, 0, arg);
-                        fillCustomAttributes(acontent, anames, nspecial, map);
-
-                        return RList.RListFactory.getFor(acontent, null, RArray.Names.create(anames));
-                    }
+                    if (attr == null) { return specialAttributesAsList(arg); }
+                    Map<RSymbol, RAny> map = attr.map();
+                    int nspecial = countSpecialAttributes(arg);
+                    int ncustom = map.size();
+                    int size = nspecial + ncustom;
+                    RAny[] acontent = new RAny[size];
+                    RSymbol[] anames = new RSymbol[size];
+                    fillSpecialAttributes(acontent, anames, 0, arg);
+                    fillAttributes(acontent, anames, nspecial, map);
+                    return RList.RListFactory.getFor(acontent, null, RArray.Names.create(anames));
                 }
-
             };
         }
-
     };
-
+    /**
+     * "attributes(obj) <- value"
+     * 
+     * <pre>
+     * obj -- an object
+     * value -- an appropriate named list of attributes, or NULL.
+     * </pre>
+     * 
+     * Unlike attr it is possible to set attributes on a NULL object: it will
+     * first be coerced to an empty list. Note that some attributes (namely
+     * class, comment, dim, dimnames, names, row.names and tsp) are treated
+     * specially and have restrictions on the values which can be set. (Note
+     * that this is not true of levels which should be set for factors via the
+     * levels replacement function.) Attributes are not stored internally as a
+     * list and should be thought of as a set and not a vector. They must have
+     * unique names (and NA is taken as "NA", not a missing value). Assigning
+     * attributes first removes all attributes, then sets any dim attribute and
+     * then the remaining attributes in the order given: this ensures that
+     * setting a dim attribute always precedes the dimnames attribute. The names
+     * of a pairlist are not stored as attributes, but are reported as if they
+     * were (and can be set by the replacement form of attributes).
+     */
     public static final CallFactory ATTRIBUTES_REPLACEMENT_FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             BuiltIn.ensureArgName(call, "obj", names[0]);
             return new BuiltIn.BuiltIn2(call, names, exprs) {
-
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                    Utils.nyi();
+                @Override public RAny doBuiltIn(Frame frame, RAny obj, RAny value) {
+                    if (obj.attributes() == null) {
+                        obj.setAttributes(new RAny.Attributes());
+                    }
+                    RAny.Attributes attr = obj.attributes();
+                    if (value == RNull.getNull()) {
+                        obj.setAttributes(new RAny.Attributes());
+                    }
+                    if (!(value instanceof RList)) { throw new Error("FIXME"); }
+                    RList val = (RList) value;
+                    if (val.size() != val.names().size()) { throw new Error("Length mismatch"); }
+                    RSymbol[] vnames = val.names().sequence();
+                    for (int i = 0; i < val.size(); i++) {
+                        RAny v = val.getRAny(i);
+                        RSymbol s = vnames[i];
+                        if (s == RSymbol.NAMES_SYMBOL) {
+                            Names.replaceNames(obj, v, ast);
+                        } else if (s == RSymbol.DIM_SYMBOL) {
+                            throw new Error("NY");
+                        } else {
+                            v.ref();
+                            attr.put(s, v);
+                        }
+                    }
                     return null;
                 }
-
             };
         }
-
     };
 
-    public static String parseWhich(RAny arg, ASTNode ast, String argName) {
-        if (arg instanceof RString) {
-            RString astr = (RString) arg;
-            int size = astr.size();
-            if (size > 0) {
-                String s = astr.getString(0);
-                if (s != RString.NA) {
-                    return s;
-                }
-            }
-        }
-        throw RError.getMustBeNonNullString(ast, argName);
+    private static String IERR = "Internal Error";
+
+    /**
+     * Given a RString, return a non-null, non-NA boolean.
+     */
+    private static RSymbol getNonEmptySymbol(RAny arg, ASTNode ast, String argName) {
+        if (!(arg instanceof RString)) { throw new Error(IERR); }
+        RString astr = (RString) arg;
+        if (astr.size() == 0) { throw RError.getMustBeNonNullString(ast, argName); }
+        if (astr.getString(0) != RString.NA) { return RSymbol.getSymbol(astr.getString(0)); }
+        throw new Error(IERR);
     }
 
-    public static boolean parseExact(RAny arg) {
-        // FIXME: most likely not exactly R semantics with evaluation of additional values
-        RLogical larg = arg.asLogical();
-        int size = larg.size();
-        if (size > 0) {
-            int v = larg.getLogical(0);
-            if (v == RLogical.TRUE) {
-                return true;
-            }
-        }
-        return false;
+    /**
+     * FIXME: Check that these are the R semantics with valuation of additional
+     * values.
+     */
+    private static boolean getBoolean(RAny arg) {
+        RLogical l = arg.asLogical();
+        if (l.size() == 0) { return false; }
+        return l.getLogical(0) == RLogical.TRUE;
     }
 
-    public static final CallFactory ATTR_FACTORY = new CallFactory() {
+    static final CallFactory ATTR_FACTORY = new AttrFactory();
 
-        private final String[] paramNames = new String[]{"x", "which", "exact"};
+    /**
+     * "attr"
+     * 
+     * <pre>
+     *  x -- an object whose attributes are to be accessed.
+     *  which -- a non-empty character string specifying which attribute is to be accessed.
+     *  exact -- logical: should which be matched exactly?
+     * </pre>
+     * 
+     * The extraction function first looks for an exact match to which amongst
+     * the attributes of x, then (unless exact = TRUE) a unique partial match.
+     * (Setting options(warnPartialMatchAttr=TRUE) causes partial matches to
+     * give warnings.) Some attributes (namely class, comment, dim, dimnames,
+     * names, row.names and tsp) are treated specially and have restrictions on
+     * the values which can be set. The extractor function allows (and does not
+     * match) empty and missing values of which. NOTE: testing reveals that if x
+     * has a single attribute, a value of "" for which will return its value. If
+     * there are more than one value, "" is ambiguous.
+     */
+    static final class AttrFactory extends CallFactory {
 
-        private static final int IX = 0;
-        private static final int IWHICH = 1;
-        private static final int IEXACT = 2;
+        private static final String[] PNAMES = new String[] { "x", "which", "exact" };
+        private static final int X = 0;
+        private static final int WHICH = 1;
+        private static final int EXACT = 2;
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, PNAMES);
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-            if (!provided[IWHICH]) {
-                BuiltIn.missingArg(call, paramNames[IWHICH]);
-            }
+            checkArgumentIsPresent(call, provided, PNAMES, X);
+            checkArgumentIsPresent(call, provided, PNAMES, WHICH);
 
             // FIXME: should specialize for constant attribute names
             // FIXME: should specialize based on exact value
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    RAny x = args[paramPositions[IX]];
-                    String sname = parseWhich(args[paramPositions[IWHICH]], ast, paramNames[IWHICH]);
-                    RSymbol name = RSymbol.getSymbol(sname);
-
-                    RAny.Attributes attr = x.attributes();
-                    if (attr != null) {
-                        Map<RSymbol, RAny> map = attr.map();
-                        RAny res = map.get(name);
-                        if (res != null) {
-                            return res;
-                        }
-                    }
-
-                    if (name == RSymbol.DIM_SYMBOL) {
-                        return Dimensions.getDim(x);
-                    }
-                    if (name == RSymbol.NAMES_SYMBOL) {
-                        return Names.getNames(x);
-                    }
-                    // TODO: other special attributes
-
-                    boolean exact = provided[IEXACT] ? parseExact(args[paramPositions[IEXACT]]) : false;
-                    if (exact) {
-                        return RNull.getNull();
-                    }
-
+                @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                    RAny x = args[paramPositions[X]];
+                    RSymbol which = getNonEmptySymbol(args[paramPositions[WHICH]], ast, PNAMES[WHICH]);
+                    if (which == RSymbol.NA_SYMBOL) { return convertNullToRNull(null); }
+                    RAny res = getExactMatchOrNull(x, which);
+                    if (res != null) { return res; }
+                    boolean exactRequested = provided[EXACT] ? getBoolean(args[paramPositions[EXACT]]) : false;
+                    if (exactRequested) { return convertNullToRNull(null); }
                     // unique partial matching
-                    if (name == RSymbol.NA_SYMBOL) {
-                        return RNull.getNull();
-                    }
-
-                    RAny res = null;
-                    if (RSymbol.DIM_SYMBOL.name().startsWith(sname)) {
-                        res = Names.getNames(x); // note - dim is first checked
-                    }
-                    if (RSymbol.NAMES_SYMBOL.name().startsWith(sname)) {
-                        res = Names.getNames(x); // note - names does not have common prefix with dim
-                    }
-
-                    if (attr != null) {
-                        if (attr.hasPartialMap()) {
-                            RSymbol fullName = attr.partialFind(name);
-                            if (fullName != null) {
-                                if (res != null) {
-                                    return RNull.getNull(); // not unique
-                                }
-                                res = attr.map().get(fullName);
-                            }
-                        } else {
-                            Map<RSymbol, RAny> map = attr.map();
-                            if (map.size() > PARTIAL_MAP_THRESHOLD) {  // TODO: fix this, not really working yet
-                                attr.createPartialMap();
-                            }
-                            for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
-                                String sentry = entry.getKey().name();
-                                if (sentry.startsWith(sname)) {
-                                    if (res != null) {
-                                        return RNull.getNull(); // not unique
-                                    }
-                                    res = entry.getValue();
-                                }
+                    res = RSymbol.DIM_SYMBOL.name().startsWith(which.name()) ? Dimensions.getDim(x) : null;
+                    res = res == null && RSymbol.NAMES_SYMBOL.name().startsWith(which.name()) ? Names.getNames(x) : null;
+                    // note - names do not have common prefix with dim // prefix
+                    RAny.Attributes attr = x.attributes();
+                    if (attr == null) { return convertNullToRNull(res); }
+                    if (attr.hasPartialMap()) {
+                        RSymbol fullName = attr.partialFind(which);
+                        // nothing found, return what we have
+                        if (fullName == null) { return convertNullToRNull(res); }
+                        // ambiguity, return null
+                        if (res != null) { return convertNullToRNull(null); }
+                        // return attribute
+                        return convertNullToRNull(attr.map().get(fullName));
+                    } else {
+                        Map<RSymbol, RAny> map = attr.map();
+                        if (map.size() > PARTIAL_MAP_THRESHOLD) {
+                            attr.createPartialMap();
+                        }
+                        // TODO: fix this, not really working yet
+                        for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
+                            String sentry = entry.getKey().name();
+                            if (sentry.startsWith(which.name())) {
+                                if (res != null) { return convertNullToRNull(null); }
+                                res = entry.getValue();
                             }
                         }
+                        return convertNullToRNull(res);
                     }
+                }
+
+                private RAny convertNullToRNull(RAny res) {
                     return res != null ? res : RNull.getNull();
                 }
 
+                private RAny getExactMatchOrNull(RAny x, RSymbol which) {
+                    RAny.Attributes attr = x.attributes();
+                    if (attr != null) {
+                        Map<RSymbol, RAny> map = attr.map();
+                        RAny res = map.get(which);
+                        if (res != null) { return res; }
+                    }
+                    if (which == RSymbol.DIM_SYMBOL) { return Dimensions.getDim(x); }
+                    if (which == RSymbol.NAMES_SYMBOL) { return Names.getNames(x); }
+                    return null;
+                }
             };
         }
+    }
 
-    };
+    static final CallFactory ATTR_REPLACEMENT_FACTORY = new AttrReplacementFactory();
 
-    public static final CallFactory ATTR_REPLACEMENT_FACTORY = new CallFactory() {
+    /**
+     * "attr<-" Arguments are:
+     * 
+     * <pre>
+     *  x -- an object whose attributes are to be accessed.
+     *  which -- a non-empty character string specifying which attribute is to be accessed.
+     *  value -- an object, the new value of the attribute, or NULL to remove the attribute.
+     * </pre>
+     * 
+     * The function only uses exact matches. The function does not allow missing
+     * values of which.
+     */
+    // FIXME: attr<- does not print its output in R.
+    static final class AttrReplacementFactory extends CallFactory {
 
-        private final String[] paramNames = new String[]{"x", "which"};
+        private static final String[] PNAMES = new String[] { "x", "which" };
+        private static final int X = 0;
+        private static final int WHICH = 1;
+        private static final int VALUE = 2;
 
-        private static final int IX = 0;
-        private static final int IWHICH = 1;
-        private static final int IREPLACEMENT = 2;
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, PNAMES);
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-            if (!provided[IWHICH]) {
-                BuiltIn.missingArg(call, paramNames[IWHICH]);
-            }
+            checkArgumentIsPresent(call, provided, PNAMES, X);
+            checkArgumentIsPresent(call, provided, PNAMES, WHICH);
 
             // FIXME: should specialize for constant attribute names
             // TODO: handle not-allowed lhs (non-language object, etc)
-
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    RAny x = args[paramPositions[IX]];
-                    String sname = parseWhich(args[paramPositions[IWHICH]], ast, paramNames[IWHICH]);
-                    RSymbol name = RSymbol.getSymbol(sname);
-                    RAny value = args[IREPLACEMENT];
-
-                    if (name == RSymbol.NAMES_SYMBOL) {
-                        return Names.replaceNames(x, value, ast);
-                    }
-                    // TODO: dimensions, other special attributes
-
-                    // custom attributes
+                @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                    RAny x = args[paramPositions[X]];
+                    RSymbol which = getNonEmptySymbol(args[paramPositions[WHICH]], ast, PNAMES[WHICH]);
+                    RAny value = args[VALUE];
+                    if (which == RSymbol.NAMES_SYMBOL) { return Names.replaceNames(x, value, ast); }
+                    if (which == RSymbol.DIM_SYMBOL) { throw new Error("NOT YET"); }
+                    // TODO: dimensions, other special attributes custom
+                    // attributes
                     value.ref();
-                    boolean xshared = x.isShared();
+                    // NOTE: when x is shared, attributes always have to be
+                    // copied no matter what is their reference count
                     RAny.Attributes attr = x.attributes();
-
-                    if (attr == null) {
-                        attr = new RAny.Attributes();
-                        attr.put(name, value);
-
-                        if (!xshared) {
-                            return x.setAttributes(attr);
-                        } else {
-                            return Utils.copyAny(x).setAttributes(attr);
-                        }
-                    }
-
-                    if (!xshared && !attr.areShared()) {
-                        attr.put(name, value);
+                    if (!x.isShared() && attr != null && !attr.areShared()) {
+                        attr.put(which, value);
                         return x;
                     }
-
-                    // note: when x is shared, attributes always have to be copied no matter what is their reference count
-                    if (xshared) {
-                        x = Utils.copyAny(x); // does not deep copy or mark attributes
-                    }
-
-                    RAny.Attributes newAttr = attr.copy();
-                    newAttr.put(name, value);
-                    return x.setAttributes(newAttr);
+                    x = x.isShared() ? Utils.copyAny(x) : x;
+                    // does not deep copy or mark attributes
+                    attr = attr == null ? new RAny.Attributes() : attr.copy();
+                    attr.put(which, value);
+                    return x.setAttributes(attr);
                 }
-
             };
         }
-
-    };
+    }
 }

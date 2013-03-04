@@ -9,11 +9,9 @@ import r.data.internal.*;
 public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
-
     ScalarIntImpl BOXED_NA = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(NA));
     ScalarIntImpl BOXED_ZERO = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(0));
     ScalarIntImpl BOXED_ONE = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(1));
-
     IntImpl EMPTY = (IntImpl) RArrayUtils.markShared(RIntFactory.getUninitializedArray(0));
     IntImpl EMPTY_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
     IntImpl NA_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
