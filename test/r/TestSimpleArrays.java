@@ -5,7 +5,7 @@ import org.junit.Test;
 import r.errors.RError;
 
 
-public class TestArrays extends TestBase {
+public class TestSimpleArrays extends TestBase {
 
     @Test
     public void testArrayBuiltin() throws RecognitionException {
@@ -207,7 +207,7 @@ public class TestArrays extends TestBase {
     }
 
     @Test
-    public void testBugIfiniteLoopInGeneralizedReqriting() {
+    public void testBugIfiniteLoopInGeneralizedRewriting() {
         assertTrue("{ m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[1:2,1,1] <- v ; x } ; f(m,10L) ; f(m,10) ; f(m,c(11L,12L)); m[1,1,1] == 1L && m[2,1,1] == 2L && m[3,1,1] == 3L }");
     }
 
