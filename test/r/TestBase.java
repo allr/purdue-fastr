@@ -39,7 +39,7 @@ public class TestBase {
 
     static void assertTrue(String input) {
         try {
-            assertEval(input,"TRUE");
+            assertEval(input, "TRUE");
         } catch (Throwable t) {
             Assert.assertTrue(false);
         }

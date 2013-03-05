@@ -230,7 +230,7 @@ public abstract class ReadArray extends BaseR {
         public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
             Selector.initializeSelectors(source, selectors, ast, selSizes);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, drop);
-            int destSize = Selector.calculateSizeFromDimensions(destDim);
+            int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
             if (!subset && (destSize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
             }

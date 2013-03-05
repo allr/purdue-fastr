@@ -6,6 +6,7 @@ import r.data.*;
 import r.data.internal.View;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.nodes.truffle.Arithmetic;
 import r.nodes.truffle.RNode;
 
 public class Exp {
@@ -19,36 +20,31 @@ public class Exp {
 
                 @Override
                 public final RAny doBuiltIn(Frame frame, RAny arg) {
-                    RDouble typedArg;
 
-                    if (arg instanceof RDouble) {
-                        typedArg = (RDouble) arg;
-                    } else if (arg instanceof RInt || arg instanceof RLogical) {
-                        typedArg = arg.asDouble();
+                    if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
+                        return new View.RDoubleProxy<RDouble>(arg.asDouble()) {
+
+                            @Override
+                            public double getDouble(int i) {
+                                double d = orig.getDouble(i);
+                                if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                                    return RDouble.NA;
+                                } else {
+                                    double res = Math.exp(d);
+                                    if (RDouble.RDoubleUtils.isNAorNaN(res)) {
+                                        RContext.warning(ast, RError.NAN_PRODUCED);
+                                    }
+                                    return res;
+                                }
+                            }
+                        };
+                    } else if (arg instanceof RComplex) {
+                        return Arithmetic.ComplexView.create(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
                     } else {
-                        if (arg instanceof RComplex) {
-                            // TODO missing exp for complex numbers
-                            Utils.nyi("complex exp");
-                        }
                         throw RError.getNonNumericMath(ast);
                     }
 
-                    return new View.RDoubleProxy<RDouble>(typedArg) {
 
-                        @Override
-                        public double getDouble(int i) {
-                            double d = orig.getDouble(i);
-                            if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                                return RDouble.NA;
-                            } else {
-                                double res = Math.exp(d);
-                                if (RDouble.RDoubleUtils.isNAorNaN(res)) {
-                                    RContext.warning(ast, RError.NAN_PRODUCED);
-                                }
-                                return res;
-                            }
-                        }
-                    };
                 }
 
             };

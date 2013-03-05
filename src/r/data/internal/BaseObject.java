@@ -5,6 +5,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 public abstract class BaseObject {
+    // FIXME: more methods could go to this class, removing copy-paste
 
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromGeneric(); // This cast is stupid and will be fixed soon

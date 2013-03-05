@@ -86,6 +86,11 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
+    @Override
     public void ref() { // FIXME: will have to update this when we support modification of closures
     }
 
@@ -150,5 +155,10 @@ public class ClosureImpl extends BaseObject implements RClosure {
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
     }
 }

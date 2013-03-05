@@ -95,6 +95,11 @@ public class BuiltInImpl implements RBuiltIn {
     }
 
     @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi();
         return null;
@@ -155,5 +160,10 @@ public class BuiltInImpl implements RBuiltIn {
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
     }
 }

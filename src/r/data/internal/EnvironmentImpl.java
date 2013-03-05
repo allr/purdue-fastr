@@ -2,13 +2,11 @@ package r.data.internal;
 
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.Convert.ConversionStatus;
 import r.builtins.*;
 import r.data.*;
-import r.data.RAny.Attributes;
 import r.errors.*;
 import r.nodes.*;
 
@@ -128,6 +126,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     @Override
     public boolean isShared() {
         return false; // never copy
+    }
+
+    @Override
+    public boolean isTemporary() {
+        return true; // can modify
     }
 
     @Override
@@ -339,5 +342,10 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;
+    }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
     }
 }

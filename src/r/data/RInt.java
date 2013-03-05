@@ -9,11 +9,9 @@ import r.data.internal.*;
 public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
     String TYPE_STRING = "integer";
-
     ScalarIntImpl BOXED_NA = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(NA));
     ScalarIntImpl BOXED_ZERO = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(0));
     ScalarIntImpl BOXED_ONE = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(1));
-
     IntImpl EMPTY = (IntImpl) RArrayUtils.markShared(RIntFactory.getUninitializedArray(0));
     IntImpl EMPTY_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
     IntImpl NA_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
@@ -376,6 +374,11 @@ public interface RInt extends RNumber {
         public void ref() {
             orig.ref();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     // indexes must all be positive
@@ -418,6 +421,11 @@ public interface RInt extends RNumber {
         public void ref() {
             value.ref();
             index.ref();
+        }
+
+        @Override
+        public boolean dependsOn(RAny v) {
+            return value.dependsOn(v) || index.dependsOn(v);
         }
     }
 }

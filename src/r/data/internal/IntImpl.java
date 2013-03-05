@@ -245,6 +245,11 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         public boolean isSharedReal() { // no state, so not shared
             return false;
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return false;
+        }
     }
 
     @Override

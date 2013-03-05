@@ -49,6 +49,12 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y+x }", "2.0-1.0i, -1.0+15.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y*x }", "-1.0-7.0i, -62.0-25.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y/x }", "-1.0+1.0i, 0.3486238532110092+0.5045871559633027i");
+
+        assertEval("{ (1+2i)^(3+4i) }", "0.12900959407446697+0.03392409290517014i");
+        assertEval("{ (1+2i)^2 }", "-3.0+4.0i");
+        assertEval("{ (1+2i)^(-2) }", "-0.12-0.16i");
+        assertEval("{ (1+2i)^0 }", "1.0+0.0i");
+        assertEval("{ 0^(-1+1i) }", "NaN+NaNi");
     }
 
     @Test
@@ -69,6 +75,9 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ c(1L,2L,3L,4L)-c(TRUE,FALSE) }", "0L, 2L, 2L, 4L");
         assertEval("{ ia<-c(1L,2L);ib<-c(3L,4L);d<-c(5,6);ia+ib+d }", "9.0, 12.0");
         assertEval("{ z <- c(-1.5-1i,10) ; (z * z)[1] }", "1.25+3.0i");
+
+        assertEval("{ c(1,2,3+1i)^3 }", "1.0+0.0i, 8.0+0.0i, 18.0+26.0i");
+        assertEval("{ 3^c(1,2,3+1i) }", "3.0+0.0i, 9.0+0.0i, 12.280475416318462+24.045580125029172i");
     }
 
     @Test

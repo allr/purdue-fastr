@@ -57,6 +57,8 @@ public interface RAny {
 
     void ref();
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2
+    boolean isTemporary();
+    boolean dependsOn(RAny value);
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 

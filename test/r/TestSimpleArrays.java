@@ -5,7 +5,7 @@ import org.junit.Test;
 import r.errors.RError;
 
 
-public class TestArrays extends TestBase {
+public class TestSimpleArrays extends TestBase {
 
     @Test
     public void testArrayBuiltin() throws RecognitionException {
@@ -72,6 +72,12 @@ public class TestArrays extends TestBase {
         // error when different dimensions given
         assertEvalError("{ a = array(1,c(3,3,3)); a[2,2]; }", RError.INCORRECT_DIMENSIONS);
 
+        // calculating result dimensions
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,1] ; x[1] == 1 && x[2] == 2 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- dim(m[1:2,1,1]) ; is.null(x) }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- dim(m[1:2,1,1,drop=FALSE]) ; x[1] == 2 && x[2] == 1 && x[3] == 1 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,integer()] ; d <- dim(x) ; length(x) == 0 }");
+        assertTrue("{ m <- array(c(1,2,3), dim=c(3,1,1)) ; x <- m[1:2,1,integer()] ; d <- dim(x) ; d[1] == 2 && d[2] == 0 }");
     }
 
     @Test
@@ -117,6 +123,9 @@ public class TestArrays extends TestBase {
 
         // update of shared object does the copy
         assertTrue("{ a = array(1,c(3,3,3)); b = a; b[1,2,3] = 3; a[1,2,3] == 1 && b[1,2,3] == 3; }");
+
+        // update where rhs depends on the lhs
+        assertTrue("{ x <- array(c(1,2,3), dim=c(3,1,1)) ; x[1:2,1,1] <- sqrt(x[2:1]) ; x[1] == sqrt(2) && x[2] == 1 && x[3] == 3 }");
 
     }
 
@@ -169,6 +178,7 @@ public class TestArrays extends TestBase {
 
         // rhs int gets upgraded to complex
         assertTrue("{ a = array(3+2i,c(3,3,3)); b = 4L; a[1,2,3] = b; a[1,2,3] == 4 && a[1,1,1] == 3+2i; }");
+        assertTrue("{ m <- array(c(1+1i,2+2i,3+3i), dim=c(3,1,1)) ; m[1:2,1,1] <- c(100L,101L) ; m ; m[1,1,1] == 100 && m[2,1,1] == 101 }");
 
         // rhs logical gets upgraded to string
         assertTrue("{ a = array(\"3+2i\",c(3,3,3)); b = 7L; a[1,2,3] = b; a[1,2,3] == \"7L\" && a[1,1,1] == \"3+2i\"; }");
@@ -203,7 +213,7 @@ public class TestArrays extends TestBase {
     }
 
     @Test
-    public void testBugIfiniteLoopInGeneralizedReqriting() throws RecognitionException {
+    public void testBugIfiniteLoopInGeneralizedRewriting() {
         assertTrue("{ m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[1:2,1,1] <- v ; x } ; f(m,10L) ; f(m,10) ; f(m,c(11L,12L)); m[1,1,1] == 1L && m[2,1,1] == 2L && m[3,1,1] == 3L }");
     }
 

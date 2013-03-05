@@ -268,4 +268,14 @@ public final class RSymbol extends BaseObject implements RAny {
         Utils.nyi();
         return null;
     }
+
+    @Override
+    public boolean dependsOn(RAny value) {
+        return false;
+    }
+
+    @Override
+    public boolean isTemporary() {
+        return false;
+    }
 }

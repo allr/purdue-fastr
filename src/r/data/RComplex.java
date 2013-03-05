@@ -17,6 +17,8 @@ public interface RComplex extends RArray {
     ComplexImpl EMPTY_NAMED_NA = (ComplexImpl) RArrayUtils.markShared(RComplexFactory.getFor(new double[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
     ComplexImpl NA_NAMED_NA = (ComplexImpl) RArrayUtils.markShared(RComplexFactory.getFor(new double[] {RDouble.NA, RDouble.NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 
+    ScalarComplexImpl BOXED_E = (ScalarComplexImpl) RArrayUtils.markShared(RComplexFactory.getScalar(Math.E, 0));
+
     RComplex set(int i, double real, double imag);
     double getReal(int i);
     double getImag(int i);
@@ -322,6 +324,11 @@ public interface RComplex extends RArray {
         public void ref() {
             orig.ref();
         }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return orig.dependsOn(value);
+        }
     }
 
     // indexes must all be positive
@@ -374,6 +381,11 @@ public interface RComplex extends RArray {
         public void ref() {
             value.ref();
             index.ref();
+        }
+
+        @Override
+        public boolean dependsOn(RAny v) {
+            return value.dependsOn(v) || index.dependsOn(v);
         }
     }
 
