@@ -77,7 +77,7 @@ public abstract class View extends ArrayImpl implements RArray {
     }
 
     @Override
-    public boolean isTemporary() {
+    public final boolean isTemporary() { // final - if overriden, some things will break (isTemporary => not a view)
         return false;
     }
 

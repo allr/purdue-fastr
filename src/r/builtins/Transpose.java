@@ -4,11 +4,15 @@ import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 // FIXME: also could do a lazy version using views
+// TODO: there is a more efficient, cache-oblivious algorithm, which operates on parts of the original matrix
+// TODO: the m*n matrix (m != n) can also be transposed nearly-in-place
+
 public class Transpose {
 
     private static final boolean IN_PLACE = true;
@@ -37,17 +41,8 @@ public class Transpose {
                             int m = dim[0];
                             int n = dim[1];
                             int[] ndim = new int[] {n, m};
-                            if (IN_PLACE && a.isTemporary() && m == n) {
-                                for (int i = 0; i < m - 1; i++) {
-                                    for (int j = i + 1; j < m; j++) {
-                                        int first = i * m + j;
-                                        int second = j * m + i;
-
-                                        Object tmp = a.get(first);
-                                        a.set(first, a.get(second));
-                                        a.set(second, tmp);
-                                    }
-                                }
+                            if (IN_PLACE && a.isTemporary() && m == n) { // note: a view is not temporary
+                                inPlaceRectangular(a, m);
                                 return a.setNames(null).setDimensions(ndim);
                             } else {
                                 RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
@@ -56,19 +51,6 @@ public class Transpose {
                                         res.set(i * n + j, a.getRef(j * m + i));
                                     }
                                 }
-                                // this is how it is done in GNU-R, though I would hope (and haven't be proven otherwise) that
-                                // the java compiler can get that out of the much more readable code above
-//                                int size1 = size - 1;
-//                                int i = 0;
-//                                int j = 0;
-//                                while (i < size) {
-//                                    if (j > size1) {
-//                                        j -= size1;
-//                                    }
-//                                    res.set(i, a.getRef(j));
-//                                    i++;
-//                                    j += m;
-//                                }
                                 return res.setDimensions(ndim);
                             }
                          }
@@ -79,4 +61,31 @@ public class Transpose {
         }
     };
 
+    public static void inPlaceRectangular(RArray a, int m) {
+        for (int i = 0; i < m - 1; i++) {
+            for (int j = i + 1; j < m; j++) {
+                int first = i * m + j;
+                int second = j * m + i;
+
+                Object tmp = a.get(first);
+                a.set(first, a.get(second));
+                a.set(second, tmp);
+            }
+        }
+    }
+
+    // note: not any faster than inPlaceRectangular
+    public static void inPlaceRectangular(DoubleImpl adbl, int m) {
+        double[] a = adbl.getContent();
+        for (int i = 0; i < m - 1; i++) {
+            for (int j = i + 1; j < m; j++) {
+                int first = i * m + j;
+                int second = j * m + i;
+
+                double tmp = a[first];
+                a[first] = a[second];
+                a[second] = tmp;
+            }
+        }
+    }
 }
