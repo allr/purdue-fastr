@@ -380,8 +380,8 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
         @Override
         public int getLogical(int i) {
-            Utils.check(i < size, "bounds check");
-            Utils.check(i >= 0, "bounds check");
+            assert Utils.check(i < size, "bounds check");
+            assert Utils.check(i >= 0, "bounds check");
 
             if (i < excludeIndex) {
                 return orig.getLogical(i);

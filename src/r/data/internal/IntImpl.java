@@ -212,8 +212,8 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
         @Override
         public int getInt(int i) {
-            Utils.check(i < size, "bounds check");
-            Utils.check(i >= 0, "bounds check");
+            assert Utils.check(i < size, "bounds check");
+            assert Utils.check(i >= 0, "bounds check");
             return from + i * step;
         }
 

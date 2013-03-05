@@ -356,8 +356,8 @@ public interface RDouble extends RNumber {
 
         @Override
         public double getDouble(int i) {
-            Utils.check(i < size, "bounds check");
-            Utils.check(i >= 0, "bounds check");
+            assert Utils.check(i < size, "bounds check");
+            assert Utils.check(i >= 0, "bounds check");
 
             if (i < excludeIndex) {
                 return orig.getDouble(i);
