@@ -298,7 +298,7 @@ public class Outer {
         double[] res = new double[nsize];
         int offset = 0;
         for (int rep = 0; rep < count; rep++) {
-            System.arraycopy(x, 0, res, offset, x.length);
+            System.arraycopy(x, 0, res, offset, xsize);
             offset += xsize;
         }
         return RDouble.RDoubleFactory.getFor(res);
@@ -310,7 +310,28 @@ public class Outer {
         int[] res = new int[nsize];
         int offset = 0;
         for (int rep = 0; rep < count; rep++) {
-            System.arraycopy(x, 0, res, offset, x.length);
+            System.arraycopy(x, 0, res, offset, xsize);
+            offset += xsize;
+        }
+        return RInt.RIntFactory.getFor(res);
+    }
+
+    // an attempt for performance improvement: but does not seem faster for now
+    public static RInt expandXVectorCacheFriendly(IntImpl xarg, int xsize, int count) {
+        int nsize = xsize * count;
+        int[] x = xarg.getContent();
+        int[] res = new int[nsize];
+        int offset = 0;
+        int rep = 0;
+        int lastOffset = 0;
+        if (rep < count) {
+            System.arraycopy(x, 0, res, offset, xsize);
+            lastOffset = offset;
+            offset += xsize;
+        }
+        for (rep = 1; rep < count; rep++) {
+            System.arraycopy(res, lastOffset, res, offset, xsize);
+            lastOffset = offset;
             offset += xsize;
         }
         return RInt.RIntFactory.getFor(res);
