@@ -790,8 +790,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public byte getRaw(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getRaw(from + i * step - 1);
             }
 
@@ -822,8 +822,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public int getLogical(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getLogical(from + i * step - 1);
             }
 
@@ -854,8 +854,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public int getInt(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getInt(from + i * step - 1);
             }
 
@@ -886,8 +886,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public double getDouble(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getDouble(from + i * step - 1);
             }
 
@@ -918,15 +918,15 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public double getReal(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getReal(from + i * step - 1);
             }
 
             @Override
             public double getImag(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getImag(from + i * step - 1);
             }
 
@@ -957,8 +957,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public String getString(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getString(from + i * step - 1);
             }
 
@@ -989,8 +989,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override
             public RAny getRAny(int i) {
-                Utils.check(i < size, "bounds check");
-                Utils.check(i >= 0, "bounds check");
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
                 return orig.getRAny(from + i * step - 1);
             }
 
