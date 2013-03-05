@@ -16,6 +16,9 @@ import r.nodes.truffle.FunctionCall;
 
 
 public class Outer {
+
+    private static final boolean EAGER = true; // NOTE: lazy is now only for integer, expand if needed, now is not faster than eager
+
     private static final String[] paramNames = new String[]{"X", "Y", "FUN"};
 
     private static final int IX = 0;
@@ -113,31 +116,55 @@ public class Outer {
                 Utils.nyi("unsupported type");
                 return null;
             }
-            RArray x = ((RArray) xarg).materialize();
-            RArray y = ((RArray) yarg).materialize();
+
+            RArray x = (RArray) xarg;
+            RArray y = (RArray) yarg;
 
             int xsize = x.size();
             int ysize = y.size();
 
             RArray expy;
-            if (y instanceof DoubleImpl) {
-                expy = expandYVector((DoubleImpl) y, ysize, xsize);
-            } else if (y instanceof IntImpl) {
-                expy = expandYVector((IntImpl) y, ysize, xsize);
-            } else {
-                expy = expandYVector(y, ysize, xsize);
-            }
             RArray expx;
-            if (xsize > 0) {
-                if (x instanceof DoubleImpl) {
-                    expx = expandXVector((DoubleImpl) x, xsize, ysize);
-                } else if (x instanceof IntImpl) {
-                    expx = expandXVector((IntImpl) x, xsize, ysize);
+
+            if (EAGER) {
+                x = x.materialize(); // FIXME: probably unnecessary (both x and y), could be done on-the-fly in the expansion methods
+                y = y.materialize();
+                if (y instanceof DoubleImpl) {
+                    expy = expandYVector((DoubleImpl) y, ysize, xsize);
+                } else if (y instanceof IntImpl) {
+                    expy = expandYVector((IntImpl) y, ysize, xsize);
                 } else {
-                    expx = expandXVector(x, xsize, ysize);
+                    expy = expandYVector(y, ysize, xsize);
+                }
+
+                if (xsize > 0) {
+                    if (x instanceof DoubleImpl) {
+                        expx = expandXVector((DoubleImpl) x, xsize, ysize);
+                    } else if (x instanceof IntImpl) {
+                        expx = expandXVector((IntImpl) x, xsize, ysize);
+                    } else {
+                        expx = expandXVector(x, xsize, ysize);
+                    }
+                } else {
+                    expx = x;
                 }
             } else {
-                expx = x;
+                if (y instanceof RInt) {
+                    expy = lazyExpandYVector((RInt) y, ysize, xsize);
+                } else {
+                    Utils.nyi();
+                    return null;
+                }
+                if (xsize > 0) {
+                    if (x instanceof RInt) {
+                        expx = lazyExpandXVector((RInt) x, xsize, ysize);
+                    } else {
+                        Utils.nyi();
+                        return null;
+                    }
+                } else {
+                    expx = x;
+                }
             }
 
             xArgProvider.setValue(expx);
@@ -218,6 +245,38 @@ public class Outer {
         return RInt.RIntFactory.getFor(res);
     }
 
+    public static RInt lazyExpandYVector(RInt yarg, int ysize, final int count) {
+        final int nsize = ysize * count;
+        return new View.RIntProxy<RInt>(yarg) {
+
+            @Override
+            public int getInt(int i) {
+                int j = i / count;
+                return orig.getInt(j);
+            }
+
+            @Override
+            public int size() {
+                return nsize;
+            }
+
+            @Override
+            public int[] dimensions() {
+                return null;
+            }
+
+            @Override
+            public Names names() {
+                return null;
+            }
+
+            @Override
+            public Attributes attributes() {
+                return null;
+            }
+        };
+    }
+
 
     public static RArray expandXVector(RArray x, int xsize, int count) {
         int nsize = xsize * count;
@@ -256,5 +315,38 @@ public class Outer {
         }
         return RInt.RIntFactory.getFor(res);
     }
+
+    public static RInt lazyExpandXVector(RInt xarg, int xsize, final int count) {
+        final int nsize = xsize * count;
+        return new View.RIntProxy<RInt>(xarg) {
+
+            @Override
+            public int getInt(int i) {
+                int j = i % count;
+                return orig.getInt(j);
+            }
+
+            @Override
+            public int size() {
+                return nsize;
+            }
+
+            @Override
+            public int[] dimensions() {
+                return null;
+            }
+
+            @Override
+            public Names names() {
+                return null;
+            }
+
+            @Override
+            public Attributes attributes() {
+                return null;
+            }
+        };
+    }
+
 }
 

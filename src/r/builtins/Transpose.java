@@ -11,7 +11,7 @@ import r.nodes.truffle.*;
 // FIXME: also could do a lazy version using views
 public class Transpose {
 
-    private static final boolean IN_PLACE = false; // not faster on where I tested
+    private static final boolean IN_PLACE = true;
 
     public static final CallFactory FACTORY = new CallFactory() {
         @Override
@@ -37,23 +37,20 @@ public class Transpose {
                             int m = dim[0];
                             int n = dim[1];
                             int[] ndim = new int[] {n, m};
-                            RArray res;
                             if (IN_PLACE && a.isTemporary() && m == n) {
-                                for (int i = 0; i < m; i++) {
-                                    for (int j = 0; j < m; j++) {
-                                        if (i != j) {
-                                            int first = i * m + j;
-                                            int second = j * m + i;
+                                for (int i = 0; i < m - 1; i++) {
+                                    for (int j = i + 1; j < m; j++) {
+                                        int first = i * m + j;
+                                        int second = j * m + i;
 
-                                            Object tmp = a.get(first);
-                                            a.set(first, a.get(second));
-                                            a.set(second, tmp);
-                                        }
+                                        Object tmp = a.get(first);
+                                        a.set(first, a.get(second));
+                                        a.set(second, tmp);
                                     }
                                 }
                                 return a.setNames(null).setDimensions(ndim);
                             } else {
-                                res = Utils.createArray(a, size, null, null, a.attributesRef());
+                                RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
                                 for (int i = 0; i < m; i++) {
                                     for (int j = 0; j < n; j++) {
                                         res.set(i * n + j, a.getRef(j * m + i));

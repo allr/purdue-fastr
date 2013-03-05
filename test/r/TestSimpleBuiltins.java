@@ -598,6 +598,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ t(t(t(1:3))) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
         assertEval("{ t(matrix(1:6, nrow=2)) }", "     [,1] [,2]\n[1,]   1L   2L\n[2,]   3L   4L\n[3,]   5L   6L");
         assertEval("{ t(t(matrix(1:6, nrow=2))) }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
+        assertEval("{ t(matrix(1:4, nrow=2)) }", "     [,1] [,2]\n[1,]   1L   2L\n[2,]   3L   4L");
+        assertEval("{ t(t(matrix(1:4, nrow=2))) }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L");
     }
 
     @Test
