@@ -167,6 +167,11 @@ public final class RNull implements RArray {
     }
 
     @Override
+    public boolean isTemporary() {
+        return false;  // not quite meaningful, anyway
+    }
+
+    @Override
     public String prettyMatrixElement() {
         return pretty();
     }

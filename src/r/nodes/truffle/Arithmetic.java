@@ -351,7 +351,7 @@ public class Arithmetic extends BaseR {
                     if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                         RInt lint = lexpr.asInt();
                         RInt rint = rexpr.asInt();
-                        return IntView.create(lint, rint, arit, ast);
+                        return intBinary(lint, rint, arit, ast);
                     }
                     throw RError.getNonNumericBinary(ast);
                 }
@@ -838,7 +838,7 @@ public class Arithmetic extends BaseR {
                         }
                         if (leftLogicalOrInt || rexpr instanceof RInt || rexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt rint = rexpr.asInt();
-                            return IntView.create(lint, rint, arit, ast);
+                            return intBinary(lint, rint, arit, ast);
                         }
                         Utils.nyi("unsupported case for binary arithmetic operation");
                         return null;
@@ -882,7 +882,7 @@ public class Arithmetic extends BaseR {
                         }
                         if (rightLogicalOrInt || lexpr instanceof RInt || lexpr instanceof RLogical) { // FIXME: this check should be simpler
                             RInt lint = lexpr.asInt();
-                            return IntView.create(lint, rint, arit, ast);
+                            return intBinary(lint, rint, arit, ast);
                         }
                         Utils.nyi("unsupported case for binary arithmetic operation");
                         return null;
@@ -2116,12 +2116,40 @@ public class Arithmetic extends BaseR {
         }
     }
 
+    public static RInt intBinary(RInt a, RInt b, ValueArithmetic arit, ASTNode ast) {
+        int depth = 0;
+        if (LIMIT_VIEW_DEPTH) {
+            int adepth = (a instanceof IntView) ? ((IntView) a).depth() : 0;
+            int bdepth = (b instanceof IntView) ? ((IntView) b).depth() : 0;
+            depth = adepth + bdepth + 1;
+        }
+        int[] dim = resultDimensions(ast, a, b);
+        Names names = resultNames(ast, a, b);
+        Attributes attributes = resultAttributes(ast, a, b);
+        int na = a.size();
+        int nb = b.size();
+        IntView res;
 
-    static class IntView extends View.RIntView implements RInt {
+        if (na == nb) {
+            res = new IntView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (nb == 1 && na > 0) {
+            res = new IntView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+        } else if (na == 1 && nb > 0) {
+            res = new IntView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
+        } else {
+            int n = resultSize(ast, na, nb);
+            res = new IntView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
+        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
+            return RInt.RIntFactory.copy(res);
+        }
+        return res;
+    }
+
+
+    abstract static class IntView extends View.RIntView implements RInt {
         final RInt a;
         final RInt b;
-        final int na;
-        final int nb;
         final int n;
         final int[] dimensions;
         final Names names;
@@ -2134,79 +2162,21 @@ public class Arithmetic extends BaseR {
         // limiting view depth
         private int depth;  // total views involved
 
-        public static RInt create(RInt a, RInt b, ValueArithmetic arit, ASTNode ast) {
-            int depth = 0;
-            if (LIMIT_VIEW_DEPTH) {
-                int adepth = (a instanceof IntView) ? ((IntView) a).depth : 0;
-                int bdepth = (b instanceof IntView) ? ((IntView) b).depth : 0;
-                depth = adepth + bdepth + 1;
-            }
-            int[] dim = resultDimensions(ast, a, b);
-            Names names = resultNames(ast, a, b);
-            Attributes attributes = resultAttributes(ast, a, b);
-            IntView res = new IntView(a, b, dim, names, attributes, depth, arit, ast);
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarIntImpl && b instanceof ScalarIntImpl)) {
-                return RIntFactory.copy(res);
-            }
-            return res;
-        }
-
-        public IntView(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int depth, ValueArithmetic arit, ASTNode ast) {
+        public IntView(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
             this.b = b;
-            na = a.size();
-            nb = b.size();
-            this.ast = ast;
-            this.arit = arit;
             this.dimensions = dimensions;
             this.names = names;
             this.attributes = attributes;
+            this.n = n;
             this.depth = depth;
-
-            if (na > nb) {
-                n = na;
-                if ((n / nb) * nb != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            } else {
-                n = nb;
-                if ((n / na) * na != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            }
+            this.arit = arit;
+            this.ast = ast;
         }
 
         @Override
-        public int size() {
+        public final int size() {
             return n;
-        }
-
-        @Override
-        public int getInt(int i) {
-            int ai;
-            int bi;
-            if (i >= na) {
-                ai = i % na;
-                bi = i;
-            } else if (i >= nb) {
-                bi = i % nb;
-                ai = i;
-            } else {
-                ai = i;
-                bi = i;
-            }
-            int aint = a.getInt(ai);
-            int bint = b.getInt(bi);
-            if (aint == RInt.NA || bint == RInt.NA) {
-                return RInt.NA;
-            } else {
-                int res = arit.op(ast, aint, bint);
-                if (res == RInt.NA && !overflown) {
-                    overflown = true;
-                    arit.emitOverflowWarning(ast);
-                }
-                return res;
-            }
         }
 
         @Override
@@ -2239,7 +2209,133 @@ public class Arithmetic extends BaseR {
         public boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
+
+        public final int depth() {
+            return depth;
+        }
+
+        static final class Generic extends IntView implements RInt {
+            final int na;
+            final int nb;
+
+            public Generic(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                nb = b.size();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int ai;
+                int bi;
+                if (i >= na) {
+                    ai = i % na;
+                    bi = i;
+                } else if (i >= nb) {
+                    bi = i % nb;
+                    ai = i;
+                } else {
+                    ai = i;
+                    bi = i;
+                }
+                int aint = a.getInt(ai);
+                int bint = b.getInt(bi);
+                if (aint == RInt.NA || bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
+        static final class EqualSize extends IntView implements RInt {
+
+            public EqualSize(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+            }
+
+            @Override
+            public int getInt(int i) {
+
+                int aint = a.getInt(i);
+                int bint = b.getInt(i);
+                if (aint == RInt.NA || bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+             }
+        }
+
+        static final class VectorScalar extends IntView implements RInt {
+
+            final boolean isNA;
+            final int bint;
+
+            public VectorScalar(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                bint = b.getInt(0);
+                isNA = bint == RInt.NA;
+            }
+
+            @Override
+            public int getInt(int i) {
+
+                int aint = a.getInt(i);
+                if (isNA || aint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+             }
+        }
+
+        static final class ScalarVector extends IntView implements RInt {
+
+            final boolean isNA;
+            final int aint;
+
+            public ScalarVector(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                aint = a.getInt(0);
+                isNA = aint == RInt.NA;
+            }
+
+            @Override
+            public int getInt(int i) {
+
+                int bint = b.getInt(i);
+                if (isNA || bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+             }
+        }
+
     }
+
+
 
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
         int[] dima = a.dimensions();

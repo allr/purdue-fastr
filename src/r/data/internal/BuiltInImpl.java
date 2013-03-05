@@ -95,6 +95,11 @@ public class BuiltInImpl implements RBuiltIn {
     }
 
     @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi();
         return null;

@@ -91,6 +91,11 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return true;
     }
 
+    @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
     protected RArray doStrip() {
         Utils.nyi();
         return null;

@@ -129,6 +129,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
+    public boolean isTemporary() {
+        return true; // can modify
+    }
+
+    @Override
     public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
         if (!inherits) {
             RFrameHeader.localWrite(frame, name, value);

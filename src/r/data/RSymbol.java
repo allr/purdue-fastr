@@ -273,4 +273,9 @@ public final class RSymbol extends BaseObject implements RAny {
     public boolean dependsOn(RAny value) {
         return false;
     }
+
+    @Override
+    public boolean isTemporary() {
+        return false;
+    }
 }

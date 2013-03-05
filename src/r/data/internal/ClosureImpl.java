@@ -86,6 +86,11 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
+    @Override
     public void ref() { // FIXME: will have to update this when we support modification of closures
     }
 

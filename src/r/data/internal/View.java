@@ -76,7 +76,12 @@ public abstract class View extends ArrayImpl implements RArray {
                       //   would take unnecessary time, we are copying anyway
     }
 
-    public boolean isSharedReal() {
+    @Override
+    public boolean isTemporary() {
+        return false;
+    }
+
+    public boolean isSharedReal() { // ever used now?
         return true;
     }
 

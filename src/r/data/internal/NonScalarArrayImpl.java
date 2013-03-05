@@ -20,6 +20,11 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
     }
 
     @Override
+    public boolean isTemporary() {
+        return refcount == 0;
+    }
+
+    @Override
     public final void ref() {
         if (refcount == 0) {
             refcount = 1;
