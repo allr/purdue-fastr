@@ -122,6 +122,8 @@ public class Outer {
             RArray expy;
             if (y instanceof DoubleImpl) {
                 expy = expandYVector((DoubleImpl) y, ysize, xsize);
+            } else if (y instanceof IntImpl) {
+                expy = expandYVector((IntImpl) y, ysize, xsize);
             } else {
                 expy = expandYVector(y, ysize, xsize);
             }
@@ -129,6 +131,8 @@ public class Outer {
             if (xsize > 0) {
                 if (x instanceof DoubleImpl) {
                     expx = expandXVector((DoubleImpl) x, xsize, ysize);
+                } else if (x instanceof IntImpl) {
+                    expx = expandXVector((IntImpl) x, xsize, ysize);
                 } else {
                     expx = expandXVector(x, xsize, ysize);
                 }
@@ -199,6 +203,22 @@ public class Outer {
         return RDouble.RDoubleFactory.getFor(res);
     }
 
+    public static RInt expandYVector(IntImpl yarg, int ysize, int count) {
+        int size = ysize;
+        int nsize = size * count;
+        int[] y = yarg.getContent();
+
+        int[] res = new int[nsize];
+        int offset = 0;
+        for (int elem = 0; elem < size; elem++) {
+            int v = y[elem];
+            Arrays.fill(res, offset, offset + count, v);
+            offset += count;
+        }
+        return RInt.RIntFactory.getFor(res);
+    }
+
+
     public static RArray expandXVector(RArray x, int xsize, int count) {
         int nsize = xsize * count;
 
@@ -223,6 +243,18 @@ public class Outer {
             offset += xsize;
         }
         return RDouble.RDoubleFactory.getFor(res);
+    }
+
+    public static RInt expandXVector(IntImpl xarg, int xsize, int count) {
+        int nsize = xsize * count;
+        int[] x = xarg.getContent();
+        int[] res = new int[nsize];
+        int offset = 0;
+        for (int rep = 0; rep < count; rep++) {
+            System.arraycopy(x, 0, res, offset, x.length);
+            offset += xsize;
+        }
+        return RInt.RIntFactory.getFor(res);
     }
 }
 
