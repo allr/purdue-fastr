@@ -270,8 +270,6 @@ public abstract class ReadArray extends BaseR {
             super(other);
         }
 
-        // TODO change order of the matrix loops so that offset does not have to be always calculated like it is done in
-        // the generalized case.
         @SuppressWarnings("hiding")
         @Override
         public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
@@ -294,15 +292,14 @@ public abstract class ReadArray extends BaseR {
                 ndim = null;
             }
             RArray res = Utils.createArray(source, nsize, ndim, null, null); // drop attributes
-
-            for (int ni = 0; ni < nm; ni++) {
-                int i = selI.nextIndex(ast);
-                if (i != RInt.NA) {
-                    selJ.restart();
-                    for (int nj = 0; nj < nn; nj++) {
+            for (int nj = 0; nj < nn; nj++) {
+                int j = selJ.nextIndex(ast);
+                if (j != RInt.NA) {
+                    selI.restart();
+                    for (int ni = 0; ni < nm; ni++) {
                         int offset = nj * nm + ni;
-                        int j = selJ.nextIndex(ast);
-                        if (j != RInt.NA) {
+                        int i = selI.nextIndex(ast);
+                        if (i != RInt.NA) {
                             Object value;
                             value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
                             res.set(offset, value);
@@ -311,7 +308,7 @@ public abstract class ReadArray extends BaseR {
                         }
                     }
                 } else {
-                    for (int nj = 0; nj < nn; nj++) {
+                    for (int ni = 0; ni < nm; ni++) {
                         Utils.setNA(res, nj * nm + ni);
                     }
                 }
