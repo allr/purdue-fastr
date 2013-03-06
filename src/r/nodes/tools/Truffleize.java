@@ -395,12 +395,19 @@ public class Truffleize implements Visitor {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
             }
             if (dims == 2) { // if matrix read, use the specialized matrix form
-                result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
-                              selNodes,
-                              ReadArray.createDropOptionNode(a, drop),
-                              ReadArray.createExactOptionNode(a, exact));
+                if (!a.isSubset()) {
+                    result = new ReadArray.MatrixSubscript(a, createTree(a.getVector()),
+                            selNodes,
+                            ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                } else {
+                    result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
+                                  selNodes,
+                                  ReadArray.createDropOptionNode(a, drop),
+                                  ReadArray.createExactOptionNode(a, exact));
+                }
             } else { // otherwise use the generalized array read
-              result = new ReadArray.GeneralizedRead(a, a.isSubset(), createTree(a.getVector()),
+                result = new ReadArray.GeneralizedRead(a, a.isSubset(), createTree(a.getVector()),
                               selNodes,
                               ReadArray.createDropOptionNode(a, drop),
                               ReadArray.createExactOptionNode(a, exact));

@@ -63,8 +63,11 @@ public class TestSimpleArrays extends TestBase {
         // last dimension is dropped
         assertTrue("{ a = array(1,c(3,3,3)); is.null(dim(a[1,1,])); } ");
 
-        // dimensions of 1 are not dropped when requested
+        // dimensions of 1 are not dropped when requested (with subset)
         assertTrue("{ a = array(1,c(3,3,3)); a = dim(a[1,1,1, drop = FALSE]); length(a) == 3 && a[1] == 1 && a[2] == 1 && a[3] == 1; }");
+
+        // with subscript, dimensions are always dropped
+        assertTrue("{ m <- array(1:4, dim=c(4,1,1)) ; x <- m[[2,1,1,drop=FALSE]] ; is.null(dim(x)) }");
 
         // fallback to one dimensional read
         assertTrue("{ a = array(1:27, c(3,3,3)); a[1] == 1 && a[27] == 27 && a[22] == 22 && a[6] == 6; }");

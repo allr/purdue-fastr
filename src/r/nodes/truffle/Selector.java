@@ -107,8 +107,9 @@ public abstract class Selector {
         int m = 1;
         int[] dims = source.dimensions();
         for (int i = 0; i < idx.length; ++i) {
-            if (idx[i] == RInt.NA)
+            if (idx[i] == RInt.NA) {
                 return RInt.NA;
+            }
             result += idx[i] * m;
             m *= dims[i];
         }
@@ -626,6 +627,8 @@ public abstract class Selector {
             if (subset) {
                 return createConstantSelectorNode(ast, node, new MissingSelector());
             } else {
+                // FIXME: GNU-R checks first the size of the selection - if other selectors give more values, the error
+                // message is attempt to select more than one element
                 throw RError.getInvalidSubscriptType(ast, "symbol");
             }
         }
@@ -885,7 +888,7 @@ public abstract class Selector {
     // =================================================================================================================
     // Selector node
     // =================================================================================================================
-    public static abstract class SelectorNode extends BaseR {
+    public abstract static class SelectorNode extends BaseR {
 
         @Child RNode child;
 

@@ -212,7 +212,7 @@ public abstract class ReadArray extends BaseR {
         @Override
         public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
             Selector.initializeSelectors(source, selectorVals, ast, selSizes);
-            int[] destDim = Selector.calculateDestinationDimensions(selSizes, drop);
+            int[] destDim = Selector.calculateDestinationDimensions(selSizes, !subset || drop);
             int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
             if (!subset && (destSize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
@@ -268,7 +268,7 @@ public abstract class ReadArray extends BaseR {
             if (!subset && (nsize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
             }
-            if ((nm != 1 && nn != 1) || !drop) {
+            if ((nm != 1 && nn != 1) || (subset && !drop)) {
                 ndim = new int[]{nm, nn};
             } else {
                 ndim = null;
@@ -296,6 +296,41 @@ public abstract class ReadArray extends BaseR {
                 }
             }
             return res;
+        }
+    }
+
+    public static class MatrixSubscript extends ReadArray {
+
+        public MatrixSubscript(ASTNode ast, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, false, lhs, selectors, dropExpr, exactExpr);
+        }
+
+        public MatrixSubscript(ReadArray other) {
+            super(other);
+            assert Utils.check(!other.subset);
+        }
+
+        @Override
+        public Object execute(RArray base, boolean drop, int exact) throws UnexpectedResultException {
+            Selector selI = selectorVals[0];
+            Selector selJ = selectorVals[1];
+            int[] ndim = base.dimensions();
+            int m = ndim[0];
+            int n = ndim[1];
+            selI.start(m, ast);
+            selJ.start(n, ast);
+            int i = selI.nextIndex(ast);
+            int j = selJ.nextIndex(ast);
+            if (i != RInt.NA && j != RInt.NA) {
+                int offset = j * m + i;
+                if (!(base instanceof RList)) {
+                    return base.boxedGet(offset);
+                } else {
+                    return ((RList) base).getRAny(offset);
+                }
+            } else {
+                return Utils.getBoxedNA(base);
+            }
         }
     }
 
