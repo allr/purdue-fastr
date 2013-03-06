@@ -918,10 +918,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                 guard.check(lhs, rhs);
+                guard.check(lhs, rhs);
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                if (DEBUG_UP) Utils.debug("NonScalar.String -> Generalized");
+                if (DEBUG_UP) Utils.debug("Subscript -> Generalized");
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
