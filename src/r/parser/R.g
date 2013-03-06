@@ -411,9 +411,7 @@ BREAK
 	: 'break';
 // ?
 
-WS  :   ( ' '
-        | '\t'
-        ) {$channel=HIDDEN;}
+WS  :    ('\u0009'|'\u0020'|'\u00A0') {$channel=HIDDEN;}
     ;
 NEWLINE 
 	: LINE_BREAK	{ if(incomplete_stack[incomplete_depth]>0) $channel=HIDDEN; };
