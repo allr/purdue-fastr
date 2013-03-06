@@ -88,6 +88,10 @@ public abstract class RError extends RuntimeException {
     public static final String DOLLAR_ATOMIC_VECTORS = "$ operator is invalid for atomic vectors";
     public static final String COERCING_LHS_TO_LIST = "Coercing LHS to a list";
     public static final String ARGUMENT_NOT_LIST = "argument not a list";
+    public static final String DIMS_CONTAIN_NEGATIVE_VALUES = "the dims contain negative values";
+    public static final String NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED = "negative length vectors are not allowed";
+    public static final String FIRST_ARG_MUST_BE_ARRAY = "invalid first argument, must be an array";
+    public static final String IMAGINARY_PARTS_DISCARDED_IN_COERCION = "imaginary parts discarded in coercion";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -118,12 +122,7 @@ public abstract class RError extends RuntimeException {
     public static final String VALUE_OUT_OF_RANGE = "value out of range in '%s'";
     public static final String MUST_BE_NONNULL_STRING = "'%s' must be non-null character string";
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
-
-    public static final String DIMS_CONTAIN_NEGATIVE_VALUES = "the dims contain negative values";
-    public static final String NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED = "negative length vectors are not allowed";
-
-    public static final String FIRST_ARG_MUST_BE_ARRAY = "invalid first argument, must be an array";
-    public static final String IMAGINARY_PARTS_DISCARDED_IN_COERCION = "imaginary parts discarded in coercion";
+    public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
 
 
     public static RError getNYI(final String msg) {
@@ -1079,10 +1078,14 @@ public abstract class RError extends RuntimeException {
     public static RError getValueOutOfRange(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.VALUE_OUT_OF_RANGE, argName));
     }
+
     public static RError getValueIsOfWrongLength(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.IS_OF_WRONG_LENGTH, argName));
     }
 
+    public static RError getObjectNotSubsettable(ASTNode ast, String typeName) {
+        return getGenericError(ast, String.format(RError.OBJECT_NOT_SUBSETTABLE, typeName));
+    }
 
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

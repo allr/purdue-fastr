@@ -6,6 +6,7 @@ import r.Utils;
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.nodes.truffle.Selector.SelectorNode;
 
 /**
  * A multi-dimensional read.
@@ -32,53 +33,41 @@ public abstract class ReadArray extends BaseR {
     /**
      * Selector nodes for respective dimensions. These are likely to be rewritten.
      */
-    @Children Selector.SelectorNode[] selectorsNodes;
+    @Children SelectorNode[] selectorExprs;
 
     /**
      * Drop expression, assumed true or false.
      */
-    @Child OptionNode drop;
+    @Child OptionNode dropExpr;
 
-    @Child OptionNode exact;
+    @Child OptionNode exactExpr;
 
     final int[] selSizes;
     final int[] idx;
     final int[] selIdx;
+    final Selector[] selectorVals;
 
     /**
      * Constructor from scratch.
      */
-    public ReadArray(ASTNode ast, boolean subset, RNode lhs, Selector.SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
+    public ReadArray(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectorExprs, OptionNode dropExpr, OptionNode exactExpr) {
         super(ast);
         this.subset = subset;
         this.lhs = adoptChild(lhs);
-        this.selectorsNodes = new Selector.SelectorNode[selectors.length];
-        for (int i = 0; i < selectors.length; ++i) {
-            this.selectorsNodes[i] = adoptChild(selectors[i]);
-        }
-        this.drop = adoptChild(dropExpr);
-        this.exact = adoptChild(exactExpr);
-        this.selSizes = new int[selectors.length];
-        this.idx = new int[selectors.length];
-        this.selIdx = new int[selectors.length];
+        this.selectorExprs = adoptChildren(selectorExprs);
+        this.dropExpr = adoptChild(dropExpr);
+        this.exactExpr = adoptChild(exactExpr);
+        this.selSizes = new int[selectorExprs.length];
+        this.idx = new int[selectorExprs.length];
+        this.selIdx = new int[selectorExprs.length];
+        this.selectorVals = new Selector[selectorExprs.length];
     }
 
     /**
      * Copy constructor used in node replacements.
      */
     public ReadArray(ReadArray other) {
-        super(other.ast);
-        subset = other.subset;
-        lhs = adoptChild(other.lhs);
-        selectorsNodes = new Selector.SelectorNode[selectorsNodes.length];
-        for (int i = 0; i < selectorsNodes.length; ++i) {
-            selectorsNodes[i] = adoptChild(other.selectorsNodes[i]);
-        }
-        this.drop = adoptChild(other.drop);
-        this.exact = adoptChild(other.exact);
-        this.selSizes = other.selSizes;
-        this.idx = other.idx;
-        this.selIdx = other.selIdx;
+        this(other.ast, other.subset, other.lhs, other.selectorExprs, other.dropExpr, other.exactExpr);
     }
 
     /**
@@ -91,35 +80,31 @@ public abstract class ReadArray extends BaseR {
     @Override
     public Object execute(Frame frame) {
         RAny lhsVal = (RAny) lhs.execute(frame);
-        Selector[] selectorsVal = new Selector[selectorsNodes.length];
-        for (int i = 0; i < selectorsVal.length; ++i) {
-            selectorsVal[i] = selectorsNodes[i].executeSelector(frame);
+        for (int i = 0; i < selectorVals.length; ++i) {
+            selectorVals[i] = selectorExprs[i].executeSelector(frame);
         }
-        boolean dropVal = drop.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
-        int exactVal = exact.executeLogical(frame);
+        boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
+        int exactVal = exactExpr.executeLogical(frame);
 
         if (!(lhsVal instanceof RArray)) {
-            Utils.nyi("unsupported base");
-            // TODO: ERROR object of type 'XXX' is not subsettable
-            return null;
+            throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
         }
         RArray array = (RArray) lhsVal;
-        if (array.dimensions().length != selectorsNodes.length) {
+        int[] dim = array.dimensions();
+        if (dim == null || dim.length != selectorExprs.length) {
             throw RError.getIncorrectDimensions(getAST());
         }
         while (true) {
             try {
-                return execute(array, selectorsVal, dropVal, exactVal);
+                return execute(array, dropVal, exactVal);
             } catch (UnexpectedResultException e) {
                 Selector failedSelector = (Selector) e.getResult();
-                for (int i = 0; i < selectorsVal.length; ++i) {
-                    if (selectorsVal[i] == failedSelector) {
-                        // TODO This is probably not a proper way how to replace a child in an array of children??
+                for (int i = 0; i < selectorVals.length; ++i) {
+                    if (selectorVals[i] == failedSelector) {
                         RAny index = failedSelector.getIndex();
-                        Selector.SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorsNodes[i], false, failedSelector.getTransition());
-                        replaceChild(selectorsNodes[i], newSelector);
-                        assert (selectorsNodes[i] == newSelector);
-                        selectorsVal[i] = newSelector.executeSelector(index);
+                        SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
+                        replaceChild(selectorExprs[i], newSelector);
+                        selectorVals[i] = newSelector.executeSelector(index);
                     }
                 }
             }
@@ -132,8 +117,7 @@ public abstract class ReadArray extends BaseR {
      * The given selectors may fail resulting in the exception being thrown, in which case they will
      * be replaced with more general ones.
      */
-    @SuppressWarnings("hiding")
-    public abstract Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException;
+    public abstract Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException;
 
     // =================================================================================================================
     // OptionNode
@@ -207,7 +191,7 @@ public abstract class ReadArray extends BaseR {
      */
     public static class GeneralizedRead extends ReadArray {
 
-        public GeneralizedRead(ASTNode ast, boolean subset, RNode lhs, Selector.SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
+        public GeneralizedRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
             super(ast, subset, lhs, selectors, dropExpr, exactExpr);
         }
 
@@ -225,10 +209,9 @@ public abstract class ReadArray extends BaseR {
          * The selIdx array contains the position in the selector (when this is equal to the
          * selector size the selector has overflown).
          */
-        @SuppressWarnings("hiding")
         @Override
-        public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
-            Selector.initializeSelectors(source, selectors, ast, selSizes);
+        public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
+            Selector.initializeSelectors(source, selectorVals, ast, selSizes);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, drop);
             int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
             if (!subset && (destSize > 1)) {
@@ -237,7 +220,7 @@ public abstract class ReadArray extends BaseR {
             RArray dest = Utils.createArray(source, destSize, destDim, null, null); // drop attributes
             // fill in the index vector
             for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectors[i].nextIndex(ast);
+                idx[i] = selectorVals[i].nextIndex(ast);
                 selIdx[i] = 1; // start at one so that overflow and carry works
             }
             // loop over the dest offset and update the index vector
@@ -248,7 +231,7 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     dest.set(offset, source.getRef(sourceOffset));
                 }
-                Selector.increment(idx, selIdx, selSizes, selectors, ast);
+                Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
             }
             return dest;
         }
@@ -262,7 +245,7 @@ public abstract class ReadArray extends BaseR {
      */
     public static class MatrixRead extends ReadArray {
 
-        public MatrixRead(ASTNode ast, boolean subset, RNode lhs, Selector.SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
+        public MatrixRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
             super(ast, subset, lhs, selectors, dropExpr, exactExpr);
         }
 
@@ -270,11 +253,10 @@ public abstract class ReadArray extends BaseR {
             super(other);
         }
 
-        @SuppressWarnings("hiding")
         @Override
-        public Object execute(RArray source, Selector[] selectors, boolean drop, int exact) throws UnexpectedResultException {
-            Selector selI = selectors[0];
-            Selector selJ = selectors[1];
+        public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
+            Selector selI = selectorVals[0];
+            Selector selJ = selectorVals[1];
             int[] ndim = source.dimensions();
             int m = ndim[0];
             int n = ndim[1];
