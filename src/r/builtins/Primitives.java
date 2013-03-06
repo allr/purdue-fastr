@@ -139,6 +139,9 @@ public class Primitives {
         add("which", 1, 3, Which.FACTORY);
         add("writeBin", 2, 5, WriteBin.FACTORY);
         add("commandArgs", 0, 1, CommandArgs.FACTORY);
+
+        // fastr specific
+        add("__inspect", 1, 1, Debugging.INSPECT_FACTORY);
     }
 
     public static boolean hasCallFactory(final RSymbol name, final RFunction enclosing) {

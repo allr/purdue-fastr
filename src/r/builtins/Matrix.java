@@ -3,9 +3,9 @@ package r.builtins;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
-import r.Convert;
 import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -152,6 +152,9 @@ public class Matrix {
                     boolean byRow = provided[IBYROW] ? parseByRow(ast, args[paramPositions[IBYROW]]) : false;
 
                     RArray res = Utils.createArray(data, size, new int[] {nRow, nCol}, null, null);
+                    if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) {
+                        return res;
+                    }
                     int di = 0;
                     if (!byRow) {
                         for (int i = 0; i < size; i++) {

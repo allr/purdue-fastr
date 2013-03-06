@@ -120,7 +120,7 @@ public abstract class UpdateVector extends BaseR {
             } else { // this should be uncommon
                 base = RFrameHeader.readViaWriteSetSlowPath(frame, var);
                 if (base == null) { throw RError.getUnknownVariable(getAST()); }
-                base.ref(); // reading from parent, hence need to copy on update 
+                base.ref(); // reading from parent, hence need to copy on update
                 // ref once will make it shared unless it is stateless (like int sequence)
                 RAny newBase = execute(base, index, value);
                 Utils.check(base != newBase);
@@ -226,6 +226,36 @@ public abstract class UpdateVector extends BaseR {
 
                     dbase[i] = dvalue;
 
+                    return dibase;
+                } catch (UnexpectedResultException e) {
+                    ScalarDoubleWithAttributesSelection ns = new ScalarDoubleWithAttributesSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                    replace(ns, "install ScalarDoubleWithAttributesSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
+                    return ns.execute(base, index, value);
+                }
+            }
+        }
+
+        public static class ScalarDoubleWithAttributesSelection extends DoubleBaseSimpleSelection {
+            public ScalarDoubleWithAttributesSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
+            }
+
+            @Override public RAny execute(RAny base, RAny index, RAny value) {
+                try {
+                    if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
+
+                    if (!(base instanceof DoubleImpl)) { // FIXME: extract to a static method? (without performance overhead)
+                        throw new UnexpectedResultException(null);
+                    }
+                    DoubleImpl dibase = (DoubleImpl) base;
+                    if (dibase.isShared()) { throw new UnexpectedResultException(null); }
+                    double[] dbase = dibase.getContent();
+                    if (i < 0 || i >= dbase.length) { throw new UnexpectedResultException(null); }
+                    if (!(value instanceof RDouble)) { throw new UnexpectedResultException(null); }
+                    RDouble dblvalue = (RDouble) value;
+                    if (dblvalue.size() != 1) { throw new UnexpectedResultException(null); }
+                    dbase[i] = dblvalue.getDouble(0);
                     return dibase;
                 } catch (UnexpectedResultException e) {
                     ScalarNumericSelection ns = new ScalarNumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
