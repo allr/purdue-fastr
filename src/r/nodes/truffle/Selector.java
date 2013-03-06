@@ -4,6 +4,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import r.Utils;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 
@@ -714,7 +715,7 @@ public abstract class Selector {
                             return createSimpleNumericSubsetSelectorNode(ast, child);
                         }
                     } else {
-                        return createSimpleSubscriptSelectorNode(ast, child);
+                        return createSpecializedSimpleSubscriptSelectorNode(ast, child, template);
                     }
                 }
             }
@@ -748,14 +749,43 @@ public abstract class Selector {
         };
     }
 
-    public static SelectorNode createSimpleSubscriptSelectorNode(ASTNode ast, RNode child) {
+    // note: surprisingly, this kind of specialization seems not to be helping
+    // so either we are still too slow for this to matter, or hotspot is very good at "instanceof" tests
+    public static SelectorNode createSpecializedSimpleSubscriptSelectorNode(ASTNode ast, RNode child, RAny template) {
+        final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
+        if (template instanceof ScalarIntImpl) {
+
+
+            return new SelectorNode(ast, child) {
+
+                @Override
+                public Selector executeSelector(RAny index) {
+                    try {
+                        if (index instanceof ScalarIntImpl) {
+                            selector.setIndex(index);
+                            return selector;
+                        }
+                        throw new UnexpectedResultException(null);
+                    } catch (UnexpectedResultException e) {
+                        if (DEBUG_M) Utils.debug("SpecializedSimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
+                        SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
+                        replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
+                        return gn.executeSelector(index);
+                    }
+                }
+            };
+        }
+        return createGenericSimpleSubscriptSelectorNode(ast, child);
+    }
+
+    public static SelectorNode createGenericSimpleSubscriptSelectorNode(ASTNode ast, RNode child) {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
             @Override
             public Selector executeSelector(RAny index) {
                 try {
-                    if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { // FIXME: can get rid of this through type-specialization
+                    if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
                         selector.setIndex(index.asInt());
                         return selector;
                     }
