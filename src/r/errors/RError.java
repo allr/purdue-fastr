@@ -124,7 +124,9 @@ public abstract class RError extends RuntimeException {
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
     public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
 
-		public static abstract class RNYIError extends RError {};
+    public abstract static class RNYIError extends RError {
+        private static final long serialVersionUID = -7296314309177604737L;
+    }
 
     public static RError getNYI(final String msg) {
         return new RNYIError() {

@@ -2,6 +2,7 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.*;
+
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -106,7 +107,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
-            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset) {
                 if (!lhs.isShared()) {
                     if ((lhs instanceof IntImpl) && (rhs instanceof IntImpl)) {
                         return replace(new IntToIntDirect(this)).execute(frame, lhs, rhs);
@@ -176,7 +177,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
         } catch (UnexpectedResultException e) {
             if (DEBUG_UP) Utils.debug(getClass().getSimpleName() + " -> Generalized");
-            return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
         }
     }
 
@@ -275,6 +276,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
+                if (!subset) {
+                    if (DEBUG_UP) Utils.debug("IdenticalTypes -> Subscript");
+                    return replace(Subscript.create(this, lhs, rhs)).execute(frame, lhs, rhs);
+                }
                 if (rhs instanceof RArray && ((RArray) rhs).size() == 1) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Scalar");
                     return replace(new Scalar(this)).execute(frame, lhs, rhs);
@@ -286,7 +291,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     }
 
     // =================================================================================================================
-    // Generalized
+    // Generic
     // =================================================================================================================
 
     /**
@@ -305,7 +310,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      * TODO Maybe by making the general case less aggressive and allowing for instance to recompute
      * the copy LHS and copy RHS arguments better results can be achieved.
      */
-    protected static class Generalized extends UpdateArray {
+    protected static class GenericSubset extends Generic {
 
         static enum UpdateType {
             GENERALIZED,
@@ -319,30 +324,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         UpdateType updateType;
 
-        public Generalized(UpdateArray other) {
+        public GenericSubset(UpdateArray other) {
             super(other);
             updateType = UpdateType.GENERALIZED;
-        }
-
-        /**
-         * Replaces the whole updateArray tree of the given node by the Generalized node instance.
-         * This gets rid of any UpdateArray descendants, CopyLhs or CopyRhs nodes in the tree
-         * leaving in it only the Generalized node since it has all the required functionality.
-         * <p/>
-         * When replacing a node to the Generalized one, this method should always be used instead
-         * of simple replace.
-         */
-        public static Generalized replaceArrayUpdateTree(UpdateArray tree) {
-            Node root = tree;
-            if (root.getParent() instanceof CopyRhs) {
-                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy rhs node");
-                root = root.getParent();
-            }
-            if (root.getParent() instanceof CopyLhs) {
-                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy lhs node");
-                root = root.getParent();
-            }
-            return root.replace(new Generalized(tree));
         }
 
         /**
@@ -419,6 +403,88 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
             }
             // none of the specializations is applicable, proceed with the very general case
+            return super.execute(frame, lhs, rhs);
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
+                switch (updateType) {
+                    case INT_TO_INT_DIRECT:
+                        return IntToIntDirect.doUpdate(this, lhs, rhs);
+                    case INT_TO_DOUBLE_DIRECT:
+                        return IntToDoubleDirect.doUpdate(this, lhs, rhs);
+                    case DOUBLE_TO_DOUBLE_DIRECT:
+                        return DoubleToDoubleDirect.doUpdate(this, lhs, rhs);
+                    case INT_TO_COMPLEX_DIRECT:
+                        return IntToComplexDirect.doUpdate(this, lhs, rhs);
+                    case DOUBLE_TO_COMPLEX_DIRECT:
+                        return DoubleToComplexDirect.doUpdate(this, lhs, rhs);
+                    case COMPLEX_TO_COMPLEX_DIRECT:
+                        return ComplexToComplexDirect.doUpdate(this, lhs, rhs);
+                    default:
+                        return super.update(lhs, rhs);
+                }
+            } else {
+                return super.update(lhs, rhs);
+            }
+        }
+    }
+
+    protected static class GenericSubscript extends Generic {
+
+        public GenericSubscript(UpdateArray other) {
+            super(other);
+            assert Utils.check(!other.subset);
+        }
+
+        @Override
+        protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            return Subscript.doUpdate(lhs, rhs, selectorVals, ast);
+        }
+    }
+
+    protected abstract static class Generic extends UpdateArray {
+
+        public Generic(UpdateArray other) {
+            super(other);
+        }
+
+        /**
+         * Replaces the whole updateArray tree of the given node by the Generalized node instance.
+         * This gets rid of any UpdateArray descendants, CopyLhs or CopyRhs nodes in the tree
+         * leaving in it only the Generalized node since it has all the required functionality.
+         * <p/>
+         * When replacing a node to the Generalized one, this method should always be used instead
+         * of simple replace.
+         */
+        public static Generic replaceArrayUpdateTree(UpdateArray tree) {
+            Node root = tree;
+            if (root.getParent() instanceof CopyRhs) {
+                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy rhs node");
+                root = root.getParent();
+            }
+            if (root.getParent() instanceof CopyLhs) {
+                if (DEBUG_UP) Utils.debug("Replacing update tree - skipping copy lhs node");
+                root = root.getParent();
+            }
+            if (tree.subset) {
+                return root.replace(new GenericSubset(tree));
+            } else {
+                return root.replace(new GenericSubscript(tree));
+            }
+        }
+
+        /**
+         * This is the general case that performs all the computations at once. In the slowpath
+         * makes a copy of the lhs and determines if a copy of the rhs should be made and then runs
+         * the update of arrays for non-const rhs values (this will work for the const values too,
+         * of course).
+         */
+        @Override
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhsParam) {
+            RAny lhs = lhsParam;
+            RAny rhs = rhsParam;
 
             // 1. copy the rhs
             ValueCopy.Impl rhsImpl = CopyRhs.determineCopyImplementation(lhs, rhs); // can be null if no copy is needed
@@ -446,29 +512,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                             (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RRaw && rhs instanceof RRaw),
                             "Unable to perform the update of the array - unimplemented copy");
             return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-        }
-
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
-                switch (updateType) {
-                    case INT_TO_INT_DIRECT:
-                        return IntToIntDirect.doUpdate(this, lhs, rhs);
-                    case INT_TO_DOUBLE_DIRECT:
-                        return IntToDoubleDirect.doUpdate(this, lhs, rhs);
-                    case DOUBLE_TO_DOUBLE_DIRECT:
-                        return DoubleToDoubleDirect.doUpdate(this, lhs, rhs);
-                    case INT_TO_COMPLEX_DIRECT:
-                        return IntToComplexDirect.doUpdate(this, lhs, rhs);
-                    case DOUBLE_TO_COMPLEX_DIRECT:
-                        return DoubleToComplexDirect.doUpdate(this, lhs, rhs);
-                    case COMPLEX_TO_COMPLEX_DIRECT:
-                        return ComplexToComplexDirect.doUpdate(this, lhs, rhs);
-                    default:
-                        return super.update(lhs, rhs);
-                }
-            } else {
-                return super.update(lhs, rhs);
-            }
         }
     }
 
@@ -627,7 +670,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     lhs = impl.copy(lhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
                 return child.execute(frame, lhs, rhs);
             }
@@ -655,7 +698,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhs = impl.copy(lhsParam);
                     } catch (UnexpectedResultException e) {
                         if (DEBUG_UP) Utils.debug("CopyLhs.SpecializedDuplicate -> Generalized");
-                        return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                        return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
                     }
                 } else {
                     lhs = lhsParam;
@@ -752,7 +795,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs);
                 if (impl == null) {
                     if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
-                    return UpdateArray.Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return UpdateArray.GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
                 return replace(new Specialized(this, impl)).execute(frame, lhs, rhs);
             }
@@ -780,12 +823,128 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     rhs = impl.copy(rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyRhs.Specialized -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
                 return child.execute(frame, lhs, rhs);
             }
         }
 
+    }
+
+    // =================================================================================================================
+    // Subscript
+    // =================================================================================================================
+
+    protected static final class Subscript extends UpdateArray {
+
+        final TypeGuard guard;
+
+        public Subscript(UpdateArray other, TypeGuard guard) {
+            super(other);
+            assert Utils.check(!other.subset);
+            this.guard = guard;
+        }
+
+        public abstract static class TypeGuard {
+            abstract void check(RAny lhs, RAny rhs) throws UnexpectedResultException;
+        }
+
+        public static Subscript create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
+            TypeGuard g = null;
+            if (leftTemplate instanceof RString && rightTemplate instanceof RString) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RString && rhs instanceof RString)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            } else if (leftTemplate instanceof RComplex && rightTemplate instanceof RComplex) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RComplex && rhs instanceof RComplex)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            } else if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RDouble && rhs instanceof RDouble)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            } else if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RInt && rhs instanceof RInt)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            } else if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RLogical && rhs instanceof RLogical)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            } else if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
+                g = new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RRaw && rhs instanceof RRaw)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+
+            if (g != null) {
+                return new Subscript(other, g);
+            } else {
+                Utils.nyi("left " + leftTemplate + " right " + rightTemplate);
+                return null;
+            }
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                 guard.check(lhs, rhs);
+                return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+            } catch (UnexpectedResultException e) {
+                if (DEBUG_UP) Utils.debug("NonScalar.String -> Generalized");
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+            int[] dim = lhs.dimensions();
+            int mult = 1;
+            int offset = 0;
+            for (int i = 0; i < selectors.length; ++i) {
+                Selector s = selectors[i];
+                s.start(dim[i], ast);
+                int k = s.nextIndex(ast);
+                assert Utils.check(k != RInt.NA); // ensured by subscript selectors
+                offset += k * mult;
+                mult *= dim[i];
+            }
+            return lhs.set(offset, rhs.get(0));
+        }
+
+        @Override
+        public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            return doUpdate(lhs, rhs, selectorVals, ast);
+        }
     }
 
 
@@ -839,7 +998,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, null);
                 } catch (UnexpectedResultException e) {
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
@@ -887,7 +1046,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
@@ -935,7 +1094,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
@@ -983,7 +1142,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
@@ -1033,7 +1192,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
@@ -1135,7 +1294,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Logical -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1159,7 +1318,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Int -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1183,7 +1342,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Double -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1207,7 +1366,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Complex -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1231,7 +1390,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.String -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1255,7 +1414,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Raw -> Generalized");
-                    return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -1293,7 +1452,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
 
@@ -1364,7 +1523,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1436,7 +1595,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1506,7 +1665,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
 
@@ -1578,7 +1737,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -1651,7 +1810,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return Generalized.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 

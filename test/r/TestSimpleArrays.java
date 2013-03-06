@@ -262,5 +262,8 @@ public class TestSimpleArrays extends TestBase {
         // error in lengths
         assertEvalError("{ m <- matrix(1,2,2)\nm[,1] = c(1,2,3,4)\nm }", RError.NOT_MULTIPLE_REPLACEMENT);
 
+        // subscript with rewriting
+        assertTrue("{  m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[[2,1,1]] <- v ; x } ; f(m,10L) ; f(m,10) ; x <- f(m,11L) ; x[1] == 1 && x[2] == 11 && x[3] == 3 }");
+
     }
 }

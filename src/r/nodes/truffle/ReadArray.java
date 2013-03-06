@@ -321,15 +321,12 @@ public abstract class ReadArray extends BaseR {
             selJ.start(n, ast);
             int i = selI.nextIndex(ast);
             int j = selJ.nextIndex(ast);
-            if (i != RInt.NA && j != RInt.NA) {
-                int offset = j * m + i;
-                if (!(base instanceof RList)) {
-                    return base.boxedGet(offset);
-                } else {
-                    return ((RList) base).getRAny(offset);
-                }
+            assert Utils.check(i != RInt.NA && j != RInt.NA); // ensured by subscript selectors
+            int offset = j * m + i;
+            if (!(base instanceof RList)) {
+                return base.boxedGet(offset);
             } else {
-                return Utils.getBoxedNA(base);
+                return ((RList) base).getRAny(offset);
             }
         }
     }
