@@ -19,50 +19,37 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     final boolean subset;
 
     /** Selector nodes for respective dimensions. These are likely to be rewritten. */
-    @Children SelectorNode[] selectorNodes;
+    @Children SelectorNode[] selectorExprs;
 
     final Selector[] selectorVals;
     final int[] selSizes;
     final int[] idx;
-    final int[] selIdx;
 
     /** Returns the array update node, or if the peephole chain optimizations are enabled returns the update node
      * prefixed with the optimizer node.
      *
      * // TODO peepholer is currently not used as all optimizations are visible from the first execution.
      */
-    public static UpdateArrayAssignment.AssignmentNode create(ASTNode ast, SelectorNode[] selectors, boolean subset) {
-        return new UpdateArray(ast, selectors, subset);
+    public static UpdateArrayAssignment.AssignmentNode create(ASTNode ast, SelectorNode[] selectorExprs, boolean subset) {
+        return new UpdateArray(ast, selectorExprs, subset);
     }
 
 
     /** Constructor from scratch. Use the static method create so that the peephole chain optimizer can be injected to
      * the update tree if required. */
-    protected UpdateArray(ASTNode ast, SelectorNode[] selectors, boolean subset) {
+    protected UpdateArray(ASTNode ast, SelectorNode[] selectorExprs, boolean subset) {
         super(ast);
         this.subset = subset;
-        this.selectorNodes = new SelectorNode[selectors.length];
-        for (int i = 0; i < selectors.length; ++i) {
-            this.selectorNodes[i] = adoptChild(selectors[i]);
-        }
-        selectorVals = new Selector[selectors.length];
-        selSizes = new int[selectors.length];
-        idx = new int[selectors.length];
-        selIdx = new int[selectors.length];
+        this.selectorExprs = adoptChildren(selectorExprs);
+        selectorVals = new Selector[selectorExprs.length];
+
+        selSizes = new int[selectorExprs.length];
+        idx = new int[selectorExprs.length];
     }
 
     /** Copy constructor used in node replacements. */
     protected UpdateArray(UpdateArray other) {
-        super(other.ast);
-        subset = other.subset;
-        selectorNodes = new SelectorNode[other.selectorNodes.length];
-        for (int i = 0; i < selectorNodes.length; ++i) {
-            selectorNodes[i] = adoptChild(other.selectorNodes[i]);
-        }
-        selectorVals = other.selectorVals;
-        selSizes = other.selSizes;
-        idx = other.idx;
-        selIdx = other.selIdx;
+        this(other.ast, other.selectorExprs, other.subset);
     }
 
     /**
@@ -156,7 +143,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 throw new UnexpectedResultException(null);
             }
             for (int i = 0; i < selectorVals.length; ++i) {
-                selectorVals[i] = selectorNodes[i].executeSelector(frame);
+                selectorVals[i] = selectorExprs[i].executeSelector(frame);
             }
             while (true) {
                 try {
@@ -166,9 +153,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     for (int i = 0; i < selectorVals.length; ++i) {
                         if (selectorVals[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
-                            SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorNodes[i], false, failedSelector.getTransition());
-                            replaceChild(selectorNodes[i], newSelector);
-                            assert (selectorNodes[i] == newSelector);
+                            SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
+                            replaceChild(selectorExprs[i], newSelector);
+                            assert (selectorExprs[i] == newSelector);
                             selectorVals[i] = newSelector.executeSelector(index);
                             if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
                         }
@@ -195,7 +182,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         // fill in the index vector
         for (int i = 0; i < idx.length; ++i) {
             idx[i] = selectorVals[i].nextIndex(ast);
-            selIdx[i] = 1; // start at one so that overflow and carry works
         }
         while (replacementSize >= rhsSize) {
             // loop over the dest offset and update the index vector, store the values
@@ -205,7 +191,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (lhsOffset != RInt.NA) {
                     lhs.set(lhsOffset, rhs.getRef(rhsOffset));
                 }
-                Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                Selector.increment(idx, selSizes, selectorVals, ast);
             }
             replacementSize -= rhsSize;
         }
@@ -926,12 +912,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
         }
 
-        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
             int[] dim = lhs.dimensions();
             int mult = 1;
             int offset = 0;
-            for (int i = 0; i < selectors.length; ++i) {
-                Selector s = selectors[i];
+            for (int i = 0; i < selectorVals.length; ++i) {
+                Selector s = selectorVals[i];
                 s.start(dim[i], ast);
                 int k = s.nextIndex(ast);
                 assert Utils.check(k != RInt.NA); // ensured by subscript selectors
@@ -1012,7 +998,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 // fill in the index vector
                 for (int i = 0; i < idx.length; ++i) {
                     idx[i] = selectorVals[i].nextIndex(ast);
-                    selIdx[i] = 1; // start at one so that overflow and carry works
                 }
                 // loop over the update size
                 for (int i = 0; i < updateSize; ++i) {
@@ -1021,7 +1006,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                    Selector.increment(idx, selSizes, selectorVals, ast);
                 }
                 // return the lhs so that it can be updated by parent, if required
                 return lhs;
@@ -1060,7 +1045,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 // fill in the index vector
                 for (int i = 0; i < idx.length; ++i) {
                     idx[i] = selectorVals[i].nextIndex(ast);
-                    selIdx[i] = 1; // start at one so that overflow and carry works
                 }
                 // loop over the update size
                 for (int i = 0; i < updateSize; ++i) {
@@ -1069,7 +1053,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                    Selector.increment(idx, selSizes, selectorVals, ast);
                 }
                 // return the lhs so that it can be updated by parent, if required
                 return lhs;
@@ -1108,7 +1092,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 // fill in the index vector
                 for (int i = 0; i < idx.length; ++i) {
                     idx[i] = selectorVals[i].nextIndex(ast);
-                    selIdx[i] = 1; // start at one so that overflow and carry works
                 }
                 // loop over the update size
                 for (int i = 0; i < updateSize; ++i) {
@@ -1117,7 +1100,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                    Selector.increment(idx, selSizes, selectorVals, ast);
                 }
                 // return the lhs so that it can be updated by parent, if required
                 return lhs;
@@ -1157,7 +1140,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 // fill in the index vector
                 for (int i = 0; i < idx.length; ++i) {
                     idx[i] = selectorVals[i].nextIndex(ast);
-                    selIdx[i] = 1; // start at one so that overflow and carry works
                 }
                 // loop over the update size
                 for (int i = 0; i < updateSize; ++i) {
@@ -1167,7 +1149,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset << 1] = re;
                         lhsVal[(lhsOffset << 1) + 1] = im;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                    Selector.increment(idx, selSizes, selectorVals, ast);
                 }
                 // return the lhs so that it can be updated by parent, if required
                 return lhs;
@@ -1206,7 +1188,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 // fill in the index vector
                 for (int i = 0; i < idx.length; ++i) {
                     idx[i] = selectorVals[i].nextIndex(ast);
-                    selIdx[i] = 1; // start at one so that overflow and carry works
                 }
                 // loop over the update size
                 for (int i = 0; i < updateSize; ++i) {
@@ -1215,7 +1196,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                    Selector.increment(idx, selSizes, selectorVals, ast);
                 }
                 // return the lhs so that it can be updated by parent, if required
                 return lhs;
@@ -1468,7 +1449,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
@@ -1478,7 +1458,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
@@ -1539,7 +1519,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
@@ -1549,7 +1528,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
@@ -1611,7 +1590,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
@@ -1621,7 +1599,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
@@ -1681,7 +1659,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
@@ -1692,7 +1669,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
                         lhsVal[(lhsOffset << 1) + 1] = 0;
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
@@ -1753,7 +1730,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             while (replacementSize >= rhsVal.length) {
                 // loop over the dest offset and update the index vector, store the values
@@ -1764,7 +1740,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
                         lhsVal[(lhsOffset << 1) + 1] = 0;
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rhsVal.length;
             }
@@ -1826,7 +1802,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             // fill in the index vector
             for (int i = 0; i < node.idx.length; ++i) {
                 node.idx[i] = selectors[i].nextIndex(node.ast);
-                node.selIdx[i] = 1; // start at one so that overflow and carry works
             }
             int rsize = rhsVal.length / 2;
             while (replacementSize >= rsize) {
@@ -1838,7 +1813,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset << 1] = rhsVal[rhsOffset << 1];
                         lhsVal[(lhsOffset << 1) + 1] = rhsVal[(rhsOffset << 1) + 1];
                     }
-                    Selector.increment(node.idx, node.selIdx, node.selSizes, selectors, node.ast);
+                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
                 }
                 replacementSize -= rsize;
             }

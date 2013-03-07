@@ -44,7 +44,6 @@ public abstract class ReadArray extends BaseR {
 
     final int[] selSizes;
     final int[] idx;
-    final int[] selIdx;
     final Selector[] selectorVals;
 
     /**
@@ -59,7 +58,6 @@ public abstract class ReadArray extends BaseR {
         this.exactExpr = adoptChild(exactExpr);
         this.selSizes = new int[selectorExprs.length];
         this.idx = new int[selectorExprs.length];
-        this.selIdx = new int[selectorExprs.length];
         this.selectorVals = new Selector[selectorExprs.length];
     }
 
@@ -221,7 +219,6 @@ public abstract class ReadArray extends BaseR {
             // fill in the index vector
             for (int i = 0; i < idx.length; ++i) {
                 idx[i] = selectorVals[i].nextIndex(ast);
-                selIdx[i] = 1; // start at one so that overflow and carry works
             }
             // loop over the dest offset and update the index vector
             for (int offset = 0; offset < destSize; ++offset) {
@@ -231,7 +228,7 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     dest.set(offset, source.getRef(sourceOffset));
                 }
-                Selector.increment(idx, selIdx, selSizes, selectorVals, ast);
+                Selector.increment(idx, selSizes, selectorVals, ast);
             }
             return dest;
         }

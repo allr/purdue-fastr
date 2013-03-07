@@ -75,21 +75,15 @@ public abstract class Selector {
      *
      * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
      *            the source array as specified by the current selector.
-     * @param selIdx Selector index vector, contains the number of the value returned by the selector. This is used to
-     *               detect that a selector has overflown. Starts at 1 for the first value
      * @param selSizes Size of the selector.
      * @param selectors Selectors to be used in the increment.
      */
-    public static boolean increment(int[] idx, int[] selIdx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+    public static boolean increment(int[] idx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
         for (int i = 0; i < idx.length; ++i) {
-            if (selIdx[i] == selSizes[i]) {
-                if (selSizes[i] != 1) {
-                    selIdx[i] = 1;
-                    selectors[i].restart();
-                    idx[i] = selectors[i].nextIndex(ast);
-                }
+            if (selectors[i].isExhausted()) {
+                selectors[i].restart();
+                idx[i] = selectors[i].nextIndex(ast);
             } else {
-                ++selIdx[i];
                 idx[i] = selectors[i].nextIndex(ast);
                 return false; // no overflow
             }
@@ -130,6 +124,7 @@ public abstract class Selector {
     public abstract int size();
     public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
     public abstract boolean isConstant();
+    public abstract boolean isExhausted(); // the next call to nextIndex would go above selector size (always for selectors of size 1)
 
     // non-failing
     public static final class MissingSelector extends Selector {
@@ -155,6 +150,11 @@ public abstract class Selector {
         @Override
         public int nextIndex(ASTNode ast) { // zero-based
             return last++;
+        }
+
+        @Override
+        public boolean isExhausted() {
+            return last == size;
         }
 
         @Override
@@ -189,6 +189,11 @@ public abstract class Selector {
         @Override
         public int nextIndex(ASTNode ast) {
             return index;
+        }
+
+        @Override
+        public boolean isExhausted() {
+            return true;
         }
 
         @Override
@@ -255,6 +260,11 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return offset == index.size();
+        }
+
+        @Override
         public boolean isConstant() {
             return false;
         }
@@ -312,6 +322,11 @@ public abstract class Selector {
         @Override
         public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
+        }
+
+        @Override
+        public boolean isExhausted() {
+            return true;
         }
 
         @Override
@@ -374,6 +389,11 @@ public abstract class Selector {
         @Override
         public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
+        }
+
+        @Override
+        public boolean isExhausted() {
+            return true;
         }
 
         @Override
@@ -506,6 +526,11 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return offset == size;
+        }
+
+        @Override
         public boolean isConstant() {
             return false;
         }
@@ -596,6 +621,11 @@ public abstract class Selector {
                     }
                 }
             }
+        }
+
+        @Override
+        public boolean isExhausted() {
+            return indexOffset == size;
         }
 
         @Override
