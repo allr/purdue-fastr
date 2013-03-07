@@ -210,7 +210,7 @@ public abstract class ReadArray extends BaseR {
         @Override
         public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
             int[] sourceDim = source.dimensions();
-            Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
+            boolean mayHaveNA = Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, !subset || drop);
             int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
 
@@ -228,7 +228,11 @@ public abstract class ReadArray extends BaseR {
                 }
                 offset++;
                 if (offset < destSize) {
-                    Selector.advance(offsets, sourceDim, selectorVals, ast);
+                    if (!mayHaveNA) {
+                        Selector.advanceNoNA(offsets, sourceDim, selectorVals, ast);
+                    } else {
+                        Selector.advance(offsets, sourceDim, selectorVals, ast);
+                    }
                 } else {
                     break;
                 }
