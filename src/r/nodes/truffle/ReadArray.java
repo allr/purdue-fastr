@@ -42,8 +42,8 @@ public abstract class ReadArray extends BaseR {
 
     @Child OptionNode exactExpr;
 
+    final int[] offsets;
     final int[] selSizes;
-    final int[] idx;
     final Selector[] selectorVals;
 
     /**
@@ -56,8 +56,8 @@ public abstract class ReadArray extends BaseR {
         this.selectorExprs = adoptChildren(selectorExprs);
         this.dropExpr = adoptChild(dropExpr);
         this.exactExpr = adoptChild(exactExpr);
+        this.offsets = new int[selectorExprs.length + 1];
         this.selSizes = new int[selectorExprs.length];
-        this.idx = new int[selectorExprs.length];
         this.selectorVals = new Selector[selectorExprs.length];
     }
 
@@ -209,26 +209,29 @@ public abstract class ReadArray extends BaseR {
          */
         @Override
         public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
-            Selector.initializeSelectors(source, selectorVals, ast, selSizes);
+            int[] sourceDim = source.dimensions();
+            Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, !subset || drop);
             int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            if (!subset && (destSize > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
-            }
+
             RArray dest = Utils.createArray(source, destSize, destDim, null, null); // drop attributes
-            // fill in the index vector
-            for (int i = 0; i < idx.length; ++i) {
-                idx[i] = selectorVals[i].nextIndex(ast);
+            if (destSize == 0) {
+                return dest;
             }
-            // loop over the dest offset and update the index vector
-            for (int offset = 0; offset < destSize; ++offset) {
-                int sourceOffset = Selector.calculateSourceOffset(source, idx);
+            int offset = 0;
+            for (;;) {
+                int sourceOffset = offsets[0];
                 if (sourceOffset == RInt.NA) {
                     Utils.setNA(dest, offset);
                 } else {
                     dest.set(offset, source.getRef(sourceOffset));
                 }
-                Selector.increment(idx, selSizes, selectorVals, ast);
+                offset++;
+                if (offset < destSize) {
+                    Selector.advance(offsets, sourceDim, selectorVals, ast);
+                } else {
+                    break;
+                }
             }
             return dest;
         }

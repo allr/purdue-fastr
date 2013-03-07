@@ -23,7 +23,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     final Selector[] selectorVals;
     final int[] selSizes;
-    final int[] idx;
+    final int[] offsets;
 
     /** Returns the array update node, or if the peephole chain optimizations are enabled returns the update node
      * prefixed with the optimizer node.
@@ -44,7 +44,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         selectorVals = new Selector[selectorExprs.length];
 
         selSizes = new int[selectorExprs.length];
-        idx = new int[selectorExprs.length];
+        offsets = new int[selectorExprs.length + 1];
     }
 
     /** Copy constructor used in node replacements. */
@@ -176,30 +176,39 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      */
 
     protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-        Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-        int rhsSize = rhs.size();
+        int[] lhsDim = lhs.dimensions();
+        Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
         int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-        // fill in the index vector
-        for (int i = 0; i < idx.length; ++i) {
-            idx[i] = selectorVals[i].nextIndex(ast);
-        }
-        while (replacementSize >= rhsSize) {
-            // loop over the dest offset and update the index vector, store the values
-            for (int rhsOffset = 0; rhsOffset < rhsSize; ++rhsOffset) {
-                int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                // do nothing if lhsOffset is NA
+        int rhsSize = rhs.size();
+
+        if (replacementSize >= rhsSize) {
+            int rhsOffset = 0;
+            for (;;) {
+                int lhsOffset = offsets[0];
                 if (lhsOffset != RInt.NA) {
                     lhs.set(lhsOffset, rhs.getRef(rhsOffset));
                 }
-                Selector.increment(idx, selSizes, selectorVals, ast);
+                rhsOffset++;
+                if (rhsOffset < rhsSize) {
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
+                } else {
+                    replacementSize -= rhsSize;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    if (replacementSize >= rhsSize) {
+                        rhsOffset = 0;
+                        Selector.restart(offsets, selectorVals, lhsDim, ast);
+                    } else {
+                        throw RError.getNotMultipleReplacement(ast);
+                    }
+                }
             }
-            replacementSize -= rhsSize;
         }
-        if (replacementSize != 0) {
-            throw RError.getNotMultipleReplacement(ast);
+        if (replacementSize == 0) {
+            return lhs;
         }
-        // return the lhs so that it can be updated by parent, if required
-        return lhs;
+        throw RError.getNotMultipleReplacement(ast);
     }
 
     // =================================================================================================================
@@ -990,26 +999,26 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-                Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-                // get lhs value and rhs
+                int[] lhsDim = lhs.dimensions();
+                Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+                int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+                if (replacementSize == 0) {
+                    return lhs;
+                }
                 int[] lhsVal = ((LogicalImpl) lhs).getContent();
                 int rhsVal = ((RLogical) rhs).getLogical(0);
-                // fill in the index vector
-                for (int i = 0; i < idx.length; ++i) {
-                    idx[i] = selectorVals[i].nextIndex(ast);
-                }
-                // loop over the update size
-                for (int i = 0; i < updateSize; ++i) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                    // do nothing if lhsOffset is NA
+
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selSizes, selectorVals, ast);
+                    replacementSize--;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
                 }
-                // return the lhs so that it can be updated by parent, if required
-                return lhs;
             }
         }
 
@@ -1037,26 +1046,26 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-                Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-                // get lhs value and rhs
+                int[] lhsDim = lhs.dimensions();
+                Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+                int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+                if (replacementSize == 0) {
+                    return lhs;
+                }
                 int[] lhsVal = ((IntImpl) lhs).getContent();
                 int rhsVal = ((RInt) rhs).getInt(0);
-                // fill in the index vector
-                for (int i = 0; i < idx.length; ++i) {
-                    idx[i] = selectorVals[i].nextIndex(ast);
-                }
-                // loop over the update size
-                for (int i = 0; i < updateSize; ++i) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                    // do nothing if lhsOffset is NA
+
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selSizes, selectorVals, ast);
+                    replacementSize--;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
                 }
-                // return the lhs so that it can be updated by parent, if required
-                return lhs;
             }
         }
 
@@ -1084,26 +1093,26 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-                Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-                // get lhs value and rhs
+                int[] lhsDim = lhs.dimensions();
+                Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+                int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+                if (replacementSize == 0) {
+                    return lhs;
+                }
                 double[] lhsVal = ((DoubleImpl) lhs).getContent();
                 double rhsVal = ((RDouble) rhs).getDouble(0);
-                // fill in the index vector
-                for (int i = 0; i < idx.length; ++i) {
-                    idx[i] = selectorVals[i].nextIndex(ast);
-                }
-                // loop over the update size
-                for (int i = 0; i < updateSize; ++i) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                    // do nothing if lhsOffset is NA
+
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selSizes, selectorVals, ast);
+                    replacementSize--;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
                 }
-                // return the lhs so that it can be updated by parent, if required
-                return lhs;
             }
         }
 
@@ -1131,28 +1140,28 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-                Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-                // get lhs value and rhs
+                int[] lhsDim = lhs.dimensions();
+                Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+                int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+                if (replacementSize == 0) {
+                    return lhs;
+                }
                 double[] lhsVal = ((ComplexImpl) lhs).getContent();
                 double re = ((RComplex) rhs).getReal(0);
                 double im = ((RComplex) rhs).getImag(0);
-                // fill in the index vector
-                for (int i = 0; i < idx.length; ++i) {
-                    idx[i] = selectorVals[i].nextIndex(ast);
-                }
-                // loop over the update size
-                for (int i = 0; i < updateSize; ++i) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                    // do nothing if lhsOffset is NA
+
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
-                        lhsVal[lhsOffset << 1] = re;
-                        lhsVal[(lhsOffset << 1) + 1] = im;
+                        lhsVal[lhsOffset * 2] = re;
+                        lhsVal[lhsOffset * 2 + 1] = im;
                     }
-                    Selector.increment(idx, selSizes, selectorVals, ast);
+                    replacementSize--;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
                 }
-                // return the lhs so that it can be updated by parent, if required
-                return lhs;
             }
         }
 
@@ -1180,26 +1189,26 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
-                Selector.initializeSelectors(lhs, selectorVals, ast, selSizes);
-                int updateSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-                // get lhs value and rhs
+                int[] lhsDim = lhs.dimensions();
+                Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+                int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+                if (replacementSize == 0) {
+                    return lhs;
+                }
                 java.lang.String[] lhsVal = ((StringImpl) lhs).getContent();
                 java.lang.String rhsVal = ((RString) rhs).getString(0);
-                // fill in the index vector
-                for (int i = 0; i < idx.length; ++i) {
-                    idx[i] = selectorVals[i].nextIndex(ast);
-                }
-                // loop over the update size
-                for (int i = 0; i < updateSize; ++i) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, idx);
-                    // do nothing if lhsOffset is NA
+
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal;
                     }
-                    Selector.increment(idx, selSizes, selectorVals, ast);
+                    replacementSize--;
+                    if (replacementSize == 0) {
+                        return lhs;
+                    }
+                    Selector.advance(offsets, lhsDim, selectorVals, ast);
                 }
-                // return the lhs so that it can be updated by parent, if required
-                return lhs;
             }
         }
     }
@@ -1441,32 +1450,46 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             int[] lhsVal = ((IntImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            while (replacementSize >= rhsVal.length) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rhsVal.length;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override
@@ -1511,32 +1534,46 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            while (replacementSize >= rhsVal.length) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rhsVal.length;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override
@@ -1582,32 +1619,46 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            while (replacementSize >= rhsVal.length) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rhsVal.length;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override
@@ -1651,33 +1702,47 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            while (replacementSize >= rhsVal.length) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
-                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
-                        lhsVal[(lhsOffset << 1) + 1] = 0;
+                        lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
+                        lhsVal[2 * lhsOffset + 1] = 0;
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rhsVal.length;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override
@@ -1722,33 +1787,47 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            while (replacementSize >= rhsVal.length) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rhsVal.length; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
-                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset];
-                        lhsVal[(lhsOffset << 1) + 1] = 0;
+                        lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
+                        lhsVal[2 * lhsOffset + 1] = 0;
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rhsVal.length;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override
@@ -1794,34 +1873,47 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * one.
          */
         protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
-            Selector[] selectors = node.selectorVals;
-            Selector.initializeSelectors(lhs, selectors, node.ast, node.selSizes);
+            int[] offsets = node.offsets;
+            Selector[] selectorVals = node.selectorVals;
+            int[] selSizes = node.selSizes;
+            ASTNode ast = node.ast;
+
+            int[] lhsDim = lhs.dimensions();
+            Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
+            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int rhsSize = rhs.size();
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((ComplexImpl) rhs).getContent();
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(node.selSizes);
-            // fill in the index vector
-            for (int i = 0; i < node.idx.length; ++i) {
-                node.idx[i] = selectors[i].nextIndex(node.ast);
-            }
-            int rsize = rhsVal.length / 2;
-            while (replacementSize >= rsize) {
-                // loop over the dest offset and update the index vector, store the values
-                for (int rhsOffset = 0; rhsOffset < rsize; ++rhsOffset) {
-                    int lhsOffset = Selector.calculateSourceOffset(lhs, node.idx);
-                    // do nothing if lhsOffset is NA
+
+            if (replacementSize >= rhsSize) {
+                int rhsOffset = 0;
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
-                        lhsVal[lhsOffset << 1] = rhsVal[rhsOffset << 1];
-                        lhsVal[(lhsOffset << 1) + 1] = rhsVal[(rhsOffset << 1) + 1];
+                        lhsVal[2 * lhsOffset] = rhsVal[2 * rhsOffset];
+                        lhsVal[2 * lhsOffset + 1] = rhsVal[2 * rhsOffset + 1];
                     }
-                    Selector.increment(node.idx, node.selSizes, selectors, node.ast);
+                    rhsOffset++;
+                    if (rhsOffset < rhsSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
+                    } else {
+                        replacementSize -= rhsSize;
+                        if (replacementSize == 0) {
+                            return lhs;
+                        }
+                        if (replacementSize >= rhsSize) {
+                            rhsOffset = 0;
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
+                        } else {
+                            throw RError.getNotMultipleReplacement(ast);
+                        }
+                    }
                 }
-                replacementSize -= rsize;
             }
-            if (replacementSize != 0) {
-                throw RError.getNotMultipleReplacement(node.ast);
+            if (replacementSize == 0) {
+                return lhs;
             }
-            // return the lhs so that it can be updated by parent, if required
-            return lhs;
+            throw RError.getNotMultipleReplacement(ast);
         }
 
         @Override

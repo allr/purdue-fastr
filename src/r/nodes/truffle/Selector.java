@@ -108,6 +108,97 @@ public abstract class Selector {
         return result;
     }
 
+    public static void partialToFullOffsets(int[] offsets, int from) {
+        int add = 0;
+        for (int i = from; i >= 0; i--) {
+            int o = offsets[i];
+            if (o != RInt.NA) {
+                add += o;
+                offsets[i] = add;
+            } else {
+                for (int k = 0; k < i; k++) {
+                    offsets[k] = RInt.NA;
+                }
+                return;
+            }
+        }
+    }
+
+    // offset and selSizes are output arrays and are fully overwritten
+    // initializes the offset array for indexing, initializes
+    public static void initialize(int[] offsets, Selector[] selectors, int[] dataDimensions, int[] selSizes, ASTNode ast) throws UnexpectedResultException {
+        int mult = 1;
+        for (int i = 0; i < selectors.length; ++i) {
+            Selector sel = selectors[i];
+            int dim = dataDimensions[i];
+            sel.start(dim, ast);
+
+            int size = sel.size();
+            selSizes[i] = size;
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                offsets[i] = RInt.NA;
+            }
+            mult *= dim;
+        }
+        partialToFullOffsets(offsets, selectors.length - 1);
+    }
+
+    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws UnexpectedResultException {
+        int mult = 1;
+        for (int i = 0; i < selectors.length; ++i) {
+            Selector sel = selectors[i];
+            int dim = dataDimensions[i];
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                offsets[i] = RInt.NA;
+            }
+            mult *= dim;
+        }
+        partialToFullOffsets(offsets, selectors.length - 1);
+    }
+
+    // advance must not be called when all selectors are exhausted (the search is done) - restart has to be used instead if wrap-around is needed
+    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        assert Utils.check(selectors.length > 0);
+        assert Utils.check(offsets.length == selectors.length + 1);
+        assert Utils.check(offsets[offsets.length - 1] == 0);
+
+        int mult = 1;
+        int i = 0;
+        for (;;) {
+            Selector sel = selectors[i];
+            if (!sel.isExhausted()) {
+                int next = sel.nextIndex(ast);
+                if (next != RInt.NA) {
+                    offsets[i] = next * mult;
+                } else {
+                    offsets[i] = RInt.NA;
+                }
+                break;
+            }
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                offsets[i] = RInt.NA;
+            }
+            mult *= dataDimensions[i];
+            i++;
+        }
+        // now we know the selector is exhausted
+        // the array contains partial offsets from [0] to [i]
+        // and full offsets from [i+1] to its end
+
+        partialToFullOffsets(offsets, i + 1);
+    }
+
 
     private static final boolean DEBUG_M = false;
 
