@@ -26,7 +26,11 @@ public class Abs {
     }
     public static double abs(double real, double imag) {
         if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
-            return Math.sqrt(real * real + imag * imag);
+            if (!Double.isInfinite(real) && !Double.isInfinite(imag)) {
+                return Math.sqrt(real * real + imag * imag);
+            } else {
+                return RDouble.POS_INF;
+            }
         } else {
             return RDouble.NA;
         }
