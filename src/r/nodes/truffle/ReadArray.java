@@ -411,23 +411,72 @@ public abstract class ReadArray extends BaseR {
                 return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
             }
         }
+    }
 
+    public static class MatrixRowSubset extends MatrixRead {
+
+        @Child RNode rowExpr;
+
+        public MatrixRowSubset(ASTNode ast, RNode lhs, RNode rowExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, true, lhs, null, null, dropExpr, exactExpr);
+            this.rowExpr = adoptChild(rowExpr);
+        }
 
         @Override
-        public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
-            int[] ndim = base.dimensions();
-            int m = ndim[0];
-            int n = ndim[1];
-            selectorI.start(m, ast);
-            selectorJ.start(n, ast);
-            int i = selectorI.nextIndex(ast);
-            int j = selectorJ.nextIndex(ast);
-            assert Utils.check(i != RInt.NA && j != RInt.NA); // ensured by subscript selectors
-            int offset = j * m + i;
-            if (!(base instanceof RList)) {
-                return base.boxedGet(offset);
-            } else {
-                return ((RList) base).getRAny(offset);
+        public Object execute(Frame frame) {
+
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            RAny rowVal = (RAny) rowExpr.execute(frame);
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+            int[] dim = array.dimensions();
+            if (dim == null || dim.length != 2) {
+                throw RError.getIncorrectDimensions(getAST());
+            }
+            int m = dim[0];
+            int n = dim[1];
+
+            try {
+                int row;
+                if (rowVal instanceof ScalarIntImpl) {
+                    row = ((ScalarIntImpl) rowVal).getInt();
+                } else if (rowVal instanceof ScalarDoubleImpl) {
+                    row = Convert.double2int(((ScalarDoubleImpl) rowVal).getDouble());
+                } else {
+                    throw new UnexpectedResultException(null);
+                }
+                if (row > n || row <= 0) {
+                    throw new UnexpectedResultException(null);
+                }
+
+                int[] ndim;
+                if (dropVal) {
+                    ndim = null;
+                } else {
+                    ndim = new int[] {1, n};
+                }
+
+                // note: also could be lazy here
+                RArray res = Utils.createArray(array, n, ndim, null, null); // drop attributes
+                int offset = row - 1;
+                for (int i = 0; i < n; i++) {
+                    res.set(i, array.getRef(offset));
+                    offset += m;
+                }
+                return res;
+            } catch (UnexpectedResultException e) {
+                SelectorNode selIExpr = Selector.createSelectorNode(ast, true, rowExpr);
+                SelectorNode selJExpr = Selector.createSelectorNode(ast, true, null);
+                MatrixRead nn = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
+                replace(nn, "install MatrixRead from MatrixRowSubset");
+                Selector selI = selIExpr.executeSelector(rowVal);
+                Selector selJ = selJExpr.executeSelector(frame);
+                return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
             }
         }
     }

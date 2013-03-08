@@ -391,12 +391,18 @@ public class Truffleize implements Visitor {
                 Utils.nyi("unsupported indexing style");
             }
             if (dims == 2) { // if matrix read, use the specialized matrix form
-                if (selectors[0] == null && selectors[1] != null) {
+                if (selectors[0] == null && selectors[1] != null) { // matrix column
                     result = new ReadArray.MatrixColumnSubset(a,  createTree(a.getVector()),
                             selectors[1], ReadArray.createDropOptionNode(a, drop),
                             ReadArray.createExactOptionNode(a, exact));
                     return;
 
+                }
+                if (selectors[0] != null && selectors[1] == null) {
+                    result = new ReadArray.MatrixRowSubset(a,  createTree(a.getVector()),
+                            selectors[0], ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
                 }
                 Selector.SelectorNode selectorIExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[0]);
                 Selector.SelectorNode selectorJExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[1]);
