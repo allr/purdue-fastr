@@ -391,14 +391,14 @@ public class Truffleize implements Visitor {
                 Utils.nyi("unsupported indexing style");
             }
             if (dims == 2) { // if matrix read, use the specialized matrix form
-                if (selectors[0] == null && selectors[1] != null) { // matrix column
+                if (a.isSubset() && selectors[0] == null && selectors[1] != null) { // matrix column
                     result = new ReadArray.MatrixColumnSubset(a,  createTree(a.getVector()),
                             selectors[1], ReadArray.createDropOptionNode(a, drop),
                             ReadArray.createExactOptionNode(a, exact));
                     return;
 
                 }
-                if (selectors[0] != null && selectors[1] == null) {
+                if (a.isSubset() && selectors[0] != null && selectors[1] == null) {
                     result = new ReadArray.MatrixRowSubset(a,  createTree(a.getVector()),
                             selectors[0], ReadArray.createDropOptionNode(a, drop),
                             ReadArray.createExactOptionNode(a, exact));
@@ -420,7 +420,28 @@ public class Truffleize implements Visitor {
                 }
                 return;
             }
-            // otherwise use the generalized array read
+            // otherwise use array read
+            boolean isColumn = a.isSubset();
+            if (isColumn) {
+                for (int i = 0; i < selectors.length - 1; i++) {
+                    if (selectors[i] != null) {
+                        isColumn = false;
+                        break;
+                    }
+                }
+                if (selectors[selectors.length - 1] == null) {
+                    isColumn = false;
+                }
+            }
+            if (isColumn) {
+                result = new ReadArray.ArrayColumnSubset(a, createTree(a.getVector()),
+                        selectors.length,
+                        selectors[selectors.length - 1],
+                        ReadArray.createDropOptionNode(a, drop),
+                        ReadArray.createExactOptionNode(a, exact));
+                return;
+            }
+
 
             Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
             for (int i = 0; i < selNodes.length; ++i) {

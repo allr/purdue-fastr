@@ -215,11 +215,90 @@ public abstract class ReadArray extends BaseR {
         }
     }
 
+    // reading with the last dimension set only (e.g. x[,,i])
+    public static class ArrayColumnSubset extends MatrixRead {
+
+        @Child RNode columnExpr;
+        final int nSelectors;
+
+        public ArrayColumnSubset(ASTNode ast, RNode lhs, int nSelectors, RNode columnExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, true, lhs, null, null, dropExpr, exactExpr);
+            this.columnExpr = adoptChild(columnExpr);
+            this.nSelectors = nSelectors;
+            assert Utils.check(nSelectors > 2);  // we could support 2 as well, but there is MatrixColumnSubset for that
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            RAny colVal = (RAny) columnExpr.execute(frame);
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+            int[] dim = array.dimensions();
+            if (dim == null || dim.length != nSelectors) {
+                throw RError.getIncorrectDimensions(getAST());
+            }
+            int n = dim[nSelectors - 1]; // limit for the column (last dimension)
+
+            try {
+                int col;
+                if (colVal instanceof ScalarIntImpl) {
+                    col = ((ScalarIntImpl) colVal).getInt();
+                } else if (colVal instanceof ScalarDoubleImpl) {
+                    col = Convert.double2int(((ScalarDoubleImpl) colVal).getDouble());
+                } else {
+                    throw new UnexpectedResultException(null);
+                }
+                if (col > n || col <= 0) {
+                    throw new UnexpectedResultException(null);
+                }
+
+                int[] ndim;
+                if (dropVal) {
+                    ndim = new int[nSelectors - 1];
+                } else {
+                    ndim = new int[nSelectors];
+                    ndim[nSelectors - 1] = 1;
+                }
+                int m = 1;  // size of the result
+                for (int i = 0; i < ndim.length; i++) {
+                    int d = dim[i];
+                    ndim[i] = d;
+                    m *= d;
+                }
+
+                // note: also could be lazy here
+                RArray res = Utils.createArray(array, m, ndim, null, null); // drop attributes
+                int offset = (col - 1) * m; // note: col is 1-based
+                for (int i = 0; i < m; i++) {
+                    res.set(i, array.getRef(offset + i));
+                }
+                return res;
+            } catch (UnexpectedResultException e) {
+                SelectorNode[] selectorExprs = new SelectorNode[nSelectors];
+                for (int i = 0; i < nSelectors - 1; i++) {
+                    selectorExprs[i] = Selector.createSelectorNode(ast, true, null);
+                }
+                selectorExprs[nSelectors - 1] = Selector.createSelectorNode(ast, true, columnExpr);
+                GenericRead gr = new GenericRead(ast, true, lhs, selectorExprs, dropExpr, exactExpr);
+                replace(gr, "install GenericRead from ArrayColumnSubset");
+                for (int i = 0; i < nSelectors - 1; i++) {
+                    gr.selectorVals[i] = selectorExprs[i].executeSelector(frame);
+                }
+                gr.selectorVals[nSelectors - 1] = selectorExprs[nSelectors - 1].executeSelector(colVal);
+                return gr.executeLoop(array, dropVal, exactVal);
+            }
+        }
+    }
+
     /**
      * Matrix specialization for the array selection.
-     *
-     * Works on 2D arrays. This code used to be in ReadMatrix class. No rewrites are being done at
-     * the moment.
      */
     public static class MatrixRead extends ReadArray {
 
@@ -404,11 +483,11 @@ public abstract class ReadArray extends BaseR {
             } catch (UnexpectedResultException e) {
                 SelectorNode selIExpr = Selector.createSelectorNode(ast, true, null);
                 SelectorNode selJExpr = Selector.createSelectorNode(ast, true, columnExpr);
-                MatrixRead nn = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
-                replace(nn, "install MatrixRead from MatrixColumnSubset");
+                MatrixRead mr = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
+                replace(mr, "install MatrixRead from MatrixColumnSubset");
                 Selector selI = selIExpr.executeSelector(frame);
                 Selector selJ = selJExpr.executeSelector(colVal);
-                return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
+                return mr.executeLoop(array, selI, selJ, dropVal, exactVal);
             }
         }
     }

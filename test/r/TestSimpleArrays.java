@@ -96,6 +96,12 @@ public class TestSimpleArrays extends TestBase {
 
         // selection on multiple elements fails in arrays
         assertEvalError("{ array(1,c(3,3,3))[[c(1,2),1,1]]; }", RError.SELECT_MORE_1);
+
+        // last column
+        assertEval("{ m <- array(1:24, dim=c(2,3,4)) ; m[,,2] }", "     [,1] [,2] [,3]\n[1,]   7L   9L  11L\n[2,]   8L  10L  12L");
+        assertEval("{ m <- array(1:24, dim=c(2,3,4)) ; m[,,2,drop=FALSE] }", ", , 1\n\n     [,1] [,2] [,3]\n[1,]   7L   9L  11L\n[2,]   8L  10L  12L");
+        assertEval("{ m <- array(1:24, dim=c(2,3,4)) ; f <- function(i) { m[,,i] } ; f(1) ; f(2) ; dim(f(1:2)) }", "2L, 3L, 2L");
+        assertEval("{ m <- array(1:24, dim=c(2,3,4)) ; f <- function(i) { m[,,i] } ; f(1[2]) ; f(3) }", "     [,1] [,2] [,3]\n[1,]  13L  15L  17L\n[2,]  14L  16L  18L");
     }
 
     @Test
