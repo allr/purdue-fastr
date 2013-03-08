@@ -390,28 +390,41 @@ public class Truffleize implements Visitor {
             if (dims == 0) {
                 Utils.nyi("unsupported indexing style");
             }
-            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
-            for (int i = 0; i < selNodes.length; ++i) {
-                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
-            }
             if (dims == 2) { // if matrix read, use the specialized matrix form
+                if (selectors[0] == null && selectors[1] != null) {
+                    result = new ReadArray.MatrixColumnSubset(a,  createTree(a.getVector()),
+                            selectors[1], ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
+
+                }
+                Selector.SelectorNode selectorIExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[0]);
+                Selector.SelectorNode selectorJExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[1]);
+
                 if (!a.isSubset()) {
                     result = new ReadArray.MatrixSubscript(a, createTree(a.getVector()),
-                            selNodes,
+                            selectorIExpr, selectorJExpr,
                             ReadArray.createDropOptionNode(a, drop),
                             ReadArray.createExactOptionNode(a, exact));
                 } else {
                     result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
-                                  selNodes,
+                                  selectorIExpr, selectorJExpr,
                                   ReadArray.createDropOptionNode(a, drop),
                                   ReadArray.createExactOptionNode(a, exact));
                 }
-            } else { // otherwise use the generalized array read
-                result = new ReadArray.GeneralizedRead(a, a.isSubset(), createTree(a.getVector()),
-                              selNodes,
-                              ReadArray.createDropOptionNode(a, drop),
-                              ReadArray.createExactOptionNode(a, exact));
+                return;
             }
+            // otherwise use the generalized array read
+
+            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
+            for (int i = 0; i < selNodes.length; ++i) {
+                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            }
+
+            result = new ReadArray.GenericRead(a, a.isSubset(), createTree(a.getVector()),
+                          selNodes,
+                          ReadArray.createDropOptionNode(a, drop),
+                          ReadArray.createExactOptionNode(a, exact));
             return;
         }
         Utils.nyi("unsupported indexing style");

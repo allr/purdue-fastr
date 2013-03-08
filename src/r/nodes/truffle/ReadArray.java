@@ -1,12 +1,14 @@
 package r.nodes.truffle;
 
+import r.*;
+import r.data.*;
+import r.data.internal.*;
+import r.errors.*;
+import r.nodes.*;
+import r.nodes.truffle.Selector.SelectorNode;
+
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
-import r.Utils;
-import r.data.*;
-import r.errors.RError;
-import r.nodes.ASTNode;
-import r.nodes.truffle.Selector.SelectorNode;
 
 /**
  * A multi-dimensional read.
@@ -20,102 +22,24 @@ import r.nodes.truffle.Selector.SelectorNode;
  */
 public abstract class ReadArray extends BaseR {
 
-    /**
-     * determines whether [] or [[]] operators were used (subset == []).
-     */
     final boolean subset;
 
-    /**
-     * LHS of the selection operator.
-     */
     @Child RNode lhs;
-
-    /**
-     * Selector nodes for respective dimensions. These are likely to be rewritten.
-     */
-    @Children SelectorNode[] selectorExprs;
-
-    /**
-     * Drop expression, assumed true or false.
-     */
     @Child OptionNode dropExpr;
-
     @Child OptionNode exactExpr;
 
-    final int[] offsets;
-    final int[] selSizes;
-    final Selector[] selectorVals;
-
-    /**
-     * Constructor from scratch.
-     */
-    public ReadArray(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectorExprs, OptionNode dropExpr, OptionNode exactExpr) {
+    public ReadArray(ASTNode ast, boolean subset, RNode lhs, OptionNode dropExpr, OptionNode exactExpr) {
         super(ast);
         this.subset = subset;
         this.lhs = adoptChild(lhs);
-        this.selectorExprs = adoptChildren(selectorExprs);
         this.dropExpr = adoptChild(dropExpr);
         this.exactExpr = adoptChild(exactExpr);
-        this.offsets = new int[selectorExprs.length + 1];
-        this.selSizes = new int[selectorExprs.length];
-        this.selectorVals = new Selector[selectorExprs.length];
     }
 
-    /**
-     * Copy constructor used in node replacements.
-     */
     public ReadArray(ReadArray other) {
-        this(other.ast, other.subset, other.lhs, other.selectorExprs, other.dropExpr, other.exactExpr);
+        this(other.ast, other.subset, other.lhs, other.dropExpr, other.exactExpr);
     }
 
-    /**
-     * Execute method which evaluates the lhs, selectors and optional expressions, checks that the
-     * array selection can proceed and then proceeds optionally replacing the falling selectors.
-     *
-     * The valued variant of execute is called for the production of the result, on failure the
-     * responsible selector is replaced and the valued variant is called again.
-     */
-    @Override
-    public Object execute(Frame frame) {
-        RAny lhsVal = (RAny) lhs.execute(frame);
-        for (int i = 0; i < selectorVals.length; ++i) {
-            selectorVals[i] = selectorExprs[i].executeSelector(frame);
-        }
-        boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
-        int exactVal = exactExpr.executeLogical(frame);
-
-        if (!(lhsVal instanceof RArray)) {
-            throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-        }
-        RArray array = (RArray) lhsVal;
-        int[] dim = array.dimensions();
-        if (dim == null || dim.length != selectorExprs.length) {
-            throw RError.getIncorrectDimensions(getAST());
-        }
-        while (true) {
-            try {
-                return execute(array, dropVal, exactVal);
-            } catch (UnexpectedResultException e) {
-                Selector failedSelector = (Selector) e.getResult();
-                for (int i = 0; i < selectorVals.length; ++i) {
-                    if (selectorVals[i] == failedSelector) {
-                        RAny index = failedSelector.getIndex();
-                        SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
-                        replaceChild(selectorExprs[i], newSelector);
-                        selectorVals[i] = newSelector.executeSelector(index);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Abstract method that should create the selection of the array and return it.
-     *
-     * The given selectors may fail resulting in the exception being thrown, in which case they will
-     * be replaced with more general ones.
-     */
-    public abstract Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException;
 
     // =================================================================================================================
     // OptionNode
@@ -187,14 +111,65 @@ public abstract class ReadArray extends BaseR {
      * At the moment does not perform any rewriting as the matrix - array distinction is known
      * static time from the parser.
      */
-    public static class GeneralizedRead extends ReadArray {
+    public static class GenericRead extends ReadArray {
 
-        public GeneralizedRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
-            super(ast, subset, lhs, selectors, dropExpr, exactExpr);
+        final int[] offsets;
+        final int[] selSizes;
+        @Children SelectorNode[] selectorExprs;
+        final Selector[] selectorVals;
+
+        public GenericRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectorExprs, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, subset, lhs, dropExpr, exactExpr);
+            this.selectorExprs = adoptChildren(selectorExprs);
+            this.offsets = new int[selectorExprs.length + 1];
+            this.selSizes = new int[selectorExprs.length];
+            this.selectorVals = new Selector[selectorExprs.length];
         }
 
-        public GeneralizedRead(ReadArray other) {
-            super(other);
+        @Override
+        public Object execute(Frame frame) {
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            for (int i = 0; i < selectorVals.length; ++i) {
+                selectorVals[i] = selectorExprs[i].executeSelector(frame);
+            }
+            boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+            int[] dim = array.dimensions();
+            if (dim == null || dim.length != selectorExprs.length) {
+                throw RError.getIncorrectDimensions(getAST());
+            }
+            return executeLoop(array, dropVal, exactVal);
+        }
+
+        /**
+         * Execute method which evaluates the lhs, selectors and optional expressions, checks that the
+         * array selection can proceed and then proceeds optionally replacing the falling selectors.
+         *
+         * The valued variant of execute is called for the production of the result, on failure the
+         * responsible selector is replaced and the valued variant is called again.
+         */
+
+        protected final Object executeLoop(RArray array, boolean dropVal, int exactVal) {
+            while (true) {
+                try {
+                    return execute(array, dropVal, exactVal);
+                } catch (UnexpectedResultException e) {
+                    Selector failedSelector = (Selector) e.getResult();
+                    for (int i = 0; i < selectorVals.length; ++i) {
+                        if (selectorVals[i] == failedSelector) {
+                            RAny index = failedSelector.getIndex();
+                            SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
+                            replaceChild(selectorExprs[i], newSelector);
+                            selectorVals[i] = newSelector.executeSelector(index);
+                        }
+                    }
+                }
+            }
         }
 
         /**
@@ -207,7 +182,6 @@ public abstract class ReadArray extends BaseR {
          * The selIdx array contains the position in the selector (when this is equal to the
          * selector size the selector has overflown).
          */
-        @Override
         public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
             int[] sourceDim = source.dimensions();
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
@@ -249,8 +223,13 @@ public abstract class ReadArray extends BaseR {
      */
     public static class MatrixRead extends ReadArray {
 
-        public MatrixRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
-            super(ast, subset, lhs, selectors, dropExpr, exactExpr);
+        @Child SelectorNode selectorIExpr;
+        @Child SelectorNode selectorJExpr;
+
+        public MatrixRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode selectorIExpr, SelectorNode selectorJExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, subset, lhs, dropExpr, exactExpr);
+            this.selectorIExpr = adoptChild(selectorIExpr);
+            this.selectorJExpr = adoptChild(selectorJExpr);
         }
 
         public MatrixRead(ReadArray other) {
@@ -258,16 +237,54 @@ public abstract class ReadArray extends BaseR {
         }
 
         @Override
-        public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
-            Selector selI = selectorVals[0];
-            Selector selJ = selectorVals[1];
+        public Object execute(Frame frame) {
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            Selector selectorI = selectorIExpr.executeSelector(frame);
+            Selector selectorJ = selectorJExpr.executeSelector(frame);
+            boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+            int[] dim = array.dimensions();
+            if (dim == null || dim.length != 2) {
+                throw RError.getIncorrectDimensions(getAST());
+            }
+            return executeLoop(array, selectorI, selectorJ, dropVal, exactVal);
+        }
+
+        public Object executeLoop(RArray array, Selector selectorI, Selector selectorJ, boolean dropVal, int exactVal) {
+            Selector selI = selectorI;
+            Selector selJ = selectorJ;
+            for (;;) {
+                try {
+                    return execute(array, selI, selJ, dropVal, exactVal);
+                } catch (UnexpectedResultException e) {
+                    Selector failedSelector = (Selector) e.getResult();
+                    if (failedSelector == selI) {
+                        RAny index = selI.getIndex();
+                        replaceChild(selectorIExpr, Selector.createSelectorNode(ast, subset, index, selectorIExpr.child, false, selectorI.getTransition()));
+                        selI = selectorIExpr.executeSelector(index);
+                    } else {
+                        // failedSelector == selectorJ
+                        RAny index = selJ.getIndex();
+                        replaceChild(selectorJExpr, Selector.createSelectorNode(ast, subset, index, selectorJExpr.child, false, selectorJ.getTransition()));
+                        selJ = selectorJExpr.executeSelector(index);
+                    }
+                }
+            }
+        }
+
+        public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
             int[] ndim = source.dimensions();
             int m = ndim[0];
             int n = ndim[1];
-            selI.start(m, ast);
-            selJ.start(n, ast);
-            int nm = selI.size();
-            int nn = selJ.size();
+            selectorI.start(m, ast);
+            selectorJ.start(n, ast);
+            int nm = selectorI.size();
+            int nn = selectorJ.size();
             int nsize = nm * nn;
             if (!subset && (nsize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
@@ -279,12 +296,12 @@ public abstract class ReadArray extends BaseR {
             }
             RArray res = Utils.createArray(source, nsize, ndim, null, null); // drop attributes
             for (int nj = 0; nj < nn; nj++) {
-                int j = selJ.nextIndex(ast);
+                int j = selectorJ.nextIndex(ast);
                 if (j != RInt.NA) {
-                    selI.restart();
+                    selectorI.restart();
                     for (int ni = 0; ni < nm; ni++) {
                         int offset = nj * nm + ni;
-                        int i = selI.nextIndex(ast);
+                        int i = selectorI.nextIndex(ast);
                         if (i != RInt.NA) {
                             Object value;
                             value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
@@ -301,30 +318,24 @@ public abstract class ReadArray extends BaseR {
             }
             return res;
         }
+
     }
 
-    public static class MatrixSubscript extends ReadArray {
+    public static class MatrixSubscript extends MatrixRead {
 
-        public MatrixSubscript(ASTNode ast, RNode lhs, SelectorNode[] selectors, OptionNode dropExpr, OptionNode exactExpr) {
-            super(ast, false, lhs, selectors, dropExpr, exactExpr);
-        }
-
-        public MatrixSubscript(ReadArray other) {
-            super(other);
-            assert Utils.check(!other.subset);
+        public MatrixSubscript(ASTNode ast, RNode lhs, SelectorNode selectorIExpr, SelectorNode selectorJExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, false, lhs, selectorIExpr, selectorJExpr, dropExpr, exactExpr);
         }
 
         @Override
-        public Object execute(RArray base, boolean drop, int exact) throws UnexpectedResultException {
-            Selector selI = selectorVals[0];
-            Selector selJ = selectorVals[1];
+        public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
             int[] ndim = base.dimensions();
             int m = ndim[0];
             int n = ndim[1];
-            selI.start(m, ast);
-            selJ.start(n, ast);
-            int i = selI.nextIndex(ast);
-            int j = selJ.nextIndex(ast);
+            selectorI.start(m, ast);
+            selectorJ.start(n, ast);
+            int i = selectorI.nextIndex(ast);
+            int j = selectorJ.nextIndex(ast);
             assert Utils.check(i != RInt.NA && j != RInt.NA); // ensured by subscript selectors
             int offset = j * m + i;
             if (!(base instanceof RList)) {
@@ -335,4 +346,89 @@ public abstract class ReadArray extends BaseR {
         }
     }
 
+    public static class MatrixColumnSubset extends MatrixRead {
+
+        @Child RNode columnExpr;
+
+        public MatrixColumnSubset(ASTNode ast, RNode lhs, RNode columnExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, true, lhs, null, null, dropExpr, exactExpr);
+            this.columnExpr = adoptChild(columnExpr);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            RAny colVal = (RAny) columnExpr.execute(frame);
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+            int[] dim = array.dimensions();
+            if (dim == null || dim.length != 2) {
+                throw RError.getIncorrectDimensions(getAST());
+            }
+            int m = dim[0];
+            int n = dim[1];
+
+            try {
+                int col;
+                if (colVal instanceof ScalarIntImpl) {
+                    col = ((ScalarIntImpl) colVal).getInt();
+                } else if (colVal instanceof ScalarDoubleImpl) {
+                    col = Convert.double2int(((ScalarDoubleImpl) colVal).getDouble());
+                } else {
+                    throw new UnexpectedResultException(null);
+                }
+                if (col > n || col <= 0) {
+                    throw new UnexpectedResultException(null);
+                }
+
+                int[] ndim;
+                if (dropVal) {
+                    ndim = null;
+                } else {
+                    ndim = new int[] {m, 1};
+                }
+
+                // note: also could be lazy here
+                RArray res = Utils.createArray(array, m, ndim, null, null); // drop attributes
+                int offset = (col - 1) * m; // note: col is 1-based
+                for (int i = 0; i < m; i++) {
+                    res.set(i, array.getRef(offset + i));
+                }
+                return res;
+            } catch (UnexpectedResultException e) {
+                SelectorNode selIExpr = Selector.createSelectorNode(ast, true, null);
+                SelectorNode selJExpr = Selector.createSelectorNode(ast, true, columnExpr);
+                MatrixRead nn = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
+                replace(nn, "install MatrixRead from MatrixColumnSubset");
+                Selector selI = selIExpr.executeSelector(frame);
+                Selector selJ = selJExpr.executeSelector(colVal);
+                return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
+            }
+        }
+
+
+        @Override
+        public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
+            int[] ndim = base.dimensions();
+            int m = ndim[0];
+            int n = ndim[1];
+            selectorI.start(m, ast);
+            selectorJ.start(n, ast);
+            int i = selectorI.nextIndex(ast);
+            int j = selectorJ.nextIndex(ast);
+            assert Utils.check(i != RInt.NA && j != RInt.NA); // ensured by subscript selectors
+            int offset = j * m + i;
+            if (!(base instanceof RList)) {
+                return base.boxedGet(offset);
+            } else {
+                return ((RList) base).getRAny(offset);
+            }
+        }
+    }
 }
