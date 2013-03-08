@@ -10,6 +10,9 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Selector.SelectorNode;
 
+// TODO: fix/add error handling - the number of dimensions vs. the number of selectors, and the replacement size vs. items to replace - see Column for comments
+// TODO: note that replacement is the rhs (terminology) - fix in all update methods (it is correct in Column)
+
 /** Array update AST and its specializations. */
 public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
@@ -17,6 +20,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /** determines whether [] or [[]] operators were used (subset == []). */
     final boolean subset;
+    final boolean column;
 
     /** Selector nodes for respective dimensions. These are likely to be rewritten. */
     @Children SelectorNode[] selectorExprs;
@@ -30,16 +34,17 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      *
      * // TODO peepholer is currently not used as all optimizations are visible from the first execution.
      */
-    public static UpdateArrayAssignment.AssignmentNode create(ASTNode ast, SelectorNode[] selectorExprs, boolean subset) {
-        return new UpdateArray(ast, selectorExprs, subset);
+    public static UpdateArrayAssignment.AssignmentNode create(ASTNode ast, SelectorNode[] selectorExprs, boolean subset, boolean column) {
+        return new UpdateArray(ast, selectorExprs, subset, column);
     }
 
 
     /** Constructor from scratch. Use the static method create so that the peephole chain optimizer can be injected to
      * the update tree if required. */
-    protected UpdateArray(ASTNode ast, SelectorNode[] selectorExprs, boolean subset) {
+    protected UpdateArray(ASTNode ast, SelectorNode[] selectorExprs, boolean subset, boolean column) {
         super(ast);
         this.subset = subset;
+        this.column = column;
         this.selectorExprs = adoptChildren(selectorExprs);
         selectorVals = new Selector[selectorExprs.length];
 
@@ -49,7 +54,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /** Copy constructor used in node replacements. */
     protected UpdateArray(UpdateArray other) {
-        this(other.ast, other.selectorExprs, other.subset);
+        this(other.ast, other.selectorExprs, other.subset, other.column);
     }
 
     /**
@@ -94,7 +99,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
-            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset && !column) {
                 if (!lhs.isShared()) {
                     if ((lhs instanceof IntImpl) && (rhs instanceof IntImpl)) {
                         return replace(new IntToIntDirect(this)).execute(frame, lhs, rhs);
@@ -283,6 +288,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (!subset) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Subscript");
                     return replace(Subscript.create(this, lhs, rhs)).execute(frame, lhs, rhs);
+                }
+                if (column) {
+                    if (DEBUG_UP) Utils.debug("IdenticalTypes -> Column");
+                    return replace(Column.create(this, lhs, rhs)).execute(frame, lhs, rhs);
                 }
                 if (rhs instanceof RArray && ((RArray) rhs).size() == 1) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Scalar");
@@ -839,6 +848,75 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     // Subscript
     // =================================================================================================================
 
+    public abstract static class TypeGuard {
+        abstract void check(RAny lhs, RAny rhs) throws UnexpectedResultException;
+
+        public static TypeGuard create(RAny leftTemplate, RAny rightTemplate) {
+            if (leftTemplate instanceof RString && rightTemplate instanceof RString) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RString && rhs instanceof RString)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (leftTemplate instanceof RComplex && rightTemplate instanceof RComplex) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RComplex && rhs instanceof RComplex)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RDouble && rhs instanceof RDouble)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RInt && rhs instanceof RInt)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RLogical && rhs instanceof RLogical)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RRaw && rhs instanceof RRaw)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            Utils.nyi("left " + leftTemplate + " right " + rightTemplate);
+            return null;
+        }
+    }
+
     protected static final class Subscript extends UpdateArray {
 
         final TypeGuard guard;
@@ -849,74 +927,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             this.guard = guard;
         }
 
-        public abstract static class TypeGuard {
-            abstract void check(RAny lhs, RAny rhs) throws UnexpectedResultException;
-        }
-
         public static Subscript create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
-            TypeGuard g = null;
-            if (leftTemplate instanceof RString && rightTemplate instanceof RString) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RString && rhs instanceof RString)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            } else if (leftTemplate instanceof RComplex && rightTemplate instanceof RComplex) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RComplex && rhs instanceof RComplex)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            } else if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RDouble && rhs instanceof RDouble)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            } else if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RInt && rhs instanceof RInt)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            } else if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RLogical && rhs instanceof RLogical)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            } else if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
-                g = new TypeGuard() {
-                    @Override
-                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                        if (!(lhs instanceof RRaw && rhs instanceof RRaw)) {
-                            throw new UnexpectedResultException(null);
-                        }
-                    }
-                };
-            }
-
-            if (g != null) {
-                return new Subscript(other, g);
-            } else {
-                Utils.nyi("left " + leftTemplate + " right " + rightTemplate);
-                return null;
-            }
+            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            return new Subscript(other, g);
         }
 
         @Override
@@ -950,6 +963,99 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return doUpdate(lhs, rhs, selectorVals, ast);
         }
     }
+
+    protected static final class Column extends UpdateArray {
+
+        final TypeGuard guard;
+
+        public Column(UpdateArray other, TypeGuard guard) {
+            super(other);
+            assert Utils.check(other.subset);
+            this.guard = guard;
+        }
+
+        public static Column create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
+            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            return new Column(other, g);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+            try {
+                guard.check(lhs, rhs);
+                if (lhs.isShared()) {
+                    throw new UnexpectedResultException(null);
+                }
+                int lastSel = selectorVals.length - 1;
+                Selector columnSel = selectorExprs[lastSel].executeSelector(frame);
+                while (true) {
+                    try {
+                        return update((RArray) lhs, (RArray) rhs, columnSel);
+                    } catch (UnexpectedResultException e) {
+                        RAny index = columnSel.getIndex();
+                        SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[lastSel], true, columnSel.getTransition());
+                        replaceChild(selectorExprs[lastSel], newSelector);
+                        columnSel = newSelector.executeSelector(index);
+                        if (DEBUG_UP) Utils.debug("Column selector changed...");
+                    }
+                }
+            } catch (UnexpectedResultException e) {
+                if (DEBUG_UP) Utils.debug("Column -> Generalized");
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        public static RArray doUpdate(RArray lhs, RArray rhs, int nSelectors, Selector columnSelector, ASTNode ast) throws UnexpectedResultException {
+            int[] dim = lhs.dimensions();
+            int n = dim[nSelectors - 1];
+            int m = 1; // size of one column
+            for (int i = 0; i < nSelectors - 1; i++) {
+                m *= dim[i];
+            }
+            columnSelector.start(n, ast);
+            // TODO: here and elsewhere, check the number of dimensions
+            int ncolumns = columnSelector.size();
+            int replacementSize = rhs.size();
+            int itemsToReplace = ncolumns * m;
+            if (itemsToReplace != replacementSize && replacementSize != 1) {
+                // TODO: add these checks to all other updates - it is necessary to do before the update whenever the update is potentially running in-place,
+                // because we must not modify the matrix even in case of error
+                if (replacementSize == 0) {
+                    throw RError.getReplacementZero(ast);
+                }
+                if (itemsToReplace % replacementSize != 0) {
+                    throw RError.getNotMultipleReplacement(ast);
+                }
+            }
+            if (itemsToReplace > 0) {
+                int rhsOffset = 0;
+                for (int j = 0; j < ncolumns; j++) {
+                    int col = columnSelector.nextIndex(ast);
+                    if (col != RInt.NA) {
+                        int lhsOffset = col * m;
+                        for (int i = 0; i < m; i++) {
+                            lhs.set(lhsOffset + i, rhs.getRef(rhsOffset++));
+                            if (rhsOffset == replacementSize) {
+                                rhsOffset = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            return lhs;
+        }
+
+        public RArray update(RArray lhs, RArray rhs, Selector columnSelector) throws UnexpectedResultException {
+            return doUpdate(lhs, rhs, selectorExprs.length, columnSelector, ast);
+        }
+
+        @Override
+        public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            Utils.nyi("unreachable");
+            return null;
+        }
+    }
+
 
 
     // =================================================================================================================

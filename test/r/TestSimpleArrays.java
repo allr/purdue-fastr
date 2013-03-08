@@ -265,8 +265,16 @@ public class TestSimpleArrays extends TestBase {
         assertEval("{ m <- matrix(1,2,2)\nm[,1] = 7\nm }", "     [,1] [,2]\n[1,]  7.0  1.0\n[2,]  7.0  1.0");
         assertEval("{ m <- matrix(1,2,2)\nm[1,] = 7\nm }", "     [,1] [,2]\n[1,]  7.0  7.0\n[2,]  1.0  1.0");
         assertEval("{ m <- matrix(1,2,2)\nm[,1] = c(10,11)\nm }", "     [,1] [,2]\n[1,] 10.0  1.0\n[2,] 11.0  1.0");
+
         // error in lengths
         assertEvalError("{ m <- matrix(1,2,2)\nm[,1] = c(1,2,3,4)\nm }", RError.NOT_MULTIPLE_REPLACEMENT);
+
+        // column update
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[,2] <- 10:11 ; m }", "     [,1] [,2] [,3]\n[1,]   1L  10L   5L\n[2,]   2L  11L   6L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[,2:3] <- 10:11 ; m }", "     [,1] [,2] [,3]\n[1,]   1L  10L  10L\n[2,]   2L  11L  11L");
+        assertEval("{ m <- array(1:24, dim=c(2,3,4)) ; m[,,4] <- 10:15 ; m[,,4] }", "     [,1] [,2] [,3]\n[1,]  10L  12L  14L\n[2,]  11L  13L  15L");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; m[,integer()] <- integer() ; m }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[,2] <- integer() }", "replacement has length zero");
 
         // subscript with rewriting
         assertTrue("{  m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[[2,1,1]] <- v ; x } ; f(m,10L) ; f(m,10) ; x <- f(m,11L) ; x[1] == 1 && x[2] == 11 && x[3] == 3 }");

@@ -333,6 +333,21 @@ public class Truffleize implements Visitor {
     }
 
 
+    public static boolean isArrayColumnSubset(boolean subset, RNode[] selectors) {
+        if (!subset) {
+            return false;
+        }
+        for (int i = 0; i < selectors.length - 1; i++) {
+            if (selectors[i] != null) {
+                return false;
+            }
+        }
+        if (selectors[selectors.length - 1] == null) {
+            return false;
+        }
+        return true;
+    }
+
     // TODO This has to be changed for partial matching so that exact is checked also for vectors
     @Override
     public void visit(AccessVector a) {
@@ -421,19 +436,7 @@ public class Truffleize implements Visitor {
                 return;
             }
             // otherwise use array read
-            boolean isColumn = a.isSubset();
-            if (isColumn) {
-                for (int i = 0; i < selectors.length - 1; i++) {
-                    if (selectors[i] != null) {
-                        isColumn = false;
-                        break;
-                    }
-                }
-                if (selectors[selectors.length - 1] == null) {
-                    isColumn = false;
-                }
-            }
-            if (isColumn) {
+            if (isArrayColumnSubset(a.isSubset(), selectors)) {
                 result = new ReadArray.ArrayColumnSubset(a, createTree(a.getVector()),
                         selectors.length,
                         selectors[selectors.length - 1],
@@ -471,7 +474,6 @@ public class Truffleize implements Visitor {
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
                 result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
-//                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
                 result = new r.nodes.truffle.UpdateVector.DoubleBaseSimpleSelection.ScalarIntSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         } else if (sa.convertedExpressions.length >= 2) {
@@ -517,10 +519,11 @@ public class Truffleize implements Visitor {
             if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expecting matrix name for matrix update");
             }
+            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
             if (u.isSuper()) {
-                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
             } else {
-                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
                 return;
             }
         } else {
