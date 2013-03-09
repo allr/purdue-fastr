@@ -2,11 +2,10 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.Apply.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.SApply.CallableProvider;
+import r.builtins.SApply.ValueProvider;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
@@ -14,6 +13,7 @@ import r.nodes.truffle.*;
 import r.nodes.truffle.Constant;
 import r.nodes.truffle.FunctionCall;
 
+import com.oracle.truffle.api.frame.*;
 
 public class Outer {
 
@@ -27,10 +27,9 @@ public class Outer {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
 
@@ -58,9 +57,7 @@ public class Outer {
             } else {
                 product = true;
             }
-            if (product) {
-                return new MatrixOperation.OuterProduct(call, exprs[paramPositions[IX]], exprs[paramPositions[IY]]);
-            }
+            if (product) { return new MatrixOperation.OuterProduct(call, exprs[paramPositions[IX]], exprs[paramPositions[IY]]); }
 
             int cnArgs = 2 + names.length - 3; // "-2" because both FUN, X, Y
             RSymbol[] cnNames = new RSymbol[cnArgs];
@@ -84,8 +81,7 @@ public class Outer {
             final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
 
             return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                     RAny x = args[paramPositions[IX]];
                     RAny y = args[paramPositions[IY]];
                     RAny f = args[paramPositions[IFUN]];
@@ -101,7 +97,6 @@ public class Outer {
         @Child CallableProvider callableProvider;
         @Child ValueProvider xArgProvider;
         @Child ValueProvider yArgProvider;
-
 
         public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, FunctionCall callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
             super(ast, argNames, argExprs);
@@ -178,7 +173,7 @@ public class Outer {
             int[] dim;
             if (dimx == null) {
                 if (dimy == null) {
-                    dim = new int[] {xsize, ysize};
+                    dim = new int[]{xsize, ysize};
                 } else {
                     dim = new int[1 + dimy.length];
                     dim[0] = xsize;
@@ -249,34 +244,28 @@ public class Outer {
         final int nsize = ysize * count;
         return new View.RIntProxy<RInt>(yarg) {
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
                 int j = i / count;
                 return orig.getInt(j);
             }
 
-            @Override
-            public int size() {
+            @Override public int size() {
                 return nsize;
             }
 
-            @Override
-            public int[] dimensions() {
+            @Override public int[] dimensions() {
                 return null;
             }
 
-            @Override
-            public Names names() {
+            @Override public Names names() {
                 return null;
             }
 
-            @Override
-            public Attributes attributes() {
+            @Override public Attributes attributes() {
                 return null;
             }
         };
     }
-
 
     public static RArray expandXVector(RArray x, int xsize, int count) {
         int nsize = xsize * count;
@@ -341,33 +330,27 @@ public class Outer {
         final int nsize = xsize * count;
         return new View.RIntProxy<RInt>(xarg) {
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
                 int j = i % count;
                 return orig.getInt(j);
             }
 
-            @Override
-            public int size() {
+            @Override public int size() {
                 return nsize;
             }
 
-            @Override
-            public int[] dimensions() {
+            @Override public int[] dimensions() {
                 return null;
             }
 
-            @Override
-            public Names names() {
+            @Override public Names names() {
                 return null;
             }
 
-            @Override
-            public Attributes attributes() {
+            @Override public Attributes attributes() {
                 return null;
             }
         };
     }
 
 }
-

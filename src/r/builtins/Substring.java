@@ -1,15 +1,14 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
-import r.*;
 import r.Convert.ConversionStatus;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
 
 public class Substring {
 
@@ -23,9 +22,8 @@ public class Substring {
 
     public static final CallFactory SUBSTRING_FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, substringParamNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, substringParamNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -44,8 +42,7 @@ public class Substring {
             final RDouble defaultLast = RDouble.RDoubleFactory.getScalar(1000000); // FIXME slow, but perhaps the default is not used, anyway
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString text = args[paramPositions[ITEXT]].asString();
                     warn.naIntroduced = false;
                     RDouble first = args[paramPositions[IFIRST]].asDouble(warn);
@@ -74,9 +71,8 @@ public class Substring {
 
     public static final CallFactory SUBSTR_FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, substrParamNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, substrParamNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -93,8 +89,7 @@ public class Substring {
 
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString x = args[paramPositions[IX]].asString();
                     warn.naIntroduced = false;
                     RDouble start = args[paramPositions[ISTART]].asDouble(warn);
@@ -118,14 +113,10 @@ public class Substring {
         int startIndex = 0;
         int stopIndex = 0;
 
-        if (xsize == 0) {
-            return RString.EMPTY;
+        if (xsize == 0) { return RString.EMPTY; }
+        if (startSize == 0) { throw RError.getInvalidArgument(ast, "start"); // not exactly R-warning
         }
-        if (startSize == 0) {
-            throw RError.getInvalidArgument(ast, "start"); // not exactly R-warning
-        }
-        if (stopSize == 0) {
-            throw RError.getInvalidArgument(ast, "stop"); // not exactly R-warning
+        if (stopSize == 0) { throw RError.getInvalidArgument(ast, "stop"); // not exactly R-warning
         }
 
         String[] content = new String[xsize];
@@ -161,14 +152,10 @@ public class Substring {
         int firstIndex = 0;
         int lastIndex = 0;
 
-        if (textSize == 0) {
-            return RString.EMPTY;
+        if (textSize == 0) { return RString.EMPTY; }
+        if (firstSize == 0) { throw RError.getInvalidArgument(ast, "first"); // not exactly R-warning
         }
-        if (firstSize == 0) {
-            throw RError.getInvalidArgument(ast, "first"); // not exactly R-warning
-        }
-        if (lastSize == 0) {
-            throw RError.getInvalidArgument(ast, "last"); // not exactly R-warning
+        if (lastSize == 0) { throw RError.getInvalidArgument(ast, "last"); // not exactly R-warning
         }
 
         int n = Math.max(textSize, Math.max(firstSize, lastSize));

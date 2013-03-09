@@ -1,6 +1,6 @@
 package r.builtins;
 
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -21,25 +21,19 @@ public class Paste {
             RString s = (RString) arg;
             if (s.size() > 0) {
                 String str = s.getString(0);
-                if (str != RString.NA) {
-                    return str;
-                }
+                if (str != RString.NA) { return str; }
             }
         }
         throw RError.getInvalidSeparator(ast);
     }
 
     public static String parseCollapse(ASTNode ast, RAny arg) {
-        if (arg instanceof RNull) {
-            return null;
-        }
+        if (arg instanceof RNull) { return null; }
         if (arg instanceof RString) {
             RString s = (RString) arg;
             if (s.size() > 0) {
                 String str = s.getString(0);
-                if (str != RString.NA) {
-                    return str;
-                }
+                if (str != RString.NA) { return str; }
             }
         }
         throw RError.getInvalidArgument(ast, "collapse");
@@ -66,7 +60,7 @@ public class Paste {
             if (i == sepPosition || i == collapsePosition) {
                 continue;
             }
-            RString s = Cast.genericAsString(ast, args[i]); // FIXME: can we remove R-level boxing?
+            RString s = AsBase.genericAsString(ast, args[i]); // FIXME: can we remove R-level boxing?
             stringArgs[j++] = s;
             int ssize = s.size();
             if (ssize > maxLength) {
@@ -107,19 +101,15 @@ public class Paste {
     }
 
     public static final CallFactory FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            if (exprs.length == 0) {
-                return new BuiltIn.BuiltIn0(call, names, exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
 
-                    @Override
-                    public final RAny doBuiltIn(Frame frame) {
-                        return RString.EMPTY;
-                    }
+                @Override public final RAny doBuiltIn(Frame frame) {
+                    return RString.EMPTY;
+                }
 
-                };
-            }
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            }; }
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -136,8 +126,7 @@ public class Paste {
             final int realArgs = args;
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] params) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
                     return paste(params, realArgs, sepPosition, collapsePosition, ast);
                 }
             };

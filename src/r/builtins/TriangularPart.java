@@ -1,13 +1,13 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 // note: in GNU-R, this is implemented in R
 public class TriangularPart {
@@ -21,7 +21,7 @@ public class TriangularPart {
         public abstract RArray triangular(int m, int n, boolean diag);
 
         public RAny triangular(RAny argx, boolean diag) {
-            if (!(argx instanceof RArray)) {    // FIXME: this could be faster using node rewriting
+            if (!(argx instanceof RArray)) { // FIXME: this could be faster using node rewriting
                 Utils.nyi("unsupported (invalid) argument type");
                 return null;
             }
@@ -29,11 +29,9 @@ public class TriangularPart {
             int[] dim = a.dimensions();
             if (dim == null) {
                 int m = a.size();
-                return triangular(m, 1, diag).setDimensions(new int[] {m, 1});
+                return triangular(m, 1, diag).setDimensions(new int[]{m, 1});
             }
-            if (dim.length == 2) {
-                return triangular(dim[0], dim[1], diag).setDimensions(dim);
-            }
+            if (dim.length == 2) { return triangular(dim[0], dim[1], diag).setDimensions(dim); }
             Utils.nyi("unsupported case");
             return null;
         }
@@ -42,16 +40,12 @@ public class TriangularPart {
             if (argdiag instanceof RLogical || argdiag instanceof RDouble || argdiag instanceof RInt) { // FIXME: this could be faster using node rewriting
                 RArray diag = (RArray) argdiag;
                 int size = diag.size();
-                if (size == 0) {
-                    throw RError.getInvalidArgument(ast, paramNames[IDIAG]);
-                }
+                if (size == 0) { throw RError.getInvalidArgument(ast, paramNames[IDIAG]); }
                 if (size > 1) {
                     RContext.warning(ast, RError.LENGTH_GT_1);
                 }
                 int l = diag.asLogical().getLogical(0);
-                if (l != RLogical.NA) {
-                    return triangular(argx, l == RLogical.TRUE);
-                }
+                if (l != RLogical.NA) { return triangular(argx, l == RLogical.TRUE); }
             }
             throw RError.getInvalidArgument(ast, paramNames[IDIAG]);
         }
@@ -59,8 +53,7 @@ public class TriangularPart {
 
     public static Triangular UPPER = new Triangular() {
 
-        @Override
-        public RArray triangular(int m, int n, boolean diag) {
+        @Override public RArray triangular(int m, int n, boolean diag) {
             int[] content = new int[m * n];
             int takeFromColumn = diag ? 1 : 0;
             for (int j = 0; j < n; j++) {
@@ -78,8 +71,7 @@ public class TriangularPart {
 
     public static Triangular LOWER = new Triangular() {
 
-        @Override
-        public RArray triangular(int m, int n, boolean diag) {
+        @Override public RArray triangular(int m, int n, boolean diag) {
             int[] content = new int[m * n];
             int startTakingFrom = diag ? 0 : 1;
             for (int j = 0; j < n; j++) {
@@ -100,10 +92,9 @@ public class TriangularPart {
             this.trian = trian;
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
 
@@ -111,23 +102,19 @@ public class TriangularPart {
                 BuiltIn.missingArg(call, paramNames[IX]);
             }
 
-            if (names.length == 1) {
-                return new BuiltIn.BuiltIn1(call, names, exprs) {
+            if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                    @Override
-                    public final RAny doBuiltIn(Frame frame, RAny argx) {
-                        return UPPER.triangular(argx, false);
-                    }
+                @Override public final RAny doBuiltIn(Frame frame, RAny argx) {
+                    return UPPER.triangular(argx, false);
+                }
 
-                };
-            }
+            }; }
             // names.length == 2
             if (!provided[IDIAG]) {
                 BuiltIn.missingArg(call, paramNames[IDIAG]);
             }
             return new BuiltIn.BuiltIn2(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
 
                     if (paramPositions[IX] == 0) {
                         return trian.triangular(ast, arg0, arg1);

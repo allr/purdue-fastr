@@ -9,76 +9,82 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
-/** The Aperm builtin.
- *
- *
- * aperm(a, perm = NULL, resize = TRUE, ...)
+/**
+ * "aperm". Transpose an array by permuting its dimensions and optionally resizing it.
+ * 
+ * <pre>
+ * a -- the array to be transposed.
+ * perm -- the subscript permutation vector, usually a permutation of the integers 1:n, where n is the number of 
+ *         dimensions of a. When a has named dimnames, it can be a character vector of length n giving a permutation of 
+ *         those names. The default (used whenever perm has zero length) is to reverse the order of the dimensions.
+ * resize -- a flag indicating whether the vector should be resized as well as having its elements reordered (default TRUE).
+ * </pre>
  */
-public class Aperm {
-    private static final String[] paramNames = new String[]{"a", "perm", "resize"};
+final class Aperm extends CallFactory {
 
-    private static final int IA = 0;
-    private static final int IPERM = 1;
-    private static final int IRESIZE = 2;
+    static final CallFactory _ = new Aperm("aperm", new String[]{"a", "perm", "resize"}, new String[]{"a", "perm"});
 
-    /** Generalized aperm implementation with object getters and setters.
+    private Aperm(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        return Configuration.BUILTIN_APERM_TYPED_DIRECT_ACCESS ? new ApermImpl(call, names, exprs, ia) : new Generalized(call, names, exprs, ia);
+    }
+
+    /**
+     * Generalized aperm implementation with object getters and setters.
      */
     protected static class Generalized extends BuiltIn {
 
-        final boolean[] provided;
-        final int[] paramPositions;
+        ArgumentInfo ia;
 
-        public Generalized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, boolean[] provided, int[] paramPositions) {
+        public Generalized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, ArgumentInfo ia) {
             super(orig, argNames, argExprs);
-            this.provided = provided;
-            this.paramPositions = paramPositions;
+            this.ia = ia;
         }
 
         protected Generalized(Generalized other) {
             super(other.ast, other.argNames, other.argExprs);
-            provided = other.provided;
-            paramPositions = other.paramPositions;
+            ia = other.ia;
         }
 
-        /** Returns the array on which to make the permutation.
+        /**
+         * Returns the array on which to make the permutation.
          */
         protected final RArray parseArray(RAny[] params) {
-            RArray ary = (RArray) params[paramPositions[IA]];
-            if (ary.dimensions() == null) {
-                throw RError.getFirstArgMustBeArray(ast);
-            }
+            RArray ary = (RArray) params[ia.paramPositions[ia.ix("a")]];
+            if (ary.dimensions() == null) { throw RError.getFirstArgMustBeArray(ast); }
             return ary;
         }
 
-        /** Parses the permutation given. If no permutation is given the transpose is used. Note that the returned
-         * value is 0 indexed.
+        /**
+         * Parses the permutation given. If no permutation is given the transpose is used. Note that the returned value
+         * is 0 indexed.
          */
         protected final int[] parsePermutation(int[] aryDim, RAny[] params) {
             int[] result = new int[aryDim.length];
-            if (!provided[IPERM]) { // default parm argument is reverse order of the dimensions
+            if (!ia.provided("perm")) { // default parm argument is reverse order of the dimensions
                 for (int i = 0; i < result.length; ++i) {
                     result[i] = result.length - i - 1;
                 }
                 return result;
             } else {
                 boolean[] usedIndices = new boolean[result.length];
-                RArray perm = (RArray) params[paramPositions[IPERM]];
-                if (perm.size() != aryDim.length) {
-                    throw RError.getValueIsOfWrongLength(ast, paramNames[IPERM]);
-                }
+                RArray perm = (RArray) params[ia.position("perm")];
+                if (perm.size() != aryDim.length) { throw RError.getValueIsOfWrongLength(ast, "perm"); }
                 if (perm instanceof RComplex) {
                     RContext.warning(ast, RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
                 }
                 RInt p = perm.asInt();
                 for (int i = 0; i < result.length; ++i) {
                     int x = p.getInt(i);
-                    if ((x < 1) || (x > aryDim.length)) {
-                        throw RError.getValueOutOfRange(ast, paramNames[IPERM]);
-                    }
+                    if ((x < 1) || (x > aryDim.length)) { throw RError.getValueOutOfRange(ast, "perm"); }
                     --x;
                     result[i] = x;
                     if (usedIndices[x] == true) {
-                        throw RError.getInvalidArgument(ast, paramNames[IPERM]);
+                        throw RError.getInvalidArgument(ast, "perm");
                     } else {
                         usedIndices[x] = true;
                     }
@@ -87,25 +93,26 @@ public class Aperm {
             return result;
         }
 
-        /** Returns the resize argument of the call.
+        /**
+         * Returns the resize argument of the call.
          */
         protected final boolean parseResize(RAny[] params) {
-            if (!provided[IRESIZE]) {
-                return true;
-            }
-            return params[paramPositions[IRESIZE]].asLogical().getLogical(0) != RLogical.FALSE;
+            if (!ia.provided("resize")) { return true; }
+            return params[ia.position("resize")].asLogical().getLogical(0) != RLogical.FALSE;
         }
 
-        /** Using given permutation, permutes source and stores the result in dest.
+        /**
+         * Using given permutation, permutes source and stores the result in dest.
          */
-        protected static final void perm(int[] source, int[] dest,  int[] perm) {
+        protected static final void perm(int[] source, int[] dest, int[] perm) {
             for (int i = 0; i < perm.length; ++i) {
                 dest[i] = source[perm[i]];
             }
         }
 
-        /** Increments the given index using the dimensions provided. The least significant value is the one on the
-         * left (index 0). Does not check for overflow.
+        /**
+         * Increments the given index using the dimensions provided. The least significant value is the one on the left
+         * (index 0). Does not check for overflow.
          */
         protected static final void increment(int[] idx, int[] dim) {
             int i = 0;
@@ -119,8 +126,9 @@ public class Aperm {
             }
         }
 
-        /** Given the curent index and precomputed multipliers of the respective index positions calculates the offset
-         * to a vector from the index into dimensions.
+        /**
+         * Given the curent index and precomputed multipliers of the respective index positions calculates the offset to
+         * a vector from the index into dimensions.
          */
         protected static final int offset(int[] idx, int[] mults) {
             int result = 0;
@@ -130,7 +138,8 @@ public class Aperm {
             return result;
         }
 
-        /** Calculates the dimension multipliers that are used later in the offset method.
+        /**
+         * Calculates the dimension multipliers that are used later in the offset method.
          */
         protected static final int[] createDimMults(int[] dim) {
             int[] result = new int[dim.length];
@@ -141,7 +150,8 @@ public class Aperm {
             return result;
         }
 
-        /** Calculates the resized dimensions for the aperm builtin.
+        /**
+         * Calculates the resized dimensions for the aperm builtin.
          */
         protected static final int[] calculateResizedDimension(int[] aryDim, int[] perm) {
             int[] result = new int[aryDim.length];
@@ -151,11 +161,10 @@ public class Aperm {
             return result;
         }
 
-        /** Parses the arguments and calls the aperm method that computes the permutation and might possibly
-         * specialize.
+        /**
+         * Parses the arguments and calls the aperm method that computes the permutation and might possibly specialize.
          */
-        @Override
-        public final RAny doBuiltIn(Frame frame, RAny[] params) {
+        @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             RArray ary = parseArray(params);
             int[] aryDim = ary.dimensions();
             int[] perm = parsePermutation(aryDim, params);
@@ -163,10 +172,10 @@ public class Aperm {
             return aperm(ary, perm, resize);
         }
 
-        /** Calculates the permutation and returns the result.
-         *
-         * This is the generalized version that works with any values because it creates a new array of the same object
-         * and then uses the getters & setters to accomplish the copying.
+        /**
+         * Calculates the permutation and returns the result. This is the generalized version that works with any values
+         * because it creates a new array of the same object and then uses the getters & setters to accomplish the
+         * copying.
          */
         protected RAny aperm(RArray ary, int[] perm, boolean resize) {
             int arySize = ary.size();
@@ -186,18 +195,18 @@ public class Aperm {
         }
     }
 
-    /** Aperm implementation that checks if it can optimize for specific data types. Optimizations for integer, double
+    /**
+     * Aperm implementation that checks if it can optimize for specific data types. Optimizations for integer, double
      * and complex arrays are supported (proper types, not views). If no such case is found, rewrites itself to the
      * Generalized case described above.
      */
     public static class ApermImpl extends Generalized {
 
-        public ApermImpl(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, boolean[] provided, int[] paramPositions) {
-            super(orig, argNames, argExprs, provided, paramPositions);
+        public ApermImpl(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, ArgumentInfo ia) {
+            super(orig, argNames, argExprs, ia);
         }
 
-        @Override
-        public RAny aperm(RArray ary, int[] perm, boolean resize) {
+        @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
@@ -214,21 +223,18 @@ public class Aperm {
         }
     }
 
-    /** Integer optimized direct access aperm.
-     *
-     * If the argument is not IntImpl, rewrites to Generalized case and proceeds.
+    /**
+     * Integer optimized direct access aperm. If the argument is not IntImpl, rewrites to Generalized case and proceeds.
      */
     public static class Int extends Generalized {
 
         protected Int(Generalized other) {
             super(other);
         }
-        @Override
-        public RAny aperm(RArray ary, int[] perm, boolean resize) {
+
+        @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof IntImpl)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(ary instanceof IntImpl)) { throw new UnexpectedResultException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -250,21 +256,19 @@ public class Aperm {
         }
     }
 
-    /** Double optimized direct access aperm.
-     *
-     * If the argument is not DoubleImpl, rewrites to Generalized case and proceeds.
+    /**
+     * Double optimized direct access aperm. If the argument is not DoubleImpl, rewrites to Generalized case and
+     * proceeds.
      */
     public static class Double extends Generalized {
 
         protected Double(Generalized other) {
             super(other);
         }
-        @Override
-        public RAny aperm(RArray ary, int[] perm, boolean resize) {
+
+        @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof DoubleImpl)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(ary instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -285,22 +289,20 @@ public class Aperm {
             }
         }
     }
-    /** Complex optimized direct access aperm.
-     *
-     * If the argument is not ComplexImpl, rewrites to Generalized case and proceeds.
-     */
 
+    /**
+     * Complex optimized direct access aperm. If the argument is not ComplexImpl, rewrites to Generalized case and
+     * proceeds.
+     */
     public static class Complex extends Generalized {
 
         protected Complex(Generalized other) {
             super(other);
         }
-        @Override
-        public RAny aperm(RArray ary, int[] perm, boolean resize) {
+
+        @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof ComplexImpl)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(ary instanceof ComplexImpl)) { throw new UnexpectedResultException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -323,23 +325,4 @@ public class Aperm {
         }
     }
 
-    /** Builtin call factory.
-     */
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            BuiltIn.NamedArgsBuiltIn.AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-            if (!provided[IA]) {
-                BuiltIn.missingArg(call, paramNames[IA]);
-            }
-            if (Configuration.BUILTIN_APERM_TYPED_DIRECT_ACCESS) {
-                return new ApermImpl(call, names, exprs, provided, paramPositions);
-            } else {
-                return new Generalized(call, names, exprs, provided, paramPositions);
-            }
-        }
-    };
 }

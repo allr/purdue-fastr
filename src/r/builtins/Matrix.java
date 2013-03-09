@@ -1,15 +1,14 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
 
 public class Matrix {
     private static final String[] paramNames = new String[]{"data", "nrow", "ncol", "byrow", "dimnames"};
@@ -23,40 +22,30 @@ public class Matrix {
     public static boolean parseByRow(ASTNode ast, RAny arg) {
         RLogical l = arg.asLogical();
         int il;
-        if (l.size() == 0 || (il = l.getLogical(0)) == RLogical.NA) {
-            throw RError.getInvalidByRow(ast);
-        }
+        if (l.size() == 0 || (il = l.getLogical(0)) == RLogical.NA) { throw RError.getInvalidByRow(ast); }
         return (il == RLogical.TRUE);
     }
 
     public static RArray parseData(ASTNode ast, RAny arg) {
-        if (arg instanceof RArray) {
-            return (RArray) arg;
-        }
+        if (arg instanceof RArray) { return (RArray) arg; }
         throw RError.getDataVector(ast);
     }
 
     public static int parseExtent(ASTNode ast, RAny arg) {
         if (arg instanceof RInt) {
             RInt v = (RInt) arg;
-            if (v.size() == 0) {
-                return RInt.NA;
-            }
+            if (v.size() == 0) { return RInt.NA; }
             return v.getInt(0);
         }
         if (arg instanceof RDouble) {
             RDouble v = (RDouble) arg;
-            if (v.size() == 0) {
-                return RInt.NA;
-            }
+            if (v.size() == 0) { return RInt.NA; }
             double d = v.getDouble(0);
             return Convert.double2int(d);
         }
         if (arg instanceof RLogical) {
             RLogical v = (RLogical) arg;
-            if (v.size() == 0) {
-                return RInt.NA;
-            }
+            if (v.size() == 0) { return RInt.NA; }
             return Convert.logical2int(v.getLogical(0));
         }
         throw RError.getNonNumericMatrixExtent(ast);
@@ -64,9 +53,8 @@ public class Matrix {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -76,8 +64,7 @@ public class Matrix {
             }
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RArray data = RLogical.BOXED_NA;
                     if (provided[IDATA]) {
@@ -90,23 +77,15 @@ public class Matrix {
                     int nRow = -1;
                     if (provided[INROW]) {
                         nRow = parseExtent(ast, args[paramPositions[INROW]]);
-                        if (nRow == RInt.NA) {
-                            throw RError.getInvalidNRow(ast);
-                        }
-                        if (nRow < 0) {
-                            throw RError.getNegativeNRow(ast);
-                        }
+                        if (nRow == RInt.NA) { throw RError.getInvalidNRow(ast); }
+                        if (nRow < 0) { throw RError.getNegativeNRow(ast); }
                     }
                     int nCol = -1;
                     int size;
                     if (provided[INCOL]) {
                         nCol = parseExtent(ast, args[paramPositions[INCOL]]);
-                        if (nCol == RInt.NA) {
-                            throw RError.getInvalidNCol(ast);
-                        }
-                        if (nCol < 0) {
-                            throw RError.getNegativeNCol(ast);
-                        }
+                        if (nCol == RInt.NA) { throw RError.getInvalidNCol(ast); }
+                        if (nCol < 0) { throw RError.getNegativeNCol(ast); }
                     }
 
                     if (nRow == -1) {
@@ -151,10 +130,8 @@ public class Matrix {
 
                     boolean byRow = provided[IBYROW] ? parseByRow(ast, args[paramPositions[IBYROW]]) : false;
 
-                    RArray res = Utils.createArray(data, size, new int[] {nRow, nCol}, null, null);
-                    if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) {
-                        return res;
-                    }
+                    RArray res = Utils.createArray(data, size, new int[]{nRow, nCol}, null, null);
+                    if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) { return res; }
                     int di = 0;
                     if (!byRow) {
                         for (int i = 0; i < size; i++) {

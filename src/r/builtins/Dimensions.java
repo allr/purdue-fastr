@@ -1,17 +1,17 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 // TODO: add a replacement version
 
 public class Dimensions {
 
-    private static final String[] paramNames = new String[] { "x" };
+    private static final String[] paramNames = new String[]{"x"};
     private static final int IX = 0;
 
     public abstract static class Operation {
@@ -26,7 +26,7 @@ public class Dimensions {
         }
 
         @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
             final boolean[] provided = a.providedParams;
             checkArgumentIsPresent(call, provided, paramNames, IX);
 

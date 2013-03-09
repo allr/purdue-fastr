@@ -4,8 +4,7 @@ import java.util.*;
 import java.util.regex.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -94,13 +93,13 @@ public class StrSplit {
                 while (j < strLen) {
                     int separatorStart = str.indexOf(separator, j);
                     if (separatorStart != -1) {
-                      buf.add(str.substring(j, separatorStart));
-                      j = separatorStart + separatorLength;
+                        buf.add(str.substring(j, separatorStart));
+                        j = separatorStart + separatorLength;
                     } else {
-                      if (j < strLen) {
-                          buf.add(str.substring(j));
-                      }
-                      break;
+                        if (j < strLen) {
+                            buf.add(str.substring(j));
+                        }
+                        break;
                     }
                 }
                 String[] econtent = new String[buf.size()];
@@ -133,13 +132,9 @@ public class StrSplit {
 
     public static RAny strsplit(ASTNode ast, RString x, RString split, boolean fixed, boolean perl) {
         int splitSize = split.size();
-        if (splitSize == 0) {
-            return strSplitChars(x);
-        }
+        if (splitSize == 0) { return strSplitChars(x); }
         if (splitSize == 1) {
-            if (split.getString(0).length() == 0) {
-                return strSplitChars(x);
-            }
+            if (split.getString(0).length() == 0) { return strSplitChars(x); }
         }
         if (!fixed) {
             if (!perl) {
@@ -153,9 +148,8 @@ public class StrSplit {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -171,8 +165,7 @@ public class StrSplit {
             }
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
                     RString split = Convert.coerceToStringError(args[paramPositions[ISPLIT]], ast);
                     boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;

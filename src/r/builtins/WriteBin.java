@@ -3,10 +3,10 @@ package r.builtins;
 import java.io.*;
 
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
-import r.data.internal.Connection.*;
+import r.data.internal.Connection.FileConnection;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -42,9 +42,8 @@ public class WriteBin {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -63,8 +62,7 @@ public class WriteBin {
 
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     Connection con = null;
                     boolean wasOpen = false;
@@ -76,20 +74,14 @@ public class WriteBin {
                     } else if (conArg instanceof RInt) {
                         // FIXME: check if it is a connection once attributes are implemented
                         RInt iarg = (RInt) conArg;
-                        if (iarg.size() != 1) {
-                            throw RError.getNotConnection(ast, paramNames[ICON]);
-                        }
+                        if (iarg.size() != 1) { throw RError.getNotConnection(ast, paramNames[ICON]); }
                         int handle = iarg.getInt(0);
                         con = RContext.getConnection(handle);
                         Utils.check(con != null);
                         if (con.isOpen()) {
                             ConnectionMode mode = con.currentMode();
-                            if (!mode.binary()) {
-                                throw RError.getWriteOnlyBinary(ast);
-                            }
-                            if (!mode.write()) {
-                               throw RError.getCannotWriteConnection(ast);
-                            }
+                            if (!mode.binary()) { throw RError.getWriteOnlyBinary(ast); }
+                            if (!mode.write()) { throw RError.getCannotWriteConnection(ast); }
                             wasOpen = true;
                         } else {
                             con.open(defaultMode, ast);

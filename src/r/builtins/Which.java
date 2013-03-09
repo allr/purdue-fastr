@@ -1,13 +1,13 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 // FIXME: implements only part of R semantics
 
@@ -54,10 +54,9 @@ public class Which {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
 
@@ -69,22 +68,18 @@ public class Which {
                 BuiltIn.missingArg(call, paramNames[IX]);
             }
 
-            if (names.length == 1) {
-                return new BuiltIn.BuiltIn1(call, names, exprs) {
+            if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                    @Override
-                    public RAny doBuiltIn(Frame frame, RAny arg) {
-                        if (arg instanceof RLogical) {
-                            return which((RLogical) arg);
-                        } else {
-                            throw RError.getArgumentWhichNotLogical(ast);
-                        }
+                @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                    if (arg instanceof RLogical) {
+                        return which((RLogical) arg);
+                    } else {
+                        throw RError.getArgumentWhichNotLogical(ast);
                     }
-                };
-            }
+                }
+            }; }
             Utils.nyi();
             return null;
         }
     };
 }
-

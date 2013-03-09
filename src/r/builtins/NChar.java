@@ -1,7 +1,7 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -28,9 +28,8 @@ public class NChar {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
 
@@ -42,14 +41,12 @@ public class NChar {
                     BuiltIn.missingArg(call, paramNames[IX]);
                 }
                 return new BuiltIn.BuiltIn1(call, names, exprs) {
-                    @Override
-                    public final RAny doBuiltIn(Frame frame, RAny x) {
+                    @Override public final RAny doBuiltIn(Frame frame, RAny x) {
                         return nchar(x.asString());
                     }
                 };
             }
-            Utils.nyi();
-            return null;
+            throw Utils.nyi();
         }
     };
 }

@@ -8,6 +8,7 @@ import org.netlib.blas.*;
 import org.netlib.lapack.*;
 
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
@@ -27,55 +28,43 @@ public class Console {
     static boolean interactive;
     static boolean forceVisible;
 
-    static Option[] options = new Option[]{
-                    //
-                    new Option.Text("FastR -- Another Fast R Implementation"), //
-                    new Option("-f", "Script input file", 1) {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) {
-                            inputFile = opts[0];
-                        }
-                    }, //
-                    new Option("--interactive", "Force interactive even if -f is provided") {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) throws IOException {
-                            interactive = true;
-                        }
-                    }, //
-                    new Option("--visible", "Skip invisibility checks") {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) throws IOException {
-                            forceVisible = true;
-                        }
-                    }, //
-                    new Option("--waitForKey", "Wait for 'ENTER' before starting execution") {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) {
-                            System.out.println("Press ENTER to start...");
-                            new Scanner(System.in).nextLine();
-                        }
-                    }, //
-                    new Option("--debug", "debug in 'text' or 'gui' mode", 1) {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) {
-                            DEBUG = true;
-                            if (opts[0].equalsIgnoreCase("gui")) {
-                                DEBUG_GUI = true;
-                            }
-                        }
-                    }, //
-                    new Option.Help() {
-
-                        @Override
-                        protected void processOption(String name, String[] opts) {
-                            Option.Help.displayHelp(System.out, options, 0);
-                        }
+    static Option[] options = new Option[] {
+            //
+            new Option.Text("FastR -- Another Fast R Implementation"), //
+            new Option("-f", "Script input file", 1) {
+                @Override protected void processOption(String name, String[] opts) {
+                    inputFile = opts[0];
+                }
+            }, //
+            new Option("--interactive", "Force interactive even if -f is provided") {
+                @Override protected void processOption(String name, String[] opts) throws IOException {
+                    interactive = true;
+                }
+            }, //
+            new Option("--visible", "Skip invisibility checks") {
+                @Override protected void processOption(String name, String[] opts) throws IOException {
+                    forceVisible = true;
+                }
+            }, //
+            new Option("--waitForKey", "Wait for 'ENTER' before starting execution") {
+                @Override protected void processOption(String name, String[] opts) {
+                    System.out.println("Press ENTER to start...");
+                    new Scanner(System.in).nextLine();
+                }
+            }, //
+            new Option("--debug", "debug in 'text' or 'gui' mode", 1) {
+                @Override protected void processOption(String name, String[] opts) {
+                    DEBUG = true;
+                    if (opts[0].equalsIgnoreCase("gui")) {
+                        DEBUG_GUI = true;
                     }
+                }
+            }, //
+            new Option.Help() {
+                @Override protected void processOption(String name, String[] opts) {
+                    Option.Help.displayHelp(System.out, options, 0);
+                }
+            }
     //
     };
 
@@ -105,8 +94,7 @@ public class Console {
         storeCommandLineArguments(args);
 
         try {
-            Option.processCommandLine(args, options);
-            // TODO store this in a more appropriate place (needed for commandArgs())
+            Option.processCommandLine(args, options); // TODO store this in a more appropriate place (needed for commandArgs())
         } catch (Exception e1) {
             return;
         }
@@ -121,8 +109,7 @@ public class Console {
                 RContext.debuggingFormat(false);
                 processFile(openANTLRStream(inputFile));
             }
-        } catch (IOException e) {
-        }
+        } catch (IOException e) {}
         long after = System.nanoTime();
         long elapsed = after - before;
         System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
@@ -156,6 +143,8 @@ public class Console {
                 }
             } catch (IOException e) {
                 throw e;
+            } catch (RError e) {
+                // This error should have been printed by the error manager ingore it here.
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -180,9 +169,7 @@ public class Console {
 
     static ASTNode parseStatement(BufferedReader in, RLexer lexer, RParser parser, StringBuilder incomplete) throws IOException, RecognitionException {
         String line = in.readLine();
-        if (line == null) {
-            throw new EOFException();
-        }
+        if (line == null) { throw new EOFException(); }
         incomplete.append(line);
         lexer.setCharStream(new ANTLRStringStream(incomplete.toString()));
         parser.setTokenStream(new CommonTokenStream(lexer));
@@ -193,13 +180,9 @@ public class Console {
 
     static ANTLRStringStream openANTLRStream(String fName) throws IOException {
         try {
-            if (fName.equals("-")) {
-                return new ANTLRInputStream(System.in);
-            } else {
-                return new ANTLRFileStream(fName);
-            }
+            return fName.equals("-") ? new ANTLRInputStream(System.in) : new ANTLRFileStream(fName);
         } catch (IOException e) {
-            System.err.println(e.getLocalizedMessage());
+            //System.err.println(e.getLocalizedMessage());
             throw e;
         }
     }
@@ -215,7 +198,8 @@ public class Console {
     static void parseError(RParser parser, RecognitionException e) {
         Token tok = e.token;
         String[] tokNames = parser.getTokenNames();
-        System.err.print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
+        System.err
+                .print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
     }
 

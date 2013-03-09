@@ -1,7 +1,7 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.*;
 // TODO: add optimized nodes, node-rewriting
 // FIXME: some of this code should be refactored into more general classes (e.g. finding a common subtype, cast mixins
 public class Unlist {
-    private static final String[] paramNames = new String[] {"x", "recursive", "use.names"};
+    private static final String[] paramNames = new String[]{"x", "recursive", "use.names"};
 
     private static final int IX = 0;
     private static final int IRECURSIVE = 1;
@@ -25,17 +25,14 @@ public class Unlist {
         int size = larg.size();
         if (size > 0) {
             int v = larg.getLogical(0);
-            if (v == RLogical.TRUE) {
-                return true;
-            }
+            if (v == RLogical.TRUE) { return true; }
         }
         return false;
     }
 
     public static final CallFactory FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -45,8 +42,7 @@ public class Unlist {
             }
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RAny x = args[paramPositions[IX]];
                     boolean recursive = provided[IRECURSIVE] ? parseLogical(args[paramPositions[IRECURSIVE]]) : true;
                     boolean useNames = provided[IUSE_NAMES] ? parseLogical(args[paramPositions[IUSE_NAMES]]) : true;
@@ -58,12 +54,8 @@ public class Unlist {
     };
 
     public static RAny genericUnlist(RAny x, boolean recursive, boolean useNames, ASTNode ast) {
-        if (x instanceof RList) {
-            return genericUnlist((RList) x, recursive, useNames);
-        }
-        if (x instanceof RArray || x instanceof RNull) {
-            return x;
-        }
+        if (x instanceof RList) { return genericUnlist((RList) x, recursive, useNames); }
+        if (x instanceof RArray || x instanceof RNull) { return x; }
         throw RError.getArgumentNotList(ast);
     }
 
@@ -156,8 +148,7 @@ public class Unlist {
 
         public static final Cast STRING = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asString();
             }
 
@@ -165,8 +156,7 @@ public class Unlist {
 
         public static final Cast COMPLEX = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asComplex();
             }
 
@@ -174,8 +164,7 @@ public class Unlist {
 
         public static final Cast DOUBLE = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asDouble();
             }
 
@@ -183,8 +172,7 @@ public class Unlist {
 
         public static final Cast INT = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asInt();
             }
 
@@ -192,8 +180,7 @@ public class Unlist {
 
         public static final Cast LOGICAL = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asLogical();
             }
 
@@ -201,8 +188,7 @@ public class Unlist {
 
         public static final Cast RAW = new Cast() {
 
-            @Override
-            public RArray cast(RAny src) {
+            @Override public RArray cast(RAny src) {
                 return src.asRaw();
             }
 
@@ -219,9 +205,7 @@ public class Unlist {
     }
 
     public static int fill(RArray target, int offset, RAny x, Cast cast) {
-        if (x instanceof RNull) {
-            return offset;
-        }
+        if (x instanceof RNull) { return offset; }
         int noffset = offset;
         if (x instanceof RList) {
             RList l = (RList) x;
@@ -241,9 +225,7 @@ public class Unlist {
     }
 
     public static int fill(RArray target, RSymbol[] targetSymbols, String prefix, int offset, RAny x, Cast cast) {
-        if (x instanceof RNull) {
-            return offset;
-        }
+        if (x instanceof RNull) { return offset; }
         int noffset = offset;
         RArray.Names names = ((RArray) x).names();
         RSymbol[] symbols = names == null ? null : names.sequence();
@@ -296,14 +278,10 @@ public class Unlist {
         return noffset;
     }
 
-
-
     public static RAny genericUnlist(RList x, boolean recursive, boolean useNames) {
 
         RAny res = speculativeUnlist(x, useNames);
-        if (res != null) {
-            return res;
-        }
+        if (res != null) { return res; }
 
         if (!recursive) {
             // NOTE: yes, non-recursive unlist still removes top-level lists
@@ -349,13 +327,11 @@ public class Unlist {
     public static RAny speculativeUnlist(RList x, boolean useNames) {
 
         int xsize = x.size();
-        if (xsize == 0) {
-            return RNull.getNull();
-        }
+        if (xsize == 0) { return RNull.getNull(); }
         RAny xfirst = x.getRAny(0);
         RArray.Names names = x.names();
 
-            // FIXME: create also specialized nodes for these case to reduce the number of branches
+        // FIXME: create also specialized nodes for these case to reduce the number of branches
         if (xfirst instanceof ScalarDoubleImpl) {
             double[] content = new double[xsize];
             for (int i = 0; i < xsize; i++) {

@@ -3,8 +3,7 @@ package r.builtins;
 import java.util.regex.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -85,9 +84,8 @@ public class RegExpr {
             this.global = global;
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -101,8 +99,7 @@ public class RegExpr {
 
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (provided[IUSE_BYTES]) {
                         RContext.warning(ast, "Ignoring useBytes.");
                     }
@@ -112,9 +109,7 @@ public class RegExpr {
                     boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
                     boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
 
-                    if (pattern == RString.NA) {
-                        throw RError.getInvalidArgument(ast, paramNames[IPATTERN]);
-                    }
+                    if (pattern == RString.NA) { throw RError.getInvalidArgument(ast, paramNames[IPATTERN]); }
                     if (!perl) {
                         RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
                     }

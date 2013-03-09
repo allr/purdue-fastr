@@ -4,11 +4,10 @@ import java.io.*;
 import java.util.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
-import r.data.internal.Connection.*;
+import r.data.internal.Connection.FileConnection;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -30,9 +29,7 @@ public class ReadLines {
         RInt narg = Convert.coerceToIntWarning(arg, ast);
         if (narg.size() >= 1) {
             int n = narg.getInt(0);
-            if (n != RInt.NA) {
-                return n;
-            }
+            if (n != RInt.NA) { return n; }
         }
         throw RError.getInvalidArgument(ast, "n");
     }
@@ -41,21 +38,16 @@ public class ReadLines {
         RLogical larg = arg.asLogical();
         if (larg.size() >= 1) {
             int l = larg.getLogical(0);
-            if (l == RLogical.TRUE) {
-                return true;
-            }
-            if (l == RLogical.FALSE) {
-                return false;
-            }
+            if (l == RLogical.TRUE) { return true; }
+            if (l == RLogical.FALSE) { return false; }
         }
         throw RError.getInvalidArgument(ast, argName);
     }
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -68,8 +60,7 @@ public class ReadLines {
 
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     final int n = !provided[IN] ? -1 : parseN(args[paramPositions[IN]], ast);
                     final boolean ok = !provided[IOK] ? true : parseLogicalScalar(args[paramPositions[IOK]], ast, paramNames[IOK]);
@@ -89,17 +80,13 @@ public class ReadLines {
                         } else if (conArg instanceof RInt) {
                             // FIXME: check if it is a connection once attributes are implemented
                             RInt iarg = (RInt) conArg;
-                            if (iarg.size() != 1) {
-                                throw RError.getNotConnection(ast, paramNames[ICON]);
-                            }
+                            if (iarg.size() != 1) { throw RError.getNotConnection(ast, paramNames[ICON]); }
                             int handle = iarg.getInt(0);
                             con = RContext.getConnection(handle);
                             Utils.check(con != null);
                             if (con.isOpen()) {
                                 ConnectionMode mode = con.currentMode();
-                                if (!mode.read()) {
-                                   throw RError.getCannotReadConnection(ast);
-                                }
+                                if (!mode.read()) { throw RError.getCannotReadConnection(ast); }
                                 Utils.check(mode.text()); // TODO: GNU-R seems to be happily reading from binary connections, too
                                 wasOpen = true;
                             } else {
@@ -124,14 +111,12 @@ public class ReadLines {
                         } catch (IOException e) {
                             throw RError.getGenericError(ast, e.toString());
                         }
-                        if (!ok && nlines < n) {
-                            throw RError.getTooFewLinesReadLines(ast);
-                        }
+                        if (!ok && nlines < n) { throw RError.getTooFewLinesReadLines(ast); }
                         String[] content = new String[buf.size()];
                         buf.toArray(content);
-                        if (nlines > 0 && content[nlines - 1].length() != 0)  {
+                        if (nlines > 0 && content[nlines - 1].length() != 0) {
                             // TODO detect when the file does not end with a newline, this cannot be done using readLine
-                                // context.warning(ast, String.format(RError.INCOMPLETE_FINAL_LINE, con.description()));
+                            // context.warning(ast, String.format(RError.INCOMPLETE_FINAL_LINE, con.description()));
                             // TODO: push-back of incomplete line with non-blocking connections
                         }
                         return RString.RStringFactory.getFor(content);

@@ -1,14 +1,14 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 // TODO: complex numbers
 public class MathFunctions {
@@ -32,13 +32,11 @@ public class MathFunctions {
             } else if (size > 0) {
                 return new View.RDoubleProxy<RDouble>(value) {
 
-                    @Override
-                    public int size() {
+                    @Override public int size() {
                         return size;
                     }
 
-                    @Override
-                    public double getDouble(int i) {
+                    @Override public double getDouble(int i) {
                         return op.op(ast, value.getDouble(i));
                     }
                 };
@@ -47,14 +45,12 @@ public class MathFunctions {
             }
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             BuiltIn.ensureArgName(call, "x", names[0]);
 
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny value) {
+                @Override public RAny doBuiltIn(Frame frame, RAny value) {
                     if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
                         return calc(ast, value.asDouble());
                     } else {
@@ -68,27 +64,23 @@ public class MathFunctions {
 
     public static final CallFactory LOG10_FACTORY = new NumericXArgCallFactory(new Operation() {
 
-        @Override
-        public double op(ASTNode ast, double value) {
+        @Override public double op(ASTNode ast, double value) {
             return Math.log10(value);
         }
     });
-
 
     public static final CallFactory LOG2_FACTORY = new NumericXArgCallFactory(new Operation() {
 
         final double rLOG2 = 1 / Math.log(2.0);
 
-        @Override
-        public double op(ASTNode ast, double value) {
+        @Override public double op(ASTNode ast, double value) {
             return Math.log(value) * rLOG2;
         }
     });
 
     public static final CallFactory LN_FACTORY = new NumericXArgCallFactory(new Operation() {
 
-        @Override
-        public double op(ASTNode ast, double value) {
+        @Override public double op(ASTNode ast, double value) {
             return Math.log(value);
         }
     });
@@ -100,10 +92,9 @@ public class MathFunctions {
 
     public static final CallFactory LOG_FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -112,22 +103,14 @@ public class MathFunctions {
                 BuiltIn.missingArg(call, paramNames[IX]);
             }
 
-            if (exprs.length == 1) {
-                return LN_FACTORY.create(call, names, exprs);
-            }
+            if (exprs.length == 1) { return LN_FACTORY.create(call, names, exprs); }
 
             RNode baseExpr = exprs[paramPositions[IBASE]];
-            if (BuiltIn.isNumericConstant(baseExpr, 10)) {
-                return LOG10_FACTORY.create(call, names, exprs);
-            }
-            if (BuiltIn.isNumericConstant(baseExpr, 2)) {
-                return LOG2_FACTORY.create(call, names, exprs);
-            }
+            if (BuiltIn.isNumericConstant(baseExpr, 10)) { return LOG10_FACTORY.create(call, names, exprs); }
+            if (BuiltIn.isNumericConstant(baseExpr, 2)) { return LOG2_FACTORY.create(call, names, exprs); }
             // TODO: implement the generic case
-            Utils.nyi("unsupported case");
-            return null;
+            throw Utils.nyi("unsupported case");
         }
-
     };
 
 }

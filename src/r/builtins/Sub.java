@@ -3,8 +3,7 @@ package r.builtins;
 import java.util.regex.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -28,9 +27,7 @@ public class Sub {
     public static String parseScalarString(ASTNode ast, RAny value, String argName) {
         RString rstring = Convert.coerceToStringError(value, ast);
         int size = rstring.size();
-        if (size == 1) {
-            return rstring.getString(0);
-        }
+        if (size == 1) { return rstring.getString(0); }
         if (size > 1) {
             RContext.warning(ast, String.format(RError.ARGUMENT_ONLY_FIRST, argName));
         }
@@ -38,9 +35,7 @@ public class Sub {
     }
 
     public static RString sub(ASTNode ast, String pattern, String replacement, RString x, boolean ignoreCase, boolean perl, boolean fixed, boolean global) {
-        if (pattern == RString.NA || replacement == RString.NA) {
-            return RString.RStringFactory.getNAArray(x.size());
-        }
+        if (pattern == RString.NA || replacement == RString.NA) { return RString.RStringFactory.getNAArray(x.size()); }
         if (!perl) {
             RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");
         }
@@ -81,9 +76,7 @@ public class Sub {
     public static RString subFixed(ASTNode ast, String patternArg, String replacement, RString xArg, boolean ignoreCase, boolean global) {
         int size = xArg.size();
         String[] content = new String[size];
-        if (patternArg.length() == 0) {
-            throw RError.getZeroLengthPattern(ast);
-        }
+        if (patternArg.length() == 0) { throw RError.getZeroLengthPattern(ast); }
         String pattern = !ignoreCase ? patternArg : patternArg.toLowerCase();
         int pLen = pattern.length();
 
@@ -130,9 +123,8 @@ public class Sub {
             this.global = global;
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -149,8 +141,7 @@ public class Sub {
 
             return new BuiltIn(call, names, exprs) {
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     if (provided[IUSE_BYTES]) {
                         RContext.warning(ast, "Ignoring useBytes.");
                     }

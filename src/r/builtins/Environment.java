@@ -3,8 +3,7 @@ package r.builtins;
 import java.util.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -16,12 +15,10 @@ import com.oracle.truffle.api.frame.*;
 public class Environment {
 
     public static final CallFactory EMPTYENV_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             return new BuiltIn.BuiltIn0(call, names, exprs) {
 
-                @Override
-                public RAny doBuiltIn(Frame frame) {
+                @Override public RAny doBuiltIn(Frame frame) {
                     return REnvironment.EMPTY;
                 }
             };
@@ -30,7 +27,7 @@ public class Environment {
 
     public static final CallFactory NEWENV_FACTORY = new CallFactory() {
 
-        private final String[] paramNames = new String[] {"hash", "parent", "size"};
+        private final String[] paramNames = new String[]{"hash", "parent", "size"};
 
         private static final int IHASH = 0;
         private static final int IPARENT = 1;
@@ -42,9 +39,7 @@ public class Environment {
         // FIXME: note that R coerces to int instead of logical that one could expect here
         private boolean parseHash(RAny arg, ASTNode ast) { // not exactly R semantics
             RInt i = Convert.coerceToIntWarning(arg, ast);
-            if (i.size() > 0 && i.getInt(0) != 0) {
-                return true;
-            }
+            if (i.size() > 0 && i.getInt(0) != 0) { return true; }
             return DEFAULT_HASH;
         }
 
@@ -52,30 +47,24 @@ public class Environment {
             RInt i = Convert.coerceToIntWarning(arg, ast);
             if (i.size() > 0) {
                 int v = i.getInt(0);
-                if (v != RInt.NA) {
-                    return v;
-                }
+                if (v != RInt.NA) { return v; }
             }
             return DEFAULT_SIZE;
         }
 
         private REnvironment parseParent(RAny arg, ASTNode ast) {
-            if (arg instanceof REnvironment) {
-                return (REnvironment) arg;
-            }
+            if (arg instanceof REnvironment) { return (REnvironment) arg; }
             throw RError.getMustBeEnviron(ast, "parent"); // GNU-R says "environ", but it is a bug
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     boolean hash = provided[IHASH] ? parseHash(args[paramPositions[IHASH]], ast) : DEFAULT_HASH;
                     REnvironment rootEnvironment = null;
@@ -110,18 +99,14 @@ public class Environment {
         int size = larg.size();
         if (size > 0) {
             int v = larg.getLogical(0);
-            if (v != RLogical.NA) {
-                return v == RLogical.TRUE;
-            }
+            if (v != RLogical.NA) { return v == RLogical.TRUE; }
         }
         throw RError.getInvalidArgument(ast, "inherits");
     }
 
     public static REnvironment parseEnvir(RAny arg, ASTNode ast) {
-        if (arg instanceof REnvironment) {
-            return (REnvironment) arg;
-        }
-        throw RError.getInvalidArgument(ast,  "envir");
+        if (arg instanceof REnvironment) { return (REnvironment) arg; }
+        throw RError.getInvalidArgument(ast, "envir");
     }
 
     public static REnvironment extractEnvironment(RAny envir, RAny pos, Frame frame, ASTNode ast) {
@@ -139,7 +124,7 @@ public class Environment {
     public static final CallFactory ASSIGN_FACTORY = new CallFactory() {
 
         // "immediate" argument is ignored by GNU-R
-        private final String[] paramNames = new String[] {"x", "value", "pos", "envir", "inherits", "immediate"};
+        private final String[] paramNames = new String[]{"x", "value", "pos", "envir", "inherits", "immediate"};
 
         private static final int IX = 0;
         private static final int IVALUE = 1;
@@ -164,9 +149,8 @@ public class Environment {
             throw RError.getInvalidFirstArgument(ast);
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -179,8 +163,7 @@ public class Environment {
             }
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RSymbol name = parseX(args[paramPositions[IX]], ast);
                     RAny value = args[paramPositions[IVALUE]];
@@ -196,7 +179,7 @@ public class Environment {
         }
     };
 
- // NOTE: get and assign have different failure modes for X
+    // NOTE: get and assign have different failure modes for X
     public static RSymbol parseXSilent(RAny arg, ASTNode ast) {
         if (arg instanceof RString) {
             RString sarg = (RString) arg;
@@ -211,7 +194,7 @@ public class Environment {
 
     public static final CallFactory GET_FACTORY = new CallFactory() {
 
-        private final String[] paramNames = new String[] {"x", "pos", "envir", "mode", "inherits"};
+        private final String[] paramNames = new String[]{"x", "pos", "envir", "mode", "inherits"};
 
         private static final int IX = 0;
         private static final int IPOS = 1;
@@ -221,9 +204,8 @@ public class Environment {
 
         private static final boolean DEFAULT_INHERITS = true;
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -236,8 +218,7 @@ public class Environment {
             }
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RSymbol name = parseXSilent(args[paramPositions[IX]], ast);
 
@@ -260,7 +241,7 @@ public class Environment {
 
     public static final CallFactory EXISTS_FACTORY = new CallFactory() {
 
-        private final String[] paramNames = new String[] {"x", "where", "envir", "frame", "mode", "inherits"};
+        private final String[] paramNames = new String[]{"x", "where", "envir", "frame", "mode", "inherits"};
 
         private static final int IX = 0;
         private static final int IWHERE = 1;
@@ -271,9 +252,8 @@ public class Environment {
 
         private static final boolean DEFAULT_INHERITS = true;
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -286,8 +266,7 @@ public class Environment {
             }
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RSymbol name = parseXSilent(args[paramPositions[IX]], ast);
 
                     // FIXME: add support for frame argument
@@ -297,9 +276,7 @@ public class Environment {
                     boolean inherits = provided[IINHERITS] ? parseInherits(args[paramPositions[IINHERITS]], ast) : DEFAULT_INHERITS;
 
                     boolean res = envir.exists(name, inherits);
-                    if (res) {
-                        return RLogical.BOXED_TRUE;
-                    }
+                    if (res) { return RLogical.BOXED_TRUE; }
                     // TODO: handle top-level
                     return RLogical.BOXED_FALSE;
                 }
@@ -309,7 +286,7 @@ public class Environment {
 
     public static final CallFactory LS_FACTORY = new CallFactory() {
 
-        private final String[] paramNames = new String[] {"name", "pos", "envir", "all.names", "pattern"};
+        private final String[] paramNames = new String[]{"name", "pos", "envir", "all.names", "pattern"};
 
         private static final int INAME = 0;
         private static final int IPOS = 1;
@@ -317,9 +294,8 @@ public class Environment {
         private static final int IALLNAMES = 3;
         private static final int IPATTERN = 4;
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -329,8 +305,7 @@ public class Environment {
             }
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
                     RAny nameArg = provided[INAME] ? args[paramPositions[INAME]] : null;
                     REnvironment envir;
@@ -349,21 +324,16 @@ public class Environment {
         }
     };
 
-
     public static REnvironment asEnvironment(Frame frame, ASTNode ast, RAny arg) {
         return asEnvironment(frame, ast, arg, false);
     }
 
     public static REnvironment asEnvironment(Frame frame, ASTNode ast, RAny arg, boolean fakePromise) {
-        if (arg instanceof REnvironment) {
-            return (REnvironment) arg;
-        }
+        if (arg instanceof REnvironment) { return (REnvironment) arg; }
         if (arg instanceof RInt || arg instanceof RDouble) {
             RInt iarg = arg.asInt();
             int size = iarg.size();
-            if (size == 0) {
-                throw RError.getInvalidArgument(ast, "pos");
-            }
+            if (size == 0) { throw RError.getInvalidArgument(ast, "pos"); }
             if (size == 1) {
                 int idx = iarg.getInt(0);
                 if (idx == -1) {
@@ -386,9 +356,7 @@ public class Environment {
                         }
                     }
                 }
-                if (idx == 1) {
-                    return REnvironment.GLOBAL;
-                }
+                if (idx == 1) { return REnvironment.GLOBAL; }
             }
             if (size > 1) {
                 Utils.nyi("create a list...");
@@ -400,13 +368,11 @@ public class Environment {
     }
 
     public static final CallFactory ASENVIRONMENT_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             BuiltIn.ensureArgName(call, "x", names[0]);
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny arg) {
+                @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                     return asEnvironment(frame, ast, arg);
                 }
             };

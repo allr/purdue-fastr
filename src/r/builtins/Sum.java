@@ -1,6 +1,6 @@
 package r.builtins;
 
-import r.builtins.BuiltIn.NamedArgsBuiltIn.AnalyzedArguments;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -54,19 +54,15 @@ public class Sum {
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            if (exprs.length == 0) {
-                return new BuiltIn.BuiltIn0(call, names, exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
 
-                    @Override
-                    public final RAny doBuiltIn(Frame frame) {
-                        return RInt.BOXED_ZERO;
-                    }
+                @Override public final RAny doBuiltIn(Frame frame) {
+                    return RInt.BOXED_ZERO;
+                }
 
-                };
-            }
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            }; }
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -76,79 +72,76 @@ public class Sum {
 
             return new BuiltIn(call, names, exprs) {
 
-              @Override
-              public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                  boolean naRM = false;
-                  if (!neverRemoveNA) {
-                      RAny v = args[narmPosition];
-                      if (v instanceof RLogical) {
-                          RLogical l = (RLogical) v;
-                          naRM = l.size() == 0 || l.getLogical(0) != RLogical.FALSE;
-                      } else if (v instanceof RInt) {
-                          RInt i = (RInt) v;
-                          naRM = i.size() == 0 || i.getInt(0) != 0;
-                      } else if (v instanceof RDouble) {
-                          RDouble d = (RDouble) v;
-                          naRM = d.size() == 0 || d.getDouble(0) != 0;
-                      } else {
-                          naRM = true;
-                      }
-                  }
-                  boolean hasDouble = false;
+                    boolean naRM = false;
+                    if (!neverRemoveNA) {
+                        RAny v = args[narmPosition];
+                        if (v instanceof RLogical) {
+                            RLogical l = (RLogical) v;
+                            naRM = l.size() == 0 || l.getLogical(0) != RLogical.FALSE;
+                        } else if (v instanceof RInt) {
+                            RInt i = (RInt) v;
+                            naRM = i.size() == 0 || i.getInt(0) != 0;
+                        } else if (v instanceof RDouble) {
+                            RDouble d = (RDouble) v;
+                            naRM = d.size() == 0 || d.getDouble(0) != 0;
+                        } else {
+                            naRM = true;
+                        }
+                    }
+                    boolean hasDouble = false;
 
-                  for (int i = 0; i < args.length; i++) {
-                      if (!neverRemoveNA && i == narmPosition) {
-                          continue;
-                      }
-                      RAny v = args[i];
-                      if (v instanceof RDouble) {
-                          hasDouble = true;
-                      } else if (v instanceof RList) {
-                          throw RError.getInvalidTypeList(ast);
-                      }
-                  }
+                    for (int i = 0; i < args.length; i++) {
+                        if (!neverRemoveNA && i == narmPosition) {
+                            continue;
+                        }
+                        RAny v = args[i];
+                        if (v instanceof RDouble) {
+                            hasDouble = true;
+                        } else if (v instanceof RList) { throw RError.getInvalidTypeList(ast); }
+                    }
 
-                  if (hasDouble) {
-                      double res = 0;
-                      for (int i = 0; i < args.length; i++) {
-                          if (!neverRemoveNA && i == narmPosition) {
-                              continue;
-                          }
-                          RAny v = args[i];
-                          if (v instanceof RNull) {
-                              continue;
-                          }
-                          double d = sum(v.asDouble(), naRM);
-                          if (RDouble.RDoubleUtils.isNAorNaN(d)) { // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
-                              res = d;
-                              break;
-                          } else {
-                              res += d;
-                          }
-                      }
-                      return RDouble.RDoubleFactory.getScalar(res);
-                  } else {
-                      long res = 0;
-                      for (int i = 0; i < args.length; i++) {
-                          if (!neverRemoveNA && i == narmPosition) {
-                              continue;
-                          }
-                          RAny v = args[i];
-                          if (v instanceof RNull) {
-                              continue;
-                          }
-                          res += sum(v.asInt(), naRM);
-                      }
-                      if (!(res < Integer.MIN_VALUE || res > Integer.MAX_VALUE)) {  // FIXME: this may not rigorously reflect R semantics, check if the
-                                                                                    //        range should be checked for individual elements or not
-                          return RInt.RIntFactory.getScalar((int) res);
-                      } else {
-                          return RInt.BOXED_NA;
-                      }
+                    if (hasDouble) {
+                        double res = 0;
+                        for (int i = 0; i < args.length; i++) {
+                            if (!neverRemoveNA && i == narmPosition) {
+                                continue;
+                            }
+                            RAny v = args[i];
+                            if (v instanceof RNull) {
+                                continue;
+                            }
+                            double d = sum(v.asDouble(), naRM);
+                            if (RDouble.RDoubleUtils.isNAorNaN(d)) { // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
+                                res = d;
+                                break;
+                            } else {
+                                res += d;
+                            }
+                        }
+                        return RDouble.RDoubleFactory.getScalar(res);
+                    } else {
+                        long res = 0;
+                        for (int i = 0; i < args.length; i++) {
+                            if (!neverRemoveNA && i == narmPosition) {
+                                continue;
+                            }
+                            RAny v = args[i];
+                            if (v instanceof RNull) {
+                                continue;
+                            }
+                            res += sum(v.asInt(), naRM);
+                        }
+                        if (!(res < Integer.MIN_VALUE || res > Integer.MAX_VALUE)) { // FIXME: this may not rigorously reflect R semantics, check if the
+                                                                                     //        range should be checked for individual elements or not
+                            return RInt.RIntFactory.getScalar((int) res);
+                        } else {
+                            return RInt.BOXED_NA;
+                        }
 
-                  }
-              }
+                    }
+                }
             };
         }
     };

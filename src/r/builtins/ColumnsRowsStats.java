@@ -1,16 +1,14 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.RComplex.RComplexUtils;
-import r.data.RDouble.*;
+import r.data.RDouble.RDoubleUtils;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
 
 public class ColumnsRowsStats {
     private static final String[] paramNames = new String[]{"x", "na.rm", "dims"};
@@ -21,15 +19,16 @@ public class ColumnsRowsStats {
 
     public abstract static class Stats {
         public abstract double[] stat(RComplex x, int m, int n, boolean naRM);
+
         public abstract double[] stat(RDouble x, int m, int n, boolean naRM);
+
         public abstract double[] stat(RInt x, int m, int n, boolean naRM);
+
         public abstract int[] getResultDimension(int[] sourceDim);
     }
 
     public static int[] checkDimensions(ASTNode ast, int[] dimensions) {
-        if (dimensions == null || dimensions.length < 2) {
-            throw RError.getXArrayTwo(ast);
-        }
+        if (dimensions == null || dimensions.length < 2) { throw RError.getXArrayTwo(ast); }
         if (dimensions.length > 2) {
             int[] result = new int[2];
             result[0] = dimensions[0];
@@ -72,18 +71,10 @@ public class ColumnsRowsStats {
         }
 
         public RAny stat(ASTNode ast, RAny x, boolean naRM) {
-            if (x instanceof RDouble) {
-                return stat(ast, (RDouble) x, naRM);
-            }
-            if (x instanceof RInt) {
-                return stat(ast, (RInt) x, naRM);
-            }
-            if (x instanceof RLogical) {
-                return stat(ast, x.asInt(), naRM);
-            }
-            if (x instanceof RComplex) {
-                return stat(ast, (RComplex) x, naRM);
-            }
+            if (x instanceof RDouble) { return stat(ast, (RDouble) x, naRM); }
+            if (x instanceof RInt) { return stat(ast, (RInt) x, naRM); }
+            if (x instanceof RLogical) { return stat(ast, x.asInt(), naRM); }
+            if (x instanceof RComplex) { return stat(ast, (RComplex) x, naRM); }
             throw RError.getXNumeric(ast);
         }
 
@@ -92,23 +83,16 @@ public class ColumnsRowsStats {
                 RLogical lnaRM = (RLogical) naRM;
                 if (lnaRM.size() == 1) {
                     int l = lnaRM.getLogical(0);
-                    if (l == RLogical.TRUE) {
-                        return stat(ast, x, true);
-                    }
-                    if (l == RLogical.FALSE) {
-                        return stat(ast, x, false);
-                    }
+                    if (l == RLogical.TRUE) { return stat(ast, x, true); }
+                    if (l == RLogical.FALSE) { return stat(ast, x, false); }
                 }
-            } else  if (naRM instanceof RDouble || naRM instanceof RInt) {
-                return stat(ast, x, naRM.asLogical());
-            }
+            } else if (naRM instanceof RDouble || naRM instanceof RInt) { return stat(ast, x, naRM.asLogical()); }
             throw RError.getInvalidArgument(ast, "na.rm");
         }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -119,15 +103,12 @@ public class ColumnsRowsStats {
             if (provided[IDIMS]) {
                 Utils.nyi("unimplemented argument");
             }
-            if (names.length == 1) {
-                return new BuiltIn.BuiltIn1(call, names, exprs) {
+            if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                    @Override
-                    public RAny doBuiltIn(Frame frame, RAny x) {
-                        return stat(ast, x, false);
-                    }
-                };
-            }
+                @Override public RAny doBuiltIn(Frame frame, RAny x) {
+                    return stat(ast, x, false);
+                }
+            }; }
 
             boolean maybeNARm = false;
             if (provided[INA_RM]) {
@@ -139,17 +120,13 @@ public class ColumnsRowsStats {
             if (names.length == 2) {
                 if (!maybeNARm) { // FIXME: is it overkill to optimize for this?
                     return new BuiltIn.BuiltIn2(call, names, exprs) {
-
-                        @Override
-                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                             return stat(ast, (paramPositions[IX] == 0) ? arg0 : arg1, false);
                         }
                     };
                 } else {
                     return new BuiltIn.BuiltIn2(call, names, exprs) {
-
-                        @Override
-                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                             RAny x;
                             RAny naRM;
                             if (paramPositions[IX] == 0) {
@@ -172,8 +149,7 @@ public class ColumnsRowsStats {
 
     static double[] colSumsMeans(RComplex c, int m, int n, boolean mean, boolean naRM) {
         double[] content = new double[2 * n];
-        outerLoop:
-        for (int j = 0; j < n; j++) {
+        outerLoop: for (int j = 0; j < n; j++) {
             double sumreal = 0;
             double sumimag = 0;
             int excluded = 0;
@@ -206,11 +182,9 @@ public class ColumnsRowsStats {
         return content;
     }
 
-
     static double[] colSumsMeans(RDouble d, int m, int n, boolean mean, boolean naRM) {
         double[] content = new double[n];
-        outerLoop:
-        for (int j = 0; j < n; j++) {
+        outerLoop: for (int j = 0; j < n; j++) {
             double sum = 0;
             int excluded = 0;
             for (int i = 0; i < m; i++) {
@@ -233,8 +207,7 @@ public class ColumnsRowsStats {
 
     static double[] colSumsMeans(RInt in, int m, int n, boolean mean, boolean naRM) {
         double[] content = new double[n];
-        outerLoop:
-        for (int j = 0; j < n; j++) {
+        outerLoop: for (int j = 0; j < n; j++) {
             double sum = 0;
             int excluded = 0;
             for (int i = 0; i < m; i++) {
@@ -402,22 +375,19 @@ public class ColumnsRowsStats {
 
     public static Stats getColSums() {
         return new Stats() {
-            @Override
-            public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, false, naRM);
-            }
-            @Override
-            public double[] stat(RDouble x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, false, naRM);
             }
 
-            @Override
-            public double[] stat(RInt x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, false, naRM);
             }
 
-            @Override
-            public int[] getResultDimension(int[] sourceDim) {
+            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
+                return colSumsMeans(x, m, n, false, naRM);
+            }
+
+            @Override public int[] getResultDimension(int[] sourceDim) {
                 int[] result = new int[sourceDim.length - 1];
                 System.arraycopy(sourceDim, 1, result, 0, result.length);
                 return result;
@@ -427,22 +397,19 @@ public class ColumnsRowsStats {
 
     public static Stats getColMeans() {
         return new Stats() {
-            @Override
-            public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, true, naRM);
-            }
-            @Override
-            public double[] stat(RDouble x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, true, naRM);
             }
 
-            @Override
-            public double[] stat(RInt x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return colSumsMeans(x, m, n, true, naRM);
             }
 
-            @Override
-            public int[] getResultDimension(int[] sourceDim) {
+            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
+                return colSumsMeans(x, m, n, true, naRM);
+            }
+
+            @Override public int[] getResultDimension(int[] sourceDim) {
                 int[] result = new int[sourceDim.length - 1];
                 System.arraycopy(sourceDim, 1, result, 0, result.length);
                 return result;
@@ -452,22 +419,19 @@ public class ColumnsRowsStats {
 
     public static Stats getRowSums() {
         return new Stats() {
-            @Override
-            public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, false, naRM);
-            }
-            @Override
-            public double[] stat(RDouble x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, false, naRM);
             }
 
-            @Override
-            public double[] stat(RInt x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, false, naRM);
             }
 
-            @Override
-            public int[] getResultDimension(int[] sourceDim) {
+            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
+                return rowSumsMeans(x, m, n, false, naRM);
+            }
+
+            @Override public int[] getResultDimension(int[] sourceDim) {
                 return null; // row sum results have no dim
             }
         };
@@ -475,21 +439,19 @@ public class ColumnsRowsStats {
 
     public static Stats getRowMeans() {
         return new Stats() {
-            @Override
-            public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, true, naRM);
-            }
-            @Override
-            public double[] stat(RDouble x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, true, naRM);
             }
 
-            @Override
-            public double[] stat(RInt x, int m, int n, boolean naRM) {
+            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
                 return rowSumsMeans(x, m, n, true, naRM);
             }
-            @Override
-            public int[] getResultDimension(int[] sourceDim) {
+
+            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
+                return rowSumsMeans(x, m, n, true, naRM);
+            }
+
+            @Override public int[] getResultDimension(int[] sourceDim) {
                 return null; // row means results have no dim
             }
         };

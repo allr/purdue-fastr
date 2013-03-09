@@ -3,20 +3,19 @@ package r.builtins;
 import java.io.*;
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.Console;
-import r.Convert;
 import r.Convert.ConversionStatus;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.Console;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.RComplex.Complex;
 import r.data.internal.*;
-import r.data.internal.Connection.*;
+import r.data.internal.Connection.FileConnection;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 // TODO: a very incomplete implementation, the full method has 21 parameters
 // note also that some of the current implementation will likely have to be rewritten for the full set of features
@@ -31,17 +30,13 @@ public class Scan {
 
     public static int parseNMax(RAny arg, ASTNode ast) {
         RInt narg = Convert.coerceToIntWarning(arg, ast);
-        if (narg.size() >= 1) {
-            return narg.getInt(0);
-        }
+        if (narg.size() >= 1) { return narg.getInt(0); }
         return RInt.NA;
     }
 
     public static boolean parseQuiet(RAny arg) {
         RLogical narg = arg.asLogical();
-        if (narg.size() >= 1) {
-            return narg.getLogical(0) == RLogical.TRUE;
-        }
+        if (narg.size() >= 1) { return narg.getLogical(0) == RLogical.TRUE; }
         return false;
     }
 
@@ -60,9 +55,7 @@ public class Scan {
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
             Complex c = Convert.string2complex(str);
-            if (cs.naIntroduced) {
-                throw RError.getScanUnexpected(ast, "a complex", str);
-            }
+            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a complex", str); }
             content[2 * i] = c.realValue();
             content[2 * i + 1] = c.imagValue();
         }
@@ -75,9 +68,7 @@ public class Scan {
         double[] content = new double[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) {
-                throw RError.getScanUnexpected(ast, "a double", str);
-            }
+            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a double", str); }
             content[i] = Convert.string2double(str, cs);
         }
         return RDouble.RDoubleFactory.getFor(content);
@@ -89,9 +80,7 @@ public class Scan {
         int[] content = new int[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) {
-                throw RError.getScanUnexpected(ast, "an integer", str);
-            }
+            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "an integer", str); }
             content[i] = Convert.string2int(str, cs);
         }
         return RInt.RIntFactory.getFor(content);
@@ -103,9 +92,7 @@ public class Scan {
         int[] content = new int[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) {
-                throw RError.getScanUnexpected(ast, "a logical", str);
-            }
+            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a logical", str); }
             content[i] = Convert.string2logical(str, cs);
         }
         return RLogical.RLogicalFactory.getFor(content);
@@ -118,34 +105,19 @@ public class Scan {
         byte[] content = new byte[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced || cs.outOfRange) {
-                throw RError.getScanUnexpected(ast, "an raw", str);
-            }
+            if (cs.naIntroduced || cs.outOfRange) { throw RError.getScanUnexpected(ast, "an raw", str); }
             content[i] = Convert.string2raw(str, cs);
         }
         return RRaw.RRawFactory.getFor(content);
     }
 
-
     public static RAny scan(ArrayList<String> src, ASTNode ast, RAny what) {
-        if (what instanceof RString) {
-            return scanString(src, ast);
-        }
-        if (what instanceof RDouble) {
-            return scanDouble(src, ast);
-        }
-        if (what instanceof RInt) {
-            return scanInt(src, ast);
-        }
-        if (what instanceof RLogical) {
-            return scanLogical(src, ast);
-        }
-        if (what instanceof RRaw) {
-            return scanRaw(src, ast);
-        }
-        if (what instanceof RComplex) {
-            return scanComplex(src, ast);
-        }
+        if (what instanceof RString) { return scanString(src, ast); }
+        if (what instanceof RDouble) { return scanDouble(src, ast); }
+        if (what instanceof RInt) { return scanInt(src, ast); }
+        if (what instanceof RLogical) { return scanLogical(src, ast); }
+        if (what instanceof RRaw) { return scanRaw(src, ast); }
+        if (what instanceof RComplex) { return scanComplex(src, ast); }
         Utils.nyi("unsupported type");
         return null;
     }
@@ -158,18 +130,16 @@ public class Scan {
         int c;
         for (;;) {
             c = reader.read();
-            if (!is_white(c)) {
-                return c;
+            if (!is_white(c)) { return c;
 
             }
         }
-     }
+    }
 
     public static final CallFactory FACTORY = new CallFactory() {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
 
             final boolean[] provided = a.providedParams;
             final int[] paramPositions = a.paramPositions;
@@ -177,8 +147,7 @@ public class Scan {
             final ConnectionMode defaultMode = ConnectionMode.get("r");
 
             return new BuiltIn(call, names, exprs) {
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                     RAny what = provided[IWHAT] ? args[paramPositions[IWHAT]] : RDouble.EMPTY;
                     int nmax = provided[INMAX] ? parseNMax(args[paramPositions[INMAX]], ast) : -1;
                     boolean quiet = provided[IQUIET] ? parseQuiet(args[paramPositions[IQUIET]]) : false;
@@ -186,9 +155,7 @@ public class Scan {
                     if (what instanceof RList) {
                         Utils.nyi("list not yet implemented");
                     }
-                    if (what instanceof RNull) {
-                        throw RError.getInvalidArgument(ast, paramNames[IWHAT]);
-                    }
+                    if (what instanceof RNull) { throw RError.getInvalidArgument(ast, paramNames[IWHAT]); }
                     Connection con = null;
                     boolean wasOpen = false;
 
@@ -203,17 +170,13 @@ public class Scan {
                         } else if (conArg instanceof RInt) {
                             // FIXME: check if it is a connection once attributes are implemented
                             RInt iarg = (RInt) conArg;
-                            if (iarg.size() != 1) {
-                                throw RError.getNotConnection(ast, paramNames[IFILE]);
-                            }
+                            if (iarg.size() != 1) { throw RError.getNotConnection(ast, paramNames[IFILE]); }
                             int handle = iarg.getInt(0);
                             con = RContext.getConnection(handle);
                             Utils.check(con != null);
                             if (con.isOpen()) {
                                 ConnectionMode mode = con.currentMode();
-                                if (!mode.read()) {
-                                   throw RError.getCannotReadConnection(ast);
-                                }
+                                if (!mode.read()) { throw RError.getCannotReadConnection(ast); }
                                 wasOpen = true;
                             } else {
                                 con.open(defaultMode, ast);

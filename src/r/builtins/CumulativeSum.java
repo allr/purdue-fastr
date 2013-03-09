@@ -3,11 +3,10 @@ package r.builtins;
 import java.util.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
+import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.RComplex.RComplexUtils;
-import r.data.RDouble.*;
+import r.data.RDouble.RDoubleUtils;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -31,9 +30,7 @@ public class CumulativeSum {
             for (int i = 0; i < size; i++) {
                 double real = input.getReal(i);
                 double imag = input.getImag(i);
-                if (RComplexUtils.eitherIsNA(real, imag)) {
-                    return finishComplexWithNAs(content, i);
-                }
+                if (RComplexUtils.eitherIsNA(real, imag)) { return finishComplexWithNAs(content, i); }
                 raccum += real;
                 iaccum += imag;
                 content[2 * i] = raccum;
@@ -52,9 +49,7 @@ public class CumulativeSum {
             double accum = 0;
             for (int i = 0; i < size; i++) {
                 double value = input.getDouble(i);
-                if (RDoubleUtils.isNA(value)) {
-                    return finishDoubleWithNAs(content, i);
-                }
+                if (RDoubleUtils.isNA(value)) { return finishDoubleWithNAs(content, i); }
                 accum += value;
                 content[i] = accum;
             }
@@ -81,9 +76,7 @@ public class CumulativeSum {
             int accum = 0;
             for (int i = 0; i < size; i++) {
                 int value = input.getInt(i);
-                if (value == RInt.NA) {
-                    return finishWithNAs(content, i);
-                }
+                if (value == RInt.NA) { return finishWithNAs(content, i); }
                 accum = Arithmetic.ADD.op(ast, accum, value);
                 if (accum == RInt.NA) {
                     RContext.warning(ast, RError.INTEGER_OVERFLOW);
@@ -102,12 +95,10 @@ public class CumulativeSum {
         return RInt.RIntFactory.getFor(content);
     }
 
-
     public static final CallFactory FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
 
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
+            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
             final boolean[] provided = a.providedParams;
 
             if (!provided[IX]) {
@@ -116,8 +107,7 @@ public class CumulativeSum {
 
             return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny x) {
+                @Override public RAny doBuiltIn(Frame frame, RAny x) {
 
                     if (x instanceof RDouble) {
                         RDouble dx = (RDouble) x;
@@ -134,17 +124,14 @@ public class CumulativeSum {
                     } else if (x instanceof RRaw) {
                         RRaw rx = (RRaw) x;
                         return cumsum(rx.asDouble()).setNames(rx.names());
-                    } else if (x instanceof RNull) {
-                        return RDouble.EMPTY;
-                    }
+                    } else if (x instanceof RNull) { return RDouble.EMPTY; }
 
                     if (x instanceof RString) {
                         RString sx = (RString) x;
                         RDouble res = cumsum(Convert.coerceToDoubleWarning(sx, ast));
                         return res.setNames(sx.names());
                     } else {
-                        Utils.nyi("unsupported type");
-                        return null;
+                        throw Utils.nyi("unsupported type");
                     }
                 }
             };
