@@ -4,42 +4,107 @@ import java.util.*;
 
 import r.Convert.ConversionStatus;
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
+import java.lang.Integer;
 
-public class Sort {
-    private static final String[] orderParamNames = new String[]{"...", "na.last", "decreasing"};
+/**
+ * "sort"
+ * 
+ * <pre>
+ * x -- for sort an R object with a class or a numeric, complex, character or logical vector. For sort.int, 
+ *      a numeric, complex, character or logical vector, or a factor.
+ * decreasing -- logical. Should the sort be increasing or decreasing? Not available for partial sorting.
+ * ... -- arguments to be passed to or from methods or (for the default methods and objects without a class) 
+ *      to sort.int.
+ * </pre>
+ */
+final class Sort extends CallFactory {
 
-    private static final int INA_LAST = 1;
-    private static final int IDECREASING = 2;
+    static final CallFactory _ = new Seq("sort", new String[]{"...", "na.last", "decreasing"}, new String[]{});
+
+    Sort(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        final int naLastPosition = ia.provided("na.last") ? ia.position("na.last") : -1;
+        final int decreasingPosition = ia.provided("decreasing") ? ia.position("decreasing") : -1;
+        return new BuiltIn(call, names, exprs) {
+
+            @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
+
+                int nparams = params.length;
+                int nkeys = nparams;
+                int naLast;
+                if (naLastPosition == -1) {
+                    naLast = RLogical.TRUE;
+                } else {
+                    naLast = parseNALast(params[naLastPosition], ast);
+                    nkeys--;
+                }
+
+                boolean decreasing;
+                if (decreasingPosition == -1) {
+                    decreasing = false;
+                } else {
+                    decreasing = parseDecreasing(params[decreasingPosition], ast);
+                    nkeys--;
+                }
+
+                if (nkeys > 0) {
+                    RArray[] keys = new RArray[nkeys];
+                    int asize = -1;
+                    int j = 0;
+                    for (int i = 0; i < nparams; i++) {
+                        if (i == naLastPosition || i == decreasingPosition) {
+                            continue;
+                        }
+                        RAny p = params[i];
+                        if (p instanceof RArray) {
+                            RArray arr = (RArray) p;
+                            int size = arr.size();
+                            if (size != asize) {
+                                if (asize == -1) {
+                                    asize = size;
+                                } else {
+                                    throw RError.getArgumentLengthsDiffer(ast);
+                                }
+                            }
+                            keys[j++] = arr.materialize();
+                        } else {
+                            throw RError.getArgumentNotVector(ast, i);
+                        }
+                    }
+                    return sort(keys, decreasing, naLast, ast);
+                }
+                return RNull.getNull();
+            }
+        };
+    }
 
     public static int parseNALast(RAny arg, ASTNode ast) {
         warn.naIntroduced = false;
         RLogical a = arg.asLogical(); // will produce NAs when conversion is not possible
         int size = a.size();
         int res;
-
         if (size == 1) {
             res = a.getLogical(0);
-            if (res != RLogical.NA) { // just an optimization
-                return res;
-            }
+            if (res != RLogical.NA) { return res; }// just an optimization
         } else {
-            if (size == 0) { throw RError.getLengthZero(ast); // not exactly R's error message
-            }
+            if (size == 0) { throw RError.getLengthZero(ast); }// not exactly R's error message            
             // size > 1
             RContext.warning(ast, RError.LENGTH_GT_1);
             res = a.getLogical(0);
         }
-        if (warn.naIntroduced) { throw RError.getInvalidArgument(ast, "na.last"); // not exactly R's error message
-        }
+        if (warn.naIntroduced) { throw RError.getInvalidArgument(ast, "na.last"); } // not exactly R's error message       
         return res;
     }
 
@@ -271,68 +336,4 @@ public class Sort {
         }
     }
 
-    public static final CallFactory ORDER_FACTORY = new CallFactory() {
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, orderParamNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            final int naLastPosition = provided[INA_LAST] ? paramPositions[INA_LAST] : -1;
-            final int decreasingPosition = provided[IDECREASING] ? paramPositions[IDECREASING] : -1;
-
-            return new BuiltIn(call, names, exprs) {
-
-                @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
-
-                    int nparams = params.length;
-                    int nkeys = nparams;
-                    int naLast;
-                    if (naLastPosition == -1) {
-                        naLast = RLogical.TRUE;
-                    } else {
-                        naLast = parseNALast(params[paramPositions[INA_LAST]], ast);
-                        nkeys--;
-                    }
-
-                    boolean decreasing;
-                    if (decreasingPosition == -1) {
-                        decreasing = false;
-                    } else {
-                        decreasing = parseDecreasing(params[paramPositions[IDECREASING]], ast);
-                        nkeys--;
-                    }
-
-                    if (nkeys > 0) {
-                        RArray[] keys = new RArray[nkeys];
-                        int asize = -1;
-                        int j = 0;
-                        for (int i = 0; i < nparams; i++) {
-                            if (i == naLastPosition || i == decreasingPosition) {
-                                continue;
-                            }
-                            RAny p = params[i];
-                            if (p instanceof RArray) {
-                                RArray arr = (RArray) p;
-                                int size = arr.size();
-                                if (size != asize) {
-                                    if (asize == -1) {
-                                        asize = size;
-                                    } else {
-                                        throw RError.getArgumentLengthsDiffer(ast);
-                                    }
-                                }
-                                keys[j++] = arr.materialize();
-                            } else {
-                                throw RError.getArgumentNotVector(ast, i);
-                            }
-                        }
-                        return sort(keys, decreasing, naLast, ast);
-                    } else {
-                        return RNull.getNull();
-                    }
-                }
-            };
-        }
-    };
 }

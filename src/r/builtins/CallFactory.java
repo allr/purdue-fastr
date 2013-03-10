@@ -26,7 +26,7 @@ public abstract class CallFactory {
     /** Largest legal number of parameters. */
     int minParameters;
 
-    CallFactory() {}
+    public CallFactory() {}
 
     /**
      * @param name

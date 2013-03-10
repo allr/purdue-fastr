@@ -1,21 +1,30 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "nchar"
+ * 
+ * <pre>
+ * x -- character vector, or a vector to be coerced to a character vector. Giving a factor is an error.
+ * type -- character string: partial matching to one of c("bytes", "chars", "width").
+ * allowNA -- Logical: should NA be returned for invalid multibyte strings or "bytes"-encoded strings
+ * (rather than throwing an error)?
+ * </pre>
+ */
 // FIXME: only partial semantics
-public class NChar {
+final class NChar extends CallFactory {
 
-    private static final String[] paramNames = new String[]{"x", "type", "allowNA"};
+    static final CallFactory _ = new NChar("ls", new String[]{"x", "type", "allowNA"}, new String[]{"x"});
 
-    private static final int IX = 0;
-    private static final int ITYPE = 1;
-    private static final int IALLOW_NA = 2;
+    private NChar(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static RInt nchar(RString s) {
         int size = s.size();
@@ -26,27 +35,14 @@ public class NChar {
         return RInt.RIntFactory.getFor(content, s.dimensions(), s.names());
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-
-            if (provided[ITYPE] || provided[IALLOW_NA]) {
-                Utils.nyi();
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        if (ia.provided("type") || ia.provided("allowNA")) { throw Utils.nyi(); }
+        if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny x) {
+                return nchar(x.asString());
             }
-            if (names.length == 1) {
-                if (!provided[IX]) {
-                    BuiltIn.missingArg(call, paramNames[IX]);
-                }
-                return new BuiltIn.BuiltIn1(call, names, exprs) {
-                    @Override public final RAny doBuiltIn(Frame frame, RAny x) {
-                        return nchar(x.asString());
-                    }
-                };
-            }
-            throw Utils.nyi();
-        }
-    };
+        }; }
+        throw Utils.nyi();
+    }
 }

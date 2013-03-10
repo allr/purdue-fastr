@@ -8,90 +8,30 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+/**
+ * "length"
+ * 
+ * <pre>
+ * x -- an R object. For replacement, a vector or factor.
+ * </pre>
+ */
 // FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
-public class Length {
-    public static final CallFactory FACTORY = new CallFactory() {
+final class Length extends CallFactory {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    static final CallFactory _ = new Length("length", new String[]{"x"}, new String[]{"x"});
 
-            BuiltIn.ensureArgName(call, "x", names[0]);
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg) {
-                    if (arg instanceof RArray) {
-                        return RInt.RIntFactory.getScalar(((RArray) arg).size());
-                    }
-                    Utils.nyi("unsupported argument");
-                    return null;
-                }
-
-            };
-        }
-    };
-
-    public static int parseNewLength(int value, ASTNode ast) {
-        if (value >= 0) {
-            return value;
-        } else {
-            throw RError.getVectorSizeNegative(ast);
-        }
+    private Length(String name, String[] params, String[] required) {
+        super(name, params, required);
     }
 
-    public static int parseNewLength(RAny value, ASTNode ast) {
-        if (value instanceof RDouble) {
-            RDouble dvalue = (RDouble) value;
-            if (dvalue.size() == 1) {
-                return parseNewLength(Convert.double2int(dvalue.getDouble(0)), ast);
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                if (arg instanceof RArray) { return RInt.RIntFactory.getScalar(((RArray) arg).size()); }
+                throw Utils.nyi("unsupported argument");
             }
-
-        }
-        if (value instanceof RInt) {
-            RInt ivalue = (RInt) value;
-            if (ivalue.size() == 1) {
-                return parseNewLength(ivalue.getInt(0), ast);
-            }
-        }
-        throw RError.getInvalidUnnamedValue(ast);
+        };
     }
 
-    public static RArray changeSize(RArray x, int nsize) {
-        int xsize = x.size();
-        if (xsize == nsize) {
-            return x; // does not drop dimensions
-        }
-        RArray res = Utils.createArray(x, nsize);
-        if (nsize > xsize) {
-            for (int i = 0; i < xsize; i++) {
-                res.set(i, x.get(i));
-            }
-            for (int i = xsize; i < nsize; i++) {
-                Utils.setNA(res, i); // FIXME: likely slow
-            }
-        } else {
-            for (int i = 0; i < nsize; i++) {
-                res.set(i, x.get(i));
-            }
-        }
-        return res; // drops dimensions
-    }
-
-    public static final CallFactory REPLACEMENT_FACTORY = new CallFactory() {
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn.BuiltIn2(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny x, RAny value) {
-                    if (!(x instanceof RArray)) {
-                        throw RError.getInvalidUnnamedArgument(ast);
-                    }
-                    int nlen = parseNewLength(value, ast);
-                    return changeSize((RArray) x, nlen);
-                }
-            };
-        }
-    };
 }

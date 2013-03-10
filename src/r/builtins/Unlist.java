@@ -1,7 +1,6 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -10,14 +9,24 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "unlist"
+ * 
+ * <pre>
+ * x -- an R object, typically a list or vector.
+ * recursive -- logical. Should unlisting be applied to list components of x?
+ * use.names -- logical. Should names be preserved?
+ * </pre>
+ */
 // TODO: add optimized nodes, node-rewriting
 // FIXME: some of this code should be refactored into more general classes (e.g. finding a common subtype, cast mixins
-public class Unlist {
-    private static final String[] paramNames = new String[]{"x", "recursive", "use.names"};
+final class Unlist extends CallFactory {
 
-    private static final int IX = 0;
-    private static final int IRECURSIVE = 1;
-    private static final int IUSE_NAMES = 2;
+    static final CallFactory _ = new Unlist("unlist", new String[]{"x", "recursive", "use.names"}, new String[]{"x"});
+
+    Unlist(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static boolean parseLogical(RAny arg) {
         // FIXME: most likely not exactly R semantics with evaluation of additional values
@@ -30,28 +39,17 @@ public class Unlist {
         return false;
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                RAny x = args[ia.position("x")];
+                boolean recursive = ia.provided("recursive") ? parseLogical(args[ia.position("recursive")]) : true;
+                boolean useNames = ia.provided("use.names") ? parseLogical(args[ia.position("use.names")]) : true;
+                return genericUnlist(x, recursive, useNames, ast);
             }
-
-            return new BuiltIn(call, names, exprs) {
-                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    RAny x = args[paramPositions[IX]];
-                    boolean recursive = provided[IRECURSIVE] ? parseLogical(args[paramPositions[IRECURSIVE]]) : true;
-                    boolean useNames = provided[IUSE_NAMES] ? parseLogical(args[paramPositions[IUSE_NAMES]]) : true;
-
-                    return genericUnlist(x, recursive, useNames, ast);
-                }
-            };
-        }
-    };
+        };
+    }
 
     public static RAny genericUnlist(RAny x, boolean recursive, boolean useNames, ASTNode ast) {
         if (x instanceof RList) { return genericUnlist((RList) x, recursive, useNames); }
@@ -147,51 +145,39 @@ public class Unlist {
         public abstract RArray cast(RAny src);
 
         public static final Cast STRING = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asString();
             }
-
         };
 
         public static final Cast COMPLEX = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asComplex();
             }
-
         };
 
         public static final Cast DOUBLE = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asDouble();
             }
-
         };
 
         public static final Cast INT = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asInt();
             }
-
         };
 
         public static final Cast LOGICAL = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asLogical();
             }
-
         };
 
         public static final Cast RAW = new Cast() {
-
             @Override public RArray cast(RAny src) {
                 return src.asRaw();
             }
-
         };
     }
 
@@ -285,7 +271,7 @@ public class Unlist {
 
         if (!recursive) {
             // NOTE: yes, non-recursive unlist still removes top-level lists
-            return Combine.genericCombine(useNames ? x.names().sequence() : null, x.materialize().getContent(), !useNames);
+            return C.genericCombine(useNames ? x.names().sequence() : null, x.materialize().getContent(), !useNames);
         }
 
         AnalyzeList alist = AnalyzeList.analyze(x, recursive, useNames);

@@ -3,7 +3,6 @@ package r.builtins;
 import java.util.regex.*;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -11,18 +10,50 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "sub"
+ * 
+ * <pre>
+ * ppattern -- character string containing a regular expression (or character string for fixed = TRUE) to be matched in
+ *          the given character vector. Coerced by as.character to a character string if possible. If a character vector
+ *          of length 2 or more is supplied, the first element is used with a warning. Missing values are allowed except for regexpr and gregexpr.
+ * x -- a character vector where matches are sought, or an object which can be coerced by as.character to a character vector.
+ * ignore.case -- if FALSE, the pattern matching is case sensitive and if TRUE, case is ignored during matching.
+ * perl -- logical. Should perl-compatible regexps be used?
+ * fixed -- logical. If TRUE, pattern is a string to be matched as is. Overrides all conflicting arguments.
+ * useBytes -- logical. If TRUE the matching is done byte-by-byte rather than character-by-character.
+ * </pre>
+ */
 // FIXME: this does not really implement the R's regular expressions semantics (not even mentioning that there are 2 semantics supported
 //        by R, one perl and one non-perl
-public class Sub {
-    private static final String[] paramNames = new String[]{"pattern", "replacement", "x", "ignore.case", "perl", "fixed", "useBytes"};
+class Sub extends CallFactory {
+    static final CallFactory _ = new Sub("sub", new String[]{"pattern", "replacement", "x", "ignore.case", "perl", "fixed", "useBytes"}, new String[]{"x", "pattern", "replacement"}, false);
 
-    private static final int IPATTERN = 0;
-    private static final int IREPLACEMENT = 1;
-    private static final int IX = 2;
-    private static final int IIGNORE_CASE = 3;
-    private static final int IPERL = 4;
-    private static final int IFIXED = 5;
-    private static final int IUSE_BYTES = 6;
+    Sub(String name, String[] params, String[] required, boolean global) {
+        super(name, params, required);
+        this.global = global;
+    }
+
+    boolean global;
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
+        return new BuiltIn(call, names, exprs) {
+            @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
+                if (ia.provided("useBytes")) {
+                    RContext.warning(ast, "Ignoring useBytes.");
+                }
+                String pattern = parseScalarString(ast, args[ia.position("pattern")], "pattern");
+                String replacement = parseScalarString(ast, args[ia.position("replacement")], "replacement");
+                RString x = Convert.coerceToStringError(args[ia.position("x")], ast);
+                boolean ignoreCase = ia.provided("ignore.case") ? Convert.checkFirstLogical(args[ia.position("ignore.case")], RLogical.TRUE) : false;
+                boolean perl = ia.provided("perl") ? Convert.checkFirstLogical(args[ia.position("perl")], RLogical.TRUE) : false;
+                boolean fixed = ia.provided("fixed") ? Convert.checkFirstLogical(args[ia.position("fixed")], RLogical.TRUE) : false;
+
+                return sub(ast, pattern, replacement, x, ignoreCase, perl, fixed, global);
+            }
+        };
+    }
 
     public static String parseScalarString(ASTNode ast, RAny value, String argName) {
         RString rstring = Convert.coerceToStringError(value, ast);
@@ -114,51 +145,4 @@ public class Sub {
         }
         return RString.RStringFactory.getFor(content, xArg.dimensions(), xArg.names());
     }
-
-    public static class SubCallFactory extends CallFactory {
-
-        boolean global;
-
-        SubCallFactory(boolean global) {
-            this.global = global;
-        }
-
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IPATTERN]) {
-                BuiltIn.missingArg(call, paramNames[IPATTERN]);
-            }
-            if (!provided[IREPLACEMENT]) {
-                BuiltIn.missingArg(call, paramNames[IREPLACEMENT]);
-            }
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-
-            return new BuiltIn(call, names, exprs) {
-
-                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    if (provided[IUSE_BYTES]) {
-                        RContext.warning(ast, "Ignoring useBytes.");
-                    }
-                    String pattern = parseScalarString(ast, args[paramPositions[IPATTERN]], paramNames[IPATTERN]);
-                    String replacement = parseScalarString(ast, args[paramPositions[IREPLACEMENT]], paramNames[IREPLACEMENT]);
-                    RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
-                    boolean ignoreCase = provided[IIGNORE_CASE] ? Convert.checkFirstLogical(args[paramPositions[IIGNORE_CASE]], RLogical.TRUE) : false;
-                    boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
-                    boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
-
-                    return sub(ast, pattern, replacement, x, ignoreCase, perl, fixed, global);
-                }
-            };
-        }
-    }
-
-    public static final CallFactory GSUB_FACTORY = new SubCallFactory(true);
-    public static final CallFactory SUB_FACTORY = new SubCallFactory(false);
-
 }

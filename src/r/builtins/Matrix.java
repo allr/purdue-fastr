@@ -1,7 +1,6 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -10,14 +9,25 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
-public class Matrix {
-    private static final String[] paramNames = new String[]{"data", "nrow", "ncol", "byrow", "dimnames"};
+/**
+ * "matrix"
+ * 
+ * <pre>
+ * data -- an optional data vector (including a list or expression vector). Other R objects are coerced by as.vector.
+ * nrow -- the desired number of rows.
+ * ncol -- the desired number of columns.
+ * byrow -- logical. If FALSE (the default) the matrix is filled by columns, otherwise the matrix is filled by rows.
+ * dimnames -- A dimnames attribute for the matrix: NULL or a list of length 2 giving the row and column names respectively.
+ *  An empty list is treated as NULL, and a list of length one as row names. The list can be named, and the list names will be
+ *   used as names for the dimensions.
+ * </pre>
+ */
+final class Matrix extends CallFactory {
+    static final CallFactory _ = new Matrix("ls", new String[]{"data", "nrow", "ncol", "byrow", "dimnames"}, new String[]{});
 
-    private static final int IDATA = 0;
-    private static final int INROW = 1;
-    private static final int INCOL = 2;
-    private static final int IBYROW = 3;
-    private static final int IDIMNAMES = 4;
+    private Matrix(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static boolean parseByRow(ASTNode ast, RAny arg) {
         RLogical l = arg.asLogical();
@@ -51,108 +61,98 @@ public class Matrix {
         throw RError.getNonNumericMatrixExtent(ast);
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
 
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (provided[IDIMNAMES]) {
-                Utils.nyi();
-            }
-            return new BuiltIn(call, names, exprs) {
-
-                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
-
-                    RArray data = RLogical.BOXED_NA;
-                    if (provided[IDATA]) {
-                        data = parseData(ast, args[paramPositions[IDATA]]);
-                        if (data.size() == 0) {
-                            data = Utils.getBoxedNA(data);
-                        }
+        if (ia.provided("dimnames")) { throw Utils.nyi(); }
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                RArray data = RLogical.BOXED_NA;
+                if (ia.provided("data")) {
+                    data = parseData(ast, args[ia.position("data")]);
+                    if (data.size() == 0) {
+                        data = Utils.getBoxedNA(data);
                     }
-                    int dsize = data.size();
-                    int nRow = -1;
-                    if (provided[INROW]) {
-                        nRow = parseExtent(ast, args[paramPositions[INROW]]);
-                        if (nRow == RInt.NA) { throw RError.getInvalidNRow(ast); }
-                        if (nRow < 0) { throw RError.getNegativeNRow(ast); }
-                    }
-                    int nCol = -1;
-                    int size;
-                    if (provided[INCOL]) {
-                        nCol = parseExtent(ast, args[paramPositions[INCOL]]);
-                        if (nCol == RInt.NA) { throw RError.getInvalidNCol(ast); }
-                        if (nCol < 0) { throw RError.getNegativeNCol(ast); }
-                    }
+                }
+                int dsize = data.size();
+                int nRow = -1;
+                if (ia.provided("nrow")) {
+                    nRow = parseExtent(ast, args[ia.position("nrow")]);
+                    if (nRow == RInt.NA) { throw RError.getInvalidNRow(ast); }
+                    if (nRow < 0) { throw RError.getNegativeNRow(ast); }
+                }
+                int nCol = -1;
+                int size;
+                if (ia.provided("ncol")) {
+                    nCol = parseExtent(ast, args[ia.position("ncol")]);
+                    if (nCol == RInt.NA) { throw RError.getInvalidNCol(ast); }
+                    if (nCol < 0) { throw RError.getNegativeNCol(ast); }
+                }
 
-                    if (nRow == -1) {
-                        if (nCol == -1) {
-                            nCol = 1;
-                            nRow = dsize;
-                        } else {
-                            if (dsize >= nCol) {
-                                nRow = dsize / nCol;
-                                if (nRow * nCol != dsize) {
-                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
-                                }
-                            } else {
-                                nRow = 1;
-                                if (nCol % dsize != 0) {
-                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
-                                }
+                if (nRow == -1) {
+                    if (nCol == -1) {
+                        nCol = 1;
+                        nRow = dsize;
+                    } else {
+                        if (dsize >= nCol) {
+                            nRow = dsize / nCol;
+                            if (nRow * nCol != dsize) {
+                                RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                             }
-                        }
-                        size = nRow * nCol;
-                    } else { // nRow != -1
-                        if (nCol == -1) {
-                            if (dsize >= nRow) {
-                                nCol = dsize / nRow;
-                                if (nCol * nRow != dsize) {
-                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
-                                }
-                            } else {
-                                nCol = 1;
-                                if (nRow % dsize != 0) {
-                                    RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
-                                }
-                            }
-                            size = nRow * nCol;
                         } else {
-                            size = nRow * nCol;
-                            if (size % dsize != 0 && dsize % size != 0) {
+                            nRow = 1;
+                            if (nCol % dsize != 0) {
                                 RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
                             }
                         }
                     }
+                    size = nRow * nCol;
+                } else { // nRow != -1
+                    if (nCol == -1) {
+                        if (dsize >= nRow) {
+                            nCol = dsize / nRow;
+                            if (nCol * nRow != dsize) {
+                                RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                            }
+                        } else {
+                            nCol = 1;
+                            if (nRow % dsize != 0) {
+                                RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                            }
+                        }
+                        size = nRow * nCol;
+                    } else {
+                        size = nRow * nCol;
+                        if (size % dsize != 0 && dsize % size != 0) {
+                            RContext.warning(ast, String.format(RError.DATA_NOT_MULTIPLE_ROWS, dsize, nRow));
+                        }
+                    }
+                }
 
-                    boolean byRow = provided[IBYROW] ? parseByRow(ast, args[paramPositions[IBYROW]]) : false;
+                boolean byRow = ia.provided("byrow") ? parseByRow(ast, args[ia.position("byrow")]) : false;
 
-                    RArray res = Utils.createArray(data, size, new int[]{nRow, nCol}, null, null);
-                    if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) { return res; }
-                    int di = 0;
-                    if (!byRow) {
-                        for (int i = 0; i < size; i++) {
-                            res.set(i, data.get(di++));
+                RArray res = Utils.createArray(data, size, new int[]{nRow, nCol}, null, null);
+                if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) { return res; }
+                int di = 0;
+                if (!byRow) {
+                    for (int i = 0; i < size; i++) {
+                        res.set(i, data.get(di++));
+                        if (di == dsize) {
+                            di = 0;
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < nRow; j++) {
+                        for (int i = 0; i < nCol; i++) {
+                            res.set(i * nRow + j, data.get(di++));
                             if (di == dsize) {
                                 di = 0;
                             }
                         }
-                    } else {
-                        for (int j = 0; j < nRow; j++) {
-                            for (int i = 0; i < nCol; i++) {
-                                res.set(i * nRow + j, data.get(di++));
-                                if (di == dsize) {
-                                    di = 0;
-                                }
-                            }
-                        }
                     }
-                    return res;
                 }
-            };
-        }
-    };
+                return res;
+            }
+        };
+    }
 }

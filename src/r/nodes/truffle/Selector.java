@@ -75,21 +75,15 @@ public abstract class Selector {
      *
      * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
      *            the source array as specified by the current selector.
-     * @param selIdx Selector index vector, contains the number of the value returned by the selector. This is used to
-     *               detect that a selector has overflown. Starts at 1 for the first value
      * @param selSizes Size of the selector.
      * @param selectors Selectors to be used in the increment.
      */
-    public static boolean increment(int[] idx, int[] selIdx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+    public static boolean increment(int[] idx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
         for (int i = 0; i < idx.length; ++i) {
-            if (selIdx[i] == selSizes[i]) {
-                if (selSizes[i] != 1) {
-                    selIdx[i] = 1;
-                    selectors[i].restart();
-                    idx[i] = selectors[i].nextIndex(ast);
-                }
+            if (selectors[i].isExhausted()) {
+                selectors[i].restart();
+                idx[i] = selectors[i].nextIndex(ast);
             } else {
-                ++selIdx[i];
                 idx[i] = selectors[i].nextIndex(ast);
                 return false; // no overflow
             }
@@ -114,6 +108,169 @@ public abstract class Selector {
         return result;
     }
 
+    public static void partialToFullOffsets(int[] offsets, int from) {
+        int add = 0;
+        for (int i = from; i >= 0; i--) {
+            int o = offsets[i];
+            if (o != RInt.NA) {
+                add += o;
+                offsets[i] = add;
+            } else {
+                for (int k = 0; k < i; k++) {
+                    offsets[k] = RInt.NA;
+                }
+                return;
+            }
+        }
+    }
+
+    public static void partialToFullOffsetsNoNA(int[] offsets, int from) {
+        int add = 0;
+        for (int i = from; i >= 0; i--) {
+            add += offsets[i];
+            offsets[i] = add;
+        }
+    }
+
+    // offset and selSizes are output arrays and are fully overwritten
+    // initializes the offset array for indexing, initializes
+    public static boolean initialize(int[] offsets, Selector[] selectors, int[] dataDimensions, int[] selSizes, ASTNode ast) throws UnexpectedResultException {
+        int mult = 1;
+        boolean hasNA = false;
+        boolean mayHaveNA = false;
+        for (int i = 0; i < selectors.length; ++i) {
+            Selector sel = selectors[i];
+            int dim = dataDimensions[i];
+            sel.start(dim, ast);
+            mayHaveNA = mayHaveNA || sel.mayHaveNA();
+            int size = sel.size();
+            selSizes[i] = size;
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                hasNA = true;
+                offsets[i] = RInt.NA;
+            }
+            mult *= dim;
+        }
+        if (!hasNA) {
+            partialToFullOffsetsNoNA(offsets, selectors.length - 1);
+        } else {
+            partialToFullOffsets(offsets, selectors.length - 1);
+        }
+        return mayHaveNA;
+    }
+
+    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast, boolean mayHaveNA) throws UnexpectedResultException {
+        if (!mayHaveNA) {
+            restartNoNA(offsets, selectors, dataDimensions, ast);
+        } else {
+            restart(offsets, selectors, dataDimensions, ast);
+        }
+    }
+
+    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws UnexpectedResultException {
+        int mult = 1;
+        for (int i = 0; i < selectors.length; ++i) {
+            Selector sel = selectors[i];
+            int dim = dataDimensions[i];
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                offsets[i] = RInt.NA;
+            }
+            mult *= dim;
+        }
+        partialToFullOffsets(offsets, selectors.length - 1);
+    }
+
+    public static void restartNoNA(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws UnexpectedResultException {
+        int mult = 1;
+        for (int i = 0; i < selectors.length; ++i) {
+            Selector sel = selectors[i];
+            int dim = dataDimensions[i];
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            offsets[i] = next * mult;
+            mult *= dim;
+        }
+        partialToFullOffsetsNoNA(offsets, selectors.length - 1);
+    }
+
+    // advance must not be called when all selectors are exhausted (the search is done) - restart has to be used instead if wrap-around is needed
+    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast, boolean mayHaveNA) throws UnexpectedResultException {
+        if (!mayHaveNA) {
+            advanceNoNA(offsets, dataDimensions, selectors, ast);
+        } else {
+            advance(offsets, dataDimensions, selectors, ast);
+        }
+    }
+
+    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        assert Utils.check(selectors.length > 0);
+        assert Utils.check(offsets.length == selectors.length + 1);
+        assert Utils.check(offsets[offsets.length - 1] == 0);
+
+        int mult = 1;
+        int i = 0;
+        for (;;) {
+            Selector sel = selectors[i];
+            if (!sel.isExhausted()) {
+                int next = sel.nextIndex(ast);
+                if (next != RInt.NA) {
+                    offsets[i] = next * mult;
+                } else {
+                    offsets[i] = RInt.NA;
+                }
+                break;
+            }
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            if (next != RInt.NA) {
+                offsets[i] = next * mult;
+            } else {
+                offsets[i] = RInt.NA;
+            }
+            mult *= dataDimensions[i];
+            i++;
+        }
+        // now we know the selector is exhausted
+        // the array contains partial offsets from [0] to [i]
+        // and full offsets from [i+1] to its end
+
+        partialToFullOffsets(offsets, i + 1);
+    }
+
+    public static void advanceNoNA(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+        assert Utils.check(selectors.length > 0);
+        assert Utils.check(offsets.length == selectors.length + 1);
+        assert Utils.check(offsets[offsets.length - 1] == 0);
+
+        int mult = 1;
+        int i = 0;
+        for (;;) {
+            Selector sel = selectors[i];
+            if (!sel.isExhausted()) {
+                int next = sel.nextIndex(ast);
+                offsets[i] = next * mult;
+                break;
+            }
+            sel.restart();
+            int next = sel.nextIndex(ast);
+            offsets[i] = next * mult;
+            mult *= dataDimensions[i];
+            i++;
+        }
+        // now we know the selector is exhausted
+        // the array contains partial offsets from [0] to [i]
+        // and full offsets from [i+1] to its end
+
+        partialToFullOffsetsNoNA(offsets, i + 1);
+    }
+
 
     private static final boolean DEBUG_M = false;
 
@@ -130,6 +287,8 @@ public abstract class Selector {
     public abstract int size();
     public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
     public abstract boolean isConstant();
+    public abstract boolean isExhausted(); // the next call to nextIndex would go above selector size (always for selectors of size 1)
+    public abstract boolean mayHaveNA();
 
     // non-failing
     public static final class MissingSelector extends Selector {
@@ -158,8 +317,18 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return last == size;
+        }
+
+        @Override
         public boolean isConstant() {
             return true;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
+            return false;
         }
     }
 
@@ -192,8 +361,18 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return true;
+        }
+
+        @Override
         public boolean isConstant() {
             return true;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
+            return false;
         }
     }
 
@@ -247,15 +426,23 @@ public abstract class Selector {
                     throw RError.getSubscriptBounds(ast);
                 }
             }
-            if (value == RInt.NA) { // could also remove this
-                return RInt.NA;
-            }
             transition = Transition.GENERIC_SELECTION;
             throw new UnexpectedResultException(this);
         }
 
         @Override
+        public boolean isExhausted() {
+            return offset == index.size();
+        }
+
+        @Override
         public boolean isConstant() {
+            return false;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
+            // on NA it would fail in nextIndex
             return false;
         }
     }
@@ -315,7 +502,17 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return true;
+        }
+
+        @Override
         public boolean isConstant() {
+            return false;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
             return false;
         }
     }
@@ -377,7 +574,17 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return true;
+        }
+
+        @Override
         public boolean isConstant() {
+            return false;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
             return false;
         }
     }
@@ -391,6 +598,7 @@ public abstract class Selector {
 
         int offset;
         boolean[] omit;
+        boolean hasNA;
 
         @Override
         public void setIndex(RAny index) {
@@ -400,7 +608,7 @@ public abstract class Selector {
         @Override
         public void start(int dataSize, ASTNode ast) {
 
-            boolean hasNA = false;
+            hasNA = false;
             boolean hasNegative = false;
             boolean hasPositive = false;
 
@@ -506,8 +714,18 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return offset == size;
+        }
+
+        @Override
         public boolean isConstant() {
             return false;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
+            return hasNA;
         }
     }
 
@@ -599,8 +817,18 @@ public abstract class Selector {
         }
 
         @Override
+        public boolean isExhausted() {
+            return indexOffset == size;
+        }
+
+        @Override
         public boolean isConstant() {
             return false;
+        }
+
+        @Override
+        public boolean mayHaveNA() {
+            return true; // would have to do more work in start to rule out
         }
 
     }

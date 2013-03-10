@@ -9,11 +9,36 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+/**
+ * "c"
+ * 
+ * <pre>
+ * ... -- objects to be concatenated.
+ * recursive -- logical. If recursive = TRUE, the function recursively descends through lists
+ *              (and pairlists) combining all their elements into a vector.
+ * </pre>
+ */
 // FIXME: the set of specializations already implemented is biased by the binarytrees benchmark
-
 // TODO: do more specializations, obvious opportunities include: vectors of same type, same result type, perhaps something for lists as well
 // TODO: implement "recursive" argument and note that once this is done, the code will become even closer to that of unlist (refactor)
-public class Combine {
+final class C extends CallFactory {
+
+    static final CallFactory _ = new C("c", new String[]{"...", "recursive"}, new String[]{});
+
+    C(String name, String[] parameters, String[] required) {
+        super(name, parameters, required);
+    }
+
+    // only supports a vector of integers, doubles, or logical
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        RSymbol[] collapsedNames = collapseEmptyNames(names);
+        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, collapsedNames, exprs) {
+            @Override public RAny doBuiltIn(Frame frame) {
+                return RNull.getNull();
+            }
+        }; }
+        return Specialized.createUninitialized(call, collapsedNames, exprs);
+    }
 
     private static <T extends RArray, U extends T> int fillIn(U result, T input, int offset) {
         int len = input.size();
@@ -41,12 +66,10 @@ public class Combine {
         boolean hasString = false;
         for (int i = 0; i < params.length; i++) { // FIXME: maybe could refactor using the code in Unlist?
             RAny v = params[i];
-
             if (v instanceof RNull) {
                 hasNull = true;
                 continue;
-            }
-            if (v instanceof RList) {
+            } else if (v instanceof RList) {
                 hasList = true;
             } else if (v instanceof RString) {
                 hasString = true;
@@ -61,8 +84,7 @@ public class Combine {
             } else if (v instanceof RRaw) {
                 hasRaw = true;
             } else {
-                Utils.nyi("unsupported type");
-                return null;
+                throw Utils.nyi("unsupported type");
             }
             RArray a = (RArray) v;
             len += a.size();
@@ -213,28 +235,20 @@ public class Combine {
             }
             return res.setNames(newNames);
         }
-        if (hasNull) {
-            return RNull.getNull();
-        }
-        Utils.nyi("Unreacheable");
-        return null;
+        if (hasNull) { return RNull.getNull(); }
+        throw Utils.nyi("Unreacheable");
     }
 
     public static BuiltIn createGeneric(ASTNode ast, final RSymbol[] names, RNode[] exprs) {
         return new BuiltIn(ast, names, exprs) {
-
-            @Override
-            public final RAny doBuiltIn(Frame frame, RAny[] params) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 return genericCombine(names, params);
             }
         };
     }
 
     enum Transition {
-        SIMPLE_SCALARS,
-        CASTING_SCALARS,
-        SIMPLE_VECTORS,
-        GENERIC
+        SIMPLE_SCALARS, CASTING_SCALARS, SIMPLE_VECTORS, GENERIC
     }
 
     public abstract static class CombineAction {
@@ -255,8 +269,7 @@ public class Combine {
 
         public static Specialized createTransition(ASTNode ast, RSymbol[] names, RNode[] exprs, final Transition t) {
             CombineAction a = new CombineAction() {
-                @Override
-                public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                     throw new UnexpectedResultException(t);
                 }
             };
@@ -264,20 +277,15 @@ public class Combine {
         }
 
         public static Specialized createSimpleScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
-            if (names != null) {
-                return createTransition(ast, names, exprs, Transition.GENERIC);
-            }
+            if (names != null) { return createTransition(ast, names, exprs, Transition.GENERIC); }
             if (typeTemplate instanceof ScalarStringImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         String[] content = new String[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarStringImpl)) {
-                                throw new UnexpectedResultException(Transition.CASTING_SCALARS);
-                            }
+                            if (!(v instanceof ScalarStringImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarStringImpl) v).getString();
                         }
                         return RString.RStringFactory.getFor(content);
@@ -287,15 +295,12 @@ public class Combine {
             }
             if (typeTemplate instanceof ScalarDoubleImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarDoubleImpl)) {
-                                throw new UnexpectedResultException(Transition.CASTING_SCALARS);
-                            }
+                            if (!(v instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarDoubleImpl) v).getDouble();
                         }
                         return RDouble.RDoubleFactory.getFor(content);
@@ -305,15 +310,12 @@ public class Combine {
             }
             if (typeTemplate instanceof ScalarIntImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(Transition.CASTING_SCALARS);
-                            }
+                            if (!(v instanceof ScalarIntImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarIntImpl) v).getInt();
                         }
                         return RInt.RIntFactory.getFor(content);
@@ -323,15 +325,12 @@ public class Combine {
             }
             if (typeTemplate instanceof ScalarLogicalImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarLogicalImpl)) {
-                                throw new UnexpectedResultException(Transition.CASTING_SCALARS);
-                            }
+                            if (!(v instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarLogicalImpl) v).getLogical();
                         }
                         return RLogical.RLogicalFactory.getFor(content);
@@ -344,13 +343,10 @@ public class Combine {
         }
 
         public static Specialized createCastingScalars(ASTNode ast, RSymbol[] names, RNode[] exprs, RAny typeTemplate) {
-            if (names != null) {
-                return createTransition(ast, names, exprs, Transition.GENERIC);
-            }
+            if (names != null) { return createTransition(ast, names, exprs, Transition.GENERIC); }
             if (typeTemplate instanceof RDouble) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
@@ -376,8 +372,7 @@ public class Combine {
             }
             if (typeTemplate instanceof RInt) {
                 CombineAction a = new CombineAction() {
-                    @Override
-                    public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
@@ -399,63 +394,40 @@ public class Combine {
             }
             return createTransition(ast, names, exprs, Transition.GENERIC);
         }
-        @Override
-        public final RAny doBuiltIn(Frame frame, RAny[] params) {
+
+        @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             try {
                 return combine.combine(frame, params);
             } catch (UnexpectedResultException e) {
                 Transition t = (Transition) e.getResult();
                 Specialized s = null;
-                switch(t) {
-                    case SIMPLE_SCALARS:
-                        s = createSimpleScalars(ast, argNames, argExprs, params[0]);
-                        replace(s, "install SimpleScalars in Combine.Specialized");
-                        return s.doBuiltIn(frame, params);
+                switch (t) {
+                case SIMPLE_SCALARS:
+                    s = createSimpleScalars(ast, argNames, argExprs, params[0]);
+                    replace(s, "install SimpleScalars in Combine.Specialized");
+                    return s.doBuiltIn(frame, params);
 
-                    case CASTING_SCALARS:
-                        RAny res = genericCombine(argNames, params);
-                        s = createCastingScalars(ast, argNames, argExprs, res);
-                        replace(s, "install CastingScalars in Combine.Specialized");
-                        return res;
+                case CASTING_SCALARS:
+                    RAny res = genericCombine(argNames, params);
+                    s = createCastingScalars(ast, argNames, argExprs, res);
+                    replace(s, "install CastingScalars in Combine.Specialized");
+                    return res;
 
-                    case GENERIC:
-                    default:
-                        replace(createGeneric(ast, argNames, argExprs), "install Generic in Combine.Specialized");
-                        return genericCombine(argNames, params);
+                case GENERIC:
+                default:
+                    replace(createGeneric(ast, argNames, argExprs), "install Generic in Combine.Specialized");
+                    return genericCombine(argNames, params);
                 }
-             }
+            }
         }
     }
 
-    public static final RSymbol[] collapseEmptyNames(RSymbol[] names) {
-        if (names == null) {
-            return names;
-        }
+    public static RSymbol[] collapseEmptyNames(RSymbol[] names) {
+        if (names == null) { return names; }
         for (RSymbol s : names) {
-            if (s != null) {
-                return names;
-            }
+            if (s != null) { return names; }
         }
         return null;
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        // only supports a vector of integers, doubles, or logical
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            RSymbol[] collapsedNames = collapseEmptyNames(names);
-            if (exprs.length == 0) {
-                return new BuiltIn.BuiltIn0(call, collapsedNames, exprs) {
-
-                    @Override
-                    public final RAny doBuiltIn(Frame frame) {
-                        return RNull.getNull();
-                    }
-
-                };
-            }
-            return Specialized.createUninitialized(call, collapsedNames, exprs);
-        }
-    };
 }

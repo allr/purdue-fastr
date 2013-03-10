@@ -4,28 +4,54 @@ import java.util.*;
 import java.util.regex.*;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "strsplit"
+ * 
+ * <pre>
+ * x -- character vector, each element of which is to be split. Other inputs, including a factor, will give an error.
+ * split -- character vector (or object which can be coerced to such) containing regular expression(s) (unless fixed = TRUE)
+ *           to use for splitting. If empty matches occur, in particular if split has length 0, x is split into single 
+ *           characters. If split has length greater than 1, it is re-cycled along x.
+ * fixed -- logical. If TRUE match split exactly, otherwise use regular expressions. Has priority over perl.
+ * perl -- logical. Should perl-compatible regexps be used?
+ * useBytes -- logical. If TRUE the matching is done byte-by-byte rather than character-by-character, and inputs with marked 
+ *         encodings are not converted. This is forced (with a warning) if any input is found which is marked as "bytes".
+ * </pre>
+ */
 // FIXME: this implementation is very slow and is only partial
 // the supported regular expressions may not be exactly like in GNU-R
+final class StrSplit extends CallFactory {
+    static final CallFactory _ = new StrSplit("strsplit", new String[]{"x", "split", "fixed", "perl", "useBytes"}, new String[]{"x"});
 
-public class StrSplit {
-    private static final String[] paramNames = new String[]{"x", "split", "fixed", "perl", "useBytes"};
+    private StrSplit(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
-    private static final int IX = 0;
-    private static final int ISPLIT = 1;
-    private static final int IFIXED = 2;
-    private static final int IPERL = 3;
-    private static final int IUSE_BYTES = 4;
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
+        if (ia.provided("useBytes")) { throw Utils.nyi(); }
+
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                RString x = Convert.coerceToStringError(args[ia.position("x")], ast);
+                RString split = Convert.coerceToStringError(args[ia.position("split")], ast);
+                boolean fixed = ia.provided("fixed") ? Convert.checkFirstLogical(args[ia.position("fixed")], RLogical.TRUE) : false;
+                boolean perl = ia.provided("perl") ? Convert.checkFirstLogical(args[ia.position("perl")], RLogical.TRUE) : false;
+
+                return strsplit(ast, x, split, fixed, perl);
+            }
+        };
+    }
 
     // FIXME: could get rid of ArrayList (also fixed matching below)
     // FIXME: could cache compiled regular expression evaluators, and particularly so when the regular expression is a constant
-    public static final RAny strSplitRE(RString x, RString split) {
+    public static RAny strSplitRE(RString x, RString split) {
         int splitIndex = 0;
         int splitSize = split.size();
         Pattern[] patterns = new Pattern[splitSize];
@@ -145,35 +171,4 @@ public class StrSplit {
             return strSplitFixed(x, split);
         }
     }
-
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (provided[IUSE_BYTES]) {
-                Utils.nyi();
-            }
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-            if (!provided[ISPLIT]) {
-                BuiltIn.missingArg(call, paramNames[ISPLIT]);
-            }
-            return new BuiltIn(call, names, exprs) {
-
-                @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    RString x = Convert.coerceToStringError(args[paramPositions[IX]], ast);
-                    RString split = Convert.coerceToStringError(args[paramPositions[ISPLIT]], ast);
-                    boolean fixed = provided[IFIXED] ? Convert.checkFirstLogical(args[paramPositions[IFIXED]], RLogical.TRUE) : false;
-                    boolean perl = provided[IPERL] ? Convert.checkFirstLogical(args[paramPositions[IPERL]], RLogical.TRUE) : false;
-
-                    return strsplit(ast, x, split, fixed, perl);
-                }
-            };
-        }
-    };
 }

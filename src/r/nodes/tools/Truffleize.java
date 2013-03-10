@@ -333,6 +333,21 @@ public class Truffleize implements Visitor {
     }
 
 
+    public static boolean isArrayColumnSubset(boolean subset, RNode[] selectors) {
+        if (!subset) {
+            return false;
+        }
+        for (int i = 0; i < selectors.length - 1; i++) {
+            if (selectors[i] != null) {
+                return false;
+            }
+        }
+        if (selectors[selectors.length - 1] == null) {
+            return false;
+        }
+        return true;
+    }
+
     // TODO This has to be changed for partial matching so that exact is checked also for vectors
     @Override
     public void visit(AccessVector a) {
@@ -390,28 +405,56 @@ public class Truffleize implements Visitor {
             if (dims == 0) {
                 Utils.nyi("unsupported indexing style");
             }
-            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
-            for (int i = 0; i < selNodes.length; ++i) {
-                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
-            }
             if (dims == 2) { // if matrix read, use the specialized matrix form
+                if (a.isSubset() && selectors[0] == null && selectors[1] != null) { // matrix column
+                    result = new ReadArray.MatrixColumnSubset(a,  createTree(a.getVector()),
+                            selectors[1], ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
+
+                }
+                if (a.isSubset() && selectors[0] != null && selectors[1] == null) {
+                    result = new ReadArray.MatrixRowSubset(a,  createTree(a.getVector()),
+                            selectors[0], ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
+                }
+                Selector.SelectorNode selectorIExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[0]);
+                Selector.SelectorNode selectorJExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[1]);
+
                 if (!a.isSubset()) {
                     result = new ReadArray.MatrixSubscript(a, createTree(a.getVector()),
-                            selNodes,
+                            selectorIExpr, selectorJExpr,
                             ReadArray.createDropOptionNode(a, drop),
                             ReadArray.createExactOptionNode(a, exact));
                 } else {
                     result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
-                                  selNodes,
+                                  selectorIExpr, selectorJExpr,
                                   ReadArray.createDropOptionNode(a, drop),
                                   ReadArray.createExactOptionNode(a, exact));
                 }
-            } else { // otherwise use the generalized array read
-                result = new ReadArray.GeneralizedRead(a, a.isSubset(), createTree(a.getVector()),
-                              selNodes,
-                              ReadArray.createDropOptionNode(a, drop),
-                              ReadArray.createExactOptionNode(a, exact));
+                return;
             }
+            // otherwise use array read
+            if (isArrayColumnSubset(a.isSubset(), selectors)) {
+                result = new ReadArray.ArrayColumnSubset(a, createTree(a.getVector()),
+                        selectors.length,
+                        selectors[selectors.length - 1],
+                        ReadArray.createDropOptionNode(a, drop),
+                        ReadArray.createExactOptionNode(a, exact));
+                return;
+            }
+
+
+            Selector.SelectorNode[] selNodes = new Selector.SelectorNode[dims];
+            for (int i = 0; i < selNodes.length; ++i) {
+                selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
+            }
+
+            result = new ReadArray.GenericRead(a, a.isSubset(), createTree(a.getVector()),
+                          selNodes,
+                          ReadArray.createDropOptionNode(a, drop),
+                          ReadArray.createExactOptionNode(a, exact));
             return;
         }
         Utils.nyi("unsupported indexing style");
@@ -431,7 +474,6 @@ public class Truffleize implements Visitor {
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
                 result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
-//                result = new r.nodes.truffle.UpdateVector.ScalarNumericSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
                 result = new r.nodes.truffle.UpdateVector.DoubleBaseSimpleSelection.ScalarIntSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             }
         } else if (sa.convertedExpressions.length >= 2) {
@@ -477,10 +519,11 @@ public class Truffleize implements Visitor {
             if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expecting matrix name for matrix update");
             }
+            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
             if (u.isSuper()) {
-                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
             } else {
-                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset()));
+                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
                 return;
             }
         } else {

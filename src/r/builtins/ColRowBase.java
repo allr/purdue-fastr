@@ -10,12 +10,58 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
-public class ColumnsRowsStats {
-    private static final String[] paramNames = new String[]{"x", "na.rm", "dims"};
+/**
+ * Base
+ * 
+ * <pre>
+ * x -- an array of two or more dimensions, containing numeric, complex, integer or logical values, or a numeric data frame.
+ * na.rm -- logical. Should missing values (including NaN) be omitted from the calculations?
+ * dims -- integer: Which dimensions are regarded as rows or columns to sum over. For row*, the sum or mean is over 
+ *         dimensions dims+1, ...; for col* it is over dimensions 1:dims.
+ * </pre>
+ */
+abstract class ColRowBase extends CallFactory {
 
-    private static final int IX = 0;
-    private static final int INA_RM = 1;
-    private static final int IDIMS = 2;
+    private final Stats stats;
+
+    ColRowBase(String name, Stats stats) {
+        super(name, new String[]{"x", "na.rm", "dims"}, new String[]{"x"});
+        this.stats = stats;
+    }
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
+        if (ia.provided("dims")) { throw Utils.nyi("unimplemented argument"); }
+        if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny x) {
+                return stat(ast, x, false);
+            }
+        }; }
+
+        boolean maybeNARm = false;
+        if (ia.provided("na.rm")) {
+            if (!BuiltIn.isLogicalConstant(exprs[ia.position("na.rm")], RLogical.FALSE)) {
+                maybeNARm = true;
+            }
+        }
+
+        if (names.length == 2) {
+            if (!maybeNARm) { // FIXME: is it overkill to optimize for this?
+                return new BuiltIn.BuiltIn2(call, names, exprs) {
+                    @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        return stat(ast, (ia.position("x") == 0) ? arg0 : arg1, false);
+                    }
+                };
+            } else {
+                return new BuiltIn.BuiltIn2(call, names, exprs) {
+                    @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        return ia.position("x") == 0 ? stat(ast, arg0, arg1) : stat(ast, arg1, arg0);
+                    }
+                };
+            }
+        }
+        throw Utils.nyi();
+    }
 
     public abstract static class Stats {
         public abstract double[] stat(RComplex x, int m, int n, boolean naRM);
@@ -41,108 +87,45 @@ public class ColumnsRowsStats {
         return dimensions;
     }
 
-    public static final class StatsFactory extends CallFactory {
+    public RAny stat(ASTNode ast, RComplex x, boolean naRM) {
+        int[] dim = x.dimensions();
+        int[] d = checkDimensions(ast, dim);
+        double[] content = stats.stat(x, d[0], d[1], naRM); // real, imag, real, imag, ...
+        return RComplex.RComplexFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+    }
 
-        private final Stats stats;
+    public RAny stat(ASTNode ast, RDouble x, boolean naRM) {
+        int[] dim = x.dimensions();
+        int[] d = checkDimensions(ast, dim);
+        double[] content = stats.stat(x, d[0], d[1], naRM);
+        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+    }
 
-        public StatsFactory(Stats stats) {
-            this.stats = stats;
-        }
+    public RAny stat(ASTNode ast, RInt x, boolean naRM) {
+        int[] dim = x.dimensions();
+        int[] d = checkDimensions(ast, dim);
+        double[] content = stats.stat(x, d[0], d[1], naRM);
+        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+    }
 
-        public RAny stat(ASTNode ast, RComplex x, boolean naRM) {
-            int[] dim = x.dimensions();
-            int[] d = checkDimensions(ast, dim);
-            double[] content = stats.stat(x, d[0], d[1], naRM); // real, imag, real, imag, ...
-            return RComplex.RComplexFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
-        }
+    public RAny stat(ASTNode ast, RAny x, boolean naRM) {
+        if (x instanceof RDouble) { return stat(ast, (RDouble) x, naRM); }
+        if (x instanceof RInt) { return stat(ast, (RInt) x, naRM); }
+        if (x instanceof RLogical) { return stat(ast, x.asInt(), naRM); }
+        if (x instanceof RComplex) { return stat(ast, (RComplex) x, naRM); }
+        throw RError.getXNumeric(ast);
+    }
 
-        public RAny stat(ASTNode ast, RDouble x, boolean naRM) {
-            int[] dim = x.dimensions();
-            int[] d = checkDimensions(ast, dim);
-            double[] content = stats.stat(x, d[0], d[1], naRM);
-            return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
-        }
-
-        public RAny stat(ASTNode ast, RInt x, boolean naRM) {
-            int[] dim = x.dimensions();
-            int[] d = checkDimensions(ast, dim);
-            double[] content = stats.stat(x, d[0], d[1], naRM);
-            return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
-        }
-
-        public RAny stat(ASTNode ast, RAny x, boolean naRM) {
-            if (x instanceof RDouble) { return stat(ast, (RDouble) x, naRM); }
-            if (x instanceof RInt) { return stat(ast, (RInt) x, naRM); }
-            if (x instanceof RLogical) { return stat(ast, x.asInt(), naRM); }
-            if (x instanceof RComplex) { return stat(ast, (RComplex) x, naRM); }
-            throw RError.getXNumeric(ast);
-        }
-
-        public RAny stat(ASTNode ast, RAny x, RAny naRM) {
-            if (naRM instanceof RLogical) {
-                RLogical lnaRM = (RLogical) naRM;
-                if (lnaRM.size() == 1) {
-                    int l = lnaRM.getLogical(0);
-                    if (l == RLogical.TRUE) { return stat(ast, x, true); }
-                    if (l == RLogical.FALSE) { return stat(ast, x, false); }
-                }
-            } else if (naRM instanceof RDouble || naRM instanceof RInt) { return stat(ast, x, naRM.asLogical()); }
-            throw RError.getInvalidArgument(ast, "na.rm");
-        }
-
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
+    public RAny stat(ASTNode ast, RAny x, RAny naRM) {
+        if (naRM instanceof RLogical) {
+            RLogical lnaRM = (RLogical) naRM;
+            if (lnaRM.size() == 1) {
+                int l = lnaRM.getLogical(0);
+                if (l == RLogical.TRUE) { return stat(ast, x, true); }
+                if (l == RLogical.FALSE) { return stat(ast, x, false); }
             }
-            if (provided[IDIMS]) {
-                Utils.nyi("unimplemented argument");
-            }
-            if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override public RAny doBuiltIn(Frame frame, RAny x) {
-                    return stat(ast, x, false);
-                }
-            }; }
-
-            boolean maybeNARm = false;
-            if (provided[INA_RM]) {
-                if (!BuiltIn.isLogicalConstant(exprs[paramPositions[INA_RM]], RLogical.FALSE)) {
-                    maybeNARm = true;
-                }
-            }
-
-            if (names.length == 2) {
-                if (!maybeNARm) { // FIXME: is it overkill to optimize for this?
-                    return new BuiltIn.BuiltIn2(call, names, exprs) {
-                        @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                            return stat(ast, (paramPositions[IX] == 0) ? arg0 : arg1, false);
-                        }
-                    };
-                } else {
-                    return new BuiltIn.BuiltIn2(call, names, exprs) {
-                        @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                            RAny x;
-                            RAny naRM;
-                            if (paramPositions[IX] == 0) {
-                                x = arg0;
-                                naRM = arg1;
-                            } else {
-                                x = arg1;
-                                naRM = arg0;
-                            }
-                            return stat(ast, x, naRM);
-                        }
-                    };
-                }
-            }
-            return null;
-        }
+        } else if (naRM instanceof RDouble || naRM instanceof RInt) { return stat(ast, x, naRM.asLogical()); }
+        throw RError.getInvalidArgument(ast, "na.rm");
     }
 
     // FIXME: we might get better performance by hand-inlining the functions below
@@ -372,94 +355,4 @@ public class ColumnsRowsStats {
         }
         return content;
     }
-
-    public static Stats getColSums() {
-        return new Stats() {
-            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public int[] getResultDimension(int[] sourceDim) {
-                int[] result = new int[sourceDim.length - 1];
-                System.arraycopy(sourceDim, 1, result, 0, result.length);
-                return result;
-            }
-        };
-    }
-
-    public static Stats getColMeans() {
-        return new Stats() {
-            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-                return colSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public int[] getResultDimension(int[] sourceDim) {
-                int[] result = new int[sourceDim.length - 1];
-                System.arraycopy(sourceDim, 1, result, 0, result.length);
-                return result;
-            }
-        };
-    }
-
-    public static Stats getRowSums() {
-        return new Stats() {
-            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, false, naRM);
-            }
-
-            @Override public int[] getResultDimension(int[] sourceDim) {
-                return null; // row sum results have no dim
-            }
-        };
-    }
-
-    public static Stats getRowMeans() {
-        return new Stats() {
-            @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-                return rowSumsMeans(x, m, n, true, naRM);
-            }
-
-            @Override public int[] getResultDimension(int[] sourceDim) {
-                return null; // row means results have no dim
-            }
-        };
-    }
-
-    public static final CallFactory COLSUMS_FACTORY = new StatsFactory(getColSums());
-    public static final CallFactory ROWSUMS_FACTORY = new StatsFactory(getRowSums());
-    public static final CallFactory COLMEANS_FACTORY = new StatsFactory(getColMeans());
-    public static final CallFactory ROWMEANS_FACTORY = new StatsFactory(getRowMeans());
-
 }

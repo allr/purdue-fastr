@@ -6,21 +6,22 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
-public class Debugging {
+/**
+ * "__inspect" Fastr specific debugging.
+ */
+final class Inspect extends CallFactory {
+    static final CallFactory _ = new Inspect("__inspect", new String[]{}, null);
 
-    public static final CallFactory INSPECT_FACTORY = new CallFactory() {
+    private Inspect(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny arg) {
-                    System.out.println("INSPECT: " + arg + " type=" + arg.typeOf() + " isShared=" + arg.isShared() + " isTemporary=" + arg.isTemporary());
-                    return RNull.getNull();
-                }
-            };
-        }
-    };
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                System.out.println("INSPECT: " + arg + " type=" + arg.typeOf() + " isShared=" + arg.isShared() + " isTemporary=" + arg.isTemporary());
+                return RNull.getNull();
+            }
+        };
+    }
 }

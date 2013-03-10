@@ -9,45 +9,42 @@ import r.nodes.ASTNode;
 import r.nodes.truffle.Arithmetic;
 import r.nodes.truffle.RNode;
 
-public class Exp {
-    public static final CallFactory FACTORY = new CallFactory() {
+/**
+ * "exp"
+ * 
+ * <pre>
+ * x -- a numeric or complex vector.
+ * </pre>
+ */
+final class Exp extends CallFactory {
+    static final CallFactory _ = new Exp("exp", new String[]{"x"}, new String[]{"x"});
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    private Exp(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
-            BuiltIn.ensureArgName(call, "x", names[0]);
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg) {
-
-                    if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
-                        return new View.RDoubleProxy<RDouble>(arg.asDouble()) {
-
-                            @Override
-                            public double getDouble(int i) {
-                                double d = orig.getDouble(i);
-                                if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                                    return RDouble.NA;
-                                } else {
-                                    double res = Math.exp(d);
-                                    if (RDouble.RDoubleUtils.isNAorNaN(res)) {
-                                        RContext.warning(ast, RError.NAN_PRODUCED);
-                                    }
-                                    return res;
-                                }
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
+                    return new View.RDoubleProxy<RDouble>(arg.asDouble()) {
+                        @Override public double getDouble(int i) {
+                            double d = orig.getDouble(i);
+                            if (RDouble.RDoubleUtils.isNAorNaN(d)) { return RDouble.NA; }
+                            double res = Math.exp(d);
+                            if (RDouble.RDoubleUtils.isNAorNaN(res)) {
+                                RContext.warning(ast, RError.NAN_PRODUCED);
                             }
-                        };
-                    } else if (arg instanceof RComplex) {
-                        return Arithmetic.ComplexView.create(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
-                    } else {
-                        throw RError.getNonNumericMath(ast);
-                    }
-
-
+                            return res;
+                        }
+                    };
+                } else if (arg instanceof RComplex) {
+                    return Arithmetic.ComplexView.create(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
+                } else {
+                    throw RError.getNonNumericMath(ast);
                 }
-
-            };
-        }
-    };
+            }
+        };
+    }
 }

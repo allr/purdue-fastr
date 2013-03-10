@@ -34,7 +34,7 @@ import com.oracle.truffle.api.nodes.*;
 // fully GNU-R string representation of numerics
 final class Cat extends CallFactory {
 
-    static final CallFactory _ = new Cat("cat", new String[]{"..", "file", "sep", "fill", "labels", "append"}, new String[]{});
+    static final CallFactory _ = new Cat("cat", new String[]{"...", "file", "sep", "fill", "labels", "append"}, new String[]{});
 
     Cat(String name, String[] parameters, String[] required) {
         super(name, parameters, required);

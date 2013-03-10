@@ -9,48 +9,51 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "sqrt"
+ * 
+ * <pre>
+ * x -- a numeric or complex vector or array.
+ * </pre>
+ */
 // FIXME: scalar optimizations
 // FIXME: Truffle can't handle BuiltIn1
-public class Sqrt {
-    public static final CallFactory FACTORY = new CallFactory() {
+final class Sqrt extends CallFactory {
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    static final CallFactory _ = new Sqrt("sqrt", new String[]{"x"}, new String[]{"x"});
 
-            BuiltIn.ensureArgName(call, "x", names[0]);
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
+    private Sqrt(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg) {
-                    RDouble typedArg;
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
 
-                    if (arg instanceof RDouble) {
-                        typedArg = (RDouble) arg;
-                    } else if (arg instanceof RInt || arg instanceof RLogical) {
-                        typedArg = arg.asDouble();
-                    } else {
-                        throw RError.getNonNumericMath(ast);
-                    }
-
-                    return new View.RDoubleProxy<RDouble>(typedArg) {
-
-                        @Override
-                        public double getDouble(int i) {
-                            double d = orig.getDouble(i);
-                            if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                                return RDouble.NA;
-                            } else {
-                                double res = Math.sqrt(d);
-                                if (RDouble.RDoubleUtils.isNAorNaN(res)) {
-                                    RContext.warning(ast, RError.NAN_PRODUCED);
-                                }
-                                return res;
-                            }
-                        }
-                    };
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                RDouble typedArg;
+                if (arg instanceof RDouble) {
+                    typedArg = (RDouble) arg;
+                } else if (arg instanceof RInt || arg instanceof RLogical) {
+                    typedArg = arg.asDouble();
+                } else {
+                    throw RError.getNonNumericMath(ast);
                 }
-
-            };
-        }
-    };
+                return new View.RDoubleProxy<RDouble>(typedArg) {
+                    @Override public double getDouble(int i) {
+                        double d = orig.getDouble(i);
+                        if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            return RDouble.NA;
+                        } else {
+                            double res = Math.sqrt(d);
+                            if (RDouble.RDoubleUtils.isNAorNaN(res)) {
+                                RContext.warning(ast, RError.NAN_PRODUCED);
+                            }
+                            return res;
+                        }
+                    }
+                };
+            }
+        };
+    }
 }

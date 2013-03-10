@@ -1404,11 +1404,21 @@ public class Arithmetic extends BaseR {
     public static final class Div extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            return (a * c + b * d) / (c * c + d * d);
+            double denom = c * c + d * d;
+            if (denom != 0) {
+                return (a * c + b * d) / denom;
+            } else {
+                return a / c;
+            }
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            return (b * c - a * d) / (c * c + d * d);
+            double denom = c * c + d * d;
+            if (denom != 0) {
+                return (b * c - a * d) / denom;
+            } else {
+                return b / d;
+            }
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -1437,8 +1447,13 @@ public class Arithmetic extends BaseR {
                 double d = y[j];
                 if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
                     double denom = c * c + d * d;
-                    res[i] = (a * c + b * d) / denom;
-                    res[j] = (b * c - a * d) / denom;
+                    if (denom != 0) {
+                        res[i] = (a * c + b * d) / denom;
+                        res[j] = (b * c - a * d) / denom;
+                    } else {
+                        res[i] = a / c;
+                        res[j] = b / d;
+                    }
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1453,15 +1468,29 @@ public class Arithmetic extends BaseR {
             double[] x = xcomp.getContent();
             double denom = c * c + d * d;
             int j = 1;
-            for (int i = 0; i < rsize; i++, i++, j++, j++) {
-                double a = x[i];
-                double b = x[j];
-                if (!RComplexUtils.eitherIsNA(a, b)) {
-                    res[i] = (a * c + b * d) / denom;
-                    res[j] = (b * c - a * d) / denom;
-                } else {
-                    res[i] = RDouble.NA;
-                    res[j] = RDouble.NA;
+            if (denom != 0) {
+                for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                    double a = x[i];
+                    double b = x[j];
+                    if (!RComplexUtils.eitherIsNA(a, b)) {
+                        res[i] = (a * c + b * d) / denom;
+                        res[j] = (b * c - a * d) / denom;
+                    } else {
+                        res[i] = RDouble.NA;
+                        res[j] = RDouble.NA;
+                    }
+                }
+            } else {
+                for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                    double a = x[i];
+                    double b = x[j];
+                    if (!RComplexUtils.eitherIsNA(a, b)) {
+                        res[i] = a / c;
+                        res[j] = b / d;
+                    } else {
+                        res[i] = RDouble.NA;
+                        res[j] = RDouble.NA;
+                    }
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);

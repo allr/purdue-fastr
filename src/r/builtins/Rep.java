@@ -3,7 +3,6 @@ package r.builtins;
 import java.util.*;
 
 import r.*;
-import r.builtins.BuiltIn.AnalyzedArguments;
 import r.data.*;
 import r.data.RComplex.RComplexFactory;
 import r.data.RDouble.RDoubleFactory;
@@ -18,18 +17,52 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "rep"
+ * 
+ * <pre>
+ * x  -- a vector (of any mode including a list) or a pairlist or a factor or (except for rep.int) a POSIXct or POSIXlt or 
+ *        date object; or also, an S4 object containing a vector of the above kind.
+ * ... -- further arguments to be passed to or from other methods. For the internal default method these can include:
+ *      times -- A integer vector giving the (non-negative) number of times to repeat each element if of length length(x), or to 
+ *                repeat the whole vector if of length 1. Negative or NA values are an error.
+ *      length.out -- non-negative integer. The desired length of the output vector. Other inputs will be coerced to an integer 
+ *                    vector and the first element taken. Ignored if NA or invalid.
+ *      each -- non-negative integer. Each element of x is repeated each times. Other inputs will be coerced to an integer 
+ *              vector and the first element taken. Treated as 1 if NA or invalid.
+ * </pre>
+ */
 // FIXME: Truffle can't handle BuiltIn2
 // TODO: support non-scalar times argument
 // TODO: support list argument
-public class Rep {
+class Rep extends CallFactory {
+
+    static final CallFactory _ = new Rep("rep", new String[]{"x", "..."}, new String[]{"x"});
+
+    Rep(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static final boolean EAGER = true; // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
 
-    private static final String[] repIntParamNames = new String[]{"x", "times"};
-    private static final String[] repParamNames = new String[]{"x", "..."};
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        if (names.length == 2) {
+            int otherPos = ia.position("x") == 0 ? 1 : 0;
+            RSymbol otherName = names[otherPos];
+            if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) { return RepInt._.create(call, names, exprs); }
+            if (otherName == RSymbol.getSymbol("length.out")) {
+                final boolean xfirst = ia.position("x") == 0;
+                return new BuiltIn.BuiltIn2(call, names, exprs) {
+                    @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                    }
+                };
 
-    private static final int IX = 0;
-    private static final int ITIMES = 1;
+            }
+        }
+        throw Utils.nyi("unsupported rep arguments");
+    }
 
     public static void checkScalar(RArray a, ASTNode ast) {
         int n = a.size();
@@ -471,58 +504,6 @@ public class Rep {
             RComplex x = (RComplex) argX;
             return repInt(x, x.size(), len);
         }
-        Utils.nyi("unsupported base type for rep");
-        return null;
+        throw Utils.nyi("unsupported base type for rep");
     }
-
-    public static final CallFactory REPINT_FACTORY = new CallFactory() {
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, repIntParamNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, repIntParamNames[IX]);
-            }
-            if (!provided[ITIMES]) {
-                BuiltIn.missingArg(call, repIntParamNames[ITIMES]);
-            }
-            final boolean xfirst = paramPositions[IX] == 0;
-            return new BuiltIn.BuiltIn2(call, names, exprs) {
-                @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                    return genericRepInt(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
-                }
-            };
-        }
-    };
-
-    public static final CallFactory REP_FACTORY = new CallFactory() {
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, repParamNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, repIntParamNames[IX]);
-            }
-            if (names.length == 2) {
-                int otherPos = paramPositions[IX] == 0 ? 1 : 0;
-                RSymbol otherName = names[otherPos];
-                if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) { return REPINT_FACTORY.create(call, names, exprs); }
-                if (otherName == RSymbol.getSymbol("length.out")) {
-                    final boolean xfirst = paramPositions[IX] == 0;
-                    return new BuiltIn.BuiltIn2(call, names, exprs) {
-                        @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                            return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
-                        }
-                    };
-
-                }
-            }
-            Utils.nyi("unsupported rep arguments");
-            return null;
-        }
-    };
 }

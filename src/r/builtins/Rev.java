@@ -8,20 +8,37 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+/**
+ * "rev"
+ * 
+ * <pre>
+ * x -- a vector or another object for which reversal is defined.
+ * </pre>
+ */
 // FIXME: could also do lazy rev of int sequence
-public class Rev {
+class Rev extends CallFactory {
+    static final CallFactory _ = new Rev("rev", new String[]{"x"}, new String[]{});
+
+    Rev(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                return rev(arg);
+            }
+        };
+    }
 
     public static RString rev(RString orig) {
         final int size = orig.size() - 1;
         return new View.RStringProxy<RString>(orig) {
-
-            @Override
-            public String getString(int i) {
+            @Override public String getString(int i) {
                 return orig.getString(size - i);
             }
 
-            @Override
-            public Attributes attributes() { // drop attributes
+            @Override public Attributes attributes() { // drop attributes
                 return null;
             }
         };
@@ -30,14 +47,11 @@ public class Rev {
     public static RLogical rev(RLogical orig) {
         final int size = orig.size() - 1;
         return new View.RLogicalProxy<RLogical>(orig) {
-
-            @Override
-            public int getLogical(int i) {
+            @Override public int getLogical(int i) {
                 return orig.getLogical(size - i);
             }
 
-            @Override
-            public Attributes attributes() { // drop attributes
+            @Override public Attributes attributes() { // drop attributes
                 return null;
             }
         };
@@ -47,13 +61,11 @@ public class Rev {
         final int size = orig.size() - 1;
         return new View.RIntProxy<RInt>(orig) {
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
                 return orig.getInt(size - i);
             }
 
-            @Override
-            public Attributes attributes() { // drop attributes
+            @Override public Attributes attributes() { // drop attributes
                 return null;
             }
         };
@@ -63,13 +75,11 @@ public class Rev {
         final int size = orig.size() - 1;
         return new View.RDoubleProxy<RDouble>(orig) {
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 return orig.getDouble(size - i);
             }
 
-            @Override
-            public Attributes attributes() { // drop attributes
+            @Override public Attributes attributes() { // drop attributes
                 return null;
             }
         };
@@ -77,32 +87,19 @@ public class Rev {
 
     // FIXME: should do type-specialization
     public static RAny rev(RAny arg) {
-
         // default implementation
-        if (!(arg instanceof RArray)) {
-            Utils.nyi("unsupported type");
-            return null;
-        }
+        if (!(arg instanceof RArray)) { throw Utils.nyi("unsupported type"); }
         RArray a = (RArray) arg;
         RArray.Names names = a.names();
         int size;
         if (names == null) {
-            if (arg instanceof RDouble) {
-                return rev((RDouble) arg);
-            }
-            if (arg instanceof RInt) {
-                return rev((RInt) arg);
-            }
-            if (arg instanceof RLogical) {
-                return rev((RLogical) arg);
-            }
-            if (arg instanceof RString) {
-                return rev((RString) arg);
-            }
+            if (arg instanceof RDouble) { return rev((RDouble) arg); }
+            if (arg instanceof RInt) { return rev((RInt) arg); }
+            if (arg instanceof RLogical) { return rev((RLogical) arg); }
+            if (arg instanceof RString) { return rev((RString) arg); }
             size = a.size();
         } else {
             // reverse names
-
             RSymbol[] symbols = names.sequence();
             size = a.size();
             assert Utils.check(size == symbols.length);
@@ -119,18 +116,4 @@ public class Rev {
         }
         return res;
     }
-
-    public static final CallFactory FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny arg) {
-                    return rev(arg);
-                }
-            };
-        }
-    };
 }

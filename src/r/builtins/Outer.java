@@ -3,9 +3,8 @@ package r.builtins;
 import java.util.*;
 
 import r.*;
-import r.builtins.SApply.CallableProvider;
-import r.builtins.SApply.ValueProvider;
-import r.builtins.BuiltIn.AnalyzedArguments;
+import r.builtins.LApply.CallableProvider;
+import r.builtins.LApply.ValueProvider;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
@@ -15,82 +14,75 @@ import r.nodes.truffle.FunctionCall;
 
 import com.oracle.truffle.api.frame.*;
 
-public class Outer {
+/**
+ * "outer"
+ * 
+ * <pre>
+ * X, Y -- First and second arguments for function FUN. Typically a vector or array.
+ * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").
+ * ... -- optional arguments to be passed to FUN.
+ * </pre>
+ */
+final class Outer extends CallFactory {
+    static final CallFactory _ = new Outer("outer", new String[]{"X", "Y", "FUN"}, new String[]{"X", "Y"});
+
+    private Outer(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     private static final boolean EAGER = true; // NOTE: lazy is now only for integer, expand if needed, now is not faster than eager
 
-    private static final String[] paramNames = new String[]{"X", "Y", "FUN"};
-
-    private static final int IX = 0;
-    private static final int IY = 1;
-    private static final int IFUN = 2;
-
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            ArgumentInfo a = BuiltIn.analyzeArguments(names, exprs, paramNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-            if (!provided[IY]) {
-                BuiltIn.missingArg(call, paramNames[IY]);
-            }
-
-            boolean product = false;
-            if (provided[IFUN]) {
-                RNode fnode = exprs[paramPositions[IFUN]];
-                if (fnode instanceof Constant) {
-                    RAny value = ((Constant) fnode).execute(null);
-                    if (value instanceof RString) {
-                        RString str = (RString) value;
-                        if (str.size() == 1) {
-                            if (str.getString(0).equals("*")) {
-                                product = true;
-                            }
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        final ArgumentInfo ia = check(call, names, exprs);
+        boolean product = false;
+        if (ia.provided("fun")) {
+            RNode fnode = exprs[ia.position("fun")];
+            if (fnode instanceof Constant) {
+                RAny value = ((Constant) fnode).execute(null);
+                if (value instanceof RString) {
+                    RString str = (RString) value;
+                    if (str.size() == 1) {
+                        if (str.getString(0).equals("*")) {
+                            product = true;
                         }
                     }
                 }
-            } else {
-                product = true;
             }
-            if (product) { return new MatrixOperation.OuterProduct(call, exprs[paramPositions[IX]], exprs[paramPositions[IY]]); }
-
-            int cnArgs = 2 + names.length - 3; // "-2" because both FUN, X, Y
-            RSymbol[] cnNames = new RSymbol[cnArgs];
-            RNode[] cnExprs = new RNode[cnArgs];
-            cnNames[0] = null;
-            ValueProvider xArgProvider = new ValueProvider(call);
-            cnExprs[0] = xArgProvider;
-            ValueProvider yArgProvider = new ValueProvider(call);
-            cnExprs[1] = yArgProvider;
-            int j = 0;
-            for (int i = 0; i < names.length; i++) {
-                if (paramPositions[IX] == i || paramPositions[IY] == i || paramPositions[IFUN] == i) {
-                    continue;
-                }
-                cnNames[2 + j] = names[i];
-                cnExprs[2 + j] = exprs[i];
-                j++;
-            }
-
-            final CallableProvider callableProvider = new CallableProvider(call, exprs[paramPositions[IFUN]]);
-            final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
-
-            return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
-                @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                    RAny x = args[paramPositions[IX]];
-                    RAny y = args[paramPositions[IY]];
-                    RAny f = args[paramPositions[IFUN]];
-
-                    return outer(frame, x, y, f);
-                }
-            };
+        } else {
+            product = true;
         }
-    };
+        if (product) { return new MatrixOperation.OuterProduct(call, exprs[ia.position("X")], exprs[ia.position("Y")]); }
+
+        int cnArgs = 2 + names.length - 3; // "-2" because both FUN, X, Y
+        RSymbol[] cnNames = new RSymbol[cnArgs];
+        RNode[] cnExprs = new RNode[cnArgs];
+        cnNames[0] = null;
+        ValueProvider xArgProvider = new ValueProvider(call);
+        cnExprs[0] = xArgProvider;
+        ValueProvider yArgProvider = new ValueProvider(call);
+        cnExprs[1] = yArgProvider;
+        int j = 0;
+        for (int i = 0; i < names.length; i++) {
+            if (ia.position("X") == i || ia.position("Y") == i || ia.position("FUN") == i) {
+                continue;
+            }
+            cnNames[2 + j] = names[i];
+            cnExprs[2 + j] = exprs[i];
+            j++;
+        }
+
+        final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
+        final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+
+        return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                RAny x = args[ia.position("X")];
+                RAny y = args[ia.position("Y")];
+                RAny f = args[ia.position("FUN")];
+                return outer(frame, x, y, f);
+            }
+        };
+    }
 
     public abstract static class OuterBuiltIn extends BuiltIn { // note: this class only exists so that we can call updateParent...
         @Child FunctionCall callNode;
@@ -147,15 +139,13 @@ public class Outer {
                 if (y instanceof RInt) {
                     expy = lazyExpandYVector((RInt) y, ysize, xsize);
                 } else {
-                    Utils.nyi();
-                    return null;
+                    throw Utils.nyi();
                 }
                 if (xsize > 0) {
                     if (x instanceof RInt) {
                         expx = lazyExpandXVector((RInt) x, xsize, ysize);
                     } else {
-                        Utils.nyi();
-                        return null;
+                        throw Utils.nyi();
                     }
                 } else {
                     expx = x;

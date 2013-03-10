@@ -13,6 +13,7 @@ public interface RDouble extends RNumber {
     double NaN = Double.NaN;
     double EPSILON = Math.pow(2.0, -52.0);
     double NEG_INF = Double.NEGATIVE_INFINITY;
+    double POS_INF = Double.POSITIVE_INFINITY;
 
     DoubleImpl EMPTY = (DoubleImpl) RArrayUtils.markShared(RDoubleFactory.getUninitializedArray(0));
     ScalarDoubleImpl BOXED_ZERO = (ScalarDoubleImpl) RArrayUtils.markShared(RDoubleFactory.getScalar(0));

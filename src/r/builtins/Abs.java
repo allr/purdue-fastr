@@ -18,7 +18,7 @@ import r.nodes.truffle.*;
 // FIXME: use node rewriting to get rid of the type checks
 public class Abs extends CallFactory {
 
-    static final Abs FACTORY = new Abs("abs", new String[]{"x"}, null);
+    static final Abs _ = new Abs("abs", new String[]{"x"}, null);
 
     Abs(String name, String[] params, String[] required) {
         super(name, params, required);
