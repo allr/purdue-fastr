@@ -36,6 +36,7 @@ public abstract class RError extends RuntimeException {
     public static final String WRONG_SIGN_IN_BY = "wrong sign in 'by' argument";
     public static final String BY_TOO_SMALL = "'by' argument is much too small";
     public static final String INCORRECT_SUBSCRIPTS = "incorrect number of subscripts";
+    public static final String INCORRECT_SUBSCRIPTS_MATRIX = "incorrect number of subscripts on a matrix";
     public static final String INVALID_TYPE_LIST = "invalid 'type' (list) of argument";
     public static final String INVALID_SEP = "invalid 'sep' specification";
     public static final String NOT_FUNCTION = "argument is not a function, character or symbol"; // GNU R gives also expression for the argument
@@ -386,6 +387,18 @@ public abstract class RError extends RuntimeException {
             @Override
             public String getMessage() {
                 return RError.INCORRECT_SUBSCRIPTS;
+            }
+        };
+    }
+
+    public static RError getIncorrectSubscriptsMatrix(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getMessage() {
+                return RError.INCORRECT_SUBSCRIPTS_MATRIX;
             }
         };
     }

@@ -18,6 +18,9 @@ import r.nodes.*;
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
 // FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
 
+// TODO: the complex arithmetics (here and in some math functions, which are builtins), is not IEEE 754 compliant ; GNU-R depends on the C99 compiler to implement
+// the low-level operations correctly. Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
+
 public class Arithmetic extends BaseR {
 
     private static final boolean IN_PLACE = true;

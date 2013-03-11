@@ -279,5 +279,16 @@ public class TestSimpleArrays extends TestBase {
         // subscript with rewriting
         assertTrue("{  m <- array(1:3, dim=c(3,1,1)) ; f <- function(x,v) { x[[2,1,1]] <- v ; x } ; f(m,10L) ; f(m,10) ; x <- f(m,11L) ; x[1] == 1 && x[2] == 11 && x[3] == 3 }");
 
+        // error reporting
+        assertEvalError("{ a <- 1:9 ; a[,,1] <- 10L }", "incorrect number of subscripts");
+        assertEvalError("{ a <- 1:9 ; a[,1] <- 10L }", "incorrect number of subscripts on a matrix");
+        assertEvalError("{ a <- 1:9 ; a[1,1] <- 10L }", "incorrect number of subscripts on a matrix");
+        assertEvalError("{ a <- 1:9 ; a[1,1,1] <- 10L }", "incorrect number of subscripts");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[[1:2,1]] <- 1 }", "attempt to select more than one element");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[[integer(),1]] <- 1 }", "attempt to select less than one element");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[[1,1]] <- integer() }", "replacement has length zero");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[[1:2,1]] <- integer() }", "replacement has length zero");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[1,2] <- integer() }", "replacement has length zero");
+        assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[1,2] <- 1:3 }", "number of items to replace is not a multiple of replacement length");
     }
 }

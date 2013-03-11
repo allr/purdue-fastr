@@ -10,9 +10,6 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Selector.SelectorNode;
 
-// TODO: fix/add error handling - the number of dimensions vs. the number of selectors, and the replacement size vs. items to replace - see Column for comments
-// TODO: note that replacement is the rhs (terminology) - fix in all update methods (it is correct in Column)
-
 /** Array update AST and its specializations. */
 public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
@@ -182,11 +179,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
         int[] lhsDim = lhs.dimensions();
+        checkDimensions(lhsDim, selectorExprs.length, ast);
         boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-        int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-        int rhsSize = rhs.size();
+        int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+        int replacementSize = rhs.size();
+        checkReplacementSize(itemsToReplace, replacementSize, subset, ast);
 
-        if (replacementSize >= rhsSize) {
+        if (itemsToReplace > 0) {
             int rhsOffset = 0;
             for (;;) {
                 int lhsOffset = offsets[0];
@@ -194,35 +193,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     lhs.set(lhsOffset, rhs.getRef(rhsOffset));
                 }
                 rhsOffset++;
-                if (rhsOffset < rhsSize) {
+                if (rhsOffset < replacementSize) {
                     if (!mayHaveNA) {
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                     } else {
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 } else {
-                    replacementSize -= rhsSize;
-                    if (replacementSize == 0) {
-                        return lhs;
+                    itemsToReplace -= replacementSize;
+                    if (itemsToReplace == 0) {
+                        break;
                     }
-                    if (replacementSize >= rhsSize) {
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
-                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                        } else {
-                            Selector.restart(offsets, selectorVals, lhsDim, ast);
-                        }
+                    rhsOffset = 0;
+                    if (!mayHaveNA) {
+                        Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                     } else {
-                        throw RError.getNotMultipleReplacement(ast);
+                        Selector.restart(offsets, selectorVals, lhsDim, ast);
                     }
                 }
             }
-
         }
-        if (replacementSize == 0) {
-            return lhs;
-        }
-        throw RError.getNotMultipleReplacement(ast);
+        return lhs;
     }
 
     // =================================================================================================================
@@ -945,11 +936,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
             int[] dim = lhs.dimensions();
+            checkDimensions(dim, selectorVals.length, ast);
             int mult = 1;
             int offset = 0;
+            checkReplacementSize(lhs.size(), rhs.size(), false, ast);
             for (int i = 0; i < selectorVals.length; ++i) {
                 Selector s = selectorVals[i];
-                s.start(dim[i], ast);
+                s.start(dim[i], ast); // it is ensured by subscript selectors that itemsToReplace is 1
                 int k = s.nextIndex(ast);
                 assert Utils.check(k != RInt.NA); // ensured by subscript selectors
                 offset += k * mult;
@@ -1007,26 +1000,17 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         public static RArray doUpdate(RArray lhs, RArray rhs, int nSelectors, Selector columnSelector, ASTNode ast) throws UnexpectedResultException {
             int[] dim = lhs.dimensions();
+            checkDimensions(dim, nSelectors, ast);
             int n = dim[nSelectors - 1];
             int m = 1; // size of one column
             for (int i = 0; i < nSelectors - 1; i++) {
                 m *= dim[i];
             }
             columnSelector.start(n, ast);
-            // TODO: here and elsewhere, check the number of dimensions
             int ncolumns = columnSelector.size();
             int replacementSize = rhs.size();
             int itemsToReplace = ncolumns * m;
-            if (itemsToReplace != replacementSize && replacementSize != 1) {
-                // TODO: add these checks to all other updates - it is necessary to do before the update whenever the update is potentially running in-place,
-                // because we must not modify the matrix even in case of error
-                if (replacementSize == 0) {
-                    throw RError.getReplacementZero(ast);
-                }
-                if (itemsToReplace % replacementSize != 0) {
-                    throw RError.getNotMultipleReplacement(ast);
-                }
-            }
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (int j = 0; j < ncolumns; j++) {
@@ -1115,6 +1099,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
                 int[] lhsDim = lhs.dimensions();
+                checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
                 int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (replacementSize == 0) {
@@ -1166,6 +1151,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
                 int[] lhsDim = lhs.dimensions();
+                checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
                 int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (replacementSize == 0) {
@@ -1217,6 +1203,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
                 int[] lhsDim = lhs.dimensions();
+                checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
                 int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (replacementSize == 0) {
@@ -1268,6 +1255,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
                 int[] lhsDim = lhs.dimensions();
+                checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
                 int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (replacementSize == 0) {
@@ -1321,6 +1309,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             @Override
             protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
                 int[] lhsDim = lhs.dimensions();
+                checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
                 int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
                 if (replacementSize == 0) {
@@ -1545,6 +1534,33 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         }
     }
 
+    private static void checkDimensions(int[] dim, int nSelectors, ASTNode ast) {
+        if (dim == null || dim.length != nSelectors) {
+            if (nSelectors == 2) {
+                throw RError.getIncorrectSubscriptsMatrix(ast);
+            } else {
+                throw RError.getIncorrectSubscripts(ast);
+            }
+        }
+    }
+
+    private static void checkReplacementSize(int itemsToReplace, int replacementSize, boolean subset, ASTNode ast) {
+        if (itemsToReplace != replacementSize && replacementSize != 1) {
+            // TODO: add these checks to all other updates - it is necessary to do before the update whenever the update is potentially running in-place,
+            // because we must not modify the matrix even in case of error
+            if (replacementSize == 0) {
+                throw RError.getReplacementZero(ast);
+            }
+            if (itemsToReplace % replacementSize != 0) {
+                if (subset) {
+                    throw RError.getNotMultipleReplacement(ast);
+                } else {
+                    throw RError.getMoreElementsSupplied(ast);
+                }
+            }
+        }
+    }
+
     // =================================================================================================================
     // Direct specializations
     // =================================================================================================================
@@ -1589,15 +1605,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             int[] lhsVal = ((IntImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -1605,34 +1624,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
@@ -1681,15 +1693,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -1697,34 +1712,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
@@ -1774,15 +1782,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             double[] lhsVal = ((DoubleImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -1790,34 +1801,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
@@ -1865,15 +1869,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             int[] rhsVal = ((IntImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -1882,34 +1889,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[2 * lhsOffset + 1] = 0;
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
@@ -1958,15 +1958,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((DoubleImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -1975,34 +1978,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[2 * lhsOffset + 1] = 0;
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
@@ -2052,15 +2048,18 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
             ASTNode ast = node.ast;
+            assert Utils.check(node.subset);
 
             int[] lhsDim = lhs.dimensions();
+            checkDimensions(lhsDim, selectorVals.length, ast);
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
-            int replacementSize = Selector.calculateSizeFromSelectorSizes(selSizes);
-            int rhsSize = rhs.size();
+            int itemsToReplace = Selector.calculateSizeFromSelectorSizes(selSizes);
+            int replacementSize = rhs.size();
+            checkReplacementSize(itemsToReplace, replacementSize, true, ast);
             double[] lhsVal = ((ComplexImpl) lhs).getContent();
             double[] rhsVal = ((ComplexImpl) rhs).getContent();
 
-            if (replacementSize >= rhsSize) {
+            if (itemsToReplace > 0) {
                 int rhsOffset = 0;
                 for (;;) {
                     int lhsOffset = offsets[0];
@@ -2069,34 +2068,27 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         lhsVal[2 * lhsOffset + 1] = rhsVal[2 * rhsOffset + 1];
                     }
                     rhsOffset++;
-                    if (rhsOffset < rhsSize) {
+                    if (rhsOffset < replacementSize) {
                         if (!mayHaveNA) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
                             Selector.advance(offsets, lhsDim, selectorVals, ast);
                         }
                     } else {
-                        replacementSize -= rhsSize;
-                        if (replacementSize == 0) {
-                            return lhs;
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
                         }
-                        if (replacementSize >= rhsSize) {
-                            rhsOffset = 0;
-                            if (!mayHaveNA) {
-                                Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
-                            } else {
-                                Selector.restart(offsets, selectorVals, lhsDim, ast);
-                            }
+                        rhsOffset = 0;
+                        if (!mayHaveNA) {
+                            Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
                         } else {
-                            throw RError.getNotMultipleReplacement(ast);
+                            Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
             }
-            if (replacementSize == 0) {
-                return lhs;
-            }
-            throw RError.getNotMultipleReplacement(ast);
+            return lhs;
         }
 
         @Override
