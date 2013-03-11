@@ -1162,14 +1162,77 @@ public class Arithmetic extends BaseR {
         }
     }
 
+    public static double convertNaN(double d) {
+        if (Double.isNaN(d)) {
+            return Math.copySign(0, d);
+        } else {
+            return d;
+        }
+    }
+
+    public static double convertInf(double d) {
+        return Math.copySign(Double.isInfinite(d) ? 1 : 0, d);
+    }
+
+    public static void mult(double a, double b, double c, double d, double[] res, int offset) {
+
+        double ac = a * c;
+        double bd = b * d;
+        double bc = b * c;
+        double ad = a * d;
+
+        double real = ac - bd;
+        double imag = bc + ad;
+
+        if (Double.isNaN(real) && Double.isNaN(imag)) {
+            boolean recalc = false;
+            double ra = a;
+            double rb = b;
+            double rc = c;
+            double rd = d;
+            if (Double.isInfinite(ra) || Double.isInfinite(rb)) {
+                ra = convertInf(ra);
+                rb = convertInf(rb);
+                rc = convertNaN(rc);
+                rd = convertNaN(rd);
+                recalc = true;
+            }
+            if (Double.isInfinite(rc) || Double.isInfinite(rd)) {
+                rc = convertInf(rc);
+                rd = convertInf(rd);
+                ra = convertNaN(ra);
+                rb = convertNaN(rb);
+                recalc = true;
+            }
+            if (!recalc && (Double.isInfinite(ac) || Double.isInfinite(bd) || Double.isInfinite(ad) || Double.isInfinite(bc))) {
+                ra = convertNaN(ra);
+                rb = convertNaN(rb);
+                rc = convertNaN(rc);
+                rd = convertNaN(rd);
+                recalc = true;
+            }
+            if (recalc) {
+                real = Double.POSITIVE_INFINITY * (ra * rc - rb * rd);
+                imag = Double.POSITIVE_INFINITY * (ra * rd + rb * rc);
+            }
+        }
+        res[ offset ] = real;
+        res[ offset + 1 ] = imag;
+    }
+
     public static final class Mult extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+
+        private double[] tmp = new double[2];
+
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            return a * c - b * d;
+            Arithmetic.mult(a, b, c, d, tmp, 0);
+            return tmp[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            return b * c + a * d;
+            Arithmetic.mult(a, b, c, d, tmp, 0);
+            return tmp[1];
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -1196,10 +1259,7 @@ public class Arithmetic extends BaseR {
                 double c = y[i];
                 double d = y[j];
                 if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
-                    double re = a * c - b * d;
-                    double im = b * c + a * d;
-                    res[i] = re;
-                    res[j] = im;
+                    Arithmetic.mult(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1235,8 +1295,7 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = x[j];
                 if (!RComplexUtils.eitherIsNA(a, b)) {
-                    res[i] = a * c - b * d;
-                    res[j] = b * c + a * d;
+                    Arithmetic.mult(x[i], x[j], c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1252,9 +1311,16 @@ public class Arithmetic extends BaseR {
             double re = z[offset];
             double im = z[offset + 1];
             double denom = re * re + im * im;
-            z[offset] = re / denom;
-            z[offset + 1] = -im / denom;
+            if (denom != 0) {
+                z[offset] = re / denom;
+                z[offset + 1] = -im / denom;
+            } else {
+                z[offset] = 1 / re;
+                z[offset + 1] = 1 / im;
+            }
         }
+
+        private static double[] cpowTMP = new double[2];
 
         // R_cpow_n in complex.c
         private static void cpow(double xr, double xi, int k, double[] z, int offset) {
@@ -1273,32 +1339,24 @@ public class Arithmetic extends BaseR {
                 reciprocal(z, offset);
                 return;
             }
-            double xre = xr; // "x"
-            double xim = xi;
-            double zre = 1;  // "z"
-            double zim = 0;
-            double tmp = 0;
+            double[] x = cpowTMP; // "x"
+            x[0] = xr;
+            x[1] = xi;
+            z[offset] = 1; // "z"
+            z[offset + 1] = 0;
             int kk = k;
             while (kk > 0) {
                 if ((kk & 1) != 0) {
                     // "z = z * X"
-                    tmp = zre * xre - zim * xim;
-                    zim = xim * zre + xre * zim;
-                    zre = tmp;
-
+                    mult(z[offset], z[offset + 1], x[0], x[1], z, offset);
                     if (kk == 1) {
                         break;
                     }
                 }
                 kk = kk / 2;
                 // "X = X * X"
-                tmp = xre * xre - xim * xim;
-                xim = 2 * xre * xim;
-                xre = tmp;
-
+                pow2(x[0], x[1], x, 0);
             }
-            z[offset] = zre;
-            z[offset + 1] = zim;
         }
 
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
@@ -1336,17 +1394,17 @@ public class Arithmetic extends BaseR {
             z[offset + 1] = rho * Math.sin(theta);
         }
 
-        private static final double[] TMP_Z = new double[2];
+        private static final double[] opTMP = new double[2];
 
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            cpow(a, b, c, d, TMP_Z, 0);
-            return TMP_Z[0];
+            cpow(a, b, c, d, opTMP, 0);
+            return opTMP[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            cpow(a, b, c, d, TMP_Z, 0); // FIXME: remember last values? would a boxed version be faster?
-            return TMP_Z[1];
+            cpow(a, b, c, d, opTMP, 0); // FIXME: remember last values? would a boxed version be faster?
+            return opTMP[1];
         }
 
         @Override
@@ -1368,10 +1426,51 @@ public class Arithmetic extends BaseR {
             double[] y = ycomp.getContent();
             double[] z = new double[x.length];
             for (int i = 0; i < x.length; i += 2) {
-                cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
+                double xr = x[i];
+                double xi = x[i + 1];
+                double yr = y[i];
+                double yi = y[i + 1];
+                if (!RComplex.RComplexUtils.eitherIsNA(xr,  xi) && !RComplex.RComplexUtils.eitherIsNA(yr, yi)) {
+                    cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
+                } else {
+                    z[i] = RDouble.NA;
+                    z[i + 1] = RDouble.NA;
+                }
             }
             RComplex res = RComplex.RComplexFactory.getFor(z, dimensions, names);
             return res;
+        }
+
+        public static void pow2(double a, double b, double[] res, int offset) {
+
+            double a2 = a * a;
+            double b2 = b * b;
+            double ab = a * b;
+
+            double real = a2 - b2;
+            double imag = 2 * ab;
+
+            if (Double.isNaN(real) && Double.isNaN(imag)) {
+                boolean recalc = false;
+                double ra = a;
+                double rb = b;
+                if (Double.isInfinite(ra) || Double.isInfinite(rb)) {
+                    ra = convertInf(ra);
+                    rb = convertInf(rb);
+                    recalc = true;
+                }
+                if (!recalc && (Double.isInfinite(a2) || Double.isInfinite(b2) || Double.isInfinite(ab))) {
+                    ra = convertNaN(ra);
+                    rb = convertNaN(rb);
+                    recalc = true;
+                }
+                if (recalc) {
+                    real = Double.POSITIVE_INFINITY * (ra * ra - rb * rb);
+                    imag = Double.POSITIVE_INFINITY * (ra * rb);
+                }
+            }
+            res[ offset ] = real;
+            res[ offset + 1 ] = imag;
         }
 
         private static void pow(double[] res, double[] x, double yr, double yi) {
@@ -1379,12 +1478,24 @@ public class Arithmetic extends BaseR {
                 for (int i = 0; i < x.length; i += 2) {
                     double xr = x[i];
                     double xi = x[i + 1];
-                    res[i] = xr * xr - xi * xi;
-                    res[i + 1] = 2 * xr * xi;
+                    if (!RComplex.RComplexUtils.eitherIsNA(xr, xi)) {
+                        pow2(xr, xi, res, i);
+                    } else {
+                        res[i] = RDouble.NA;
+                        res[i + 1] = RDouble.NA;
+                    }
                 }
             } else {
                 for (int i = 0; i < x.length; i += 2) {
-                    cpow(x[i], x[i + 1], yr, yi, res, i); // FIXME: extract some checks on the exponent here
+                    double xr = x[i];
+                    double xi = x[i + 1];
+                    if (!RComplex.RComplexUtils.eitherIsNA(xr, xi)) {
+                        cpow(x[i], x[i + 1], yr, yi, res, i); // FIXME: extract some checks on the exponent here
+                    } else {
+                        res[i] = RDouble.NA;
+                        res[i + 1] = RDouble.NA;
+                    }
+
                 }
             }
         }
@@ -1404,11 +1515,12 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    public static final class Div extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
+    public static final class Div extends ValueArithmetic {
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
             double denom = c * c + d * d;
             if (denom != 0) {
+                // FIXME: this is not as resilient against overflow as it should be (see all other cases in complex div)
                 return (a * c + b * d) / denom;
             } else {
                 return a / c;

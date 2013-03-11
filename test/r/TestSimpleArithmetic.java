@@ -62,6 +62,14 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ (1+1i)/(0+0i) }", "Infinity+Infinityi");
         assertEval("{ (-1+0i)/(0+0i) }", "-Infinity+NaNi");
         assertEval("{ (-1-1i)/(0+0i) }", "-Infinity-Infinityi");
+
+        assertEval("{ ((0+1i)/0) * ((0+1i)/0) }", "-Infinity+NaNi");
+        assertEval("{ ((0-1i)/0) * ((0+1i)/0) }", "Infinity+NaNi");
+        assertEval("{ ((0-1i)/0) * ((0-1i)/0) }", "-Infinity+NaNi");
+        assertEval("{ ((0-1i)/0) * ((1-1i)/0) }", "-Infinity-Infinityi");
+        assertEval("{ ((0-1i)/0) * ((-1-1i)/0) }", "-Infinity+Infinityi");
+
+
     }
 
     @Test

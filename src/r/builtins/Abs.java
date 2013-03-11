@@ -27,6 +27,8 @@ public class Abs {
     public static double abs(double real, double imag) {
         if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
             if (!Double.isInfinite(real) && !Double.isInfinite(imag)) {
+                // FIXME: this should be more resilient to overflow, but Math.hypot is too slow; C99's hypot, used by GNU-R, is less resilient and faster than
+                // Java's Math.hypot, but still more resilient than this
                 return Math.sqrt(real * real + imag * imag);
             } else {
                 return RDouble.POS_INF;
