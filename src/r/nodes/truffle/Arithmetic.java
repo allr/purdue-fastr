@@ -1306,6 +1306,24 @@ public class Arithmetic extends BaseR {
         }
     }
 
+    public static double chypot(double real, double imag) {
+        // after libgcc2's x86 hypot - note the sign of NaN below (what GNU-R uses)
+        // note that Math.hypot in Java is _very_ slow as it tries to be more precise
+        double res = Math.sqrt(real * real + imag * imag);
+
+        if (!isFinite(real) || !isFinite(imag)) {
+            if (Double.isInfinite(real) || Double.isInfinite(imag)) {
+                res = Double.POSITIVE_INFINITY;
+            } else if (Double.isNaN(imag)) {
+                res = imag;
+            } else {
+                res = real;
+            }
+        }
+
+        return res;
+    }
+
     public static final class Pow extends ValueArithmetic {
 
         private static void creciprocal(double[] z, int offset) {
@@ -1402,7 +1420,7 @@ public class Arithmetic extends BaseR {
                 }
             }
 
-            double zr = Math.hypot(xr, xi);
+            double zr = chypot(xr, xi);
             double zi = Math.atan2(xi, xr);
             double theta = zi * yr;
             double rho;
