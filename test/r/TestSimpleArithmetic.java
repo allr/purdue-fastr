@@ -42,13 +42,13 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- 1+2i; y <- 3+4i; x*y }", "-5.0+10.0i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x/y }", "0.44+0.08i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x-y }", "-2.0-2.0i");
-        assertEval("{ x <- 1+2i; y <- 3+4i; x*x*y/(x+y) }", "-1.9230769230769231+2.8846153846153846i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; x*x*y/(x+y) }", "-1.923076923076923+2.884615384615385i");
         assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y*y+x }", "-1.5-1.0i, -1.3-1.0i");
         assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y-x }", "1.5+1.0i, 1.3+1.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y-x }", "4.0+3.0i, -7.0-5.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y+x }", "2.0-1.0i, -1.0+15.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y*x }", "-1.0-7.0i, -62.0-25.0i");
-        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y/x }", "-1.0+1.0i, 0.3486238532110092+0.5045871559633027i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y/x }", "-1.0+1.0i, 0.34862385321100914+0.5045871559633027i");
 
         assertEval("{ (1+2i)^(3+4i) }", "0.12900959407446697+0.03392409290517014i");
         assertEval("{ (1+2i)^2 }", "-3.0+4.0i");
@@ -69,7 +69,13 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ ((0-1i)/0) * ((1-1i)/0) }", "-Infinity-Infinityi");
         assertEval("{ ((0-1i)/0) * ((-1-1i)/0) }", "-Infinity+Infinityi");
 
+        assertEval("{ (1+2i) / ((0-1i)/(0+0i)) }", "-0.0+0.0i");  // NOTE: GNU-R prints negative zero as zero
+        assertEval("{ 1/((1+0i)/(0+0i)) }", "0.0+0.0i");
+        assertEval("{ (1+2i) / ((0-0i)/(0+0i)) }", "NaN+NaNi");
 
+        assertEval("{ ((1+0i)/(0+0i)) ^ (-3) }", "0.0+0.0i");
+        assertEval("{ ((1+1i)/(0+0i)) ^ (-3) }", "-0.0+-0.0i"); // NOTE: GNU-R prints negative zero as zero
+        assertEval("{ ((1+1i)/(0+1i)) ^ (-3.54) }", "-0.2742803631019028+0.10364191261464788i");
     }
 
     @Test

@@ -1174,7 +1174,8 @@ public class Arithmetic extends BaseR {
         return Math.copySign(Double.isInfinite(d) ? 1 : 0, d);
     }
 
-    public static void mult(double a, double b, double c, double d, double[] res, int offset) {
+    public static void cmult(double a, double b, double c, double d, double[] res, int offset) {
+        // libgcc2
 
         double ac = a * c;
         double bd = b * d;
@@ -1222,17 +1223,17 @@ public class Arithmetic extends BaseR {
 
     public static final class Mult extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
 
-        private double[] tmp = new double[2];
+        private static final double[] opTMP = new double[2];
 
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            Arithmetic.mult(a, b, c, d, tmp, 0);
-            return tmp[0];
+            Arithmetic.cmult(a, b, c, d, opTMP, 0);
+            return opTMP[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            Arithmetic.mult(a, b, c, d, tmp, 0);
-            return tmp[1];
+            Arithmetic.cmult(a, b, c, d, opTMP, 0);
+            return opTMP[1];
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -1251,7 +1252,7 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
-        private static void mult(double[] res, double[] x, double[] y, int rsize) {
+        private static void cmult(double[] res, double[] x, double[] y, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -1259,7 +1260,7 @@ public class Arithmetic extends BaseR {
                 double c = y[i];
                 double d = y[j];
                 if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
-                    Arithmetic.mult(a, b, c, d, res, i);
+                    Arithmetic.cmult(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1272,16 +1273,16 @@ public class Arithmetic extends BaseR {
             double[] x = xcomp.getContent();
             double[] y = ycomp.getContent();
             if (IN_PLACE && xcomp.isTemporary()) {
-                mult(x, x, y, rsize);
+                cmult(x, x, y, rsize);
                 xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xcomp;
             } else if (IN_PLACE && ycomp.isTemporary()) {
-                mult(y, x, y, rsize);
+                cmult(y, x, y, rsize);
                 ycomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return ycomp;
             } else {
                 double[] res = new double[rsize];
-                mult(res, x, y, rsize);
+                cmult(res, x, y, rsize);
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
@@ -1295,7 +1296,7 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = x[j];
                 if (!RComplexUtils.eitherIsNA(a, b)) {
-                    Arithmetic.mult(x[i], x[j], c, d, res, i);
+                    Arithmetic.cmult(x[i], x[j], c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1307,20 +1308,42 @@ public class Arithmetic extends BaseR {
 
     public static final class Pow extends ValueArithmetic {
 
-        private static void reciprocal(double[] z, int offset) {
-            double re = z[offset];
-            double im = z[offset + 1];
-            double denom = re * re + im * im;
-            if (denom != 0) {
-                z[offset] = re / denom;
-                z[offset + 1] = -im / denom;
+        private static void creciprocal(double[] z, int offset) {
+            double c = z[offset];
+            double d = z[offset + 1];
+            double ratio;
+            double denom;
+            double x;
+            double y;
+
+            if (Math.abs(c) < Math.abs(d)) {
+                ratio = c / d;
+                denom = (c * ratio) + d;
+                x = ratio / denom;
+                y = -1 / denom;
             } else {
-                z[offset] = 1 / re;
-                z[offset + 1] = 1 / im;
+                ratio = d / c;
+                denom = (d * ratio) + c;
+                x = 1 / denom;
+                y = -ratio / denom;
             }
+
+            if (Double.isNaN(x) && Double.isNaN(y)) {
+                if (c == 0.0 && d == 0.0) {
+                    x = Math.copySign(Double.POSITIVE_INFINITY, c);
+                    y = Math.copySign(Double.NaN, c);
+                } else if (Double.isInfinite(c) || Double.isInfinite(d)) {
+                    double rc = convertInf(c);
+                    double rd = convertInf(d);
+                    x = 0.0 * rc;
+                    y = 0.0 * (-rd);
+                }
+            }
+            z[offset] = x;
+            z[offset + 1] = y;
         }
 
-        private static double[] cpowTMP = new double[2];
+        private static final double[] cpowTMP = new double[2];
 
         // R_cpow_n in complex.c
         private static void cpow(double xr, double xi, int k, double[] z, int offset) {
@@ -1336,7 +1359,7 @@ public class Arithmetic extends BaseR {
             }
             if (k < 0) {
                 cpow(xr, xi, -k, z, offset); // x^(-k)
-                reciprocal(z, offset);
+                creciprocal(z, offset);
                 return;
             }
             double[] x = cpowTMP; // "x"
@@ -1348,14 +1371,14 @@ public class Arithmetic extends BaseR {
             while (kk > 0) {
                 if ((kk & 1) != 0) {
                     // "z = z * X"
-                    mult(z[offset], z[offset + 1], x[0], x[1], z, offset);
+                    cmult(z[offset], z[offset + 1], x[0], x[1], z, offset);
                     if (kk == 1) {
                         break;
                     }
                 }
                 kk = kk / 2;
                 // "X = X * X"
-                pow2(x[0], x[1], x, 0);
+                cpow2(x[0], x[1], x, 0);
             }
         }
 
@@ -1441,7 +1464,7 @@ public class Arithmetic extends BaseR {
             return res;
         }
 
-        public static void pow2(double a, double b, double[] res, int offset) {
+        public static void cpow2(double a, double b, double[] res, int offset) {
 
             double a2 = a * a;
             double b2 = b * b;
@@ -1473,13 +1496,13 @@ public class Arithmetic extends BaseR {
             res[ offset + 1 ] = imag;
         }
 
-        private static void pow(double[] res, double[] x, double yr, double yi) {
+        private static void cpow(double[] res, double[] x, double yr, double yi) {
             if (yr == 2 && yi == 0) {
                 for (int i = 0; i < x.length; i += 2) {
                     double xr = x[i];
                     double xi = x[i + 1];
                     if (!RComplex.RComplexUtils.eitherIsNA(xr, xi)) {
-                        pow2(xr, xi, res, i);
+                        cpow2(xr, xi, res, i);
                     } else {
                         res[i] = RDouble.NA;
                         res[i + 1] = RDouble.NA;
@@ -1504,36 +1527,74 @@ public class Arithmetic extends BaseR {
         public RComplex op(ASTNode ast, ComplexImpl xcomp, double yr, double yi, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xcomp.getContent();
             if (IN_PLACE && xcomp.isTemporary()) {
-                pow(x, x, yr, yi);
+                cpow(x, x, yr, yi);
                 xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xcomp;
             } else {
                 double[] res = new double[x.length];
-                pow(res, x, yr, yi);
+                cpow(res, x, yr, yi);
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
     }
 
+    public static boolean isFinite(double d) {
+        return !Double.isInfinite(d) && !Double.isNaN(d);
+    }
+
+    public static void cdiv(double a, double b, double c, double d, double[] res, int offset) {
+        // libgcc2
+
+        double ratio;
+        double denom;
+        double x;
+        double y;
+
+        if (Math.abs(c) < Math.abs(d)) {
+            ratio = c / d;
+            denom = (c * ratio) + d;
+            x = ((a * ratio) + b) / denom;
+            y = ((b * ratio) - a) / denom;
+        } else {
+            ratio = d / c;
+            denom = (d * ratio) + c;
+            x = ((b * ratio) + a) / denom;
+            y = (b - (a * ratio)) / denom;
+        }
+
+        if (Double.isNaN(x) && Double.isNaN(y)) {
+            if (c == 0.0 && d == 0.0 && (!Double.isNaN(a) || !Double.isNaN(b))) {
+                x = Math.copySign(Double.POSITIVE_INFINITY, c) * a;
+                y = Math.copySign(Double.POSITIVE_INFINITY, c) * b;
+            } else if ((Double.isInfinite(a) || Double.isInfinite(b)) && isFinite(c) && isFinite(d)) {
+                double ra = convertInf(a);
+                double rb = convertInf(b);
+                x = Double.POSITIVE_INFINITY * (ra * c + rb * d);
+                y = Double.POSITIVE_INFINITY * (rb * c - ra * d);
+            } else if ((Double.isInfinite(c) || Double.isInfinite(d)) && isFinite(a) && isFinite(b)) {
+                double rc = convertInf(c);
+                double rd = convertInf(d);
+                x = 0.0 * (a * rc + b * rd);
+                y = 0.0 * (b * rc - a * rd);
+            }
+        }
+        res[offset] = x;
+        res[offset + 1] = y;
+    }
+
     public static final class Div extends ValueArithmetic {
+
+        private static final double[] opTMP = new double[2];
+
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            double denom = c * c + d * d;
-            if (denom != 0) {
-                // FIXME: this is not as resilient against overflow as it should be (see all other cases in complex div)
-                return (a * c + b * d) / denom;
-            } else {
-                return a / c;
-            }
+            cdiv(a, b, c, d, opTMP, 0);
+            return opTMP[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            double denom = c * c + d * d;
-            if (denom != 0) {
-                return (b * c - a * d) / denom;
-            } else {
-                return b / d;
-            }
+            cdiv(a, b, c, d, opTMP, 0);
+            return opTMP[1];
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -1561,14 +1622,7 @@ public class Arithmetic extends BaseR {
                 double c = y[i];
                 double d = y[j];
                 if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
-                    double denom = c * c + d * d;
-                    if (denom != 0) {
-                        res[i] = (a * c + b * d) / denom;
-                        res[j] = (b * c - a * d) / denom;
-                    } else {
-                        res[i] = a / c;
-                        res[j] = b / d;
-                    }
+                    cdiv(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
@@ -1581,31 +1635,15 @@ public class Arithmetic extends BaseR {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
-            double denom = c * c + d * d;
             int j = 1;
-            if (denom != 0) {
-                for (int i = 0; i < rsize; i++, i++, j++, j++) {
-                    double a = x[i];
-                    double b = x[j];
-                    if (!RComplexUtils.eitherIsNA(a, b)) {
-                        res[i] = (a * c + b * d) / denom;
-                        res[j] = (b * c - a * d) / denom;
-                    } else {
-                        res[i] = RDouble.NA;
-                        res[j] = RDouble.NA;
-                    }
-                }
-            } else {
-                for (int i = 0; i < rsize; i++, i++, j++, j++) {
-                    double a = x[i];
-                    double b = x[j];
-                    if (!RComplexUtils.eitherIsNA(a, b)) {
-                        res[i] = a / c;
-                        res[j] = b / d;
-                    } else {
-                        res[i] = RDouble.NA;
-                        res[j] = RDouble.NA;
-                    }
+            for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                double a = x[i];
+                double b = x[j];
+                if (!RComplexUtils.eitherIsNA(a, b)) {
+                    cdiv(a, b, c, d, res, i);
+                } else {
+                    res[i] = RDouble.NA;
+                    res[j] = RDouble.NA;
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
