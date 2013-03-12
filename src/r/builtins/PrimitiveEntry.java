@@ -35,7 +35,7 @@ public final class PrimitiveEntry {
     }
 
     public static CallFactory checkNumberOfArgs(final RSymbol name, final int minArgs, final int maxArgs, final CallFactory bodyFactory) {
-        return new CallFactory() {
+        return new CallFactory(name) {
 
             @Override public RSymbol name() {
                 return name;

@@ -20,7 +20,7 @@ import com.oracle.truffle.api.frame.*;
 // FIXME: only partial semantics
 final class NChar extends CallFactory {
 
-    static final CallFactory _ = new NChar("ls", new String[]{"x", "type", "allowNA"}, new String[]{"x"});
+    static final CallFactory _ = new NChar("nchar", new String[]{"x", "type", "allowNA"}, new String[]{"x"});
 
     private NChar(String name, String[] params, String[] required) {
         super(name, params, required);

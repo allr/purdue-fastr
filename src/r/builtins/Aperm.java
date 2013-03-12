@@ -30,7 +30,10 @@ final class Aperm extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        return Configuration.BUILTIN_APERM_TYPED_DIRECT_ACCESS ? new ApermImpl(call, names, exprs, ia) : new Generalized(call, names, exprs, ia);
+        int posPerm = ia.position("perm");
+        int posA = ia.position("a");
+        int posResize = ia.position("resize");
+        return Configuration.BUILTIN_APERM_TYPED_DIRECT_ACCESS ? new ApermImpl(call, names, exprs, posA, posPerm, posResize) : new Generalized(call, names, exprs, posA, posPerm, posResize);
     }
 
     /**
@@ -38,23 +41,29 @@ final class Aperm extends CallFactory {
      */
     protected static class Generalized extends BuiltIn {
 
-        ArgumentInfo ia;
+        int posPerm;
+        int posA;
+        int posResize;
 
-        public Generalized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, ArgumentInfo ia) {
+        public Generalized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, int posA, int posPerm, int posResize) {
             super(orig, argNames, argExprs);
-            this.ia = ia;
+            this.posA = posA;
+            this.posPerm = posPerm;
+            this.posResize = posResize;
         }
 
         protected Generalized(Generalized other) {
             super(other.ast, other.argNames, other.argExprs);
-            ia = other.ia;
+            this.posA = other.posA;
+            this.posPerm = other.posPerm;
+            this.posResize = other.posResize;
         }
 
         /**
          * Returns the array on which to make the permutation.
          */
         protected final RArray parseArray(RAny[] params) {
-            RArray ary = (RArray) params[ia.paramPositions[ia.ix("a")]];
+            RArray ary = (RArray) params[posA];
             if (ary.dimensions() == null) { throw RError.getFirstArgMustBeArray(ast); }
             return ary;
         }
@@ -65,14 +74,14 @@ final class Aperm extends CallFactory {
          */
         protected final int[] parsePermutation(int[] aryDim, RAny[] params) {
             int[] result = new int[aryDim.length];
-            if (!ia.provided("perm")) { // default parm argument is reverse order of the dimensions
+            if (posPerm == -1) { // default parm argument is reverse order of the dimensions
                 for (int i = 0; i < result.length; ++i) {
                     result[i] = result.length - i - 1;
                 }
                 return result;
             } else {
                 boolean[] usedIndices = new boolean[result.length];
-                RArray perm = (RArray) params[ia.position("perm")];
+                RArray perm = (RArray) params[posPerm];
                 if (perm.size() != aryDim.length) { throw RError.getValueIsOfWrongLength(ast, "perm"); }
                 if (perm instanceof RComplex) {
                     RContext.warning(ast, RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION);
@@ -97,8 +106,8 @@ final class Aperm extends CallFactory {
          * Returns the resize argument of the call.
          */
         protected final boolean parseResize(RAny[] params) {
-            if (!ia.provided("resize")) { return true; }
-            return params[ia.position("resize")].asLogical().getLogical(0) != RLogical.FALSE;
+            if (posResize == -1) { return true; }
+            return params[posResize].asLogical().getLogical(0) != RLogical.FALSE;
         }
 
         /**
@@ -202,8 +211,8 @@ final class Aperm extends CallFactory {
      */
     public static class ApermImpl extends Generalized {
 
-        public ApermImpl(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, ArgumentInfo ia) {
-            super(orig, argNames, argExprs, ia);
+        public ApermImpl(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, int posA, int posPerm, int posResize) {
+            super(orig, argNames, argExprs, posA, posPerm, posResize);
         }
 
         @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {

@@ -18,7 +18,7 @@ import r.nodes.truffle.*;
 // FIXME: Truffle can't handle BuiltIn1
 public final class Return extends CallFactory {
 
-    static final CallFactory _ = new Return("return", new String[]{"value"}, new String[]{"value"});
+    static final CallFactory _ = new Return("return", new String[]{"value"}, new String[]{});
 
     Return(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -35,7 +35,6 @@ public final class Return extends CallFactory {
                 RFrameHeader.setReturnValue(frame, RNull.getNull());
                 throw ReturnException.instance;
             }
-
         }; }
         if (exprs.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny param) {

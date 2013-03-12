@@ -27,22 +27,25 @@ import com.oracle.truffle.api.frame.*;
 // FIXME: this implementation is very slow and is only partial
 // the supported regular expressions may not be exactly like in GNU-R
 final class StrSplit extends CallFactory {
-    static final CallFactory _ = new StrSplit("strsplit", new String[]{"x", "split", "fixed", "perl", "useBytes"}, new String[]{"x"});
+    static final CallFactory _ = new StrSplit("strsplit", new String[]{"x", "split", "fixed", "perl", "useBytes"}, new String[]{"x", "split"});
 
     private StrSplit(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("useBytes")) { throw Utils.nyi(); }
-
+        final int posX = ia.position("x");
+        final int posFixed = ia.position("fixed");
+        final int posPerl = ia.position("perl");
+        final int posSplit = ia.position("split");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RString x = Convert.coerceToStringError(args[ia.position("x")], ast);
-                RString split = Convert.coerceToStringError(args[ia.position("split")], ast);
-                boolean fixed = ia.provided("fixed") ? Convert.checkFirstLogical(args[ia.position("fixed")], RLogical.TRUE) : false;
-                boolean perl = ia.provided("perl") ? Convert.checkFirstLogical(args[ia.position("perl")], RLogical.TRUE) : false;
+                RString x = Convert.coerceToStringError(args[posX], ast);
+                RString split = Convert.coerceToStringError(args[posSplit], ast);
+                boolean fixed = posFixed != -1 ? Convert.checkFirstLogical(args[posFixed], RLogical.TRUE) : false;
+                boolean perl = posPerl != -1 ? Convert.checkFirstLogical(args[posPerl], RLogical.TRUE) : false;
 
                 return strsplit(ast, x, split, fixed, perl);
             }

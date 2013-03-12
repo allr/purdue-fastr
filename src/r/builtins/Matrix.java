@@ -23,7 +23,7 @@ import com.oracle.truffle.api.frame.*;
  * </pre>
  */
 final class Matrix extends CallFactory {
-    static final CallFactory _ = new Matrix("ls", new String[]{"data", "nrow", "ncol", "byrow", "dimnames"}, new String[]{});
+    static final CallFactory _ = new Matrix("matrix", new String[]{"data", "nrow", "ncol", "byrow", "dimnames"}, new String[]{});
 
     private Matrix(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -62,29 +62,32 @@ final class Matrix extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
-
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("dimnames")) { throw Utils.nyi(); }
+        final int posData = ia.position("data");
+        final int posNrow = ia.position("nrow");
+        final int posNcol = ia.position("ncol");
+        final int posByrow = ia.position("byrow");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RArray data = RLogical.BOXED_NA;
-                if (ia.provided("data")) {
-                    data = parseData(ast, args[ia.position("data")]);
+                if (posData != -1) {
+                    data = parseData(ast, args[posData]);
                     if (data.size() == 0) {
                         data = Utils.getBoxedNA(data);
                     }
                 }
                 int dsize = data.size();
                 int nRow = -1;
-                if (ia.provided("nrow")) {
-                    nRow = parseExtent(ast, args[ia.position("nrow")]);
+                if (posNrow != -1) {
+                    nRow = parseExtent(ast, args[posNrow]);
                     if (nRow == RInt.NA) { throw RError.getInvalidNRow(ast); }
                     if (nRow < 0) { throw RError.getNegativeNRow(ast); }
                 }
                 int nCol = -1;
                 int size;
-                if (ia.provided("ncol")) {
-                    nCol = parseExtent(ast, args[ia.position("ncol")]);
+                if (posNcol != -1) {
+                    nCol = parseExtent(ast, args[posNcol]);
                     if (nCol == RInt.NA) { throw RError.getInvalidNCol(ast); }
                     if (nCol < 0) { throw RError.getNegativeNCol(ast); }
                 }
@@ -129,8 +132,7 @@ final class Matrix extends CallFactory {
                     }
                 }
 
-                boolean byRow = ia.provided("byrow") ? parseByRow(ast, args[ia.position("byrow")]) : false;
-
+                boolean byRow = posByrow != -1 ? parseByRow(ast, args[posByrow]) : false;
                 RArray res = Utils.createArray(data, size, new int[]{nRow, nCol}, null, null);
                 if (data instanceof ScalarDoubleImpl && ((ScalarDoubleImpl) data).getDouble() == 0) { return res; }
                 int di = 0;

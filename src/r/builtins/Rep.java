@@ -37,7 +37,7 @@ import com.oracle.truffle.api.frame.*;
 // TODO: support list argument
 class Rep extends CallFactory {
 
-    static final CallFactory _ = new Rep("rep", new String[]{"x", "..."}, new String[]{"x"});
+    static final CallFactory _ = new Rep("rep", new String[]{"x", "..."}, new String[]{});
 
     Rep(String name, String[] params, String[] required) {
         super(name, params, required);

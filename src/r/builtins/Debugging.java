@@ -10,13 +10,14 @@ import com.oracle.truffle.api.frame.*;
  * "__inspect" Fastr specific debugging.
  */
 final class Inspect extends CallFactory {
-    static final CallFactory _ = new Inspect("__inspect", new String[]{}, null);
+    static final CallFactory _ = new Inspect("__inspect", new String[]{"arg"}, null);
 
     private Inspect(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
         return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 System.out.println("INSPECT: " + arg + " type=" + arg.typeOf() + " isShared=" + arg.isShared() + " isTemporary=" + arg.isTemporary());

@@ -30,15 +30,17 @@ class Substring extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         final ArgumentInfo ia = check(call, names, exprs);
+        final int posText = ia.position("text");
+        final int posLast = ia.position("last");
+        final int posFirst = ia.position("first");
         final RDouble defaultLast = RDouble.RDoubleFactory.getScalar(1000000); // FIXME slow, but perhaps the default is not used, anyway
         return new BuiltIn(call, names, exprs) {
-
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RString text = args[ia.position("text")].asString();
+                RString text = args[posText].asString();
                 warn.naIntroduced = false;
-                RDouble first = args[ia.position("first")].asDouble(warn);
+                RDouble first = args[posFirst].asDouble(warn);
                 RDouble last;
-                last = ia.provided("last") ? args[ia.position("last")].asDouble(warn) : defaultLast;
+                last = posLast != -1 ? args[posLast].asDouble(warn) : defaultLast;
 
                 RString res = substring(text, first, last, ast);
                 if (warn.naIntroduced) {

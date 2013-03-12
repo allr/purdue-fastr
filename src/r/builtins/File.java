@@ -4,7 +4,6 @@ import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.data.internal.Connection.FileConnection;
-import r.data.internal.Connection.PipeConnection;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -32,12 +31,14 @@ final class File extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("blocking") || ia.provided("encoding") || ia.provided("raw")) { throw Utils.nyi(); }
+        final int posDescription = ia.position("description");
+        final int posOpen = ia.position("open");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                String description = ia.provided("description") ? getScalarString(args[ia.position("description")], ast, "description") : "";
-                String open = ia.provided("open") ? getScalarString(args[ia.position("open")], ast, "open") : "";
+                String description = posDescription != -1 ? getScalarString(args[posDescription], ast, "description") : "";
+                String open = posOpen != -1 ? getScalarString(args[posOpen], ast, "open") : "";
                 return OPEN_FILE.open(description, open, ast);
             }
         };

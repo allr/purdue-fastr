@@ -30,8 +30,6 @@ final class Array extends CallFactory {
         super(name, params, required);
     }
 
-    private ArgumentInfo ia;
-
     /**
      * Simple class used to retrieve dimensions array and the size of the underlying vector at once.
      */
@@ -47,7 +45,14 @@ final class Array extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
+        final boolean provData = ia.provided("data");
+        final boolean provDim = ia.provided("dim");
+        final boolean provDimnames = ia.provided("dimnames");
+        final int posData = ia.position("data");
+        final int posDim = ia.position("dim");
+        final int posDimnames = ia.position("dimnames");
+
         return new BuiltIn(call, names, exprs) {
             /**
              * Checks that the provided data is an array and returns it, using boxed NA if the size of the array is 0.
@@ -129,9 +134,9 @@ final class Array extends CallFactory {
              * Analyze the arguments and call the builder method
              */
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-                RArray source = ia.provided("data") ? parseData(params[ia.position("data")]) : RLogical.BOXED_NA;
-                DimAndSize dim = ia.provided("dim") ? parseDimensions(params[ia.position("dim")]) : new DimAndSize(new int[]{source.size()}, source.size());
-                String[][] dimnames = ia.provided("dimnames") ? parseDimnames(params[ia.position("dimnames")], dim.dim) : null;
+                RArray source = provData ? parseData(params[posData]) : RLogical.BOXED_NA;
+                DimAndSize dim = provDim ? parseDimensions(params[posDim]) : new DimAndSize(new int[]{source.size()}, source.size());
+                String[][] dimnames = provDimnames ? parseDimnames(params[posDimnames], dim.dim) : null;
                 return createArrayObject(source, dim.dim, dim.size, dimnames);
             }
 

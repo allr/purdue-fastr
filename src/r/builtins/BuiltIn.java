@@ -1,14 +1,12 @@
 package r.builtins;
 
-import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 /** The base class for builtin functions. */
 public abstract class BuiltIn extends AbstractCall {
@@ -72,15 +70,8 @@ public abstract class BuiltIn extends AbstractCall {
     }
 
     /** Report a missing argument. */
-    public static void missingArg(ASTNode ast, String paramName) {
+    static void missingArg(ASTNode ast, String paramName) {
         throw RError.getGenericError(ast, String.format(RError.ARGUMENT_MISSING, paramName));
-    }
-
-    /** Check that the argument provided has the right name else throw an error. */
-    public static void ensureArgName(ASTNode ast, String expectedName, RSymbol actualName) {
-        if (actualName == null) { return; }
-        RSymbol expected = RSymbol.getSymbol(expectedName);
-        if (actualName != expected) { throw RError.getGenericError(ast, String.format(RError.ARGUMENT_NOT_MATCH, actualName.pretty(), expectedName)); }
     }
 
     /** Return a constant or the Java null. */

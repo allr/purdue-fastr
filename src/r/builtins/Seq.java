@@ -12,20 +12,20 @@ import com.oracle.truffle.api.frame.*;
  * "seq"
  * 
  * <pre>
- * ... -- arguments passed to or from methods.
  * from, to -- the starting and (maximal) end values of the sequence. Of length 1 unless just from is supplied 
  *        as an unnamed argument.
  *  by -- number: increment of the sequence.
  *  length.out -- desired length of the sequence. A non-negative number, which for seq and seq.int will be
  *        rounded up if fractional.
  * along.with -- take the length from the length of this argument.
+ * ... -- arguments passed to or from methods.
  * </pre>
  */
 // FIXME: this would have been easier to write in R
 //        GNU R has this written in R, but the code depends on too many things we don't support yet
 final class Seq extends CallFactory {
 
-    static final CallFactory _ = new Seq("seq", new String[]{"...", "from", "to", "by", "length.out", "along.with"}, new String[]{});
+    static final CallFactory _ = new Seq("seq", new String[]{"from", "to", "by", "length.out", "along.with", "..."}, new String[]{});
 
     Seq(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -37,12 +37,16 @@ final class Seq extends CallFactory {
                 return RInt.RIntFactory.getScalar(1);
             }
         }; }
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
+        final int posFrom = ia.position("from");
+        final int posTo = ia.position("to");
+        final int posBy = ia.position("by");
+        final int posLengthOut = ia.position("length.out");
         // handle common cases statically
-        if (ia.provided("from") && ia.provided("to")) {
+        if (posFrom != -1 && posTo != -1) {
             if (exprs.length == 2) {
                 // from:to
-                if (ia.position("from") == 0) { //
+                if (posFrom == 0) { //
                     return Colon._.create(call, names, exprs);
                 } else {
                     RSymbol[] newNames = new RSymbol[2];
@@ -55,14 +59,14 @@ final class Seq extends CallFactory {
                 }
             }
             if (exprs.length == 3) {
-                if (ia.provided("by")) {
+                if (posBy != -1) {
                     //from, to, by
                     return new BuiltIn(call, names, exprs) {
                         // note: does not implement the full semantics
                         @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                            RAny argfrom = args[ia.position("from")]; // FIXME: will this be optimized out?
-                            RAny argto = args[ia.position("to")];
-                            RAny argby = args[ia.position("by")];
+                            RAny argfrom = args[posFrom]; // FIXME: will this be optimized out?
+                            RAny argto = args[posTo];
+                            RAny argby = args[posBy];
 
                             if (!(argfrom instanceof RArray && argto instanceof RArray && argby instanceof RArray)) {
                                 Utils.nyi("unsupported argument types");
@@ -113,16 +117,16 @@ final class Seq extends CallFactory {
                         }
                     };
                 }
-                if (ia.provided("length.out")) {
+                if (posLengthOut != -1) {
                     // from, to, length.out
                     return new BuiltIn(call, names, exprs) {
 
                         // note: does not implement the full semantics
                         @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                            RAny argfrom = args[ia.position("from")]; // FIXME: will this be optimized out ?
-                            RAny argto = args[ia.position("to")];
-                            RAny arglengthOut = args[ia.position("length.out")];
+                            RAny argfrom = args[posFrom]; // FIXME: will this be optimized out ?
+                            RAny argto = args[posTo];
+                            RAny arglengthOut = args[posLengthOut];
 
                             if (!(argfrom instanceof RArray && argto instanceof RArray && arglengthOut instanceof RArray)) { throw Utils.nyi("unsupported argument types"); }
 

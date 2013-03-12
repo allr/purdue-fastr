@@ -17,7 +17,7 @@ import r.nodes.truffle.*;
  */
 // FIXME: could also do lazy rev of int sequence
 class Rev extends CallFactory {
-    static final CallFactory _ = new Rev("rev", new String[]{"x"}, new String[]{});
+    static final CallFactory _ = new Rev("rev", new String[]{"x"}, new String[]{"x"});
 
     Rev(String name, String[] params, String[] required) {
         super(name, params, required);

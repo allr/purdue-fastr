@@ -8,7 +8,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import java.lang.Integer; // needed because there is a class Integer in this package
+import java.lang.Integer;// needed because there is a class Integer in this package
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
@@ -18,32 +18,51 @@ public abstract class CallFactory {
     /** Declared name of function. */
     RSymbol name;
     /** Names of the declared parameters. */
-    RSymbol[] parameters;
+    private RSymbol[] parameters;
     /** Names of the required parameters. */
-    RSymbol[] required;
+    private RSymbol[] required;
     /** Smallest legal number of parameters. */
     int maxParameters;
     /** Largest legal number of parameters. */
     int minParameters;
 
-    public CallFactory() {}
+    public CallFactory(String name) {
+        this.name = RSymbol.getSymbol(name);
+    }
+
+    public CallFactory(RSymbol name) {
+        this.name = name;
+    }
 
     /**
      * @param name
+     *            operation's name
      * @param parameters
+     *            name of the parameters, can be empty but not null.
      * @param required
      *            array of argument names that are required. If null, same as parameters
      */
     CallFactory(String name, String[] parameters, String[] required) {
         this.name = RSymbol.getSymbol(name);
         this.parameters = RSymbol.getSymbols(parameters);
-        this.required = RSymbol.getSymbols(required == null ? parameters : required);
+        this.required = required == null ? this.parameters : RSymbol.getSymbols(required);
         boolean dotdot = false;
-        for (RSymbol p : this.parameters) {
-            dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
+        if (this.required != this.parameters) {
+            for (RSymbol r : this.required) {
+                boolean match = false;
+                for (RSymbol p : this.parameters) {
+                    dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
+                    match |= r == p;
+                }
+                if (!match) { throw Utils.nyi("Internal error in builtin definition for " + name + "required list has extra values"); }
+            }
+        } else {
+            for (RSymbol p : this.parameters) {
+                dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
+            }
         }
-        maxParameters = dotdot ? Integer.MAX_VALUE : parameters.length;
-        minParameters = required.length;
+        maxParameters = dotdot ? java.lang.Integer.MAX_VALUE : parameters.length;
+        minParameters = this.required.length;
     }
 
     /**
@@ -76,10 +95,6 @@ public abstract class CallFactory {
     static class ArgumentInfo {
         /** Parameter names in order. */
         RSymbol[] parameters;
-        /** Which formal parameters were provided an actual argument at this call. */
-        boolean[] providedParams;
-        /** Used??? */
-        private int[] argPositions;
         /**
          * For each formal parameter, in order, what is the index of the corresponding actual argument. The value -1
          * indicates that there was no actual to match that formal parameter.
@@ -88,11 +103,9 @@ public abstract class CallFactory {
         /** Arguments (indexes) that are not matched to one of the function's parameter. */
         ArrayList<Integer> unusedArgs;
 
-        ArgumentInfo(int nArgs, RSymbol[] parameters) {
+        ArgumentInfo(RSymbol[] parameters) {
             this.parameters = parameters;
             int nParams = parameters.length;
-            providedParams = new boolean[nParams]; // FIXME: could merge with paramPositions
-            argPositions = new int[nArgs];
             paramPositions = new int[nParams];
             for (int i = 0; i < paramPositions.length; i++) {
                 paramPositions[i] = -1;
@@ -100,27 +113,39 @@ public abstract class CallFactory {
         }
 
         /** Return the index in the formal parameter list of one particular formal parameter. */
-        int ix(RSymbol p) {
+        private int ix(RSymbol p) {
+            String r = "";
             for (int i = 0; i < parameters.length; i++) {
                 if (parameters[i] == p) { return i; }
+                r += (p + " != " + parameters[i]);
             }
-            throw Utils.nyi();
+            throw Utils.nyi(p + " not found in " + this + " " + r);
         }
 
         /** Return the index in the formal parameter list of one particular formal parameter. */
-        int ix(String p) {
+        private int ix(String p) {
             return ix(RSymbol.getSymbol(p));
         }
 
         /** Returns true if an actual was passed for the formal. */
         boolean provided(String name) {
-            return paramPositions[ix(name)] == -1;
+            return paramPositions[ix(name)] != -1;
         }
 
         /** Returns the position in the actuals of the formal name. */
         int position(String name) {
             return paramPositions[ix(name)];
         }
+
+        /** For debugging. */
+        @Override public String toString() {
+            String res = "[";
+            for (int i = 0; i < parameters.length; i++) {
+                res += parameters[i] + "=" + paramPositions[i] + ((i == parameters.length - 1) ? "" : ",");
+            }
+            return res + "]";
+        }
+
     }
 
     /**
@@ -134,40 +159,42 @@ public abstract class CallFactory {
      *            array of the expressions passed as arguments (not null)
      */
     ArgumentInfo resolveArguments(RSymbol[] names, RNode[] exprs) {
-        int nArgs = exprs.length;
-        ArgumentInfo a = new ArgumentInfo(nArgs, parameters);
+        ArgumentInfo a = new ArgumentInfo(parameters);
+        boolean[] used = new boolean[exprs.length];
         // Match by name, remember which args are unused.
-        outer: for (int i = 0; i < nArgs; i++) {
-            if (names[i] == null) continue;
-            for (int j = 0; j < parameters.length; j++) {
-                if (names[i] == parameters[j]) {
-                    a.argPositions[i] = j;
-                    a.paramPositions[j] = i;
-                    a.providedParams[j] = true;
-                    continue outer;
+        if (names != null) {
+            outer: for (int i = 0; i < exprs.length; i++) {
+                if (names[i] == null) continue;
+                for (int j = 0; j < parameters.length; j++) {
+                    if (names[i] == parameters[j]) {
+                        a.paramPositions[j] = i;
+                        used[i] = true;
+                        continue outer;
+                    }
                 }
             }
         }
         // Match by partial name, ignore arguments already matched and with no name.
-        for (int i = 0; i < nArgs; i++) {
-            if (a.paramPositions[i] != -1 || names[i] == null) continue;
-            boolean match = false;
-            for (int j = 0; j < parameters.length; j++) {
-                if (a.providedParams[j]) continue;
-                if (parameters[j].name().startsWith(names[i].name())) {
-                    if (match) { throw RError.getGenericError(null, "Argument " + i + " matches multiple formal arguments."); }
-                    a.argPositions[i] = j;
-                    a.paramPositions[j] = i;
-                    a.providedParams[j] = true;
-                    match = true;
+        if (names != null) {
+            for (int i = 0; i < parameters.length; i++) {
+                if (a.paramPositions[i] != -1) continue;
+                boolean match = false;
+                for (int j = 0; j < exprs.length; j++) {
+                    if (used[j]) continue;
+                    if (names[j] == null) continue;
+                    if (parameters[i].startsWith(names[j])) {
+                        if (match) { throw RError.getGenericError(null, "Argument " + names[j] + " matches multiple formal arguments."); }
+                        a.paramPositions[i] = j;
+                        match = true;
+                    }
                 }
             }
         }
         // Match the remaining arguments by position, taking care of the three dots and of extra arguments.
         int nextP = 0;
-        for (int i = 0; i < nArgs; i++) {
-            if (a.paramPositions[i] != -1) continue;
-            while (nextP < parameters.length && a.providedParams[nextP]) {
+        for (int i = 0; i < exprs.length; i++) {
+            if (used[i]) continue;
+            while (nextP < parameters.length && a.paramPositions[nextP] != -1) {
                 nextP++; // skip params that have been matched already
             }
             if (nextP == parameters.length) { // FIXME: handle passing of ``...'' objects
@@ -177,15 +204,11 @@ public abstract class CallFactory {
                 a.unusedArgs.add(i);
             } else {
                 if (parameters[nextP] == RSymbol.THREE_DOTS_SYMBOL) {
-                    a.argPositions[i] = nextP;
                     a.paramPositions[nextP] = i; // so record the last argument that was taken by ...
                     continue;
-                }
-                if (exprs[i] != null) { // positional match
-                    if (names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message                        
-                    a.argPositions[i] = nextP;
+                } else if (exprs[i] != null) { // positional match
+                    if (names != null && names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message                        
                     a.paramPositions[nextP] = i;
-                    a.providedParams[nextP] = true;
                 } else { // FIXME: JAN asks if this point can ever be reached?
                     nextP++;
                 }
@@ -199,7 +222,7 @@ public abstract class CallFactory {
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i] == p) { return i; }
         }
-        throw Utils.nyi();
+        throw Utils.nyi(p + " not found  in  " + this);
     }
 
     /** Return the index in the formal parameter list of one particular formal parameter. */
@@ -210,14 +233,6 @@ public abstract class CallFactory {
     /** Return the name of the function or operation. */
     public RSymbol name() {
         return name;
-    }
-
-    /**
-     * Verify that the function argument at index was passed into the call, else throw an exception.
-     */
-    public static void checkArgumentIsPresent(ASTNode call, boolean[] provided, String[] names, int index) {
-        if (provided[index]) { return; }
-        BuiltIn.missingArg(call, names[index]);
     }
 
     ArgumentInfo check(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -234,5 +249,20 @@ public abstract class CallFactory {
             }
         }
         return ai;
+    }
+
+    /** Check that the argument provided has the right name else throw an error. */
+    static void ensureArgName(ASTNode ast, String expectedName, RSymbol actualName) {
+        if (actualName == null) { return; }
+        RSymbol expected = RSymbol.getSymbol(expectedName);
+        if (actualName != expected) { throw RError.getGenericError(ast, String.format(RError.ARGUMENT_NOT_MATCH, actualName.pretty(), expectedName)); }
+    }
+
+    @Override public String toString() {
+        String res = name + "(";
+        for (RSymbol r : parameters) {
+            res += r + " ";
+        }
+        return res + ")";
     }
 }

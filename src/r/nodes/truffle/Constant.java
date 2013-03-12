@@ -5,7 +5,6 @@ import com.oracle.truffle.api.frame.*;
 import r.data.*;
 import r.nodes.*;
 
-
 public class Constant extends BaseR {
     final RAny value;
 
@@ -14,8 +13,7 @@ public class Constant extends BaseR {
         value = val;
     }
 
-    @Override
-    public final RAny execute(Frame frame) {
+    @Override public final RAny execute(Frame frame) {
         return value;
     }
 
@@ -25,5 +23,9 @@ public class Constant extends BaseR {
 
     public RAny value() {
         return value;
+    }
+
+    @Override public String toString() {
+        return "Constant(" + value + ")";
     }
 }

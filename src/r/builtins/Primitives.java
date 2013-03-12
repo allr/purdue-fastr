@@ -39,7 +39,7 @@ public class Primitives {
         add("&&", 2, 2, OpAnd._);
         add("!", 1, 1, OpNot._);
         add("abs", 1, 1, Abs._);
-        add("aperm", 1, 3, Aperm._);
+        add("aperm", 2, 3, Aperm._);
         add("array", 0, 3, Array._);
         add("assign", 2, 6, Assign._);
         add("as.character", 0, -1, AsCharacter._);
@@ -74,17 +74,16 @@ public class Primitives {
         add("file", 0, 5, File._);
         add("flush", 1, 1, Flush._);
         add("integer", 0, 1, Integer._);
-        add("is.character", 1, 1, TypeCheck.STRING_FACTORY);
-        add("is.complex", 1, 1, TypeCheck.COMPLEX_FACTORY);
-        add("is.double", 1, 1, TypeCheck.DOUBLE_FACTORY);
-        add("is.integer", 1, 1, TypeCheck.INT_FACTORY);
-        add("is.list", 1, 1, TypeCheck.LIST_FACTORY);
-        add("is.logical", 1, 1, TypeCheck.LOGICAL_FACTORY);
-        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
-        add("is.numeric", 1, 1, TypeCheck.NUMERIC_FACTORY);
+        add("is.character", 1, 1, IsCharacter._);
+        add("is.complex", 1, 1, IsComplex._);
+        add("is.double", 1, 1, IsDouble._);
+        add("is.integer", 1, 1, IsInteger._);
+        add("is.list", 1, 1, IsList._);
+        add("is.logical", 1, 1, IsLogical._);
+        add("is.null", 1, 1, IsNull._);
+        add("is.numeric", 1, 1, IsNumeric._);
         add("is.na", 1, 1, IsNA._);
-        add("is.null", 1, 1, TypeCheck.IS_NULL_FACTORY);
-        add("is.raw", 1, 1, TypeCheck.RAW_FACTORY);
+        add("is.raw", 1, 1, IsRaw._);
         add("lapply", 2, -1, LApply._);
         add("length", 1, 1, Length._);
         add("length<-", 2, 2, LengthAssign._);
@@ -104,15 +103,15 @@ public class Primitives {
         add("ncol", 1, 1, Ncol._);
         add("new.env", 0, 3, Newenv._);
         add("nrow", 1, 1, Nrow._);
-        add("options", 0, -1, Options.FACTORY);
+        add("options", 0, -1, Options._);
         add("order", 0, -1, Sort._);
         add("outer", 2, -1, Outer._);
         add("paste", 0, -1, Paste._);
-        add("pipe", 1, 3, File._);
+        add("pipe", 1, 3, Pipe._);
         add("raw", 0, 1, Raw._);
         add("readLines", 0, 5, ReadLines._);
         add("regexpr", 2, 6, Regexpr._);
-        add("rep", 2, 2, Rep._);
+        add("rep", 0, -1, Rep._);
         add("rep.int", 2, 2, RepInt._);
         add("return", 0, 1, Return._);
         add("rev", 1, 1, Rev._);
@@ -133,7 +132,7 @@ public class Primitives {
         add("t.default", 1, 1, T._);
         add("tolower", 1, 1, Tolower._);
         add("toupper", 1, 1, Toupper._);
-        add("typeof", 1, 1, TypeOf.TYPEOF_FACTORY);
+        add("typeof", 1, 1, Typeof._);
         add("unlist", 1, 3, Unlist._);
         add("upper.tri", 1, 2, UpperTri._);
         add("which", 1, 3, Which._);
@@ -169,11 +168,10 @@ public class Primitives {
         PrimitiveEntry pe = get(name);
         if (pe != null && fun != null && fun.isInWriteSet(name)) { // TODO: fix these checks
             Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
-            Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
+            throw Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
             // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
             // FIXME: also, what about reflections?
         }
-
         return pe;
     }
 
@@ -182,14 +180,14 @@ public class Primitives {
     }
 
     private static void add(String name, int minArgs, int maxArgs, CallFactory body) {
-        if (body.name != null && !body.name.name().equals(name)) System.err.println("name " + name);
-        else System.err.print(".");
+        // if (body.name != null && !body.name.name().equals(name)) System.err.println("name " + name + " != " + body.name.name());
+        // else System.err.print(".");
+        //if (minArgs != body.minParameters) System.err.println("name " + name + " " + minArgs + " != " + body.minParameters);
         add(name, minArgs, maxArgs, body, PrimitiveEntry.PREFIX);
     }
 
     private static void add(String name, int minArgs, int maxArgs, CallFactory body, int prettyPrint) {
         RSymbol sym = RSymbol.getSymbol(name);
-        //        assert Utils.check(!map.containsKey(sym)); no longer holds (or should hold)
         map.put(sym, new PrimitiveEntry(sym, minArgs, maxArgs, body, prettyPrint));
     }
 }

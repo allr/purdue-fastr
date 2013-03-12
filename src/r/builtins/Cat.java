@@ -229,7 +229,6 @@ final class Cat extends CallFactory {
             }
         }; }
         ArgumentInfo ia = check(call, names, exprs);
-
         final int sepPosition = ia.provided("sep") ? ia.position("sep") : -1;
         final PrintWriter stdOut = new PrintWriter(System.out, true); // stdout buffering, important for fasta
         return new BuiltIn(call, names, exprs) {

@@ -31,7 +31,6 @@ final class Paste extends CallFactory {
             }
         }; }
         ArgumentInfo ia = check(call, names, exprs);
-
         final int sepPosition = ia.provided("sep") ? ia.position("sep") : -1;
         final int collapsePosition = ia.provided("collapse") ? ia.position("collapse") : -1;
         int args = exprs.length;

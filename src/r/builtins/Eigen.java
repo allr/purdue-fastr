@@ -49,21 +49,19 @@ final class Eigen extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("EISPACK")) { throw Utils.nyi("EISPACK argument not supported"); }
-
+        final int posX = ia.position("x");
+        final int posSymmetric = ia.position("symmetric");
+        final int posOnlyvalue = ia.position("only.value");
         final RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[]{"values", "vectors"}));
 
         return new BuiltIn(call, names, exprs) {
-
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-
-                RAny xany = params[ia.position("x")];
-
+                RAny xany = params[posX];
                 RArray x;
                 boolean complex = false;
                 double[] values;
-
                 if (xany instanceof RDouble) {
                     x = (RDouble) xany;
                     values = RDouble.RDoubleUtils.copyAsDoubleArray((RDouble) xany);
@@ -76,14 +74,12 @@ final class Eigen extends CallFactory {
                     values = RDouble.RDoubleUtils.copyAsDoubleArray(xd); // note: could copy and coerce in one step
                     x = xd;
                 }
-
                 // as.matrix(x)
                 // TODO: add more semantics
                 int[] dim = x.dimensions();
                 int[] dimNN;
                 int n;
                 int size = x.size();
-
                 if (dim == null || dim.length != 2) {
                     if (size == 0) { throw RError.getInvalidArgument(ast, "x"); }// FIXME: not an R warning
                     if (size != 1) { throw RError.getNonSquareMatrix(ast, "x"); }
@@ -94,34 +90,25 @@ final class Eigen extends CallFactory {
                     if (dim[1] != n) { throw RError.getNonSquareMatrix(ast, "x"); }
                     dimNN = dim;
                 }
-
                 // check for infinite or missing values
                 for (int i = 0; i < values.length; i++) {
                     if (!RDouble.RDoubleUtils.isFinite(values[i])) { throw RError.getInfiniteMissingValues(ast, "x"); }
                 }
-
                 boolean symmetric;
-                if (ia.provided("symmetric")) {
-                    symmetric = parseLogical(params[ia.position("symmetric")], ast, "symmetric");
-                } else {
-                    // isSymmetric.matrix, but a much simpler case, as we know we have finite non-na numeric values
-                    if (complex) {
-                        symmetric = isSymmetricComplex(values, n);
-                    } else {
-                        symmetric = isSymmetricDouble(values, n);
-                    }
+                if (posSymmetric != -1) {
+                    symmetric = parseLogical(params[posSymmetric], ast, "symmetric");
+                } else { // isSymmetric.matrix, but a much simpler case, as we know we have finite non-na numeric values
+                    symmetric = complex ? isSymmetricComplex(values, n) : isSymmetricDouble(values, n);
                 }
 
-                boolean onlyValues = ia.provided("only_value") ? parseLogical(params[ia.position("only_value")], ast, "only_values") : false;
+                boolean onlyValues = posOnlyvalue != -1 ? parseLogical(params[posOnlyvalue], ast, "only.values") : false;
 
                 RAny resValues = RNull.getNull(); // TODO: init not needed when done with impl below
                 RAny resVectors = RNull.getNull();
-
                 // ./src/modules/lapack/Lapack.c
                 if (!complex) {
                     if (symmetric) {
                         // symmetric real input matrix
-
                         String laJOBZ;
                         double[] laZ;
                         if (onlyValues) {
@@ -135,7 +122,6 @@ final class Eigen extends CallFactory {
                         intW laM = new intW(0);
                         double[] laW = new double[n];
                         intW laINFO = new intW(0);
-
                         // get optimum sizes for the work arrays
                         double[] laWORK = new double[1];
                         int[] laIWORK = new int[1];
@@ -143,13 +129,11 @@ final class Eigen extends CallFactory {
                         if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dsyevr"); }
                         int laLWORK = (int) laWORK[0];
                         int laLIWORK = laIWORK[0];
-
                         // do the real work
                         laWORK = new double[laLWORK];
                         laIWORK = new int[laLIWORK];
                         LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ, laWORK, laLWORK, laIWORK, laLIWORK, laINFO);
                         if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dsyevr"); }
-
                         resValues = RDouble.RDoubleFactory.getFor(Utils.reverse(laW));
                         if (!onlyValues) {
                             resVectors = RDouble.RDoubleFactory.getFor(reverseColumns(laZ, n, n), dimNN, null);
@@ -157,7 +141,6 @@ final class Eigen extends CallFactory {
 
                     } else {
                         // general real input matrix
-
                         String laJOBVR;
                         double[] laVR;
                         if (onlyValues) {
@@ -170,7 +153,6 @@ final class Eigen extends CallFactory {
                         double[] laWR = new double[n];
                         double[] laWI = new double[n];
                         intW laINFO = new intW(0);
-
                         // get optimum size for the work array
                         double[] laWORK = new double[1];
                         LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, -1, laINFO);
@@ -208,13 +190,10 @@ final class Eigen extends CallFactory {
                         }
                     }
 
-                } else {
-                    // TODO: port JLAPACK to the new LAPACK or find another library
-                    if (symmetric) {
-                        // symmetric complex input matrix
+                } else { // TODO: port JLAPACK to the new LAPACK or find another library
+                    if (symmetric) { // symmetric complex input matrix                        
                         throw Utils.nyi("ZHEEV not supported by netlib-java");
-                    } else {
-                        // general complex input matrix
+                    } else { // general complex input matrix.                       
                         throw Utils.nyi("ZGEEV not supported by netlib-java");
                     }
                 }

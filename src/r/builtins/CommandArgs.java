@@ -24,14 +24,13 @@ final class CommandArgs extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
+        check(call, names, exprs);
         if (names.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RString.RStringFactory.getFor(Console.trailingArgs);
             }
         }; }
-
-        BuiltIn.ensureArgName(call, "trailingOnly", names[0]);
+        ensureArgName(call, "trailingOnly", names[0]);
         return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny x) {
                 RLogical l = x instanceof RLogical ? (RLogical) x : x.asLogical();

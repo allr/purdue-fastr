@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.*;
  */
 //FIXME: implements only part of R semantics
 final class WriteBin extends CallFactory {
-    static final CallFactory _ = new Unlist("which", new String[]{"object", "con", "size", "endian", "useBytes"}, new String[]{"object", "con"});
+    static final CallFactory _ = new Unlist("writeBin", new String[]{"object", "con", "size", "endian", "useBytes"}, new String[]{"object", "con"});
 
     WriteBin(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -44,26 +44,22 @@ final class WriteBin extends CallFactory {
             return;
         }
         // FIXME support more types
-        Utils.nyi("unsupported argument");
+        throw Utils.nyi("unsupported argument");
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
-
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("size") || ia.provided("endian") || ia.provided("use.bytes")) {
             Utils.nyi("argument of writeBin not yet implemented");
         }
-
         final ConnectionMode defaultMode = ConnectionMode.get("wb");
-
+        final int posCon = ia.position("con");
+        final int posObject = ia.position("object");
         return new BuiltIn(call, names, exprs) {
-
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-
                 Connection con = null;
                 boolean wasOpen = false;
-
-                RAny conArg = args[ia.position("con")];
+                RAny conArg = args[posCon];
                 if (conArg instanceof RString) {
                     String description = File.getScalarString(conArg, ast, "description");
                     con = FileConnection.createOpened(description, defaultMode, ast);
@@ -87,7 +83,7 @@ final class WriteBin extends CallFactory {
                 try {
                     BufferedOutputStream output = new BufferedOutputStream(con.output(ast));
                     try {
-                        write(args[ia.position("object")], output);
+                        write(args[posObject], output);
                         output.flush(); // FIXME: this flushes also the underlying file, which may not be the R semantics (?)
                     } catch (IOException e) {
                         throw RError.getGenericError(ast, e.toString());

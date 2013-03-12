@@ -29,8 +29,8 @@ class UpperTri extends CallFactory {
     final Triangular trian;
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
-
+        ArgumentInfo ia = check(call, names, exprs);
+        final boolean xfirst = ia.position("x") == 0;
         if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny argx) {
                 return UPPER.triangular(argx, false);
@@ -40,11 +40,7 @@ class UpperTri extends CallFactory {
         // FIXME check that "diag" is passed
         return new BuiltIn.BuiltIn2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                if (ia.position("x") == 0) {
-                    return trian.triangular(ast, arg0, arg1);
-                } else {
-                    return trian.triangular(ast, arg1, arg0);
-                }
+                return xfirst ? trian.triangular(ast, arg0, arg1) : trian.triangular(ast, arg1, arg0);
             }
         };
     }

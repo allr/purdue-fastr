@@ -39,18 +39,23 @@ class Regexpr extends CallFactory {
     boolean global;
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
-
+        ArgumentInfo ia = check(call, names, exprs);
+        final int posUseBytes = ia.position("useBytes");
+        final int posPattern = ia.position("pattern");
+        final int posText = ia.position("text");
+        final int posPerl = ia.position("perl");
+        final int posFixed = ia.position("fixed");
+        final int posIgnoreCase = ia.position("ignore.case");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                if (ia.provided("useBytes")) {
+                if (posUseBytes != -1) {
                     RContext.warning(ast, "Ignoring useBytes.");
                 }
-                String pattern = Sub.parseScalarString(ast, args[ia.position("pattern")], "pattern");
-                RString text = Convert.coerceToStringError(args[ia.position("text")], ast);
-                boolean ignoreCase = ia.provided("ignore.case") ? Convert.checkFirstLogical(args[ia.position("ignore.case")], RLogical.TRUE) : false;
-                boolean perl = ia.provided("perl") ? Convert.checkFirstLogical(args[ia.position("perl")], RLogical.TRUE) : false;
-                boolean fixed = ia.provided("fixed") ? Convert.checkFirstLogical(args[ia.position("fixed")], RLogical.TRUE) : false;
+                String pattern = Sub.parseScalarString(ast, args[posPattern], "pattern");
+                RString text = Convert.coerceToStringError(args[posText], ast);
+                boolean ignoreCase = posIgnoreCase != -1 ? Convert.checkFirstLogical(args[posIgnoreCase], RLogical.TRUE) : false;
+                boolean perl = posPerl != -1 ? Convert.checkFirstLogical(args[posPerl], RLogical.TRUE) : false;
+                boolean fixed = posFixed != -1 ? Convert.checkFirstLogical(args[posFixed], RLogical.TRUE) : false;
                 if (pattern == RString.NA) { throw RError.getInvalidArgument(ast, "pattern"); }
                 if (!perl) {
                     RContext.warning(ast, "Using a Perl-like regular expression syntax (non-Perl not implemented yet).");

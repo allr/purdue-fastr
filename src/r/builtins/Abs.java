@@ -58,7 +58,6 @@ public class Abs extends CallFactory {
     public static RDouble abs(final RComplex orig) {
 
         return new View.RDoubleProxy<RComplex>(orig) {
-
             @Override public double getDouble(int i) {
                 return abs(orig.getReal(i), orig.getImag(i));
             }
@@ -66,8 +65,7 @@ public class Abs extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-        BuiltIn.ensureArgName(call, "x", names[0]);
+        check(call, names, exprs);
         return new BuiltIn.BuiltIn1(call, names, exprs) {
 
             @Override public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting

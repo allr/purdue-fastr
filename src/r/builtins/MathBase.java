@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -41,7 +40,6 @@ abstract class MathBase extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-
         return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny value) {
                 if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) { return calc(ast, value.asDouble()); }

@@ -90,23 +90,25 @@ final class Scan extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
-
+        ArgumentInfo ia = check(call, names, exprs);
         final ConnectionMode defaultMode = ConnectionMode.get("r");
-
+        final int posWhat = ia.position("what");
+        final int posNmax = ia.position("nmax");
+        final int posQuiet = ia.position("quiet");
+        final int posFile = ia.position("file");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RAny what = ia.provided("what") ? args[ia.position("what")] : RDouble.EMPTY;
-                int nmax = ia.provided("nmax") ? parseNMax(args[ia.position("nmax")], ast) : -1;
-                boolean quiet = ia.provided("quiet") ? parseQuiet(args[ia.position("quiet")]) : false;
+                RAny what = posWhat != -1 ? args[posWhat] : RDouble.EMPTY;
+                int nmax = posNmax != -1 ? parseNMax(args[posNmax], ast) : -1;
+                boolean quiet = posQuiet != -1 ? parseQuiet(args[posQuiet]) : false;
 
                 if (what instanceof RList) { throw Utils.nyi("list not yet implemented"); }
                 if (what instanceof RNull) { throw RError.getInvalidArgument(ast, "what"); }
                 Connection con = null;
                 boolean wasOpen = false;
 
-                if (!ia.provided("file")) { throw Utils.nyi("stdin, text"); } // FIXME: similar code to that in readLines, extract?
-                RAny conArg = args[ia.position("file")];
+                if (posFile == -1) { throw Utils.nyi("stdin, text"); } // FIXME: similar code to that in readLines, extract?
+                RAny conArg = args[posFile];
                 if (conArg instanceof RString) {
                     String description = File.getScalarString(conArg, ast, "file");
                     con = FileConnection.createOpened(description, defaultMode, ast);
@@ -125,12 +127,10 @@ final class Scan extends CallFactory {
                         con.open(defaultMode, ast);
                     }
                 }
-
                 try {
                     // TODO: replace this primitive scanning by something more general
                     // note that we cannot simply use Scan because it would buffer too much data (Scan cannot push its remaining buffered data back to the
                     // underlying BufferedReader ; probably will have to implement a custom BufferedScanner for R
-
                     Reader reader = con.reader(ast);
                     ArrayList<String> buf = new ArrayList<String>();
                     int nread = 0;
@@ -158,7 +158,6 @@ final class Scan extends CallFactory {
                             c = reader.read();
                         }
                     }
-
                     if (!quiet) {
                         Console.println(String.format("Read %d item%s.", nread, nread == 1 ? "" : "s"));
                     }

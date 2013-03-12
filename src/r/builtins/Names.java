@@ -1,12 +1,11 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+
+import com.oracle.truffle.api.frame.*;
 
 /**
  * "names"
@@ -18,7 +17,7 @@ import r.nodes.truffle.*;
  */
 // FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
 final class Names extends CallFactory {
-    static final CallFactory _ = new Names("names", new String[]{"xn"}, new String[]{"x"});
+    static final CallFactory _ = new Names("names", new String[]{"x"}, new String[]{"x"});
 
     private Names(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -39,7 +38,6 @@ final class Names extends CallFactory {
             if (sNames != null) { return RString.RStringFactory.getFor(sNames.asStringArray()); }
             return RNull.getNull();
         }
-        Utils.nyi("unsupported argument");
-        return null;
+        throw Utils.nyi("unsupported argument");
     }
 }

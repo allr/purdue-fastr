@@ -36,18 +36,22 @@ final class ReadLines extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("encoding")) { throw Utils.nyi(); }
+        final int posCon = ia.position("con");
+        final int posN = ia.position("n");
+        final int posOk = ia.position("ok");
+        final int posWarn = ia.position("warn");
         final ConnectionMode defaultMode = ConnectionMode.get("rt");
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                final int n = !ia.provided("n") ? -1 : parseN(args[ia.position("n")], ast);
-                final boolean ok = !ia.provided("ok") ? true : parseLogicalScalar(args[ia.position("ok")], ast, "ok");
-                final boolean warn = !ia.provided("warn") ? true : parseLogicalScalar(args[ia.position("warn")], ast, "warn");
+                final int n = posN == -1 ? -1 : parseN(args[posN], ast);
+                final boolean ok = posOk == -1 ? true : parseLogicalScalar(args[posOk], ast, "ok");
+                final boolean warn = posWarn == -1 ? true : parseLogicalScalar(args[posWarn], ast, "warn");
                 Connection con = null;
                 boolean wasOpen = false;
-                if (!ia.provided("con")) { throw Utils.nyi("stdin"); } // FIXME: this is common code, extract? (e.g. also in scan)
-                RAny conArg = args[ia.position("con")];
+                if (posCon == -1) { throw Utils.nyi("stdin"); } // FIXME: this is common code, extract? (e.g. also in scan)
+                RAny conArg = args[posCon];
                 if (conArg instanceof RString) {
                     String description = File.getScalarString(conArg, ast, "description");
                     con = FileConnection.createOpened(description, defaultMode, ast);

@@ -1,18 +1,17 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
-import r.builtins.BuiltIn.*;
-import r.builtins.CallFactory.*;
-import r.builtins.LApply.*;
+import r.builtins.LApply.ArgIterator;
+import r.builtins.LApply.CallableProvider;
+import r.builtins.LApply.ValueProvider;
 import r.data.*;
 import r.data.internal.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.FunctionCall;
+
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also

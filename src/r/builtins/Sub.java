@@ -37,19 +37,25 @@ class Sub extends CallFactory {
     boolean global;
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
+        final int posPattern = ia.position("pattern");
+        final int posReplacement = ia.position("replacement");
+        final int posX = ia.position("x");
+        final int posIgnoreCase = ia.position("ignore.case");
+        final int posPerl = ia.position("perl");
+        final int posFixed = ia.position("fixed");
+        final int posUseBytes = ia.position("useBytes");
         return new BuiltIn(call, names, exprs) {
             @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                if (ia.provided("useBytes")) {
+                if (posUseBytes != -1) {
                     RContext.warning(ast, "Ignoring useBytes.");
                 }
-                String pattern = parseScalarString(ast, args[ia.position("pattern")], "pattern");
-                String replacement = parseScalarString(ast, args[ia.position("replacement")], "replacement");
-                RString x = Convert.coerceToStringError(args[ia.position("x")], ast);
-                boolean ignoreCase = ia.provided("ignore.case") ? Convert.checkFirstLogical(args[ia.position("ignore.case")], RLogical.TRUE) : false;
-                boolean perl = ia.provided("perl") ? Convert.checkFirstLogical(args[ia.position("perl")], RLogical.TRUE) : false;
-                boolean fixed = ia.provided("fixed") ? Convert.checkFirstLogical(args[ia.position("fixed")], RLogical.TRUE) : false;
-
+                String pattern = parseScalarString(ast, args[posPattern], "pattern");
+                String replacement = parseScalarString(ast, args[posReplacement], "replacement");
+                RString x = Convert.coerceToStringError(args[posX], ast);
+                boolean ignoreCase = posIgnoreCase != -1 ? Convert.checkFirstLogical(args[posIgnoreCase], RLogical.TRUE) : false;
+                boolean perl = posPerl != -1 ? Convert.checkFirstLogical(args[posPerl], RLogical.TRUE) : false;
+                boolean fixed = posFixed != -1 ? Convert.checkFirstLogical(args[posFixed], RLogical.TRUE) : false;
                 return sub(ast, pattern, replacement, x, ignoreCase, perl, fixed, global);
             }
         };

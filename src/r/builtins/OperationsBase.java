@@ -19,6 +19,10 @@ abstract class OperationsBase extends CallFactory {
         super(name, new String[]{"x", "y"}, null);
     }
 
+    OperationsBase(String name, int minArg) {
+        super(name, new String[]{"x", "y"}, minArg == 1 ? new String[]{"x"} : null);
+    }
+
     public static RNode idempotentNumeric(ASTNode ast, RSymbol[] names, RNode[] exprs) {
         return new BuiltIn.BuiltIn1(ast, names, exprs) {
 

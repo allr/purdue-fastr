@@ -30,7 +30,7 @@ abstract class ColRowBase extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("dims")) { throw Utils.nyi("unimplemented argument"); }
         if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny x) {
@@ -44,18 +44,18 @@ abstract class ColRowBase extends CallFactory {
                 maybeNARm = true;
             }
         }
-
+        final boolean xfirst = ia.position("x") == 0;
         if (names.length == 2) {
             if (!maybeNARm) { // FIXME: is it overkill to optimize for this?
                 return new BuiltIn.BuiltIn2(call, names, exprs) {
                     @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                        return stat(ast, (ia.position("x") == 0) ? arg0 : arg1, false);
+                        return stat(ast, xfirst ? arg0 : arg1, false);
                     }
                 };
             } else {
                 return new BuiltIn.BuiltIn2(call, names, exprs) {
                     @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                        return ia.position("x") == 0 ? stat(ast, arg0, arg1) : stat(ast, arg1, arg0);
+                        return xfirst ? stat(ast, arg0, arg1) : stat(ast, arg1, arg0);
                     }
                 };
             }

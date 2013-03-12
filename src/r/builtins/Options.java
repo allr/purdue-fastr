@@ -8,19 +8,19 @@ import com.oracle.truffle.api.frame.*;
 
 // TODO: implement this builtin at least to support custom options
 //       shooutout benchmarks set the "digits" option
-public class Options {
-    public static final CallFactory FACTORY = new CallFactory() {
+final class Options extends CallFactory {
+    static final CallFactory _ = new Options("options", new String[]{}, null);
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            return new BuiltIn(call, names, exprs) {
+    private Options(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] args) {
-                    return RNull.getNull();
-                }
-
-            };
-        }
-    };
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                return RNull.getNull();
+            }
+        };
+    }
 }
