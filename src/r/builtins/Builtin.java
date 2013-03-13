@@ -85,7 +85,7 @@ public abstract class Builtin extends AbstractCall {
     /** Is node a numeric constant with the value cvalue? */
     public static boolean isNumericConstant(RNode node, double cvalue) {
         RAny value = getConstantValue(node);
-        if (value != null) { return false; }
+        if (value == null) { return false; }
         boolean ok = value instanceof RDouble || value instanceof RInt || value instanceof RLogical;
         if (!ok) { return false; }
         RDouble dv = value.asDouble();
