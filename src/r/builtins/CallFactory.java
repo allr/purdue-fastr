@@ -55,11 +55,23 @@ public abstract class CallFactory {
                 if (!match) { throw Utils.nyi("Internal error in builtin definition for " + name + "required list has extra values"); }
             }
         }
+        RSymbol[] minPs = new RSymbol[parameters.length];
+        int pos = 0;
         for (RSymbol p : this.parameters) {
             dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
+            if (!dotdot) minPs[pos++] = p;
+        }
+        int min = 0;
+        for (int i = 0; i < pos; i++) {
+            for (RSymbol r : this.required) {
+                if (minPs[i] == r) {
+                    min++;
+                    break;
+                }
+            }
         }
         maxParameters = dotdot ? java.lang.Integer.MAX_VALUE : parameters.length;
-        minParameters = this.required.length;
+        minParameters = min;
     }
 
     /**
