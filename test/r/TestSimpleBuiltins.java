@@ -455,7 +455,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ sqrt(c(a=9,b=81)) }", "  a   b\n3.0 9.0");
 
         assertEval("{ exp(c(1+1i,-2-3i)) }", "1.4686939399158854+2.2873552871788427i, -0.13398091492954262-0.019098516261135196i");
-	//        assertEval("{ exp(1+2i) }", "-1.1312043837568138+2.471726672004819i");
+//        assertEval("{ exp(1+2i) }", "-1.1312043837568138+2.471726672004819i");
 
         assertEval("{ abs((-1-0i)/(0+0i)) }", "Infinity");
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
