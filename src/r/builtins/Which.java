@@ -20,7 +20,7 @@ import com.oracle.truffle.api.frame.*;
  */
 // FIXME: implements only part of R semantics
 final class Which extends CallFactory {
-    static final CallFactory _ = new Unlist("which", new String[]{"x", "recursive", "use.names"}, new String[]{"x"});
+    static final CallFactory _ = new Which("which", new String[]{"x", "arr.ind", "useNames"}, new String[]{"x"});
 
     Which(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -62,14 +62,11 @@ final class Which extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        if (ia.provided("arr.ind") || ia.provided("use.names")) { throw Utils.nyi("arguments not yet implemented"); }
+        if (ia.provided("arr.ind") || ia.provided("useNames")) { throw Utils.nyi("arguments not yet implemented"); }
         if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
-                if (arg instanceof RLogical) {
-                    return which((RLogical) arg);
-                } else {
-                    throw RError.getArgumentWhichNotLogical(ast);
-                }
+                if (arg instanceof RLogical) { return which((RLogical) arg); }
+                throw RError.getArgumentWhichNotLogical(ast);
             }
         }; }
         throw Utils.nyi();

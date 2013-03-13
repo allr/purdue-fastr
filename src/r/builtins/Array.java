@@ -52,7 +52,6 @@ final class Array extends CallFactory {
         final int posData = ia.position("data");
         final int posDim = ia.position("dim");
         final int posDimnames = ia.position("dimnames");
-
         return new BuiltIn(call, names, exprs) {
             /**
              * Checks that the provided data is an array and returns it, using boxed NA if the size of the array is 0.

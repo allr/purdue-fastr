@@ -42,8 +42,8 @@ final class Unlist extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         final int posX = ia.position("x");
-        final int posRecursive = ia.position("recursive");
-        final int posUseNames = ia.position("use.names");
+        final int posRecursive = ia.provided("recursive") ? ia.position("recursive") : -1;
+        final int posUseNames = ia.provided("use.names") ? ia.position("use.names") : -1;
         return new BuiltIn(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RAny x = args[posX];

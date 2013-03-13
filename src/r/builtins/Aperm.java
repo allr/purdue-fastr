@@ -22,7 +22,7 @@ import r.nodes.truffle.*;
  */
 final class Aperm extends CallFactory {
 
-    static final CallFactory _ = new Aperm("aperm", new String[]{"a", "perm", "resize"}, new String[]{"a", "perm"});
+    static final CallFactory _ = new Aperm("aperm", new String[]{"a", "perm", "resize"}, new String[]{"a"});
 
     private Aperm(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -30,7 +30,7 @@ final class Aperm extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        int posPerm = ia.position("perm");
+        int posPerm = ia.position("perm");// can be -1
         int posA = ia.position("a");
         int posResize = ia.position("resize");
         return Configuration.BUILTIN_APERM_TYPED_DIRECT_ACCESS ? new ApermImpl(call, names, exprs, posA, posPerm, posResize) : new Generalized(call, names, exprs, posA, posPerm, posResize);

@@ -1,10 +1,9 @@
 package r.data.internal;
 
+import r.Convert.ConversionStatus;
 import r.*;
-import r.Convert.*;
 import r.builtins.*;
 import r.data.*;
-import r.data.RAny.Attributes;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -18,152 +17,113 @@ public class BuiltInImpl implements RBuiltIn {
         this.callFactory = callFactory;
     }
 
-    @Override
-    public RSymbol name() {
+    @Override public RSymbol name() {
         return callFactory.name();
     }
 
-    @Override
-    public String pretty() {
+    @Override public String pretty() {
         return "<builtin " + name().pretty() + ">";
     }
 
-    @Override
-    public CallFactory callFactory() {
+    @Override public CallFactory callFactory() {
         return callFactory;
     }
 
-    @Override
-    public RAny stripAttributes() {
+    @Override public RAny stripAttributes() {
         return this;
     }
 
-    @Override
-    public String prettyMatrixElement() {
+    @Override public String prettyMatrixElement() {
         return pretty();
     }
 
-    @Override
-    public RRaw asRaw() {
-        Utils.nyi();
-        return null;
+    @Override public RRaw asRaw() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RLogical asLogical() {
-        Utils.nyi();
-        return null;
+    @Override public RLogical asLogical() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RInt asInt() {
-        Utils.nyi();
-        return null;
+    @Override public RInt asInt() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RDouble asDouble() {
-        Utils.nyi();
-        return null;
+    @Override public RDouble asDouble() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RComplex asComplex() {
-        Utils.nyi();
-        return null;
+    @Override public RComplex asComplex() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RString asString() {
-        Utils.nyi();
-        return null;
+    @Override public RString asString() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RList asList() {
-        Utils.nyi();
-        return null;
+    @Override public RList asList() {
+        throw Utils.nyi();
     }
 
-    @Override
-    public void ref() {
-    }
+    @Override public void ref() {}
 
-    @Override
-    public boolean isShared() {
+    @Override public boolean isShared() {
         return false;
     }
 
-    @Override
-    public boolean isTemporary() {
+    @Override public boolean isTemporary() {
         return false;
     }
 
-    @Override
-    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
-        Utils.nyi();
-        return null;
+    @Override public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RRaw asRaw(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RRaw asRaw(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RLogical asLogical(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RLogical asLogical(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RInt asInt(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RInt asInt(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RDouble asDouble(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RDouble asDouble(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RComplex asComplex(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RComplex asComplex(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public RString asString(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
+    @Override public RString asString(ConversionStatus warn) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public String typeOf() {
+    @Override public String typeOf() {
         return RBuiltIn.TYPE_STRING;
     }
 
-    @Override
-    public Attributes attributes() {
+    @Override public Attributes attributes() {
         return null;
     }
 
-    @Override
-    public Attributes attributesRef() {
+    @Override public Attributes attributesRef() {
         return null;
     }
 
-    @Override
-    public RArray setAttributes(Attributes attributes) {
-        Utils.nyi();
-        return null;
+    @Override public RArray setAttributes(Attributes attributes) {
+        throw Utils.nyi();
     }
 
-    @Override
-    public boolean dependsOn(RAny value) {
+    @Override public boolean dependsOn(RAny value) {
         return false;
+    }
+
+    @Override public String toString() {
+        return "BuiltInImpl[" + callFactory + "]";
     }
 }

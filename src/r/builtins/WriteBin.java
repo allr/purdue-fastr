@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.*;
  */
 //FIXME: implements only part of R semantics
 final class WriteBin extends CallFactory {
-    static final CallFactory _ = new Unlist("writeBin", new String[]{"object", "con", "size", "endian", "useBytes"}, new String[]{"object", "con"});
+    static final CallFactory _ = new WriteBin("writeBin", new String[]{"object", "con", "size", "endian", "useBytes"}, new String[]{"object", "con"});
 
     WriteBin(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -43,8 +43,7 @@ final class WriteBin extends CallFactory {
             write((RRaw) arg, output);
             return;
         }
-        // FIXME support more types
-        throw Utils.nyi("unsupported argument");
+        throw Utils.nyi("unsupported argument"); // FIXME support more types
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -79,7 +78,6 @@ final class WriteBin extends CallFactory {
                         con.open(defaultMode, ast);
                     }
                 }
-
                 try {
                     BufferedOutputStream output = new BufferedOutputStream(con.output(ast));
                     try {

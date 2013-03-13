@@ -241,7 +241,7 @@ abstract class AsBase extends CallFactory {
      * for any non-coercible value encountered. An error will be thrown if a non-scalar vector is found.
      */
     static RAny genericAsLogical(ASTNode ast, RAny arg) {
-        if (arg instanceof RList) { return arg.asLogical().stripAttributes(); }// note: coercion to logical produces no warnings
+        if (!(arg instanceof RList)) { return arg.asLogical().stripAttributes(); }// note: coercion to logical produces no warnings
         RList l = (RList) arg;
         int[] content = new int[l.size()];
         for (int i = 0; i < l.size(); i++) {

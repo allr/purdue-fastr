@@ -18,11 +18,11 @@ import com.oracle.truffle.api.frame.*;
  * </pre>
  */
 // FIXME: only partial semantics
-final class NChar extends CallFactory {
+final class Nchar extends CallFactory {
 
-    static final CallFactory _ = new NChar("nchar", new String[]{"x", "type", "allowNA"}, new String[]{"x"});
+    static final CallFactory _ = new Nchar("nchar", new String[]{"x", "type", "allowNA"}, new String[]{"x"});
 
-    private NChar(String name, String[] params, String[] required) {
+    private Nchar(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 

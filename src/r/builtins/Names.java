@@ -12,7 +12,6 @@ import com.oracle.truffle.api.frame.*;
  * 
  * <pre>
  * x -- an R object.
- * value -- a character vector of up to the same length as x, or NULL.
  * </pre>
  */
 // FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn

@@ -26,10 +26,10 @@ import com.oracle.truffle.api.frame.*;
  */
 // FIXME: this implementation is very slow and is only partial
 // the supported regular expressions may not be exactly like in GNU-R
-final class StrSplit extends CallFactory {
-    static final CallFactory _ = new StrSplit("strsplit", new String[]{"x", "split", "fixed", "perl", "useBytes"}, new String[]{"x", "split"});
+final class Strsplit extends CallFactory {
+    static final CallFactory _ = new Strsplit("strsplit", new String[]{"x", "split", "fixed", "perl", "useBytes"}, new String[]{"x", "split"});
 
-    private StrSplit(String name, String[] params, String[] required) {
+    private Strsplit(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 

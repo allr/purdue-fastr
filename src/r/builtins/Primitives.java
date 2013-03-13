@@ -45,10 +45,10 @@ public class Primitives {
         add("as.character", 0, -1, AsCharacter._);
         add("as.complex", 0, -1, AsComplex._);
         add("as.double", 0, -1, AsDouble._);
-        add("as.environment", 1, 1, Asenvironment._);
+        add("as.environment", 1, 1, AsEnvironment._);
         add("as.integer", 0, -1, AsInteger._);
         add("as.logical", 0, -1, AsLogical._);
-        add("as.raw", 0, -1, AsRaw._);
+        add("as.raw", 1, 1, AsRaw._);
         add("as.vector", 1, 2, AsVector._);
         add("attr", 2, 3, Attr._);
         add("attr<-", 3, 3, AttrAssign._);
@@ -57,7 +57,7 @@ public class Primitives {
         add("c", 0, -1, C._);
         add("cat", 0, -1, Cat._);
         add("character", 0, 1, Character._);
-        add("close", 1, 1, Close._);
+        add("close", 1, -1, Close._);
         add("colMeans", 1, 3, ColMeans._);
         add("colSums", 1, 3, ColSums._);
         add("cumsum", 1, 1, Cumsum._);
@@ -99,7 +99,7 @@ public class Primitives {
         add("min", 0, -1, Min._);
         add("names", 1, 1, Names._);
         add("names<-", 2, 2, NamesAssign._);
-        add("nchar", 1, 3, NChar._);
+        add("nchar", 1, 3, Nchar._);
         add("ncol", 1, 1, Ncol._);
         add("new.env", 0, 3, Newenv._);
         add("nrow", 1, 1, Nrow._);
@@ -115,14 +115,14 @@ public class Primitives {
         add("rep.int", 2, 2, RepInt._);
         add("return", 0, 1, Return._);
         add("rev", 1, 1, Rev._);
-        add("rev.default", 1, 1, RevDefault._);
+        add("rev.default", 1, 1, Rev._);
         add("rowMeans", 1, 3, RowMeans._);
         add("rowSums", 1, 3, RowSums._);
         add("sapply", 2, -1, SApply._);
-        add("scan", 0, 21, Scan._);
+        add("scan", 0, 4, Scan._);
         add("seq", 0, -1, Seq._); // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq._);
-        add("strsplit", 1, 5, StrSplit._);
+        add("strsplit", 1, 5, Strsplit._);
         add("sub", 3, 7, Sub._);
         add("substr", 3, 3, Substr._);
         add("substring", 2, 3, Substring._);
@@ -183,6 +183,9 @@ public class Primitives {
         // if (body.name != null && !body.name.name().equals(name)) System.err.println("name " + name + " != " + body.name.name());
         // else System.err.print(".");
         //if (minArgs != body.minParameters) System.err.println("name " + name + " " + minArgs + " != " + body.minParameters);
+        if (maxArgs == -1) {
+            if (body.maxParameters != java.lang.Integer.MAX_VALUE) System.err.println("name " + name + " " + maxArgs + " != " + body.maxParameters);
+        } else if (maxArgs != body.maxParameters) System.err.println("name " + name + " " + maxArgs + " != " + body.maxParameters);
         add(name, minArgs, maxArgs, body, PrimitiveEntry.PREFIX);
     }
 

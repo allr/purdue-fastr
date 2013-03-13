@@ -128,9 +128,13 @@ public final class RSymbol extends BaseObject implements RAny {
      * Resets the symbol table. First clears the symbol table completely and then reinserts the special symbols.
      */
     public static void resetTable() {
-        symbolTable.table.clear();
-        reinsertSpecialSymbols();
-        Primitives.initializePrimitives();
+        for (RSymbol s : symbolTable.table.values()) {
+            s.value = null;
+            s.version = 0;
+        }
+        //symbolTable.table.clear();
+        //reinsertSpecialSymbols();
+        //Primitives.initializePrimitives();
     }
 
     public static Set<String> symbols() {
@@ -248,7 +252,7 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override public String toString() {
-        return "'" + name() + "'";
+        return name;
     }
 
     public boolean startsWith(RSymbol other) {

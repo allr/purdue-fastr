@@ -31,15 +31,12 @@ final class Sum extends CallFactory {
         double res = 0;
         for (int i = 0; i < size; i++) {
             double d = v.getDouble(i);
-
             if (narm) {
                 if (RDouble.RDoubleUtils.isNAorNaN(d)) {
                     continue;
                 }
             } else {
-                if (RDouble.RDoubleUtils.isNAorNaN(d)) { // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
-                    return d;
-                }
+                if (RDouble.RDoubleUtils.isNAorNaN(d)) { return d; }// FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
             }
             res += d;
         }

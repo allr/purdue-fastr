@@ -41,58 +41,30 @@ final class Cat extends CallFactory {
     }
 
     private static final int DEFAULT_BUFFER_SIZE = 4096;
-    private static char[] buffer = new char[DEFAULT_BUFFER_SIZE];
+    private static char[] buffer = new char[DEFAULT_BUFFER_SIZE]; // FIXME: This is not thread safe!!! 
 
     static String catElement(RArray v, int i) { // TODO: replace this by virtual calls, even cat can be important for performance (e.g. fasta)
-        if (v instanceof RDouble) { return catElement((RDouble) v, i); }
-        if (v instanceof RInt) { return catElement((RInt) v, i); }
-        if (v instanceof RLogical) { return catElement((RLogical) v, i); }
-        if (v instanceof RString) { return catElement((RString) v, i); }
+        if (v instanceof RDouble) { return Convert.prettyNA(Convert.double2string(((RDouble) v).getDouble(i))); }
+        if (v instanceof RInt) { return Convert.prettyNA(Convert.int2string(((RInt) v).getInt(i))); }
+        if (v instanceof RLogical) { return Convert.prettyNA(Convert.logical2string(((RLogical) v).getLogical(i))); }
+        if (v instanceof RString) { return ((RString) v).getString(i); }
         if (v instanceof RComplex) { return catElement((RComplex) v, i); }
-        if (v instanceof RRaw) { return catElement((RRaw) v, i); }
+        if (v instanceof RRaw) { return Convert.raw2string(((RRaw) v).getRaw(i)); }
         throw Utils.nyi("unsupported type");
-    }
-
-    static String catElement(RString v, int i) {
-        return v.getString(i);
     }
 
     static String catElement(RComplex v, int i) {
         return Convert.prettyNA(Convert.complex2string(v.getReal(i), v.getImag(i)));
     }
 
-    static String catElement(RDouble v, int i) {
-        double d = v.getDouble(i);
-        return Convert.prettyNA(Convert.double2string(d));
-    }
-
-    static String catElement(RInt v, int i) {
-        int n = v.getInt(i);
-        return Convert.prettyNA(Convert.int2string(n));
-    }
-
-    static String catElement(RLogical v, int i) {
-        int n = v.getLogical(i);
-        return Convert.prettyNA(Convert.logical2string(n));
-    }
-
-    static String catElement(RRaw v, int i) {
-        byte n = v.getRaw(i);
-        return Convert.raw2string(n);
-    }
-
     static void genericCat(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) {
         RString sep = null;
         int ssize = 0;
-
         if (sepArgPos != -1) {
             RAny v = args[sepArgPos];
-            if (v instanceof RString) {
-                sep = (RString) v;
-                ssize = sep.size();
-            } else {
-                throw RError.getInvalidSep(ast);
-            }
+            if (!(v instanceof RString)) { throw RError.getInvalidSep(ast); }
+            sep = (RString) v;
+            ssize = sep.size();
         }
 
         int si = 0;
@@ -101,8 +73,7 @@ final class Cat extends CallFactory {
         for (int i = 0; i < args.length; i++) {
             if (i == sepArgPos) {
                 continue;
-            }
-            if (nprinted > 0 && !lastWasNull) {
+            } else if (nprinted > 0 && !lastWasNull) {
                 if (sep != null) {
                     out.print(sep.getString(si++));
                     if (si == ssize) {

@@ -45,10 +45,8 @@ final class SApply extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-
         // for now this initialization is copy-paste from lapply, but a full version of sapply would be different
         // sapply will create a call node, let's prepare names and expressions (first is the variable)
-
         int cnArgs = 1 + names.length - 2; // "-2" because both FUN and X are required
         RSymbol[] cnNames = new RSymbol[cnArgs];
         RNode[] cnExprs = new RNode[cnArgs];
@@ -201,8 +199,7 @@ final class SApply extends CallFactory {
                     notAllScalarLists = true;
                     vsize = 0;
                 } else {
-                    Utils.nyi("unsupported type");
-                    return null;
+                    throw Utils.nyi("unsupported type");
                 }
                 if (elementSize != -1) {
                     if (vsize != elementSize) {
@@ -604,16 +601,13 @@ final class SApply extends CallFactory {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                if (!(argx instanceof RArray)) {
-                    Utils.nyi("unsupported type");
-                }
+                if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
                 callableProvider.matchAndSet(ast, frame, argfun);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
                 } catch (UnexpectedResultException e1) {
-                    Utils.nyi("unsupported type");
-                    return null;
+                    throw Utils.nyi("unsupported type");
                 }
                 RAny res = generic(frame, argIterator, this, null);
                 Specialized sn = createSpecialized(res, argIterator);

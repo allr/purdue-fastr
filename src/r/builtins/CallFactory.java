@@ -6,9 +6,10 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
-import java.lang.Integer;// needed because there is a class Integer in this package
+import java.lang.Integer;//import java.lang.Integer; needed because there is a class Integer in this package
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
@@ -16,22 +17,20 @@ import java.lang.Integer;// needed because there is a class Integer in this pack
 public abstract class CallFactory {
 
     /** Declared name of function. */
-    RSymbol name;
+    final RSymbol name;
     /** Names of the declared parameters. */
     private RSymbol[] parameters;
     /** Names of the required parameters. */
     private RSymbol[] required;
     /** Smallest legal number of parameters. */
-    int maxParameters;
+    final int maxParameters;
     /** Largest legal number of parameters. */
-    int minParameters;
+    final int minParameters;
 
     public CallFactory(String name) {
         this.name = RSymbol.getSymbol(name);
-    }
-
-    public CallFactory(RSymbol name) {
-        this.name = name;
+        maxParameters = -1;
+        minParameters = -1;
     }
 
     /**
@@ -51,15 +50,13 @@ public abstract class CallFactory {
             for (RSymbol r : this.required) {
                 boolean match = false;
                 for (RSymbol p : this.parameters) {
-                    dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
                     match |= r == p;
                 }
                 if (!match) { throw Utils.nyi("Internal error in builtin definition for " + name + "required list has extra values"); }
             }
-        } else {
-            for (RSymbol p : this.parameters) {
-                dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
-            }
+        }
+        for (RSymbol p : this.parameters) {
+            dotdot |= p == RSymbol.THREE_DOTS_SYMBOL;
         }
         maxParameters = dotdot ? java.lang.Integer.MAX_VALUE : parameters.length;
         minParameters = this.required.length;
@@ -114,12 +111,10 @@ public abstract class CallFactory {
 
         /** Return the index in the formal parameter list of one particular formal parameter. */
         private int ix(RSymbol p) {
-            String r = "";
             for (int i = 0; i < parameters.length; i++) {
                 if (parameters[i] == p) { return i; }
-                r += (p + " != " + parameters[i]);
             }
-            throw Utils.nyi(p + " not found in " + this + " " + r);
+            throw new Error(p + " not found in " + this);
         }
 
         /** Return the index in the formal parameter list of one particular formal parameter. */
@@ -132,7 +127,7 @@ public abstract class CallFactory {
             return paramPositions[ix(name)] != -1;
         }
 
-        /** Returns the position in the actuals of the formal name. */
+        /** Returns the position in the actuals of the formal name or -1 */
         int position(String name) {
             return paramPositions[ix(name)];
         }
@@ -145,7 +140,6 @@ public abstract class CallFactory {
             }
             return res + "]";
         }
-
     }
 
     /**
@@ -185,6 +179,7 @@ public abstract class CallFactory {
                     if (parameters[i].startsWith(names[j])) {
                         if (match) { throw RError.getGenericError(null, "Argument " + names[j] + " matches multiple formal arguments."); }
                         a.paramPositions[i] = j;
+                        used[j] = true;
                         match = true;
                     }
                 }
@@ -194,23 +189,24 @@ public abstract class CallFactory {
         int nextP = 0;
         for (int i = 0; i < exprs.length; i++) {
             if (used[i]) continue;
-            while (nextP < parameters.length && a.paramPositions[nextP] != -1) {
-                nextP++; // skip params that have been matched already
+            while (nextP < parameters.length && a.paramPositions[nextP] != -1 && parameters[nextP] != RSymbol.THREE_DOTS_SYMBOL) {
+                nextP++; // skip params that have been matched already, but if the param is ..., don't advance
             }
-            if (nextP == parameters.length) { // FIXME: handle passing of ``...'' objects
+            if (nextP == parameters.length) { // Garbage params...
                 if (a.unusedArgs == null) {
                     a.unusedArgs = new ArrayList<>();
                 }
                 a.unusedArgs.add(i);
             } else {
-                if (parameters[nextP] == RSymbol.THREE_DOTS_SYMBOL) {
-                    a.paramPositions[nextP] = i; // so record the last argument that was taken by ...
+                if (parameters[nextP] == RSymbol.THREE_DOTS_SYMBOL) { // Record the last argument that was taken by ...
+                    a.paramPositions[nextP] = i;
                     continue;
-                } else if (exprs[i] != null) { // positional match
+                } else if (exprs[i] != null) { // positional match  (can the expr be null?????)
                     if (names != null && names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message                        
                     a.paramPositions[nextP] = i;
                 } else { // FIXME: JAN asks if this point can ever be reached?
                     nextP++;
+                    throw new Error("Aha, so it does ...");
                 }
             }
         }
@@ -248,6 +244,8 @@ public abstract class CallFactory {
                 if (ai.paramPositions[ix(required[i])] == -1) { throw RError.getGenericError(call, String.format(RError.ARGUMENT_MISSING, required[i].name())); }
             }
         }
+        if (exprs.length < minParameters) { throw RError.getWrongArity(call, name().name(), minParameters, exprs.length); }
+        if (ai.unusedArgs != null) { throw RError.getWrongArity(call, name().name(), maxParameters, exprs.length); }
         return ai;
     }
 
@@ -259,10 +257,10 @@ public abstract class CallFactory {
     }
 
     @Override public String toString() {
-        String res = name + "(";
+        String res = "CallFactory[" + name + "(";
         for (RSymbol r : parameters) {
             res += r + " ";
         }
-        return res + ")";
+        return res + ")]";
     }
 }

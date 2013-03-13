@@ -10,7 +10,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
-import java.lang.Integer;
+import java.lang.Integer;// do not delete java.lang.Integer import
 
 /**
  * "sort"
@@ -25,9 +25,9 @@ import java.lang.Integer;
  */
 final class Sort extends CallFactory {
 
-    static final CallFactory _ = new Seq("sort", new String[]{"...", "na.last", "decreasing"}, new String[]{});
+    static final CallFactory _ = new Sort("sort", new String[]{"...", "na.last", "decreasing"}, new String[]{});
 
-    Sort(String name, String[] params, String[] required) {
+    private Sort(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 
@@ -38,9 +38,7 @@ final class Sort extends CallFactory {
         final int naLastPosition = ia.provided("na.last") ? ia.position("na.last") : -1;
         final int decreasingPosition = ia.provided("decreasing") ? ia.position("decreasing") : -1;
         return new BuiltIn(call, names, exprs) {
-
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-
                 int nparams = params.length;
                 int nkeys = nparams;
                 int naLast;
@@ -272,7 +270,6 @@ final class Sort extends CallFactory {
             @Override public int compare(Integer o1, Integer o2) {
                 int i1 = o1;
                 int i2 = o2;
-
                 boolean na1 = firstComparator.isNA(i1);
                 boolean na2 = firstComparator.isNA(i2);
                 if (removeNA) { // elements that have NA in any key will always be put last
@@ -289,8 +286,7 @@ final class Sort extends CallFactory {
                         return resSecondNA;
                     }
                 } else {
-                    if (!na2) { return resFirstNA; }
-                    // NA vs NA
+                    if (!na2) { return resFirstNA; } // NA vs NA
                 }
 
                 int j = 1;
@@ -305,21 +301,14 @@ final class Sort extends CallFactory {
                             return resSecondNA;
                         }
                     } else {
-                        if (!na2) { return resFirstNA; }
-                        // NA vs NA
+                        if (!na2) { return resFirstNA; } // NA vs NA
                     }
                 }
-                if (!decreasing) {
-                    return res;
-                } else {
-                    return -res;
-                }
+                return !decreasing ? res : -res;
             }
-
         };
 
         Arrays.sort(order, mainComparator);
-
         if (!removeNA) {
             int[] content = new int[size];
             for (int i = 0; i < size; i++) {
@@ -335,5 +324,4 @@ final class Sort extends CallFactory {
             return RInt.RIntFactory.getFor(content);
         }
     }
-
 }

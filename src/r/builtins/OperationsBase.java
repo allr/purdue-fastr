@@ -20,7 +20,7 @@ abstract class OperationsBase extends CallFactory {
     }
 
     OperationsBase(String name, int minArg) {
-        super(name, new String[]{"x", "y"}, minArg == 1 ? new String[]{"x"} : null);
+        super(name, minArg != -1 ? new String[]{"x", "y"} : new String[]{"x"}, minArg != 2 ? new String[]{"x"} : null);
     }
 
     public static RNode idempotentNumeric(ASTNode ast, RSymbol[] names, RNode[] exprs) {

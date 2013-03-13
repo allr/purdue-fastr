@@ -19,6 +19,40 @@ import com.oracle.truffle.api.frame.*;
 // note: in GNU-R, this is implemented in R
 class UpperTri extends CallFactory {
 
+    static Triangular UPPER = new Triangular() {
+
+        @Override public RArray triangular(int m, int n, boolean diag) {
+            int[] content = new int[m * n];
+            int takeFromColumn = diag ? 1 : 0;
+            for (int j = 0; j < n; j++) {
+                for (int i = 0; i < takeFromColumn; i++) {
+                    content[j * m + i] = RLogical.TRUE;
+                }
+                if (takeFromColumn < m) { // FIXME: split into two loops
+                    takeFromColumn++;
+                }
+                // FALSE is the default value
+            }
+            return RLogical.RLogicalFactory.getFor(content);
+        }
+    };
+
+    static Triangular LOWER = new Triangular() {
+
+        @Override public RArray triangular(int m, int n, boolean diag) {
+            int[] content = new int[m * n];
+            int startTakingFrom = diag ? 0 : 1;
+            for (int j = 0; j < n; j++) {
+                for (int i = startTakingFrom; i < m; i++) {
+                    content[j * m + i] = RLogical.TRUE;
+                }
+                startTakingFrom++;
+                // FALSE is the default value
+            }
+            return RLogical.RLogicalFactory.getFor(content);
+        }
+    };
+
     static final CallFactory _ = new UpperTri("upper.tri", new String[]{"x", "diag"}, new String[]{"x"}, null);
 
     UpperTri(String name, String[] params, String[] required, Triangular trian) {
@@ -76,37 +110,4 @@ class UpperTri extends CallFactory {
         }
     }
 
-    public static Triangular UPPER = new Triangular() {
-
-        @Override public RArray triangular(int m, int n, boolean diag) {
-            int[] content = new int[m * n];
-            int takeFromColumn = diag ? 1 : 0;
-            for (int j = 0; j < n; j++) {
-                for (int i = 0; i < takeFromColumn; i++) {
-                    content[j * m + i] = RLogical.TRUE;
-                }
-                if (takeFromColumn < m) { // FIXME: split into two loops
-                    takeFromColumn++;
-                }
-                // FALSE is the default value
-            }
-            return RLogical.RLogicalFactory.getFor(content);
-        }
-    };
-
-    public static Triangular LOWER = new Triangular() {
-
-        @Override public RArray triangular(int m, int n, boolean diag) {
-            int[] content = new int[m * n];
-            int startTakingFrom = diag ? 0 : 1;
-            for (int j = 0; j < n; j++) {
-                for (int i = startTakingFrom; i < m; i++) {
-                    content[j * m + i] = RLogical.TRUE;
-                }
-                startTakingFrom++;
-                // FALSE is the default value
-            }
-            return RLogical.RLogicalFactory.getFor(content);
-        }
-    };
 }

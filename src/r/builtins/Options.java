@@ -9,7 +9,7 @@ import com.oracle.truffle.api.frame.*;
 // TODO: implement this builtin at least to support custom options
 //       shooutout benchmarks set the "digits" option
 final class Options extends CallFactory {
-    static final CallFactory _ = new Options("options", new String[]{}, null);
+    static final CallFactory _ = new Options("options", new String[]{"..."}, null);
 
     private Options(String name, String[] params, String[] required) {
         super(name, params, required);

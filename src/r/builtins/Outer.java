@@ -24,7 +24,7 @@ import com.oracle.truffle.api.frame.*;
  * </pre>
  */
 final class Outer extends CallFactory {
-    static final CallFactory _ = new Outer("outer", new String[]{"X", "Y", "FUN"}, new String[]{"X", "Y"});
+    static final CallFactory _ = new Outer("outer", new String[]{"X", "Y", "FUN", "..."}, new String[]{"X", "Y"});
 
     private Outer(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -33,10 +33,10 @@ final class Outer extends CallFactory {
     private static final boolean EAGER = true; // NOTE: lazy is now only for integer, expand if needed, now is not faster than eager
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        final ArgumentInfo ia = check(call, names, exprs);
+        ArgumentInfo ia = check(call, names, exprs);
         boolean product = false;
-        if (ia.provided("fun")) {
-            RNode fnode = exprs[ia.position("fun")];
+        if (ia.provided("FUN")) {
+            RNode fnode = exprs[ia.position("FUN")];
             if (fnode instanceof Constant) {
                 RAny value = ((Constant) fnode).execute(null);
                 if (value instanceof RString) {
@@ -73,13 +73,12 @@ final class Outer extends CallFactory {
 
         final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
         final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
-
+        final int posX = ia.position("X");
+        final int posY = ia.position("Y");
+        final int posFUN = ia.position("FUN");
         return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RAny x = args[ia.position("X")];
-                RAny y = args[ia.position("Y")];
-                RAny f = args[ia.position("FUN")];
-                return outer(frame, x, y, f);
+                return outer(frame, args[posX], args[posY], args[posFUN]);
             }
         };
     }
