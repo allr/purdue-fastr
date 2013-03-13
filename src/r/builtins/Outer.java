@@ -83,7 +83,7 @@ final class Outer extends CallFactory {
         };
     }
 
-    public abstract static class OuterBuiltIn extends BuiltIn { // note: this class only exists so that we can call updateParent...
+    public abstract static class OuterBuiltIn extends Builtin { // note: this class only exists so that we can call updateParent...
         @Child FunctionCall callNode;
         @Child CallableProvider callableProvider;
         @Child ValueProvider xArgProvider;

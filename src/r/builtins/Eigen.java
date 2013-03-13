@@ -56,7 +56,7 @@ final class Eigen extends CallFactory {
         final int posOnlyvalue = ia.position("only.value");
         final RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[]{"values", "vectors"}));
 
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 RAny xany = params[posX];
                 RArray x;

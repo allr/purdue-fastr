@@ -37,7 +37,7 @@ final class Sort extends CallFactory {
         ArgumentInfo ia = check(call, names, exprs);
         final int naLastPosition = ia.provided("na.last") ? ia.position("na.last") : -1;
         final int decreasingPosition = ia.provided("decreasing") ? ia.position("decreasing") : -1;
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 int nparams = params.length;
                 int nkeys = nparams;

@@ -51,8 +51,8 @@ final class IsNA extends CallFactory {
         throw Utils.nyi("unsupported argument");
     }
 
-    public static BuiltIn createGeneric(ASTNode ast, RSymbol[] names, RNode[] exprs) {
-        return new BuiltIn(ast, names, exprs) {
+    public static Builtin createGeneric(ASTNode ast, RSymbol[] names, RNode[] exprs) {
+        return new Builtin(ast, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 return generic(params[0]);
             }

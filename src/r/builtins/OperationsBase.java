@@ -24,7 +24,7 @@ abstract class OperationsBase extends CallFactory {
     }
 
     public static RNode idempotentNumeric(ASTNode ast, RSymbol[] names, RNode[] exprs) {
-        return new BuiltIn.BuiltIn1(ast, names, exprs) {
+        return new Builtin.BuiltIn1(ast, names, exprs) {
 
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) { return arg; }

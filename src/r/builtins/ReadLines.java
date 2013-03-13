@@ -43,7 +43,7 @@ final class ReadLines extends CallFactory {
         final int posOk = ia.position("ok");
         final int posWarn = ia.position("warn");
         final ConnectionMode defaultMode = ConnectionMode.get("rt");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 final int n = posN == -1 ? -1 : parseN(args[posN], ast);
                 final boolean ok = posOk == -1 ? true : parseLogicalScalar(args[posOk], ast, "ok");

@@ -34,7 +34,7 @@ class Substring extends CallFactory {
         final int posLast = ia.position("last");
         final int posFirst = ia.position("first");
         final RDouble defaultLast = RDouble.RDoubleFactory.getScalar(1000000); // FIXME slow, but perhaps the default is not used, anyway
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RString text = args[posText].asString();
                 warn.naIntroduced = false;

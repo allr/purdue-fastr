@@ -96,7 +96,7 @@ final class Scan extends CallFactory {
         final int posNmax = ia.position("nmax");
         final int posQuiet = ia.position("quiet");
         final int posFile = ia.position("file");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RAny what = posWhat != -1 ? args[posWhat] : RDouble.EMPTY;
                 int nmax = posNmax != -1 ? parseNMax(args[posNmax], ast) : -1;

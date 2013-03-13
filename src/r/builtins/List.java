@@ -45,7 +45,7 @@ final class List extends CallFactory {
             }
         }
         final RArray.Names fListNames = listNames;
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 Utils.ref(params);
                 return RList.RListFactory.getFor(params, null, fListNames); // shallow copy (in fact no copy)

@@ -32,7 +32,7 @@ final class Seq extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RInt.RIntFactory.getScalar(1);
             }
@@ -61,7 +61,7 @@ final class Seq extends CallFactory {
             if (exprs.length == 3) {
                 if (posBy != -1) {
                     //from, to, by
-                    return new BuiltIn(call, names, exprs) {
+                    return new Builtin(call, names, exprs) {
                         // note: does not implement the full semantics
                         @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                             RAny argfrom = args[posFrom]; // FIXME: will this be optimized out?
@@ -119,7 +119,7 @@ final class Seq extends CallFactory {
                 }
                 if (posLengthOut != -1) {
                     // from, to, length.out
-                    return new BuiltIn(call, names, exprs) {
+                    return new Builtin(call, names, exprs) {
 
                         // note: does not implement the full semantics
                         @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
@@ -165,7 +165,7 @@ final class Seq extends CallFactory {
             }
         } else {
             if (exprs.length == 1) {
-                if (ia.provided("along.with")) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+                if (ia.provided("along.with")) { return new Builtin.BuiltIn1(call, names, exprs) {
 
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {
@@ -176,7 +176,7 @@ final class Seq extends CallFactory {
                         return Colon.create(1, len);
                     }
                 }; }
-                if (ia.provided("from")) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+                if (ia.provided("from")) { return new Builtin.BuiltIn1(call, names, exprs) {
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                         if (arg instanceof RArray) {
@@ -204,7 +204,7 @@ final class Seq extends CallFactory {
                         throw Utils.nyi();
                     }
                 }; }
-                if (ia.provided("length.out")) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+                if (ia.provided("length.out")) { return new Builtin.BuiltIn1(call, names, exprs) {
 
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {

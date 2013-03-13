@@ -35,7 +35,7 @@ final class File extends CallFactory {
         if (ia.provided("blocking") || ia.provided("encoding") || ia.provided("raw")) { throw Utils.nyi(); }
         final int posDescription = ia.position("description");
         final int posOpen = ia.position("open");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 String description = posDescription != -1 ? getScalarString(args[posDescription], ast, "description") : "";
                 String open = posOpen != -1 ? getScalarString(args[posOpen], ast, "open") : "";

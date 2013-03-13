@@ -62,7 +62,7 @@ final class Sum extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RInt.BOXED_ZERO;
             }
@@ -72,7 +72,7 @@ final class Sum extends CallFactory {
         final boolean neverRemoveNA = !ia.provided("na.rm");
         final int narmPosition = ia.provided("na.rm") ? ia.position("na.rm") : -1;
 
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 boolean naRM = false;
                 if (!neverRemoveNA) {

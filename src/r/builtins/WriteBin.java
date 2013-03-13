@@ -54,7 +54,7 @@ final class WriteBin extends CallFactory {
         final ConnectionMode defaultMode = ConnectionMode.get("wb");
         final int posCon = ia.position("con");
         final int posObject = ia.position("object");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 Connection con = null;
                 boolean wasOpen = false;

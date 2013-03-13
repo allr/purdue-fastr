@@ -27,7 +27,7 @@ final class DiagAssign extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new BuiltIn.BuiltIn2(call, names, exprs) {
+        return new Builtin.BuiltIn2(call, names, exprs) {
 
             @Override public RAny doBuiltIn(Frame frame, RAny x, RAny value) {
                 if (!(x instanceof RArray)) { throw RError.getOnlyMatrixDiagonals(ast); }

@@ -160,20 +160,20 @@ abstract class ExtremeBase extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 RContext.warning(ast, RError.NO_NONMISSING_MAX);
                 return op.emptySetExtreme();
             }
 
         }; }
-        if (exprs.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+        if (exprs.length == 1) { return new Builtin.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 return extreme(arg, ast);
             }
 
         }; }
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 return extreme(args, ast);
             }

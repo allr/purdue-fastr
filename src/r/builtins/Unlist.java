@@ -44,7 +44,7 @@ final class Unlist extends CallFactory {
         final int posX = ia.position("x");
         final int posRecursive = ia.provided("recursive") ? ia.position("recursive") : -1;
         final int posUseNames = ia.provided("use.names") ? ia.position("use.names") : -1;
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RAny x = args[posX];
                 boolean recursive = posRecursive != -1 ? parseLogical(args[posRecursive]) : true;

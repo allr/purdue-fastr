@@ -68,7 +68,7 @@ final class SApply extends CallFactory {
     }
 
     // TODO: handle names
-    public static class Sapply extends BuiltIn {
+    public static class Sapply extends Builtin {
 
         @Child ValueProvider firstArgProvider;
         @Child CallableProvider callableProvider;

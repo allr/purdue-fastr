@@ -46,7 +46,7 @@ class Regexpr extends CallFactory {
         final int posPerl = ia.position("perl");
         final int posFixed = ia.position("fixed");
         final int posIgnoreCase = ia.position("ignore.case");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 if (posUseBytes != -1) {
                     RContext.warning(ast, "Ignoring useBytes.");

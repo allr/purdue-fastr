@@ -194,7 +194,7 @@ final class Cat extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RNull.getNull();
             }
@@ -202,7 +202,7 @@ final class Cat extends CallFactory {
         ArgumentInfo ia = check(call, names, exprs);
         final int sepPosition = ia.provided("sep") ? ia.position("sep") : -1;
         final PrintWriter stdOut = new PrintWriter(System.out, true); // stdout buffering, important for fasta
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 // assume we are only printing strings and separator is an empty (single-element) string
                 try {
@@ -211,7 +211,7 @@ final class Cat extends CallFactory {
                     // not so much better than catStrings, and fasta uses non-scalar strings, so we would need yet another node
                     //                        catScalarStringsNoCopy(stdOut, params, sepPosition, ast);
                 } catch (UnexpectedResultException e) {
-                    RNode generic = new BuiltIn(ast, argNames, argExprs) {
+                    RNode generic = new Builtin(ast, argNames, argExprs) {
                         @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                             genericCat(stdOut, params, sepPosition, ast);
                             return RNull.getNull();

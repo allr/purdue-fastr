@@ -45,7 +45,7 @@ class Sub extends CallFactory {
         final int posPerl = ia.position("perl");
         final int posFixed = ia.position("fixed");
         final int posUseBytes = ia.position("useBytes");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public final RAny doBuiltIn(Frame frame, RAny[] args) {
                 if (posUseBytes != -1) {
                     RContext.warning(ast, "Ignoring useBytes.");

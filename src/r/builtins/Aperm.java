@@ -39,7 +39,7 @@ final class Aperm extends CallFactory {
     /**
      * Generalized aperm implementation with object getters and setters.
      */
-    protected static class Generalized extends BuiltIn {
+    protected static class Generalized extends Builtin {
 
         int posPerm;
         int posA;

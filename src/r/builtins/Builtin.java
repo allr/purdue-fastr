@@ -9,14 +9,14 @@ import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 /** The base class for builtin functions. */
-public abstract class BuiltIn extends AbstractCall {
+public abstract class Builtin extends AbstractCall {
 
-    public BuiltIn(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+    public Builtin(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
         super(orig, argNames, argExprs);
     }
 
     /** Builtin functions with no arguments. */
-    abstract static class BuiltIn0 extends BuiltIn {
+    abstract static class BuiltIn0 extends Builtin {
 
         public BuiltIn0(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
@@ -34,7 +34,7 @@ public abstract class BuiltIn extends AbstractCall {
     }
 
     /** Builtin functions of one argument. */
-    abstract static class BuiltIn1 extends BuiltIn {
+    abstract static class BuiltIn1 extends Builtin {
 
         public BuiltIn1(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
@@ -52,7 +52,7 @@ public abstract class BuiltIn extends AbstractCall {
     }
 
     /** Builtin functions of two arguments. */
-    abstract static class BuiltIn2 extends BuiltIn {
+    abstract static class BuiltIn2 extends Builtin {
 
         public BuiltIn2(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
@@ -67,11 +67,6 @@ public abstract class BuiltIn extends AbstractCall {
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             return doBuiltIn(frame, params[0], params[1]);
         }
-    }
-
-    /** Report a missing argument. */
-    static void missingArg(ASTNode ast, String paramName) {
-        throw RError.getGenericError(ast, String.format(RError.ARGUMENT_MISSING, paramName));
     }
 
     /** Return a constant or the Java null. */

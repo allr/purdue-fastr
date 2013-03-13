@@ -40,7 +40,7 @@ final class Strsplit extends CallFactory {
         final int posFixed = ia.position("fixed");
         final int posPerl = ia.position("perl");
         final int posSplit = ia.position("split");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RString x = Convert.coerceToStringError(args[posX], ast);
                 RString split = Convert.coerceToStringError(args[posSplit], ast);

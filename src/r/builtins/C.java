@@ -32,7 +32,7 @@ final class C extends CallFactory {
     // only supports a vector of integers, doubles, or logical
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         RSymbol[] collapsedNames = collapseEmptyNames(names);
-        if (exprs.length == 0) { return new BuiltIn.BuiltIn0(call, collapsedNames, exprs) {
+        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, collapsedNames, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RNull.getNull();
             }
@@ -239,8 +239,8 @@ final class C extends CallFactory {
         throw Utils.nyi("Unreacheable");
     }
 
-    public static BuiltIn createGeneric(ASTNode ast, final RSymbol[] names, RNode[] exprs) {
-        return new BuiltIn(ast, names, exprs) {
+    public static Builtin createGeneric(ASTNode ast, final RSymbol[] names, RNode[] exprs) {
+        return new Builtin(ast, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                 return genericCombine(names, params);
             }
@@ -255,7 +255,7 @@ final class C extends CallFactory {
         public abstract RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException;
     }
 
-    public static class Specialized extends BuiltIn {
+    public static class Specialized extends Builtin {
         CombineAction combine;
 
         public Specialized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, CombineAction combine) {

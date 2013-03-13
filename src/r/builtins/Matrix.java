@@ -68,7 +68,7 @@ final class Matrix extends CallFactory {
         final int posNrow = ia.position("nrow");
         final int posNcol = ia.position("ncol");
         final int posByrow = ia.position("byrow");
-        return new BuiltIn(call, names, exprs) {
+        return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RArray data = RLogical.BOXED_NA;
                 if (posData != -1) {
