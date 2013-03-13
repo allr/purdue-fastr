@@ -1,7 +1,6 @@
 \.checkstyle$
 \.classpath
 \.project
-/
 \.metadata/
 \.class$
 ~$
