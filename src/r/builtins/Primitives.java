@@ -39,7 +39,7 @@ public class Primitives {
         add("&&", 2, 2, OpAnd._);
         add("!", 1, 1, OpNot._);
         add("abs", 1, 1, Abs._);
-        add("aperm", 2, 3, Aperm._);
+        add("aperm", 1, 3, Aperm._);
         add("array", 0, 3, Array._);
         add("assign", 2, 6, Assign._);
         add("as.character", 0, -1, AsCharacter._);
