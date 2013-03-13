@@ -122,7 +122,7 @@ public class Primitives {
         add("scan", 0, 4, Scan._);
         add("seq", 0, -1, Seq._); // in fact seq.default (and only part of it)
         add("seq.default", 0, -1, Seq._);
-        add("strsplit", 1, 5, Strsplit._);
+        add("strsplit", 2, 5, Strsplit._);
         add("sub", 3, 7, Sub._);
         add("substr", 3, 3, Substr._);
         add("substring", 2, 3, Substring._);
@@ -180,9 +180,9 @@ public class Primitives {
     }
 
     private static void add(String name, int minArgs, int maxArgs, CallFactory body) {
-        // if (body.name != null && !body.name.name().equals(name)) System.err.println("name " + name + " != " + body.name.name());
-        // else System.err.print(".");
-        //if (minArgs != body.minParameters) System.err.println("name " + name + " " + minArgs + " != " + body.minParameters);
+        if (body.name != null && !body.name.name().equals(name)) System.err.println("name " + name + " != " + body.name.name());
+        else System.err.print(".");
+        if (minArgs != body.minParameters) System.err.println("name " + name + " " + minArgs + " != " + body.minParameters);
         if (maxArgs == -1) {
             if (body.maxParameters != java.lang.Integer.MAX_VALUE) System.err.println("name " + name + " " + maxArgs + " != " + body.maxParameters);
         } else if (maxArgs != body.maxParameters) System.err.println("name " + name + " " + maxArgs + " != " + body.maxParameters);
