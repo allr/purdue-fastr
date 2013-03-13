@@ -29,7 +29,7 @@ import java.lang.Double;
  */
 // NOTE: GNU-R has some of the eigen code implemented in R (and some uses LAPACK)
 final class Eigen extends CallFactory {
-    static final CallFactory _ = new Eigen("eigen", new String[]{"x", "symmetric", "only.value", "EISPACK"}, new String[]{"x"});
+    static final CallFactory _ = new Eigen("eigen", new String[]{"x", "symmetric", "only.values", "EISPACK"}, new String[]{"x"});
 
     private Eigen(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -53,7 +53,7 @@ final class Eigen extends CallFactory {
         if (ia.provided("EISPACK")) { throw Utils.nyi("EISPACK argument not supported"); }
         final int posX = ia.position("x");
         final int posSymmetric = ia.position("symmetric");
-        final int posOnlyvalue = ia.position("only.value");
+        final int posOnlyvalue = ia.position("only.values");
         final RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[]{"values", "vectors"}));
 
         return new Builtin(call, names, exprs) {
