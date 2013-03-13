@@ -123,6 +123,7 @@ public abstract class RError extends RuntimeException {
     public static final String VALUE_OUT_OF_RANGE = "value out of range in '%s'";
     public static final String MUST_BE_NONNULL_STRING = "'%s' must be non-null character string";
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
+    public static final String IS_OF_WRONG_ARITY = "'%d' argument passed to '%s' which requires '%d'";
     public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
 
     public abstract static class RNYIError extends RError {
@@ -133,30 +134,29 @@ public abstract class RError extends RuntimeException {
         return new RNYIError() {
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return msg == null ? "Not yet implemented ..." : msg;
             }
         };
     }
+
     public static RError getLengthZero(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return LENGTH_ZERO;
             }
         };
     }
+
     public static RError getNAorNaN(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return NA_OR_NAN;
             }
         };
@@ -167,8 +167,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return NA_UNEXP;
             }
         };
@@ -179,8 +178,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return SUBSCRIPT_BOUNDS;
             }
         };
@@ -191,8 +189,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return SELECT_LESS_1;
             }
         };
@@ -203,8 +200,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return SELECT_MORE_1;
             }
         };
@@ -215,8 +211,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return ONLY_0_MIXED;
             }
         };
@@ -227,8 +222,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return REPLACEMENT_0;
             }
         };
@@ -239,8 +233,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return MORE_SUPPLIED_REPLACE;
             }
         };
@@ -251,8 +244,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return NA_SUBSCRIPTED;
             }
         };
@@ -263,8 +255,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return INVALID_ARG_TYPE;
             }
         };
@@ -275,8 +266,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return INVALID_ARG_TYPE_UNARY;
             }
         };
@@ -287,8 +277,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return INVALID_LENGTH;
             }
         };
@@ -299,8 +288,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return VECTOR_SIZE_NEGATIVE;
             }
         };
@@ -311,8 +299,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return NO_LOOP_FOR_BREAK_NEXT;
             }
         };
@@ -323,8 +310,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_FOR_SEQUENCE;
             }
         };
@@ -335,8 +321,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.LENGTH_NONNEGATIVE;
             }
         };
@@ -347,21 +332,18 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_TIMES;
             }
         };
     }
-
 
     public static RError getWrongSignInBy(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.WRONG_SIGN_IN_BY;
             }
         };
@@ -372,8 +354,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.BY_TOO_SMALL;
             }
         };
@@ -384,8 +365,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INCORRECT_SUBSCRIPTS;
             }
         };
@@ -408,8 +388,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_TFB;
             }
         };
@@ -420,8 +399,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_TYPE_LIST;
             }
         };
@@ -432,8 +410,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_SEP;
             }
         };
@@ -444,8 +421,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NOT_FUNCTION;
             }
         };
@@ -456,8 +432,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NON_NUMERIC_MATH;
             }
         };
@@ -468,8 +443,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NUMERIC_COMPLEX_MATRIX_VECTOR;
             }
         };
@@ -480,8 +454,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NON_CONFORMABLE_ARGS;
             }
         };
@@ -492,8 +465,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_BYROW;
             }
         };
@@ -504,8 +476,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.DATA_VECTOR;
             }
         };
@@ -516,8 +487,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NON_NUMERIC_MATRIX_EXTENT;
             }
         };
@@ -528,8 +498,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_NCOL;
             }
         };
@@ -540,8 +509,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_NROW;
             }
         };
@@ -552,8 +520,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NEGATIVE_NCOL;
             }
         };
@@ -564,8 +531,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NEGATIVE_NROW;
             }
         };
@@ -576,8 +542,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NON_CONFORMABLE_ARRAYS;
             }
         };
@@ -588,8 +553,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_MODE;
             }
         };
@@ -600,8 +564,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ONLY_MATRIX_DIAGONALS;
             }
         };
@@ -612,8 +575,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.REPLACEMENT_DIAGONAL_LENGTH;
             }
         };
@@ -624,8 +586,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ARGUMENT_WHICH_NOT_LOGICAL;
             }
         };
@@ -636,8 +597,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.X_NUMERIC;
             }
         };
@@ -648,8 +608,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.X_ARRAY_TWO;
             }
         };
@@ -660,8 +619,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_SEPARATOR;
             }
         };
@@ -672,8 +630,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INCORRECT_DIMENSIONS;
             }
         };
@@ -684,8 +641,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.LOGICAL_SUBSCRIPT_LONG;
             }
         };
@@ -696,8 +652,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.DECREASING_TRUE_FALSE;
             }
         };
@@ -708,8 +663,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ARGUMENT_LENGTHS_DIFFER;
             }
         };
@@ -720,8 +674,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ZERO_LENGTH_PATTERN;
             }
         };
@@ -732,8 +685,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ALL_CONNECTIONS_IN_USE;
             }
         };
@@ -744,8 +696,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.CANNOT_READ_CONNECTION;
             }
         };
@@ -756,8 +707,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.CANNOT_WRITE_CONNECTION;
             }
         };
@@ -768,8 +718,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.TOO_FEW_LINES_READ_LINES;
             }
         };
@@ -780,8 +729,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_CONNECTION;
             }
         };
@@ -792,8 +740,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.WRITE_ONLY_BINARY;
             }
         };
@@ -804,8 +751,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.COMPARISON_COMPLEX;
             }
         };
@@ -816,8 +762,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.UNIMPLEMENTED_COMPLEX;
             }
         };
@@ -828,8 +773,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NON_NUMERIC_BINARY;
             }
         };
@@ -840,8 +784,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.RAW_SORT;
             }
         };
@@ -852,8 +795,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_UNNAMED_ARGUMENT;
             }
         };
@@ -864,8 +806,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_UNNAMED_VALUE;
             }
         };
@@ -876,8 +817,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NAMES_NONVECTOR;
             }
         };
@@ -888,8 +828,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INVALID_FIRST_ARGUMENT;
             }
         };
@@ -900,8 +839,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NO_ENCLOSING_ENVIRONMENT;
             }
         };
@@ -912,8 +850,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ASSIGN_EMPTY;
             }
         };
@@ -924,8 +861,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ARGUMENT_NOT_MATRIX;
             }
         };
@@ -936,8 +872,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.DIMS_CONTAIN_NEGATIVE_VALUES;
             }
         };
@@ -948,47 +883,40 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED;
             }
         };
     }
-
 
     public static RError getFirstArgMustBeArray(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.FIRST_ARG_MUST_BE_ARRAY;
             }
         };
     }
-
 
     public static RError getImaginaryPartsDiscardedInCoercion(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.IMAGINARY_PARTS_DISCARDED_IN_COERCION;
             }
         };
     }
-
 
     public static RError getNotMultipleReplacement(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.NOT_MULTIPLE_REPLACEMENT;
             }
         };
@@ -999,8 +927,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.ARGUMENT_NOT_LIST;
             }
         };
@@ -1099,10 +1026,13 @@ public abstract class RError extends RuntimeException {
         return getGenericError(ast, String.format(RError.IS_OF_WRONG_LENGTH, argName));
     }
 
+    public static RError getWrongArity(ASTNode ast, String opName, int arity, int provided) {
+        return getGenericError(ast, String.format(RError.IS_OF_WRONG_ARITY, arity, opName, provided));
+    }
+
     public static RError getObjectNotSubsettable(ASTNode ast, String typeName) {
         return getGenericError(ast, String.format(RError.OBJECT_NOT_SUBSETTABLE, typeName));
     }
-
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {
         StringBuilder msg = new StringBuilder();
@@ -1122,10 +1052,10 @@ public abstract class RError extends RuntimeException {
     }
 
     public static RError getUnknownVariable(ASTNode source) {
-        return new RErrorInExpr(source){
+        return new RErrorInExpr(source) {
             private static final long serialVersionUID = 1L;
-            @Override
-            public String getMessage() {
+
+            @Override public String getMessage() {
                 return UNKNOWN_VARIABLE;
             }
         };
@@ -1136,8 +1066,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.DOLLAR_ATOMIC_VECTORS;
             }
         };
@@ -1148,8 +1077,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return msg;
             }
         };

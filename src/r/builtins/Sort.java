@@ -2,46 +2,107 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
+import r.Convert.ConversionStatus;
 import r.*;
-import r.Convert.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-public class Sort {
-    private static final String[] orderParamNames = new String[]{"...", "na.last", "decreasing"};
+import com.oracle.truffle.api.frame.*;
+import java.lang.Integer;// do not delete java.lang.Integer import
 
-    private static final int INA_LAST = 1;
-    private static final int IDECREASING = 2;
+/**
+ * "sort"
+ * 
+ * <pre>
+ * x -- for sort an R object with a class or a numeric, complex, character or logical vector. For sort.int, 
+ *      a numeric, complex, character or logical vector, or a factor.
+ * decreasing -- logical. Should the sort be increasing or decreasing? Not available for partial sorting.
+ * ... -- arguments to be passed to or from methods or (for the default methods and objects without a class) 
+ *      to sort.int.
+ * </pre>
+ */
+final class Sort extends CallFactory {
+
+    static final CallFactory _ = new Sort("sort", new String[]{"...", "na.last", "decreasing"}, new String[]{});
+
+    private Sort(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
+
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        final int naLastPosition = ia.provided("na.last") ? ia.position("na.last") : -1;
+        final int decreasingPosition = ia.provided("decreasing") ? ia.position("decreasing") : -1;
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
+                int nparams = params.length;
+                int nkeys = nparams;
+                int naLast;
+                if (naLastPosition == -1) {
+                    naLast = RLogical.TRUE;
+                } else {
+                    naLast = parseNALast(params[naLastPosition], ast);
+                    nkeys--;
+                }
+
+                boolean decreasing;
+                if (decreasingPosition == -1) {
+                    decreasing = false;
+                } else {
+                    decreasing = parseDecreasing(params[decreasingPosition], ast);
+                    nkeys--;
+                }
+
+                if (nkeys > 0) {
+                    RArray[] keys = new RArray[nkeys];
+                    int asize = -1;
+                    int j = 0;
+                    for (int i = 0; i < nparams; i++) {
+                        if (i == naLastPosition || i == decreasingPosition) {
+                            continue;
+                        }
+                        RAny p = params[i];
+                        if (p instanceof RArray) {
+                            RArray arr = (RArray) p;
+                            int size = arr.size();
+                            if (size != asize) {
+                                if (asize == -1) {
+                                    asize = size;
+                                } else {
+                                    throw RError.getArgumentLengthsDiffer(ast);
+                                }
+                            }
+                            keys[j++] = arr.materialize();
+                        } else {
+                            throw RError.getArgumentNotVector(ast, i);
+                        }
+                    }
+                    return sort(keys, decreasing, naLast, ast);
+                }
+                return RNull.getNull();
+            }
+        };
+    }
 
     public static int parseNALast(RAny arg, ASTNode ast) {
         warn.naIntroduced = false;
         RLogical a = arg.asLogical(); // will produce NAs when conversion is not possible
         int size = a.size();
         int res;
-
         if (size == 1) {
             res = a.getLogical(0);
-            if (res != RLogical.NA) { // just an optimization
-                return res;
-            }
+            if (res != RLogical.NA) { return res; }// just an optimization
         } else {
-            if (size == 0) {
-                throw RError.getLengthZero(ast); // not exactly R's error message
-            }
+            if (size == 0) { throw RError.getLengthZero(ast); }// not exactly R's error message            
             // size > 1
             RContext.warning(ast, RError.LENGTH_GT_1);
             res = a.getLogical(0);
         }
-        if (warn.naIntroduced) {
-            throw RError.getInvalidArgument(ast, "na.last"); // not exactly R's error message
-        }
+        if (warn.naIntroduced) { throw RError.getInvalidArgument(ast, "na.last"); } // not exactly R's error message       
         return res;
     }
 
@@ -50,18 +111,15 @@ public class Sort {
         int size = a.size();
         if (size >= 1) {
             int l = a.getLogical(0);
-            if (l == RLogical.TRUE) {
-                return true;
-            }
-            if (l == RLogical.FALSE) {
-                return false;
-            }
+            if (l == RLogical.TRUE) { return true; }
+            if (l == RLogical.FALSE) { return false; }
         }
         throw RError.getDecreasingTrueFalse(ast);
     }
 
     public abstract static class ElementsComparator {
         public abstract int cmp(int i, int j); // for non-NA elements
+
         public abstract boolean isNA(int i);
     }
 
@@ -72,22 +130,16 @@ public class Sort {
             this.v = v;
         }
 
-        @Override
-        public int cmp(int i, int j) {
+        @Override public int cmp(int i, int j) {
             // elements are not NaNs
             double a = v.getDouble(i);
             double b = v.getDouble(j);
-            if (a > b) {
-                return 1;
-            }
-            if (a < b) {
-                return -1;
-            }
+            if (a > b) { return 1; }
+            if (a < b) { return -1; }
             return 0;
         }
 
-        @Override
-        public boolean isNA(int i) {
+        @Override public boolean isNA(int i) {
             return RDouble.RDoubleUtils.isNAorNaN(v.getDouble(i));
         }
     }
@@ -99,21 +151,15 @@ public class Sort {
             this.v = v;
         }
 
-        @Override
-        public int cmp(int i, int j) {
+        @Override public int cmp(int i, int j) {
             int a = v.getInt(i);
             int b = v.getInt(j);
-            if (a > b) {
-                return 1;
-            }
-            if (a == b) {
-                return 0;
-            }
+            if (a > b) { return 1; }
+            if (a == b) { return 0; }
             return -1;
         }
 
-        @Override
-        public boolean isNA(int i) {
+        @Override public boolean isNA(int i) {
             return v.getInt(i) == RInt.NA;
         }
     }
@@ -125,15 +171,13 @@ public class Sort {
             this.v = v;
         }
 
-        @Override
-        public int cmp(int i, int j) {
+        @Override public int cmp(int i, int j) {
             int a = v.getLogical(i);
             int b = v.getLogical(j);
             return a - b;
         }
 
-        @Override
-        public boolean isNA(int i) {
+        @Override public boolean isNA(int i) {
             return v.getLogical(i) == RLogical.NA;
         }
     }
@@ -145,42 +189,30 @@ public class Sort {
             this.v = v;
         }
 
-        @Override
-        public int cmp(int i, int j) {
+        @Override public int cmp(int i, int j) {
             // elements are not NaNs
             String a = v.getString(i);
             String b = v.getString(j);
             return a.compareTo(b);
         }
 
-        @Override
-        public boolean isNA(int i) {
+        @Override public boolean isNA(int i) {
             return v.getString(i) == RString.NA;
         }
     }
 
     public static ElementsComparator createComparator(RArray arg, ASTNode ast) {
-        if (arg instanceof RDouble) {
-            return new DoubleComparator((RDouble) arg);
-        }
-        if (arg instanceof RInt) {
-            return new IntComparator((RInt) arg);
-        }
-        if (arg instanceof RLogical) {
-            return new LogicalComparator((RLogical) arg);
-        }
-        if (arg instanceof RString) {
-            return new StringComparator((RString) arg);
-        }
-        if (arg instanceof RRaw) {
-            throw RError.getRawSort(ast);
-        }
+        if (arg instanceof RDouble) { return new DoubleComparator((RDouble) arg); }
+        if (arg instanceof RInt) { return new IntComparator((RInt) arg); }
+        if (arg instanceof RLogical) { return new LogicalComparator((RLogical) arg); }
+        if (arg instanceof RString) { return new StringComparator((RString) arg); }
+        if (arg instanceof RRaw) { throw RError.getRawSort(ast); }
         Utils.nyi("unsupported type");
         return null;
     }
 
     public static int resultWhenFirstNA(int naLast) {
-        if (naLast != RLogical.FALSE) {  // both TRUE and NA
+        if (naLast != RLogical.FALSE) { // both TRUE and NA
             return 1;
         } else {
             return -1;
@@ -222,9 +254,9 @@ public class Sort {
             }
         }
 
-        Integer[] order = new Integer[size];  // FIXME: have to box integers to be able to use a Arrays.sort with a comparator;
-                                              // FIXME: could specialize for 1 key only, which should be a common case
-                                              // FIXME: also could have a box with the first argument, e.g. FirstKey.index and FirstKey.value
+        Integer[] order = new Integer[size]; // FIXME: have to box integers to be able to use a Arrays.sort with a comparator;
+                                             // FIXME: could specialize for 1 key only, which should be a common case
+                                             // FIXME: also could have a box with the first argument, e.g. FirstKey.index and FirstKey.value
         for (int i = 0; i < size; i++) {
             order[i] = i;
         }
@@ -235,11 +267,9 @@ public class Sort {
 
         Comparator<Integer> mainComparator = new Comparator<Integer>() {
 
-            @Override
-            public int compare(Integer o1, Integer o2) {
+            @Override public int compare(Integer o1, Integer o2) {
                 int i1 = o1;
                 int i2 = o2;
-
                 boolean na1 = firstComparator.isNA(i1);
                 boolean na2 = firstComparator.isNA(i2);
                 if (removeNA) { // elements that have NA in any key will always be put last
@@ -256,10 +286,7 @@ public class Sort {
                         return resSecondNA;
                     }
                 } else {
-                    if (!na2) {
-                        return resFirstNA;
-                    }
-                    // NA vs NA
+                    if (!na2) { return resFirstNA; } // NA vs NA
                 }
 
                 int j = 1;
@@ -274,27 +301,18 @@ public class Sort {
                             return resSecondNA;
                         }
                     } else {
-                        if (!na2) {
-                            return resFirstNA;
-                        }
-                        // NA vs NA
+                        if (!na2) { return resFirstNA; } // NA vs NA
                     }
                 }
-                if (!decreasing) {
-                    return res;
-                } else {
-                    return -res;
-                }
+                return !decreasing ? res : -res;
             }
-
         };
 
         Arrays.sort(order, mainComparator);
-
         if (!removeNA) {
             int[] content = new int[size];
             for (int i = 0; i < size; i++) {
-                content[i] = order[i] + 1;  // 1-based
+                content[i] = order[i] + 1; // 1-based
             }
             return RInt.RIntFactory.getFor(content);
         } else {
@@ -306,71 +324,4 @@ public class Sort {
             return RInt.RIntFactory.getFor(content);
         }
     }
-
-    public static final CallFactory ORDER_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, orderParamNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            final int naLastPosition = provided[INA_LAST] ? paramPositions[INA_LAST] : -1;
-            final int decreasingPosition = provided[IDECREASING] ? paramPositions[IDECREASING] : -1;
-
-            return new BuiltIn(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny[] params) {
-
-                    int nparams = params.length;
-                    int nkeys = nparams;
-                    int naLast;
-                    if (naLastPosition == -1) {
-                        naLast = RLogical.TRUE;
-                    } else {
-                        naLast = parseNALast(params[paramPositions[INA_LAST]], ast);
-                        nkeys--;
-                    }
-
-                    boolean decreasing;
-                    if (decreasingPosition == -1) {
-                        decreasing = false;
-                    } else {
-                        decreasing = parseDecreasing(params[paramPositions[IDECREASING]], ast);
-                        nkeys--;
-                    }
-
-                    if (nkeys > 0) {
-                        RArray[] keys = new RArray[nkeys];
-                        int asize = -1;
-                        int j = 0;
-                        for (int i = 0; i < nparams; i++) {
-                            if (i == naLastPosition || i == decreasingPosition) {
-                                continue;
-                            }
-                            RAny p = params[i];
-                            if (p instanceof RArray) {
-                                RArray arr = (RArray) p;
-                                int size = arr.size();
-                                if (size != asize) {
-                                    if (asize == -1) {
-                                        asize = size;
-                                    } else {
-                                        throw RError.getArgumentLengthsDiffer(ast);
-                                    }
-                                }
-                                keys[j++] = arr.materialize();
-                            } else {
-                                throw RError.getArgumentNotVector(ast, i);
-                            }
-                        }
-                        return sort(keys, decreasing, naLast, ast);
-                    } else {
-                        return RNull.getNull();
-                    }
-                }
-            };
-        }
-    };
 }

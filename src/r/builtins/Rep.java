@@ -3,8 +3,6 @@ package r.builtins;
 import java.util.*;
 
 import r.*;
-import r.Convert;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.data.RComplex.RComplexFactory;
 import r.data.RDouble.RDoubleFactory;
@@ -19,24 +17,56 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+/**
+ * "rep"
+ * 
+ * <pre>
+ * x  -- a vector (of any mode including a list) or a pairlist or a factor or (except for rep.int) a POSIXct or POSIXlt or 
+ *        date object; or also, an S4 object containing a vector of the above kind.
+ * ... -- further arguments to be passed to or from other methods. For the internal default method these can include:
+ *      times -- A integer vector giving the (non-negative) number of times to repeat each element if of length length(x), or to 
+ *                repeat the whole vector if of length 1. Negative or NA values are an error.
+ *      length.out -- non-negative integer. The desired length of the output vector. Other inputs will be coerced to an integer 
+ *                    vector and the first element taken. Ignored if NA or invalid.
+ *      each -- non-negative integer. Each element of x is repeated each times. Other inputs will be coerced to an integer 
+ *              vector and the first element taken. Treated as 1 if NA or invalid.
+ * </pre>
+ */
 // FIXME: Truffle can't handle BuiltIn2
 // TODO: support non-scalar times argument
 // TODO: support list argument
-public class Rep {
+class Rep extends CallFactory {
+
+    static final CallFactory _ = new Rep("rep", new String[]{"x", "..."}, new String[]{});
+
+    Rep(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static final boolean EAGER = true; // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
 
-    private static final String[] repIntParamNames = new String[]{"x", "times"};
-    private static final String[] repParamNames = new String[]{"x", "..."};
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        if (names.length == 2) {
+            int otherPos = ia.position("x") == 0 ? 1 : 0;
+            RSymbol otherName = names[otherPos];
+            if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) { return RepInt._.create(call, names, exprs); }
+            if (otherName == RSymbol.getSymbol("length.out")) {
+                final boolean xfirst = ia.position("x") == 0;
+                return new BuiltIn.BuiltIn2(call, names, exprs) {
+                    @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
+                        return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
+                    }
+                };
 
-    private static final int IX = 0;
-    private static final int ITIMES = 1;
+            }
+        }
+        throw Utils.nyi("unsupported rep arguments");
+    }
 
     public static void checkScalar(RArray a, ASTNode ast) {
         int n = a.size();
-        if (n != 1) {
-            throw RError.getInvalidTimes(ast);
-        }
+        if (n != 1) { throw RError.getInvalidTimes(ast); }
     }
 
     public static RSymbol[] rep(RSymbol value, int size) {
@@ -44,6 +74,7 @@ public class Rep {
         Arrays.fill(res, value);
         return res;
     }
+
     public static RSymbol[] rep(RSymbol[] origArray, int origSize, int newSize) {
         RSymbol[] newArray = new RSymbol[newSize];
         int start = 0;
@@ -66,6 +97,7 @@ public class Rep {
         Arrays.fill(res, value);
         return res;
     }
+
     public static byte[] rep(byte[] origArray, int origSize, int newSize) {
         byte[] newArray = new byte[newSize];
         int start = 0;
@@ -88,6 +120,7 @@ public class Rep {
         Arrays.fill(res, value);
         return res;
     }
+
     public static int[] rep(int[] origArray, int origSize, int newSize) {
         int[] newArray = new int[newSize];
         int start = 0;
@@ -110,6 +143,7 @@ public class Rep {
         Arrays.fill(res, value);
         return res;
     }
+
     public static double[] rep(double[] origArray, int origSize, int newSize) {
         double[] newArray = new double[newSize];
         int start = 0;
@@ -132,6 +166,7 @@ public class Rep {
         Arrays.fill(res, value);
         return res;
     }
+
     public static String[] rep(String[] origArray, int origSize, int newSize) {
         String[] newArray = new String[newSize];
         int start = 0;
@@ -182,7 +217,7 @@ public class Rep {
 
     public static double[] repValues(RComplex origArray, int origSize, int newSize) {
         if (origSize == 1) {
-            return rep(new double[] {origArray.getReal(0), origArray.getImag(0)}, 2, newSize * 2);
+            return rep(new double[]{origArray.getReal(0), origArray.getImag(0)}, 2, newSize * 2);
         } else {
             return rep(((ComplexImpl) origArray.materialize()).getContent(), origSize * 2, newSize * 2);
         }
@@ -197,9 +232,7 @@ public class Rep {
     }
 
     public static RArray.Names repNames(RArray.Names origNames, int origSize, int size) {
-        if (origNames == null) {
-            return null;
-        }
+        if (origNames == null) { return null; }
         return RArray.Names.create(rep(origNames.sequence(), origSize, size));
     }
 
@@ -209,23 +242,19 @@ public class Rep {
         if (!EAGER && names == null) {
             return new View.RRawProxy<RRaw>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public byte getRaw(int i) {
+                @Override public byte getRaw(int i) {
                     return orig.getRaw(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
 
@@ -241,23 +270,19 @@ public class Rep {
         if (!EAGER && names == null) {
             return new View.RLogicalProxy<RLogical>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public int getLogical(int i) {
+                @Override public int getLogical(int i) {
                     return orig.getLogical(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
             };
@@ -266,30 +291,25 @@ public class Rep {
         }
     }
 
-
     public static RInt repInt(final RInt orig, final int origSize, final int size) {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
             return new View.RIntProxy<RInt>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public int getInt(int i) {
+                @Override public int getInt(int i) {
                     return orig.getInt(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
             };
@@ -304,23 +324,19 @@ public class Rep {
         if (!EAGER && names == null) {
             return new View.RDoubleProxy<RDouble>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public double getDouble(int i) {
+                @Override public double getDouble(int i) {
                     return orig.getDouble(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
 
@@ -336,28 +352,23 @@ public class Rep {
         if (!EAGER && names == null) {
             return new View.RComplexProxy<RComplex>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public double getReal(int i) {
+                @Override public double getReal(int i) {
                     return orig.getReal(i % origSize);
                 }
 
-                @Override
-                public double getImag(int i) {
+                @Override public double getImag(int i) {
                     return orig.getImag(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
             };
@@ -372,23 +383,19 @@ public class Rep {
         if (!EAGER && names == null) {
             return new View.RStringProxy<RString>(orig) {
 
-                @Override
-                public RArray.Names names() {
+                @Override public RArray.Names names() {
                     return null;
                 }
 
-                @Override
-                public int size() {
+                @Override public int size() {
                     return size;
                 }
 
-                @Override
-                public String getString(int i) {
+                @Override public String getString(int i) {
                     return orig.getString(i % origSize);
                 }
 
-                @Override
-                public Attributes attributes() { // drop attributes
+                @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
             };
@@ -405,26 +412,20 @@ public class Rep {
             RDouble da = (RDouble) arg1;
             checkScalar(da, ast);
             double d = da.getDouble(0);
-                // FIXME: perhaps fitsRInt => isFinite ?
-            if (!RDouble.RDoubleUtils.isFinite(d) || d < 0 || !RDouble.RDoubleUtils.fitsRInt(d)) {
-                throw RError.getInvalidTimes(ast);
-            }
+            // FIXME: perhaps fitsRInt => isFinite ?
+            if (!RDouble.RDoubleUtils.isFinite(d) || d < 0 || !RDouble.RDoubleUtils.fitsRInt(d)) { throw RError.getInvalidTimes(ast); }
             times = (int) d;
         } else if (arg1 instanceof RInt) {
             RInt ia = (RInt) arg1;
             checkScalar(ia, ast);
             int i = ia.getInt(0);
-            if (i < 0 || i == RInt.NA) {
-                throw RError.getInvalidTimes(ast);
-            }
+            if (i < 0 || i == RInt.NA) { throw RError.getInvalidTimes(ast); }
             times = i;
         } else if (arg1 instanceof RLogical) {
             RLogical la = (RLogical) arg1;
             checkScalar(la, ast);
             int l = la.getLogical(0);
-            if (l == RLogical.TRUE) {
-                return arg0;
-            }
+            if (l == RLogical.TRUE) { return arg0; }
             if (l == RLogical.FALSE) {
                 times = 0; // NOTE: we won't simply return an empty array because of names handling (if arg0 is named, the empty array should be too)
             } else {
@@ -503,64 +504,6 @@ public class Rep {
             RComplex x = (RComplex) argX;
             return repInt(x, x.size(), len);
         }
-        Utils.nyi("unsupported base type for rep");
-        return null;
+        throw Utils.nyi("unsupported base type for rep");
     }
-
-    public static final CallFactory REPINT_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, repIntParamNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, repIntParamNames[IX]);
-            }
-            if (!provided[ITIMES]) {
-                BuiltIn.missingArg(call, repIntParamNames[ITIMES]);
-            }
-            final boolean xfirst = paramPositions[IX] == 0;
-            return new BuiltIn.BuiltIn2(call, names, exprs) {
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                    return genericRepInt(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
-                }
-            };
-        }
-    };
-
-    public static final CallFactory REP_FACTORY = new CallFactory() {
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, repParamNames);
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, repIntParamNames[IX]);
-            }
-            if (names.length == 2) {
-                int otherPos = paramPositions[IX] == 0 ? 1 : 0;
-                RSymbol otherName = names[otherPos];
-                if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) {
-                    return REPINT_FACTORY.create(call, names, exprs);
-                }
-                if (otherName == RSymbol.getSymbol("length.out")) {
-                    final boolean xfirst = paramPositions[IX] == 0;
-                    return new BuiltIn.BuiltIn2(call, names, exprs) {
-                        @Override
-                        public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
-                            return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
-                        }
-                    };
-
-                }
-            }
-            Utils.nyi("unsupported rep arguments");
-            return null;
-        }
-    };
 }

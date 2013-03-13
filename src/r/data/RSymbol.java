@@ -12,9 +12,8 @@ public final class RSymbol extends BaseObject implements RAny {
     private static final SymbolTable symbolTable = new SymbolTable(); // TODO put in Context ??!!
     public static final RSymbol[] EMPTY_SYMBOL_ARRAY = new RSymbol[0];
 
-    /* Special symbols
-     *
-     * All special symbols that are stored in the global symbol table are to be defined here.
+    /*
+     * Special symbols All special symbols that are stored in the global symbol table are to be defined here.
      */
     // FIXME: we should find a better way, this reinsertion just for the tests, and it is very error prone, forgetting to add
     // a symbol here or to reinsert below leads to unpredictable results when running tests
@@ -40,7 +39,8 @@ public final class RSymbol extends BaseObject implements RAny {
         symbolTable.table.put(s.name(), s);
     }
 
-    /** Reinserts the special symbols to the table after the table has been reset clean.
+    /**
+     * Reinserts the special symbols to the table after the table has been reset clean.
      */
     protected static void reinsertSpecialSymbols() {
         reinsert(NA_SYMBOL);
@@ -87,8 +87,7 @@ public final class RSymbol extends BaseObject implements RAny {
         return symbols;
     }
 
-    @Override
-    public String pretty() {
+    @Override public String pretty() {
         // TODO put `` when needed
         return name;
     }
@@ -125,58 +124,54 @@ public final class RSymbol extends BaseObject implements RAny {
         }
     }
 
-    /** Resets the symbol table.
-     *
-     * First clears the symbol table completely and then reinserts the special symbols.
+    /**
+     * Resets the symbol table. First clears the symbol table completely and then reinserts the special symbols.
      */
     public static void resetTable() {
-        symbolTable.table.clear();
-        reinsertSpecialSymbols();
-        Primitives.initializePrimitives();
+        for (RSymbol s : symbolTable.table.values()) {
+            s.value = null;
+            s.version = 0;
+        }
+        //symbolTable.table.clear();
+        //reinsertSpecialSymbols();
+        //Primitives.initializePrimitives();
     }
 
     public static Set<String> symbols() {
         return symbolTable.table.keySet();
     }
 
-    @Override
-    public RRaw asRaw() {
+    @Override public RRaw asRaw() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RLogical asLogical() {
+    @Override public RLogical asLogical() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RInt asInt() {
+    @Override public RInt asInt() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RDouble asDouble() {
+    @Override public RDouble asDouble() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RComplex asComplex() {
+    @Override public RComplex asComplex() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RString asString() {
+    @Override public RString asString() {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RList asList() {
+    @Override public RList asList() {
         Utils.nyi();
         return null;
     }
@@ -197,85 +192,70 @@ public final class RSymbol extends BaseObject implements RAny {
         version++;
     }
 
-    @Override
-    public boolean isShared() {
+    @Override public boolean isShared() {
         return false;
     }
 
-    @Override
-    public void ref() {
-    }
+    @Override public void ref() {}
 
-    @Override
-    public RSymbol stripAttributes() {
+    @Override public RSymbol stripAttributes() {
         return this;
     }
 
-    @Override
-    public RRaw asRaw(ConversionStatus warn) {
+    @Override public RRaw asRaw(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public RLogical asLogical(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public RInt asInt(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public RDouble asDouble(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public RComplex asComplex(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public RString asString(ConversionStatus warn) {
+        throw Utils.nyi();
+    }
+
+    @Override public String typeOf() {
+        throw Utils.nyi();
+    }
+
+    @Override public Attributes attributes() {
+        return null;
+    }
+
+    @Override public Attributes attributesRef() {
+        return null;
+    }
+
+    @Override public RArray setAttributes(Attributes attributes) {
         Utils.nyi();
         return null;
     }
 
-    @Override
-    public RLogical asLogical(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RInt asInt(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RDouble asDouble(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RComplex asComplex(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public RString asString(ConversionStatus warn) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public String typeOf() {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public Attributes attributes() {
-        return null;
-    }
-
-    @Override
-    public Attributes attributesRef() {
-        return null;
-    }
-
-    @Override
-    public RArray setAttributes(Attributes attributes) {
-        Utils.nyi();
-        return null;
-    }
-
-    @Override
-    public boolean dependsOn(RAny value) {
+    @Override public boolean dependsOn(RAny value) {
         return false;
     }
 
-    @Override
-    public boolean isTemporary() {
+    @Override public boolean isTemporary() {
         return false;
+    }
+
+    @Override public String toString() {
+        return name;
+    }
+
+    public boolean startsWith(RSymbol other) {
+        return name.startsWith(other.name);
     }
 }

@@ -7,128 +7,39 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-
-public class TypeCheck {
+class TypeCheck extends CallFactory {
 
     public abstract static class CheckAction {
         public abstract boolean is(RAny arg);
     }
 
-    public static final class CheckCallFactory extends CallFactory {
-        private final CheckAction action;
+    private final CheckAction action;
 
-        public CheckCallFactory(CheckAction action) {
-            this.action = action;
-        }
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            BuiltIn.ensureArgName(call, "x", names[0]);
-
-            return new AbstractCall(call, names, exprs) {
-
-                @Override
-                public Object execute(Frame frame) {
-                    try {
-                        return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
-                    } catch (UnexpectedResultException e) {
-                        return e.getResult();
-                    }
-                }
-
-                @Override
-                public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
-                    RAny value = (RAny) argExprs[0].execute(frame);
-                    return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
-                }
-
-                @Override
-                public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
-                    RAny value = (RAny) argExprs[0].execute(frame);
-                    return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
-                }
-            };
-        }
+    TypeCheck(String name, CheckAction act) {
+        super(name, new String[]{"x"}, null);
+        action = act;
     }
 
-    public static final CallFactory STRING_FACTORY = new CheckCallFactory(new CheckAction() {
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new AbstractCall(call, names, exprs) {
+            @Override public Object execute(Frame frame) {
+                try {
+                    return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
+                } catch (UnexpectedResultException e) {
+                    return e.getResult();
+                }
+            }
 
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RString;
-        }
+            @Override public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+                RAny value = (RAny) argExprs[0].execute(frame);
+                return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
+            }
 
-    });
-
-    public static final CallFactory COMPLEX_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RComplex;
-        }
-
-    });
-
-    public static final CallFactory DOUBLE_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RDouble;
-        }
-
-    });
-
-    public static final CallFactory INT_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RInt;
-        }
-
-    });
-
-    public static final CallFactory LOGICAL_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RLogical;
-        }
-
-    });
-
-    public static final CallFactory RAW_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RRaw;
-        }
-
-    });
-
-    public static final CallFactory LIST_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RList;
-        }
-
-    });
-
-    public static final CallFactory NUMERIC_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RNumber;
-        }
-
-    });
-
-    public static final CallFactory IS_NULL_FACTORY = new CheckCallFactory(new CheckAction() {
-
-        @Override
-        public boolean is(RAny arg) {
-            return arg instanceof RNull; // or == RNull.getNull()
-        }
-
-    });
+            @Override public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+                RAny value = (RAny) argExprs[0].execute(frame);
+                return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
+            }
+        };
+    }
 }

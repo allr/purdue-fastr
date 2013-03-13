@@ -1,43 +1,46 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
+
+/**
+ * "abs"
+ * 
+ * <pre>
+ * x -- a numeric or complex vector or array.
+ * </pre>
+ */
 // FIXME: use node rewriting to get rid of the type checks
-public class Abs {
+public class Abs extends CallFactory {
+
+    static final Abs _ = new Abs("abs", new String[]{"x"}, null);
+
+    Abs(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
+
     public static double abs(double d) {
-        if (!RDouble.RDoubleUtils.isNA(d)) {
-            return Math.abs(d);
-        } else {
-            return RDouble.NA;
-        }
+        return RDouble.RDoubleUtils.isNA(d) ? RDouble.NA : Math.abs(d);
     }
+
     public static int abs(int v) {
-        if (v != RInt.NA) {
-            return Math.abs(v);
-        } else {
-            return RInt.NA;
-        }
+        return v == RInt.NA ? RInt.NA : Math.abs(v);
     }
+
     public static double abs(double real, double imag) {
-        if (!RComplex.RComplexUtils.eitherIsNA(real, imag)) {
-            return Arithmetic.chypot(real, imag);
-        } else {
-            return RDouble.NA;
-        }
+        return RComplex.RComplexUtils.eitherIsNA(real, imag) ? RDouble.NA : Arithmetic.chypot(real, imag);
     }
 
     public static RDouble abs(final RDouble orig) {
 
         return new View.RDoubleProxy<RDouble>(orig) {
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 return abs(orig.getDouble(i));
             }
         };
@@ -46,8 +49,7 @@ public class Abs {
     public static RInt abs(final RInt orig) {
 
         return new View.RIntProxy<RInt>(orig) {
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
                 return abs(orig.getInt(i));
             }
         };
@@ -56,47 +58,27 @@ public class Abs {
     public static RDouble abs(final RComplex orig) {
 
         return new View.RDoubleProxy<RComplex>(orig) {
-
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 return abs(orig.getReal(i), orig.getImag(i));
             }
         };
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            BuiltIn.ensureArgName(call, "x", names[0]);
-            return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                @Override
-                public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting
-                    if (arg instanceof ScalarDoubleImpl) {
-                        return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble()));
-                    }
-                    if (arg instanceof ScalarIntImpl) {
-                        return RInt.RIntFactory.getScalar(abs(((ScalarIntImpl) arg).getInt()));
-                    }
-                    if (arg instanceof ScalarComplexImpl) {
-                        ScalarComplexImpl c = (ScalarComplexImpl) arg;
-                        return RDouble.RDoubleFactory.getScalar(abs(c.getReal(), c.getImag()));
-                    }
-                    if (arg instanceof RDouble) {
-                        return abs((RDouble) arg);
-                    }
-                    if (arg instanceof RInt) {
-                        return abs((RInt) arg);
-                    }
-                    if (arg instanceof RComplex) {
-                        return abs((RComplex) arg);
-                    }
-                    Utils.nyi();
-                    return null;
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
+        return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting
+                if (arg instanceof ScalarDoubleImpl) { return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble())); }
+                if (arg instanceof ScalarIntImpl) { return RInt.RIntFactory.getScalar(abs(((ScalarIntImpl) arg).getInt())); }
+                if (arg instanceof ScalarComplexImpl) {
+                    ScalarComplexImpl c = (ScalarComplexImpl) arg;
+                    return RDouble.RDoubleFactory.getScalar(abs(c.getReal(), c.getImag()));
                 }
-            };
-        }
-    };
+                if (arg instanceof RDouble) { return abs((RDouble) arg); }
+                if (arg instanceof RInt) { return abs((RInt) arg); }
+                if (arg instanceof RComplex) { return abs((RComplex) arg); }
+                throw Utils.nyi();
+            }
+        };
+    }
 }

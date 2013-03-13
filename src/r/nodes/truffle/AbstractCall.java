@@ -13,4 +13,15 @@ public abstract class AbstractCall extends BaseR {
         this.argNames = argNames;
         this.argExprs = adoptChildren(argsExprs);
     }
+
+    @Override public String toString() {
+        String args = "";
+        for (int i = 0; i < argExprs.length; i++) {
+            if (argNames != null && argNames[i] != null) {
+                args += argNames[i] + "=";
+            }
+            args += argExprs[i] + ",";
+        }
+        return this.getClass() + "[" + args + "]";
+    }
 }

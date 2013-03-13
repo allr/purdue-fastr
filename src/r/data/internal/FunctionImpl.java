@@ -1,18 +1,19 @@
 package r.data.internal;
 
-import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
-import r.builtins.Return.*;
 import r.data.*;
 import r.nodes.Function;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.*;
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
+import r.builtins.Return.ReturnException;
+
 // FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
 // FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
+
 public class FunctionImpl extends RootNode implements RFunction {
 
     final RFunction enclosingFunction;
@@ -74,12 +75,11 @@ public class FunctionImpl extends RootNode implements RFunction {
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
+    @Override public Object execute(VirtualFrame frame) {
         RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
         for (int i = 0; i < paramSlots.length; i++) {
-            RAny value = (RAny) args[i];  // FIXME: use RAny array instead?
+            RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
             if (value != null) {
                 frame.setObject(paramSlots[i], value);
                 value.ref();
@@ -157,9 +157,7 @@ public class FunctionImpl extends RootNode implements RFunction {
             RSymbol[] ws = writeSet;
             int len = ws.length;
             for (int i = 0; i < len; i++) {
-                if (ws[i] == sym) {
-                    return i;
-                }
+                if (ws[i] == sym) { return i; }
             }
         }
         return -1;
@@ -171,9 +169,7 @@ public class FunctionImpl extends RootNode implements RFunction {
             EnclosingSlot[] rs = readSet;
             int len = rs.length;
             for (int i = 0; i < len; i++) {
-                if (rs[i].symbol == sym) {
-                    return i;
-                }
+                if (rs[i].symbol == sym) { return i; }
             }
         }
         return -1;
@@ -188,71 +184,54 @@ public class FunctionImpl extends RootNode implements RFunction {
         return (id & bloomfilter) == id;
     }
 
-    @Override
-    public RSymbol[] paramNames() {
+    @Override public RSymbol[] paramNames() {
         return paramNames;
     }
 
-    @Override
-    public RNode[] paramValues() {
+    @Override public RNode[] paramValues() {
         return paramValues;
     }
 
-    @Override
-    public RNode body() {
+    @Override public RNode body() {
         return body;
     }
 
-    @Override
-    public RFunction enclosingFunction() {
+    @Override public RFunction enclosingFunction() {
         return enclosingFunction;
     }
 
-    @Override
-    public Function getSource() {
+    @Override public Function getSource() {
         return source;
     }
 
-    @Override
-    public CallTarget callTarget() {
+    @Override public CallTarget callTarget() {
         return callTarget;
     }
 
-    @Override
-    public RClosure createClosure(MaterializedFrame enclosingEnvironment) {
+    @Override public RClosure createClosure(MaterializedFrame enclosingEnvironment) {
         return new ClosureImpl(this, enclosingEnvironment);
     }
 
-    @Override
-    public boolean isInWriteSet(RSymbol sym) {
-        if (positionInLocalWriteSet(sym) != -1) {
-            return true;
-        }
-        if (enclosingFunction == null) {
-            return false;
-        }
+    @Override public boolean isInWriteSet(RSymbol sym) {
+        if (positionInLocalWriteSet(sym) != -1) { return true; }
+        if (enclosingFunction == null) { return false; }
         return enclosingFunction.isInWriteSet(sym);
     }
 
-    @Override
-    public RSymbol[] localWriteSet() {
+    @Override public RSymbol[] localWriteSet() {
         return writeSet;
     }
 
-    @Override
-    public FrameSlot localSlot(RSymbol symbol) {
+    @Override public FrameSlot localSlot(RSymbol symbol) {
         return frameDescriptor.findFrameSlot(symbol);
     }
 
-    @Override
-    public EnclosingSlot enclosingSlot(RSymbol symbol) {
+    @Override public EnclosingSlot enclosingSlot(RSymbol symbol) {
         int hops = 0;
         for (RFunction func = enclosingFunction; func != null; func = func.enclosingFunction()) {
             hops++;
             FrameSlot slot = func.localSlot(symbol);
-            if (slot != null) {
-                return new EnclosingSlot(symbol, hops, slot);
-            }
+            if (slot != null) { return new EnclosingSlot(symbol, hops, slot); }
         }
         return null;
     }

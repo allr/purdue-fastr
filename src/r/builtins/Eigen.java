@@ -3,26 +3,37 @@ package r.builtins;
 import java.util.*;
 
 import org.netlib.lapack.*;
-import org.netlib.util.intW;
-
-import com.oracle.truffle.api.frame.*;
+import org.netlib.util.*;
 
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
+import java.lang.Integer;
+import java.lang.Double;
+
+/**
+ * "eigen"
+ * 
+ * <pre>
+ * x -- a matrix whose spectral decomposition is to be computed.
+ * symmetric -- if TRUE, the matrix is assumed to be symmetric (or Hermitian if complex) and only its lower triangle
+ *                (diagonal included) is used. If symmetric is not specified, the matrix is inspected for symmetry.
+ * only.values -- if TRUE, only the eigenvalues are computed and returned, otherwise both eigenvalues and eigenvectors 
+ *                are returned.
+ * EISPACK -- logical. Should EISPACK be used (for compatibility with R < 1.7.0)?
+ * </pre>
+ */
 // NOTE: GNU-R has some of the eigen code implemented in R (and some uses LAPACK)
-public class Eigen {
+final class Eigen extends CallFactory {
+    static final CallFactory _ = new Eigen("eigen", new String[]{"x", "symmetric", "only.value", "EISPACK"}, new String[]{"x"});
 
-    private static final String[] paramNames = new String[]{"x", "symmetric", "only.values", "EISPACK"};
-
-    private static final int IX = 0;
-    private static final int ISYMMETRIC = 1;
-    private static final int IONLY_VALUES = 2;
-    private static final int IEISPACK = 3;
+    private Eigen(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     public static boolean parseLogical(RAny arg, ASTNode ast, String argName) {
         // FIXME: not exactly R semantics, R would ignore non-coerceable values at indexes 2 and higher
@@ -31,224 +42,165 @@ public class Eigen {
         RLogical larg = arg.asLogical();
         if (larg.size() >= 1) {
             int l = larg.getLogical(0);
-            if (l == RLogical.TRUE) {
-                return true;
-            }
-            if (l == RLogical.FALSE) {
-                return false;
-            }
+            if (l == RLogical.TRUE) { return true; }
+            if (l == RLogical.FALSE) { return false; }
         }
         throw RError.getInvalidArgument(ast, argName);
     }
 
-    public static final CallFactory EIGEN_FACTORY = new CallFactory() {
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        if (ia.provided("EISPACK")) { throw Utils.nyi("EISPACK argument not supported"); }
+        final int posX = ia.position("x");
+        final int posSymmetric = ia.position("symmetric");
+        final int posOnlyvalue = ia.position("only.value");
+        final RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[]{"values", "vectors"}));
 
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-            final int[] paramPositions = a.paramPositions;
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-            if (provided[IEISPACK]) {
-                Utils.nyi("EISPACK argument not supported");
-            }
-
-            final RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[] {"values", "vectors"}));
-
-            return new BuiltIn(call, names, exprs) {
-
-                @Override
-                public RAny doBuiltIn(Frame frame, RAny[] params) {
-                    RAny xany = params[paramPositions[IX]];
-
-                    RArray x;
-                    boolean complex = false;
-                    double[] values;
-
-                    if (xany instanceof RDouble) {
-                        x = (RDouble) xany;
-                        values = RDouble.RDoubleUtils.copyAsDoubleArray((RDouble) xany);
-                    } else if (xany instanceof RComplex) {
-                        complex = true;
-                        x = (RComplex) xany;
-                        values = RComplex.RComplexUtils.asDoubleArray((RComplex) xany);
-                    } else {
-                        RDouble xd = Convert.coerceToDoubleError(xany, ast); // FIXME: not exactly R error handling / semantics
-                        values = RDouble.RDoubleUtils.copyAsDoubleArray(xd); // note: could copy and coerce in one step
-                        x = xd;
-                    }
-
-                    // as.matrix(x)
-                    // TODO: add more semantics
-                    int[] dim = x.dimensions();
-                    int[] dimNN;
-                    int n;
-                    int size = x.size();
-
-                    if (dim == null || dim.length != 2) {
-                        if (size == 0) {
-                            throw RError.getInvalidArgument(ast, paramNames[IX]); // FIXME: not an R warning
-                        }
-                        if (size != 1) {
-                            throw RError.getNonSquareMatrix(ast, paramNames[IX]);
-                        }
-                        n = 1;
-                        dimNN = RArray.SCALAR_DIMENSIONS;
-                    } else {
-                        n = dim[0];
-                        if (dim[1] != n) {
-                            throw RError.getNonSquareMatrix(ast, paramNames[IX]);
-                        }
-                        dimNN = dim;
-                    }
-
-                    // check for infinite or missing values
-                    for (int i = 0; i < values.length; i++) {
-                        if (!RDouble.RDoubleUtils.isFinite(values[i])) {
-                            throw RError.getInfiniteMissingValues(ast, paramNames[IX]);
-                        }
-                    }
-
-                    boolean symmetric;
-                    if (provided[ISYMMETRIC]) {
-                        symmetric = parseLogical(params[paramPositions[ISYMMETRIC]], ast, paramNames[ISYMMETRIC]);
-                    } else {
-                        // isSymmetric.matrix, but a much simpler case, as we know we have finite non-na numeric values
-                        if (complex) {
-                            symmetric = isSymmetricComplex(values, n);
-                        } else {
-                            symmetric = isSymmetricDouble(values, n);
-                        }
-                    }
-
-                    boolean onlyValues = provided[IONLY_VALUES] ? parseLogical(params[paramPositions[IONLY_VALUES]], ast, paramNames[IONLY_VALUES]) : false;
-
-                    RAny resValues = RNull.getNull(); // TODO: init not needed when done with impl below
-                    RAny resVectors = RNull.getNull();
-
-                    // ./src/modules/lapack/Lapack.c
-                    if (!complex) {
-                        if (symmetric) {
-                            // symmetric real input matrix
-
-                            String laJOBZ;
-                            double[] laZ;
-                            if (onlyValues) {
-                                laJOBZ = "N";
-                                laZ = null;
-                            } else {
-                                laJOBZ = "V";
-                                laZ = new double[size];
-                            }
-                            int[] laISUPPZ = new int[2 * n];
-                            intW laM = new intW(0);
-                            double[] laW = new double[n];
-                            intW laINFO = new intW(0);
-
-                            // get optimum sizes for the work arrays
-                            double[] laWORK = new double[1];
-                            int[] laIWORK = new int[1];
-                            LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ,
-                                            laWORK, -1, laIWORK, -1, laINFO);
-                            if (laINFO.val != 0) {
-                                throw RError.getLapackError(ast, laINFO.val, "dsyevr");
-                            }
-                            int laLWORK = (int) laWORK[0];
-                            int laLIWORK = laIWORK[0];
-
-                            // do the real work
-                            laWORK = new double[laLWORK];
-                            laIWORK = new int[laLIWORK];
-                            LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ,
-                                            laWORK, laLWORK, laIWORK, laLIWORK, laINFO);
-                            if (laINFO.val != 0) {
-                                throw RError.getLapackError(ast, laINFO.val, "dsyevr");
-                            }
-
-                            resValues = RDouble.RDoubleFactory.getFor(Utils.reverse(laW));
-                            if (!onlyValues) {
-                                resVectors = RDouble.RDoubleFactory.getFor(reverseColumns(laZ, n, n), dimNN, null);
-                            }
-
-                        } else {
-                            // general real input matrix
-
-                            String laJOBVR;
-                            double[] laVR;
-                            if (onlyValues) {
-                                laJOBVR = "N";
-                                laVR = null;
-                            } else {
-                                laJOBVR = "V";
-                                laVR = new double[size];
-                            }
-                            double[] laWR = new double[n];
-                            double[] laWI = new double[n];
-                            intW laINFO = new intW(0);
-
-                            // get optimum size for the work array
-                            double[] laWORK = new double[1];
-                            LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, -1, laINFO);
-                            if (laINFO.val != 0) {
-                                throw RError.getLapackError(ast, laINFO.val, "dgeev");
-                            }
-                            int laLWORK = (int) laWORK[0];
-
-                            // do the real work
-                            laWORK = new double[laLWORK];
-                            LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, laLWORK, laINFO);
-                            if (laINFO.val != 0) {
-                                throw RError.getLapackError(ast, laINFO.val, "dgeev");
-                            }
-
-                            // check if the imaginary parts of the results are negligible
-                            boolean returnComplex = false;
-                            for (int i = 0; i < n; i++) {
-                                if (Math.abs(laWI[i]) > 10 * RDouble.EPSILON * Math.abs(laWR[i])) { // R_AccuracyInfo.eps
-                                    returnComplex = true;
-                                    break;
-                                }
-                            }
-
-                            Integer[] order;
-                            if (returnComplex) {
-                                order = decreasingModOrder(laWR, laWI, n);
-                                resValues = RComplex.RComplexFactory.getArray(reorder(laWR, order, n), reorder(laWI, order, n), null);
-
-                                if (!onlyValues) {
-                                    resVectors = RComplex.RComplexFactory.getFor(unscrambleComplexEigenVectors(laWI, laVR, n), dimNN, null);
-                                }
-                            } else {
-                                order = decreasingAbsOrder(laWR, n);
-                                resValues = RDouble.RDoubleFactory.getFor(reorder(laWR, order, n));
-                                if (!onlyValues) {
-                                    resVectors = RDouble.RDoubleFactory.getMatrixFor(reorderColumns(laVR, order, n, n), n, n);
-                                }
-                            }
-                        }
-
-                    } else {
-                        // TODO: port JLAPACK to the new LAPACK or find another library
-                        if (symmetric) {
-                            // symmetric complex input matrix
-                            Utils.nyi("ZHEEV not supported by netlib-java");
-                        } else {
-                            // general complex input matrix
-                            Utils.nyi("ZGEEV not supported by netlib-java");
-                        }
-                        return null;
-                    }
-
-                    return RList.RListFactory.getFor(new RAny[] {resValues, resVectors}, null, resultNames);
+        return new BuiltIn(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
+                RAny xany = params[posX];
+                RArray x;
+                boolean complex = false;
+                double[] values;
+                if (xany instanceof RDouble) {
+                    x = (RDouble) xany;
+                    values = RDouble.RDoubleUtils.copyAsDoubleArray((RDouble) xany);
+                } else if (xany instanceof RComplex) {
+                    complex = true;
+                    x = (RComplex) xany;
+                    values = RComplex.RComplexUtils.asDoubleArray((RComplex) xany);
+                } else {
+                    RDouble xd = Convert.coerceToDoubleError(xany, ast); // FIXME: not exactly R error handling / semantics
+                    values = RDouble.RDoubleUtils.copyAsDoubleArray(xd); // note: could copy and coerce in one step
+                    x = xd;
                 }
-            };
-        }
+                // as.matrix(x)
+                // TODO: add more semantics
+                int[] dim = x.dimensions();
+                int[] dimNN;
+                int n;
+                int size = x.size();
+                if (dim == null || dim.length != 2) {
+                    if (size == 0) { throw RError.getInvalidArgument(ast, "x"); }// FIXME: not an R warning
+                    if (size != 1) { throw RError.getNonSquareMatrix(ast, "x"); }
+                    n = 1;
+                    dimNN = RArray.SCALAR_DIMENSIONS;
+                } else {
+                    n = dim[0];
+                    if (dim[1] != n) { throw RError.getNonSquareMatrix(ast, "x"); }
+                    dimNN = dim;
+                }
+                // check for infinite or missing values
+                for (int i = 0; i < values.length; i++) {
+                    if (!RDouble.RDoubleUtils.isFinite(values[i])) { throw RError.getInfiniteMissingValues(ast, "x"); }
+                }
+                boolean symmetric;
+                if (posSymmetric != -1) {
+                    symmetric = parseLogical(params[posSymmetric], ast, "symmetric");
+                } else { // isSymmetric.matrix, but a much simpler case, as we know we have finite non-na numeric values
+                    symmetric = complex ? isSymmetricComplex(values, n) : isSymmetricDouble(values, n);
+                }
 
-    };
+                boolean onlyValues = posOnlyvalue != -1 ? parseLogical(params[posOnlyvalue], ast, "only.values") : false;
+
+                RAny resValues = RNull.getNull(); // TODO: init not needed when done with impl below
+                RAny resVectors = RNull.getNull();
+                // ./src/modules/lapack/Lapack.c
+                if (!complex) {
+                    if (symmetric) {
+                        // symmetric real input matrix
+                        String laJOBZ;
+                        double[] laZ;
+                        if (onlyValues) {
+                            laJOBZ = "N";
+                            laZ = null;
+                        } else {
+                            laJOBZ = "V";
+                            laZ = new double[size];
+                        }
+                        int[] laISUPPZ = new int[2 * n];
+                        intW laM = new intW(0);
+                        double[] laW = new double[n];
+                        intW laINFO = new intW(0);
+                        // get optimum sizes for the work arrays
+                        double[] laWORK = new double[1];
+                        int[] laIWORK = new int[1];
+                        LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ, laWORK, -1, laIWORK, -1, laINFO);
+                        if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dsyevr"); }
+                        int laLWORK = (int) laWORK[0];
+                        int laLIWORK = laIWORK[0];
+                        // do the real work
+                        laWORK = new double[laLWORK];
+                        laIWORK = new int[laLIWORK];
+                        LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ, laWORK, laLWORK, laIWORK, laLIWORK, laINFO);
+                        if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dsyevr"); }
+                        resValues = RDouble.RDoubleFactory.getFor(Utils.reverse(laW));
+                        if (!onlyValues) {
+                            resVectors = RDouble.RDoubleFactory.getFor(reverseColumns(laZ, n, n), dimNN, null);
+                        }
+
+                    } else {
+                        // general real input matrix
+                        String laJOBVR;
+                        double[] laVR;
+                        if (onlyValues) {
+                            laJOBVR = "N";
+                            laVR = null;
+                        } else {
+                            laJOBVR = "V";
+                            laVR = new double[size];
+                        }
+                        double[] laWR = new double[n];
+                        double[] laWI = new double[n];
+                        intW laINFO = new intW(0);
+                        // get optimum size for the work array
+                        double[] laWORK = new double[1];
+                        LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, -1, laINFO);
+                        if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dgeev"); }
+                        int laLWORK = (int) laWORK[0];
+
+                        // do the real work
+                        laWORK = new double[laLWORK];
+                        LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, laLWORK, laINFO);
+                        if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dgeev"); }
+
+                        // check if the imaginary parts of the results are negligible
+                        boolean returnComplex = false;
+                        for (int i = 0; i < n; i++) {
+                            if (Math.abs(laWI[i]) > 10 * RDouble.EPSILON * Math.abs(laWR[i])) { // R_AccuracyInfo.eps
+                                returnComplex = true;
+                                break;
+                            }
+                        }
+
+                        Integer[] order;
+                        if (returnComplex) {
+                            order = decreasingModOrder(laWR, laWI, n);
+                            resValues = RComplex.RComplexFactory.getArray(reorder(laWR, order, n), reorder(laWI, order, n), null);
+
+                            if (!onlyValues) {
+                                resVectors = RComplex.RComplexFactory.getFor(unscrambleComplexEigenVectors(laWI, laVR, n), dimNN, null);
+                            }
+                        } else {
+                            order = decreasingAbsOrder(laWR, n);
+                            resValues = RDouble.RDoubleFactory.getFor(reorder(laWR, order, n));
+                            if (!onlyValues) {
+                                resVectors = RDouble.RDoubleFactory.getMatrixFor(reorderColumns(laVR, order, n, n), n, n);
+                            }
+                        }
+                    }
+
+                } else { // TODO: port JLAPACK to the new LAPACK or find another library
+                    if (symmetric) { // symmetric complex input matrix                        
+                        throw Utils.nyi("ZHEEV not supported by netlib-java");
+                    } else { // general complex input matrix.                       
+                        throw Utils.nyi("ZGEEV not supported by netlib-java");
+                    }
+                }
+                return RList.RListFactory.getFor(new RAny[]{resValues, resVectors}, null, resultNames);
+            }
+        };
+    }
 
     public static final double tolerance = 100 * RDouble.EPSILON;
 
@@ -393,7 +345,7 @@ public class Eigen {
         for (int i = 0; i < n; i++) {
             double re = real[i];
             double im = imag[i];
-            mod[i] = re * re  + im * im; // note, ignoring the square root as it won't change the order
+            mod[i] = re * re + im * im; // note, ignoring the square root as it won't change the order
         }
 
         Integer[] order = new Integer[n];
@@ -403,9 +355,8 @@ public class Eigen {
 
         Arrays.sort(order, new Comparator<Integer>() {
 
-            @Override
-            public int compare(Integer o1, Integer o2) {
-               return Double.compare(mod[o2], mod[o1]);
+            @Override public int compare(Integer o1, Integer o2) {
+                return Double.compare(mod[o2], mod[o1]);
             }
 
         });
@@ -424,9 +375,8 @@ public class Eigen {
 
         Arrays.sort(order, new Comparator<Integer>() {
 
-            @Override
-            public int compare(Integer o1, Integer o2) {
-               return Double.compare(Math.abs(real[o2]), Math.abs(real[o1]));
+            @Override public int compare(Integer o1, Integer o2) {
+                return Double.compare(Math.abs(real[o2]), Math.abs(real[o1]));
             }
 
         });

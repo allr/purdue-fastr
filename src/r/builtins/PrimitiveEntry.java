@@ -2,9 +2,7 @@ package r.builtins;
 
 import r.data.*;
 import r.data.internal.*;
-import r.errors.*;
 import r.nodes.*;
-import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 public final class PrimitiveEntry {
@@ -23,7 +21,7 @@ public final class PrimitiveEntry {
         this.name = name;
         this.minArgs = minArgs;
         this.maxArgs = maxArgs;
-        this.factory = checkNumberOfArgs(name, minArgs, maxArgs, bodyFactory);
+        this.factory = bodyFactory;
         this.builtIn = new BuiltInImpl(factory);
         this.prettyPrint = prettyPrint;
     }
@@ -36,22 +34,8 @@ public final class PrimitiveEntry {
         return maxArgs;
     }
 
-    public static CallFactory checkNumberOfArgs(final RSymbol name, final int minArgs, final int maxArgs, final CallFactory bodyFactory) {
-        return new CallFactory() {
-
-            @Override
-            public RSymbol name() {
-                return name;
-            }
-
-            @Override
-            public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-                if (minArgs != -1 && exprs.length < minArgs || maxArgs != -1 && exprs.length > maxArgs) {
-                    throw RError.getGenericError(call, "Wrong number of arguments for call to BuiltIn (" + PrettyPrinter.prettyPrint(call) + ")");
-                }
-
-                return bodyFactory.create(call, names, exprs);
-            }
-        };
+    @Override public String toString() {
+        return "PrimitiveEntry[" + name + "," + minArgs + "/" + maxArgs + "," + factory + "," + builtIn;
     }
+
 }

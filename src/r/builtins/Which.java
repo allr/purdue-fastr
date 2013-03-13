@@ -1,22 +1,30 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
-import r.builtins.BuiltIn.NamedArgsBuiltIn.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import com.oracle.truffle.api.frame.*;
+
+/**
+ * "which"
+ * 
+ * <pre>
+ * x  --  logical vector or array. NAs are allowed and omitted (treated as if FALSE).
+ * arr.ind -- logical; should array indices be returned when x is an array?
+ * useNames -- logical indicating if the value of arrayInd() should have (non-null) dimnames at all.
+ * 
+ * <pre>
+ */
 // FIXME: implements only part of R semantics
+final class Which extends CallFactory {
+    static final CallFactory _ = new Which("which", new String[]{"x", "arr.ind", "useNames"}, new String[]{"x"});
 
-public class Which {
-
-    private static final String[] paramNames = new String[]{"x", "arr.ind", "useNames"};
-    private static final int IX = 0;
-    private static final int IARR_IND = 1;
-    private static final int IUSE_NAMES = 2;
+    Which(String name, String[] params, String[] required) {
+        super(name, params, required);
+    }
 
     // a version with extra allocation (this is also how GNU R does it)
     // indeed could be also done with two passes but no extra allocation
@@ -52,39 +60,15 @@ public class Which {
         return RInt.RIntFactory.getFor(content, null, names); // drops dimensions, preserves names
     }
 
-    public static final CallFactory FACTORY = new CallFactory() {
-
-        @Override
-        public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-
-            AnalyzedArguments a = BuiltIn.NamedArgsBuiltIn.analyzeArguments(names, exprs, paramNames);
-
-            final boolean[] provided = a.providedParams;
-
-            if (provided[IARR_IND] || provided[IUSE_NAMES]) {
-                Utils.nyi("arguments not yet implemented");
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        ArgumentInfo ia = check(call, names, exprs);
+        if (ia.provided("arr.ind") || ia.provided("useNames")) { throw Utils.nyi("arguments not yet implemented"); }
+        if (names.length == 1) { return new BuiltIn.BuiltIn1(call, names, exprs) {
+            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
+                if (arg instanceof RLogical) { return which((RLogical) arg); }
+                throw RError.getArgumentWhichNotLogical(ast);
             }
-
-            if (!provided[IX]) {
-                BuiltIn.missingArg(call, paramNames[IX]);
-            }
-
-            if (names.length == 1) {
-                return new BuiltIn.BuiltIn1(call, names, exprs) {
-
-                    @Override
-                    public RAny doBuiltIn(Frame frame, RAny arg) {
-                        if (arg instanceof RLogical) {
-                            return which((RLogical) arg);
-                        } else {
-                            throw RError.getArgumentWhichNotLogical(ast);
-                        }
-                    }
-                };
-            }
-            Utils.nyi();
-            return null;
-        }
-    };
+        }; }
+        throw Utils.nyi();
+    }
 }
-
