@@ -144,7 +144,7 @@ public class Console {
                 if (e.getUnexpectedType() != -1) {
                     // if we reached EOF, the sentence is obviously finished ...
                     // and contains a parse error.
-                    parseError(lexer, parser, e);
+                    parseError(parser, e);
                     incomplete.setLength(0); // thus we reset the buffer
                 } else { // otherwise there is no parser error and we continue to parse
                     incomplete.append('\n'); // (I'm not really sure we need this ... maybe just for pretty print)
@@ -152,10 +152,8 @@ public class Console {
             } catch (IOException e) {
                 throw e;
             } catch (RError e) {
-                lexer.resetIncomplete();
                 // This error should have been printed by the error manager ingore it here.
             } catch (Exception e) {
-                lexer.resetIncomplete();
                 e.printStackTrace();
             }
         } while (true);
@@ -173,7 +171,7 @@ public class Console {
                 printResult(tree, RContext.eval(tree)); // use non-debugging format
             }
         } catch (RecognitionException e) {
-            parseError(lexer, parser, e);
+            parseError(parser, e);
         }
     }
 
@@ -181,6 +179,7 @@ public class Console {
         String line = in.readLine();
         if (line == null) { throw new EOFException(); }
         incomplete.append(line);
+        lexer.resetIncomplete(); // Since it's a brand new parsing, reset the lexer
         lexer.setCharStream(new ANTLRStringStream(incomplete.toString()));
         parser.setTokenStream(new CommonTokenStream(lexer));
         ASTNode result = parser.interactive();
@@ -205,10 +204,9 @@ public class Console {
         }
     }
 
-    static void parseError(RLexer lexer, RParser parser, RecognitionException e) {
+    static void parseError(RParser parser, RecognitionException e) {
         Token tok = e.token;
         String[] tokNames = parser.getTokenNames();
-        lexer.resetIncomplete();
         System.err
                 .print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
