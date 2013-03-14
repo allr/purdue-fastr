@@ -7,17 +7,12 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-class TypeCheck extends CallFactory {
+abstract class IsBase extends CallFactory {
 
-    public abstract static class CheckAction {
-        public abstract boolean is(RAny arg);
-    }
+    abstract boolean is(RAny arg);
 
-    private final CheckAction action;
-
-    TypeCheck(String name, CheckAction act) {
+    IsBase(String name) {
         super(name, new String[]{"x"}, null);
-        action = act;
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -33,12 +28,12 @@ class TypeCheck extends CallFactory {
 
             @Override public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
                 RAny value = (RAny) argExprs[0].execute(frame);
-                return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
+                return is(value) ? RLogical.TRUE : RLogical.FALSE;
             }
 
             @Override public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
                 RAny value = (RAny) argExprs[0].execute(frame);
-                return action.is(value) ? RLogical.TRUE : RLogical.FALSE;
+                return is(value) ? RLogical.TRUE : RLogical.FALSE;
             }
         };
     }
