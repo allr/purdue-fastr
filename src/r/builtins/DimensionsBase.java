@@ -15,16 +15,11 @@ import com.oracle.truffle.api.frame.*;
  */
 abstract class DimensionsBase extends CallFactory {
 
-    DimensionsBase(String name, Operation op) {
+    DimensionsBase(String name) {
         super(name, new String[]{"x"}, null);
-        this.op = op;
     }
 
-    public abstract static class Operation {
-        public abstract RInt extract(int[] dimensions);
-    }
-
-    final Operation op;
+    abstract RInt extract(int[] dimensions);
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
@@ -34,7 +29,7 @@ abstract class DimensionsBase extends CallFactory {
                 RArray ax = (RArray) x;
                 int[] dim = ax.dimensions();
                 if (dim == null) { return RNull.getNull(); }
-                return op.extract(dim);
+                return extract(dim);
             }
         };
     }

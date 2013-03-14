@@ -1,15 +1,6 @@
 package r.builtins;
 
-import r.*;
-import r.builtins.ColRowBase.Stats;
 import r.data.*;
-import r.data.RComplex.RComplexUtils;
-import r.data.RDouble.RDoubleUtils;
-import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
 
 /**
  * "colSums"
@@ -23,28 +14,28 @@ import com.oracle.truffle.api.frame.*;
  */
 final class ColSums extends ColRowBase {
 
-    static final CallFactory _ = new ColSums("colSums", new Stats() {
-        @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, false, naRM);
-        }
+    static final CallFactory _ = new ColSums("colSums");
 
-        @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, false, naRM);
-        }
+    @Override double[] stat(RComplex x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, false, naRM);
+    }
 
-        @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, false, naRM);
-        }
+    @Override double[] stat(RDouble x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, false, naRM);
+    }
 
-        @Override public int[] getResultDimension(int[] sourceDim) {
-            int[] result = new int[sourceDim.length - 1];
-            System.arraycopy(sourceDim, 1, result, 0, result.length);
-            return result;
-        }
-    });
+    @Override double[] stat(RInt x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, false, naRM);
+    }
 
-    private ColSums(String name, ColRowBase.Stats stats) {
-        super(name, stats);
+    @Override int[] getResultDimension(int[] sourceDim) {
+        int[] result = new int[sourceDim.length - 1];
+        System.arraycopy(sourceDim, 1, result, 0, result.length);
+        return result;
+    }
+
+    private ColSums(String name) {
+        super(name);
     }
 
 }

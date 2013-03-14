@@ -18,31 +18,26 @@ import java.lang.Integer;//conflict with the local integer
 /** Casts and conversions. */
 abstract class AsBase extends CallFactory {
 
-    AsBase(String name, String[] params, String[] required, Operation op) {
+    AsBase(String name, String[] params, String[] required) {
         super(name, params, required);
-        this.op = op;
     }
-
-    private final Operation op;
 
     static final ConversionStatus warn = new ConversionStatus(); // WARNING: calls not re-entrant
 
-    public abstract static class Operation {
-        public abstract RAny genericCast(ASTNode ast, RAny arg);
+    abstract RAny genericCast(ASTNode ast, RAny arg);
 
-        public abstract RAny getEmpty();
-    }
+    abstract RAny getEmpty();
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
-                return op.getEmpty();
+                return getEmpty();
             }
         }; }
         check(call, names, exprs);
         return new Builtin.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
-                return op.genericCast(ast, arg);
+                return genericCast(ast, arg);
             }
         };
     }

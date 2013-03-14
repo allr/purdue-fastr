@@ -19,14 +19,14 @@ import com.oracle.truffle.api.frame.*;
  */
 final class Dim extends DimensionsBase {
 
-    static final CallFactory _ = new Dim("dim", new Operation() {
-        @Override public RInt extract(int[] dimensions) {
-            return RInt.RIntFactory.getArray(dimensions);
-        }
-    });
+    static final CallFactory _ = new Dim("dim");
 
-    private Dim(String name, Operation op) {
-        super(name, op);
+    @Override public RInt extract(int[] dimensions) {
+        return RInt.RIntFactory.getArray(dimensions);
+    }
+
+    private Dim(String name) {
+        super(name);
     }
 
     /**

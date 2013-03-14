@@ -21,7 +21,15 @@ final class AsVector extends AsBase {
     static final CallFactory _ = new AsVector("as.vector", new String[]{"x", "mode"}, new String[]{"x"});
 
     private AsVector(String name, String[] params, String[] required) {
-        super(name, params, required, null);
+        super(name, params, required);
+    }
+
+    @Override RAny genericCast(ASTNode ast, RAny arg) {
+        throw Utils.nyi("Never called.");
+    }
+
+    @Override RAny getEmpty() {
+        throw Utils.nyi("Never called.");
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {

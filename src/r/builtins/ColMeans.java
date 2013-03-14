@@ -14,28 +14,28 @@ import r.data.*;
  */
 final class ColMeans extends ColRowBase {
 
-    static final CallFactory _ = new ColMeans("colMeans", new Stats() {
-        @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, true, naRM);
-        }
+    static final CallFactory _ = new ColMeans("colMeans");
 
-        @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, true, naRM);
-        }
+    @Override double[] stat(RComplex x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, true, naRM);
+    }
 
-        @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-            return colSumsMeans(x, m, n, true, naRM);
-        }
+    @Override double[] stat(RDouble x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, true, naRM);
+    }
 
-        @Override public int[] getResultDimension(int[] sourceDim) {
-            int[] result = new int[sourceDim.length - 1];
-            System.arraycopy(sourceDim, 1, result, 0, result.length);
-            return result;
-        }
-    });
+    @Override double[] stat(RInt x, int m, int n, boolean naRM) {
+        return colSumsMeans(x, m, n, true, naRM);
+    }
 
-    private ColMeans(String name, ColRowBase.Stats stats) {
-        super(name, stats);
+    @Override int[] getResultDimension(int[] sourceDim) {
+        int[] result = new int[sourceDim.length - 1];
+        System.arraycopy(sourceDim, 1, result, 0, result.length);
+        return result;
+    }
+
+    private ColMeans(String name) {
+        super(name);
     }
 
 }

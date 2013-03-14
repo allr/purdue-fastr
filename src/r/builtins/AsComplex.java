@@ -15,15 +15,14 @@ final class AsComplex extends AsBase {
     static final CallFactory _ = new AsComplex("as.complex", new String[]{"x", "..."}, new String[]{});
 
     private AsComplex(String name, String[] params, String[] required) {
-        super(name, params, required, new AsBase.Operation() {
+        super(name, params, required);
+    }
 
-            @Override public RAny genericCast(ASTNode ast, RAny arg) {
-                return genericAsComplex(ast, arg);
-            }
+    @Override RAny genericCast(ASTNode ast, RAny arg) {
+        return genericAsComplex(ast, arg);
+    }
 
-            @Override public RAny getEmpty() {
-                return RDouble.EMPTY;
-            }
-        });
+    @Override RAny getEmpty() {
+        return RDouble.EMPTY;
     }
 }

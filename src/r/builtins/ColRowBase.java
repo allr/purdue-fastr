@@ -22,11 +22,8 @@ import com.oracle.truffle.api.frame.*;
  */
 abstract class ColRowBase extends CallFactory {
 
-    private final Stats stats;
-
-    ColRowBase(String name, Stats stats) {
+    ColRowBase(String name) {
         super(name, new String[]{"x", "na.rm", "dims"}, new String[]{"x"});
-        this.stats = stats;
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -63,17 +60,15 @@ abstract class ColRowBase extends CallFactory {
         throw Utils.nyi();
     }
 
-    public abstract static class Stats {
-        public abstract double[] stat(RComplex x, int m, int n, boolean naRM);
+    abstract double[] stat(RComplex x, int m, int n, boolean naRM);
 
-        public abstract double[] stat(RDouble x, int m, int n, boolean naRM);
+    abstract double[] stat(RDouble x, int m, int n, boolean naRM);
 
-        public abstract double[] stat(RInt x, int m, int n, boolean naRM);
+    abstract double[] stat(RInt x, int m, int n, boolean naRM);
 
-        public abstract int[] getResultDimension(int[] sourceDim);
-    }
+    abstract int[] getResultDimension(int[] sourceDim);
 
-    public static int[] checkDimensions(ASTNode ast, int[] dimensions) {
+    static int[] checkDimensions(ASTNode ast, int[] dimensions) {
         if (dimensions == null || dimensions.length < 2) { throw RError.getXArrayTwo(ast); }
         if (dimensions.length > 2) {
             int[] result = new int[2];
@@ -87,28 +82,28 @@ abstract class ColRowBase extends CallFactory {
         return dimensions;
     }
 
-    public RAny stat(ASTNode ast, RComplex x, boolean naRM) {
+    RAny stat(ASTNode ast, RComplex x, boolean naRM) {
         int[] dim = x.dimensions();
         int[] d = checkDimensions(ast, dim);
-        double[] content = stats.stat(x, d[0], d[1], naRM); // real, imag, real, imag, ...
-        return RComplex.RComplexFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+        double[] content = stat(x, d[0], d[1], naRM); // real, imag, real, imag, ...
+        return RComplex.RComplexFactory.getFor(content, dim == d ? null : getResultDimension(dim), null);
     }
 
-    public RAny stat(ASTNode ast, RDouble x, boolean naRM) {
+    RAny stat(ASTNode ast, RDouble x, boolean naRM) {
         int[] dim = x.dimensions();
         int[] d = checkDimensions(ast, dim);
-        double[] content = stats.stat(x, d[0], d[1], naRM);
-        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+        double[] content = stat(x, d[0], d[1], naRM);
+        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : getResultDimension(dim), null);
     }
 
-    public RAny stat(ASTNode ast, RInt x, boolean naRM) {
+    RAny stat(ASTNode ast, RInt x, boolean naRM) {
         int[] dim = x.dimensions();
         int[] d = checkDimensions(ast, dim);
-        double[] content = stats.stat(x, d[0], d[1], naRM);
-        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : stats.getResultDimension(dim), null);
+        double[] content = stat(x, d[0], d[1], naRM);
+        return RDouble.RDoubleFactory.getFor(content, dim == d ? null : getResultDimension(dim), null);
     }
 
-    public RAny stat(ASTNode ast, RAny x, boolean naRM) {
+    RAny stat(ASTNode ast, RAny x, boolean naRM) {
         if (x instanceof RDouble) { return stat(ast, (RDouble) x, naRM); }
         if (x instanceof RInt) { return stat(ast, (RInt) x, naRM); }
         if (x instanceof RLogical) { return stat(ast, x.asInt(), naRM); }
@@ -116,7 +111,7 @@ abstract class ColRowBase extends CallFactory {
         throw RError.getXNumeric(ast);
     }
 
-    public RAny stat(ASTNode ast, RAny x, RAny naRM) {
+    RAny stat(ASTNode ast, RAny x, RAny naRM) {
         if (naRM instanceof RLogical) {
             RLogical lnaRM = (RLogical) naRM;
             if (lnaRM.size() == 1) {

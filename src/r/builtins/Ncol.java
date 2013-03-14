@@ -14,13 +14,13 @@ import r.data.*;
  */
 final class Ncol extends DimensionsBase {
 
-    static final CallFactory _ = new Ncol("ncol", new Operation() {
-        @Override public RInt extract(int[] dimensions) {
-            return dimensions.length > 1 ? RInt.RIntFactory.getScalar(dimensions[1]) : RInt.BOXED_NA;
-        }
-    });
+    static final CallFactory _ = new Ncol("ncol");
 
-    private Ncol(String name, Operation op) {
-        super(name, op);
+    @Override RInt extract(int[] dimensions) {
+        return dimensions.length > 1 ? RInt.RIntFactory.getScalar(dimensions[1]) : RInt.BOXED_NA;
+    }
+
+    private Ncol(String name) {
+        super(name);
     }
 }

@@ -22,10 +22,10 @@ final class Ln extends MathBase {
     static final CallFactory _ = new Ln("ln");
 
     private Ln(String name) {
-        super(name, new Operation() {
-            @Override public double op(ASTNode ast, double value) {
-                return Math.log(value);
-            }
-        });
+        super(name);
+    }
+
+    @Override double op(ASTNode ast, double value) {
+        return Math.log(value);
     }
 }

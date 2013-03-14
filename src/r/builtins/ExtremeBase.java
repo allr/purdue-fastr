@@ -10,41 +10,36 @@ import com.oracle.truffle.api.frame.*;
 
 abstract class ExtremeBase extends CallFactory {
 
-    ExtremeBase(String name, String[] params, String[] required, Operation op) {
+    ExtremeBase(String name, String[] params, String[] required) {
         super(name, params, required);
-        this.op = op;
     }
 
-    final Operation op;
+    abstract boolean moreExtreme(int a, int b);
 
-    public abstract static class Operation {
-        public abstract boolean moreExtreme(int a, int b);
+    abstract boolean moreExtreme(double a, double b);
 
-        public abstract boolean moreExtreme(double a, double b);
+    abstract boolean moreExtreme(String a, String b);
 
-        public abstract boolean moreExtreme(String a, String b);
+    abstract int extreme(int a, int b);
 
-        public abstract int extreme(int a, int b);
+    abstract double extreme(double a, double b);
 
-        public abstract double extreme(double a, double b);
+    abstract String extreme(String a, String b);
 
-        public abstract String extreme(String a, String b);
-
-        public abstract RAny emptySetExtreme();
-    }
+    abstract RAny emptySetExtreme();
 
     // result is RString scalar
     public RAny extreme(RString arg, ASTNode ast) {
         int size = arg.size();
         if (size == 0) {
             RContext.warning(ast, RError.NO_NONMISSING_MAX);
-            return op.emptySetExtreme();
+            return emptySetExtreme();
         }
         String res = arg.getString(0);
         for (int i = 1; i < size; i++) {
             String s = arg.getString(i);
             if (s != RString.NA) {
-                if (op.moreExtreme(s, res)) {
+                if (moreExtreme(s, res)) {
                     res = s;
                 }
             } else {
@@ -59,12 +54,12 @@ abstract class ExtremeBase extends CallFactory {
         int size = arg.size();
         if (size == 0) {
             RContext.warning(ast, RError.NO_NONMISSING_MAX);
-            return op.emptySetExtreme();
+            return emptySetExtreme();
         }
         double res = arg.getDouble(0);
         for (int i = 1; i < size; i++) {
             double d = arg.getDouble(i);
-            if (op.moreExtreme(d, res)) {
+            if (moreExtreme(d, res)) {
                 res = d;
             }
             if (RDouble.RDoubleUtils.isNA(d)) { return RDouble.BOXED_NA; }
@@ -77,12 +72,12 @@ abstract class ExtremeBase extends CallFactory {
         int size = arg.size();
         if (size == 0) {
             RContext.warning(ast, RError.NO_NONMISSING_MAX);
-            return op.emptySetExtreme();
+            return emptySetExtreme();
         }
         int res = arg.getInt(0);
         for (int i = 1; i < size; i++) {
             int v = arg.getInt(i);
-            if (op.moreExtreme(v, res)) {
+            if (moreExtreme(v, res)) {
                 res = v;
             }
             if (v == RInt.NA) { return RInt.BOXED_NA; }
@@ -95,7 +90,7 @@ abstract class ExtremeBase extends CallFactory {
         int size = arg.size();
         if (size == 0) {
             RContext.warning(ast, RError.NO_NONMISSING_MAX);
-            return op.emptySetExtreme();
+            return emptySetExtreme();
         }
         int res = arg.getLogical(0);
         for (int i = 1; i < size; i++) {
@@ -122,29 +117,29 @@ abstract class ExtremeBase extends CallFactory {
     public RAny extreme(RAny scalar0, RAny scalar1) { // FIXME: does this preserve NA's ?
         if (scalar0 instanceof RDouble) {
             if (scalar1 instanceof RDouble) {
-                return RDouble.RDoubleFactory.getScalar(op.extreme(((RDouble) scalar0).getDouble(0), ((RDouble) scalar1).getDouble(0)));
+                return RDouble.RDoubleFactory.getScalar(extreme(((RDouble) scalar0).getDouble(0), ((RDouble) scalar1).getDouble(0)));
             } else if (scalar1 instanceof RInt) {
-                return RDouble.RDoubleFactory.getScalar(op.extreme(((RDouble) scalar0).getDouble(0), Convert.int2double(((RInt) scalar1).getInt(0))));
+                return RDouble.RDoubleFactory.getScalar(extreme(((RDouble) scalar0).getDouble(0), Convert.int2double(((RInt) scalar1).getInt(0))));
             } else {
-                return RString.RStringFactory.getScalar(op.extreme(Convert.double2string(((RDouble) scalar0).getDouble(0)), ((RString) scalar1).getString(0)));
+                return RString.RStringFactory.getScalar(extreme(Convert.double2string(((RDouble) scalar0).getDouble(0)), ((RString) scalar1).getString(0)));
             }
         }
         if (scalar0 instanceof RInt) {
             if (scalar1 instanceof RDouble) {
-                return RDouble.RDoubleFactory.getScalar(op.extreme(Convert.int2double(((RInt) scalar0).getInt(0)), ((RDouble) scalar1).getDouble(0)));
+                return RDouble.RDoubleFactory.getScalar(extreme(Convert.int2double(((RInt) scalar0).getInt(0)), ((RDouble) scalar1).getDouble(0)));
             } else if (scalar1 instanceof RInt) {
-                return RInt.RIntFactory.getScalar(op.extreme(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
+                return RInt.RIntFactory.getScalar(extreme(((RInt) scalar0).getInt(0), ((RInt) scalar1).getInt(0)));
             } else {
-                return RString.RStringFactory.getScalar(op.extreme(Convert.int2string(((RInt) scalar0).getInt(0)), ((RString) scalar1).getString(0)));
+                return RString.RStringFactory.getScalar(extreme(Convert.int2string(((RInt) scalar0).getInt(0)), ((RString) scalar1).getString(0)));
             }
         }
         // scalar0 instance of RString
         if (scalar1 instanceof RDouble) {
-            return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), Convert.double2string(((RDouble) scalar1).getDouble(0))));
+            return RString.RStringFactory.getScalar(extreme(((RString) scalar0).getString(0), Convert.double2string(((RDouble) scalar1).getDouble(0))));
         } else if (scalar1 instanceof RInt) {
-            return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), Convert.int2string(((RInt) scalar1).getInt(0))));
+            return RString.RStringFactory.getScalar(extreme(((RString) scalar0).getString(0), Convert.int2string(((RInt) scalar1).getInt(0))));
         } else {
-            return RString.RStringFactory.getScalar(op.extreme(((RString) scalar0).getString(0), ((RString) scalar1).getString(0)));
+            return RString.RStringFactory.getScalar(extreme(((RString) scalar0).getString(0), ((RString) scalar1).getString(0)));
         }
 
     }
@@ -163,9 +158,8 @@ abstract class ExtremeBase extends CallFactory {
         if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 RContext.warning(ast, RError.NO_NONMISSING_MAX);
-                return op.emptySetExtreme();
+                return emptySetExtreme();
             }
-
         }; }
         if (exprs.length == 1) { return new Builtin.BuiltIn1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {

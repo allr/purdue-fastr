@@ -10,21 +10,16 @@ import com.oracle.truffle.api.frame.*;
 
 abstract class CharBase extends CallFactory {
 
-    CharBase(String name, String[] params, String[] required, Operation op) {
+    CharBase(String name, String[] params, String[] required) {
         super(name, params, required);
-        this.op = op;
     }
 
-    private final Operation op;
-
-    abstract static class Operation {
-        abstract String op(ASTNode ast, String input);
-    }
+    abstract String op(ASTNode ast, String input);
 
     public RString convert(final ASTNode ast, final RString value) {
         final int size = value.size();
         if (value instanceof ScalarStringImpl) {
-            return RString.RStringFactory.getScalar(op.op(ast, value.getString(0)), value.dimensions());
+            return RString.RStringFactory.getScalar(op(ast, value.getString(0)), value.dimensions());
         } else {
             return new View.RStringProxy<RString>(value) {
                 @Override public int size() {
@@ -32,7 +27,7 @@ abstract class CharBase extends CallFactory {
                 }
 
                 @Override public String getString(int i) {
-                    return op.op(ast, value.getString(i));
+                    return op(ast, value.getString(i));
                 }
             };
         }

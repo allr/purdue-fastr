@@ -14,26 +14,26 @@ import r.data.*;
  */
 final class RowMeans extends ColRowBase {
 
-    static final CallFactory _ = new RowMeans("rowMeans", new Stats() {
-        @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, true, naRM);
-        }
+    static final CallFactory _ = new RowMeans("rowMeans");
 
-        @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, true, naRM);
-        }
+    @Override double[] stat(RComplex x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, true, naRM);
+    }
 
-        @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, true, naRM);
-        }
+    @Override double[] stat(RDouble x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, true, naRM);
+    }
 
-        @Override public int[] getResultDimension(int[] sourceDim) {
-            return null; // row means results have no dim
-        }
-    });
+    @Override double[] stat(RInt x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, true, naRM);
+    }
 
-    private RowMeans(String name, ColRowBase.Stats stats) {
-        super(name, stats);
+    @Override int[] getResultDimension(int[] sourceDim) {
+        return null; // row means results have no dim
+    }
+
+    private RowMeans(String name) {
+        super(name);
     }
 
 }

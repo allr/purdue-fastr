@@ -14,26 +14,26 @@ import r.data.*;
  */
 final class RowSums extends ColRowBase {
 
-    static final CallFactory _ = new RowSums("rowSums", new Stats() {
-        @Override public double[] stat(RComplex x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, false, naRM);
-        }
+    static final CallFactory _ = new RowSums("rowSums");
 
-        @Override public double[] stat(RDouble x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, false, naRM);
-        }
+    @Override double[] stat(RComplex x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, false, naRM);
+    }
 
-        @Override public double[] stat(RInt x, int m, int n, boolean naRM) {
-            return rowSumsMeans(x, m, n, false, naRM);
-        }
+    @Override double[] stat(RDouble x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, false, naRM);
+    }
 
-        @Override public int[] getResultDimension(int[] sourceDim) {
-            return null; // row sum results have no dim
-        }
-    });
+    @Override double[] stat(RInt x, int m, int n, boolean naRM) {
+        return rowSumsMeans(x, m, n, false, naRM);
+    }
 
-    private RowSums(String name, ColRowBase.Stats stats) {
-        super(name, stats);
+    @Override int[] getResultDimension(int[] sourceDim) {
+        return null; // row sum results have no dim
+    }
+
+    private RowSums(String name) {
+        super(name);
     }
 
 }
