@@ -35,13 +35,13 @@ final class AsVector extends AsBase {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         final boolean xfirst = ia.position("x") == 0;
-        if (exprs.length == 1) { return new Builtin.BuiltIn1(call, names, exprs) {
+        if (exprs.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RList) { return arg; } // is it a bug of GNU-R that list attributes are not stripped?
                 return arg.stripAttributes();
             }
         }; }
-        return new Builtin.BuiltIn2(call, names, exprs) {
+        return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                 return genericAsVector(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
             }

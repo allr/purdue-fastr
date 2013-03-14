@@ -27,7 +27,7 @@ final class Close extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (!(arg instanceof RInt)) { throw Utils.nyi("unsupported argument"); }
                 RInt iarg = (RInt) arg;

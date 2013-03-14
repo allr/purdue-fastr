@@ -38,7 +38,7 @@ final class Nchar extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("type") || ia.provided("allowNA")) { throw Utils.nyi(); }
-        if (names.length == 1) { return new Builtin.BuiltIn1(call, names, exprs) {
+        if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny x) {
                 return nchar(x.asString());
             }

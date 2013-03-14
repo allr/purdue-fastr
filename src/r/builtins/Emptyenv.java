@@ -18,7 +18,7 @@ final class Emptyenv extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn0(call, names, exprs) {
+        return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return REnvironment.EMPTY;
             }

@@ -53,7 +53,7 @@ class Rep extends CallFactory {
             if (otherName == null || otherName == RSymbol.TIMES_SYMBOL) { return RepInt._.create(call, names, exprs); }
             if (otherName == RSymbol.getSymbol("length.out")) {
                 final boolean xfirst = ia.position("x") == 0;
-                return new Builtin.BuiltIn2(call, names, exprs) {
+                return new Builtin.Builtin2(call, names, exprs) {
                     @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                         return genericRepLengthOut(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
                     }

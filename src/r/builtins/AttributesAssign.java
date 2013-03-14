@@ -33,7 +33,7 @@ class AttributesAssign extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn2(call, names, exprs) {
+        return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny obj, RAny value) {
                 RAny.Attributes attr = new RAny.Attributes();
                 obj = obj.setAttributes(attr);

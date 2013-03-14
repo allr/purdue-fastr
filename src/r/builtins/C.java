@@ -32,7 +32,7 @@ final class C extends CallFactory {
     // only supports a vector of integers, doubles, or logical
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         RSymbol[] collapsedNames = collapseEmptyNames(names);
-        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, collapsedNames, exprs) {
+        if (exprs.length == 0) { return new Builtin.Builtin0(call, collapsedNames, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RNull.getNull();
             }

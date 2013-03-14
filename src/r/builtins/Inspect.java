@@ -18,7 +18,7 @@ final class Inspect extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 System.out.println("INSPECT: " + arg + " type=" + arg.typeOf() + " isShared=" + arg.isShared() + " isTemporary=" + arg.isTemporary());
                 return RNull.getNull();

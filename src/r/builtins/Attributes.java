@@ -87,7 +87,7 @@ class Attributes extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public final RAny doBuiltIn(Frame frame, RAny arg) {
                 RAny.Attributes attr = arg.attributes();
                 if (attr == null) { return specialAttributesAsList(arg); }

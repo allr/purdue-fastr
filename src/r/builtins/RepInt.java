@@ -27,7 +27,7 @@ class RepInt extends Rep {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         final boolean xfirst = ia.position("x") == 0;
-        return new Builtin.BuiltIn2(call, names, exprs) {
+        return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                 return genericRepInt(ast, xfirst ? arg0 : arg1, xfirst ? arg1 : arg0);
             }

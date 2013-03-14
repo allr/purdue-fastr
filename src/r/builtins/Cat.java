@@ -194,7 +194,7 @@ final class Cat extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RNull.getNull();
             }

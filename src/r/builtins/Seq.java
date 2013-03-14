@@ -32,7 +32,7 @@ final class Seq extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RInt.RIntFactory.getScalar(1);
             }
@@ -165,7 +165,7 @@ final class Seq extends CallFactory {
             }
         } else {
             if (exprs.length == 1) {
-                if (ia.provided("along.with")) { return new Builtin.BuiltIn1(call, names, exprs) {
+                if (ia.provided("along.with")) { return new Builtin.Builtin1(call, names, exprs) {
 
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {
@@ -176,7 +176,7 @@ final class Seq extends CallFactory {
                         return Colon.create(1, len);
                     }
                 }; }
-                if (ia.provided("from")) { return new Builtin.BuiltIn1(call, names, exprs) {
+                if (ia.provided("from")) { return new Builtin.Builtin1(call, names, exprs) {
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                         if (arg instanceof RArray) {
@@ -204,7 +204,7 @@ final class Seq extends CallFactory {
                         throw Utils.nyi();
                     }
                 }; }
-                if (ia.provided("length.out")) { return new Builtin.BuiltIn1(call, names, exprs) {
+                if (ia.provided("length.out")) { return new Builtin.Builtin1(call, names, exprs) {
 
                     // note: some error messages are not exactly like in R, but they are quite close
                     @Override public RAny doBuiltIn(Frame frame, RAny arg) {

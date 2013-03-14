@@ -28,7 +28,7 @@ final class Colon extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn2(call, names, exprs) {
+        return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg0, RAny arg1) {
                 return generic(ast, arg0, arg1);
             }

@@ -1,7 +1,6 @@
 package r.builtins;
 
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -16,9 +15,9 @@ public abstract class Builtin extends AbstractCall {
     }
 
     /** Builtin functions with no arguments. */
-    abstract static class BuiltIn0 extends Builtin {
+    abstract static class Builtin0 extends Builtin {
 
-        public BuiltIn0(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+        public Builtin0(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
         }
 
@@ -34,9 +33,9 @@ public abstract class Builtin extends AbstractCall {
     }
 
     /** Builtin functions of one argument. */
-    abstract static class BuiltIn1 extends Builtin {
+    abstract static class Builtin1 extends Builtin {
 
-        public BuiltIn1(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+        public Builtin1(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
         }
 
@@ -52,9 +51,9 @@ public abstract class Builtin extends AbstractCall {
     }
 
     /** Builtin functions of two arguments. */
-    abstract static class BuiltIn2 extends Builtin {
+    abstract static class Builtin2 extends Builtin {
 
-        public BuiltIn2(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
+        public Builtin2(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
         }
 

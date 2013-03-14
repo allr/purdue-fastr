@@ -66,7 +66,7 @@ public class Abs extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting
                 if (arg instanceof ScalarDoubleImpl) { return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble())); }
                 if (arg instanceof ScalarIntImpl) { return RInt.RIntFactory.getScalar(abs(((ScalarIntImpl) arg).getInt())); }

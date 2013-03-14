@@ -29,13 +29,13 @@ abstract class AsBase extends CallFactory {
     abstract RAny getEmpty();
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        if (exprs.length == 0) { return new Builtin.BuiltIn0(call, names, exprs) {
+        if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return getEmpty();
             }
         }; }
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 return genericCast(ast, arg);
             }

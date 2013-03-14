@@ -25,7 +25,7 @@ final class NamesAssign extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn2(call, names, exprs) {
+        return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny x, RAny value) {
                 return replaceNames(x, value, ast);
             }

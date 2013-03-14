@@ -63,7 +63,7 @@ final class Which extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         if (ia.provided("arr.ind") || ia.provided("useNames")) { throw Utils.nyi("arguments not yet implemented"); }
-        if (names.length == 1) { return new Builtin.BuiltIn1(call, names, exprs) {
+        if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RLogical) { return which((RLogical) arg); }
                 throw RError.getArgumentWhichNotLogical(ast);

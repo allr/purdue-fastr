@@ -35,7 +35,7 @@ abstract class CharBase extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        return new Builtin.BuiltIn1(call, names, exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny value) {
                 RString str = Convert.coerceToStringError(value, ast);
                 return convert(ast, str);
