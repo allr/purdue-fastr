@@ -62,6 +62,10 @@ package r.parser;
     int incomplete_stack[] = new int[MAX_INCOMPLETE_SIZE]; // TODO probably go for an ArrayList of int :S
     int incomplete_depth;
     
+    public void resetIncomplete() {
+    	incomplete_stack[incomplete_depth = 0] = 0;
+    }
+    
     @Override
     public void reportError(RecognitionException e) {
         throw new RuntimeException(e);
