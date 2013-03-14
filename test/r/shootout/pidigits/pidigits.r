@@ -39,12 +39,7 @@ hi =
 bigint <- function(s, i=NA) {
     if (!is.na(i)) {
         s <- as.character(i)
-        #x <- abs(i)
-        #sgn <- if (i < 0L) -1L else 1L
-        #while (i >= max_elem) {
-        #}
      }
-#    } else {
         if (substr(s, 1, 1) == '-') {
             mag <- str_to_mag(substr(s, 2L, nchar(s)))
             sgn <- -1L
@@ -52,7 +47,6 @@ bigint <- function(s, i=NA) {
             mag <- str_to_mag(s)
             sgn <- 1L
         }
-#    }
     return(c(if (length(mag)) sgn else 0L, mag))
 }
 

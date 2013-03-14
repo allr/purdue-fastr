@@ -108,7 +108,7 @@ public class Console {
         long before = System.nanoTime();
         try {
             if (interactive || inputFile == null) {
-                RContext.debuggingFormat(true);
+                RContext.debuggingFormat(false);
                 System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
                 System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));

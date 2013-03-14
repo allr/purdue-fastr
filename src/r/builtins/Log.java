@@ -26,8 +26,8 @@ final class Log extends CallFactory {
         ArgumentInfo ia = check(call, names, exprs);
         if (exprs.length == 1) { return Ln._.create(call, names, exprs); }
         RNode baseExpr = exprs[ia.position("base")];
-        if (Builtin.isNumericConstant(baseExpr, 10)) { return Log10._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("base")]}); }
-        if (Builtin.isNumericConstant(baseExpr, 2)) { return Log2._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("base")]}); }
+        if (Builtin.isNumericConstant(baseExpr, 10)) { return Log10._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("x")]}); }
+        if (Builtin.isNumericConstant(baseExpr, 2)) { return Log2._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("x")]}); }
         // TODO: implement the generic case
         throw Utils.nyi("unsupported case");
     }
