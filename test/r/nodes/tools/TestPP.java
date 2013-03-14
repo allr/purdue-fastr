@@ -15,7 +15,7 @@ public class TestPP {
 
     public static ASTNode parse(String input) throws RecognitionException {
         parser.reset();
-				lexer.resetIncomplete();
+        lexer.resetIncomplete();
         lexer.setCharStream(new ANTLRStringStream(input));
         parser.setTokenStream(new CommonTokenStream(lexer));
         return parser.interactive();
