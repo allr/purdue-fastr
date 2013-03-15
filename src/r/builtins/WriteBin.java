@@ -48,7 +48,7 @@ final class WriteBin extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        if (ia.provided("size") || ia.provided("endian") || ia.provided("use.bytes")) {
+        if (ia.provided("size") || ia.provided("endian") || ia.provided("useBytes")) {
             Utils.nyi("argument of writeBin not yet implemented");
         }
         final ConnectionMode defaultMode = ConnectionMode.get("wb");
