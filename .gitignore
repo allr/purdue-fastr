@@ -1,6 +1,5 @@
 *.class
-
-# Package Files #
-#*.jar
-*.war
-*.ear
+.tmp.*
+.*~
+.tokens
+.DS_Store
