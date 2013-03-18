@@ -1,6 +1,8 @@
 *.class
 .tmp.*
 .*~
+*~
 .tokens
 .DS_Store
 /junit
+/bin
