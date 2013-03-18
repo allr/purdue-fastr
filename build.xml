@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="fastr">
+    <property environment="env"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <path id="fastr.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="lib/antlr-runtime-3.5.jar"/>
+        <pathelement location="lib/arpack_combined_all.jar"/>
+        <pathelement location="lib/junit-4.8.jar"/>
+        <pathelement location="lib/netlib-java-0.9.3.jar"/>
+        <pathelement location="lib/truffle-api-03-16-2013.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="test">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <src path="test"/>
+            <classpath refid="fastr.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="tests">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="plain"/>
+            <test name="r.TestSimpleArithmetic" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleArrays" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleAssignment" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleAttributes" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleBuiltins" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleComparison" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleFunctions" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleIfEvaluator" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleLoop" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleTruffle" todir="${junit.output.dir}"/>
+            <test name="r.TestSimpleVectors" todir="${junit.output.dir}"/>
+            <test name="r.nodes.tools.TestPP" todir="${junit.output.dir}"/>
+            <test name="r.shootout.binarytrees.TestBinaryTrees" todir="${junit.output.dir}"/>
+            <test name="r.shootout.fannkuch.TestFannkuch" todir="${junit.output.dir}"/>
+            <test name="r.shootout.fasta.TestFasta" todir="${junit.output.dir}"/>
+            <test name="r.shootout.fastaredux.TestFastaRedux" todir="${junit.output.dir}"/>
+            <test name="r.shootout.knucleotide.TestKNucleotide" todir="${junit.output.dir}"/>
+            <test name="r.shootout.mandelbrot.TestMandelbrot" todir="${junit.output.dir}"/>
+            <test name="r.shootout.nbody.TestNbody" todir="${junit.output.dir}"/>
+            <test name="r.shootout.pidigits.TestPidigits" todir="${junit.output.dir}"/>
+            <test name="r.shootout.regexdna.TestRegexdna" todir="${junit.output.dir}"/>
+            <test name="r.shootout.reversecomplement.TestReverseComplement" todir="${junit.output.dir}"/>
+            <test name="r.shootout.spectralnorm.TestSpectralNorm" todir="${junit.output.dir}"/>
+            <jvmarg line="-ea -esa"/>
+            <classpath refid="fastr.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
+    </target>
+</project>
