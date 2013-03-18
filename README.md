@@ -28,3 +28,7 @@ The outputs will appear in `junit` directory.
 ## Eclipse
 
 The code contains settings and project configuration for Eclipse Juno.
+
+# Authors:
+
+Tomas Kalibera, Petr Maj and Jan Vitek
