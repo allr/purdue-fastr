@@ -19,7 +19,8 @@ public class ShootoutTestBase {
     public static final boolean DEBUGGING_RUN = false; // run each benchmark first without capturing its output
 
     public static String sourceFilePath(String benchDir, String benchFileBase) {
-        String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
+//        String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
+        String prefix = "";
         return prefix + "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
     }
 
