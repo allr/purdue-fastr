@@ -27,6 +27,7 @@ public class Console {
     static String inputFile;
     static boolean interactive;
     static boolean forceVisible;
+    static boolean debuggingFormat;
 
     static Option[] options = new Option[]{
             //
@@ -41,6 +42,12 @@ public class Console {
 
                 @Override protected void processOption(String name, String[] opts) throws IOException {
                     interactive = true;
+                }
+            }, //
+            new Option("--debugging-format", "Use debugging output format") {
+
+                @Override protected void processOption(String name, String[] opts) throws IOException {
+                    debuggingFormat = true;
                 }
             }, //
             new Option("--visible", "Skip invisibility checks") {
@@ -107,13 +114,12 @@ public class Console {
         }
         long before = System.nanoTime();
         try {
+            RContext.debuggingFormat(debuggingFormat);
             if (interactive || inputFile == null) {
-                RContext.debuggingFormat(false);
                 System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
                 System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
-                RContext.debuggingFormat(false);
                 processFile(openANTLRStream(inputFile));
             }
         } catch (IOException e) {}

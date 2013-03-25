@@ -50,15 +50,15 @@ public abstract class Option {
 
     protected abstract void processOption(String name, String[] opts) throws Exception;
 
-    public static String[] processCommandLine(String[] args, Option[] aviableOptions) throws Exception {
+    public static String[] processCommandLine(String[] args, Option[] availableOptions) throws Exception {
         ArrayList<String> todo = new ArrayList<String>(args.length);
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             boolean found = false;
-            for (int j = 0; j < aviableOptions.length && !found; j++) {
-                if (aviableOptions[j].hasOption(arg)) {
-                    int nbParams = aviableOptions[j].getParams();
+            for (int j = 0; j < availableOptions.length && !found; j++) {
+                if (availableOptions[j].hasOption(arg)) {
+                    int nbParams = availableOptions[j].getParams();
                     String[] opts = new String[nbParams];
                     int currentParam = 0;
                     while (currentParam < nbParams) {
@@ -69,7 +69,7 @@ public abstract class Option {
                             opts[currentParam - 1] = null;
                         }
                     }
-                    aviableOptions[j].processOption(arg, opts);
+                    availableOptions[j].processOption(arg, opts);
                     found = true;
                 }
             }
