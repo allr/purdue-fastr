@@ -1,6 +1,7 @@
 package r.builtins;
 
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -8,12 +9,12 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "attributes(obj) <- value"
- * 
+ *
  * <pre>
  * obj -- an object
  * value -- an appropriate named list of attributes, or NULL.
  * </pre>
- * 
+ *
  * Unlike attr it is possible to set attributes on a NULL object: it will first be coerced to an empty list. Note that
  * some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have
  * restrictions on the values which can be set. (Note that this is not true of levels which should be set for factors
@@ -38,7 +39,7 @@ class AttributesAssign extends CallFactory {
                 RAny.Attributes attr = new RAny.Attributes();
                 obj = obj.setAttributes(attr);
                 if (value == RNull.getNull()) { return obj; }
-                if (!(value instanceof RList)) { throw new Error("FIXME"); }
+                if (!(value instanceof RList)) { throw RError.getAttributesListOrNull(ast); }
                 RList val = (RList) value;
                 if (val.names() == null) { throw new Error("no names"); }
                 RSymbol[] vnames = val.names().sequence();
@@ -48,7 +49,7 @@ class AttributesAssign extends CallFactory {
                     if (s == RSymbol.NAMES_SYMBOL) {
                         NamesAssign.replaceNames(obj, v, ast);
                     } else if (s == RSymbol.DIM_SYMBOL) {
-                        throw new Error("NY");
+                        DimAssign.replaceDims(obj, v, ast);
                     } else {
                         v.ref();
                         attr.put(s, v);

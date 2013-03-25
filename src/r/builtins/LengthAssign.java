@@ -10,13 +10,13 @@ import r.nodes.truffle.*;
 
 /**
  * "length<-"
- * 
+ *
  * <pre>
  * x -- an R object. For replacement, a vector or factor.
  * value -- an integer: double values will be coerced to integer.
  * </pre>
  */
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
+
 final class LengthAssign extends CallFactory {
 
     static final CallFactory _ = new LengthAssign("length<-", new String[]{"x", "value"}, new String[]{"x", "value"});
@@ -29,7 +29,7 @@ final class LengthAssign extends CallFactory {
         check(call, names, exprs);
         return new Builtin.Builtin2(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny x, RAny value) {
-                if (!(x instanceof RArray)) { throw RError.getInvalidUnnamedArgument(ast); }
+                if (!(x instanceof RArray)) { throw RError.getInvalidUnnamedArgument(ast); } // FIXME: error differs from GNU R
                 int nlen = parseNewLength(value, ast);
                 return changeSize((RArray) x, nlen);
             }

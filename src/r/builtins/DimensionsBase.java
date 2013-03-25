@@ -6,8 +6,6 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
-// TODO: add a replacement version
-
 /**
  * <pre>
  * x --  an R object, for example a matrix, array or data frame.

@@ -6,10 +6,9 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
-import java.lang.Integer;//import java.lang.Integer; needed because there is a class Integer in this package
+import java.lang.Integer; // needed because there is a class Integer in this package
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
@@ -70,13 +69,13 @@ public abstract class CallFactory {
                 }
             }
         }
-        maxParameters = dotdot ? java.lang.Integer.MAX_VALUE : parameters.length;
+        maxParameters = dotdot ? Integer.MAX_VALUE : parameters.length;
         minParameters = min;
     }
 
     /**
      * Create a RNode for a call to a function.
-     * 
+     *
      * @param call
      *            the abstract syntax tree node for this function call
      * @param names
@@ -88,7 +87,7 @@ public abstract class CallFactory {
 
     /**
      * Create a RNode for a binary operation.
-     * 
+     *
      * @param call
      *            the abstract syntax tree node for this function call
      * @param left
@@ -139,7 +138,7 @@ public abstract class CallFactory {
             return paramPositions[ix(name)] != -1;
         }
 
-        /** Returns the position in the actuals of the formal name or -1 */
+        /** Returns the position in the actuals of the formal name or -1. */
         int position(String name) {
             return paramPositions[ix(name)];
         }
@@ -158,7 +157,7 @@ public abstract class CallFactory {
      * Match the formal (parameters) to the actuals (arguments) at a call site. This is done in three passes, first
      * gather all the argument passed by exact name, then get the arguments passed by partial name as long as they are
      * not ambiguous. Last get the positional arguments.
-     * 
+     *
      * @param names
      *            array of the names of arguments (or null)
      * @param exprs
@@ -214,7 +213,7 @@ public abstract class CallFactory {
                     a.paramPositions[nextP] = i;
                     continue;
                 } else if (exprs[i] != null) { // positional match  (can the expr be null?????)
-                    if (names != null && names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message                        
+                    if (names != null && names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message
                     a.paramPositions[nextP] = i;
                 } else { // FIXME: JAN asks if this point can ever be reached?
                     nextP++;

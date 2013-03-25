@@ -330,6 +330,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ ncol(1) }", "NULL");
         assertEval("{ ncol(1:3) }", "NULL");
         assertEval("{ m <- matrix(1:6, nrow=3) ; ncol(m) }", "2L");
+
+        assertEval("{ x <- 1:2 ; dim(x) <- c(1,2) ; x }", "     [,1] [,2]\n[1,]   1L   2L");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,3) ; x }", "dims [product 3] do not match the length of object[2]");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,NA) ; x }", "the dims contain missing values");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,-1) ; x }", "the dims contain negative values");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- integer() ; x }", "length-0 dimension vector is invalid");
+
+        assertEval("{ x <- 1:2 ; attr(x, \"dim\") <- c(2,1) ; x }", "     [,1]\n[1,]   1L\n[2,]   2L");
     }
 
     @Test
@@ -768,7 +776,4 @@ public class TestSimpleBuiltins extends TestBase {
         // rowSums on array have correct values
         assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); a[1] == 144 && a[2] == 156; }");
     }
-
-
-
 }

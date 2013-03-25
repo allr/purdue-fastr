@@ -1,19 +1,14 @@
 package r.builtins;
 
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
-
-// TODO: add a replacement version
 /**
  * "dim(x)"
- * 
+ *
  * <pre>
  * x -- an R object, for example a matrix, array or data frame.
  * </pre>
- * 
+ *
  * dim has a method for data.frames, which returns the lengths of the row.names attribute of x and of x (as the numbers
  * of rows and columns respectively).
  */

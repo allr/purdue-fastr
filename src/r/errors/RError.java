@@ -93,6 +93,9 @@ public abstract class RError extends RuntimeException {
     public static final String NEGATIVE_LENGTH_VECTORS_NOT_ALLOWED = "negative length vectors are not allowed";
     public static final String FIRST_ARG_MUST_BE_ARRAY = "invalid first argument, must be an array";
     public static final String IMAGINARY_PARTS_DISCARDED_IN_COERCION = "imaginary parts discarded in coercion";
+    public static final String DIMS_CONTAIN_NA = "the dims contain missing values";
+    public static final String LENGTH_ZERO_DIM_INVALID = "length-0 dimension vector is invalid";
+    public static final String ATTRIBUTES_LIST_OR_NULL = "attributes must be a list or NULL";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -125,6 +128,7 @@ public abstract class RError extends RuntimeException {
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
     public static final String IS_OF_WRONG_ARITY = "'%d' argument passed to '%s' which requires '%d'";
     public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
+    public static final String DIMS_DONT_MATCH_LENGTH = "dims [product %d] do not match the length of object[%d]";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -933,6 +937,71 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getUnknownVariable(ASTNode source) {
+        return new RErrorInExpr(source) {
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return UNKNOWN_VARIABLE;
+            }
+        };
+    }
+
+    public static RError getDollarAtomicVectors(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.DOLLAR_ATOMIC_VECTORS;
+            }
+        };
+    }
+
+    public static RError getDimsContainNA(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.DIMS_CONTAIN_NA;
+            }
+        };
+    }
+
+    public static RError getLengthZeroDimInvalid(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.LENGTH_ZERO_DIM_INVALID;
+            }
+        };
+    }
+
+    public static RError getAttributesListOrNull(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.ATTRIBUTES_LIST_OR_NULL;
+            }
+        };
+    }
+
+    public static RError getGenericError(ASTNode source, final String msg) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return msg;
+            }
+        };
+    }
+
     static class RErrorInExpr extends RError {
         private ASTNode errorNode;
         private static final long serialVersionUID = 1L;
@@ -1051,35 +1120,7 @@ public abstract class RError extends RuntimeException {
         return getGenericError(ast, String.format(RError.UNUSED_ARGUMENT, msg));
     }
 
-    public static RError getUnknownVariable(ASTNode source) {
-        return new RErrorInExpr(source) {
-            private static final long serialVersionUID = 1L;
-
-            @Override public String getMessage() {
-                return UNKNOWN_VARIABLE;
-            }
-        };
-    }
-
-    public static RError getDollarAtomicVectors(ASTNode source) {
-        return new RErrorInExpr(source) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override public String getMessage() {
-                return RError.DOLLAR_ATOMIC_VECTORS;
-            }
-        };
-    }
-
-    public static RError getGenericError(ASTNode source, final String msg) {
-        return new RErrorInExpr(source) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override public String getMessage() {
-                return msg;
-            }
-        };
+    public static RError getDimsDontMatchLength(ASTNode ast, int dimsProduct, int objectLength) {
+        return getGenericError(ast, String.format(RError.DIMS_DONT_MATCH_LENGTH, dimsProduct, objectLength));
     }
 }

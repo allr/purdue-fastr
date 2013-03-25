@@ -81,6 +81,7 @@ public class Primitives {
         add(Cumsum._);
         add(DiagAssign._);
         add(Dim._);
+        add(DimAssign._);
         add(Double._);
         add(Get._);
         add(Gregexpr._);

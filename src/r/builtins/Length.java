@@ -4,18 +4,17 @@ import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 /**
  * "length"
- * 
+ *
  * <pre>
  * x -- an R object. For replacement, a vector or factor.
  * </pre>
  */
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
+
 final class Length extends CallFactory {
 
     static final CallFactory _ = new Length("length", new String[]{"x"}, new String[]{"x"});

@@ -12,13 +12,13 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "attr"
- * 
+ *
  * <pre>
  *  x -- an object whose attributes are to be accessed.
  *  which -- a non-empty character string specifying which attribute is to be accessed.
  *  exact -- logical: should which be matched exactly?
  * </pre>
- * 
+ *
  * The extraction function first looks for an exact match to which amongst the attributes of x, then (unless exact =
  * TRUE) a unique partial match. (Setting options(warnPartialMatchAttr=TRUE) causes partial matches to give warnings.)
  * Some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have
@@ -26,13 +26,13 @@ import com.oracle.truffle.api.frame.*;
  * values of which. NOTE: testing reveals that if x has a single attribute, a value of "" for which will return its
  * value. If there are more than one value, "" is ambiguous.
  */
-class Attr extends CallFactory {
+final class Attr extends CallFactory {
 
     static final CallFactory _ = new Attr("attr", new String[]{"x", "which", "exact"}, new String[]{"x", "which"});
 
     private static final int PARTIAL_MAP_THRESHOLD = 256;
 
-    Attr(String name, String[] parameters, String[] required) {
+    private Attr(String name, String[] parameters, String[] required) {
         super(name, parameters, required);
     }
 
