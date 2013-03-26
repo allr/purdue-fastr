@@ -32,22 +32,21 @@ public abstract class MatrixOperation extends BaseR {
 
     public abstract Object execute(RAny l, RAny r);
 
-    // FIXME: unoptimized
+    public static RDouble dotProduct(ASTNode ast, RDouble l, RDouble r) { // a.k.a inner product, scalar product
+        int m = l.size();
+        if (m != r.size()) {
+            throw RError.getNonConformableArgs(ast);
+        }
+        double res = 0;
+        for (int i = 0; i < m; i++) {
+            res += l.getDouble(i) * r.getDouble(i);
+        }
+        return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
+    }
+
     public static class MatrixProduct extends MatrixOperation {
         public MatrixProduct(ASTNode ast, RNode left, RNode right) {
             super(ast, left, right);
-        }
-
-        public static RDouble dotProduct(ASTNode ast, RDouble l, RDouble r) {
-            int m = l.size();
-            if (m != r.size()) {
-                throw RError.getNonConformableArgs(ast);
-            }
-            double res = 0;
-            for (int i = 0; i < m; i++) {
-                res += l.getDouble(i) * r.getDouble(i);
-            }
-            return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
         }
 
         // FIXME: make sure that the compiler can optimize these loops
@@ -186,6 +185,7 @@ public abstract class MatrixOperation extends BaseR {
         @Override
         public Object execute(RAny l, RAny r) {
 
+            // TODO: support also complex matrices
             if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
                             (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
                 throw RError.getNumericComplexMatrixVector(ast);
@@ -193,16 +193,18 @@ public abstract class MatrixOperation extends BaseR {
             RDouble ld = l.asDouble().materialize();
             RDouble rd = r.asDouble().materialize();
             int[] ldims = ld.dimensions();
+            int nldims = ldims == null ? 0 : ldims.length;
             int[] rdims = rd.dimensions();
+            int nrdims = rdims == null ? 0 : rdims.length;
 
-            if (ldims == null) {
-                if (rdims == null) {
+            if (nldims != 2) {
+                if (nrdims != 2) {
                     return dotProduct(ast, ld, rd);
                 } else {
                     return vectorTimesMatrix(ast, ld, rd);
                 }
             } else {
-                if (rdims == null) {
+                if (nrdims != 2) {
                     return matrixTimesVector(ast, ld, rd);
                 } else {
                     return matrixTimesMatrix(ast, ld, rd);
@@ -210,6 +212,40 @@ public abstract class MatrixOperation extends BaseR {
             }
         }
     }
+
+//    public static class CrossProduct extends MatrixOperation { // t(x) %*% x
+//        public CrossProduct(ASTNode ast, RNode left, RNode right) {
+//            super(ast, left, right);
+//        }
+//
+//        @Override
+//        public Object execute(RAny l, RAny r) {
+//
+//            // TODO: support also complex matrices
+//            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
+//                            (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
+//                throw RError.getNumericComplexMatrixVector(ast);
+//            }
+//            RDouble ld = l.asDouble().materialize();
+//            RDouble rd = r.asDouble().materialize();
+//            int[] ldims = ld.dimensions();
+//            int[] rdims = rd.dimensions();
+//
+//            if (ldims == null) {
+//                if (rdims == null) {
+//                    return dotProduct(ast, ld, rd);
+//                } else {
+//                    return vectorTimesMatrix(ast, ld, rd);
+//                }
+//            } else {
+//                if (rdims == null) {
+//                    return matrixTimesVector(ast, ld, rd);
+//                } else {
+//                    return matrixTimesMatrix(ast, ld, rd);
+//                }
+//            }
+//        }
+//    }
 
     public static class OuterProduct extends MatrixOperation {
         public OuterProduct(ASTNode ast, RNode left, RNode right) {
@@ -219,6 +255,7 @@ public abstract class MatrixOperation extends BaseR {
         @Override
         public Object execute(RAny l, RAny r) {
 
+            // TODO: support also complex matrices
             if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
                             (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
                 throw RError.getNumericComplexMatrixVector(ast);
