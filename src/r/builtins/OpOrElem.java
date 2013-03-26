@@ -6,9 +6,9 @@ import r.nodes.truffle.*;
 
 /**
  * "|"
- * 
+ *
  * <pre>
- * x, y -- numeric or complex vectors or objects which can be coerced to such, or other objects for which methods have been 
+ * x, y -- numeric or complex vectors or objects which can be coerced to such, or other objects for which methods have been
  *         written.
  * </pre>
  */
@@ -16,7 +16,7 @@ final class OpOrElem extends OperationsBase {
     static final CallFactory _ = new OpOrElem("|");
 
     private OpOrElem(String name) {
-        super(name);
+        super(name, 1);
     }
 
     @Override public RNode create(ASTNode ast, RSymbol[] names, RNode[] exprs) {

@@ -19,16 +19,16 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "rep"
- * 
+ *
  * <pre>
- * x  -- a vector (of any mode including a list) or a pairlist or a factor or (except for rep.int) a POSIXct or POSIXlt or 
+ * x  -- a vector (of any mode including a list) or a pairlist or a factor or (except for rep.int) a POSIXct or POSIXlt or
  *        date object; or also, an S4 object containing a vector of the above kind.
  * ... -- further arguments to be passed to or from other methods. For the internal default method these can include:
- *      times -- A integer vector giving the (non-negative) number of times to repeat each element if of length length(x), or to 
+ *      times -- A integer vector giving the (non-negative) number of times to repeat each element if of length length(x), or to
  *                repeat the whole vector if of length 1. Negative or NA values are an error.
- *      length.out -- non-negative integer. The desired length of the output vector. Other inputs will be coerced to an integer 
+ *      length.out -- non-negative integer. The desired length of the output vector. Other inputs will be coerced to an integer
  *                    vector and the first element taken. Ignored if NA or invalid.
- *      each -- non-negative integer. Each element of x is repeated each times. Other inputs will be coerced to an integer 
+ *      each -- non-negative integer. Each element of x is repeated each times. Other inputs will be coerced to an integer
  *              vector and the first element taken. Treated as 1 if NA or invalid.
  * </pre>
  */

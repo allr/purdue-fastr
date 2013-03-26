@@ -27,6 +27,7 @@ public interface RDouble extends RNumber {
     RDouble set(int i, double val);
     double getDouble(int i);
     RDouble materialize();
+    double[] getContent();
 
     public class RDoubleUtils {
         public static boolean isNA(double d) {

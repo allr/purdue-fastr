@@ -784,4 +784,12 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { Recall(i-1) + Recall(i-2) } } ; f(10) }", "55.0");
         assertEvalError("{ Recall(10) }", "'Recall' called from outside a closure");
     }
+
+    @Test
+    public void testCrossprod() throws RecognitionException {
+        assertEval("{ x <- 1:6 ; crossprod(x) }", "     [,1]\n[1,] 91.0");
+        assertEval("{ x <- 1:2 ; crossprod(t(x)) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0");
+        assertEval("{ crossprod(1:3, matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,] 14.0 32.0");
+        assertEval("{ crossprod(t(1:2), 5) }", "     [,1]\n[1,]  5.0\n[2,] 10.0");
+    }
 }

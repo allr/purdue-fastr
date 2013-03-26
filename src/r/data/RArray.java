@@ -8,7 +8,7 @@ import java.util.HashMap;
  * The interface for all arrays. R makes the distinction between vectors and
  * arrays. In R, a array can be considered as a multiply subscripted collection
  * of data entries.
- * 
+ *
  * <pre>
  *  TODO: dimensions array should never be modified (only can be replaced, to allow sharing)
  *  TODO: names object should never be modified (only can be replaced, to allow sharing)
@@ -16,7 +16,7 @@ import java.util.HashMap;
  */
 public interface RArray extends RAny {
 
-    int[] SCALAR_DIMENSIONS = new int[] { 1, 1 };
+    int[] SCALAR_DIMENSIONS = new int[] {1, 1};
 
     int size();
 
@@ -87,7 +87,7 @@ public interface RArray extends RAny {
      * and from a character vector. For a one-dimensional array the names
      * attribute really is dimnames[[1]]. Formally classed aka S4 objects
      * typically have slotNames() (and no names()).
-     * 
+     *
      * <pre>
      * FIXME: Should we really have an object that wraps around an array. This seems slightly wasteful.
      * FIXME: Note that when using a hashmap we have to be careful. The same symbol can occur multiple times
@@ -149,7 +149,7 @@ public interface RArray extends RAny {
         /**
          * Compares two symbols to see if src is a partial match with tgt.
          * Return false if either of them has a null name().
-         * 
+         *
          * <pre>
          * FIXME: Is it possible for name() to be null?
          * </pre>

@@ -607,6 +607,11 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public double[] getContent() {
+            return materialize().getContent();
+        }
+
+        @Override
         public RDouble set(int i, double val) {
             return materialize().set(i, val);
         }

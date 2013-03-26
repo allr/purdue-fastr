@@ -44,6 +44,14 @@ public abstract class MatrixOperation extends BaseR {
         return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
     }
 
+    public static void checkNumeric(RAny l, RAny r, ASTNode ast) {
+        // TODO: support also complex matrices
+        if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
+                        (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
+            throw RError.getNumericComplexMatrixVector(ast);
+        }
+    }
+
     public static class MatrixProduct extends MatrixOperation {
         public MatrixProduct(ASTNode ast, RNode left, RNode right) {
             super(ast, left, right);
@@ -185,12 +193,8 @@ public abstract class MatrixOperation extends BaseR {
         @Override
         public Object execute(RAny l, RAny r) {
 
-            // TODO: support also complex matrices
-            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
-                            (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
-                throw RError.getNumericComplexMatrixVector(ast);
-            }
-            RDouble ld = l.asDouble().materialize();
+            checkNumeric(l, r, ast); // TODO: support also complex matrices
+            RDouble ld = l.asDouble().materialize(); // FIXME: double materialization (again in matrixTimesMatrixNative)
             RDouble rd = r.asDouble().materialize();
             int[] ldims = ld.dimensions();
             int nldims = ldims == null ? 0 : ldims.length;
@@ -207,45 +211,12 @@ public abstract class MatrixOperation extends BaseR {
                 if (nrdims != 2) {
                     return matrixTimesVector(ast, ld, rd);
                 } else {
+                    // note - here we know that materializing ld, rd will give DoubleImpl - because both have dimensions
                     return matrixTimesMatrix(ast, ld, rd);
                 }
             }
         }
     }
-
-//    public static class CrossProduct extends MatrixOperation { // t(x) %*% x
-//        public CrossProduct(ASTNode ast, RNode left, RNode right) {
-//            super(ast, left, right);
-//        }
-//
-//        @Override
-//        public Object execute(RAny l, RAny r) {
-//
-//            // TODO: support also complex matrices
-//            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
-//                            (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
-//                throw RError.getNumericComplexMatrixVector(ast);
-//            }
-//            RDouble ld = l.asDouble().materialize();
-//            RDouble rd = r.asDouble().materialize();
-//            int[] ldims = ld.dimensions();
-//            int[] rdims = rd.dimensions();
-//
-//            if (ldims == null) {
-//                if (rdims == null) {
-//                    return dotProduct(ast, ld, rd);
-//                } else {
-//                    return vectorTimesMatrix(ast, ld, rd);
-//                }
-//            } else {
-//                if (rdims == null) {
-//                    return matrixTimesVector(ast, ld, rd);
-//                } else {
-//                    return matrixTimesMatrix(ast, ld, rd);
-//                }
-//            }
-//        }
-//    }
 
     public static class OuterProduct extends MatrixOperation {
         public OuterProduct(ASTNode ast, RNode left, RNode right) {
