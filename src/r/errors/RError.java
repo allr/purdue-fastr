@@ -96,6 +96,7 @@ public abstract class RError extends RuntimeException {
     public static final String DIMS_CONTAIN_NA = "the dims contain missing values";
     public static final String LENGTH_ZERO_DIM_INVALID = "length-0 dimension vector is invalid";
     public static final String ATTRIBUTES_LIST_OR_NULL = "attributes must be a list or NULL";
+    public static final String RECALL_CALLED_OUTSIDE_CLOSURE = "'Recall' called from outside a closure";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -987,6 +988,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.ATTRIBUTES_LIST_OR_NULL;
+            }
+        };
+    }
+
+    public static RError getRecallCalledOutsideClosure(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.RECALL_CALLED_OUTSIDE_CLOSURE;
             }
         };
     }

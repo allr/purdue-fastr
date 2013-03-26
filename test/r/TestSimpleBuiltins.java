@@ -776,4 +776,12 @@ public class TestSimpleBuiltins extends TestBase {
         // rowSums on array have correct values
         assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); a[1] == 144 && a[2] == 156; }");
     }
+
+    @Test
+    public void testRecall() throws RecognitionException {
+        assertEval("{ f<-function(i) { if(i<=1) 1 else i*Recall(i-1) } ; f(10) }", "3628800.0");
+        assertEval("{ f<-function(i) { if(i<=1) 1 else i*Recall(i-1) } ; g <- f ; f <- sum ; g(10) }", "3628800.0");
+        assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { Recall(i-1) + Recall(i-2) } } ; f(10) }", "55.0");
+        assertEvalError("{ Recall(10) }", "'Recall' called from outside a closure");
+    }
 }

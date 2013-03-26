@@ -129,6 +129,7 @@ public class Primitives {
         add(Pipe._);
         add(Raw._);
         add(ReadLines._);
+        add(Recall._);
         add(Regexpr._);
         add(Rep._);
         add("rep.int", RepInt._);

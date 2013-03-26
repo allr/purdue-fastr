@@ -11,7 +11,7 @@ import r.nodes.truffle.*;
 
 /**
  * "c"
- * 
+ *
  * <pre>
  * ... -- objects to be concatenated.
  * recursive -- logical. If recursive = TRUE, the function recursively descends through lists
@@ -25,7 +25,7 @@ final class C extends CallFactory {
 
     static final CallFactory _ = new C("c", new String[]{"...", "recursive"}, new String[]{});
 
-    C(String name, String[] parameters, String[] required) {
+    private C(String name, String[] parameters, String[] required) {
         super(name, parameters, required);
     }
 
