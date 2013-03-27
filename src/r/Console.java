@@ -158,7 +158,10 @@ public class Console {
             } catch (IOException e) {
                 throw e;
             } catch (RError e) {
-                // This error should have been printed by the error manager ingore it here.
+                // This error should have been printed by the error manager, ignore it here.
+                if (debuggingFormat) {
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

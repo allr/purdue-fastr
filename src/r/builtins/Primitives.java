@@ -126,7 +126,7 @@ public class Primitives {
         add(Newenv._);
         add(Nrow._);
         add(Options._);
-        add("order", Sort._);
+        add(Order._);
         add(Outer._);
         add(Paste._);
         add(Pipe._);
@@ -145,6 +145,8 @@ public class Primitives {
         add(Scan._);
         add(Seq._); // in fact seq.default (and only part of it)
         add("seq.default", Seq._);
+        add(Sort._);
+        add("sort.int", Sort._);
         add(Strsplit._);
         add(Sub._);
         add(Substr._);

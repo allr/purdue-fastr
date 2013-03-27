@@ -30,6 +30,23 @@ public interface RInt extends RNumber {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
+        public static int[] copyAsIntArray(RInt v) {
+            int size = v.size();
+            if (size == 1) {
+                return new int[] {v.getInt(0)};
+            } else {
+                int[] res = new int[size];
+
+                if (v instanceof IntImpl) {
+                    System.arraycopy(((IntImpl) v).getContent(), 0, res, 0, size);
+                } else {
+                    for (int i = 0; i < size; i++) {
+                        res[i] = v.getInt(i);
+                    }
+                }
+                return res;
+            }
+        }
     }
     public class RIntFactory {
         public static ScalarIntImpl getScalar(int value) {

@@ -97,6 +97,10 @@ public abstract class RError extends RuntimeException {
     public static final String LENGTH_ZERO_DIM_INVALID = "length-0 dimension vector is invalid";
     public static final String ATTRIBUTES_LIST_OR_NULL = "attributes must be a list or NULL";
     public static final String RECALL_CALLED_OUTSIDE_CLOSURE = "'Recall' called from outside a closure";
+    public static final String METHOD_SHELL_QUICK = "'method' should be one of \"shell\", \"quick\"";
+    public static final String NOT_NUMERIC_VECTOR = "argument is not a numeric vector";
+    public static final String UNSUPPORTED_PARTIAL = "unsupported options for partial sorting";
+    public static final String INDEX_RETURN_REMOVE_NA = "'index.return' only for 'na.last = NA'";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -130,6 +134,9 @@ public abstract class RError extends RuntimeException {
     public static final String IS_OF_WRONG_ARITY = "'%d' argument passed to '%s' which requires '%d'";
     public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
     public static final String DIMS_DONT_MATCH_LENGTH = "dims [product %d] do not match the length of object[%d]";
+    public static final String MUST_BE_ATOMIC = "'%s' must be atomic";
+    public static final String MUST_BE_NULL_OR_STRING = "'%s' must be NULL or a character vector";
+    public static final String MUST_BE_SCALAR = "'%s' must be of length 1";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1003,6 +1010,50 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getNotNumericVector(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.NOT_NUMERIC_VECTOR;
+            }
+        };
+    }
+
+    public static RError getMethodShellQuick(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.METHOD_SHELL_QUICK;
+            }
+        };
+    }
+
+    public static RError getUnsupportedPartial(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.UNSUPPORTED_PARTIAL;
+            }
+        };
+    }
+
+    public static RError getIndexReturnRemoveNA(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.INDEX_RETURN_REMOVE_NA;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1113,6 +1164,18 @@ public abstract class RError extends RuntimeException {
 
     public static RError getObjectNotSubsettable(ASTNode ast, String typeName) {
         return getGenericError(ast, String.format(RError.OBJECT_NOT_SUBSETTABLE, typeName));
+    }
+
+    public static RError getMustBeAtomic(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_ATOMIC, argName));
+    }
+
+    public static RError getMustNullOrString(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_NULL_OR_STRING, argName));
+    }
+
+    public static RError getMustBeScalar(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_SCALAR, argName));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

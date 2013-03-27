@@ -474,7 +474,6 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
         assertEval("{ floor(c(0.2,-3.4)) }", "0.0, -4.0");
         assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");
-
     }
 
     @Test
@@ -798,5 +797,25 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ crossprod(1:3, matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,] 14.0 32.0");
         assertEval("{ crossprod(t(1:2), 5) }", "     [,1]\n[1,]  5.0\n[2,] 10.0");
         assertEval("{ crossprod(c(1,NA,2), matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,]   NA   NA");
+    }
+
+    @Test
+    public void testSort() throws RecognitionException {
+        assertEval("{ sort(c(1L,10L,2L)) }", "1L, 2L, 10L");
+        assertEval("{ sort(c(3,10,2)) }", "2.0, 3.0, 10.0");
+        assertEval("{ sort(c(1,2,0/0,NA)) }", "1.0, 2.0");
+        assertEval("{ sort(c(2,1,0/0,NA), na.last=NA) }", "1.0, 2.0");
+        assertEval("{ sort(c(3,0/0,2,NA), na.last=TRUE) }", "2.0, 3.0, NaN, NA");
+        assertEval("{ sort(c(3,NA,0/0,2), na.last=FALSE) }", "NA, NaN, 2.0, 3.0");
+        assertEval("{ sort(c(3L,NA,2L)) }", "2L, 3L");
+        assertEval("{ sort(c(3L,NA,-2L), na.last=TRUE) }", "-2L, 3L, NA");
+        assertEval("{ sort(c(3L,NA,-2L), na.last=FALSE) }", "NA, -2L, 3L");
+        assertEval("{ sort(c(a=NA,b=NA,c=3,d=1),na.last=TRUE, decreasing=TRUE) }", "  c   d  a  b\n3.0 1.0 NA NA");
+        assertEval("{ sort(c(a=NA,b=NA,c=3,d=1),na.last=FALSE, decreasing=FALSE) }", " a  b   d   c\nNA NA 1.0 3.0");
+        assertEval("{ sort(c(a=0/0,b=1/0,c=3,d=NA),na.last=TRUE, decreasing=FALSE) }", "  c        b   a  d\n3.0 Infinity NaN NA");
+        assertEval("{ sort(double()) }", "numeric(0)");
+        assertEval("{ sort(c(a=NA,b=NA,c=3L,d=-1L),na.last=TRUE, decreasing=FALSE) }", "  d  c  a  b\n-1L 3L NA NA");
+        assertEval("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }","$x\n           d\n1.0 3.0 10.0\n\n$ix\n2L, 1L, 3L");
+        assertEval("{ sort(3:1, index.return=TRUE) }", "$x\n1L, 2L, 3L\n\n$ix\n3L, 2L, 1L");
     }
 }
