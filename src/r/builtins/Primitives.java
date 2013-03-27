@@ -74,6 +74,7 @@ public class Primitives {
         add(AttributesAssign._);
         add(C._);
         add(Cat._);
+        add(Ceiling._);
         add(Character._);
         add(Close._);
         add(ColMeans._);
@@ -92,6 +93,7 @@ public class Primitives {
         add(Exists._);
         add(Exp._);
         add(File._);
+        add(Floor._);
         add(Flush._);
         add(Integer._);
         add(IsCharacter._);

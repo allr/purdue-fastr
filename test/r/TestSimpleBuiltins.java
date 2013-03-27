@@ -472,6 +472,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ abs(NA+0.1) }", "NA");
         assertEval("{ abs(0/0) }", "NaN");
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
+        assertEval("{ floor(c(0.2,-3.4)) }", "0.0, -4.0");
+        assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");
 
     }
 
@@ -795,5 +797,6 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 1:2 ; crossprod(t(x)) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0");
         assertEval("{ crossprod(1:3, matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,] 14.0 32.0");
         assertEval("{ crossprod(t(1:2), 5) }", "     [,1]\n[1,]  5.0\n[2,] 10.0");
+        assertEval("{ crossprod(c(1,NA,2), matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,]   NA   NA");
     }
 }
