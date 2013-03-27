@@ -32,6 +32,7 @@ public abstract class MatrixOperation extends BaseR {
 
     public abstract Object execute(RAny l, RAny r);
 
+    // TODO: optimize this
     public static RDouble dotProduct(ASTNode ast, RDouble l, RDouble r) { // a.k.a inner product, scalar product
         int m = l.size();
         if (m != r.size()) {
@@ -44,10 +45,26 @@ public abstract class MatrixOperation extends BaseR {
         return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
     }
 
+    // TODO: optimize this
+    public static RDouble dotProduct(RDouble x) { // a.k.a inner product, scalar product
+        int m = x.size();
+        double res = 0;
+        for (int i = 0; i < m; i++) {
+            double d = x.getDouble(i);
+            res += d * d;
+        }
+        return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
+    }
+
     public static void checkNumeric(RAny l, RAny r, ASTNode ast) {
         // TODO: support also complex matrices
-        if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
-                        (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
+        checkNumeric(l, ast);
+        checkNumeric(r, ast);
+    }
+
+    public static void checkNumeric(RAny x, ASTNode ast) {
+        // TODO: support also complex matrices
+        if (!(x instanceof RDouble || x instanceof RInt || x instanceof RLogical)) {
             throw RError.getNumericComplexMatrixVector(ast);
         }
     }

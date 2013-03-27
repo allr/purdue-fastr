@@ -35,7 +35,7 @@ final class Crossprod extends CallFactory {
                         y = arg0;
                     }
                     if (y instanceof RNull) {
-                        return crossprod(x, x, ast);
+                        return crossprod(x, ast);
                     } else {
                         return crossprod(x, y, ast);
                     }
@@ -44,7 +44,7 @@ final class Crossprod extends CallFactory {
         } else {
             return new Builtin.Builtin1(call, names, exprs) {
                 @Override public RAny doBuiltIn(Frame frame, RAny x) {
-                    return crossprod(x, x, ast);
+                    return crossprod(x, ast);
                 }
             };
         }
@@ -94,11 +94,44 @@ final class Crossprod extends CallFactory {
         return RDouble.RDoubleFactory.getFor(res, new int[] {lcol, rcol}, null);
     }
 
+    public static RAny crossprod(RAny x, ASTNode ast) {
+
+        MatrixOperation.checkNumeric(x, ast); // TODO: support also complex matrices
+        RDouble xd = x.asDouble().materialize();
+        int[] dims = xd.dimensions();
+        int ndims = dims == null ? 0 : dims.length;
+
+        if (ndims != 2) {
+            return MatrixOperation.dotProduct(xd);
+        }
+        int row = dims[0];
+        int col = dims[1];
+        double[] res = matrixNative(xd, row, col);
+        return RDouble.RDoubleFactory.getFor(res, new int[] {col, col}, null);
+    }
+
     public static double[] matrixTimesMatrixNative(RDouble a, RDouble b, int m, int n, int p) {
         // a is n x m, b is n x p, result is m x p
         double[] res = new double[m * p];
         if (m > 0 && n > 0 && p > 0) {
             BLAS.getInstance().dgemm("T", "N", m, p, n, 1.0, a.getContent(), n, b.getContent(), n, 0.0, res, m);
+        } else {
+            // leave zeros
+        }
+        return res;
+
+    }
+
+    public static double[] matrixNative(RDouble x, int row, int col) {
+        // x is row x col, result is col x col
+        double[] res = new double[col * col];
+        if (row > 0 && col > 0) {
+            BLAS.getInstance().dsyrk("U", "T", col, row, 1.0, x.getContent(), row, 0.0, res, col);
+            for (int i = 0; i < col; i++) {
+                for (int j = 0; j < i; j++) {
+                    res[col * j + i] = res[col * i + j];
+                }
+            }
         } else {
             // leave zeros
         }
