@@ -184,7 +184,7 @@ public class If extends BaseR {
                     }
                     RDouble dc = constant.asDouble();
                     final double c = dc.getDouble(0);
-                    final boolean cIsNA = RDouble.RDoubleUtils.isNA(c);
+                    final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                     Comparison cmp = new Comparison() {
                         @Override
                         public int cmp(RAny value) throws UnexpectedResultException {
@@ -192,7 +192,7 @@ public class If extends BaseR {
                                 throw new UnexpectedResultException(null);
                             }
                             double v = ((ScalarDoubleImpl) value).getDouble();
-                            if (!cIsNA && !RDouble.RDoubleUtils.isNA(v)) {
+                            if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                 return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                             } else {
                                 return RLogical.NA;
@@ -205,7 +205,7 @@ public class If extends BaseR {
                     Comparison cmp = null;
                     if (constant instanceof ScalarDoubleImpl) {
                         final double c = ((ScalarDoubleImpl) constant).getDouble();
-                        final boolean cIsNA = RDouble.RDoubleUtils.isNAorNaN(c);
+                        final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                         cmp = new Comparison() {
                             @Override
                             public int cmp(RAny value) throws UnexpectedResultException {
@@ -213,7 +213,7 @@ public class If extends BaseR {
                                     throw new UnexpectedResultException(null);
                                 }
                                 double v = Convert.int2double(((ScalarIntImpl) value).getInt());
-                                if (!cIsNA && !RDouble.RDoubleUtils.isNA(v)) {
+                                if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                     return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                                 } else {
                                     return RLogical.NA;

@@ -14,7 +14,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "cumsum"
- * 
+ *
  * <pre>
  * x -- a numeric or complex (not cummin or cummax) object, or an object that can be coerced to one of these.
  * </pre>
@@ -58,7 +58,7 @@ final class Cumsum extends CallFactory {
             double accum = 0;
             for (int i = 0; i < size; i++) {
                 double value = input.getDouble(i);
-                if (RDoubleUtils.isNA(value)) { return finishDoubleWithNAs(content, i); }
+                if (RDoubleUtils.isNAorNaN(value)) { return finishDoubleWithNAs(content, i); }
                 accum += value;
                 content[i] = accum;
             }

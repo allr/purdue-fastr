@@ -8,6 +8,7 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
+// TODO: support na.rm
 abstract class ExtremeBase extends CallFactory {
 
     ExtremeBase(String name, String[] params, String[] required) {

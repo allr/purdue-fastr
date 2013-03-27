@@ -34,6 +34,7 @@ public class TestSimpleComparison extends TestBase {
         assertEval("{x<-c(1L,2L,3L,4L);y<-c(TRUE,FALSE);x<=y}", "TRUE, FALSE, FALSE, FALSE");
         assertEval("{x<-c(1L,2L,3L,4L);y<-1.5;x<=y}", "TRUE, FALSE, FALSE, FALSE");
         assertEval("{c(1:3,4,5)==1:5}", "TRUE, TRUE, TRUE, TRUE, TRUE");
+        assertEval("{0/0 == c(1,2,3,4)}", "NA, NA, NA, NA");
     }
 
     @Test

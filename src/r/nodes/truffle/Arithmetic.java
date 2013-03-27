@@ -180,9 +180,6 @@ public class Arithmetic extends BaseR {
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
@@ -197,7 +194,7 @@ public class Arithmetic extends BaseR {
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         int rint = ((ScalarIntImpl) rexpr).getInt();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
+                        if (rint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -214,7 +211,7 @@ public class Arithmetic extends BaseR {
                         }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                        if (lint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -270,17 +267,13 @@ public class Arithmetic extends BaseR {
                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (lexpr instanceof ScalarDoubleImpl) {
                             double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                            boolean leftIsNA = RDouble.RDoubleUtils.isNA(ldbl);
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                             }
                             if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
-                                if (leftIsNA || rint == RInt.NA) {
+                                if (rint == RInt.NA) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -290,7 +283,7 @@ public class Arithmetic extends BaseR {
                             boolean leftIsNA = lint == RInt.NA;
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (leftIsNA) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -499,7 +492,6 @@ public class Arithmetic extends BaseR {
             // non-const is double
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
-                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
@@ -507,9 +499,6 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
@@ -517,7 +506,6 @@ public class Arithmetic extends BaseR {
             }
             if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
-                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
@@ -525,9 +513,6 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
-                            return RDouble.BOXED_NA;
-                        }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
@@ -537,7 +522,6 @@ public class Arithmetic extends BaseR {
             // FIXME: handle also logical?
             if (leftConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarIntImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
-                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
@@ -545,7 +529,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         int rint = ((ScalarIntImpl) rexpr).getInt();
-                        if (isLeftNA || rint == RInt.NA) {
+                        if (rint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -555,7 +539,6 @@ public class Arithmetic extends BaseR {
             }
             if (rightConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarIntImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
-                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
@@ -563,7 +546,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
-                        if (isRightNA || lint == RInt.NA) {
+                        if (lint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -688,7 +671,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (isLeftNA) { // FIXME: unnecessary branch for left double
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -711,7 +694,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (isLeftNA) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -756,7 +739,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                                if (isRightNA) { // FIXME: unnecessary branch right double
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -779,7 +762,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                                if (isRightNA) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -2123,11 +2106,7 @@ public class Arithmetic extends BaseR {
                 }
                 double adbl = a.getDouble(ai);
                 double bdbl = b.getDouble(bi);
-                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
-                    return RDouble.NA;
-                } else {
-                    return arit.op(ast, adbl, bdbl);
-                }
+                return arit.op(ast, adbl, bdbl);
              }
         }
 
@@ -2142,56 +2121,40 @@ public class Arithmetic extends BaseR {
 
                 double adbl = a.getDouble(i);
                 double bdbl = b.getDouble(i);
-                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
-                    return RDouble.NA;
-                } else {
-                    return arit.op(ast, adbl, bdbl);
-                }
+                return arit.op(ast, adbl, bdbl);
              }
         }
 
         static final class VectorScalar extends DoubleView implements RDouble {
 
-            final boolean isNA;
             final double bdbl;
 
             public VectorScalar(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(bdbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double adbl = a.getDouble(i);
-                if (isNA || RDouble.RDoubleUtils.isNA(adbl)) {
-                    return RDouble.NA;
-                } else {
-                    return arit.op(ast, adbl, bdbl);
-                }
+                return arit.op(ast, adbl, bdbl);
              }
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
         static final class ScalarVector extends DoubleView implements RDouble {
 
-            final boolean isNA;
             final double adbl;
 
             public ScalarVector(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 adbl = a.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(adbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double bdbl = b.getDouble(i);
-                if (isNA || RDouble.RDoubleUtils.isNA(bdbl)) {
-                    return RDouble.NA;
-                } else {
-                    return arit.op(ast, adbl, bdbl);
-                }
+                return arit.op(ast, adbl, bdbl);
              }
         }
     }
@@ -2275,7 +2238,7 @@ public class Arithmetic extends BaseR {
 
                 double adbl = a.getDouble(i);
                 int bint = b.getInt(i);
-                if (RDouble.RDoubleUtils.isNA(adbl) || bint == RInt.NA) {
+                if (bint == RInt.NA) {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, bint);
@@ -2352,19 +2315,17 @@ public class Arithmetic extends BaseR {
 
         static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
 
-            final boolean isNA;
             final double bdbl;
 
             public VectorScalar(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(bdbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double aint = a.getInt(i);
-                if (isNA || aint == RInt.NA) {
+                if (aint == RInt.NA) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, aint, bdbl);

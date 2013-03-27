@@ -82,7 +82,7 @@ public class Comparison extends BaseR {
                         }
                         double l = ((ScalarDoubleImpl) lexpr).getDouble();
                         double r = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (RDouble.RDoubleUtils.isNA(r) || RDouble.RDoubleUtils.isNA(l)) {
+                        if (RDouble.RDoubleUtils.isNAorNaN(r) || RDouble.RDoubleUtils.isNAorNaN(l)) {
                             return RLogical.NA;
                         }
                         return cmp.cmp(l, r) ? RLogical.TRUE : RLogical.FALSE;
@@ -196,36 +196,30 @@ public class Comparison extends BaseR {
                 }
             } else if (lexpr instanceof ScalarDoubleImpl) {
                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                if (RDouble.RDoubleUtils.isNA(ldbl)) {
-                    return RLogical.NA;
-                }
                 if (rexpr instanceof ScalarDoubleImpl) {
                     double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
+                    if (RDouble.RDoubleUtils.isNAorNaN(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(ldbl, rdbl) ? RLogical.TRUE : RLogical.FALSE;
                 } else if (rexpr instanceof ScalarIntImpl) {
                     int rint = ((ScalarIntImpl) rexpr).getInt();
-                    if (rint == RInt.NA) {
+                    if (RDouble.RDoubleUtils.isNAorNaN(ldbl) || rint == RInt.NA) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(ldbl, rint) ? RLogical.TRUE : RLogical.FALSE;
                 }
             } else if (lexpr instanceof ScalarIntImpl) {
                 int lint = ((ScalarIntImpl) lexpr).getInt();
-                if (lint == RInt.NA) {
-                    return RLogical.NA;
-                }
                 if (rexpr instanceof ScalarIntImpl) {
                     int rint = ((ScalarIntImpl) rexpr).getInt();
-                    if (rint == RInt.NA) {
+                    if (lint == RInt.NA || rint == RInt.NA) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(lint, rint) ? RLogical.TRUE : RLogical.FALSE;
                 } else if (rexpr instanceof ScalarDoubleImpl) {
                     double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                    if (RDouble.RDoubleUtils.isNA(rdbl)) {
+                    if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(lint, rdbl) ? RLogical.TRUE : RLogical.FALSE;
@@ -469,13 +463,13 @@ public class Comparison extends BaseR {
         }
         public RLogical cmp(RDouble a, double b) {
             int n = a.size();
-            if (RDouble.RDoubleUtils.isNA(b)) {
+            if (RDouble.RDoubleUtils.isNAorNaN(b)) {
                 return RLogicalFactory.getNAArray(n, a.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 double adbl = a.getDouble(i);
-                if (RDouble.RDoubleUtils.isNA(adbl)) {
+                if (RDouble.RDoubleUtils.isNAorNaN(adbl)) {
                     content[i] = RLogical.NA;
                 } else {
                     content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
@@ -485,13 +479,13 @@ public class Comparison extends BaseR {
         }
         public RLogical cmp(double a, RDouble b) {
             int n = b.size();
-            if (RDouble.RDoubleUtils.isNA(a)) {
+            if (RDouble.RDoubleUtils.isNAorNaN(a)) {
                 return RLogicalFactory.getNAArray(n, b.dimensions());
             }
             int[] content = new int[n];
             for (int i = 0; i < n; i++) {
                 double bdbl = b.getDouble(i);
-                if (RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
                     content[i] = RLogical.NA;
                 } else {
                     content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
@@ -633,7 +627,7 @@ public class Comparison extends BaseR {
                     bi = 0;
                 }
 
-                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.isNAorNaN(adbl) || RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
                     content[i] = RLogical.NA;
                 } else {
                     content[i] = cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE;

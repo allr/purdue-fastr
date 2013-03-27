@@ -10,7 +10,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "abs"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector or array.
  * </pre>
@@ -25,7 +25,7 @@ public class Abs extends CallFactory {
     }
 
     public static double abs(double d) {
-        return RDouble.RDoubleUtils.isNA(d) ? RDouble.NA : Math.abs(d);
+        return Math.abs(d);
     }
 
     public static int abs(int v) {
@@ -77,6 +77,7 @@ public class Abs extends CallFactory {
                 if (arg instanceof RDouble) { return abs((RDouble) arg); }
                 if (arg instanceof RInt) { return abs((RInt) arg); }
                 if (arg instanceof RComplex) { return abs((RComplex) arg); }
+                if (arg instanceof RLogical) { return arg.asInt(); }
                 throw Utils.nyi();
             }
         };

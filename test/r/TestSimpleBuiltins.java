@@ -352,6 +352,8 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cumsum(as.logical(-2:2)) }", "1L, 2L, 2L, 3L, 4L");
         assertEval("{ cumsum((1:6)*(1+1i)) }", "1.0+1.0i, 3.0+3.0i, 6.0+6.0i, 10.0+10.0i, 15.0+15.0i, 21.0+21.0i");
         assertEval("{ cumsum(as.raw(1:6)) }", "1.0, 3.0, 6.0, 10.0, 15.0, 21.0");
+        assertEval("{ cumsum(c(1,2,3,0/0,5)) }", "1.0, 3.0, 6.0, NA, NA");
+        assertEval("{ cumsum(c(1,0/0,5+1i)) }", "1.0+0.0i, NaN+0.0i, NaN+1.0i");
     }
 
     @Test
@@ -467,6 +469,8 @@ public class TestSimpleBuiltins extends TestBase {
 
         assertEval("{ abs((-1-0i)/(0+0i)) }", "Infinity");
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
+        assertEval("{ abs(NA+0.1) }", "NA");
+        assertEval("{ abs(0/0) }", "NaN");
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
 
     }
