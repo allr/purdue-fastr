@@ -137,6 +137,8 @@ public abstract class RError extends RuntimeException {
     public static final String MUST_BE_ATOMIC = "'%s' must be atomic";
     public static final String MUST_BE_NULL_OR_STRING = "'%s' must be NULL or a character vector";
     public static final String MUST_BE_SCALAR = "'%s' must be of length 1";
+    public static final String ROWS_MUST_MATCH = "number of rows of matrices must match (see arg %d)";
+    public static final String ROWS_NOT_MULTIPLE = "number of rows of result is not a multiple of vector length (arg %d)";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1176,6 +1178,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getMustBeScalar(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.MUST_BE_SCALAR, argName));
+    }
+
+    public static RError getRowsMustMatch(ASTNode ast, int argIndex) {
+        return getGenericError(ast, String.format(RError.ROWS_MUST_MATCH, argIndex));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

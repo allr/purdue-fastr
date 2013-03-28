@@ -818,4 +818,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }","$x\n           d\n1.0 3.0 10.0\n\n$ix\n2L, 1L, 3L");
         assertEval("{ sort(3:1, index.return=TRUE) }", "$x\n1L, 2L, 3L\n\n$ix\n3L, 2L, 1L");
     }
+
+    @Test
+    public void testCbind() throws RecognitionException {
+        assertEval("{ cbind(1:3,1:3) }", "     [,1] [,2]\n[1,]   1L   1L\n[2,]   2L   2L\n[3,]   3L   3L");
+        assertEval("{ cbind() }", "NULL");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; cbind(11:12, m) }", "     [,1] [,2] [,3] [,4]\n[1,]  11L   1L   3L   5L\n[2,]  12L   2L   4L   6L");
+        assertEval("{ cbind(list(1,2), TRUE, \"a\") }", "     [,1] [,2] [,3]\n[1,]  1.0 TRUE  \"a\"\n[2,]  2.0 TRUE  \"a\"");
+        assertEvalWarning("{ cbind(1:3,1:2) }", "     [,1] [,2]\n[1,]   1L   1L\n[2,]   2L   2L\n[3,]   3L   1L", "number of rows of result is not a multiple of vector length (arg 2)");
+        assertEval("{ cbind(1:3,2) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  2.0\n[3,]  3.0  2.0");
+    }
 }
