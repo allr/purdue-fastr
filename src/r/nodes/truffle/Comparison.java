@@ -341,7 +341,7 @@ public class Comparison extends BaseR {
                         throw new UnexpectedResultException(null);
                     }
                 }
-                if (lexpr instanceof RInt || lexpr instanceof RInt) {
+                if (lexpr instanceof RInt || rexpr instanceof RInt) {
                     RInt lint = lexpr.asInt();
                     RInt rint = lexpr.asInt();
                     if (rint.size() == 1 && rint.dimensions() == null) {

@@ -16,11 +16,11 @@ import com.oracle.truffle.api.nodes.*;
 /**
  * "lapply" returns a list of the same length as X, each element of which is the result of applying FUN to the
  * corresponding element of X.
- * 
+ *
  * <pre>
- * X -- a vector (atomic or list) or an expression object. Other objects 
+ * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.
- * FUN -- the function to be applied to each element of X. In the case of functions like 
+ * FUN -- the function to be applied to each element of X. In the case of functions like
  *        +, %*%, the function name must be backquoted or quoted.
  *  ... -- optional arguments to FUN.
  * </pre>
@@ -142,7 +142,7 @@ final class LApply extends CallFactory {
                 firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
                 content[i] = (RAny) callNode.execute(frame);
             }
-            return RList.RListFactory.getFor(content, null, l.names());
+            return RList.RListFactory.getFor(content, null, l == null ? null : l.names());
         }
 
         public Specialized createSpecialized(RAny argxTemplate) {
