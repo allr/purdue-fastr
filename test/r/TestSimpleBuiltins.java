@@ -842,4 +842,12 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=NA, ties.method=\"min\") }", " a  b  c  e\n1L 1L 3L 3L");
         assertEval("{ rank(c(1000, 100, 100, NA, 1, 20), ties.method=\"first\") }", "5L, 3L, 4L, 6L, 1L, 2L");
     }
+
+    @Test
+    public void testCor() throws RecognitionException {
+        assertEval("{ cor(cbind(c(1:9,0/0), 101:110)) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0");
+        assertEval("{ cor(cbind(c(10,5,4,1), c(2,5,10,5))) }", "                    [,1]                [,2]\n[1,]                 1.0 -0.5372153093502535\n[2,] -0.5372153093502535                 1.0");
+        assertEval("{ cor(cbind(c(3,2,1), c(1,2,3))) }", "     [,1] [,2]\n[1,]  1.0 -1.0\n[2,] -1.0  1.0");
+        assertEvalWarning("{ cor(cbind(c(1,1,1), c(1,1,1))) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0", "the standard deviation is zero");
+    }
 }

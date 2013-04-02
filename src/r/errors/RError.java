@@ -100,6 +100,8 @@ public abstract class RError extends RuntimeException {
     public static final String NOT_NUMERIC_VECTOR = "argument is not a numeric vector";
     public static final String UNSUPPORTED_PARTIAL = "unsupported options for partial sorting";
     public static final String INDEX_RETURN_REMOVE_NA = "'index.return' only for 'na.last = NA'";
+    public static final String SUPPLY_X_Y_MATRIX = "supply both 'x' and 'y' or a matrix-like 'x'";
+    public static final String SD_ZERO = "the standard deviation is zero";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1044,6 +1046,18 @@ public abstract class RError extends RuntimeException {
             }
         };
     }
+
+    public static RError getSupplyXYMatrix(ASTNode source) {
+        return new RErrorInExpr(source) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.SUPPLY_X_Y_MATRIX;
+            }
+        };
+    }
+
 
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {

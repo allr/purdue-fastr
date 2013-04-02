@@ -80,6 +80,7 @@ public class Primitives {
         add(Close._);
         add(ColMeans._);
         add(ColSums._);
+        add(Cor._);
         add(Crossprod._);
         add(Cumsum._);
         add(DiagAssign._);
