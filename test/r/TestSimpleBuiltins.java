@@ -828,4 +828,18 @@ public class TestSimpleBuiltins extends TestBase {
         assertEvalWarning("{ cbind(1:3,1:2) }", "     [,1] [,2]\n[1,]   1L   1L\n[2,]   2L   2L\n[3,]   3L   1L", "number of rows of result is not a multiple of vector length (arg 2)");
         assertEval("{ cbind(1:3,2) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  2.0\n[3,]  3.0  2.0");
     }
+
+    @Test
+    public void testRank() throws RecognitionException {
+        assertEval("{ rank(c(10,100,100,1000)) }", "1.0, 2.5, 2.5, 4.0");
+        assertEval("{ rank(c(1000,100,100,100, 10)) }", "5.0, 3.0, 3.0, 3.0, 1.0");
+        assertEval("{ rank(c(a=2,b=1,c=3,40)) }", "  a   b   c    \n2.0 1.0 3.0 4.0");
+        assertEval("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=NA) }", "  a   b   c   e\n2.0 1.0 3.0 4.0");
+        assertEval("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=\"keep\") }", "  a   b   c  d   e\n2.0 1.0 3.0 NA 4.0");
+        assertEval("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=TRUE) }", "  a   b   c   d   e\n2.0 1.0 3.0 5.0 4.0");
+        assertEval("{ rank(c(a=2,b=1,c=3,d=NA,e=40), na.last=FALSE) }", "  a   b   c   d   e\n3.0 2.0 4.0 1.0 5.0");
+        assertEval("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=FALSE, ties.method=\"max\") }", " a  b  c  d  e\n3L 3L 5L 1L 5L");
+        assertEval("{ rank(c(a=1,b=1,c=3,d=NA,e=3), na.last=NA, ties.method=\"min\") }", " a  b  c  e\n1L 1L 3L 3L");
+        assertEval("{ rank(c(1000, 100, 100, NA, 1, 20), ties.method=\"first\") }", "5L, 3L, 4L, 6L, 1L, 2L");
+    }
 }

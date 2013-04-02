@@ -97,7 +97,6 @@ public abstract class RError extends RuntimeException {
     public static final String LENGTH_ZERO_DIM_INVALID = "length-0 dimension vector is invalid";
     public static final String ATTRIBUTES_LIST_OR_NULL = "attributes must be a list or NULL";
     public static final String RECALL_CALLED_OUTSIDE_CLOSURE = "'Recall' called from outside a closure";
-    public static final String METHOD_SHELL_QUICK = "'method' should be one of \"shell\", \"quick\"";
     public static final String NOT_NUMERIC_VECTOR = "argument is not a numeric vector";
     public static final String UNSUPPORTED_PARTIAL = "unsupported options for partial sorting";
     public static final String INDEX_RETURN_REMOVE_NA = "'index.return' only for 'na.last = NA'";
@@ -139,6 +138,7 @@ public abstract class RError extends RuntimeException {
     public static final String MUST_BE_SCALAR = "'%s' must be of length 1";
     public static final String ROWS_MUST_MATCH = "number of rows of matrices must match (see arg %d)";
     public static final String ROWS_NOT_MULTIPLE = "number of rows of result is not a multiple of vector length (arg %d)";
+    public static final String ARG_ONE_OF = "'%s' should be one of %s";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1023,17 +1023,6 @@ public abstract class RError extends RuntimeException {
         };
     }
 
-    public static RError getMethodShellQuick(ASTNode source) {
-        return new RErrorInExpr(source) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override public String getMessage() {
-                return RError.METHOD_SHELL_QUICK;
-            }
-        };
-    }
-
     public static RError getUnsupportedPartial(ASTNode source) {
         return new RErrorInExpr(source) {
 
@@ -1203,5 +1192,21 @@ public abstract class RError extends RuntimeException {
 
     public static RError getDimsDontMatchLength(ASTNode ast, int dimsProduct, int objectLength) {
         return getGenericError(ast, String.format(RError.DIMS_DONT_MATCH_LENGTH, dimsProduct, objectLength));
+    }
+
+    public static RError getArgOneOf(ASTNode ast, String argName, String[] allowed) {
+        StringBuilder str = new StringBuilder();
+        boolean first = true;
+        for (String s : allowed) {
+            if (first) {
+                first = false;
+            } else {
+                str.append(", ");
+            }
+            str.append("\"");
+            str.append(s);
+            str.append("\"");
+        }
+        return getGenericError(ast, String.format(RError.ARG_ONE_OF, argName, str.toString()));
     }
 }

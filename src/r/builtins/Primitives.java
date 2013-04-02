@@ -131,6 +131,7 @@ public class Primitives {
         add(Outer._);
         add(Paste._);
         add(Pipe._);
+        add(Rank._);
         add(Raw._);
         add(ReadLines._);
         add(Recall._);

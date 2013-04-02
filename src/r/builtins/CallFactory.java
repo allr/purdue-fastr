@@ -274,4 +274,46 @@ public abstract class CallFactory {
         }
         return res + ")]";
     }
+
+    // TODO: convert this to something smarter, e.g. an automaton
+    static class ArgumentMatch {
+        final String[] allowed; // must not include NA and must be unique
+
+        public ArgumentMatch(String[] allowed) {
+            this.allowed = allowed;
+        }
+
+        public int match(RAny arg, ASTNode ast, String argName) {
+            if (arg instanceof RNull) {
+                return 0; // default value
+            }
+            if (!(arg instanceof RString)) {
+                throw RError.getMustNullOrString(ast, argName);
+            }
+            RString m = (RString) arg;
+            if (m.size() != 1) {
+                throw RError.getMustBeScalar(ast, argName); // in GNU-R, this will appear part of match.arg
+            }
+            String s = m.getString(0);
+            if (s == RString.NA) {
+                throw RError.getArgOneOf(ast, argName, allowed);
+            }
+            int match = -1;
+            int nmatches = 0;
+            for (int i = 0; i < allowed.length; i++) {
+                String a = allowed[i];
+                if (a.startsWith(s)) {
+                    if (a.length() == s.length()) {  // FIXME: does this check pay off?
+                        return i;
+                    }
+                    nmatches++;
+                    match = i;
+                }
+            }
+            if (nmatches == 1) {
+                return match;
+            }
+            throw RError.getArgOneOf(ast, argName, allowed);
+        }
+    }
 }

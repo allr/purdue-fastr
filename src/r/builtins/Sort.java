@@ -33,28 +33,12 @@ final class Sort extends CallFactory {
         super(name, params, required);
     }
 
+    final static ArgumentMatch methodMatch = new ArgumentMatch(new String[] {"shell", "quick"});
+
     // returns true for quicksort, false for shellsort (shellsort is the default)
     public static boolean parseMethod(RAny arg, ASTNode ast) {
-        if (arg instanceof RNull) {
-            return false;
-        }
-        if (!(arg instanceof RString)) {
-            throw RError.getMustNullOrString(ast, "method");
-        }
-        RString m = (RString) arg;
-        if (m.size() != 1) {
-            throw RError.getMustBeScalar(ast, "method"); // in GNU-R, this will appear part of match.arg
-        }
-        String s = m.getString(0);
-        if (s != RString.NA) {
-            if ("quick".startsWith(s)) {
-                return true;
-            }
-            if ("shell".startsWith(s)) {
-                return false;
-            }
-        }
-        throw RError.getMethodShellQuick(ast); // in GNU-R, this will appear part of match.arg
+        int m = methodMatch.match(arg, ast, "method");
+        return m == 1;
     }
 
     public static boolean parseIndexReturn(RAny arg, ASTNode ast) {

@@ -161,7 +161,7 @@ public interface RArray extends RAny {
 
         /**
          * Returns the offset of the symbol name or -1 one if either not present
-         * of matched multiply.
+         * or matched multiple times.
          */
         public int mapPartial(RSymbol name) {
             int res = -1;
