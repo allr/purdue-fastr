@@ -102,6 +102,8 @@ public abstract class RError extends RuntimeException {
     public static final String INDEX_RETURN_REMOVE_NA = "'index.return' only for 'na.last = NA'";
     public static final String SUPPLY_X_Y_MATRIX = "supply both 'x' and 'y' or a matrix-like 'x'";
     public static final String SD_ZERO = "the standard deviation is zero";
+    public static final String INVALID_UNNAMED_ARGUMENTS = "invalid arguments";
+    public static final String NA_PRODUCED = "NAs produced";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1054,6 +1056,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.SUPPLY_X_Y_MATRIX;
+            }
+        };
+    }
+
+    public static RError getInvalidUnnamedArguments(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.INVALID_UNNAMED_ARGUMENTS;
             }
         };
     }

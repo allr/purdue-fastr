@@ -142,6 +142,7 @@ public class Primitives {
         add(Return._);
         add(Rev._);
         add("rev.default", Rev._);
+        add(Rnorm._);
         add(RowMeans._);
         add(RowSums._);
         add(SApply._);
