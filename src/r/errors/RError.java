@@ -105,6 +105,8 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_UNNAMED_ARGUMENTS = "invalid arguments";
     public static final String NA_PRODUCED = "NAs produced";
     public static final String DETERMINANT_COMPLEX = "determinant not currently defined for complex matrices";
+    public static final String NON_NUMERIC_ARGUMENT = "non-numeric argument";
+    public static final String FFT_FACTORIZATION = "fft factorization error";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1080,6 +1082,28 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.DETERMINANT_COMPLEX;
+            }
+        };
+    }
+
+    public static RError getNonNumericArgument(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.NON_NUMERIC_ARGUMENT;
+            }
+        };
+    }
+
+    public static RError getFFTFactorization(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.FFT_FACTORIZATION;
             }
         };
     }

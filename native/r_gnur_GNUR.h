@@ -47,6 +47,22 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
 JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   (JNIEnv *, jclass, jdoubleArray, jint);
 
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    fft_factor
+ * Signature: (I[I[I)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_fft_1factor
+  (JNIEnv *, jclass, jint, jintArray, jintArray);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    fft_work
+ * Signature: ([DIIII[D[I)I
+ */
+JNIEXPORT jint JNICALL Java_r_gnur_GNUR_fft_1work
+  (JNIEnv *, jclass, jdoubleArray, jint, jint, jint, jint, jdoubleArray, jintArray);
+
 #ifdef __cplusplus
 }
 #endif

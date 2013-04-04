@@ -23,6 +23,7 @@ public interface RComplex extends RArray {
     double getReal(int i);
     double getImag(int i);
     RComplex materialize();
+    double[] getContent();
 
     public final class Complex {
         public static final Complex NA = new Complex(RDouble.NA, RDouble.NA);

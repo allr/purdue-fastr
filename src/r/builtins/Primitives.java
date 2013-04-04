@@ -95,6 +95,7 @@ public class Primitives {
         add(Emptyenv._);
         add(Exists._);
         add(Exp._);
+        add(Fft._);
         add(File._);
         add(Floor._);
         add(Flush._);

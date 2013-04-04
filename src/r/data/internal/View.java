@@ -759,6 +759,11 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public double[] getContent() {
+            return materialize().getContent();
+        }
+
+        @Override
         public RComplex set(int i, double real, double imag) {
             return materialize().set(i, real, imag);
         }

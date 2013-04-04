@@ -9,6 +9,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     double value;
 
+    @Override
     public double[] getContent() {
         return new double[] {value};
     }

@@ -8,6 +8,11 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
     double real;
     double imag;
 
+    @Override
+    public double[] getContent() {
+        return new double[] {real, imag};
+    }
+
     public ScalarComplexImpl(double real, double imag) {
         this.real = real;
         this.imag = imag;

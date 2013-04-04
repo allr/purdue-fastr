@@ -81,15 +81,6 @@ public class Console {
     //
     };
 
-    public static boolean hasGNUR() {
-        try {
-            System.loadLibrary("gnurglue");
-        } catch (Throwable t) {
-            return false;
-        }
-        return true;
-    }
-
     public static void storeCommandLineArguments(String[] args) {
         int alen = args.length;
         commandArgs = new String[alen + 1];
@@ -127,7 +118,7 @@ public class Console {
             if (interactive || inputFile == null) {
                 System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
                 System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
-                System.err.println("Using GNUR: " + (hasGNUR() ? "yes" : "not available"));
+                System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 processFile(openANTLRStream(inputFile));

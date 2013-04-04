@@ -8,6 +8,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
 
+    @Override
     public double[] getContent() {
         return content;
     }

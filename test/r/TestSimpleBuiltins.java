@@ -857,4 +857,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ det(matrix(c(1,-3,4,-5),nrow=2)) }", "7.0");
         assertEval("{ det(matrix(c(1,0,4,NA),nrow=2)) }", "NA");
     }
+
+    @Test
+    public void testFFT() throws RecognitionException {
+        if (RContext.hasGNUR()) {
+            assertEval("{ fft(1:4) }","10.0+0.0i, -2.0+2.0i, -2.0+0.0i, -2.0-2.0i");
+            assertEval("{ fft(1:4, inverse=TRUE) }", "10.0+0.0i, -2.0-2.0i, -2.0+0.0i, -2.0+2.0i");
+            assertEval("{ fft(10) }", "10.0+0.0i");
+            assertEval("{ fft(cbind(1:2,3:4)) }", "          [,1]      [,2]\n[1,] 10.0+0.0i -4.0+0.0i\n[2,] -2.0+0.0i  0.0+0.0i");
+        }
+    }
 }

@@ -1,7 +1,10 @@
 #include <jni.h>
 
-#define MATHLIB_STANDALONE 1
+//#define MATHLIB_STANDALONE 1
+//#include <Rmath.h>
+#include <R.h>
 #include <Rmath.h>
+#include <R_ext/Applic.h>
 
 #include "r_gnur_GNUR.h"
 
@@ -9,6 +12,8 @@
 // the underlying generator is a known sane one, e.g. does not return NaNs or values
 // out of range. However, the Rmath library and R also supports user-specified generators,
 // for which a general checking version should be available.
+
+// nmath =================================================================================================
 
 JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_rnorm__DD
   (JNIEnv *jenv, jclass jcls, jdouble mu, jdouble sigma) {
@@ -90,3 +95,33 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   return naProduced ? JNI_TRUE : JNI_FALSE;
   
 }    
+
+// appl =================================================================================================
+
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_fft_1factor
+  (JNIEnv *jenv, jclass jcls, jint n, jintArray maxfArg, jintArray maxpArg) {
+
+  int *maxf = (*jenv)->GetPrimitiveArrayCritical(jenv, maxfArg, 0);
+  int *maxp = (*jenv)->GetPrimitiveArrayCritical(jenv, maxpArg, 0);
+  
+  fft_factor(n, maxf, maxp);
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, maxfArg, maxf, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, maxpArg, maxp, 0);  
+}
+
+JNIEXPORT jint JNICALL Java_r_gnur_GNUR_fft_1work
+  (JNIEnv *jenv, jclass jcls, jdoubleArray abArg, jint nseg, jint n, jint nspn, jint isn, jdoubleArray workArg, jintArray iworkArg) {
+
+  double *ab = (*jenv)->GetPrimitiveArrayCritical(jenv, abArg, 0);
+  double *work = (*jenv)->GetPrimitiveArrayCritical(jenv, workArg, 0);
+  int *iwork = (*jenv)->GetPrimitiveArrayCritical(jenv, iworkArg, 0);
+  
+  int res = fft_work(ab, ab + 1, nseg, n, nspn, isn, work, iwork);
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, abArg, ab, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, workArg, work, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, iworkArg, iwork, 0);
+  
+  return res;
+}

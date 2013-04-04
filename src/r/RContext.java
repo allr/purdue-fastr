@@ -99,4 +99,13 @@ public class RContext {
     public static Connection getConnection(int i) {
         return i >= 0 && i < NCONNECTIONS ? connections[i] : null;
     }
+
+    public static boolean hasGNUR() {
+        try {
+            System.loadLibrary("gnurglue");
+        } catch (Throwable t) {
+            return false;
+        }
+        return true;
+    }
 }
