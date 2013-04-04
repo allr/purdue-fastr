@@ -145,6 +145,7 @@ public class Primitives {
         add(Rnorm._);
         add(RowMeans._);
         add(RowSums._);
+        add(Runif._);
         add(SApply._);
         add(Scan._);
         add(Seq._); // in fact seq.default (and only part of it)

@@ -31,6 +31,22 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DIDD
 JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormNonChecking
   (JNIEnv *, jclass, jdoubleArray, jint, jdouble, jdouble);
 
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rnormStd
+ * Signature: ([DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
+  (JNIEnv *, jclass, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    runifStd
+ * Signature: ([DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
+  (JNIEnv *, jclass, jdoubleArray, jint);
+
 #ifdef __cplusplus
 }
 #endif

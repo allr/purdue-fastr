@@ -43,8 +43,7 @@ final class Rnorm extends CallFactory {
 
                 @Override public RAny doBuiltIn(Frame frame, RAny narg) {
                     int n = parseN(narg, ast);
-//                    return RDouble.RDoubleFactory.getFor(rnormNaive(n, 0, 1, ast));
-                    return RDouble.RDoubleFactory.getFor(rnormBatch2(n, 0, 1, ast));
+                    return RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
                 }
             };
         }
@@ -55,7 +54,7 @@ final class Rnorm extends CallFactory {
 
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                Utils.nyi();
+                Utils.nyi("non-standard normal");
                 return null;
             }
         };
@@ -66,7 +65,7 @@ final class Rnorm extends CallFactory {
         double[] res = new double[n];
         boolean naProduced = false;
         for (int i = 0; i < n; i++) {
-            double d = GNUR.rnorm(0, 1);
+            double d = GNUR.rnorm(mu, sigma);
             res[i] = d;
             naProduced = naProduced || RDouble.RDoubleUtils.isNAorNaN(d);
         }
@@ -101,6 +100,16 @@ final class Rnorm extends CallFactory {
         boolean naProduced = GNUR.rnormNonChecking(res,  n, mu, sigma);
         if (naProduced) {
             RContext.warning(ast, RError.NA_PRODUCED);
+        }
+        return res;
+    }
+
+    // faster than rnormBatch2 for standard normal
+    public static double[] rnormStd(int n, ASTNode ast) {
+        double[] res = new double[n];
+        boolean naProduced = GNUR.rnormStd(res,  n);
+        if (naProduced) {
+            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
         }
         return res;
     }
