@@ -104,6 +104,7 @@ public abstract class RError extends RuntimeException {
     public static final String SD_ZERO = "the standard deviation is zero";
     public static final String INVALID_UNNAMED_ARGUMENTS = "invalid arguments";
     public static final String NA_PRODUCED = "NAs produced";
+    public static final String DETERMINANT_COMPLEX = "determinant not currently defined for complex matrices";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -143,6 +144,7 @@ public abstract class RError extends RuntimeException {
     public static final String ROWS_MUST_MATCH = "number of rows of matrices must match (see arg %d)";
     public static final String ROWS_NOT_MULTIPLE = "number of rows of result is not a multiple of vector length (arg %d)";
     public static final String ARG_ONE_OF = "'%s' should be one of %s";
+    public static final String MUST_BE_SQUARE = "'%s' must be a square matrix";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1071,6 +1073,16 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getDeterminantComplex(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.DETERMINANT_COMPLEX;
+            }
+        };
+    }
 
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
@@ -1235,5 +1247,9 @@ public abstract class RError extends RuntimeException {
             str.append("\"");
         }
         return getGenericError(ast, String.format(RError.ARG_ONE_OF, argName, str.toString()));
+    }
+
+    public static RError getMustBeSquare(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_SQUARE, argName));
     }
 }

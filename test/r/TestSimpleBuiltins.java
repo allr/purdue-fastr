@@ -850,4 +850,11 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cor(cbind(c(3,2,1), c(1,2,3))) }", "     [,1] [,2]\n[1,]  1.0 -1.0\n[2,] -1.0  1.0");
         assertEvalWarning("{ cor(cbind(c(1,1,1), c(1,1,1))) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0", "the standard deviation is zero");
     }
+
+    @Test
+    public void testDet() throws RecognitionException {
+        assertEval("{ det(matrix(c(1,2,4,5),nrow=2)) }", "-3.0");
+        assertEval("{ det(matrix(c(1,-3,4,-5),nrow=2)) }", "7.0");
+        assertEval("{ det(matrix(c(1,0,4,NA),nrow=2)) }", "NA");
+    }
 }

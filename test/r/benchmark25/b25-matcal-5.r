@@ -11,7 +11,7 @@ b25matcal <- function(args) {
     a <- rnorm(3000*3000)
     dim(a) <- c(3000,3000)
     b <- 1:3000
-    qra <- qr(a, tol = 1e-7);
+    qra <- qr(a, tol = 1e-7)
     c <- qr.coef(qra, b)
   }
 }

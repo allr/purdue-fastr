@@ -3,7 +3,6 @@ package r.builtins;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
-import r.builtins.CallFactory.*;
 import r.data.*;
 import r.errors.*;
 import r.gnur.*;
@@ -20,13 +19,15 @@ final class Runif extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
+        if (names.length == 1) {
+            return new Builtin.Builtin1(call, names, exprs) {
 
-            @Override public RAny doBuiltIn(Frame frame, RAny narg) {
-                int n = Rnorm.parseN(narg, ast);
-                return RDouble.RDoubleFactory.getFor(runifStd(n, ast));
-            }
-        }; }
+                @Override public RAny doBuiltIn(Frame frame, RAny narg) {
+                    int n = Rnorm.parseN(narg, ast);
+                    return RDouble.RDoubleFactory.getFor(runifStd(n, ast));
+                }
+            };
+        }
 
         final int nPosition = ia.position("n");
         final int minPosition = ia.position("min");
