@@ -6,7 +6,7 @@ final class IsCharacter extends IsBase {
 
     static final CallFactory _ = new IsCharacter("is.character");
 
-    IsCharacter(String name) {
+    private IsCharacter(String name) {
         super(name);
     }
 

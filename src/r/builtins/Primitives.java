@@ -66,6 +66,7 @@ public class Primitives {
         add(AsEnvironment._);
         add(AsInteger._);
         add(AsLogical._);
+        add(AsMatrix._);
         add(AsRaw._);
         add(AsVector._);
         add(Attr._);
@@ -107,6 +108,7 @@ public class Primitives {
         add(IsInteger._);
         add(IsList._);
         add(IsLogical._);
+        add(IsMatrix._);
         add(IsNull._);
         add(IsNumeric._);
         add(IsNA._);
@@ -135,6 +137,7 @@ public class Primitives {
         add(Outer._);
         add(Paste._);
         add(Pipe._);
+        add(Qr._);
         add(Rank._);
         add(Raw._);
         add(ReadLines._);

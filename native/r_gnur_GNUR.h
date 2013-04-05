@@ -63,6 +63,14 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_fft_1factor
 JNIEXPORT jint JNICALL Java_r_gnur_GNUR_fft_1work
   (JNIEnv *, jclass, jdoubleArray, jint, jint, jint, jint, jdoubleArray, jintArray);
 
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    dqrdc2
+ * Signature: ([DIIID[I[D[I[D)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
+  (JNIEnv *, jclass, jdoubleArray, jint, jint, jint, jdouble, jintArray, jdoubleArray, jintArray, jdoubleArray);
+
 #ifdef __cplusplus
 }
 #endif

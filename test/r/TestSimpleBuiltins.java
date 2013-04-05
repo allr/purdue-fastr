@@ -196,6 +196,10 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- c(1,2); names(x) <- c(\"hello\",\"hi\") ; as.integer(x) }", "1L, 2L");
         assertEval("{ x <- c(0,2); names(x) <- c(\"hello\",\"hi\") ; as.logical(x) }", "FALSE, TRUE");
 
+        assertEval("{ as.matrix(1) }", "     [,1]\n[1,]  1.0");
+        assertEval("{ as.matrix(1:3) }", "     [,1]\n[1,]   1L\n[2,]   2L\n[3,]   3L");
+        assertEval("{ x <- 1:3; z <- as.matrix(x); x }", "1L, 2L, 3L");
+        assertEval("{ x <- 1:3 ; attr(x,\"my\") <- 10 ; attributes(as.matrix(x)) }", "$dim\n3L, 1L");
     }
 
     @Test
@@ -635,7 +639,9 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ is.complex(1i) }", "TRUE");
         assertEval("{ is.complex(1) }", "FALSE");
         assertEval("{ is.raw(raw()) }", "TRUE");
-
+        assertEval("{ is.matrix(1) }", "FALSE");
+        assertEval("{ is.matrix(matrix(1:6, nrow=2)) }", "TRUE");
+        assertEval("{ is.matrix(NULL) }", "FALSE");
     }
 
     @Test
@@ -875,6 +881,18 @@ public class TestSimpleBuiltins extends TestBase {
             assertEval("{ chol(10) }", "                   [,1]\n[1,] 3.1622776601683795"); // TODO: will need rounding, this is from native code
             assertEval("{ m <- matrix(c(5,1,1,3),2) ; chol(m) }", "                 [,1]               [,2]\n[1,] 2.23606797749979 0.4472135954999579\n[2,]              0.0 1.6733200530681511");
             assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
+        }
+    }
+
+    @Test
+    public void testQr() throws RecognitionException {
+        if (RContext.hasGNUR()) {
+            assertEval("{ qr(10, LAPACK=TRUE) }", "$qr\n     [,1]\n[1,] 10.0\n\n$rank\n1L\n\n$qraux\n0.0\n\n$pivot\n1L\nattr(,\"useLAPACK\")\nTRUE");
+            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr }", "                    [,1]                [,2]               [,3]\n[1,]  -7.810249675906656 -2.1766269588592313 -4.993438317382942\n[2,] 0.46837494598444235  0.5121475197315841 0.2560737598657927");
+            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$pivot }", "1L, 2L, 3L");
+            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$rank }", "2L");
+            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux }", "1.4472135954999579, 0.8944271909999225, 1.788854381999832");
+            assertEval("{ qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr }", "                   [,1]                [,2]\n[1,] -3.605551275463989  4.7149516679144465\n[2,] 0.5547001962252291 -1.6641005886756877");
         }
     }
 }

@@ -88,6 +88,12 @@ public interface RAny {
             shared = false;
         }
 
+        public static Attributes createAndPut(String name, RAny value) {
+            Attributes attr = new Attributes();
+            attr.put(RSymbol.getSymbol(name), value);
+            return attr;
+        }
+
         public void createPartialMap() {
             assert Utils.check(pmap == null);
 

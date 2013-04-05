@@ -23,26 +23,6 @@ final class Chol extends CallFactory {
         super(name, params, required);
     }
 
-    // FIXME: should have a general method for "logical argument used in R ifs" ?
-    public static boolean parseLogical(RAny arg, ASTNode ast) {
-        // FIXME: not exactly R error messages, as GNU-R has implicit errors in R
-        // FIXME: but it would have been much better to change R semantics to have explicit error checking
-        RLogical l = arg.asLogical();
-        int size = l.size();
-        if (size >= 1) {
-            int v = l.getLogical(0);
-            if (v == RLogical.NA) {
-                throw RError.getUnexpectedNA(ast);
-            }
-            if (size > 1) {
-                RContext.warning(ast, RError.LENGTH_GT_1);
-            }
-            return (v == RLogical.TRUE);
-        }
-        throw RError.getUnexpectedNA(ast);
-    }
-
-
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         final int xPosition = ia.position("x");
@@ -78,8 +58,8 @@ final class Chol extends CallFactory {
                     throw RError.getNonNumericArgumentTo(ast, "chol");
                 }
 
-                boolean pivot = pivotPosition == -1 ? false : parseLogical(args[pivotPosition], ast);
-                boolean linpack = linpackPosition == -1 ? pivot : parseLogical(args[linpackPosition], ast);
+                boolean pivot = pivotPosition == -1 ? false : parseUncheckedLogical(args[pivotPosition], ast);
+                boolean linpack = linpackPosition == -1 ? pivot : parseUncheckedLogical(args[linpackPosition], ast);
 
                 if (!linpack) {
                     // lapack without pivoting

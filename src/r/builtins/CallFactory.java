@@ -316,4 +316,24 @@ public abstract class CallFactory {
             throw RError.getArgOneOf(ast, argName, allowed);
         }
     }
+
+    // parses a logical argument to a builtin that is not checked for validity and is used in the GNU-R code
+    // of a builtin written in R; this can never exactly match the GNU-R semantics
+    // perhaps error messages should be made explicit in a spec, instead
+    public static boolean parseUncheckedLogical(RAny arg, ASTNode ast) {
+        RLogical l = arg.asLogical();
+        int size = l.size();
+        if (size >= 1) {
+            int v = l.getLogical(0);
+            if (v == RLogical.NA) {
+                throw RError.getUnexpectedNA(ast);
+            }
+            if (size > 1) {
+                RContext.warning(ast, RError.LENGTH_GT_1);
+            }
+            return (v == RLogical.TRUE);
+        }
+        throw RError.getUnexpectedNA(ast);
+    }
+
 }

@@ -14,6 +14,8 @@ public class GNUR {
     public static native void fft_factor(int n, int[] maxf, int[] maxp); // FIXME: could also use intW or similar instead of int[]
     public static native int fft_work(double[] ab, int nseg, int n, int nspn, int isn, double[] work, int[] iwork);
 
+    public static native void dqrdc2(double[] x, int ldx, int n, int p, double tol, int[] k, double[] qraux, int[] jpvt, double[] work);
+
     static {
         System.loadLibrary("gnurglue");
     }
