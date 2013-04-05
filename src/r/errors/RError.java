@@ -107,6 +107,7 @@ public abstract class RError extends RuntimeException {
     public static final String DETERMINANT_COMPLEX = "determinant not currently defined for complex matrices";
     public static final String NON_NUMERIC_ARGUMENT = "non-numeric argument";
     public static final String FFT_FACTORIZATION = "fft factorization error";
+    public static final String COMPLEX_NOT_PERMITTED = "complex matrices not permitted at present";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -147,6 +148,11 @@ public abstract class RError extends RuntimeException {
     public static final String ROWS_NOT_MULTIPLE = "number of rows of result is not a multiple of vector length (arg %d)";
     public static final String ARG_ONE_OF = "'%s' should be one of %s";
     public static final String MUST_BE_SQUARE = "'%s' must be a square matrix";
+    public static final String NON_MATRIX = "non-matrix argument to '%s'";
+    public static final String NON_NUMERIC_ARGUMENT_TO = "non-numeric argument to '%s'";
+    public static final String DIMS_GT_ZERO = "'%s' must have dims > 0";
+    public static final String NOT_POSITIVE_DEFINITE = "the leading minor of order %d is not positive definite";
+    public static final String LAPACK_INVALID_VALUE = "argument %d of Lapack routine %s had invalid value";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1108,6 +1114,17 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getComplexNotPermitted(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.COMPLEX_NOT_PERMITTED;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1192,8 +1209,8 @@ public abstract class RError extends RuntimeException {
         return getGenericError(ast, String.format(RError.INFINITE_MISSING_VALUES, argName));
     }
 
-    public static RError getNonSquareMatrix(ASTNode ast, String argName) {
-        return getGenericError(ast, String.format(RError.NON_SQUARE_MATRIX, argName));
+    public static RError getNonSquareMatrix(ASTNode ast, String builtinName) {
+        return getGenericError(ast, String.format(RError.NON_SQUARE_MATRIX, builtinName));
     }
 
     public static RError getLapackError(ASTNode ast, int code, String routine) {
@@ -1234,6 +1251,26 @@ public abstract class RError extends RuntimeException {
 
     public static RError getRowsMustMatch(ASTNode ast, int argIndex) {
         return getGenericError(ast, String.format(RError.ROWS_MUST_MATCH, argIndex));
+    }
+
+    public static RError getNonMatrix(ASTNode ast, String builtinName) {
+        return getGenericError(ast, String.format(RError.NON_MATRIX, builtinName));
+    }
+
+    public static RError getNonNumericArgumentTo(ASTNode ast, String builtinName) {
+        return getGenericError(ast, String.format(RError.NON_NUMERIC_ARGUMENT_TO, builtinName));
+    }
+
+    public static RError getDimsGTZero(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.DIMS_GT_ZERO, argName));
+    }
+
+    public static RError getNotPositiveDefinite(ASTNode ast, int order) {
+        return getGenericError(ast, String.format(RError.NOT_POSITIVE_DEFINITE, order));
+    }
+
+    public static RError getLapackInvalidValue(ASTNode ast, int argIndex, String routine) {
+        return getGenericError(ast, String.format(RError.LAPACK_INVALID_VALUE, argIndex, routine));
     }
 
     public static RError getUnusedArgument(ASTNode ast, RSymbol argName, RNode argExpr) {

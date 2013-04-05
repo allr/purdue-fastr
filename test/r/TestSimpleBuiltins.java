@@ -867,4 +867,14 @@ public class TestSimpleBuiltins extends TestBase {
             assertEval("{ fft(cbind(1:2,3:4)) }", "          [,1]      [,2]\n[1,] 10.0+0.0i -4.0+0.0i\n[2,] -2.0+0.0i  0.0+0.0i");
         }
     }
+
+    @Test
+    public void testChol() throws RecognitionException {
+        if (RContext.hasGNUR()) {
+            assertEval("{ chol(1) }", "     [,1]\n[1,]  1.0");
+            assertEval("{ chol(10) }", "                   [,1]\n[1,] 3.1622776601683795"); // TODO: will need rounding, this is from native code
+            assertEval("{ m <- matrix(c(5,1,1,3),2) ; chol(m) }", "                 [,1]               [,2]\n[1,] 2.23606797749979 0.4472135954999579\n[2,]              0.0 1.6733200530681511");
+            assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
+        }
+    }
 }

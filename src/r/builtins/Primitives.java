@@ -77,6 +77,7 @@ public class Primitives {
         add(Cbind._);
         add(Ceiling._);
         add(Character._);
+        add(Chol._);
         add(Close._);
         add(ColMeans._);
         add(ColSums._);

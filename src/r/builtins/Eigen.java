@@ -17,12 +17,12 @@ import java.lang.Double;
 
 /**
  * "eigen"
- * 
+ *
  * <pre>
  * x -- a matrix whose spectral decomposition is to be computed.
  * symmetric -- if TRUE, the matrix is assumed to be symmetric (or Hermitian if complex) and only its lower triangle
  *                (diagonal included) is used. If symmetric is not specified, the matrix is inspected for symmetry.
- * only.values -- if TRUE, only the eigenvalues are computed and returned, otherwise both eigenvalues and eigenvectors 
+ * only.values -- if TRUE, only the eigenvalues are computed and returned, otherwise both eigenvalues and eigenvectors
  *                are returned.
  * EISPACK -- logical. Should EISPACK be used (for compatibility with R < 1.7.0)?
  * </pre>
@@ -82,7 +82,7 @@ final class Eigen extends CallFactory {
                 int size = x.size();
                 if (dim == null || dim.length != 2) {
                     if (size == 0) { throw RError.getInvalidArgument(ast, "x"); }// FIXME: not an R warning
-                    if (size != 1) { throw RError.getNonSquareMatrix(ast, "x"); }
+                    if (size != 1) { throw RError.getNonSquareMatrix(ast, "eigen"); }
                     n = 1;
                     dimNN = RArray.SCALAR_DIMENSIONS;
                 } else {
@@ -191,9 +191,9 @@ final class Eigen extends CallFactory {
                     }
 
                 } else { // TODO: port JLAPACK to the new LAPACK or find another library
-                    if (symmetric) { // symmetric complex input matrix                        
+                    if (symmetric) { // symmetric complex input matrix
                         throw Utils.nyi("ZHEEV not supported by netlib-java");
-                    } else { // general complex input matrix.                       
+                    } else { // general complex input matrix.
                         throw Utils.nyi("ZGEEV not supported by netlib-java");
                     }
                 }
