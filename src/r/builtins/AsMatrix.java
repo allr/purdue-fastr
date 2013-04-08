@@ -25,24 +25,36 @@ final class AsMatrix extends CallFactory {
         return new Builtin(call, names, exprs) {
 
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RAny xarg = args[xPosition];
-                if (!(xarg instanceof RArray)) {
-                    throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message, GNU-R uses implicit error in R
-                }
-                RArray a = (RArray) xarg;
-                int[] dim = a.dimensions();
-                if (dim != null && dim.length == 2) {
-                    return xarg; // already a matrix
-                }
-                int size = a.size();
-                int[] ndims = new int[] {size, 1};
-                if (!a.isTemporary()) {
-                    a = Utils.copyArray(a);
-                }
-                return a.setAttributes(null).setDimensions(ndims);
+                return asMatrix(args[xPosition], ast);
             }
-
         };
     }
 
+    public static RArray asMatrix(RAny x, ASTNode ast) {
+        if (!(x instanceof RArray)) {
+            throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message, GNU-R uses implicit error in R
+        }
+        return asMatrix((RArray) x);
+    }
+
+    public static RArray asMatrix(RArray a) {
+        int[] dim = a.dimensions();
+        if (dim != null && dim.length == 2) {
+            return a; // already a matrix
+        } else {
+            return castToMatrix(a);
+        }
+    }
+
+    public static RArray castToMatrix(RArray a) {
+        int size = a.size();
+        int[] ndims = new int[] {size, 1};
+        RArray na;
+        if (!a.isTemporary()) {
+            na = Utils.copyArray(a);
+        } else {
+            na = a;
+        }
+        return na.setAttributes(null).setDimensions(ndims);
+    }
 }

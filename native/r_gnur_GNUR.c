@@ -132,8 +132,8 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
    double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
    int *k = (*jenv)->GetPrimitiveArrayCritical(jenv, kArg, 0);
    double *qraux = (*jenv)->GetPrimitiveArrayCritical(jenv, qrauxArg, 0);
-   int* jpvt = (*jenv)->GetPrimitiveArrayCritical(jenv, jpvtArg, 0);
-   double* work = (*jenv)->GetPrimitiveArrayCritical(jenv, workArg, 0);
+   int *jpvt = (*jenv)->GetPrimitiveArrayCritical(jenv, jpvtArg, 0);
+   double *work = (*jenv)->GetPrimitiveArrayCritical(jenv, workArg, 0);
 
    // calling to Fortran
    dqrdc2_(x, &ldx, &n, &p, &tol, k, qraux, jpvt, work);
@@ -143,5 +143,24 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
    (*jenv)->ReleasePrimitiveArrayCritical(jenv, qrauxArg, qraux, 0);
    (*jenv)->ReleasePrimitiveArrayCritical(jenv, jpvtArg, jpvt, 0);
    (*jenv)->ReleasePrimitiveArrayCritical(jenv, workArg, work, 0);
+}
+
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
+  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jint n, jint k, jdoubleArray qrauxArg, jdoubleArray yArg, jint ny, jdoubleArray bArg, jintArray infoArg) {
+  
+  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
+  double *qraux = (*jenv)->GetPrimitiveArrayCritical(jenv, qrauxArg, 0);
+  double *y = (*jenv)->GetPrimitiveArrayCritical(jenv, yArg, 0);
+  double *b = (*jenv)->GetPrimitiveArrayCritical(jenv, bArg, 0);
+  int *info = (*jenv)->GetPrimitiveArrayCritical(jenv, infoArg, 0);
+
+  // calling to Fortran
+  dqrcf_(x, &n, &k, qraux, y, &ny, b, info);
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, qrauxArg, qraux, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, yArg, y, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, bArg, b, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, infoArg, info, 0);
 }
   

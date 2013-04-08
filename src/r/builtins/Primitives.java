@@ -138,6 +138,7 @@ public class Primitives {
         add(Paste._);
         add(Pipe._);
         add(Qr._);
+        add(QrCoef._);
         add(Rank._);
         add(Raw._);
         add(ReadLines._);

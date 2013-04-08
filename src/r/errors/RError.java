@@ -108,6 +108,7 @@ public abstract class RError extends RuntimeException {
     public static final String NON_NUMERIC_ARGUMENT = "non-numeric argument";
     public static final String FFT_FACTORIZATION = "fft factorization error";
     public static final String COMPLEX_NOT_PERMITTED = "complex matrices not permitted at present";
+    public static final String FIRST_QR = "first argument must be a QR decomposition";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -153,6 +154,9 @@ public abstract class RError extends RuntimeException {
     public static final String DIMS_GT_ZERO = "'%s' must have dims > 0";
     public static final String NOT_POSITIVE_DEFINITE = "the leading minor of order %d is not positive definite";
     public static final String LAPACK_INVALID_VALUE = "argument %d of Lapack routine %s had invalid value";
+    public static final String RHS_SHOULD_HAVE_ROWS = "right-hand side should have %d not %d rows";
+    public static final String SAME_NUMBER_ROWS = "'%s' and '%s' must have the same number of rows";
+    public static final String EXACT_SINGULARITY = "exact singularity in '%s'";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1125,6 +1129,17 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getFirstQR(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.FIRST_QR;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1312,5 +1327,17 @@ public abstract class RError extends RuntimeException {
 
     public static RError getMustBeSquare(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.MUST_BE_SQUARE, argName));
+    }
+
+    public static RError getRHSShouldHaveRows(ASTNode ast, int should, int has) {
+        return getGenericError(ast, String.format(RError.RHS_SHOULD_HAVE_ROWS, should, has));
+    }
+
+    public static RError getSameNumberRows(ASTNode ast, String matA, String matB) {
+        return getGenericError(ast, String.format(RError.SAME_NUMBER_ROWS, matA, matB));
+    }
+
+    public static RError getExactSingularity(ASTNode ast, String builtinName) {
+        return getGenericError(ast, String.format(RError.EXACT_SINGULARITY, builtinName));
     }
 }

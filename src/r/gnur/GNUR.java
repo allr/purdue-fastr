@@ -15,6 +15,7 @@ public class GNUR {
     public static native int fft_work(double[] ab, int nseg, int n, int nspn, int isn, double[] work, int[] iwork);
 
     public static native void dqrdc2(double[] x, int ldx, int n, int p, double tol, int[] k, double[] qraux, int[] jpvt, double[] work);
+    public static native void dqrcf(double[] x, int n, int k, double[] qraux, double[] y, int ny, double[] b, int[] info);
 
     static {
         System.loadLibrary("gnurglue");

@@ -893,6 +893,18 @@ public class TestSimpleBuiltins extends TestBase {
             assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$rank }", "2L");
             assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux }", "1.4472135954999579, 0.8944271909999225, 1.788854381999832");
             assertEval("{ qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr }", "                   [,1]                [,2]\n[1,] -3.605551275463989  4.7149516679144465\n[2,] 0.5547001962252291 -1.6641005886756877");
+
+
+            // qr.coef
+            assertEvalError("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "right-hand side should have 10 not 2 rows");
+            assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "1.0, NA, NA, NA, NA, NA, NA, NA, NA, 0.0");
+            assertEval("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:10) }", "0.9999999999999997, 3.161873674812801E-16");
+            assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; qr.coef(x, c(1,3,2)) }", "0.7142857142857145");
+              // FIXME: GNU-R will print negative zero as zero
+            assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }", "1.0, -0.0, NA, NA, NA, NA, NA, NA, NA, NA");
+            assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; qr.coef(x, c(1,3,2)) }", "0.7142857142857144");
+            assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
+            assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; qr.coef(x, 1:3) }", "0.9999999999999999, 0.0");
         }
     }
 }
