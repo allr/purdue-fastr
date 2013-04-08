@@ -87,6 +87,25 @@ public interface RDouble extends RNumber {
             }
             return false;
         }
+        public static RDouble convertNAandNaNtoZero(RDouble d) {
+            if (d instanceof ScalarDoubleImpl) {
+                ScalarDoubleImpl sd = (ScalarDoubleImpl) d;
+                if (sd.isNAorNaN()) {
+                    return BOXED_ZERO;
+                } else {
+                    return sd;
+                }
+            } else {
+                RDouble res = d.materialize();
+                double[] content = res.getContent();
+                for (int i = 0; i < content.length; i++) {
+                    if (isNAorNaN(content[i])) {
+                        content[i] = 0;
+                    }
+                }
+                return res;
+            }
+        }
     }
     public class RDoubleFactory {
         public static ScalarDoubleImpl getScalar(double value) {

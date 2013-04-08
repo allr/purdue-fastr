@@ -905,6 +905,10 @@ public class TestSimpleBuiltins extends TestBase {
             assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; qr.coef(x, c(1,3,2)) }", "0.7142857142857144");
             assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
             assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; qr.coef(x, 1:3) }", "0.9999999999999999, 0.0");
+
+            // qr.solve
+            assertEval("{ qr.solve(qr(c(1,3,4,2)), c(1,2,3,4)) }", "0.8999999999999999");
+            assertEval("{ qr.solve(c(1,3,4,2), c(1,2,3,4)) }", "0.8999999999999999");
         }
     }
 }
