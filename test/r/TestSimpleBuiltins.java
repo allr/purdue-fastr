@@ -912,4 +912,12 @@ public class TestSimpleBuiltins extends TestBase {
             assertEval("{ qr.solve(c(1,3,4,2), c(1,2,3,4)) }", "0.8999999999999999");
         }
     }
+
+    @Test
+    public void testComplex() throws RecognitionException {
+        assertEval("{ x <- 1:2 ; attr(x,\"my\") <- 2 ; Im(x) }", "0.0, 0.0\nattr(,\"my\")\n2.0");
+        assertEval("{ x <- c(1+2i,3-4i) ; attr(x,\"my\") <- 2 ; Im(x) }", "2.0, -4.0\nattr(,\"my\")\n2.0");
+        assertEval("{ x <- 1:2 ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 2.0\nattr(,\"my\")\n2.0");
+        assertEval("{ x <- c(1+2i,3-4i) ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 3.0\nattr(,\"my\")\n2.0");
+    }
 }

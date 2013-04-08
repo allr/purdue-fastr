@@ -135,8 +135,9 @@ final class Sum extends CallFactory {
                 }
 
                 if (hasComplex) {
-                    double[] res = new double[2];
                     double[] tmp = new double[2];
+                    double rreal = 0;
+                    double rimag = 0;
                     for (int i = 0; i < args.length; i++) {
                         if (!neverRemoveNA && i == narmPosition) {
                             continue;
@@ -146,17 +147,19 @@ final class Sum extends CallFactory {
                             continue;
                         }
                         sum(v.asComplex(), naRM, tmp);
-                        if (RComplex.RComplexUtils.eitherIsNAorNaN(tmp[0], tmp[1])) {
+                        double real = tmp[0];
+                        double imag = tmp[1];
+                        if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
                             // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
-                            res[0] = tmp[0];
-                            res[1] = tmp[1];
+                            rreal = real;
+                            rimag = imag;
                             break;
                         } else {
-                            res[0] += tmp[0];
-                            res[1] += tmp[1];
+                            rreal += real;
+                            rimag += imag;
                         }
                     }
-                    return RComplex.RComplexFactory.getScalar(res[0], res[1]);
+                    return RComplex.RComplexFactory.getScalar(rreal, rimag);
                 } else if (hasDouble) {
                     double res = 0;
                     for (int i = 0; i < args.length; i++) {

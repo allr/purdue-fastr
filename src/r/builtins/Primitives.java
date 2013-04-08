@@ -102,6 +102,7 @@ public class Primitives {
         add(Floor._);
         add(Flush._);
         add(Integer._);
+        add(Im._);
         add(IsCharacter._);
         add(IsComplex._);
         add(IsDouble._);
@@ -142,6 +143,7 @@ public class Primitives {
         add(QrSolve._);
         add(Rank._);
         add(Raw._);
+        add(Re._);
         add(ReadLines._);
         add(Recall._);
         add(Regexpr._);

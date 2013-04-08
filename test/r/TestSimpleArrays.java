@@ -117,6 +117,8 @@ public class TestSimpleArrays extends TestBase {
 
         // selection on multiple elements fails in matrices
         assertEvalError("{ matrix(1,3,3)[[c(1,2),1]]; }", RError.SELECT_MORE_1);
+
+        assertEval("{  m <- matrix(1:6, nrow=2) ;  m[1,NULL] }", "integer(0)");
     }
 
     @Test

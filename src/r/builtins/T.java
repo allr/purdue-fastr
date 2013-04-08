@@ -11,7 +11,7 @@ import r.nodes.truffle.*;
 
 /**
  * "t"
- * 
+ *
  * <pre>
  * x -- a matrix or data frame, typically.
  * </pre>
@@ -39,7 +39,7 @@ final class T extends CallFactory {
                     int size = a.size();
                     if (dim == null || dim.length == 1) {
                         dim = new int[]{1, size};
-                        if (!a.isShared()) {
+                        if (a.isTemporary()) {
                             return a.setDimensions(dim);
                         } else {
                             return Utils.copyArray(a).setDimensions(dim);

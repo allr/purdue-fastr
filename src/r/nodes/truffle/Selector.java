@@ -1055,7 +1055,7 @@ public abstract class Selector {
 
             @Override
             public Selector executeSelector(RAny index) {
-                if (index instanceof RInt || index instanceof RDouble) {
+                if (index instanceof RInt || index instanceof RDouble || index instanceof RNull) {
                     numericSelector.setIndex(index.asInt());
                     return numericSelector;
                 }
@@ -1063,7 +1063,7 @@ public abstract class Selector {
                     logicalSelector.setIndex(index);
                     return logicalSelector;
                 }
-                Utils.nyi("unsupported index type");
+                Utils.nyi("unsupported index type" + index.typeOf());
                 return null;
             }
         };
@@ -1076,7 +1076,7 @@ public abstract class Selector {
 
             @Override
             public Selector executeSelector(RAny index) {
-                if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
+                if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical || index instanceof RNull) {
                     selector.setIndex(index.asInt());
                     return selector;
                 }

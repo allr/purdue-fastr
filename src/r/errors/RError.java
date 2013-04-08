@@ -110,6 +110,7 @@ public abstract class RError extends RuntimeException {
     public static final String COMPLEX_NOT_PERMITTED = "complex matrices not permitted at present";
     public static final String FIRST_QR = "first argument must be a QR decomposition";
     public static final String ONLY_SQUARE_INVERTED = "only square matrices can be inverted";
+    public static final String NON_NUMERIC_ARGUMENT_FUNCTION = "non-numeric argument to function";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1149,6 +1150,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.ONLY_SQUARE_INVERTED;
+            }
+        };
+    }
+
+    public static RError getNonNumericArgumentFunction(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.NON_NUMERIC_ARGUMENT_FUNCTION;
             }
         };
     }
