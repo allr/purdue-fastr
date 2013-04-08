@@ -213,6 +213,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ sum(0, 1[3], na.rm=FALSE) }", "NA");
         assertEval("{ sum(0, 1[3], na.rm=TRUE) }", "0.0");
         assertEval("{ `sum`(1:10) }", "55L");
+        assertEval("{ sum(1+1i,2,NA, na.rm=TRUE) }", "3.0+1.0i");
     }
 
     @Test

@@ -10,7 +10,7 @@ import java.lang.Integer;
 
 /**
  * "sum"
- * 
+ *
  * <pre>
  * ... -- numeric or complex or logical vectors.
  * na.rm -- logical. Should missing values (including NaN) be removed?
@@ -18,12 +18,39 @@ import java.lang.Integer;
  */
 // FIXME: optimize for single argument
 // NOTE: we could probably get some performance if we gave up on preserving NA vs NaN in double computations; the current implementation strives to be strict
+
 final class Sum extends CallFactory {
 
     static final CallFactory _ = new Sum("sum", new String[]{"...", "na.rm"}, new String[]{});
 
     Sum(String name, String[] params, String[] required) {
         super(name, params, required);
+    }
+
+    public static void sum(RComplex v, boolean narm, double[] res) {
+        int size = v.size();
+        double rreal = 0;
+        double rimag = 0;
+        for (int i = 0; i < size; i++) {
+            double real = v.getReal(i);  // FIXME: this will be very slow for complex arithmetic views
+            double imag = v.getImag(i);
+            if (narm) {
+                if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                    continue;
+                }
+            } else {
+                if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                    // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
+                    res[0] = real;
+                    res[1] = imag;
+                    return;
+                }
+            }
+            rreal += real;
+            rimag += imag;
+        }
+        res[0] = rreal;
+        res[1] = rimag;
     }
 
     public static double sum(RDouble v, boolean narm) {
@@ -77,7 +104,7 @@ final class Sum extends CallFactory {
                 boolean naRM = false;
                 if (!neverRemoveNA) {
                     RAny v = args[narmPosition];
-                    if (v instanceof RLogical) {
+                    if (v instanceof RLogical) { // FIXME: use/create some method for this instead
                         RLogical l = (RLogical) v;
                         naRM = l.size() == 0 || l.getLogical(0) != RLogical.FALSE;
                     } else if (v instanceof RInt) {
@@ -91,6 +118,7 @@ final class Sum extends CallFactory {
                     }
                 }
                 boolean hasDouble = false;
+                boolean hasComplex = false;
 
                 for (int i = 0; i < args.length; i++) {
                     if (!neverRemoveNA && i == narmPosition) {
@@ -99,10 +127,37 @@ final class Sum extends CallFactory {
                     RAny v = args[i];
                     if (v instanceof RDouble) {
                         hasDouble = true;
-                    } else if (v instanceof RList) { throw RError.getInvalidTypeList(ast); }
+                    } else if (v instanceof RComplex) {
+                        hasComplex = true;
+                    } else if (v instanceof RList) {
+                        throw RError.getInvalidTypeList(ast);
+                    }
                 }
 
-                if (hasDouble) {
+                if (hasComplex) {
+                    double[] res = new double[2];
+                    double[] tmp = new double[2];
+                    for (int i = 0; i < args.length; i++) {
+                        if (!neverRemoveNA && i == narmPosition) {
+                            continue;
+                        }
+                        RAny v = args[i];
+                        if (v instanceof RNull) {
+                            continue;
+                        }
+                        sum(v.asComplex(), naRM, tmp);
+                        if (RComplex.RComplexUtils.eitherIsNAorNaN(tmp[0], tmp[1])) {
+                            // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
+                            res[0] = tmp[0];
+                            res[1] = tmp[1];
+                            break;
+                        } else {
+                            res[0] += tmp[0];
+                            res[1] += tmp[1];
+                        }
+                    }
+                    return RComplex.RComplexFactory.getScalar(res[0], res[1]);
+                } else if (hasDouble) {
                     double res = 0;
                     for (int i = 0; i < args.length; i++) {
                         if (!neverRemoveNA && i == narmPosition) {
