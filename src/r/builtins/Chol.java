@@ -81,6 +81,7 @@ final class Chol extends CallFactory {
                     }
                     intW laINFO = new intW(0);
                     if (!pivot) {
+                        // SUBROUTINE DPOTRF( UPLO, N, A, LDA, INFO )
                         LAPACK.getInstance().dpotrf("U", n, res, n, laINFO);
                         if (laINFO.val != 0) {
                             if (laINFO.val > 0) {
@@ -91,7 +92,7 @@ final class Chol extends CallFactory {
                         }
                         return x;
                     } else {
-                        Utils.nyi("pivoting not implemented - need lapack routine dpstrf which is not in netlib-java");
+                        Utils.nyi("pivoting not implemented - need lapack routine dpstrf which is not available in netlib-java");
                         return null;
                     }
                 }

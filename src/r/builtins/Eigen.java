@@ -125,6 +125,11 @@ final class Eigen extends CallFactory {
                         // get optimum sizes for the work arrays
                         double[] laWORK = new double[1];
                         int[] laIWORK = new int[1];
+
+                        //  SUBROUTINE DSYEVR( JOBZ, RANGE, UPLO, N, A, LDA, VL, VU, IL, IU,
+                        //                          ABSTOL, M, W, Z, LDZ, ISUPPZ, WORK, LWORK,
+                        //                          IWORK, LIWORK, INFO )
+
                         LAPACK.getInstance().dsyevr(laJOBZ, "A", "L", n, values, n, 0, 0, 0, 0, 0, laM, laW, laZ, n, laISUPPZ, laWORK, -1, laIWORK, -1, laINFO);
                         if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dsyevr"); }
                         int laLWORK = (int) laWORK[0];
@@ -155,6 +160,9 @@ final class Eigen extends CallFactory {
                         intW laINFO = new intW(0);
                         // get optimum size for the work array
                         double[] laWORK = new double[1];
+
+                        //       SUBROUTINE DGEEV( JOBVL, JOBVR, N, A, LDA, WR, WI, VL, LDVL, VR,
+                        //                                LDVR, WORK, LWORK, INFO )
                         LAPACK.getInstance().dgeev("N", laJOBVR, n, values, n, laWR, laWI, null, n, laVR, n, laWORK, -1, laINFO);
                         if (laINFO.val != 0) { throw RError.getLapackError(ast, laINFO.val, "dgeev"); }
                         int laLWORK = (int) laWORK[0];

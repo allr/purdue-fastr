@@ -50,6 +50,7 @@ final class Det extends CallFactory {
                 int[] laIPIV = new int[n];
                 intW laINFO = new intW(0);
 
+                // SUBROUTINE DGETRF( M, N, A, LDA, IPIV, INFO )
                 LAPACK.getInstance().dgetrf(n, n, laA, n, laIPIV, laINFO);
                 if (laINFO.val < 0) {
                     throw RError.getLapackError(ast, laINFO.val, "dgetrf");

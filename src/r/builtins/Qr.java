@@ -60,6 +60,7 @@ public class Qr extends CallFactory {
             double[] laA = x.getContent();
             double[] laWORK = new double[1];
             intW laINFO = new intW(0);
+            // SUBROUTINE DGEQP3( M, N, A, LDA, JPVT, TAU, WORK, LWORK, INFO )
             LAPACK.getInstance().dgeqp3(m, n, laA, m, laJPVT, laTAU, laWORK, -1, laINFO);
             if (laINFO.val < 0) {
                 throw RError.getLapackError(ast, laINFO.val, "dgeqp3");
