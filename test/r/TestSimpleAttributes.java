@@ -75,8 +75,8 @@ public class TestSimpleAttributes extends TestBase {
         assertEval("{ x <- 1 ; attr(x, \"myatt\") <- 1; c(x, x, x) }", "1.0, 1.0, 1.0");
         assertEval("{ x <- 1 ; attr(x, \"myatt\") <- 1; cumsum(c(x, x, x)) }", "1.0, 2.0, 3.0");
         assertEval("{ m <- matrix(1:6, nrow=2) ; attr(m,\"a\") <- 1 ;  diag(m) <- c(1,1) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0  3.0  5.0\n[2,]  2.0  1.0  6.0\nattr(,\"a\")\n1.0");
-        assertEval("{ m <- matrix(c(1,1,1,1), nrow=2) ; attr(m,\"a\") <- 1 ;  eigen(m) }", "$values\n2.0, 0.0\n\n$vectors\n                   [,1]                [,2]\n[1,] 0.7071067811865475 -0.7071067811865475\n[2,] 0.7071067811865475  0.7071067811865475");
-//        assertEval("{ x <- 1 ; attr(x, \"myatt\") <- 1; exp(x) }", "2.7182818284590455\nattr(,\"myatt\")\n1.0");
+        assertEval("{ m <- matrix(c(1,1,1,1), nrow=2) ; attr(m,\"a\") <- 1 ;  r <- eigen(m) ; r$vectors <- round(r$vectors, digits=5) ; r  }", "$values\n2.0, 0.0\n\n$vectors\n        [,1]     [,2]\n[1,] 0.70711 -0.70711\n[2,] 0.70711  0.70711");
+        assertEval("{ x <- 1 ; attr(x, \"myatt\") <- 1; round(exp(x), digits=5) }", "2.71828\nattr(,\"myatt\")\n1.0");
         assertEval("{ x <- 1 ; attr(x, \"myatt\") <- 1; min(x) }", "1.0");
         assertEval("{ x <- c(a=1) ; attr(x, \"myatt\") <- 1; log10(x) }", "  a\n0.0\nattr(,\"myatt\")\n1.0");
         assertEval("{ x <- c(a=1) ; attr(x, \"myatt\") <- 1; nchar(x) }", " a\n3L"); // specific to FAST-R debugging format

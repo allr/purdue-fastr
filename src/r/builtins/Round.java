@@ -12,6 +12,7 @@ import r.nodes.truffle.Arithmetic.*;
 
 import java.lang.Double;
 import java.math.*;
+import java.util.*;
 
 // FIXME: there are some unnecessary casts of the "digits" argument (e.g. to complex or to double), GNU-R has the same problem
 // FIXME: make this faster, note that is fround in nmath
@@ -60,6 +61,38 @@ final class Round extends CallFactory {
         return new BigDecimal(x).setScale(d, RoundingMode.HALF_EVEN).doubleValue();
     }
 
+    public static void round(double[] x, double digits, double[] res) {
+        int size = x.length;
+        if (digits == Double.NEGATIVE_INFINITY) {
+            Arrays.fill(res, 0);
+            return;
+        }
+        if (digits == Double.POSITIVE_INFINITY) {
+            if (res != x) {
+                System.arraycopy(x, 0, res, 0, size);
+            }
+            return;
+        }
+        boolean naDigits =  RDouble.RDoubleUtils.isNAorNaN(digits);
+        int d;
+        if (naDigits) {
+            d = 0;
+        } else if (digits > MAX_DIGITS) {
+            d = MAX_DIGITS;
+        } else {
+            d = (int) Math.floor(digits + 0.5);
+        }
+
+        for (int i = 0; i < size; i++) {
+            double r = x[i];
+            if (naDigits || RDouble.RDoubleUtils.isNAorNaN(r)) {
+                res[i] = r + digits;
+            } else {
+                res[i] = new BigDecimal(r).setScale(d, RoundingMode.HALF_EVEN).doubleValue();
+            }
+        }
+    }
+
     public static final class RoundJava extends ValueArithmetic {
 
         @Override
@@ -95,8 +128,16 @@ final class Round extends CallFactory {
 
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
-            Utils.nyi();
-            return null;
+            double[] x = xcomp.getContent();
+            if (xcomp.isTemporary()) {
+                round(x, c, x);
+                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xcomp;
+            } else {
+                double[] res = new double[x.length];
+                round(x, c, res);
+                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+            }
         }
 
         @Override

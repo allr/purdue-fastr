@@ -36,13 +36,13 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ seq(from=10:12) }", "1L, 2L, 3L");
         assertEval("{ seq(from=c(TRUE, FALSE)) }", "1L, 2L");
         assertEval("{ seq(from=TRUE, to=TRUE, length.out=0) }", "integer(0)");
-        assertEval("{ seq(from=10.5, to=15.4, length.out=4) }", "10.5, 12.133333333333333, 13.766666666666667, 15.4");
+        assertEval("{ round(seq(from=10.5, to=15.4, length.out=4), digits=5) }", "10.5, 12.13333, 13.76667, 15.4");
         assertEval("{ seq(from=11, to=12, length.out=2) }", "11.0, 12.0");
         assertEval("{ seq(from=1,to=3,by=1) }", "1.0, 2.0, 3.0");
         assertEval("{ seq(from=-10,to=-5,by=2) }", "-10.0, -8.0, -6.0");
         assertEval("{ seq(from=-10.4,to=-5.8,by=2.1) }", "-10.4, -8.3, -6.2");
-        assertEval("{ seq(from=3L,to=-2L,by=-4.2) }", "3.0, -1.2000000000000002");
-        assertEval("{ seq(along=c(10,11,12)) }", "1L, 2L, 3L"); // test parial name match
+        assertEval("{ round(seq(from=3L,to=-2L,by=-4.2), digits=5) }", "3.0, -1.2");
+        assertEval("{ seq(along=c(10,11,12)) }", "1L, 2L, 3L"); // test partial name match
     }
 
     @Test
@@ -264,7 +264,7 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
         assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
         assertEval("{ cat(\"hi\",1[2],\"hello\",sep=\"-\") }", "hi-NA-hello", "NULL");
-        assertEval("{ m <- matrix(as.character(1:6, nrow=2)) ; cat(m) }", "1L 2L 3L 4L 5L 6L", "NULL");//FIXME: The nrow argument is ignored...
+        assertEval("{ m <- matrix(as.character(1:6), nrow=2) ; cat(m) }", "1L 2L 3L 4L 5L 6L", "NULL");
         assertEval("{ cat(sep=\" \", \"hello\") }", "hello", "NULL");
     }
 
@@ -463,14 +463,14 @@ public class TestSimpleBuiltins extends TestBase {
     @Test
     public void testMathFunctions() throws RecognitionException {
         assertEval("{ log(1) } ", "0.0");
-        assertEval("{ m <- matrix(1:4, nrow=2) ; log10(m) }", "                   [,1]                [,2]\n[1,]                0.0 0.47712125471966244\n[2,] 0.3010299956639812  0.6020599913279624");
+        assertEval("{ m <- matrix(1:4, nrow=2) ; round( log10(m), digits=5 )  }", "        [,1]    [,2]\n[1,]     0.0 0.47712\n[2,] 0.30103 0.60206");
 
-        assertEval("{ x <- c(a=1, b=10) ; c(log(x), log10(x), log2(x)) }", "  a                 b   a   b   a                  b\n0.0 2.302585092994046 0.0 1.0 0.0 3.3219280948873626");
+        assertEval("{ x <- c(a=1, b=10) ; round( c(log(x), log10(x), log2(x)), digits=5 ) }", "  a       b   a   b   a       b\n0.0 2.30259 0.0 1.0 0.0 3.32193");
 
         assertEval("{ sqrt(c(a=9,b=81)) }", "  a   b\n3.0 9.0");
 
-        assertEval("{ exp(c(1+1i,-2-3i)) }", "1.4686939399158854+2.2873552871788427i, -0.13398091492954262-0.019098516261135196i");
-//        assertEval("{ exp(1+2i) }", "-1.1312043837568138+2.471726672004819i");
+        assertEval("{ round( exp(c(1+1i,-2-3i)), digits=5 ) }", "1.46869+2.28736i, -0.13398-0.0191i");
+        assertEval("{ round( exp(1+2i), digits=5 ) }", "-1.1312+2.47173i");
 
         assertEval("{ abs((-1-0i)/(0+0i)) }", "Infinity");
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
@@ -654,18 +654,20 @@ public class TestSimpleBuiltins extends TestBase {
     @Test
     public void testEigen() throws RecognitionException {
         // symmetric real input
-        assertEval("{ eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) }", "$values\n2.0, 0.0\n\n$vectors\n                   [,1]                [,2]\n[1,] 0.7071067811865475 -0.7071067811865475\n[2,] 0.7071067811865475  0.7071067811865475");
+        assertEval("{ r <- eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) ; round( r$vectors, digits=5 ) }", "        [,1]     [,2]\n[1,] 0.70711 -0.70711\n[2,] 0.70711  0.70711");
+        assertEval("{ r <- eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) ; round( r$values, digits=5 ) }", "2.0, 0.0");
         assertEval("{ eigen(10, only.values=FALSE) }", "$values\n10.0\n\n$vectors\n     [,1]\n[1,]  1.0");
 
         // non-symmetric real input, real output
-        assertEval("{ eigen(matrix(c(1,2,2,3), nrow=2), only.values=FALSE) }", "$values\n4.23606797749979, -0.2360679774997897\n\n$vectors\n                   [,1]                [,2]\n[1,] 0.5257311121191335 -0.8506508083520399\n[2,] 0.8506508083520399  0.5257311121191335");
-        assertEval("{ eigen(matrix(c(1,2,3,4), nrow=2))$vectors }", "                    [,1]                [,2]\n[1,] -0.5657674649689923 -0.9093767091321241\n[2,] -0.8245648401323938 0.41597355791928425");
-        assertEval("{ eigen(matrix(c(1,2,3,4), nrow=2))$values }", "5.372281323269014, -0.3722813232690143");
+        assertEval("{ r <- eigen(matrix(c(1,2,2,3), nrow=2), only.values=FALSE); round( r$vectors, digits=5 ) }", "        [,1]     [,2]\n[1,] 0.52573 -0.85065\n[2,] 0.85065  0.52573");
+        assertEval("{ r <- eigen(matrix(c(1,2,2,3), nrow=2), only.values=FALSE); round( r$values, digits=5 ) }", "4.23607, -0.23607");
+        assertEval("{ r <- eigen(matrix(c(1,2,3,4), nrow=2), only.values=FALSE); round( r$vectors, digits=5 ) }", "         [,1]     [,2]\n[1,] -0.56577 -0.90938\n[2,] -0.82456  0.41597");
+        assertEval("{ r <- eigen(matrix(c(1,2,3,4), nrow=2), only.values=FALSE); round( r$values, digits=5 ) }", "5.37228, -0.37228");
 
         // non-symmetric real input, complex output
         // FIXME: GNUR is won't print the minus sign for negative zero
-        // FIXME: should implement "round" and start using it in tests
-        assertEval("{ eigen(matrix(c(3,-2,4,-1), nrow=2)) }", "$values\n1.0+2.0i, 1.0-2.0i\n\n$vectors\n                                       [,1]                                   [,2]\n[1,]                0.8164965809277259+0.0i               0.8164965809277259+-0.0i\n[2,] -0.4082482904638629+0.408248290463863i -0.4082482904638629-0.408248290463863i");
+        assertEval("{ r <- eigen(matrix(c(3,-2,4,-1), nrow=2), only.values=FALSE); round( r$vectors, digits=5 ) }", "                  [,1]              [,2]\n[1,]       0.8165+0.0i       0.8165+0.0i\n[2,] -0.40825+0.40825i -0.40825-0.40825i");
+        assertEval("{ r <- eigen(matrix(c(3,-2,4,-1), nrow=2), only.values=FALSE); round( r$values, digits=5 ) }", "1.0+2.0i, 1.0-2.0i");
     }
 
     @Test
@@ -853,7 +855,7 @@ public class TestSimpleBuiltins extends TestBase {
     @Test
     public void testCor() throws RecognitionException {
         assertEval("{ cor(cbind(c(1:9,0/0), 101:110)) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0");
-        assertEval("{ cor(cbind(c(10,5,4,1), c(2,5,10,5))) }", "                    [,1]                [,2]\n[1,]                 1.0 -0.5372153093502535\n[2,] -0.5372153093502535                 1.0");
+        assertEval("{ round( cor(cbind(c(10,5,4,1), c(2,5,10,5))), digits=5 ) }", "         [,1]     [,2]\n[1,]      1.0 -0.53722\n[2,] -0.53722      1.0");
         assertEval("{ cor(cbind(c(3,2,1), c(1,2,3))) }", "     [,1] [,2]\n[1,]  1.0 -1.0\n[2,] -1.0  1.0");
         assertEvalWarning("{ cor(cbind(c(1,1,1), c(1,1,1))) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0", "the standard deviation is zero");
     }
@@ -879,8 +881,8 @@ public class TestSimpleBuiltins extends TestBase {
     public void testChol() throws RecognitionException {
         if (RContext.hasGNUR()) {
             assertEval("{ chol(1) }", "     [,1]\n[1,]  1.0");
-            assertEval("{ chol(10) }", "                   [,1]\n[1,] 3.1622776601683795"); // TODO: will need rounding, this is from native code
-            assertEval("{ m <- matrix(c(5,1,1,3),2) ; chol(m) }", "                 [,1]               [,2]\n[1,] 2.23606797749979 0.4472135954999579\n[2,]              0.0 1.6733200530681511");
+            assertEval("{ round( chol(10), digits=5) }", "        [,1]\n[1,] 3.16228");
+            assertEval("{ m <- matrix(c(5,1,1,3),2) ; round( chol(m), digits=5 ) }", "        [,1]    [,2]\n[1,] 2.23607 0.44721\n[2,]     0.0 1.67332");
             assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
         }
     }
@@ -889,27 +891,26 @@ public class TestSimpleBuiltins extends TestBase {
     public void testQr() throws RecognitionException {
         if (RContext.hasGNUR()) {
             assertEval("{ qr(10, LAPACK=TRUE) }", "$qr\n     [,1]\n[1,] 10.0\n\n$rank\n1L\n\n$qraux\n0.0\n\n$pivot\n1L\nattr(,\"useLAPACK\")\nTRUE");
-            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr }", "                    [,1]                [,2]               [,3]\n[1,]  -7.810249675906656 -2.1766269588592313 -4.993438317382942\n[2,] 0.46837494598444235  0.5121475197315841 0.2560737598657927");
+            assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr, digits=5) }", "         [,1]     [,2]     [,3]\n[1,] -7.81025 -2.17663 -4.99344\n[2,]  0.46837  0.51215  0.25607");
             assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$pivot }", "1L, 2L, 3L");
             assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$rank }", "2L");
-            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux }", "1.4472135954999579, 0.8944271909999225, 1.788854381999832");
-            assertEval("{ qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr }", "                   [,1]                [,2]\n[1,] -3.605551275463989  4.7149516679144465\n[2,] 0.5547001962252291 -1.6641005886756877");
-
+            assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux, digits=5 ) }", "1.44721, 0.89443, 1.78885");
+            assertEval("{ round( qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr, digits=5 ) }", "         [,1]    [,2]\n[1,] -3.60555 4.71495\n[2,]   0.5547 -1.6641");
 
             // qr.coef
             assertEvalError("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "right-hand side should have 10 not 2 rows");
             assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "1.0, NA, NA, NA, NA, NA, NA, NA, NA, 0.0");
-            assertEval("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:10) }", "0.9999999999999997, 3.161873674812801E-16");
-            assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; qr.coef(x, c(1,3,2)) }", "0.7142857142857145");
+            assertEval(" { x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 ) }", "1.0, 0.0");
+            assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
               // FIXME: GNU-R will print negative zero as zero
             assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }", "1.0, -0.0, NA, NA, NA, NA, NA, NA, NA, NA");
-            assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; qr.coef(x, c(1,3,2)) }", "0.7142857142857144");
+            assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
             assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
-            assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; qr.coef(x, 1:3) }", "0.9999999999999999, 0.0");
+            assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; round( qr.coef(x, 1:3), digits=5 ) }", "1.0, 0.0");
 
             // qr.solve
-            assertEval("{ qr.solve(qr(c(1,3,4,2)), c(1,2,3,4)) }", "0.8999999999999999");
-            assertEval("{ qr.solve(c(1,3,4,2), c(1,2,3,4)) }", "0.8999999999999999");
+            assertEval("{ round( qr.solve(qr(c(1,3,4,2)), c(1,2,3,4)), digits=5 ) }", "0.9");
+            assertEval("{ round( qr.solve(c(1,3,4,2), c(1,2,3,4)), digits=5) }", "0.9");
         }
     }
 

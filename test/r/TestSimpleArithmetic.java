@@ -42,15 +42,15 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ x <- 1+2i; y <- 3+4i; x*y }", "-5.0+10.0i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x/y }", "0.44+0.08i");
         assertEval("{ x <- 1+2i; y <- 3+4i; x-y }", "-2.0-2.0i");
-        assertEval("{ x <- 1+2i; y <- 3+4i; x*x*y/(x+y) }", "-1.923076923076923+2.884615384615385i");
+        assertEval("{ x <- 1+2i; y <- 3+4i; round(x*x*y/(x+y), digits=5) }", "-1.92308+2.88462i");
         assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y*y+x }", "-1.5-1.0i, -1.3-1.0i");
         assertEval("{ x <- c(-1.5-1i,-1.3-1i) ; y <- c(0+0i, 0+0i) ; y-x }", "1.5+1.0i, 1.3+1.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y-x }", "4.0+3.0i, -7.0-5.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y+x }", "2.0-1.0i, -1.0+15.0i");
         assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y*x }", "-1.0-7.0i, -62.0-25.0i");
-        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; y/x }", "-1.0+1.0i, 0.34862385321100914+0.5045871559633027i");
+        assertEval("{ x <- c(-1-2i,3+10i) ; y <- c(3+1i, -4+5i) ; round(y/x, digits=5) }", "-1.0+1.0i, 0.34862+0.50459i");
 
-        assertEval("{ (1+2i)^(3+4i) }", "0.12900959407446697+0.03392409290517014i");
+        assertEval("{ round( (1+2i)^(3+4i), digits=5 ) }", "0.12901+0.03392i");
         assertEval("{ (1+2i)^2 }", "-3.0+4.0i");
         assertEval("{ (1+2i)^(-2) }", "-0.12-0.16i");
         assertEval("{ (1+2i)^0 }", "1.0+0.0i");
@@ -75,7 +75,7 @@ public class TestSimpleArithmetic extends TestBase {
 
         assertEval("{ ((1+0i)/(0+0i)) ^ (-3) }", "0.0+0.0i");
         assertEval("{ ((1+1i)/(0+0i)) ^ (-3) }", "-0.0+-0.0i"); // NOTE: GNU-R prints negative zero as zero
-        assertEval("{ ((1+1i)/(0+1i)) ^ (-3.54) }", "-0.2742803631019028+0.10364191261464788i");
+        assertEval("{ round( ((1+1i)/(0+1i)) ^ (-3.54), digits=5) }", "-0.27428+0.10364i");
     }
 
     @Test
@@ -98,7 +98,7 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ z <- c(-1.5-1i,10) ; (z * z)[1] }", "1.25+3.0i");
 
         assertEval("{ c(1,2,3+1i)^3 }", "1.0+0.0i, 8.0+0.0i, 18.0+26.0i");
-        assertEval("{ 3^c(1,2,3+1i) }", "3.0+0.0i, 9.0+0.0i, 12.280475416318462+24.045580125029172i");
+        assertEval("{ round( 3^c(1,2,3+1i), digits=5 ) }", "3.0+0.0i, 9.0+0.0i, 12.28048+24.04558i");
     }
 
     @Test

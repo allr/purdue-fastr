@@ -3,7 +3,7 @@ package r;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-// FIXME: I've seen tests crash when run by JUnit, by pass when run manually through console...
+// FIXME: I've seen tests crash when run by JUnit, but pass when run manually through console...
 public class TestSimpleTruffle extends TestBase {
 
     @Test
