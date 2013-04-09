@@ -169,6 +169,53 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
     }
 
     @Override
+    public RString subset(final RInt index) {
+        final int size = index.size();
+        if (size == 1) {
+            int i = index.getInt(0);
+            if (i > 1) {
+                return RString.BOXED_NA;
+            } else {
+                return this;
+            }
+        }
+        final String svalue = value;
+        return new View.RStringView() {
+
+            @Override
+            public String getString(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RString.NA;
+                } else {
+                    return svalue;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return index.dependsOn(v);
+            }
+
+        };
+    }
+
+    @Override
     public String typeOf() {
         return RString.TYPE_STRING;
     }

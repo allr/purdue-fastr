@@ -187,6 +187,64 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
     }
 
     @Override
+    public RComplex subset(final RInt index) {
+        final int size = index.size();
+        if (size == 1) {
+            int i = index.getInt(0);
+            if (i > 1) {
+                return RComplex.BOXED_NA;
+            } else {
+                return this;
+            }
+        }
+        final double rvalue = real;
+        final double ivalue = imag;
+        return new View.RComplexView() {
+
+            @Override
+            public double getReal(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RDouble.NA;
+                } else {
+                    return rvalue;
+                }
+            }
+
+            @Override
+            public double getImag(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RDouble.NA;
+                } else {
+                    return ivalue;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return index.dependsOn(v);
+            }
+
+        };
+    }
+
+    @Override
     public String typeOf() {
         return RComplex.TYPE_STRING;
     }

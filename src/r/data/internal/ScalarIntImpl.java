@@ -165,6 +165,53 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
     }
 
     @Override
+    public RInt subset(final RInt index) {
+        final int size = index.size();
+        if (size == 1) {
+            int i = index.getInt(0);
+            if (i > 1) {
+                return RInt.BOXED_NA;
+            } else {
+                return this;
+            }
+        }
+        final int ivalue = value;
+        return new View.RIntView() {
+
+            @Override
+            public int getInt(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RInt.NA;
+                } else {
+                    return ivalue;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return index.dependsOn(v);
+            }
+
+        };
+    }
+
+    @Override
     public String typeOf() {
         return RInt.TYPE_STRING;
     }

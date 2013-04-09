@@ -174,6 +174,53 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     }
 
     @Override
+    public RDouble subset(final RInt index) {
+        final int size = index.size();
+        if (size == 1) {
+            int i = index.getInt(0);
+            if (i > 1) {
+                return RDouble.BOXED_NA;
+            } else {
+                return this;
+            }
+        }
+        final double dvalue = value;
+        return new View.RDoubleView() {
+
+            @Override
+            public double getDouble(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RDouble.NA;
+                } else {
+                    return dvalue;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return index.dependsOn(v);
+            }
+
+        };
+    }
+
+    @Override
     public String typeOf() {
         return RDouble.TYPE_STRING;
     }

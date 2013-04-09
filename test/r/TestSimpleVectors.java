@@ -87,6 +87,12 @@ public class TestSimpleVectors extends TestBase {
         assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; f <- function(s) { x[s] } ; f(TRUE) ; f(1L) ; f(\"b\") }", "  b\n2.0");
         assertEval("{ x <- c(a=as.raw(10),b=as.raw(11),c=as.raw(12),d=as.raw(13)) ; f <- function(s) { x[c(s,s)] } ; f(TRUE) ; f(1L) ; f(as.character(NA)) }", "<NA> <NA>\n  00   00");
         assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; f <- function(s) { x[c(s,s)] } ; f(TRUE) ; f(1L) ; f(\"b\") }", "  b   b\n2.0 2.0");
+
+        assertEval("{ x <- 1;  y<-c(1,1) ; x[y] }", "1.0, 1.0");
+        assertEval("{ x <- 1L;  y<-c(1,1) ; x[y] }", "1L, 1L");
+        assertEval("{ x <- TRUE;  y<-c(1,1) ; x[y] }", "TRUE, TRUE");
+        assertEval("{ x <- \"hi\";  y<-c(1,1) ; x[y] }", "\"hi\", \"hi\"");
+        assertEval("{ x <- 1+2i;  y<-c(1,2) ; x[y] }", "1.0+2.0i, NA");
     }
 
     @Test

@@ -165,6 +165,53 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
     }
 
     @Override
+    public RLogical subset(final RInt index) {
+        final int size = index.size();
+        if (size == 1) {
+            int i = index.getInt(0);
+            if (i > 1) {
+                return RLogical.BOXED_NA;
+            } else {
+                return this;
+            }
+        }
+        final int lvalue = value;
+        return new View.RLogicalView() {
+
+            @Override
+            public int getLogical(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RLogical.NA;
+                } else {
+                    return lvalue;
+                }
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return index.dependsOn(v);
+            }
+
+        };
+    }
+
+    @Override
     public String typeOf() {
         return RLogical.TYPE_STRING;
     }
