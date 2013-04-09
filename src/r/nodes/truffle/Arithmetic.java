@@ -44,7 +44,8 @@ public class Arithmetic extends BaseR {
     }
 
     public static boolean returnsDouble(ValueArithmetic arit) {
-        return (arit == POW || arit == DIV);
+//        return (arit == POW || arit == DIV);
+        return arit.returnsDouble();
     }
 
     @Override
@@ -994,6 +995,8 @@ public class Arithmetic extends BaseR {
 
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes);
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes);
+
+        public abstract boolean returnsDouble();
     }
 
     public static final class Add extends ValueArithmetic {
@@ -1091,6 +1094,10 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
+        @Override
+        public boolean returnsDouble() {
+            return false;
+        }
     }
 
     public static final class Sub extends ValueArithmetic {
@@ -1159,6 +1166,10 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+        }
+        @Override
+        public boolean returnsDouble() {
+            return false;
         }
     }
 
@@ -1303,6 +1314,10 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+        }
+        @Override
+        public boolean returnsDouble() {
+            return false;
         }
     }
 
@@ -1554,6 +1569,10 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
+        @Override
+        public boolean returnsDouble() {
+            return true;
+        }
     }
 
     public static boolean isFinite(double d) {
@@ -1666,6 +1685,10 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+        @Override
+        public boolean returnsDouble() {
+            return true;
+        }
     }
 
     public static final class IntegerDiv extends ValueArithmetic {
@@ -1708,6 +1731,10 @@ public class Arithmetic extends BaseR {
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public boolean returnsDouble() {
+            return false;
         }
     }
 
@@ -1761,6 +1788,10 @@ public class Arithmetic extends BaseR {
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public boolean returnsDouble() {
+            return false;
         }
     }
 
@@ -2403,7 +2434,6 @@ public class Arithmetic extends BaseR {
         return res;
     }
 
-
     abstract static class IntView extends View.RIntView implements RInt {
         final RInt a;
         final RInt b;
@@ -2591,8 +2621,6 @@ public class Arithmetic extends BaseR {
         }
 
     }
-
-
 
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
         int[] dima = a.dimensions();

@@ -920,4 +920,14 @@ public class TestSimpleBuiltins extends TestBase {
         assertEval("{ x <- 1:2 ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 2.0\nattr(,\"my\")\n2.0");
         assertEval("{ x <- c(1+2i,3-4i) ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 3.0\nattr(,\"my\")\n2.0");
     }
+
+    @Test
+    public void testRound() throws RecognitionException {
+        assertEval("{ round(0.4) }", "0.0");
+        assertEval("{ round(0.5) }", "0.0");
+        assertEval("{ round(0.6) }", "1.0");
+        assertEval("{ round(1.5) }", "2.0");
+        assertEval("{ round(1L) }", "1.0");
+        assertEval("{ round(1.123456,digit=2.8) }", "1.123");
+    }
 }

@@ -153,6 +153,7 @@ public class Primitives {
         add(Rev._);
         add("rev.default", Rev._);
         add(Rnorm._);
+        add(Round._);
         add(RowMeans._);
         add(RowSums._);
         add(Runif._);
