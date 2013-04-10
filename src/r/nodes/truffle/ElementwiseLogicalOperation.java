@@ -219,7 +219,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (b == RLogical.TRUE) {
                 return RLogical.NA;
             } else {
-                return RLogical.FALSE;
+                return b;
             }
         }
     };
