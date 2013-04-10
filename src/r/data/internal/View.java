@@ -395,6 +395,11 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public int[] getContent() {
+            return materialize().getContent();
+        }
+
+        @Override
         public RRaw asRaw() {
             return new RInt.RRawView(this);
         }

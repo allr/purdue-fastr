@@ -12,6 +12,8 @@ import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+import r.builtins.internal.Random;
+
 final class Rnorm extends CallFactory {
 
     static final CallFactory _ = new Rnorm("rnorm", new String[]{"n", "mean", "sd"}, new String[]{"n"});
@@ -43,7 +45,10 @@ final class Rnorm extends CallFactory {
 
                 @Override public RAny doBuiltIn(Frame frame, RAny narg) {
                     int n = parseN(narg, ast);
-                    return RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
+                    int [] rngKind = Random.updateNativeSeed(ast);
+                    RAny res = RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
+                    Random.updateWorkspaceSeed(rngKind);
+                    return res;
                 }
             };
         }

@@ -19,6 +19,7 @@ public interface RInt extends RNumber {
     int getInt(int i);
     RInt set(int i, int val);
     RInt materialize();
+    public int[] getContent();
 
     public class RIntUtils {
         public static RRaw intToRaw(RInt value, ConversionStatus warn) { // eager to keep error semantics eager

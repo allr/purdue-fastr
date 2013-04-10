@@ -3,6 +3,7 @@ package r.builtins;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
+import r.builtins.internal.*;
 import r.data.*;
 import r.errors.*;
 import r.gnur.*;
@@ -24,7 +25,10 @@ final class Runif extends CallFactory {
 
                 @Override public RAny doBuiltIn(Frame frame, RAny narg) {
                     int n = Rnorm.parseN(narg, ast);
-                    return RDouble.RDoubleFactory.getFor(runifStd(n, ast));
+                    int [] rngKind = Random.updateNativeSeed(ast);
+                    RAny res = RDouble.RDoubleFactory.getFor(runifStd(n, ast));
+                    Random.updateWorkspaceSeed(rngKind);
+                    return res;
                 }
             };
         }

@@ -9,6 +9,7 @@ import r.data.*;
 import r.nodes.*;
 import r.parser.*;
 
+//file tests run input files of R code using non-debugging output format
 public class FileTestBase extends TestBase {
 
     public static void captureOutputToFile(String runFile, String captureFile) {
@@ -90,19 +91,19 @@ public class FileTestBase extends TestBase {
         EvalResult result = run(runFile);
 
         if (expectedOutput != null && !expectedOutput.equals(result.stdout)) {
-            fail("Incorrect output while running " + runFile, result);
             System.err.println("Expected output was: ");
             System.err.println(expectedOutput);
+            fail("Incorrect output while running " + runFile, result);
         }
         if (expectedErrorOutput != null && !expectedErrorOutput.equals(result.stderr)) {
-            fail("Incorrect error output while running " + runFile, result);
             System.err.println("Expected error output was: ");
             System.err.println(expectedErrorOutput);
+            fail("Incorrect error output while running " + runFile, result);
         }
         if (expectedResult != null && !expectedResult.equals(result.result)) {
-            fail("Incorrect result while running " + runFile, result);
             System.err.println("Expected result was: ");
             System.err.println(expectedResult);
+            fail("Incorrect result while running " + runFile, result);
         }
     }
 

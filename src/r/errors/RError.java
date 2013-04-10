@@ -111,6 +111,7 @@ public abstract class RError extends RuntimeException {
     public static final String FIRST_QR = "first argument must be a QR decomposition";
     public static final String ONLY_SQUARE_INVERTED = "only square matrices can be inverted";
     public static final String NON_NUMERIC_ARGUMENT_FUNCTION = "non-numeric argument to function";
+    public static final String SEED_LENGTH = ".Random.seed has wrong length";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -160,6 +161,7 @@ public abstract class RError extends RuntimeException {
     public static final String SAME_NUMBER_ROWS = "'%s' and '%s' must have the same number of rows";
     public static final String EXACT_SINGULARITY = "exact singularity in '%s'";
     public static final String SINGULAR_SOLVE = "singular matrix '%s' in solve";
+    public static final String SEED_TYPE = ".Random.seed is not an integer vector but of type '%s'";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1165,6 +1167,17 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getSeedLength(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.SEED_LENGTH;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1368,5 +1381,9 @@ public abstract class RError extends RuntimeException {
 
     public static RError getSingularSolve(ASTNode ast, String matName) {
         return getGenericError(ast, String.format(RError.SINGULAR_SOLVE, matName));
+    }
+
+    public static RError getSeedType(ASTNode ast, String typeName) {
+        return getGenericError(ast, String.format(RError.SEED_TYPE, typeName));
     }
 }

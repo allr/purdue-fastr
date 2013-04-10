@@ -49,6 +49,22 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
 
 /*
  * Class:     r_gnur_GNUR
+ * Method:    set_seed
+ * Signature: ([I)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_set_1seed
+  (JNIEnv *, jclass, jintArray);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    get_seed
+ * Signature: ([I)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_get_1seed
+  (JNIEnv *, jclass, jintArray);
+
+/*
+ * Class:     r_gnur_GNUR
  * Method:    fft_factor
  * Signature: (I[I[I)V
  */

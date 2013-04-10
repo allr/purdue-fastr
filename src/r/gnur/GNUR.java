@@ -1,5 +1,6 @@
 package r.gnur;
 
+
 public class GNUR {
 
     // nmath
@@ -9,6 +10,9 @@ public class GNUR {
     public static native boolean rnormStd(double[] res, int n);
 
     public static native boolean runifStd(double[] res, int n);
+
+    public static native void set_seed(int[] rngKind); // rngKind is an array of (at least) 3 elements: generator id, i1, i2
+    public static native void get_seed(int[] rngKind);
 
     // appl
     public static native void fft_factor(int n, int[] maxf, int[] maxp); // FIXME: could also use intW or similar instead of int[]

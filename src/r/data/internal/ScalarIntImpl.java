@@ -9,6 +9,11 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     int value;
 
+    @Override
+    public int[] getContent() {
+        return new int[] {value};
+    }
+
     public ScalarIntImpl(int value) {
         this.value = value;
     }

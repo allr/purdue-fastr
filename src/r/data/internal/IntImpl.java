@@ -10,6 +10,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     final int[] content;
 
+    @Override
     public int[] getContent() {
         return content;
     }

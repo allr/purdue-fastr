@@ -1,7 +1,6 @@
 #include <jni.h>
 
-//#define MATHLIB_STANDALONE 1
-//#include <Rmath.h>
+#define MATHLIB_STANDALONE 1
 #include <R.h>
 #include <Rmath.h>
 #include <R_ext/Applic.h>
@@ -14,6 +13,28 @@
 // for which a general checking version should be available.
 
 // nmath =================================================================================================
+
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_set_1seed
+  (JNIEnv *jenv, jclass jcls, jintArray kindArg) {
+ 
+  int *kind = (*jenv)->GetPrimitiveArrayCritical(jenv, kindArg, 0);
+
+  // FIXME: the generator ID is now ignored !  
+  set_seed( (unsigned int) kind[1], (unsigned int) kind[2]);
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, kindArg, kind, 0);
+}
+
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_get_1seed
+  (JNIEnv *jenv, jclass jcls, jintArray kindArg) {
+  
+  int *kind = (*jenv)->GetPrimitiveArrayCritical(jenv, kindArg, 0);
+  
+  get_seed( (unsigned int *) kind+1, (unsigned int *) kind+2);
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, kindArg, kind, 0);  
+}  
+
 
 JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_rnorm__DD
   (JNIEnv *jenv, jclass jcls, jdouble mu, jdouble sigma) {
