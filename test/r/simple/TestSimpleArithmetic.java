@@ -1,9 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
-public class TestSimpleArithmetic extends TestBase {
+public class TestSimpleArithmetic extends SimpleTestBase {
 
     @Test
     public void testScalars() throws RecognitionException {
@@ -141,6 +141,7 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");
     }
 
+    @Test
     public void testNonvectorizedLogical() throws RecognitionException {
         assertEval("{ 1.1 || 3.15 }", "TRUE");
         assertEval("{ 0 || 0 }", "FALSE");
@@ -158,18 +159,19 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ TRUE && NA }", "NA");
         assertEval("{ FALSE && NA }", "FALSE");
         assertEval("{ NA && TRUE }", "NA");
-        assertEval("{ NA && FALSE }", "NA");
+        assertEval("{ NA && FALSE }", "FALSE");
         assertEval("{ NA && NA }", "NA");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x } ", "2.0");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } ", "1.0");
     }
 
+    @Test
     public void testVectorizedLogical() throws RecognitionException {
         assertEval("{ 1.1 | 3.15 }", "TRUE");
         assertEval("{ 0 | 0 }", "FALSE");
         assertEval("{ 1 | 0 }", "TRUE");
         assertEval("{ NA | 1 }", "TRUE");
-        assertEval("{ NA | 0 }", "FALSE");
+        assertEval("{ NA | 0 }", "NA");
         assertEval("{ 0 | NA }", "NA");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA | f(NA) ; x }", "2.0");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; TRUE | f(FALSE) ; x }", "2.0");
@@ -181,7 +183,7 @@ public class TestSimpleArithmetic extends TestBase {
         assertEval("{ TRUE & NA }", "NA");
         assertEval("{ FALSE & NA }", "FALSE");
         assertEval("{ NA & TRUE }", "NA");
-        assertEval("{ NA & FALSE }", "NA");
+        assertEval("{ NA & FALSE }", "FALSE");
         assertEval("{ NA & NA }", "NA");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA & f(NA) ; x }", "2.0");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE & f(FALSE) ; x }", "2.0");

@@ -1,10 +1,11 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
+import r.*;
 
-public class TestSimpleBuiltins extends TestBase {
+public class TestSimpleBuiltins extends SimpleTestBase {
 
     @Test
     public void testSequence() throws RecognitionException {

@@ -1,10 +1,11 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
+
 import r.errors.RError;
 
-public class TestSimpleVectors extends TestBase {
+public class TestSimpleVectors extends SimpleTestBase {
 
     @Test
     public void testScalarIndex() throws RecognitionException {

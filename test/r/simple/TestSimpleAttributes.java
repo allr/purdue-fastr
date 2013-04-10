@@ -1,10 +1,10 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.RecognitionException;
 import org.junit.*;
 
 // NOTE: some tests relating to attributes are also in TestSimpleBuiltins.testAttributes
-public class TestSimpleAttributes extends TestBase {
+public class TestSimpleAttributes extends SimpleTestBase {
 
     @Test
     public void testDefinition() throws RecognitionException {

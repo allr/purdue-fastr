@@ -1,9 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
-public class TestSimpleIfEvaluator extends TestBase {
+public class TestSimpleIfEvaluator extends SimpleTestBase {
 
     @Test
     public void testIf2() throws RecognitionException {
@@ -11,11 +11,9 @@ public class TestSimpleIfEvaluator extends TestBase {
         assertEval("if(FALSE) 1 else 2", "2.0");
     }
 
-  /*
-   * @Test
+    @Test
     public void testIfNot1() throws RecognitionException {
         assertEval("if(!FALSE) 1 else 2", "1.0");
         assertEval("if(!TRUE) 1 else 2", "2.0");
     }
-   */
 }

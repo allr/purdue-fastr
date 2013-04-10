@@ -1,11 +1,12 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
+
 import r.errors.RError;
 
 
-public class TestSimpleArrays extends TestBase {
+public class TestSimpleArrays extends SimpleTestBase {
 
     @Test
     public void testArrayBuiltin() throws RecognitionException {

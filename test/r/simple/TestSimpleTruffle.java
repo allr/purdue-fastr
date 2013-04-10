@@ -1,10 +1,10 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
 // FIXME: I've seen tests crash when run by JUnit, but pass when run manually through console...
-public class TestSimpleTruffle extends TestBase {
+public class TestSimpleTruffle extends SimpleTestBase {
 
     @Test
     public void test1() throws RecognitionException {

@@ -1,10 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
-
-public class TestSimpleLoop extends TestBase {
+public class TestSimpleLoop extends SimpleTestBase {
 
     @Test
     public void testLoops() throws RecognitionException {

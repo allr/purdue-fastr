@@ -1,9 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
-public class TestSimpleAssignment extends TestBase {
+public class TestSimpleAssignment extends SimpleTestBase {
     @Test
     public void testAssign() throws RecognitionException {
         assertEval("{ a<-1 }", "1.0");

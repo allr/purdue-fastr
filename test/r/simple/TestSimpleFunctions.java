@@ -1,9 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
 
-public class TestSimpleFunctions extends TestBase {
+public class TestSimpleFunctions extends SimpleTestBase {
 
     @Test
     public void testDefinitions() throws RecognitionException {

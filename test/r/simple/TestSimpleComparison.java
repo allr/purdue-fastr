@@ -1,8 +1,9 @@
-package r;
+package r.simple;
 
 import org.antlr.runtime.*;
 import org.junit.*;
-public class TestSimpleComparison extends TestBase {
+
+public class TestSimpleComparison extends SimpleTestBase {
 
     @Test
     public void testScalars() throws RecognitionException {

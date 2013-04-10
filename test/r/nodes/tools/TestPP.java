@@ -5,6 +5,7 @@ import junit.framework.*;
 import org.antlr.runtime.*;
 import org.junit.Test;
 
+import r.*;
 import r.nodes.*;
 import r.parser.*;
 
@@ -26,6 +27,7 @@ public class TestPP {
     }
 
     private static void assertPP(String input, String expected) throws RecognitionException {
+        RContext.debuggingFormat(true);
         Assert.assertEquals(expected, PrettyPrinter.prettyPrint(parse(input)));
     }
 
