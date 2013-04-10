@@ -21,7 +21,7 @@ public class RFrameHeader extends Arguments {
     Object returnValue;  // for top-level frames, used to store REnvironment
     boolean isDirty;
 
-    final Frame enclosingFrame; // MaterializedFrame
+    final MaterializedFrame enclosingFrame;
     final RFunction function;
     RFrameExtension extension;
     REnvironment environment;
