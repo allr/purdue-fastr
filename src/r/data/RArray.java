@@ -21,12 +21,12 @@ public interface RArray extends RAny {
     int size();
 
     /**
-     * Do not modify the array returned but this functions!
+     * Do not modify the array returned by this function!
      */
     int[] dimensions();
 
     /**
-     * Do not modify the value returned but this functions!
+     * Do not modify the value returned by this function!
      */
     Names names();
 
