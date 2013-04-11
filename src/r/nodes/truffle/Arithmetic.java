@@ -17,10 +17,13 @@ import r.gnur.*;
 import r.nodes.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
-// FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though this should not be visible to the end-user
 
-// TODO: the complex arithmetics (here and in some math functions, which are builtins), is not IEEE 754 compliant ; GNU-R depends on the C99 compiler to implement
-// the low-level operations correctly. Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
+// FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though
+// this should not be visible to the end-user
+
+// TODO: the complex arithmetics (here and in some math functions, which are builtins), is not IEEE 754 compliant
+// GNU-R depends on the C99 compiler to implement the low-level operations correctly.
+// Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
 
 public class Arithmetic extends BaseR {
 
@@ -911,11 +914,6 @@ public class Arithmetic extends BaseR {
             assert Utils.check(left instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
 
-//                @Override
-//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
-//                    return (RAny) execute(null, variableValue);
-//                }
-
                 @Override
                 public Object execute(Frame frame) {
                     RAny rexpr = (RAny) right.execute(frame);
@@ -927,11 +925,6 @@ public class Arithmetic extends BaseR {
         public static SpecializedConst createRightConst(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, Calculator calc, String dbg) {
             assert Utils.check(right instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
-
-//                @Override
-//                public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
-//                    return (RAny) execute(variableValue, null);
-//                }
 
                 @Override
                 public Object execute(Frame frame) {
@@ -1015,6 +1008,7 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a + b;
             boolean bLTr = b < r;
             if (a > 0) {
@@ -1116,6 +1110,7 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a - b;
             if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
                 return r;
@@ -1187,6 +1182,7 @@ public class Arithmetic extends BaseR {
     }
 
     public static void cmult(double a, double b, double c, double d, double[] res, int offset) {
+        // LICENSE: transcribed code from GCC, which is licensed under GPL
         // libgcc2
 
         double ac = a * c;
@@ -1323,6 +1319,8 @@ public class Arithmetic extends BaseR {
     }
 
     public static double chypot(double real, double imag) {
+        // LICENSE: transcribed code from GCC, which is licensed under GPL
+
         // after libgcc2's x86 hypot - note the sign of NaN below (what GNU-R uses)
         // note that Math.hypot in Java is _very_ slow as it tries to be more precise
         double res = Math.sqrt(real * real + imag * imag);
@@ -1343,6 +1341,8 @@ public class Arithmetic extends BaseR {
     public static final class Pow extends ValueArithmetic {
 
         private static void creciprocal(double[] z, int offset) {
+            // LICENSE: this code is derived from the division code, which is transcribed code from GCC, which is licensed under GPL
+
             double c = z[offset];
             double d = z[offset + 1];
             double ratio;
@@ -1381,6 +1381,8 @@ public class Arithmetic extends BaseR {
 
         // R_cpow_n in complex.c
         private static void cpow(double xr, double xi, int k, double[] z, int offset) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
             if (k == 0) {
                 z[offset] = 1;
                 z[offset + 1] = 0; // FIXME: perhaps should rely on cleared z
@@ -1417,6 +1419,7 @@ public class Arithmetic extends BaseR {
         }
 
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             if (xr == 0) {
                 if (yi == 0) {
                     z[offset] = pow(0, yr);
@@ -1466,6 +1469,8 @@ public class Arithmetic extends BaseR {
 
         @Override
         public double op(ASTNode ast, double a, double b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
             // NOTE: Math.pow (which uses FDLIBM) is very slow, the version written in assembly in GLIBC (SSE2 optimized) is about 2x faster
 
             // arithmetic.c (GNU R)
@@ -1545,6 +1550,7 @@ public class Arithmetic extends BaseR {
         }
 
         public static void cpow2(double a, double b, double[] res, int offset) {
+            // LICENSE: this code is derived from the multiplication code, which is transcribed code from GCC, which is licensed under GPL
 
             double a2 = a * a;
             double b2 = b * b;
@@ -1636,6 +1642,7 @@ public class Arithmetic extends BaseR {
     }
 
     public static void cdiv(double a, double b, double c, double d, double[] res, int offset) {
+        // LICENSE: transcribed code from GCC, which is licensed under GPL
         // libgcc2
 
         double ratio;
@@ -1758,6 +1765,7 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             double q = a / b;
             if (b != 0) {
                 double qfloor = Math.floor(q);
@@ -1795,6 +1803,7 @@ public class Arithmetic extends BaseR {
     }
 
     public static double fmod(ASTNode ast, double a, double b) { // FIXME: this is R implementation, can we do faster in Java?
+        // LICENSE: transcribed code from GNU R, which is licensed under GPL
         double q = a / b;
         if (b != 0) {
             double tmp = a - Math.floor(q) * b;
@@ -1823,6 +1832,7 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             if (b != 0) {
                 if (a >= 0 && b > 0) {
                     return a % b;

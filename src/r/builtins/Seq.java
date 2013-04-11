@@ -10,9 +10,9 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "seq"
- * 
+ *
  * <pre>
- * from, to -- the starting and (maximal) end values of the sequence. Of length 1 unless just from is supplied 
+ * from, to -- the starting and (maximal) end values of the sequence. Of length 1 unless just from is supplied
  *        as an unnamed argument.
  *  by -- number: increment of the sequence.
  *  length.out -- desired length of the sequence. A non-negative number, which for seq and seq.int will be
@@ -32,6 +32,7 @@ final class Seq extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        // LICENSE: transcribed code from GNU R, which is licensed under GPL
         if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 return RInt.RIntFactory.getScalar(1);

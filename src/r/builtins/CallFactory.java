@@ -15,6 +15,8 @@ import java.lang.Integer; // needed because there is a class Integer in this pac
  */
 public abstract class CallFactory {
 
+    // LICENSE: Some sub-classes include comments that are copy-pasted from GNU R online manual. GNU R is licensed under GPL.
+
     /** Declared name of function. */
     final RSymbol name;
     /** Names of the declared parameters. */

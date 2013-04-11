@@ -15,7 +15,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 import java.lang.Integer;
-import java.lang.Double;
 
 // NOTE: in GNU-R, the user can select between a stable version of shellsort and unstable version of quicksort, and the selection is mostly
 // honored except for some cases when shellsort is silently used instead of quicksort (so "stable" instead of "unstable")

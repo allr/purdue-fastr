@@ -15,7 +15,7 @@ import java.math.*;
 import java.util.*;
 
 // FIXME: there are some unnecessary casts of the "digits" argument (e.g. to complex or to double), GNU-R has the same problem
-// FIXME: make this faster, note that is fround in nmath
+// FIXME: make this faster, note there is fround in nmath
 // FIXME: fix error messages on non-numeric arguments
 final class Round extends CallFactory {
 
@@ -43,6 +43,7 @@ final class Round extends CallFactory {
     static final int MAX_DIGITS = 37; // FIXME: check it reflects R
 
     public static double round(double x, double digits) {
+        // LICENSE: transcribed code from GNU R's math library, which is licensed under GPL
         int d;
         if (RDouble.RDoubleUtils.isNAorNaN(x) || RDouble.RDoubleUtils.isNAorNaN(digits)) {
             return x + digits;
@@ -62,6 +63,7 @@ final class Round extends CallFactory {
     }
 
     public static void round(double[] x, double digits, double[] res) {
+        // LICENSE: transcribed code from GNU R's math library, which is licensed under GPL
         int size = x.length;
         if (digits == Double.NEGATIVE_INFINITY) {
             Arrays.fill(res, 0);

@@ -298,7 +298,9 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
-        // TODO: FunctionCall for now are ONLY for variable (see Call.create ...). It's maybe smarter to move this instance of here and replace the type of name by expression
+
+        // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
+        // It's maybe smarter to move this instance of here and replace the type of name by expression
         SplitArgumentList a = splitArgumentList(functionCall.getArgs(), true);
 
         RSymbol sym = functionCall.getName();
@@ -513,7 +515,7 @@ public class Truffleize implements Visitor {
             for (int i = 0; i < selNodes.length; ++i) {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
             }
-            // Create the assignment, or superassignment nodes
+            // Create the assignment, or super assignment nodes
             ASTNode varAccess = a.getVector();
             RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
             if (!(varAccess instanceof SimpleAccessVariable)) {

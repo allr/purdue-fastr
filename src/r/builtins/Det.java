@@ -28,6 +28,8 @@ final class Det extends CallFactory {
         return new Builtin(call, names, exprs) {
 
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
                 RAny xarg = args[xPosition];
                 if (!(xarg instanceof RArray)) {
                     throw RError.getInvalidArgument(ast, "x"); // TODO: S3 dispatch / failure here

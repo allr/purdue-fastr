@@ -6,7 +6,8 @@ import r.*;
 import r.data.*;
 
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
-// fixme - perhaps rename the class
+// FIXME: perhaps rename the class (but then also rename Scalar*Impl)
+
 public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
 
     protected int[] dimensions; // the content shall never be modified once set
@@ -76,17 +77,11 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
     }
 
 
-    /** Increments the given array of integets within bounds specified by dim argument and returns true on overflow.
-     */
-    public static boolean increment(int[] idx, int[] dim) {
-        return increment(idx, dim, 0);
-    }
-
     /** Increments the given array of digits, with second argument being the maximum numbers for the specified digits.
      * Returns true if the operation overflows. Ignore digits can specify the most significant digits (starting with 0)
      * that will be reported as overflow when changed.
      */
-    public static boolean increment(int[] idx, int[] dim, final int ignoreDigits) {
+    private static boolean increment(int[] idx, int[] dim, final int ignoreDigits) {
         for (int i = idx.length - 1; i >= ignoreDigits; --i) {
             ++idx[i];
             if (idx[i] > dim[i]) {

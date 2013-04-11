@@ -10,13 +10,12 @@ import r.nodes.truffle.*;
 
 /**
  * ":"
- * 
+ *
  * <pre>
  * from -- starting value of sequence.
  * to -- (maximal) end value of the sequence.
  * </pre>
  */
-// FIXME: Truffle can't optimize BuiltIn2
 // FIXME: there is a version of colon for factors that is currently not implemented.
 final class Colon extends CallFactory {
 

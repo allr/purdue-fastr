@@ -1,17 +1,11 @@
 package r.builtins;
 
-import r.*;
-import r.data.*;
-import r.data.internal.*;
-import r.errors.*;
 import r.nodes.*;
-import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
 
 /**
  * "ln"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector.
  * </pre>

@@ -10,7 +10,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "upper.tri"
- * 
+ *
  * <pre>
  * x -- a matrix.
  * diag -- logical. Should the diagonal be included?
@@ -37,27 +37,11 @@ class UpperTri extends CallFactory {
         }
     };
 
-    static Triangular LOWER = new Triangular() {
-
-        @Override public RArray triangular(int m, int n, boolean diag) {
-            int[] content = new int[m * n];
-            int startTakingFrom = diag ? 0 : 1;
-            for (int j = 0; j < n; j++) {
-                for (int i = startTakingFrom; i < m; i++) {
-                    content[j * m + i] = RLogical.TRUE;
-                }
-                startTakingFrom++;
-                // FALSE is the default value
-            }
-            return RLogical.RLogicalFactory.getFor(content);
-        }
-    };
-
-    static final CallFactory _ = new UpperTri("upper.tri", new String[]{"x", "diag"}, new String[]{"x"}, null);
+    static final CallFactory _ = new UpperTri("upper.tri", new String[]{"x", "diag"}, new String[]{"x"}, UPPER);
 
     UpperTri(String name, String[] params, String[] required, Triangular trian) {
         super(name, params, required);
-        this.trian = trian == null ? UPPER : trian;
+        this.trian = trian;
     }
 
     final Triangular trian;
@@ -67,7 +51,7 @@ class UpperTri extends CallFactory {
         final boolean xfirst = ia.position("x") == 0;
         if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny argx) {
-                return UPPER.triangular(argx, false);
+                return trian.triangular(argx, false);
             }
         }; }
         // names.length == 2

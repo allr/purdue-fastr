@@ -9,12 +9,11 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "names"
- * 
+ *
  * <pre>
  * x -- an R object.
  * </pre>
  */
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
 final class Names extends CallFactory {
     static final CallFactory _ = new Names("names", new String[]{"x"}, new String[]{"x"});
 

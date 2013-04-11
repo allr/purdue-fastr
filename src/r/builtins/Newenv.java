@@ -11,11 +11,11 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "new.env"
- * 
+ *
  * <pre>
  * hash  -- a logical, if TRUE the environment will use a hash table.
  * parent -- an environment to be used as the enclosure of the environment created.
- * size -- an integer specifying the initial size for a hashed environment. An internal default value will be used if 
+ * size -- an integer specifying the initial size for a hashed environment. An internal default value will be used if
  *         size is NA or zero. This argument is ignored if hash is FALSE.
  * </pre>
  */
@@ -63,13 +63,13 @@ final class Newenv extends CallFactory {
     }
 
     // FIXME: note that R coerces to int instead of logical that one could expect here
-    boolean parseHash(RAny arg, ASTNode ast) { // not exactly R semantics
+    static boolean parseHash(RAny arg, ASTNode ast) { // not exactly R semantics
         RInt i = Convert.coerceToIntWarning(arg, ast);
         if (i.size() > 0 && i.getInt(0) != 0) { return true; }
         return DEFAULT_HASH;
     }
 
-    int parseSize(RAny arg, ASTNode ast) {
+    static int parseSize(RAny arg, ASTNode ast) {
         RInt i = Convert.coerceToIntWarning(arg, ast);
         if (i.size() > 0) {
             int v = i.getInt(0);
@@ -78,7 +78,7 @@ final class Newenv extends CallFactory {
         return DEFAULT_SIZE;
     }
 
-    REnvironment parseParent(RAny arg, ASTNode ast) {
+    static REnvironment parseParent(RAny arg, ASTNode ast) {
         if (arg instanceof REnvironment) { return (REnvironment) arg; }
         throw RError.getMustBeEnviron(ast, "parent"); // GNU-R says "environ", but it is a bug
     }

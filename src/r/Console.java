@@ -215,10 +215,10 @@ public class Console {
     }
 
     static void parseError(RParser parser, RecognitionException e) {
-        Token tok = e.token;
-        String[] tokNames = parser.getTokenNames();
+        Token token = e.token;
+        String[] tokenNames = parser.getTokenNames();
         System.err
-                .print("Parse error on '" + tok.getText() + "' at " + tok.getLine() + ":" + (tok.getCharPositionInLine() + 1) + ((tok.getType() > 0) ? " (" + tokNames[tok.getType()] + "). " : ". "));
+                .print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1) + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
     }
 

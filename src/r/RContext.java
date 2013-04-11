@@ -100,6 +100,7 @@ public class RContext {
         return i >= 0 && i < NCONNECTIONS ? connections[i] : null;
     }
 
+    // note: GNUR currently means not only the GNU-R library, but also some other native code, under licenses compatible with GPL
     private static int hasGNUR = -1;
     public static boolean hasGNUR() {
         if (hasGNUR == -1) {

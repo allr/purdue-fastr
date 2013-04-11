@@ -13,7 +13,6 @@ import java.lang.Integer;//conflict with the local integer
 
 // FIXME: only partial implementation, particularly of as.character   (as.character in R deparses lists, etc)
 // FIXME: There is no warning when NAs are introduced; this could be fixed in case of lists (below), but not with lazy casts (views)
-// FIXME: Truffle can't handle BuiltIn1
 
 /** Casts and conversions. */
 abstract class AsBase extends CallFactory {
@@ -180,12 +179,12 @@ abstract class AsBase extends CallFactory {
         if (warn.naIntroduced) {
             RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
         }
-        return RComplex.RComplexFactory.getFor(content); // drop attributes     
+        return RComplex.RComplexFactory.getFor(content); // drop attributes
     }
 
     /**
      * Given an RList arg, return an vector of doubles. The RList must consist of scalar values. NAs will be introduced
-     * for any non-coercible value encountered. An error will be thrown if a non-scalar vector is found.
+     * for any non-coerceable value encountered. An error will be thrown if a non-scalar vector is found.
      */
     static RAny genericAsDouble(ASTNode ast, RAny arg) {
         if (!(arg instanceof RList)) { return Convert.coerceToDoubleWarning(arg, ast).stripAttributes(); }
@@ -228,7 +227,7 @@ abstract class AsBase extends CallFactory {
         if (warn.naIntroduced) {
             RContext.warning(ast, RError.NA_INTRODUCED_COERCION);
         }
-        return RInt.RIntFactory.getFor(content); // drop attributes      
+        return RInt.RIntFactory.getFor(content); // drop attributes
     }
 
     /**
@@ -248,7 +247,7 @@ abstract class AsBase extends CallFactory {
                 content[i] = RLogical.NA;
             }
         }
-        return RLogical.RLogicalFactory.getFor(content); // drop attributes      
+        return RLogical.RLogicalFactory.getFor(content); // drop attributes
     }
 
     // raw
@@ -290,7 +289,7 @@ abstract class AsBase extends CallFactory {
         RString ms = (RString) arg1;
         if (ms.size() != 1) { throw RError.getInvalidMode(ast); }
         String mode = ms.getString(0);
-        if (mode.equals("any")) { return arg0 instanceof RList ? arg0 : arg0.stripAttributes(); }// is it a bug of GNU-R that list attributes are not stripped?       
+        if (mode.equals("any")) { return arg0 instanceof RList ? arg0 : arg0.stripAttributes(); }// is it a bug of GNU-R that list attributes are not stripped?
         if (mode.equals("integer")) { return genericAsInt(ast, arg0); }
         if (mode.equals("numeric") || mode.equals("double")) { return genericAsDouble(ast, arg0); }
         if (mode.equals("logical")) { return genericAsLogical(ast, arg0); }

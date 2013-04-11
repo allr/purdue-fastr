@@ -69,7 +69,7 @@ public class InOperation extends BaseR {
             return RLogical.BOXED_FALSE;
         }
         int[] content = new int[xsize];
-        HashSet set = new HashSet<>(tableSize);
+        HashSet<Object> set = new HashSet<Object>(tableSize);
         for (int i = 0; i < tableSize; i++) {
             Object v = typedTable.get(i);
             set.add(v);

@@ -32,7 +32,6 @@ import com.oracle.truffle.api.frame.*;
  *              vector and the first element taken. Treated as 1 if NA or invalid.
  * </pre>
  */
-// FIXME: Truffle can't handle BuiltIn2
 // TODO: support non-scalar times argument
 // TODO: support list argument
 class Rep extends CallFactory {
@@ -43,7 +42,8 @@ class Rep extends CallFactory {
         super(name, params, required);
     }
 
-    public static final boolean EAGER = true; // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
+    public static final boolean EAGER = true;
+    // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);

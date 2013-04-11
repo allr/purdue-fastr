@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "outer"
- * 
+ *
  * <pre>
  * X, Y -- First and second arguments for function FUN. Typically a vector or array.
  * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").
@@ -98,6 +98,8 @@ final class Outer extends CallFactory {
         }
 
         public RAny outer(Frame frame, RAny xarg, RAny yarg, RAny farg) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
             if (!(xarg instanceof RArray && yarg instanceof RArray)) {
                 Utils.nyi("unsupported type");
                 return null;

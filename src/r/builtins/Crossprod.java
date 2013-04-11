@@ -52,6 +52,7 @@ final class Crossprod extends CallFactory {
 
     public static RAny crossprod(RAny l, RAny r, ASTNode ast) {
 
+        // LICENSE: transcribed code from GNU R, which is licensed under GPL
         MatrixOperation.checkNumeric(l, r, ast); // TODO: support also complex matrices
         RDouble ld = l.asDouble().materialize();
         RDouble rd = r.asDouble().materialize();
@@ -123,6 +124,8 @@ final class Crossprod extends CallFactory {
     }
 
     public static double[] matrixNative(RDouble x, int row, int col) {
+        // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
         // x is row x col, result is col x col
         double[] res = new double[col * col];
         if (row > 0 && col > 0) {

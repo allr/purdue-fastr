@@ -10,12 +10,11 @@ import r.nodes.truffle.*;
 
 /**
  * "rep"
- * 
+ *
  * <pre>
  * value -- An expression.
  * </pre>
  */
-// FIXME: Truffle can't handle BuiltIn1
 public final class Return extends CallFactory {
 
     static final CallFactory _ = new Return("return", new String[]{"value"}, new String[]{});

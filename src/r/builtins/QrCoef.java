@@ -39,7 +39,9 @@ final class QrCoef extends CallFactory {
     static final RSymbol useLAPACKSymbol = RSymbol.getSymbol("useLAPACK");
 
     public static RAny coef(RAny qrArg, RAny yArg, ASTNode ast) {
-     // TODO: check qrArg is of class "qr"
+        // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
+        // TODO: check qrArg is of class "qr"
         if (!(qrArg instanceof RList)) {
             throw RError.getFirstQR(ast);
         }

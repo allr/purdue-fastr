@@ -3,13 +3,12 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-import r.nodes.truffle.Not;
 
 /**
  * "*"
- * 
+ *
  * <pre>
- * x, y -- numeric or complex vectors or objects which can be coerced to such, or other objects for which methods have been 
+ * x, y -- numeric or complex vectors or objects which can be coerced to such, or other objects for which methods have been
  *         written.
  * </pre>
  */

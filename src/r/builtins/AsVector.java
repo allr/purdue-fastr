@@ -2,18 +2,16 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
-//conflict with the local integer
 /**
  * "as.vector"
- * 
+ *
  * <pre>
- * x -- An object. 
+ * x -- An object.
  * mode -- A character string giving an atomic mode or "list", or (except for vector) "any".
  * </pre>
  */

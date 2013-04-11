@@ -5,7 +5,6 @@ import com.oracle.truffle.api.frame.*;
 import r.*;
 import r.Convert.*;
 import r.data.*;
-import r.data.RAny.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 

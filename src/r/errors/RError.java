@@ -6,6 +6,7 @@ import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 public abstract class RError extends RuntimeException {
+    // LICENSE: The error messages are copy-pasted and/or hand re-written from GNU R, which is licensed under GPL
 
     private static final long serialVersionUID = 1L;
 

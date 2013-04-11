@@ -29,6 +29,8 @@ import java.lang.Double;
  */
 // NOTE: GNU-R has some of the eigen code implemented in R (and some uses LAPACK)
 final class Eigen extends CallFactory {
+    // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
     static final CallFactory _ = new Eigen("eigen", new String[]{"x", "symmetric", "only.values", "EISPACK"}, new String[]{"x"});
 
     private Eigen(String name, String[] params, String[] required) {

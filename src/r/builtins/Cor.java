@@ -10,6 +10,7 @@ import r.nodes.truffle.*;
 
 // TODO: finish this, by now only pearson/matrix/no NA filtering supported
 public class Cor extends CallFactory {
+    // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
     static final CallFactory _ = new Cor("cor", new String[]{"x", "y", "use", "method"}, new String[]{"x"});
 

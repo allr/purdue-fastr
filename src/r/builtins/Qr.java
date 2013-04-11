@@ -15,6 +15,7 @@ import r.nodes.truffle.*;
 
 // TODO: S3
 public class Qr extends CallFactory {
+    // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
     static final CallFactory _ = new Qr("qr", new String[]{"x", "tol", "LAPACK"}, new String[] {"x"});
 

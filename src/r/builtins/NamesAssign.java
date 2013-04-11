@@ -10,12 +10,11 @@ import r.nodes.truffle.*;
 
 /**
  * "names"
- * 
+ *
  * <pre>
  * x -- an R object.
  * </pre>
  */
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1, so using BuiltIn
 final class NamesAssign extends CallFactory {
     static final CallFactory _ = new NamesAssign("names<-", new String[]{"x", "value"}, new String[]{"x", "value"});
 

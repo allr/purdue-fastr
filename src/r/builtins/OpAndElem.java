@@ -3,7 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-import r.nodes.truffle.Not;
 
 /**
  * "&"

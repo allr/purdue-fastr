@@ -11,13 +11,12 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "sqrt"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector or array.
  * </pre>
  */
 // FIXME: scalar optimizations
-// FIXME: Truffle can't handle BuiltIn1
 final class Sqrt extends CallFactory {
 
     static final CallFactory _ = new Sqrt("sqrt", new String[]{"x"}, new String[]{"x"});

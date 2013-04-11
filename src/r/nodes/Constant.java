@@ -84,7 +84,7 @@ public class Constant extends ASTNode {
                 val[i] = RLogical.NA;
             }
         }
-        return createBoolConstant(values);
+        return createBoolConstant(val);
     }
 
     public static Constant createBoolConstant(int... values) {

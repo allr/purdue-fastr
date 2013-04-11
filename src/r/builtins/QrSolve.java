@@ -25,6 +25,8 @@ final class QrSolve extends CallFactory {
         return new Builtin(call, names, exprs) {
 
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+                // LICENSE: transcribed code from GNU R, which is licensed under GPL
+
                 RAny aArg = args[aPosition];
 
                 // TODO: call "qr" whenever aArg is not of class "qr"
