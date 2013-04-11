@@ -4,7 +4,6 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
-import r.builtins.Primitives;
 import r.data.internal.*;
 
 public final class RSymbol extends BaseObject implements RAny {
@@ -180,7 +179,7 @@ public final class RSymbol extends BaseObject implements RAny {
         return value;
     }
 
-    void setValue(RAny val) {
+    public void setValue(RAny val) {
         value = val;
     }
 

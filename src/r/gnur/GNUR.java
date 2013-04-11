@@ -21,6 +21,10 @@ public class GNUR {
     public static native void dqrdc2(double[] x, int ldx, int n, int p, double tol, int[] k, double[] qraux, int[] jpvt, double[] work);
     public static native void dqrcf(double[] x, int n, int k, double[] qraux, double[] y, int ny, double[] b, int[] info);
 
+    // libc/libm
+    public static native double pow(double x, double y);
+
+
     static {
         System.loadLibrary("gnurglue");
     }

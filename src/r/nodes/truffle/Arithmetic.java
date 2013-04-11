@@ -13,6 +13,7 @@ import r.data.RArray.Names;
 import r.data.RComplex.RComplexUtils;
 import r.data.internal.*;
 import r.errors.*;
+import r.gnur.*;
 import r.nodes.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
@@ -1418,7 +1419,7 @@ public class Arithmetic extends BaseR {
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
             if (xr == 0) {
                 if (yi == 0) {
-                    z[offset] = Math.pow(0, yr);
+                    z[offset] = pow(0, yr);
                     z[offset + 1] = xi;
                 } else {
                     z[offset] = Double.NaN;
@@ -1440,7 +1441,7 @@ public class Arithmetic extends BaseR {
             double theta = zi * yr;
             double rho;
             if (yi == 0) {
-                rho = Math.pow(zr, yr);
+                rho = pow(zr, yr);
             } else {
                 zr = Math.log(zr);
                 theta += zr * yi;
@@ -1465,7 +1466,53 @@ public class Arithmetic extends BaseR {
 
         @Override
         public double op(ASTNode ast, double a, double b) {
-            return Math.pow(a, b); // FIXME: check that the R rules correspond to Java
+            // NOTE: Math.pow (which uses FDLIBM) is very slow, the version written in assembly in GLIBC (SSE2 optimized) is about 2x faster
+
+            // arithmetic.c (GNU R)
+            if (b == 2) {
+                return a * a;
+            }
+            if (a == 1 || b == 0) {
+                return 1;
+            }
+            if (a == 0) {
+                if (b > 0) {
+                    return 0;
+                }
+                if (b < 0) {
+                    return Double.POSITIVE_INFINITY;
+                }
+                return b;  // NA or NaN
+            }
+            if (isFinite(a) && isFinite(b)) {
+                return pow(a, b);
+            }
+            if (RDouble.RDoubleUtils.isNAorNaN(a) || RDouble.RDoubleUtils.isNAorNaN(b)) {
+                // NA check was before, so this can only mean NaN
+                return a + b;
+            }
+            if (!isFinite(a)) {
+                if (a > 0) { // Inf ^ y
+                    if (b < 0) {
+                        return 0;
+                    }
+                    return Double.POSITIVE_INFINITY;
+                } else if (isFinite(b) && b == Math.floor(b)) { // (-Inf) ^ n
+                    if (b < 0) {
+                        return 0;
+                    }
+                    return fmod(ast, b, 2) != 0 ? a : -a;
+                }
+            }
+            if (!isFinite(b)) {
+                if (a >= 0) {
+                    if (b > 0) {
+                        return (a >= 1) ? Double.POSITIVE_INFINITY : 0;
+                    }
+                    return (a < 1) ? Double.POSITIVE_INFINITY : 0;
+                }
+            }
+            return Double.NaN;
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
@@ -1576,7 +1623,16 @@ public class Arithmetic extends BaseR {
     }
 
     public static boolean isFinite(double d) {
+        // NOTE: this is currently equivalent to RDoubleUtils.isFinite, but that can change in the future
         return !Double.isInfinite(d) && !Double.isNaN(d);
+    }
+
+    public static double pow(double a, double b) {
+        if (!RContext.hasGNUR()) {
+            return Math.pow(a, b);
+        } else {
+            return GNUR.pow(a, b);
+        }
     }
 
     public static void cdiv(double a, double b, double c, double d, double[] res, int offset) {

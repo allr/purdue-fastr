@@ -184,4 +184,12 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, bArg, b, 0);
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, infoArg, info, 0);
 }
+
+// libc/libm =================================================================================================
+
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow
+  (JNIEnv *jenv, jclass jcls, jdouble a, jdouble b) {
   
+  return pow(a,b);
+}
+    

@@ -42,7 +42,7 @@ public class RContext {
     public static RAny eval(ASTNode expr, boolean useDebuggingFormat) {
         debuggingFormat(useDebuggingFormat);
         return eval(expr);
-        // NOTE: cannot reset to the original value of debuggingFormat here, because usually the pretty printer is 
+        // NOTE: cannot reset to the original value of debuggingFormat here, because usually the pretty printer is
         // invoked on the results afterwards by the caller of eval; the pretty printer still depends on the correct
         // setting of debugging format
     }
@@ -100,12 +100,16 @@ public class RContext {
         return i >= 0 && i < NCONNECTIONS ? connections[i] : null;
     }
 
+    private static int hasGNUR = -1;
     public static boolean hasGNUR() {
-        try {
-            System.loadLibrary("gnurglue");
-        } catch (Throwable t) {
-            return false;
+        if (hasGNUR == -1) {
+            try {
+                System.loadLibrary("gnurglue");
+                hasGNUR = 1;
+            } catch (Throwable t) {
+                hasGNUR = 0;
+            }
         }
-        return true;
+        return hasGNUR == 1;
     }
 }

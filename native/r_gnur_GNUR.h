@@ -95,6 +95,14 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
 JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
   (JNIEnv *, jclass, jdoubleArray, jint, jint, jdoubleArray, jdoubleArray, jint, jdoubleArray, jintArray);
 
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    pow
+ * Signature: (DD)D
+ */
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow
+  (JNIEnv *, jclass, jdouble, jdouble);
+
 #ifdef __cplusplus
 }
 #endif

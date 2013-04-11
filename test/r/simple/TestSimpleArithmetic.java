@@ -3,6 +3,8 @@ package r.simple;
 import org.antlr.runtime.*;
 import org.junit.*;
 
+import r.*;
+
 public class TestSimpleArithmetic extends SimpleTestBase {
 
     @Test
@@ -76,6 +78,23 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ ((1+0i)/(0+0i)) ^ (-3) }", "0.0+0.0i");
         assertEval("{ ((1+1i)/(0+0i)) ^ (-3) }", "-0.0+-0.0i"); // NOTE: GNU-R prints negative zero as zero
         assertEval("{ round( ((1+1i)/(0+1i)) ^ (-3.54), digits=5) }", "-0.27428+0.10364i");
+
+        assertEval("{ 1^(1/0) }", "1.0"); // FDLIBM (Math.pow) fails on this
+        assertEval("{ (-2)^(1/0) }", "NaN");
+        assertEval("{ (-2)^(-1/0) }", "NaN");
+        assertEval("{ (1)^(-1/0) }", "1.0");
+        assertEval("{ 0^(-1/0) }", "Infinity");
+        assertEval("{ 0^(1/0) }", "0.0");
+        assertEval("{ 0^(0/0) }", "NaN");
+        assertEval("{ 1^(0/0) }", "1.0");
+        assertEval("{ (-1)^(0/0) }", "NaN");
+        assertEval("{ (-1/0)^(0/0) }", "NaN");
+        assertEval("{ (1/0)^(0/0) }", "NaN");
+        assertEval("{ (0/0)^(1/0) }", "NaN");
+        assertEval("{ (-1/0)^3 }", "-Infinity");
+        assertEval("{ (1/0)^(-4) }", "0.0");
+        assertEval("{(-1/0)^(-4) }", "0.0");
+
     }
 
     @Test
