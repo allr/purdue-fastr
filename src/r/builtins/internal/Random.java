@@ -12,18 +12,26 @@ public class Random {
     // returns the retrieved direct pointer to the workspace seed, to be later passed to updateWorkspaceSeed
     public static int[] updateNativeSeed(ASTNode ast) {
         RAny v = seedSymbol.getValue(); // FIXME: check R semantics when running in eval
-        if (!(v instanceof RInt)) {
-            throw RError.getSeedType(ast, v.typeOf());
+        int[] kind;
+        if (v == null) {
+                // TODO: should ideally randomize here
+            kind = new int[] {401, 1234, 5678}; // the seed used by default by libRMath
+            RInt iv = RInt.RIntFactory.getFor(kind);
+            seedSymbol.setValue(iv);
+        } else {
+            if (!(v instanceof RInt)) {
+                throw RError.getSeedType(ast, v.typeOf());
+            }
+            RInt iv = (RInt) v;
+            int size = iv.size();
+            if (size < 3) {
+                throw RError.getSeedLength(ast);
+            }
+            if (!(iv instanceof IntImpl)) {
+                iv = RInt.RIntFactory.copy(iv);
+            }
+            kind = iv.getContent();
         }
-        RInt iv = (RInt) v;
-        int size = iv.size();
-        if (size < 3) {
-            throw RError.getSeedLength(ast);
-        }
-        if (!(iv instanceof IntImpl)) {
-            iv = RInt.RIntFactory.copy(iv);
-        }
-        int[] kind = iv.getContent();
         GNUR.set_seed(kind);
         return kind;
     }
