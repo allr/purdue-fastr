@@ -59,6 +59,10 @@ final class Round extends CallFactory {
         } else {
             d = (int) Math.floor(digits + 0.5);
         }
+
+        if (!RDouble.RDoubleUtils.isFinite(x)) {
+            return x; // NOTE: BigDecimal cannot be constructed for a non-finite number
+        }
         return new BigDecimal(x).setScale(d, RoundingMode.HALF_EVEN).doubleValue();
     }
 

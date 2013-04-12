@@ -934,6 +934,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ round(1.5) }", "2.0");
         assertEval("{ round(1L) }", "1.0");
         assertEval("{ round(1.123456,digit=2.8) }", "1.123");
+        assertEval("{ round(1/0) }", "Infinity");
     }
 
     @Test
