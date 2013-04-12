@@ -41,11 +41,35 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
 
 /*
  * Class:     r_gnur_GNUR
+ * Method:    rnorm
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DI_3DI_3DI
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
  * Method:    runifStd
  * Signature: ([DI)Z
  */
 JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   (JNIEnv *, jclass, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    runif
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runif
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rgamma
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rgamma
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
 
 /*
  * Class:     r_gnur_GNUR

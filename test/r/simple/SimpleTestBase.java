@@ -6,6 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
+import r.builtins.internal.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -96,6 +97,7 @@ public class SimpleTestBase extends TestBase {
     private static RAny eval(String input) throws RecognitionException {
         ASTNode astNode = TestPP.parse(input);
         try {
+            Random.resetSeed(); // RESETS RANDOM SEED
             return RContext.eval(astNode, true);
         } finally {
             RSymbol.resetTable(); // some tests may have overwritten some builtins

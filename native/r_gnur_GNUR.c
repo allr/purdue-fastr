@@ -12,6 +12,9 @@
 // out of range. However, the Rmath library and R also supports user-specified generators,
 // for which a general checking version should be available.
 
+// LICENSE: this code interfaces directly with GNU R, which is licensed under GPL.
+// LICENSE: this code includes several copy pasted fragments and transcribed code from GNU R and GNU R Math library.
+
 // nmath =================================================================================================
 
 JNIEXPORT void JNICALL Java_r_gnur_GNUR_set_1seed
@@ -95,6 +98,47 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
   
 }    
 
+// sampling from a random distribution that takes two double arguments
+jboolean randomTwoArg
+  (JNIEnv *jenv, jclass jcls, double (*rfunc) (double, double), jdoubleArray resArg, jint n, jdoubleArray firstArg, jint firstLength, jdoubleArray secondArg, jint secondLength) {
+  
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  double *firstArray = (*jenv)->GetPrimitiveArrayCritical(jenv, firstArg, 0);
+  double *secondArray = (*jenv)->GetPrimitiveArrayCritical(jenv, secondArg, 0);
+  
+  int naProduced = 0;
+  int firstIndex = 0;
+  int secondIndex = 0;
+  int i;
+
+  for (i = 0; i < n; i++) {
+    double first = firstArray[firstIndex++];
+    double second = secondArray[secondIndex++];
+    if (firstIndex == firstLength) {
+      firstIndex = 0;
+    }
+    if (secondIndex == secondLength) {
+      secondIndex = 0;
+    }
+    double d = rfunc(first, second);
+    res[i] = d;
+    naProduced = naProduced || ISNAN(d);  
+  }
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, firstArg, firstArray, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, secondArg, secondArray, 0);
+
+  return naProduced ? JNI_TRUE : JNI_FALSE;
+}
+
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DI_3DI_3DI
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray muArg, jint muLength, jdoubleArray sigmaArg, jint sigmaLength) {
+  
+  return randomTwoArg(jenv, jcls, rnorm, resArg, n, muArg, muLength, sigmaArg, sigmaLength);
+}
+  
 JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
 
@@ -115,7 +159,21 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
   return naProduced ? JNI_TRUE : JNI_FALSE;
   
-}    
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runif   
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray minArg, jint minLength, jdoubleArray maxArg, jint maxLength) {
+
+  return randomTwoArg(jenv, jcls, runif, resArg, n, minArg, minLength, maxArg, maxLength);
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rgamma
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray shapeArg, jint shapeLength, jdoubleArray scaleArg, jint scaleLength) {
+
+  return randomTwoArg(jenv, jcls, rgamma, resArg, n, shapeArg, shapeLength, scaleArg, scaleLength);
+}
+  
+    
 
 // appl =================================================================================================
 

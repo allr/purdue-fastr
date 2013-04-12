@@ -870,49 +870,52 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
     @Test
     public void testFFT() throws RecognitionException {
-        if (RContext.hasGNUR()) {
-            assertEval("{ fft(1:4) }","10.0+0.0i, -2.0+2.0i, -2.0+0.0i, -2.0-2.0i");
-            assertEval("{ fft(1:4, inverse=TRUE) }", "10.0+0.0i, -2.0-2.0i, -2.0+0.0i, -2.0+2.0i");
-            assertEval("{ fft(10) }", "10.0+0.0i");
-            assertEval("{ fft(cbind(1:2,3:4)) }", "          [,1]      [,2]\n[1,] 10.0+0.0i -4.0+0.0i\n[2,] -2.0+0.0i  0.0+0.0i");
+        if (!RContext.hasGNUR()) {
+            return;
         }
+        assertEval("{ fft(1:4) }","10.0+0.0i, -2.0+2.0i, -2.0+0.0i, -2.0-2.0i");
+        assertEval("{ fft(1:4, inverse=TRUE) }", "10.0+0.0i, -2.0-2.0i, -2.0+0.0i, -2.0+2.0i");
+        assertEval("{ fft(10) }", "10.0+0.0i");
+        assertEval("{ fft(cbind(1:2,3:4)) }", "          [,1]      [,2]\n[1,] 10.0+0.0i -4.0+0.0i\n[2,] -2.0+0.0i  0.0+0.0i");
     }
 
     @Test
     public void testChol() throws RecognitionException {
-        if (RContext.hasGNUR()) {
-            assertEval("{ chol(1) }", "     [,1]\n[1,]  1.0");
-            assertEval("{ round( chol(10), digits=5) }", "        [,1]\n[1,] 3.16228");
-            assertEval("{ m <- matrix(c(5,1,1,3),2) ; round( chol(m), digits=5 ) }", "        [,1]    [,2]\n[1,] 2.23607 0.44721\n[2,]     0.0 1.67332");
-            assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
+        if (!RContext.hasGNUR()) {
+            return;
         }
+        assertEval("{ chol(1) }", "     [,1]\n[1,]  1.0");
+        assertEval("{ round( chol(10), digits=5) }", "        [,1]\n[1,] 3.16228");
+        assertEval("{ m <- matrix(c(5,1,1,3),2) ; round( chol(m), digits=5 ) }", "        [,1]    [,2]\n[1,] 2.23607 0.44721\n[2,]     0.0 1.67332");
+        assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
     }
 
     @Test
     public void testQr() throws RecognitionException {
-        if (RContext.hasGNUR()) {
-            assertEval("{ qr(10, LAPACK=TRUE) }", "$qr\n     [,1]\n[1,] 10.0\n\n$rank\n1L\n\n$qraux\n0.0\n\n$pivot\n1L\nattr(,\"useLAPACK\")\nTRUE");
-            assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr, digits=5) }", "         [,1]     [,2]     [,3]\n[1,] -7.81025 -2.17663 -4.99344\n[2,]  0.46837  0.51215  0.25607");
-            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$pivot }", "1L, 2L, 3L");
-            assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$rank }", "2L");
-            assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux, digits=5 ) }", "1.44721, 0.89443, 1.78885");
-            assertEval("{ round( qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr, digits=5 ) }", "         [,1]    [,2]\n[1,] -3.60555 4.71495\n[2,]   0.5547 -1.6641");
-
-            // qr.coef
-            assertEvalError("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "right-hand side should have 10 not 2 rows");
-            assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "1.0, NA, NA, NA, NA, NA, NA, NA, NA, 0.0");
-            assertEval(" { x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 ) }", "1.0, 0.0");
-            assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
-              // FIXME: GNU-R will print negative zero as zero
-            assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }", "1.0, -0.0, NA, NA, NA, NA, NA, NA, NA, NA");
-            assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
-            assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
-            assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; round( qr.coef(x, 1:3), digits=5 ) }", "1.0, 0.0");
-
-            // qr.solve
-            assertEval("{ round( qr.solve(qr(c(1,3,4,2)), c(1,2,3,4)), digits=5 ) }", "0.9");
-            assertEval("{ round( qr.solve(c(1,3,4,2), c(1,2,3,4)), digits=5) }", "0.9");
+        if (!RContext.hasGNUR()) {
+            return;
         }
+        assertEval("{ qr(10, LAPACK=TRUE) }", "$qr\n     [,1]\n[1,] 10.0\n\n$rank\n1L\n\n$qraux\n0.0\n\n$pivot\n1L\nattr(,\"useLAPACK\")\nTRUE");
+        assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr, digits=5) }", "         [,1]     [,2]     [,3]\n[1,] -7.81025 -2.17663 -4.99344\n[2,]  0.46837  0.51215  0.25607");
+        assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$pivot }", "1L, 2L, 3L");
+        assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$rank }", "2L");
+        assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=FALSE)$qraux, digits=5 ) }", "1.44721, 0.89443, 1.78885");
+        assertEval("{ round( qr(matrix(c(3,2,-3,-4),nrow=2), LAPACK=FALSE)$qr, digits=5 ) }", "         [,1]    [,2]\n[1,] -3.60555 4.71495\n[2,]   0.5547 -1.6641");
+
+        // qr.coef
+        assertEvalError("{ x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "right-hand side should have 10 not 2 rows");
+        assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "1.0, NA, NA, NA, NA, NA, NA, NA, NA, 0.0");
+        assertEval(" { x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 ) }", "1.0, 0.0");
+        assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
+          // FIXME: GNU-R will print negative zero as zero
+        assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }", "1.0, -0.0, NA, NA, NA, NA, NA, NA, NA, NA");
+        assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
+        assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
+        assertEval("{ x <- qr(cbind(1:3,2:4), LAPACK=FALSE) ; round( qr.coef(x, 1:3), digits=5 ) }", "1.0, 0.0");
+
+        // qr.solve
+        assertEval("{ round( qr.solve(qr(c(1,3,4,2)), c(1,2,3,4)), digits=5 ) }", "0.9");
+        assertEval("{ round( qr.solve(c(1,3,4,2), c(1,2,3,4)), digits=5) }", "0.9");
     }
 
     @Test
@@ -931,5 +934,23 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ round(1.5) }", "2.0");
         assertEval("{ round(1L) }", "1.0");
         assertEval("{ round(1.123456,digit=2.8) }", "1.123");
+    }
+
+    @Test
+    public void testRandom() throws RecognitionException {
+        if (!RContext.hasGNUR()) {
+            return;
+        }
+        assertEval("{ round( rnorm(3), digits = 5 ) }", "-1.26974, -0.33447, 3.03882");
+        assertEval("{ round( rnorm(3,1000,10), digits = 5 ) }", "987.30263, 996.65534, 1030.38818");
+        assertEval("{ round( rnorm(3,c(1000,2,3),c(10,11)), digits = 5 ) }", "987.30263, -1.67912, 33.38818");
+
+        assertEval("{ round( runif(3), digits = 5 ) }", "0.10209, 0.85416, 0.36901");
+        assertEval("{ round( runif(3,1,10), digits = 5 ) }", "1.9188, 8.68741, 4.32113");
+        assertEval("{ round( runif(3,1:3,3:2), digits = 5 ) }", "1.20418, 2.0, 3.0");
+
+        assertEval("{ round( rgamma(3,1), digits = 5 ) }", "0.39205, 0.46677, 0.52786");
+        assertEval("{ round( rgamma(3,0.5,scale=1:3), digits = 5 ) }", "0.01461, 11.74775, 0.61223");
+        assertEval("{ round( rgamma(3,0.5,rate=1:3), digits = 5 ) }", "0.01461, 2.93694, 0.06803");
     }
 }

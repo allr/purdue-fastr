@@ -22,21 +22,8 @@ final class Rnorm extends CallFactory {
         super(name, params, required);
     }
 
-    public static int parseN(RAny narg, ASTNode ast) {
-        if (!(narg instanceof RArray)) {
-            throw RError.getInvalidUnnamedArguments(ast);
-        }
-        RArray a = (RArray) narg;
-        int size = a.size();
-        if (size == 1) {
-            int i = a.asInt().getInt(0);
-            if (i < 0) { // includes i == RInt.NA
-                throw RError.getInvalidUnnamedArguments(ast);
-            }
-            return i;
-        }
-        return size;
-    }
+    static final double[] defaultMean = new double[] {0};
+    static final double[] defaultSD = new double[] {1};
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
@@ -44,11 +31,13 @@ final class Rnorm extends CallFactory {
             return new Builtin.Builtin1(call, names, exprs) {
 
                 @Override public RAny doBuiltIn(Frame frame, RAny narg) {
-                    int n = parseN(narg, ast);
+                    int n = Random.parseNArgument(narg, ast);
                     int [] rngKind = Random.updateNativeSeed(ast);
-                    RAny res = RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
-                    Random.updateWorkspaceSeed(rngKind);
-                    return res;
+                    try {
+                        return RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
+                    } finally {
+                        Random.updateWorkspaceSeed(rngKind);
+                    }
                 }
             };
         }
@@ -59,8 +48,19 @@ final class Rnorm extends CallFactory {
 
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                Utils.nyi("non-standard normal");
-                return null;
+                int n = Random.parseNArgument(args[nPosition], ast);
+                double[] mean = meanPosition == -1 ? defaultMean : Random.parseNumericArgument(args[meanPosition], ast);
+                double[] sd = sdPosition == -1 ? defaultSD : Random.parseNumericArgument(args[sdPosition], ast);
+
+                if (mean.length == 0 || sd.length == 0) {
+                    return Random.allNAs(n, ast);
+                }
+                int [] rngKind = Random.updateNativeSeed(ast);
+                try {
+                    return RDouble.RDoubleFactory.getFor(rnorm(n, mean, sd, ast));
+                } finally {
+                    Random.updateWorkspaceSeed(rngKind);
+                }
             }
         };
     }
@@ -113,6 +113,15 @@ final class Rnorm extends CallFactory {
     public static double[] rnormStd(int n, ASTNode ast) {
         double[] res = new double[n];
         boolean naProduced = GNUR.rnormStd(res,  n);
+        if (naProduced) {
+            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
+        }
+        return res;
+    }
+
+    public static double[] rnorm(int n, double[] mean, double[] sd, ASTNode ast) {
+        double[] res = new double[n];
+        boolean naProduced = GNUR.rnorm(res, n, mean, mean.length, sd, sd.length);
         if (naProduced) {
             RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
         }
