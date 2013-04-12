@@ -3,7 +3,6 @@ package r.builtins;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
-import r.builtins.CallFactory.*;
 import r.builtins.internal.*;
 import r.data.*;
 import r.errors.*;

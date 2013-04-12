@@ -73,6 +73,46 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rgamma
 
 /*
  * Class:     r_gnur_GNUR
+ * Method:    rbinom
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rbinom
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rlnormStd
+ * Signature: ([DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnormStd
+  (JNIEnv *, jclass, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rlnorm
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnorm
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rcauchyStd
+ * Signature: ([DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchyStd
+  (JNIEnv *, jclass, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    rcauchy
+ * Signature: ([DI[DI[DI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchy
+  (JNIEnv *, jclass, jdoubleArray, jint, jdoubleArray, jint, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
  * Method:    set_seed
  * Signature: ([I)V
  */

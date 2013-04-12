@@ -8,9 +8,11 @@ public class GNUR {
 
     // nmath
     // LICENSE: The methods call to GNU R's math library. GNU R is licensed under GPL.
+
     public static native double rnorm(double mu, double sigma);
     public static native boolean rnorm(double[] res, int n, double mu, double sigma); // just testing
     public static native boolean rnormNonChecking(double[] res, int n, double mu, double sigma); // just testing
+
     public static native boolean rnormStd(double[] res, int n);
     public static native boolean rnorm(double[] res, int n, double[] mu, int muLength, double[] sigma, int sigmaLength);
 
@@ -18,6 +20,14 @@ public class GNUR {
     public static native boolean runif(double[] res, int n, double[] min, int minLength, double[] max, int maxLength);
 
     public static native boolean rgamma(double[] res, int n, double[] shape, int shapeLength, double[] scale, int scaleLength);
+
+    public static native boolean rbinom(double[] res, int n, double[] size, int sizeLength, double[] prob, int probLength);
+
+    public static native boolean rlnormStd(double[] res, int n);
+    public static native boolean rlnorm(double[] res, int n, double[] meanlog, int meanlogLength, double[] sdlog, int sdlogLength);
+
+    public static native boolean rcauchyStd(double[] res, int n);
+    public static native boolean rcauchy(double[] res, int n, double[] location, int locationLength, double[] scale, int scaleLength);
 
     public static native void set_seed(int[] rngKind); // rngKind is an array of (at least) 3 elements: generator id, i1, i2
     public static native void get_seed(int[] rngKind);

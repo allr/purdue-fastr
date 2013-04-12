@@ -173,7 +173,60 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rgamma
   return randomTwoArg(jenv, jcls, rgamma, resArg, n, shapeArg, shapeLength, scaleArg, scaleLength);
 }
   
-    
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rbinom
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray sizeArg, jint sizeLength, jdoubleArray probArg, jint probLength) {
+  
+  return randomTwoArg(jenv, jcls, rbinom, resArg, n, sizeArg, sizeLength, probArg, probLength);
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnormStd
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
+
+  int i;
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  int naProduced = 0;
+  
+  for (i = 0; i < n; i++) {
+    double d = exp( norm_rand() );
+    res[i] = d;
+    naProduced = naProduced || ISNAN(d); // FIXME: perhaps? only with user supplied
+  }
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+  return naProduced ? JNI_TRUE : JNI_FALSE;
+
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnorm
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray meanlogArg, jint meanlogLength, jdoubleArray sdlogArg, jint sdlogLength) {
+  
+  return randomTwoArg(jenv, jcls, rlnorm, resArg, n, meanlogArg, meanlogLength, sdlogArg, sdlogLength);  
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchyStd
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
+  
+  int i;
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  int naProduced = 0;
+  
+  for (i = 0; i < n; i++) {
+    double d = tan(M_PI * unif_rand());
+    res[i] = d;
+    naProduced = naProduced || ISNAN(d); // FIXME: perhaps? only with user supplied
+  }
+  
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+  return naProduced ? JNI_TRUE : JNI_FALSE;
+  
+}
+
+JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchy
+  (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray locationArg, jint locationLength, jdoubleArray scaleArg, jint scaleLength) {
+  
+ return randomTwoArg(jenv, jcls, rcauchy, resArg, n, locationArg, locationLength, scaleArg, scaleLength); 
+}
+
 
 // appl =================================================================================================
 

@@ -143,6 +143,8 @@ public class Primitives {
         add(QrSolve._);
         add(Rank._);
         add(Raw._);
+        add(Rbinom._);
+        add(Rcauchy._);
         add(Re._);
         add(ReadLines._);
         add(Recall._);
@@ -153,6 +155,7 @@ public class Primitives {
         add(Rev._);
         add("rev.default", Rev._);
         add(Rgamma._);
+        add(Rlnorm._);
         add(Rnorm._);
         add(Round._);
         add(RowMeans._);

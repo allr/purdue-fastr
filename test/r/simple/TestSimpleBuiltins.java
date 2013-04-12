@@ -953,5 +953,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ round( rgamma(3,1), digits = 5 ) }", "0.39205, 0.46677, 0.52786");
         assertEval("{ round( rgamma(3,0.5,scale=1:3), digits = 5 ) }", "0.01461, 11.74775, 0.61223");
         assertEval("{ round( rgamma(3,0.5,rate=1:3), digits = 5 ) }", "0.01461, 2.93694, 0.06803");
+
+        assertEval("{ round( rbinom(3,3,0.9), digits = 5 ) }", "3.0, 2.0, 3.0");
+        assertEval("{ round( rbinom(3,10,(1:5)/5), digits = 5 ) }", "0.0, 6.0, 7.0");
+
+        assertEval("{ round( rlnorm(3), digits = 5 ) }", "0.28091, 0.71572, 20.88056");
+        assertEval("{ round( rlnorm(3,sdlog=c(10,3,0.5)), digits = 5 ) }", "0.0, 0.36663, 4.56952");
+
+        assertEval("{ round( rcauchy(3), digits = 5 ) }", "0.33219, -0.49318, 2.29137");
+        assertEval("{ round( rcauchy(3, scale=4, location=1:3), digits = 5 ) }", "2.32876, 0.02726, 12.16546");
     }
 }
