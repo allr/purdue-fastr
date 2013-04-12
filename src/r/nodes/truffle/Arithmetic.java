@@ -2778,6 +2778,9 @@ public class Arithmetic extends BaseR {
 
     public static int resultSize(ASTNode ast, int na, int nb) {
         int n;
+        if (na == 0 || nb == 0) {
+            return 0;
+        }
         if (na > nb) {
             n = na;
             if ((n / nb) * nb != n) {
