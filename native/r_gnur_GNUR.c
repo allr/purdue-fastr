@@ -86,7 +86,6 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
   int i;
   double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
   int naProduced = 0;
-  
   for (i = 0; i < n; i++) {
     double d = norm_rand();
     res[i] = d;
@@ -298,9 +297,55 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
 
 // libc/libm =================================================================================================
 
-JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow__DD
   (JNIEnv *jenv, jclass jcls, jdouble a, jdouble b) {
   
   return pow(a,b);
 }
     
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3D_3D_3DI
+  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdoubleArray yArg, jdoubleArray resArg, jint size) {
+  
+   double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
+   double *y = (*jenv)->GetPrimitiveArrayCritical(jenv, yArg, 0);
+   double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+   int i;
+   
+   for (i = 0; i < size; i++) {
+     double a = x[i];
+     double b = y[i];
+     double d = pow(a, b);
+     if (ISNAN(d)) {
+       if (ISNA(a) || ISNA(b)) {
+         d = NA_REAL;
+       }
+     }
+     res[i] = d;
+   }
+   
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, yArg, y, 0);
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+}
+
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3DD_3DI
+  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdouble y, jdoubleArray resArg, jint size) {
+  
+  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  int i;
+
+  for (i = 0; i < size; i++) {
+     double a = x[i];
+     double d = pow(a, y);
+     if (ISNAN(d)) {
+       if (ISNA(a) || ISNA(y)) {
+         d = NA_REAL;
+       }
+     }
+     res[i] = d;
+   }
+   
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+}

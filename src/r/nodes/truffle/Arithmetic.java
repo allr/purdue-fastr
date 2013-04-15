@@ -25,6 +25,10 @@ import r.nodes.*;
 // GNU-R depends on the C99 compiler to implement the low-level operations correctly.
 // Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
 
+// TODO: perhaps could be smarter about the isNA checks with doubles; one can rely on that if (with most math operations), if there is
+// na NA on input, there will be a double NaN on output (either NA or R'NaN). So instead of checking both inputs of a binary operation for NA,
+// one could just check the result for NaN, and only in the positive case check the operands for NA...
+
 public class Arithmetic extends BaseR {
 
     private static final boolean IN_PLACE = true;
@@ -990,6 +994,40 @@ public class Arithmetic extends BaseR {
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes);
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes);
 
+        public abstract void op(ASTNode ast, double[] x, double[] y, double[] res, int size);
+        public abstract void op(ASTNode ast, double[] x, double y, double[] res, int size);
+
+        public RDouble op(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xdbl.getContent();
+            double[] y = ydbl.getContent();
+            if (IN_PLACE && xdbl.isTemporary()) {
+                op(ast, x, y, x, size);
+                xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xdbl;
+            } else if (IN_PLACE && ydbl.isTemporary()) {
+                op(ast, x, y, y, size);
+                ydbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return ydbl;
+            } else {
+                double[] res = new double[size];
+                op(ast, x, y, res, size);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble op(ASTNode ast, DoubleImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xdbl.getContent();
+            if (IN_PLACE && xdbl.isTemporary()) {
+                op(ast, x, y, x, size);
+                xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xdbl;
+            } else {
+                double[] res = new double[size];
+                op(ast, x, y, res, size);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
         public abstract boolean returnsDouble();
     }
 
@@ -1090,6 +1128,35 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = a + b;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = a + y;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
         public boolean returnsDouble() {
             return false;
         }
@@ -1162,6 +1229,35 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = a - b;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = a - y;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
         }
         @Override
         public boolean returnsDouble() {
@@ -1311,6 +1407,35 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = a * b;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = a * y;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
         }
         @Override
         public boolean returnsDouble() {
@@ -1622,6 +1747,44 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
+
+        @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RContext.hasGNUR()) {
+                for (int i = 0; i < size; i++) {
+                    double a = x[i];
+                    double b = y[i];
+                    double c = pow(a, b);
+                    if (RDouble.RDoubleUtils.isNA(c)) {
+                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                            res[i] = RDouble.NA;
+                        }
+                    } else {
+                        res[i] = c;
+                    }
+                }
+            } else {
+                GNUR.pow(x, y, res, size);
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            if (!RContext.hasGNUR()) {
+                for (int i = 0; i < size; i++) {
+                    double a = x[i];
+                    double c = pow(a, y);
+                    if (RDouble.RDoubleUtils.isNA(c)) {
+                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                            res[i] = RDouble.NA;
+                        }
+                    } else {
+                        res[i] = c;
+                    }
+                }
+            } else {
+                GNUR.pow(x, y, res, size);
+            }
+        }
         @Override
         public boolean returnsDouble() {
             return true;
@@ -1749,6 +1912,35 @@ public class Arithmetic extends BaseR {
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
         @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = a / b;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = a / y;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
         public boolean returnsDouble() {
             return true;
         }
@@ -1795,6 +1987,35 @@ public class Arithmetic extends BaseR {
         @Override
         public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = op(ast, a, b);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = op(ast, a, y);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
         }
         @Override
         public boolean returnsDouble() {
@@ -1856,6 +2077,35 @@ public class Arithmetic extends BaseR {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = fmod(ast, a, b);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = fmod(ast, a, y);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
         public boolean returnsDouble() {
             return false;
         }
@@ -1868,6 +2118,7 @@ public class Arithmetic extends BaseR {
     public static final Div DIV = new Div();
     public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
     public static final Mod MOD = new Mod();
+
 
     public static class ComplexView extends View.RComplexView implements RComplex {
         final RComplex a;
@@ -2047,8 +2298,23 @@ public class Arithmetic extends BaseR {
         DoubleView res;
 
         if (na == nb) {
+            if (arit == POW && na > 1) {
+                // FIXME: this is a hack.. POW is so expensive though that this is likely to pay off
+                return arit.op(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
+            }
+            if (a instanceof DoubleImpl && b instanceof DoubleImpl && (a.isTemporary() || b.isTemporary())) {
+                // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
+                return arit.op(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
+            }
             res = new DoubleView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (nb == 1 && na > 0) {
+            if (arit == POW && na > 1) {
+                return arit.op(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
+            }
+            if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
+                // FIXME: re-visit the condition, like above
+                return arit.op(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
+            }
             res = new DoubleView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
             res = new DoubleView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);

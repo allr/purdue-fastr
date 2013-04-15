@@ -43,6 +43,8 @@ public class GNUR {
     // libc/libm
     // LICENSE: The methods call to the C library / system's POSIX math library.
     public static native double pow(double x, double y);
+    public static native void pow(double[] x, double[] y, double[] res, int size);
+    public static native void pow(double[] x, double y, double[] res, int size);
 
 
     static {

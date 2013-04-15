@@ -164,8 +164,24 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
  * Method:    pow
  * Signature: (DD)D
  */
-JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow__DD
   (JNIEnv *, jclass, jdouble, jdouble);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    pow
+ * Signature: ([D[D[DI)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3D_3D_3DI
+  (JNIEnv *, jclass, jdoubleArray, jdoubleArray, jdoubleArray, jint);
+
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    pow
+ * Signature: ([DD[DI)V
+ */
+JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3DD_3DI
+  (JNIEnv *, jclass, jdoubleArray, jdouble, jdoubleArray, jint);
 
 #ifdef __cplusplus
 }

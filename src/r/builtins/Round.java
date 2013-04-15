@@ -99,6 +99,8 @@ final class Round extends CallFactory {
         }
     }
 
+    // FIXME: check this actually corresponds with the R semantics
+    // in GNU-R, they do not use the same infrastructure for round as for arithmetic operators
     public static final class RoundJava extends ValueArithmetic {
 
         @Override
@@ -143,6 +145,36 @@ final class Round extends CallFactory {
                 double[] res = new double[x.length];
                 round(x, c, res);
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        @Override
+        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = round(a, b);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = round(a, y);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
             }
         }
 
