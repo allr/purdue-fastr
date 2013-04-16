@@ -421,6 +421,7 @@ public class Comparison extends BaseR {
         public abstract boolean cmp(double a, double b);
         public abstract boolean cmp(double areal, double aimag, double breal, double bimag);
         public abstract boolean cmp(String a, String b);
+        public abstract boolean resultForNaN();
 
         public boolean cmp(int a, double b) {
             return cmp((double) a, b);
@@ -467,13 +468,25 @@ public class Comparison extends BaseR {
                 return RLogicalFactory.getNAArray(n, a.dimensions());
             }
             int[] content = new int[n];
-            for (int i = 0; i < n; i++) {
-                double adbl = a.getDouble(i);
-                if (RDouble.RDoubleUtils.isNAorNaN(adbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(i);
+                    if (cmp(adbl, b)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.FALSE;
+                    }
                 }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(i);
+                    if (cmp(adbl, b)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
+                }
+
             }
             return RLogical.RLogicalFactory.getFor(content, a.dimensions(), a.names());
         }
@@ -483,13 +496,25 @@ public class Comparison extends BaseR {
                 return RLogicalFactory.getNAArray(n, b.dimensions());
             }
             int[] content = new int[n];
-            for (int i = 0; i < n; i++) {
-                double bdbl = b.getDouble(i);
-                if (RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double bdbl = b.getDouble(i);
+                    if (cmp(a, bdbl)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                    }
                 }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double bdbl = b.getDouble(i);
+                    if (cmp(a, bdbl)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
+                }
+
             }
             return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
@@ -617,20 +642,39 @@ public class Comparison extends BaseR {
             int ai = 0;
             int bi = 0;
 
-            for (int i = 0; i < n; i++) {
-                double adbl = a.getDouble(ai++);
-                if (ai == na) {
-                    ai = 0;
-                }
-                double bdbl = b.getDouble(bi++);
-                if (bi == nb) {
-                    bi = 0;
-                }
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(ai++);
+                    if (ai == na) {
+                        ai = 0;
+                    }
+                    double bdbl = b.getDouble(bi++);
+                    if (bi == nb) {
+                        bi = 0;
+                    }
 
-                if (RDouble.RDoubleUtils.isNAorNaN(adbl) || RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE;
+                    if (cmp(adbl, bdbl)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                    }
+                }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(ai++);
+                    if (ai == na) {
+                        ai = 0;
+                    }
+                    double bdbl = b.getDouble(bi++);
+                    if (bi == nb) {
+                        bi = 0;
+                    }
+
+                    if (cmp(adbl, bdbl)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
                 }
             }
 
@@ -769,6 +813,10 @@ public class Comparison extends BaseR {
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) == 0; // FIXME: intern?
             }
+            @Override
+            public boolean resultForNaN() {
+                return false;
+            }
         };
     }
     public static ValueComparison getNE() {
@@ -792,6 +840,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) != 0; // FIXME: intern?
+            }
+            @Override
+            public boolean resultForNaN() {
+                return true;
             }
         };
     }
@@ -822,6 +874,10 @@ public class Comparison extends BaseR {
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) <= 0;
             }
+            @Override
+            public boolean resultForNaN() {
+                return false;
+            }
         };
     }
     public static ValueComparison getGE() {
@@ -850,6 +906,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) >= 0;
+            }
+            @Override
+            public boolean resultForNaN() {
+                return false;
             }
         };
     }
@@ -880,6 +940,10 @@ public class Comparison extends BaseR {
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) < 0;
             }
+            @Override
+            public boolean resultForNaN() {
+                return false;
+            }
         };
     }
     public static ValueComparison getGT() {
@@ -908,6 +972,10 @@ public class Comparison extends BaseR {
             @Override
             public boolean cmp(String a, String b) {
                 return a.compareTo(b) > 0;
+            }
+            @Override
+            public boolean resultForNaN() {
+                return false;
             }
         };
     }
