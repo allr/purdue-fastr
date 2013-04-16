@@ -17,7 +17,9 @@ import java.lang.Integer;
  * </pre>
  */
 // FIXME: optimize for single argument
-// NOTE: we could probably get some performance if we gave up on preserving NA vs NaN in double computations; the current implementation strives to be strict
+
+// NOTE: GNU-R currently does not require distinction of NA and NaN in sum, na.rm works for both; if na.rm is false and the input contains either,
+// the result can contain either; being stricter than GNU-R does have performance overhead
 
 final class Sum extends CallFactory {
 
@@ -38,13 +40,6 @@ final class Sum extends CallFactory {
                 if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
                     continue;
                 }
-            } else {
-                if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
-                    // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
-                    res[0] = real;
-                    res[1] = imag;
-                    return;
-                }
             }
             rreal += real;
             rimag += imag;
@@ -62,8 +57,6 @@ final class Sum extends CallFactory {
                 if (RDouble.RDoubleUtils.isNAorNaN(d)) {
                     continue;
                 }
-            } else {
-                if (RDouble.RDoubleUtils.isNAorNaN(d)) { return d; }// FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
             }
             res += d;
         }
