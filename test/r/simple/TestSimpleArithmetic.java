@@ -118,6 +118,27 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
         assertEval("{ c(1,2,3+1i)^3 }", "1.0+0.0i, 8.0+0.0i, 18.0+26.0i");
         assertEval("{ round( 3^c(1,2,3+1i), digits=5 ) }", "3.0+0.0i, 9.0+0.0i, 12.28048+24.04558i");
+
+        assertEval("{ 1L + 1:2 }", "2L, 3L");
+        assertEval("{ 4:3 + 2L }", "6L, 5L");
+        assertEval("{ 1:2 + 3:4 }", "4L, 6L");
+        assertEval("{ 1:2 + c(1L, 2L) }", "2L, 4L");
+        assertEval("{ c(1L, 2L) + 1:4 }", "2L, 4L, 4L, 6L");
+        assertEval("{ 1:4 + c(1L, 2L) }", "2L, 4L, 4L, 6L");
+        assertEval("{ 2L + 1:2 }", "3L, 4L");
+        assertEval("{ 1:2 + 2L }", "3L, 4L");
+        assertEval("{ c(1L, 2L) + 2L }", "3L, 4L");
+        assertEval("{ 2L + c(1L, 2L) }", "3L, 4L");
+        assertEval("{ 1 + 1:2 }", "2.0, 3.0");
+        assertEval("{ c(1,2) + 1:2 }", "2.0, 4.0");
+        assertEval("{ c(1,2,3,4) + 1:2 }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ c(1,2,3,4) + c(1L,2L) }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ 1:2 + 1 }", "2.0, 3.0");
+        assertEval("{ 1:2 + c(1,2) }", "2.0, 4.0");
+        assertEval("{ 1:2 + c(1,2,3,4) }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ c(1L,2L) + c(1,2,3,4) }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ 1L + c(1,2) }", "2.0, 3.0");
+
     }
 
     @Test
