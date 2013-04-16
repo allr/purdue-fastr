@@ -63,11 +63,11 @@ final class Sum extends CallFactory {
         return res;
     }
 
-    public static long sum(RInt v, boolean narm) {
+    public static double sum(RInt v, boolean narm) {
         int size = v.size();
-        long res = 0;
+        double res = 0;
         for (int i = 0; i < size; i++) {
-            long l = v.getInt(i);
+            int l = v.getInt(i);
             if (l == RInt.NA) {
                 if (narm) {
                     continue;
@@ -81,6 +81,47 @@ final class Sum extends CallFactory {
         return res;
     }
 
+    // for expressions " sum(x) relop const " or " const relop sum(x) ", return the value of the constant
+    // only if the constant is a scalar numeric non-negative value that fits into integer
+    // (this is for optimizations where x is a logical vector)
+
+    // FIXME: not really used now, because the optimization is not possible unless we know that the logical vector x does not contain NAs
+    private static int relationOperatorAgainst(ASTNode ast) {
+        // optimize for "sum(logical) == constant"
+        ASTNode sumParent = ast.getParent();
+        if (sumParent != null && sumParent instanceof r.nodes.BinaryOperation) {
+            r.nodes.BinaryOperation op = (r.nodes.BinaryOperation) sumParent;
+            ASTNode other;
+            if (op.getRHS() == ast) {
+                other = op.getLHS();
+            } else {
+                other = op.getRHS();
+            }
+            if (other instanceof r.nodes.Constant) {
+                RAny res = ((r.nodes.Constant) other).getValue();
+                if ((res instanceof RDouble || res instanceof RInt || res instanceof RLogical) && ((RArray)res).size() == 1) {
+                    int cvalue = res.asInt().getInt(0);
+                    if (cvalue >= 0) {
+                        return cvalue;
+                    }
+                }
+
+            }
+        }
+        return -1;
+    }
+
+    // the maximum value it makes sense to keep summing up to with a logical vector as argument (note: logicals have only positive non-na values)
+    private static int maxLogicalSum(ASTNode ast) {
+       int res = relationOperatorAgainst(ast);
+       ASTNode sumParent = ast.getParent();
+       if (res != -1 && (sumParent instanceof r.nodes.GT || sumParent instanceof r.nodes.GE || sumParent instanceof r.nodes.EQ ||
+               sumParent instanceof r.nodes.NE || sumParent instanceof r.nodes.LT || sumParent instanceof r.nodes.LE)) {
+           return res;
+       }
+       return -1;
+    }
+
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
@@ -89,13 +130,18 @@ final class Sum extends CallFactory {
         }; }
         ArgumentInfo ia = check(call, names, exprs);
 
-        final boolean neverRemoveNA = !ia.provided("na.rm");
-        final int narmPosition = ia.provided("na.rm") ? ia.position("na.rm") : -1;
+        final int narmPosition = ia.position("na.rm");
+
+        // we keep this -1 whenever there is more than one argument, because in that case there could be
+        // so many logical values to add that we could get logical overflow
+
+        // TODO: revisit this when supporting long vectors
+        final int maxLogicalSum = (names.length > 2 || narmPosition != -1) ? -1 : maxLogicalSum(call);
 
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 boolean naRM = false;
-                if (!neverRemoveNA) {
+                if (narmPosition != -1) {
                     RAny v = args[narmPosition];
                     if (v instanceof RLogical) { // FIXME: use/create some method for this instead
                         RLogical l = (RLogical) v;
@@ -111,10 +157,11 @@ final class Sum extends CallFactory {
                     }
                 }
                 boolean hasDouble = false;
+                boolean hasInt = false;
                 boolean hasComplex = false;
 
                 for (int i = 0; i < args.length; i++) {
-                    if (!neverRemoveNA && i == narmPosition) {
+                    if (i == narmPosition) {
                         continue;
                     }
                     RAny v = args[i];
@@ -122,8 +169,12 @@ final class Sum extends CallFactory {
                         hasDouble = true;
                     } else if (v instanceof RComplex) {
                         hasComplex = true;
-                    } else if (v instanceof RList) {
-                        throw RError.getInvalidTypeList(ast);
+                    } else if (v instanceof RInt) {
+                        hasInt = true;
+                    } else if (v instanceof RLogical || v instanceof RNull) {
+                        // ok
+                    } else {
+                        throw RError.getInvalidTypeArgument(ast, v.typeOf());
                     }
                 }
 
@@ -132,7 +183,7 @@ final class Sum extends CallFactory {
                     double rreal = 0;
                     double rimag = 0;
                     for (int i = 0; i < args.length; i++) {
-                        if (!neverRemoveNA && i == narmPosition) {
+                        if (i == narmPosition) {
                             continue;
                         }
                         RAny v = args[i];
@@ -156,7 +207,7 @@ final class Sum extends CallFactory {
                 } else if (hasDouble) {
                     double res = 0;
                     for (int i = 0; i < args.length; i++) {
-                        if (!neverRemoveNA && i == narmPosition) {
+                        if (i == narmPosition) {
                             continue;
                         }
                         RAny v = args[i];
@@ -164,7 +215,8 @@ final class Sum extends CallFactory {
                             continue;
                         }
                         double d = sum(v.asDouble(), naRM);
-                        if (RDouble.RDoubleUtils.isNAorNaN(d)) { // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
+                        if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
                             res = d;
                             break;
                         } else {
@@ -172,10 +224,10 @@ final class Sum extends CallFactory {
                         }
                     }
                     return RDouble.RDoubleFactory.getScalar(res);
-                } else {
-                    long res = 0;
+                } else if (hasInt || maxLogicalSum == -1) {
+                    double res = 0;
                     for (int i = 0; i < args.length; i++) {
-                        if (!neverRemoveNA && i == narmPosition) {
+                        if (i == narmPosition) {
                             continue;
                         }
                         RAny v = args[i];
@@ -184,13 +236,48 @@ final class Sum extends CallFactory {
                         }
                         res += sum(v.asInt(), naRM);
                     }
-                    if (!(res < Integer.MIN_VALUE || res > Integer.MAX_VALUE)) { // FIXME: this may not rigorously reflect R semantics, check if the
-                                                                                 //        range should be checked for individual elements or not
+                    if (!(res < Integer.MIN_VALUE || res > Integer.MAX_VALUE)) {
+                        // FIXME: this may not rigorously reflect R semantics, check if the
+                        //        range should be checked for individual elements or not
                         return RInt.RIntFactory.getScalar((int) res);
                     } else {
                         return RInt.BOXED_NA;
                     }
-
+                } else {
+                    // sum(logical) cmpop const
+                    int argi = narmPosition == 0 ? 1 : 0;
+                    RLogical v = (RLogical) args[argi];
+                    int size = v.size();
+                    int res = 0;
+                    int i = 0;
+                    for (; i < size; i++) {
+                        int l = v.getLogical(i);
+                        if (l == RInt.NA) {
+                            if (naRM) {
+                                continue;
+                            } else {
+                                return RInt.BOXED_NA;
+                            }
+                        } else {
+                            res += l;
+                            if (res > maxLogicalSum) {
+                                break;
+                            }
+                        }
+                    }
+                    if (!naRM) {
+                        for (; i < size; i++) { // still have to check for NAs
+                            int l = v.getLogical(i);
+                            if (l == RInt.NA) {
+                                return RInt.BOXED_NA;
+                            }
+                        }
+                    }
+                    if (res < 0) { // overflow
+                        return RInt.BOXED_NA;
+                    } else {
+                        return RInt.RIntFactory.getScalar(res);
+                    }
                 }
             }
         };
