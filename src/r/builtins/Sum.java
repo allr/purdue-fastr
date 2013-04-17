@@ -81,11 +81,13 @@ final class Sum extends CallFactory {
         return res;
     }
 
+
+    // TODO: this optimization should be done more thoroughly, it could help much more with lazy comparison
+
     // for expressions " sum(x) relop const " or " const relop sum(x) ", return the value of the constant
     // only if the constant is a scalar numeric non-negative value that fits into integer
     // (this is for optimizations where x is a logical vector)
 
-    // FIXME: not really used now, because the optimization is not possible unless we know that the logical vector x does not contain NAs
     private static int relationOperatorAgainst(ASTNode ast) {
         // optimize for "sum(logical) == constant"
         ASTNode sumParent = ast.getParent();

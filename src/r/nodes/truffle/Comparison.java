@@ -13,6 +13,7 @@ import r.nodes.*;
 
 // FIXME: update debugs for new specializations
 // FIXME: add more scalar specializations
+// TODO: add node rewriting to scalar/vector and vector/scalar specializations
 
 public class Comparison extends BaseR {
 

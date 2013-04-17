@@ -2030,7 +2030,6 @@ public class Arithmetic extends BaseR {
         if (b != 0) {
             double tmp = a - Math.floor(q) * b;
             if (RDouble.RDoubleUtils.isFinite(q) && Math.abs(q) > 1 / RDouble.EPSILON) {
-                // FIXME: warning: probable complete loss of accuracy in modulus
                 RContext.warning(ast, RError.ACCURACY_MODULUS);
             }
             return tmp - Math.floor(tmp / b) * b;
@@ -2079,21 +2078,29 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
-            for (int i = 0; i < size; i++) {
-                double a = x[i];
-                double b = y[i];
-                double c = fmod(ast, a, b);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
-                        res[i] = RDouble.NA;
+            if (!RContext.hasGNUR()) {
+                for (int i = 0; i < size; i++) {
+                    double a = x[i];
+                    double b = y[i];
+                    double c = fmod(ast, a, b);
+                    if (RDouble.RDoubleUtils.isNA(c)) {
+                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                            res[i] = RDouble.NA;
+                        }
+                    } else {
+                        res[i] = c;
                     }
-                } else {
-                    res[i] = c;
+                }
+            } else { // FIXME: check if it won't be better to use the Java version for short vectors (branch above)
+                boolean warn = GNUR.fmod(x, y, res, size);
+                if (warn) {
+                    RContext.warning(ast, RError.ACCURACY_MODULUS); // FIXME: will only appear once per vector
                 }
             }
         }
         @Override
         public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = fmod(ast, a, y);
@@ -2105,6 +2112,7 @@ public class Arithmetic extends BaseR {
                     res[i] = c;
                 }
             }
+
         }
         @Override
         public boolean returnsDouble() {
@@ -2536,6 +2544,13 @@ public class Arithmetic extends BaseR {
                     return arit.op(ast, adbl, bdbl);
                 }
              }
+
+            @Override
+            public RDouble materialize() {
+                double[] res = new double[n];
+                arit.op(ast, a.getContent(), b.getContent(), res, n);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
         }
 
         static final class VectorScalar extends DoubleView implements RDouble {
@@ -2958,6 +2973,85 @@ public class Arithmetic extends BaseR {
         }
     }
 
+//    // experimental optimization - may have to be re-visited later
+//    private static RInt hackAddTemporaryIntandSequence(RInt aArg, RIntSequence b, int na, int nb, ValueArithmetic arit, ASTNode ast) {
+//        int[] a = aArg.getContent();
+//        int bfrom = b.from();
+//        int bstep = b.step();
+//
+//        boolean overflown = false;
+//
+//        int nfull = na / nb;
+//        int aoffset = 0;
+//        for (int fi = 0; fi < nfull; fi++) {
+//            int bval = bfrom;
+//            for (int bi = 0; bi < nb; bi++) {
+//                int ai = aoffset + bi;
+//                int aval = a[ai];
+//                int res;
+//                if (aval > 0) {
+//                    res = aval + bval;
+//                    // NOTE: aval cannot be RInt.NA
+//                    if (bval >= res) {
+//                        res = RInt.NA;
+//                        overflown = true;
+//                    }
+//                } else {
+//                    if (aval == RInt.NA) {
+//                        res = RInt.NA;
+//                    } else {
+//                        res = aval + bval;
+//                        if (bval < res) {
+//                            res = RInt.NA;
+//                            overflown = true;
+//                        } else {
+//                            if (res == RInt.NA) {
+//                             // r may be NA (may "naturally" reach NA which is however still reported as overflow by R)
+//                                overflown = true;
+//                            }
+//                        }
+//                    }
+//                }
+//                a[ai] = res;
+//                bval += bstep;
+//            }
+//            aoffset += nb;
+//        }
+//        int bval = bfrom;
+//        for (int ai = aoffset; ai < na; ai++) {
+//            int aval = a[ai];
+//            int res;
+//            if (aval > 0) {
+//                res = aval + bval;
+//                // NOTE: aval cannot be RInt.NA
+//                if (bval >= res) {
+//                    res = RInt.NA;
+//                    overflown = true;
+//                }
+//            } else {
+//                if (aval == RInt.NA) {
+//                    res = RInt.NA;
+//                } else {
+//                    res = aval + bval;
+//                    if (bval < res) {
+//                        res = RInt.NA;
+//                        overflown = true;
+//                    } else {
+//                        if (res == RInt.NA) {
+//                         // r may be NA (may "naturally" reach NA which is however still reported as overflow by R)
+//                            overflown = true;
+//                        }
+//                    }
+//                }
+//            }
+//            bval += bstep;
+//        }
+//        if (overflown) {
+//            arit.emitOverflowWarning(ast);
+//        }
+//        return aArg;
+//    }
+
     // FIXME: it might pay off to use some of the optimizations only with sufficiently large vectors, so e.g. conditionally on the size
     // that is being checked already anyway
     public static RInt intBinary(RInt a, RInt b, ValueArithmetic arit, ASTNode ast) {
@@ -2999,6 +3093,10 @@ public class Arithmetic extends BaseR {
         } else {
             int n = resultSize(ast, na, nb);
             if (b instanceof RIntSequence) {
+                // HACK HACK just to test if this would help in one benchmark
+//                if (na > 1 && arit == ADD && a.isTemporary() && n == na) {
+//                    return hackAddTemporaryIntandSequence(a, (RIntSequence) b, na, nb, arit, ast);
+//                }
                 res = new IntView.VectorSequence(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
             } else if (a instanceof RIntSequence) {
                 res = new IntView.SequenceVector((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
