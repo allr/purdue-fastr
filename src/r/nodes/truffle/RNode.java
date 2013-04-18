@@ -1,16 +1,16 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
+import r.Truffle.Frame;
+import r.Truffle.VirtualFrame;
 import r.data.*;
 import r.nodes.*;
+import r.Truffle.*;
 
-public abstract class RNode extends Node {
+public abstract class RNode {
 
     public ASTNode getAST() {
-        return ((RNode) getParent()).getAST();
+        return (getParent()).getAST();
     }
 
     public abstract Object execute(Frame frame);
@@ -27,4 +27,39 @@ public abstract class RNode extends Node {
         execute(frame);
         return RNull.getNull();
     }
+
+    public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RNode replace(RNode sc, String string) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RNode replace(RNode sc) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RNode replaceChild(RNode sc, RNode s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RNode adoptChild(RNode o) {
+        return null;
+    }
+
+    public RNode[] adoptChildren(RNode[] argsExprs) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public RNode getParent() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

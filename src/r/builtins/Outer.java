@@ -12,11 +12,11 @@ import r.nodes.truffle.*;
 import r.nodes.truffle.Constant;
 import r.nodes.truffle.FunctionCall;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "outer"
- *
+ * 
  * <pre>
  * X, Y -- First and second arguments for function FUN. Typically a vector or array.
  * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").
@@ -91,10 +91,10 @@ final class Outer extends CallFactory {
 
         public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, FunctionCall callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
             super(ast, argNames, argExprs);
-            this.callNode = adoptChild(callNode);
-            this.callableProvider = adoptChild(callableProvider);
-            this.xArgProvider = adoptChild(xArgProvider);
-            this.yArgProvider = adoptChild(yArgProvider);
+            this.callNode = (FunctionCall) adoptChild(callNode);
+            this.callableProvider = (CallableProvider) adoptChild(callableProvider);
+            this.xArgProvider = (ValueProvider) adoptChild(xArgProvider);
+            this.yArgProvider = (ValueProvider) adoptChild(yArgProvider);
         }
 
         public RAny outer(Frame frame, RAny xarg, RAny yarg, RAny farg) {

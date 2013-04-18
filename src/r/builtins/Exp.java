@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.Frame;
+import r.Truffle.*;
 import r.*;
 import r.data.*;
 import r.data.internal.View;

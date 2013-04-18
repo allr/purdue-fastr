@@ -6,19 +6,12 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.Selector.SelectorNode;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 /**
- * A multi-dimensional read.
- *
- * arrayname '[' [first index] , [second index] { , [ other index]} [ , drop = ] ']'
- *
- * There are no node rewrites, but the selection operator nodes have their selector nodes which tend
- * to be overwritten.
- *
- * The special case for matrices is determined statically when # of dimensions is 2.
+ * A multi-dimensional read. arrayname '[' [first index] , [second index] { , [ other index]} [ , drop = ] ']' There are
+ * no node rewrites, but the selection operator nodes have their selector nodes which tend to be overwritten. The
+ * special case for matrices is determined statically when # of dimensions is 2.
  */
 public abstract class ReadArray extends BaseR {
 
@@ -32,14 +25,13 @@ public abstract class ReadArray extends BaseR {
         super(ast);
         this.subset = subset;
         this.lhs = adoptChild(lhs);
-        this.dropExpr = adoptChild(dropExpr);
-        this.exactExpr = adoptChild(exactExpr);
+        this.dropExpr = (OptionNode) adoptChild(dropExpr);
+        this.exactExpr = (OptionNode) adoptChild(exactExpr);
     }
 
     public ReadArray(ReadArray other) {
         this(other.ast, other.subset, other.lhs, other.dropExpr, other.exactExpr);
     }
-
 
     // =================================================================================================================
     // OptionNode
@@ -48,17 +40,14 @@ public abstract class ReadArray extends BaseR {
     public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
         return new OptionNode(ast) {
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 return value;
             }
         };
     }
 
     public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
-        if (node == null) {
-            return createConstantOptionNode(ast, defaultValue);
-        }
+        if (node == null) { return createConstantOptionNode(ast, defaultValue); }
         if (node.getAST() instanceof r.nodes.Constant) {
             RAny value = (RAny) node.execute(null);
             return createConstantOptionNode(ast, value.asLogical().getLogical(0));
@@ -67,8 +56,7 @@ public abstract class ReadArray extends BaseR {
 
             @Child RNode child = adoptChild(node);
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 RAny value = (RAny) child.execute(frame);
                 return value.asLogical().getLogical(0);
             }
@@ -90,8 +78,7 @@ public abstract class ReadArray extends BaseR {
             super(ast);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
@@ -104,12 +91,9 @@ public abstract class ReadArray extends BaseR {
     // =================================================================================================================
 
     /**
-     * Generalized selector operator that works with arrays of arbitraty number of dimensions.
-     *
-     * Uses the selector index mechanism and reverse incrementing to create the selection result.
-     *
-     * At the moment does not perform any rewriting as the matrix - array distinction is known
-     * static time from the parser.
+     * Generalized selector operator that works with arrays of arbitraty number of dimensions. Uses the selector index
+     * mechanism and reverse incrementing to create the selection result. At the moment does not perform any rewriting
+     * as the matrix - array distinction is known static time from the parser.
      */
     public static class GenericRead extends ReadArray {
 
@@ -120,38 +104,32 @@ public abstract class ReadArray extends BaseR {
 
         public GenericRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectorExprs, OptionNode dropExpr, OptionNode exactExpr) {
             super(ast, subset, lhs, dropExpr, exactExpr);
-            this.selectorExprs = adoptChildren(selectorExprs);
+            this.selectorExprs = (SelectorNode[]) adoptChildren(selectorExprs);
             this.offsets = new int[selectorExprs.length + 1];
             this.selSizes = new int[selectorExprs.length];
             this.selectorVals = new Selector[selectorExprs.length];
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             RAny lhsVal = (RAny) lhs.execute(frame);
             for (int i = 0; i < selectorVals.length; ++i) {
                 selectorVals[i] = selectorExprs[i].executeSelector(frame);
             }
-            boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
+            boolean dropVal = dropExpr.executeLogical(frame) != 0; // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
-            if (!(lhsVal instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-            }
+            if (!(lhsVal instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf()); }
             RArray array = (RArray) lhsVal;
             int[] dim = array.dimensions();
-            if (dim == null || dim.length != selectorExprs.length) {
-                throw RError.getIncorrectDimensions(getAST());
-            }
+            if (dim == null || dim.length != selectorExprs.length) { throw RError.getIncorrectDimensions(getAST()); }
             return executeLoop(array, dropVal, exactVal);
         }
 
         /**
-         * Execute method which evaluates the lhs, selectors and optional expressions, checks that the
-         * array selection can proceed and then proceeds optionally replacing the falling selectors.
-         *
-         * The valued variant of execute is called for the production of the result, on failure the
-         * responsible selector is replaced and the valued variant is called again.
+         * Execute method which evaluates the lhs, selectors and optional expressions, checks that the array selection
+         * can proceed and then proceeds optionally replacing the falling selectors. The valued variant of execute is
+         * called for the production of the result, on failure the responsible selector is replaced and the valued
+         * variant is called again.
          */
 
         protected final Object executeLoop(RArray array, boolean dropVal, int exactVal) {
@@ -173,14 +151,10 @@ public abstract class ReadArray extends BaseR {
         }
 
         /**
-         * Returns the selection array or vector.
-         *
-         * The selSizes array contains sizes of the selectors (number of elements that will be
-         * returned by it). The idx array contains the indices returned by the selectors (that is
-         * the indices used to compute the source offset).
-         *
-         * The selIdx array contains the position in the selector (when this is equal to the
-         * selector size the selector has overflown).
+         * Returns the selection array or vector. The selSizes array contains sizes of the selectors (number of elements
+         * that will be returned by it). The idx array contains the indices returned by the selectors (that is the
+         * indices used to compute the source offset). The selIdx array contains the position in the selector (when this
+         * is equal to the selector size the selector has overflown).
          */
         public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
             int[] sourceDim = source.dimensions();
@@ -189,9 +163,7 @@ public abstract class ReadArray extends BaseR {
             int destSize = Selector.calculateSizeFromSelectorSizes(selSizes);
 
             RArray dest = Utils.createArray(source, destSize, destDim, null, null); // drop attributes
-            if (destSize == 0) {
-                return dest;
-            }
+            if (destSize == 0) { return dest; }
             int offset = 0;
             for (;;) {
                 int sourceOffset = offsets[0];
@@ -225,25 +197,20 @@ public abstract class ReadArray extends BaseR {
             super(ast, true, lhs, null, null, dropExpr, exactExpr);
             this.columnExpr = adoptChild(columnExpr);
             this.nSelectors = nSelectors;
-            assert Utils.check(nSelectors > 2);  // we could support 2 as well, but there is MatrixColumnSubset for that
+            assert Utils.check(nSelectors > 2); // we could support 2 as well, but there is MatrixColumnSubset for that
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
 
             RAny lhsVal = (RAny) lhs.execute(frame);
             RAny colVal = (RAny) columnExpr.execute(frame);
-            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE; // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
-            if (!(lhsVal instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-            }
+            if (!(lhsVal instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf()); }
             RArray array = (RArray) lhsVal;
             int[] dim = array.dimensions();
-            if (dim == null || dim.length != nSelectors) {
-                throw RError.getIncorrectDimensions(getAST());
-            }
+            if (dim == null || dim.length != nSelectors) { throw RError.getIncorrectDimensions(getAST()); }
             int n = dim[nSelectors - 1]; // limit for the column (last dimension)
 
             try {
@@ -255,9 +222,7 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     throw new UnexpectedResultException(null);
                 }
-                if (col > n || col <= 0) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (col > n || col <= 0) { throw new UnexpectedResultException(null); }
 
                 int[] ndim;
                 if (dropVal) {
@@ -266,7 +231,7 @@ public abstract class ReadArray extends BaseR {
                     ndim = new int[nSelectors];
                     ndim[nSelectors - 1] = 1;
                 }
-                int m = 1;  // size of the result
+                int m = 1; // size of the result
                 for (int i = 0; i < ndim.length; i++) {
                     int d = dim[i];
                     ndim[i] = d;
@@ -307,30 +272,25 @@ public abstract class ReadArray extends BaseR {
 
         public MatrixRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode selectorIExpr, SelectorNode selectorJExpr, OptionNode dropExpr, OptionNode exactExpr) {
             super(ast, subset, lhs, dropExpr, exactExpr);
-            this.selectorIExpr = adoptChild(selectorIExpr);
-            this.selectorJExpr = adoptChild(selectorJExpr);
+            this.selectorIExpr = (SelectorNode) adoptChild(selectorIExpr);
+            this.selectorJExpr = (SelectorNode) adoptChild(selectorJExpr);
         }
 
         public MatrixRead(ReadArray other) {
             super(other);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             RAny lhsVal = (RAny) lhs.execute(frame);
             Selector selectorI = selectorIExpr.executeSelector(frame);
             Selector selectorJ = selectorJExpr.executeSelector(frame);
-            boolean dropVal = dropExpr.executeLogical(frame) != 0;  // FIXME: what is the correct execution order of these args?
+            boolean dropVal = dropExpr.executeLogical(frame) != 0; // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
-            if (!(lhsVal instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-            }
+            if (!(lhsVal instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf()); }
             RArray array = (RArray) lhsVal;
             int[] dim = array.dimensions();
-            if (dim == null || dim.length != 2) {
-                throw RError.getIncorrectDimensions(getAST());
-            }
+            if (dim == null || dim.length != 2) { throw RError.getIncorrectDimensions(getAST()); }
             return executeLoop(array, selectorI, selectorJ, dropVal, exactVal);
         }
 
@@ -365,9 +325,7 @@ public abstract class ReadArray extends BaseR {
             int nm = selectorI.size();
             int nn = selectorJ.size();
             int nsize = nm * nn;
-            if (!subset && (nsize > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
-            }
+            if (!subset && (nsize > 1)) { throw RError.getSelectMoreThanOne(getAST()); }
             if ((nm != 1 && nn != 1) || (subset && !drop)) {
                 ndim = new int[]{nm, nn};
             } else {
@@ -406,8 +364,7 @@ public abstract class ReadArray extends BaseR {
             super(ast, false, lhs, selectorIExpr, selectorJExpr, dropExpr, exactExpr);
         }
 
-        @Override
-        public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
+        @Override public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
             int[] ndim = base.dimensions();
             int m = ndim[0];
             int n = ndim[1];
@@ -434,22 +391,17 @@ public abstract class ReadArray extends BaseR {
             this.columnExpr = adoptChild(columnExpr);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
 
             RAny lhsVal = (RAny) lhs.execute(frame);
             RAny colVal = (RAny) columnExpr.execute(frame);
-            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE; // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
-            if (!(lhsVal instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-            }
+            if (!(lhsVal instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf()); }
             RArray array = (RArray) lhsVal;
             int[] dim = array.dimensions();
-            if (dim == null || dim.length != 2) {
-                throw RError.getIncorrectDimensions(getAST());
-            }
+            if (dim == null || dim.length != 2) { throw RError.getIncorrectDimensions(getAST()); }
             int m = dim[0];
             int n = dim[1];
 
@@ -462,15 +414,13 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     throw new UnexpectedResultException(null);
                 }
-                if (col > n || col <= 0) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (col > n || col <= 0) { throw new UnexpectedResultException(null); }
 
                 int[] ndim;
                 if (dropVal) {
                     ndim = null;
                 } else {
-                    ndim = new int[] {m, 1};
+                    ndim = new int[]{m, 1};
                 }
 
                 // note: also could be lazy here
@@ -501,22 +451,17 @@ public abstract class ReadArray extends BaseR {
             this.rowExpr = adoptChild(rowExpr);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
 
             RAny lhsVal = (RAny) lhs.execute(frame);
             RAny rowVal = (RAny) rowExpr.execute(frame);
-            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE; // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
-            if (!(lhsVal instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
-            }
+            if (!(lhsVal instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf()); }
             RArray array = (RArray) lhsVal;
             int[] dim = array.dimensions();
-            if (dim == null || dim.length != 2) {
-                throw RError.getIncorrectDimensions(getAST());
-            }
+            if (dim == null || dim.length != 2) { throw RError.getIncorrectDimensions(getAST()); }
             int m = dim[0];
             int n = dim[1];
 
@@ -529,15 +474,13 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     throw new UnexpectedResultException(null);
                 }
-                if (row > n || row <= 0) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (row > n || row <= 0) { throw new UnexpectedResultException(null); }
 
                 int[] ndim;
                 if (dropVal) {
                     ndim = null;
                 } else {
-                    ndim = new int[] {1, n};
+                    ndim = new int[]{1, n};
                 }
 
                 // note: also could be lazy here

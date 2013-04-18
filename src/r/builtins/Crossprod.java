@@ -2,7 +2,7 @@ package r.builtins;
 
 import org.netlib.blas.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.data.*;
 import r.errors.*;
@@ -87,12 +87,10 @@ final class Crossprod extends CallFactory {
             }
         }
 
-        if (lrow != rrow) {
-            throw RError.getNonConformableArgs(ast);
-        }
-//        double[] res = matrixTimesMatrixGetters(ld, rd, lcol, lrow, rcol);
+        if (lrow != rrow) { throw RError.getNonConformableArgs(ast); }
+        //        double[] res = matrixTimesMatrixGetters(ld, rd, lcol, lrow, rcol);
         double[] res = matrixTimesMatrixNative(ld, rd, lcol, lrow, rcol);
-        return RDouble.RDoubleFactory.getFor(res, new int[] {lcol, rcol}, null);
+        return RDouble.RDoubleFactory.getFor(res, new int[]{lcol, rcol}, null);
     }
 
     public static RAny crossprod(RAny x, ASTNode ast) {
@@ -102,13 +100,11 @@ final class Crossprod extends CallFactory {
         int[] dims = xd.dimensions();
         int ndims = dims == null ? 0 : dims.length;
 
-        if (ndims != 2) {
-            return MatrixOperation.dotProduct(xd);
-        }
+        if (ndims != 2) { return MatrixOperation.dotProduct(xd); }
         int row = dims[0];
         int col = dims[1];
         double[] res = matrixNative(xd, row, col);
-        return RDouble.RDoubleFactory.getFor(res, new int[] {col, col}, null);
+        return RDouble.RDoubleFactory.getFor(res, new int[]{col, col}, null);
     }
 
     public static double[] matrixTimesMatrixNative(RDouble a, RDouble b, int m, int n, int p) {

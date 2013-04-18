@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.data.*;
 import r.data.RComplex.*;
@@ -13,7 +13,7 @@ import r.nodes.truffle.*;
 // appl/fft.c
 final class Fft extends CallFactory {
 
-    static final CallFactory _ = new Fft("fft", new String[]{"z", "inverse"}, new String[] {"z"});
+    static final CallFactory _ = new Fft("fft", new String[]{"z", "inverse"}, new String[]{"z"});
 
     private Fft(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -21,9 +21,7 @@ final class Fft extends CallFactory {
 
     public static boolean parseInverse(RAny arg) {
         RLogical l = arg.asLogical();
-        if (l.getLogical(0) == RLogical.TRUE) {
-            return true;
-        }
+        if (l.getLogical(0) == RLogical.TRUE) { return true; }
         return false;
     }
 
@@ -39,7 +37,7 @@ final class Fft extends CallFactory {
                 RComplex res;
 
                 if (zarg instanceof RDouble || zarg instanceof RInt || zarg instanceof RLogical) {
-                   res =  zarg.asComplex().materialize(); // this will always copy
+                    res = zarg.asComplex().materialize(); // this will always copy
                 } else if (zarg instanceof RComplex) {
                     if (zarg.isTemporary()) {
                         res = (RComplex) zarg;
@@ -49,9 +47,7 @@ final class Fft extends CallFactory {
                 } else {
                     throw RError.getNonNumericArgument(ast);
                 }
-                if (res.size() <= 1) {
-                    return res;
-                }
+                if (res.size() <= 1) { return res; }
                 double[] z = res.getContent();
                 boolean inverse = inversePosition == -1 ? false : parseInverse(args[inversePosition]);
 
@@ -64,9 +60,7 @@ final class Fft extends CallFactory {
                     GNUR.fft_factor(n, ap_maxf, ap_maxp);
                     int maxp = ap_maxp[0];
                     int maxf = ap_maxf[0];
-                    if (maxf == 0) {
-                        throw RError.getFFTFactorization(ast);
-                    }
+                    if (maxf == 0) { throw RError.getFFTFactorization(ast); }
                     double[] ap_work = new double[4 * maxf];
                     int[] ap_iwork = new int[maxp];
                     GNUR.fft_work(z, 1, n, 1, ap_inv, ap_work, ap_iwork);
@@ -81,9 +75,7 @@ final class Fft extends CallFactory {
                         GNUR.fft_factor(d, ap_maxf, ap_maxp);
                         int maxp = ap_maxp[0];
                         int maxf = ap_maxf[0];
-                        if (maxf == 0) {
-                            throw RError.getFFTFactorization(ast);
-                        }
+                        if (maxf == 0) { throw RError.getFFTFactorization(ast); }
                         if (maxf > maxmaxf) {
                             maxmaxf = maxf;
                         }

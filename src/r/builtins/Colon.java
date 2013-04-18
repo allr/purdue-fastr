@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -10,7 +10,7 @@ import r.nodes.truffle.*;
 
 /**
  * ":"
- *
+ * 
  * <pre>
  * from -- starting value of sequence.
  * to -- (maximal) end value of the sequence.

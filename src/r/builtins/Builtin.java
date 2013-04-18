@@ -3,9 +3,7 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 /** The base class for builtin functions. */
 public abstract class Builtin extends AbstractCall {

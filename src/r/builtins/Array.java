@@ -6,11 +6,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "array"
- *
+ * 
  * <pre>
  * data -- a vector (including a list or expression vector) giving data to fill the array. Other objects are coerced by
  *        as.vector.

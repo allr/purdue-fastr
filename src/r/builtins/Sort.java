@@ -2,7 +2,7 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.builtins.Order.DoubleComparator;
@@ -32,7 +32,7 @@ final class Sort extends CallFactory {
         super(name, params, required);
     }
 
-    final static ArgumentMatch methodMatch = new ArgumentMatch(new String[] {"shell", "quick"});
+    final static ArgumentMatch methodMatch = new ArgumentMatch(new String[]{"shell", "quick"});
 
     // returns true for quicksort, false for shellsort (shellsort is the default)
     public static boolean parseMethod(RAny arg, ASTNode ast) {
@@ -41,8 +41,7 @@ final class Sort extends CallFactory {
     }
 
     public static boolean parseIndexReturn(RAny arg, ASTNode ast) {
-        if (!(arg instanceof RLogical || arg instanceof RInt || arg instanceof RDouble || arg instanceof RComplex)) {
-            throw RError.getInvalidArgument(ast, "index.return"); // in GNU-R, this will appear part of if
+        if (!(arg instanceof RLogical || arg instanceof RInt || arg instanceof RDouble || arg instanceof RComplex)) { throw RError.getInvalidArgument(ast, "index.return"); // in GNU-R, this will appear part of if
         }
         RLogical a = arg.asLogical();
         int size = a.size();
@@ -55,12 +54,9 @@ final class Sort extends CallFactory {
     }
 
     public static RInt parsePartial(RAny arg, ASTNode ast) {
-        if (arg instanceof RNull) {
-            return null; // as if partial was not given
+        if (arg instanceof RNull) { return null; // as if partial was not given
         }
-        if (!(arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical|| arg instanceof RRaw)) {
-            throw RError.getNotNumericVector(ast);
-        }
+        if (!(arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical || arg instanceof RRaw)) { throw RError.getNotNumericVector(ast); }
         return arg.asInt();
     }
 
@@ -89,15 +85,11 @@ final class Sort extends CallFactory {
                 boolean indexReturn = (indexReturnPosition == -1) ? false : parseIndexReturn(params[indexReturnPosition], ast);
 
                 if (partial != null) {
-                    if (decreasing || methodPosition != -1 || indexReturn) {
-                        throw RError.getUnsupportedPartial(ast);
-                    }
+                    if (decreasing || methodPosition != -1 || indexReturn) { throw RError.getUnsupportedPartial(ast); }
                     Utils.nyi("partial sorting not implemented");
                     return null;
                 }
-                if (indexReturn && naLast != RInt.NA) {
-                    throw RError.getIndexReturnRemoveNA(ast);
-                }
+                if (indexReturn && naLast != RInt.NA) { throw RError.getIndexReturnRemoveNA(ast); }
                 if (x.names() == null && !indexReturn && !decreasing) { // faster versions
                     if (x instanceof RDouble) {
                         double[] a = RDouble.RDoubleUtils.copyAsDoubleArray((RDouble) x);
@@ -107,7 +99,7 @@ final class Sort extends CallFactory {
                         return RDouble.RDoubleFactory.getFor(a); // drop attributes
                     }
                     if (x instanceof RInt) {
-                        int[] a = RInt.RIntUtils.copyAsIntArray((RInt)x);
+                        int[] a = RInt.RIntUtils.copyAsIntArray((RInt) x);
                         Arrays.sort(a);
                         a = fixNAs(a, naLast);
                         return RInt.RIntFactory.getFor(a); // drop attributes
@@ -120,18 +112,10 @@ final class Sort extends CallFactory {
     }
 
     public static RArray sort(RArray x, int naLast, boolean decreasing, boolean indexReturn) {
-        if (x instanceof RDouble) {
-            return sort((RDouble) x, naLast, decreasing, indexReturn);
-        }
-        if (x instanceof RInt) {
-            return sort((RInt) x, naLast, decreasing, indexReturn);
-        }
-        if (x instanceof RString) {
-            return sort((RString) x, naLast, decreasing, indexReturn);
-        }
-        if (x instanceof RLogical) {
-            return sort((RLogical) x, naLast, decreasing, indexReturn);
-        }
+        if (x instanceof RDouble) { return sort((RDouble) x, naLast, decreasing, indexReturn); }
+        if (x instanceof RInt) { return sort((RInt) x, naLast, decreasing, indexReturn); }
+        if (x instanceof RString) { return sort((RString) x, naLast, decreasing, indexReturn); }
+        if (x instanceof RLogical) { return sort((RLogical) x, naLast, decreasing, indexReturn); }
         Utils.nyi("unsupported type for sorting");
         return null;
     }
@@ -139,7 +123,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RDouble x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<Integer>(); // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -174,7 +158,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RInt x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<Integer>(); // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -209,7 +193,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RString x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<Integer>(); // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -244,7 +228,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RLogical x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<Integer>(); // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -330,7 +314,7 @@ final class Sort extends CallFactory {
                 }
             }
 
-            for(int i = 0; i < nalen; i++) {
+            for (int i = 0; i < nalen; i++) {
                 int xi = naorder.get(i);
                 int resi = i + naStart;
                 res.set(resi, x.get(xi));
@@ -353,7 +337,7 @@ final class Sort extends CallFactory {
                 int corrected = naRemoveIndex[xi];
                 ix[i] = corrected + 1; // 1-based
             }
-            RList list = RList.RListFactory.getFor(new RAny[] {res,  RInt.RIntFactory.getFor(ix)}, null, resultNames);
+            RList list = RList.RListFactory.getFor(new RAny[]{res, RInt.RIntFactory.getFor(ix)}, null, resultNames);
             return list;
         }
 
@@ -362,20 +346,16 @@ final class Sort extends CallFactory {
 
     public static double[] fixNAs(double[] a, int naLast) {
         // all NAs and NaNs will be at the end of the array
-        if (naLast == RLogical.TRUE) {
-            return a;
-        }
+        if (naLast == RLogical.TRUE) { return a; }
         int nna = 0;
-        for (int i = a.length - 1; i >= 0 ; i--) {
+        for (int i = a.length - 1; i >= 0; i--) {
             if (RDouble.RDoubleUtils.isNAorNaN(a[i])) {
                 nna++;
             } else {
                 break;
             }
         }
-        if (nna == 0) {
-            return a;
-        }
+        if (nna == 0) { return a; }
 
         if (naLast == RLogical.NA) {
             double[] res = new double[a.length - nna];
@@ -385,7 +365,7 @@ final class Sort extends CallFactory {
         // naLast == RLogical.FALSE)
 
         double[] tmp = new double[nna]; // we need tmp because we need to keep the distinction between NA and NaN
-        System.arraycopy(a, a.length-nna, tmp, 0, nna);
+        System.arraycopy(a, a.length - nna, tmp, 0, nna);
         System.arraycopy(a, 0, a, nna, a.length - nna);
         System.arraycopy(tmp, 0, a, 0, nna);
         return a;
@@ -393,20 +373,16 @@ final class Sort extends CallFactory {
 
     public static int[] fixNAs(int[] a, int naLast) {
         // all NAs will be at the beginning of the array, because RInt.NA is the smallest integer
-        if (naLast == RLogical.FALSE) {
-            return a;
-        }
+        if (naLast == RLogical.FALSE) { return a; }
         int nna = 0;
-        for (int i = 0; i < a.length ; i++) {
+        for (int i = 0; i < a.length; i++) {
             if (a[i] == RInt.NA) {
                 nna++;
             } else {
                 break;
             }
         }
-        if (nna == 0) {
-            return a;
-        }
+        if (nna == 0) { return a; }
 
         if (naLast == RLogical.NA) {
             int[] res = new int[a.length - nna];

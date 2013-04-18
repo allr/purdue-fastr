@@ -10,11 +10,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "cumsum"
- *
+ * 
  * <pre>
  * x -- a numeric or complex (not cummin or cummax) object, or an object that can be coerced to one of these.
  * </pre>

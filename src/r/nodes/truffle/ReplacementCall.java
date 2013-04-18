@@ -2,8 +2,7 @@ package r.nodes.truffle;
 
 import r.data.*;
 import r.nodes.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 // TODO: support optimizations that avoid copying - that is, "ref" values if they are being duplicated by the update
 //       (like in UpdateVector)
@@ -25,11 +24,10 @@ public class ReplacementCall extends BaseR {
         super(ast);
         this.isSuper = isSuper;
         this.callNode = adoptChild(callNode);
-        this.valueNode = adoptChild(valueNode);
+        this.valueNode = (RememberLast) adoptChild(valueNode);
 
         RNode node = adoptChild(new BaseR(ast) {
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 return newContent;
             }
         });
@@ -40,8 +38,7 @@ public class ReplacementCall extends BaseR {
         }
     }
 
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         newContent = callNode.execute(frame);
         assign.execute(frame);
         return valueNode.lastValue();
@@ -56,8 +53,7 @@ public class ReplacementCall extends BaseR {
             this.node = node;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             lastValue = node.execute(frame);
             return lastValue;
         }

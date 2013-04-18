@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -11,7 +11,7 @@ import r.nodes.truffle.*;
 
 /**
  * "t"
- *
+ * 
  * <pre>
  * x -- a matrix or data frame, typically.
  * </pre>

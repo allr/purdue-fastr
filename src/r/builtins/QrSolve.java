@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -48,14 +48,10 @@ final class QrSolve extends CallFactory {
                 RInt qrRank = a.getRAny(rankIndex).asInt();
                 int rank = qrRank.getInt(0);
                 int mind = ncol > nrow ? nrow : ncol;
-                if (rank != mind) {
-                    throw RError.getSingularSolve(ast, "a");
-                }
+                if (rank != mind) { throw RError.getSingularSolve(ast, "a"); }
                 RAny b;
                 if (bPosition == -1) {
-                    if (ncol != nrow) {
-                        throw RError.getOnlySquareInverted(ast);
-                    }
+                    if (ncol != nrow) { throw RError.getOnlySquareInverted(ast); }
                     // make b a diagonal matrix
                     double[] bcontent = new double[ncol * ncol];
                     for (int i = 0; i < ncol; i++) {

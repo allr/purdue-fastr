@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -18,13 +17,11 @@ public abstract class ConvertToLogicalOne extends RNode {
         this.input = adoptChild(input);
     }
 
-    @Override
-    public final Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         return RLogicalFactory.getScalar(executeScalarLogical(frame));
     }
 
-    @Override
-    public final int executeScalarLogical(Frame frame) {
+    @Override public final int executeScalarLogical(Frame frame) {
         return executeScalarLogical((RAny) input.execute(frame));
     }
 
@@ -35,7 +32,7 @@ public abstract class ConvertToLogicalOne extends RNode {
             return cast(condValue);
         } catch (UnexpectedResultException e) {
             if (DEBUG_C) Utils.debug("2nd level cast failed, replacing by generic");
-            ConvertToLogicalOne castNode = replace(fromGeneric(input), "installGenericConvertToLogical from cast node");
+            ConvertToLogicalOne castNode = (ConvertToLogicalOne) replace(fromGeneric(input), "installGenericConvertToLogical from cast node");
             return castNode.executeScalarLogical(condValue);
         }
     }
@@ -56,16 +53,11 @@ public abstract class ConvertToLogicalOne extends RNode {
     public static ConvertToLogicalOne fromLogical(RNode input) {
         return new ConvertToLogicalOne(input) {
 
-            @Override
-            public int cast(RAny value) throws UnexpectedResultException {
+            @Override public int cast(RAny value) throws UnexpectedResultException {
                 if (DEBUG_C) Utils.debug("casting logical to one logical");
-                if (!(value instanceof RLogical)) {
-                    throw new UnexpectedResultException(input);
-                }
+                if (!(value instanceof RLogical)) { throw new UnexpectedResultException(input); }
                 RLogical logicalArray = ((RLogical) value);
-                if (logicalArray.size() == 1) {
-                    return logicalArray.getLogical(0);
-                }
+                if (logicalArray.size() == 1) { return logicalArray.getLogical(0); }
                 if (logicalArray.size() > 1) {
                     RContext.warning(getAST(), RError.LENGTH_GT_1);
                     return logicalArray.getLogical(0);
@@ -78,12 +70,9 @@ public abstract class ConvertToLogicalOne extends RNode {
     public static ConvertToLogicalOne fromInt(RNode input) {
         return new ConvertToLogicalOne(input) {
 
-            @Override
-            public int cast(RAny value) throws UnexpectedResultException {
+            @Override public int cast(RAny value) throws UnexpectedResultException {
                 if (DEBUG_C) Utils.debug("casting integer to one logical");
-                if (!(value instanceof RInt)) {
-                    throw new UnexpectedResultException(input);
-                }
+                if (!(value instanceof RInt)) { throw new UnexpectedResultException(input); }
                 RInt intArray = ((RInt) value);
                 int intValue;
                 if (intArray.size() == 1) {
@@ -107,13 +96,10 @@ public abstract class ConvertToLogicalOne extends RNode {
     public static ConvertToLogicalOne fromGeneric(RNode input) {
         return new ConvertToLogicalOne(input) {
 
-            @Override
-            public int cast(RAny value) {
+            @Override public int cast(RAny value) {
                 if (DEBUG_C) Utils.debug("casting generic to one logical");
                 RLogical logicalArray = value.asLogical();
-                if (logicalArray.size() == 1) {
-                    return logicalArray.getLogical(0);
-                }
+                if (logicalArray.size() == 1) { return logicalArray.getLogical(0); }
                 if (logicalArray.size() > 1) {
                     RContext.warning(getAST(), RError.LENGTH_GT_1);
                     return logicalArray.getLogical(0);
@@ -121,8 +107,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                 throw RError.getLengthZero(null);
             }
 
-            @Override
-            public int executeScalarLogical(RAny condValue) {
+            @Override public int executeScalarLogical(RAny condValue) {
                 return cast(condValue);
             }
         };

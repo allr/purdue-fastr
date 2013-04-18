@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.builtins.internal.*;
@@ -18,7 +18,7 @@ final class Rgamma extends CallFactory {
         super(name, params, required);
     }
 
-    static final double[] defaultScale = new double[] {1};
+    static final double[] defaultScale = new double[]{1};
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
@@ -38,7 +38,7 @@ final class Rgamma extends CallFactory {
                     if (ratePosition != -1) {
                         double[] rate = Random.parseNumericArgument(args[ratePosition], ast);
                         for (int i = 0; i < rate.length; i++) {
-                            rate[i] = 1/rate[i];
+                            rate[i] = 1 / rate[i];
                         }
                         scale = rate;
                     } else {
@@ -46,10 +46,8 @@ final class Rgamma extends CallFactory {
                     }
                 }
 
-                if (shape.length == 0 || scale.length == 0) {
-                    return Random.allNAs(n, ast);
-                }
-                int [] rngKind = Random.updateNativeSeed(ast);
+                if (shape.length == 0 || scale.length == 0) { return Random.allNAs(n, ast); }
+                int[] rngKind = Random.updateNativeSeed(ast);
                 try {
                     return RDouble.RDoubleFactory.getFor(rgamma(n, shape, scale, ast));
                 } finally {
@@ -63,7 +61,7 @@ final class Rgamma extends CallFactory {
         double[] res = new double[n];
         boolean naProduced = GNUR.rgamma(res, n, shape, shape.length, scale, scale.length);
         if (naProduced) {
-            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
+            RContext.warning(ast, RError.NA_PRODUCED); // FIXME: can this happen for std normal and R generators?
         }
         return res;
     }

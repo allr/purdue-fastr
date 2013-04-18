@@ -4,9 +4,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
-
+import r.Truffle.*;
 
 public abstract class ArithmeticUpdateVariable extends BaseR {
 
@@ -29,19 +27,13 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
             SimpleAccessVariable accessAST = (SimpleAccessVariable) addAST.getLHS();
             r.nodes.Constant constantAST = (r.nodes.Constant) addAST.getRHS();
 
-            rhsNode = new Arithmetic(addAST,
-                            ReadVariable.getUninitialized(accessAST, varName),
-                            new Constant(constantAST, constantAST.getValue()),
-                            Arithmetic.ADD);
+            rhsNode = new Arithmetic(addAST, ReadVariable.getUninitialized(accessAST, varName), new Constant(constantAST, constantAST.getValue()), Arithmetic.ADD);
         } else {
             // x <- c + x
             SimpleAccessVariable accessAST = (SimpleAccessVariable) addAST.getRHS();
             r.nodes.Constant constantAST = (r.nodes.Constant) addAST.getLHS();
 
-            rhsNode = new Arithmetic(addAST,
-                            new Constant(constantAST, constantAST.getValue()),
-                            ReadVariable.getUninitialized(accessAST, varName),
-                            Arithmetic.ADD);
+            rhsNode = new Arithmetic(addAST, new Constant(constantAST, constantAST.getValue()), ReadVariable.getUninitialized(accessAST, varName), Arithmetic.ADD);
         }
         RNode assignmentNode = WriteVariable.getUninitialized(assignAST, varName, rhsNode);
         replace(assignmentNode, "install generic Arithmetic node from ArithmeticUpdateVariable");
@@ -58,8 +50,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
             this.slot = slot;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 Object value = frame.getObject(slot);
                 if (value != null && value instanceof ScalarIntImpl) {
@@ -67,7 +58,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     int newi = i + 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        frame.setObject(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        frame.setObject(slot, res); // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }
@@ -90,10 +81,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
             SimpleAccessVariable accessAST = (SimpleAccessVariable) subAST.getLHS();
             r.nodes.Constant constantAST = (r.nodes.Constant) subAST.getRHS();
 
-            rhsNode = new Arithmetic(subAST,
-                            ReadVariable.getUninitialized(accessAST, varName),
-                            new Constant(constantAST, constantAST.getValue()),
-                            Arithmetic.SUB);
+            rhsNode = new Arithmetic(subAST, ReadVariable.getUninitialized(accessAST, varName), new Constant(constantAST, constantAST.getValue()), Arithmetic.SUB);
         }
         RNode assignmentNode = WriteVariable.getUninitialized(assignAST, varName, rhsNode);
         replace(assignmentNode, "install generic Arithmetic node from ArithmeticUpdateVariable");
@@ -110,8 +98,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
             this.slot = slot;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 Object value = frame.getObject(slot);
                 if (value != null && value instanceof ScalarIntImpl) {
@@ -119,7 +106,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     int newi = i - 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        frame.setObject(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        frame.setObject(slot, res); // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }

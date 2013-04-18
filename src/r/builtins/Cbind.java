@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -94,7 +94,7 @@ final class Cbind extends CallFactory {
         boolean hasString = false;
         boolean hasList = false;
 
-        for (int i = 0; i < nargs; i++ ) {
+        for (int i = 0; i < nargs; i++) {
             RAny x = args[i];
             if (x instanceof RNull) {
                 // nothing added to result
@@ -113,7 +113,7 @@ final class Cbind extends CallFactory {
                     if (nrow == -1) {
                         nrow = dims[0];
                     } else {
-                        throw RError.getRowsMustMatch(ast, i+1);
+                        throw RError.getRowsMustMatch(ast, i + 1);
                     }
                 }
                 ncol += dims[1];
@@ -150,7 +150,7 @@ final class Cbind extends CallFactory {
         }
         int size = nrow * ncol;
         int offset = 0;
-        int[] ndim = new int[] {nrow, ncol};
+        int[] ndim = new int[]{nrow, ncol};
 
         if (hasList) {
             ListImpl res = RList.RListFactory.getUninitializedArray(size, ndim, null, null);

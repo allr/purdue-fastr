@@ -1,7 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -11,7 +10,7 @@ import r.nodes.truffle.*;
 
 /**
  * "c"
- *
+ * 
  * <pre>
  * ... -- objects to be concatenated.
  * recursive -- logical. If recursive = TRUE, the function recursively descends through lists

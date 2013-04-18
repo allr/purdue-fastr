@@ -10,14 +10,13 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 import java.lang.Integer;
 import java.lang.Double;
 
 /**
  * "eigen"
- *
+ * 
  * <pre>
  * x -- a matrix whose spectral decomposition is to be computed.
  * symmetric -- if TRUE, the matrix is assumed to be symmetric (or Hermitian if complex) and only its lower triangle

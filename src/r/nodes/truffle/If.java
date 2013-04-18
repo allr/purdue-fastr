@@ -1,14 +1,12 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
-
 
 public class If extends BaseR {
     @Child RNode cond;
@@ -28,8 +26,7 @@ public class If extends BaseR {
     //   - no special node for a 1-value logical argument
     //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
     //   - a generic conversion node that can convert anything
-    @Override
-    public final Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         int ifVal;
 
         try {
@@ -46,9 +43,7 @@ public class If extends BaseR {
 
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
             return trueBranch.execute(frame);
-        } else if (ifVal == RLogical.FALSE) {
-            return falseBranch.execute(frame);
-        }
+        } else if (ifVal == RLogical.FALSE) { return falseBranch.execute(frame); }
         throw RError.getUnexpectedNA(getAST());
     }
 
@@ -62,8 +57,7 @@ public class If extends BaseR {
             this.trueBranch = adoptChild(trueBranch);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             int ifVal;
 
             try {
@@ -75,9 +69,7 @@ public class If extends BaseR {
 
                 If ifnode = new If(ast, castNode, trueBranch, r.nodes.truffle.Constant.getNull());
                 replace(ifnode, "install generic If from IfNoElse");
-                if (ifVal == RLogical.NA) {
-                    throw RError.getUnexpectedNA(getAST());
-                }
+                if (ifVal == RLogical.NA) { throw RError.getUnexpectedNA(getAST()); }
             }
 
             if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
@@ -100,8 +92,7 @@ public class If extends BaseR {
             this.falseBranch = adoptChild(falseBranch);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             int ifVal;
 
             try {
@@ -113,9 +104,7 @@ public class If extends BaseR {
 
                 If ifnode = new If(ast, castNode, trueBranch, falseBranch);
                 replace(ifnode, "install generic If from IfNoElse");
-                if (ifVal == RLogical.NA) {
-                    throw RError.getUnexpectedNA(getAST());
-                }
+                if (ifVal == RLogical.NA) { throw RError.getUnexpectedNA(getAST()); }
             }
 
             if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
@@ -143,8 +132,7 @@ public class If extends BaseR {
             this.constant = constant;
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             RAny value = (RAny) expr.execute(frame);
             return execute(frame, value);
         }
@@ -179,18 +167,13 @@ public class If extends BaseR {
 
             public static Specialized create(ASTNode ast, RNode cond, RNode expr, RNode trueBranch, RNode falseBranch, RAny constant, RAny valueTemplate) {
                 if (valueTemplate instanceof ScalarDoubleImpl) {
-                    if (!(constant instanceof ScalarDoubleImpl || constant instanceof ScalarIntImpl || constant instanceof ScalarLogicalImpl)) {
-                        return null;
-                    }
+                    if (!(constant instanceof ScalarDoubleImpl || constant instanceof ScalarIntImpl || constant instanceof ScalarLogicalImpl)) { return null; }
                     RDouble dc = constant.asDouble();
                     final double c = dc.getDouble(0);
                     final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                     Comparison cmp = new Comparison() {
-                        @Override
-                        public int cmp(RAny value) throws UnexpectedResultException {
-                            if (!(value instanceof ScalarDoubleImpl)) {
-                                throw new UnexpectedResultException(null);
-                            }
+                        @Override public int cmp(RAny value) throws UnexpectedResultException {
+                            if (!(value instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
                             double v = ((ScalarDoubleImpl) value).getDouble();
                             if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                 return (v == c) ? RLogical.TRUE : RLogical.FALSE;
@@ -207,11 +190,8 @@ public class If extends BaseR {
                         final double c = ((ScalarDoubleImpl) constant).getDouble();
                         final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                         cmp = new Comparison() {
-                            @Override
-                            public int cmp(RAny value) throws UnexpectedResultException {
-                                if (!(value instanceof ScalarIntImpl)) {
-                                    throw new UnexpectedResultException(null);
-                                }
+                            @Override public int cmp(RAny value) throws UnexpectedResultException {
+                                if (!(value instanceof ScalarIntImpl)) { throw new UnexpectedResultException(null); }
                                 double v = Convert.int2double(((ScalarIntImpl) value).getInt());
                                 if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                     return (v == c) ? RLogical.TRUE : RLogical.FALSE;
@@ -225,11 +205,8 @@ public class If extends BaseR {
                         final int c = ic.getInt(0);
                         final boolean cIsNA = (c == RInt.NA);
                         cmp = new Comparison() {
-                            @Override
-                            public int cmp(RAny value) throws UnexpectedResultException {
-                                if (!(value instanceof ScalarIntImpl)) {
-                                    throw new UnexpectedResultException(null);
-                                }
+                            @Override public int cmp(RAny value) throws UnexpectedResultException {
+                                if (!(value instanceof ScalarIntImpl)) { throw new UnexpectedResultException(null); }
                                 int v = ((ScalarIntImpl) value).getInt();
                                 if (!cIsNA && v != RInt.NA) {
                                     return (v == c) ? RLogical.TRUE : RLogical.FALSE;
@@ -244,17 +221,12 @@ public class If extends BaseR {
                     return new Specialized(ast, cond, expr, trueBranch, falseBranch, constant, cmp);
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
-                    if (!(constant instanceof ScalarLogicalImpl || constant instanceof ScalarIntImpl)) {
-                        return null;
-                    }
+                    if (!(constant instanceof ScalarLogicalImpl || constant instanceof ScalarIntImpl)) { return null; }
                     final int c = constant.asLogical().getLogical(0);
                     final boolean cIsNA = (c == RLogical.NA);
                     Comparison cmp = new Comparison() {
-                        @Override
-                        public int cmp(RAny value) throws UnexpectedResultException {
-                            if (!(value instanceof ScalarLogicalImpl)) {
-                                throw new UnexpectedResultException(null);
-                            }
+                        @Override public int cmp(RAny value) throws UnexpectedResultException {
+                            if (!(value instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(null); }
                             int v = ((ScalarLogicalImpl) value).getLogical();
                             if (!cIsNA && v != RLogical.NA) {
                                 return (v == c) ? RLogical.TRUE : RLogical.FALSE;
@@ -269,21 +241,18 @@ public class If extends BaseR {
                 return null;
             }
 
-            @Override
-            public final Object execute(Frame frame, RAny value) {
+            @Override public final Object execute(Frame frame, RAny value) {
                 try {
                     int ifVal = cmp.cmp(value);
                     if (ifVal == RLogical.TRUE) {
                         return trueBranch.execute(frame);
-                    } else if (ifVal == RLogical.FALSE) {
-                        return falseBranch.execute(frame);
-                    }
+                    } else if (ifVal == RLogical.FALSE) { return falseBranch.execute(frame); }
                     throw RError.getUnexpectedNA(getAST());
-                 } catch (UnexpectedResultException e) {
-                     If in = new If(ast, cond, trueBranch, falseBranch);
-                     replace(in, "install If from IfConst.Specialized");
-                     return in.execute(frame);
-                 }
+                } catch (UnexpectedResultException e) {
+                    If in = new If(ast, cond, trueBranch, falseBranch);
+                    replace(in, "install If from IfConst.Specialized");
+                    return in.execute(frame);
+                }
             }
 
         }

@@ -5,17 +5,17 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "attr<-" Arguments are:
- *
+ * 
  * <pre>
  *  x -- an object whose attributes are to be accessed.
  *  which -- a non-empty character string specifying which attribute is to be accessed.
  *  value -- an object, the new value of the attribute, or NULL to remove the attribute.
  * </pre>
- *
+ * 
  * The function only uses exact matches. The function does not allow missing values of which.
  */
 final class AttrAssign extends CallFactory {
@@ -40,7 +40,7 @@ final class AttrAssign extends CallFactory {
                 RSymbol which = Attr.getNonEmptySymbol(args[posWhich], ast, "which");
                 RAny value = args[posValue];
                 if (which == RSymbol.NAMES_SYMBOL) { return NamesAssign.replaceNames(x, value, ast); }
-                if (which == RSymbol.DIM_SYMBOL) { return DimAssign.replaceDims(x,  value,  ast); }
+                if (which == RSymbol.DIM_SYMBOL) { return DimAssign.replaceDims(x, value, ast); }
                 // TODO: dimensions, other special attributes custom
                 // attributes
                 value.ref();

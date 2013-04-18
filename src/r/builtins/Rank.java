@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.builtins.Order.*;
@@ -22,10 +22,7 @@ final class Rank extends CallFactory {
     }
 
     enum NaLast {
-        TRUE,
-        FALSE,
-        NA,
-        KEEP
+        TRUE, FALSE, NA, KEEP
     }
 
     // NOTE: the error messages are not exactly like in GNU-R, because there the implementation is in R and errors are implicit
@@ -33,41 +30,36 @@ final class Rank extends CallFactory {
         if (arg instanceof RLogical || arg instanceof RInt || arg instanceof RDouble || arg instanceof RComplex) {
             RLogical larg = arg.asLogical();
             int size = larg.size();
-            if (size == 0) {
-                throw RError.getUnexpectedNA(ast);
-            }
+            if (size == 0) { throw RError.getUnexpectedNA(ast); }
             if (size > 1) {
                 RContext.warning(ast, RError.LENGTH_GT_1);
             }
             // size >= 1
-            switch(larg.getLogical(0)) {
-                case RLogical.TRUE: return NaLast.TRUE;
-                case RLogical.FALSE: return NaLast.FALSE;
-                default:    return NaLast.NA;
+            switch (larg.getLogical(0)) {
+            case RLogical.TRUE:
+                return NaLast.TRUE;
+            case RLogical.FALSE:
+                return NaLast.FALSE;
+            default:
+                return NaLast.NA;
             }
         }
         if (arg instanceof RString) {
             RString sarg = (RString) arg;
             int size = sarg.size();
-            if (size == 0) {
-                throw RError.getUnexpectedNA(ast);
-            }
+            if (size == 0) { throw RError.getUnexpectedNA(ast); }
             if (size > 1) {
                 RContext.warning(ast, RError.LENGTH_GT_1);
             }
             // size >= 1
             String s = sarg.getString(0);
-            if (s == RString.NA) {
-                return NaLast.NA;
-            }
-            if (s.equals("keep")) {
-                return NaLast.KEEP;
-            }
+            if (s == RString.NA) { return NaLast.NA; }
+            if (s.equals("keep")) { return NaLast.KEEP; }
         }
         throw RError.getInvalidArgument(ast, "na.last");
     }
 
-    final static ArgumentMatch tiesMethodMatch = new ArgumentMatch(new String[] {"average", "first", "random", "max", "min"});
+    final static ArgumentMatch tiesMethodMatch = new ArgumentMatch(new String[]{"average", "first", "random", "max", "min"});
     final static int TM_AVERAGE = 0;
     final static int TM_FIRST = 1;
     final static int TM_RANDOM = 2;
@@ -88,8 +80,7 @@ final class Rank extends CallFactory {
                 int tiesMethod = tiesMethodPosition == -1 ? TM_AVERAGE : tiesMethodMatch.match(args[tiesMethodPosition], ast, "ties.method");
 
                 RAny xarg = args[xPosition]; // permitted logical, int, double, complex, string
-                if (!(xarg instanceof RArray)) {
-                    throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message
+                if (!(xarg instanceof RArray)) { throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message
                 }
                 RArray x = (RArray) xarg;
                 return rank(x, naLast, tiesMethod, ast);
@@ -100,8 +91,8 @@ final class Rank extends CallFactory {
     public static RAny rank(RArray x, NaLast naLast, int tiesMethod, ASTNode ast) {
         int size = x.size();
         int oi = 0;
-        Integer[] order = new Integer[size];  // indexes of non-NA values in x
-            // TODO: remove Java boxing through primitive sort methods
+        Integer[] order = new Integer[size]; // indexes of non-NA values in x
+        // TODO: remove Java boxing through primitive sort methods
 
         boolean[] isna = null;
         for (int i = 0; i < size; i++) {
@@ -124,21 +115,27 @@ final class Rank extends CallFactory {
         };
         Arrays.sort(order, 0, oi, mainComparator);
         RArray rank;
-        switch(tiesMethod) {
-            case TM_AVERAGE: rank = rankAverage(order, oi, c); break;
-            case TM_MAX: rank = rankMax(order, oi, c); break;
-            case TM_MIN: rank = rankMin(order, oi, c); break;
-            case TM_FIRST: rank = rankFirst(order, oi); break;
-            default: Utils.nyi("unsupported ties method"); return null; // TODO: TM_RANDOM - add when runif is implemented
+        switch (tiesMethod) {
+        case TM_AVERAGE:
+            rank = rankAverage(order, oi, c);
+            break;
+        case TM_MAX:
+            rank = rankMax(order, oi, c);
+            break;
+        case TM_MIN:
+            rank = rankMin(order, oi, c);
+            break;
+        case TM_FIRST:
+            rank = rankFirst(order, oi);
+            break;
+        default:
+            Utils.nyi("unsupported ties method");
+            return null; // TODO: TM_RANDOM - add when runif is implemented
         }
         RArray.Names xnames = x.names();
-        if (nnas == 0) {
-            return rank.setNames(xnames);
-        }
+        if (nnas == 0) { return rank.setNames(xnames); }
         if (naLast == NaLast.NA) {
-            if (xnames == null) {
-                return rank;
-            }
+            if (xnames == null) { return rank; }
             RArray nrank = Utils.createArray(rank, oi);
             RSymbol[] symbols = xnames.sequence();
             RSymbol[] nsymbols = new RSymbol[oi];
@@ -155,7 +152,7 @@ final class Rank extends CallFactory {
         if (naLast == NaLast.KEEP) {
             for (int i = 0; i < size; i++) {
                 if (isna[i]) {
-                    rank.set(i, x.get(i));  // copying to preserve NaNs (note GNU-R turns silently NaNs into NAs)
+                    rank.set(i, x.get(i)); // copying to preserve NaNs (note GNU-R turns silently NaNs into NAs)
                 }
             }
             return rank.setNames(xnames);
@@ -214,8 +211,8 @@ final class Rank extends CallFactory {
                 j++;
             }
             // elements i, ..., j are equal (ties)
-            double value = (i + j + 2.0) / 2.0;  // 1-based
-            for (int k = i ; k <= j; k++) {
+            double value = (i + j + 2.0) / 2.0; // 1-based
+            for (int k = i; k <= j; k++) {
                 res[order[k]] = value;
             }
         }
@@ -231,8 +228,8 @@ final class Rank extends CallFactory {
                 j++;
             }
             // elements i, ..., j are equal (ties)
-            int value = j + 1;  // 1-based
-            for (int k = i ; k <= j; k++) {
+            int value = j + 1; // 1-based
+            for (int k = i; k <= j; k++) {
                 res[order[k]] = value;
             }
         }
@@ -248,8 +245,8 @@ final class Rank extends CallFactory {
                 j++;
             }
             // elements i, ..., j are equal (ties)
-            int value = i + 1;  // 1-based
-            for (int k = i ; k <= j; k++) {
+            int value = i + 1; // 1-based
+            for (int k = i; k <= j; k++) {
                 res[order[k]] = value;
             }
         }

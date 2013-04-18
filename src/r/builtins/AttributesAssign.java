@@ -5,16 +5,16 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "attributes(obj) <- value"
- *
+ * 
  * <pre>
  * obj -- an object
  * value -- an appropriate named list of attributes, or NULL.
  * </pre>
- *
+ * 
  * Unlike attr it is possible to set attributes on a NULL object: it will first be coerced to an empty list. Note that
  * some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have
  * restrictions on the values which can be set. (Note that this is not true of levels which should be set for factors

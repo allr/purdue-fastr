@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.nodes.*;
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.data.*;
 import r.data.RFunction.*;
@@ -26,21 +25,16 @@ public abstract class SuperWriteVariable extends BaseR {
                 return node.execute(frame);
             }
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     Frame enclosingFrame = (frame != null) ? RFrameHeader.enclosingFrame(frame) : null;
 
-                    if (enclosingFrame == null) {
-                        return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", frame);
-                    }
+                    if (enclosingFrame == null) { return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", frame); }
 
                     FrameSlot slot = RFrameHeader.findVariable(enclosingFrame, symbol);
-                    if (slot != null) {
-                        return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame);
-                    }
+                    if (slot != null) { return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame); }
 
                     EnclosingSlot eslot = RFrameHeader.findEnclosingVariable(enclosingFrame, symbol);
                     if (eslot == null) {
@@ -55,8 +49,7 @@ public abstract class SuperWriteVariable extends BaseR {
 
     public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final FrameSlot slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
-            @Override
-            public Object execute(Frame frame) {
+            @Override public Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaWriteSet(enclosing, slot, symbol, value);
@@ -68,8 +61,7 @@ public abstract class SuperWriteVariable extends BaseR {
 
     public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaEnclosingSlotAndTopLevel(enclosing, hops, slot, symbol, value);
@@ -84,8 +76,7 @@ public abstract class SuperWriteVariable extends BaseR {
 
             int version;
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
 

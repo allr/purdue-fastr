@@ -9,7 +9,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 import java.lang.Integer;// do not delete java.lang.Integer import
 
 // TODO: support complex type

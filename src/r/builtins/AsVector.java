@@ -5,11 +5,11 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "as.vector"
- *
+ * 
  * <pre>
  * x -- An object.
  * mode -- A character string giving an atomic mode or "list", or (except for vector) "any".

@@ -1,8 +1,7 @@
 package r.nodes.truffle;
 
 import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -20,8 +19,7 @@ public class InOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
-    @Override
-    public final  Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         RAny leftValue = (RAny) left.execute(frame);
         RAny rightValue = (RAny) right.execute(frame);
         return execute(leftValue, rightValue);
@@ -62,9 +60,7 @@ public class InOperation extends BaseR {
             Object x = typedX.get(0);
             for (int i = 0; i < tableSize; i++) {
                 Object v = typedTable.get(i);
-                if (x.equals(v)) {
-                    return RLogical.BOXED_TRUE;
-                }
+                if (x.equals(v)) { return RLogical.BOXED_TRUE; }
             }
             return RLogical.BOXED_FALSE;
         }

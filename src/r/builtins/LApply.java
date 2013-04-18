@@ -8,15 +8,14 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.FunctionCall;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also used in lapply
 /**
  * "lapply" returns a list of the same length as X, each element of which is the result of applying FUN to the
  * corresponding element of X.
- *
+ * 
  * <pre>
  * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.
@@ -120,9 +119,9 @@ final class LApply extends CallFactory {
 
         public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.callableProvider = adoptChild(callableProvider);
-            this.firstArgProvider = adoptChild(firstArgProvider);
-            this.callNode = adoptChild(callNode);
+            this.callableProvider = (CallableProvider) adoptChild(callableProvider);
+            this.firstArgProvider = (ValueProvider) adoptChild(firstArgProvider);
+            this.callNode = (FunctionCall) adoptChild(callNode);
             this.xPosition = xPosition;
             this.funPosition = funPosition;
         }

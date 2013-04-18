@@ -2,7 +2,7 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -22,25 +22,23 @@ final class Rnorm extends CallFactory {
         super(name, params, required);
     }
 
-    static final double[] defaultMean = new double[] {0};
-    static final double[] defaultSD = new double[] {1};
+    static final double[] defaultMean = new double[]{0};
+    static final double[] defaultSD = new double[]{1};
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        if (names.length == 1) {
-            return new Builtin.Builtin1(call, names, exprs) {
+        if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
 
-                @Override public RAny doBuiltIn(Frame frame, RAny narg) {
-                    int n = Random.parseNArgument(narg, ast);
-                    int [] rngKind = Random.updateNativeSeed(ast);
-                    try {
-                        return RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
-                    } finally {
-                        Random.updateWorkspaceSeed(rngKind);
-                    }
+            @Override public RAny doBuiltIn(Frame frame, RAny narg) {
+                int n = Random.parseNArgument(narg, ast);
+                int[] rngKind = Random.updateNativeSeed(ast);
+                try {
+                    return RDouble.RDoubleFactory.getFor(rnormStd(n, ast));
+                } finally {
+                    Random.updateWorkspaceSeed(rngKind);
                 }
-            };
-        }
+            }
+        }; }
 
         final int nPosition = ia.position("n");
         final int meanPosition = ia.position("mean");
@@ -52,10 +50,8 @@ final class Rnorm extends CallFactory {
                 double[] mean = meanPosition == -1 ? defaultMean : Random.parseNumericArgument(args[meanPosition], ast);
                 double[] sd = sdPosition == -1 ? defaultSD : Random.parseNumericArgument(args[sdPosition], ast);
 
-                if (mean.length == 0 || sd.length == 0) {
-                    return Random.allNAs(n, ast);
-                }
-                int [] rngKind = Random.updateNativeSeed(ast);
+                if (mean.length == 0 || sd.length == 0) { return Random.allNAs(n, ast); }
+                int[] rngKind = Random.updateNativeSeed(ast);
                 try {
                     return RDouble.RDoubleFactory.getFor(rnorm(n, mean, sd, ast));
                 } finally {
@@ -82,7 +78,7 @@ final class Rnorm extends CallFactory {
 
     public static double[] rnormBatch(int n, double mu, double sigma, ASTNode ast) {
         double[] res = new double[n];
-        boolean naProduced = GNUR.rnorm(res,  n, mu, sigma);
+        boolean naProduced = GNUR.rnorm(res, n, mu, sigma);
         if (naProduced) {
             RContext.warning(ast, RError.NA_PRODUCED);
         }
@@ -93,16 +89,16 @@ final class Rnorm extends CallFactory {
     public static double[] rnormBatch2(int n, double mu, double sigma, ASTNode ast) {
         double[] res = new double[n];
         if (RDoubleUtils.isNAorNaN(mu) || !RDoubleUtils.isFinite(sigma) || sigma < 0) {
-            Arrays.fill(res,  RDouble.NaN);
+            Arrays.fill(res, RDouble.NaN);
             RContext.warning(ast, RError.NA_PRODUCED);
             return res;
         }
         if (sigma == 0 || !RDoubleUtils.isFinite(mu)) {
-            Arrays.fill(res,  mu); // includes mu = +/- Inf with finite sigma
+            Arrays.fill(res, mu); // includes mu = +/- Inf with finite sigma
             return res;
         }
 
-        boolean naProduced = GNUR.rnormNonChecking(res,  n, mu, sigma);
+        boolean naProduced = GNUR.rnormNonChecking(res, n, mu, sigma);
         if (naProduced) {
             RContext.warning(ast, RError.NA_PRODUCED);
         }
@@ -112,9 +108,9 @@ final class Rnorm extends CallFactory {
     // faster than rnormBatch2 for standard normal
     public static double[] rnormStd(int n, ASTNode ast) {
         double[] res = new double[n];
-        boolean naProduced = GNUR.rnormStd(res,  n);
+        boolean naProduced = GNUR.rnormStd(res, n);
         if (naProduced) {
-            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
+            RContext.warning(ast, RError.NA_PRODUCED); // FIXME: can this happen for std normal and R generators?
         }
         return res;
     }
@@ -123,7 +119,7 @@ final class Rnorm extends CallFactory {
         double[] res = new double[n];
         boolean naProduced = GNUR.rnorm(res, n, mean, mean.length, sd, sd.length);
         if (naProduced) {
-            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
+            RContext.warning(ast, RError.NA_PRODUCED); // FIXME: can this happen for std normal and R generators?
         }
         return res;
     }

@@ -7,11 +7,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "new.env"
- *
+ * 
  * <pre>
  * hash  -- a logical, if TRUE the environment will use a hash table.
  * parent -- an environment to be used as the enclosure of the environment created.

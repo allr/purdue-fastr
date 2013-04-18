@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.nodes.*;
@@ -13,8 +12,7 @@ public class LazyBuild extends BaseR {
         assert Utils.check(orig != null);
     }
 
-    @Override
-    public final Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
@@ -24,8 +22,7 @@ public class LazyBuild extends BaseR {
         }
     }
 
-    @Override
-    public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+    @Override public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
@@ -35,8 +32,7 @@ public class LazyBuild extends BaseR {
         }
     }
 
-    @Override
-    public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+    @Override public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {

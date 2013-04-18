@@ -8,17 +8,17 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "attr"
- *
+ * 
  * <pre>
  *  x -- an object whose attributes are to be accessed.
  *  which -- a non-empty character string specifying which attribute is to be accessed.
  *  exact -- logical: should which be matched exactly?
  * </pre>
- *
+ * 
  * The extraction function first looks for an exact match to which amongst the attributes of x, then (unless exact =
  * TRUE) a unique partial match. (Setting options(warnPartialMatchAttr=TRUE) causes partial matches to give warnings.)
  * Some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have

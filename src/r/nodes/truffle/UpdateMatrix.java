@@ -1,13 +1,14 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
 import r.data.internal.ScalarDoubleImpl;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.nodes.truffle.ReadMatrix.OptionNode;
+import r.nodes.truffle.ReadMatrix.SelectorNode;
 
 // TODO delete this file, its functionality has been replaced by UpdateArray
 
@@ -30,14 +31,15 @@ public class UpdateMatrix extends BaseR {
     private static final boolean DEBUG_M = false;
 
     /** Creates the new matrix updater. */
-    public UpdateMatrix(ASTNode ast, boolean subset, RNode matrixExpr, ReadMatrix.SelectorNode selIExpr, ReadMatrix.SelectorNode selJExpr, ReadMatrix.OptionNode dropExpr, ReadMatrix.OptionNode exactExpr, RNode rhs) {
+    public UpdateMatrix(ASTNode ast, boolean subset, RNode matrixExpr, ReadMatrix.SelectorNode selIExpr, ReadMatrix.SelectorNode selJExpr, ReadMatrix.OptionNode dropExpr,
+            ReadMatrix.OptionNode exactExpr, RNode rhs) {
         super(ast);
         this.subset = subset;
         this.matrixExpr = adoptChild(matrixExpr);
-        this.selIExpr = adoptChild(selIExpr);
-        this.selJExpr = adoptChild(selJExpr);
-        this.dropExpr = adoptChild(dropExpr);
-        this.exactExpr = adoptChild(exactExpr);
+        this.selIExpr = (SelectorNode) adoptChild(selIExpr);
+        this.selJExpr = (SelectorNode) adoptChild(selJExpr);
+        this.dropExpr = (OptionNode) adoptChild(dropExpr);
+        this.exactExpr = (OptionNode) adoptChild(exactExpr);
         this.rhs = adoptChild(rhs);
     }
 
@@ -46,22 +48,18 @@ public class UpdateMatrix extends BaseR {
         this(other.ast, other.subset, other.matrixExpr, other.selIExpr, other.selJExpr, other.dropExpr, other.exactExpr, other.rhs);
     }
 
-
     /** Evaluates all prerequisites and selectors but the rhs value. */
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         RAny matrix = (RAny) matrixExpr.execute(frame);
         ReadMatrix.Selector selI = selIExpr.executeSelector(frame);
         ReadMatrix.Selector selJ = selJExpr.executeSelector(frame);
-        int drop = dropExpr.executeLogical(frame);  // FIXME: what is the correct execution order of these args?
+        int drop = dropExpr.executeLogical(frame); // FIXME: what is the correct execution order of these args?
         int exact = exactExpr.executeLogical(frame);
         return evaluateValueAndExecute(frame, matrix, selI, selJ, drop, exact);
     }
 
     private static enum Failure {
-        CONSTANT_DOUBLE_SCALAR,
-        SCALAR,
-        GENERIC
+        CONSTANT_DOUBLE_SCALAR, SCALAR, GENERIC
     }
 
     /** Evaluates the RHS value and based on it specializes to the generic case, scalar update, or a constant. */
@@ -73,27 +71,25 @@ public class UpdateMatrix extends BaseR {
         RArray ary = (RArray) value;
         try {
             if (ary instanceof ScalarDoubleImpl) { // size == 1, type == double
-                if (rhs instanceof Constant) {
-                    throw new UnexpectedResultException(Failure.CONSTANT_DOUBLE_SCALAR);
-                }
+                if (rhs instanceof Constant) { throw new UnexpectedResultException(Failure.CONSTANT_DOUBLE_SCALAR); }
                 throw new UnexpectedResultException(Failure.SCALAR);
             }
             throw new UnexpectedResultException(Failure.GENERIC);
         } catch (UnexpectedResultException e) {
             UpdateMatrix u;
             switch ((Failure) e.getResult()) {
-                case CONSTANT_DOUBLE_SCALAR:
-                    u = new UpdateMatrixWithDoubleConstant(this, (Double) ary.get(0));
-                    this.replace(u, "double scalar constant");
-                    return u.execute(matrix, selI, selJ, drop, exact, null);
-                case SCALAR:
-                    u = new UpdateMatrixWithScalar(this);
-                    this.replace(u, "scalar value");
-                    return u.execute(matrix, selI, selJ, drop, exact, ary);
-                default:
-                    u = new UpdateMatrixGeneric(this);
-                    this.replace(u, "scalar value");
-                    return u.execute(matrix, selI, selJ, drop, exact, ary);
+            case CONSTANT_DOUBLE_SCALAR:
+                u = new UpdateMatrixWithDoubleConstant(this, (Double) ary.get(0));
+                this.replace(u, "double scalar constant");
+                return u.execute(matrix, selI, selJ, drop, exact, null);
+            case SCALAR:
+                u = new UpdateMatrixWithScalar(this);
+                this.replace(u, "scalar value");
+                return u.execute(matrix, selI, selJ, drop, exact, ary);
+            default:
+                u = new UpdateMatrixGeneric(this);
+                this.replace(u, "scalar value");
+                return u.execute(matrix, selI, selJ, drop, exact, ary);
             }
         }
     }
@@ -106,9 +102,7 @@ public class UpdateMatrix extends BaseR {
         }
         RArray base = (RArray) matrix;
         int[] dim = base.dimensions();
-        if (dim == null || dim.length != 2) {
-            throw RError.getIncorrectDimensions(ast);
-        }
+        if (dim == null || dim.length != 2) { throw RError.getIncorrectDimensions(ast); }
         int m = dim[0];
         int n = dim[1];
 
@@ -140,7 +134,6 @@ public class UpdateMatrix extends BaseR {
         throw new Error("UNREACHABLE");
     }
 
-
     /** An update of the matrix with a scalar value, requires no looping over the rhs values. */
     public static class UpdateMatrixWithScalar extends UpdateMatrix {
 
@@ -148,8 +141,7 @@ public class UpdateMatrix extends BaseR {
             super(other);
         }
 
-        @Override
-        protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
+        @Override protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
             RAny value = (RAny) rhs.execute(frame);
             if (!(value instanceof RArray)) {
                 Utils.nyi("only array based rhs can be stored in a matrix");
@@ -167,8 +159,7 @@ public class UpdateMatrix extends BaseR {
             }
         }
 
-        @Override
-        protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
+        @Override protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
             Object v = value.get(0);
             selI.start(m, ast);
             selJ.start(n, ast);
@@ -212,14 +203,11 @@ public class UpdateMatrix extends BaseR {
             this.value = value;
         }
 
-        @Override
-        protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
+        @Override protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
             return execute(matrix, selI, selJ, drop, exact, null);
         }
 
-
-        @Override
-        protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
+        @Override protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
             assert (value == null);
             selI.start(m, ast);
             selJ.start(n, ast);
@@ -254,8 +242,7 @@ public class UpdateMatrix extends BaseR {
             super(other);
         }
 
-        @Override
-        protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
+        @Override protected Object evaluateValueAndExecute(Frame frame, RAny matrix, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact) {
             RAny value = (RAny) rhs.execute(frame);
             if (!(value instanceof RArray)) {
                 Utils.nyi("only array based rhs can be stored in a matrix");
@@ -264,15 +251,12 @@ public class UpdateMatrix extends BaseR {
             return execute(matrix, selI, selJ, drop, exact, ary);
         }
 
-        @Override
-        protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
+        @Override protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
             selI.start(m, ast);
             selJ.start(n, ast);
             int nm = selI.size();
             int nn = selJ.size();
-            if (nm * nn % value.size() != 0) {
-                throw RError.getNotMultipleReplacement(getAST());
-            }
+            if (nm * nn % value.size() != 0) { throw RError.getNotMultipleReplacement(getAST()); }
             int rhsIdx = 0;
             for (int ni = 0; ni < nm; ni++) {
                 int i = selI.nextIndex(ast);

@@ -1,8 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.data.*;
 import r.errors.*;
@@ -31,13 +29,9 @@ final class Recall extends CallFactory {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                if (frame == null) {
-                    throw RError.getRecallCalledOutsideClosure(ast);
-                }
+                if (frame == null) { throw RError.getRecallCalledOutsideClosure(ast); }
                 RFunction function = RFrameHeader.function(frame);
-                if (function == null) {
-                    throw RError.getRecallCalledOutsideClosure(ast);
-                }
+                if (function == null) { throw RError.getRecallCalledOutsideClosure(ast); }
                 Fixed fn = new Fixed(ast, argNames, argExprs, function);
                 replace(fn, "install Fixed from Recall.Uninitialized");
                 return fn.doBuiltIn(frame, params);

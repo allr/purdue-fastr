@@ -3,7 +3,7 @@ package r.builtins;
 import org.netlib.lapack.*;
 import org.netlib.util.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -17,19 +17,18 @@ import r.nodes.truffle.*;
 public class Qr extends CallFactory {
     // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
-    static final CallFactory _ = new Qr("qr", new String[]{"x", "tol", "LAPACK"}, new String[] {"x"});
+    static final CallFactory _ = new Qr("qr", new String[]{"x", "tol", "LAPACK"}, new String[]{"x"});
 
     private Qr(String name, String[] params, String[] required) {
         super(name, params, required);
     }
 
-    static RArray.Names resultNames =  RArray.Names.create(RSymbol.getSymbols(new String[] {"qr", "rank", "qraux", "pivot"}));
+    static RArray.Names resultNames = RArray.Names.create(RSymbol.getSymbols(new String[]{"qr", "rank", "qraux", "pivot"}));
     static RAny.Attributes useLAPACKAttr = RAny.Attributes.createAndPut("useLAPACK", RLogical.BOXED_TRUE);
 
     public static double parseTol(RAny arg, ASTNode ast) {
         RDouble d = Convert.coerceToDoubleError(arg, ast);
-        if (d.size() != 1) {
-            throw RError.getInvalidArgument(ast, "tol"); // FIXME: not an R error message, R passes the arg without checking to Fortran code
+        if (d.size() != 1) { throw RError.getInvalidArgument(ast, "tol"); // FIXME: not an R error message, R passes the arg without checking to Fortran code
         }
         return d.getDouble(0);
     }
@@ -46,7 +45,7 @@ public class Qr extends CallFactory {
         int[] dims = x.dimensions();
         if (dims == null || dims.length != 2) {
             int size = x.size();
-            int[] ndims = new int[] {size, 1};
+            int[] ndims = new int[]{size, 1};
             x = (RDouble) x.setDimensions(ndims); // note: x can be a scalar
             dims = ndims;
         }
@@ -63,17 +62,12 @@ public class Qr extends CallFactory {
             intW laINFO = new intW(0);
             // SUBROUTINE DGEQP3( M, N, A, LDA, JPVT, TAU, WORK, LWORK, INFO )
             LAPACK.getInstance().dgeqp3(m, n, laA, m, laJPVT, laTAU, laWORK, -1, laINFO);
-            if (laINFO.val < 0) {
-                throw RError.getLapackError(ast, laINFO.val, "dgeqp3");
-            }
+            if (laINFO.val < 0) { throw RError.getLapackError(ast, laINFO.val, "dgeqp3"); }
             int laLWORK = (int) laWORK[0];
             laWORK = new double[laLWORK];
             LAPACK.getInstance().dgeqp3(m, n, laA, m, laJPVT, laTAU, laWORK, laLWORK, laINFO);
-            if (laINFO.val < 0) {
-                throw RError.getLapackError(ast, laINFO.val, "dgeqp3");
-            }
-            RAny[] content = new RAny[] { x, RInt.RIntFactory.getScalar(rank),
-                    RDouble.RDoubleFactory.getFor(laTAU), RInt.RIntFactory.getFor(laJPVT) };
+            if (laINFO.val < 0) { throw RError.getLapackError(ast, laINFO.val, "dgeqp3"); }
+            RAny[] content = new RAny[]{x, RInt.RIntFactory.getScalar(rank), RDouble.RDoubleFactory.getFor(laTAU), RInt.RIntFactory.getFor(laJPVT)};
             return RList.RListFactory.getFor(content, null, resultNames, useLAPACKAttr); // TODO: class "qr"
         }
 
@@ -89,8 +83,7 @@ public class Qr extends CallFactory {
         }
         double[] raWORK = new double[2 * n];
         GNUR.dqrdc2(raX, m, m, n, tol, raK, raQRAUX, raJPVT, raWORK);
-        RAny[] content = new RAny[] { x, RInt.RIntFactory.getScalar(raK[0]),
-                RDouble.RDoubleFactory.getFor(raQRAUX), RInt.RIntFactory.getFor(raJPVT) };
+        RAny[] content = new RAny[]{x, RInt.RIntFactory.getScalar(raK[0]), RDouble.RDoubleFactory.getFor(raQRAUX), RInt.RIntFactory.getFor(raJPVT)};
         // TODO: update colnames (permutation by pivot)
         return RList.RListFactory.getFor(content, null, resultNames); // TODO: class "qr"
     }

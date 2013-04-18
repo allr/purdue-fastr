@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -9,7 +9,7 @@ import r.nodes.truffle.*;
 
 /**
  * "length"
- *
+ * 
  * <pre>
  * x -- an R object. For replacement, a vector or factor.
  * </pre>

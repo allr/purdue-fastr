@@ -1,8 +1,7 @@
 package r.nodes.truffle;
 
 import org.netlib.blas.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -23,8 +22,7 @@ public abstract class MatrixOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         RAny l = (RAny) left.execute(frame);
         RAny r = (RAny) right.execute(frame);
         return execute(l, r);
@@ -35,14 +33,12 @@ public abstract class MatrixOperation extends BaseR {
     // TODO: optimize this
     public static RDouble dotProduct(ASTNode ast, RDouble l, RDouble r) { // a.k.a inner product, scalar product
         int m = l.size();
-        if (m != r.size()) {
-            throw RError.getNonConformableArgs(ast);
-        }
+        if (m != r.size()) { throw RError.getNonConformableArgs(ast); }
         double res = 0;
         for (int i = 0; i < m; i++) {
             res += l.getDouble(i) * r.getDouble(i);
         }
-        return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
+        return RDouble.RDoubleFactory.getMatrixFor(new double[]{res}, 1, 1);
     }
 
     // TODO: optimize this
@@ -53,7 +49,7 @@ public abstract class MatrixOperation extends BaseR {
             double d = x.getDouble(i);
             res += d * d;
         }
-        return RDouble.RDoubleFactory.getMatrixFor(new double[] {res}, 1, 1);
+        return RDouble.RDoubleFactory.getMatrixFor(new double[]{res}, 1, 1);
     }
 
     public static void checkNumeric(RAny l, RAny r, ASTNode ast) {
@@ -64,9 +60,7 @@ public abstract class MatrixOperation extends BaseR {
 
     public static void checkNumeric(RAny x, ASTNode ast) {
         // TODO: support also complex matrices
-        if (!(x instanceof RDouble || x instanceof RInt || x instanceof RLogical)) {
-            throw RError.getNumericComplexMatrixVector(ast);
-        }
+        if (!(x instanceof RDouble || x instanceof RInt || x instanceof RLogical)) { throw RError.getNumericComplexMatrixVector(ast); }
     }
 
     public static class MatrixProduct extends MatrixOperation {
@@ -92,7 +86,7 @@ public abstract class MatrixOperation extends BaseR {
                     }
                     content[j] = d;
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {1, n}, null);
+                return RDouble.RDoubleFactory.getFor(content, new int[]{1, n}, null);
 
             } else if (m == 1) {
                 // treat vector as s x 1 (column), result is s x n
@@ -102,7 +96,7 @@ public abstract class MatrixOperation extends BaseR {
                         content[j * s + i] = vector.getDouble(i) * matrix.getDouble(j);
                     }
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {s, n}, null);
+                return RDouble.RDoubleFactory.getFor(content, new int[]{s, n}, null);
             } else {
                 throw RError.getNonConformableArgs(ast);
             }
@@ -124,21 +118,20 @@ public abstract class MatrixOperation extends BaseR {
                     }
                     content[i] = d;
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, 1}, null);
+                return RDouble.RDoubleFactory.getFor(content, new int[]{m, 1}, null);
             } else if (n == 1) {
                 // treat vector as 1 x s (row), result is m x s
                 double[] content = new double[m * s];
                 for (int i = 0; i < m; i++) {
                     for (int j = 0; j < s; j++) {
-                        content[ j * m + i] = matrix.getDouble(i) * vector.getDouble(j);
+                        content[j * m + i] = matrix.getDouble(i) * vector.getDouble(j);
                     }
                 }
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, s}, null);
+                return RDouble.RDoubleFactory.getFor(content, new int[]{m, s}, null);
             } else {
                 throw RError.getNonConformableArrays(ast);
             }
         }
-
 
         public static RDouble matrixTimesMatrix(ASTNode ast, RDouble a, RDouble b) {
             int[] dima = a.dimensions();
@@ -146,15 +139,13 @@ public abstract class MatrixOperation extends BaseR {
 
             int m = dima[0];
             int n = dima[1];
-            if (n != dimb[0]) {
-                throw RError.getNonConformableArgs(ast);
-            }
+            if (n != dimb[0]) { throw RError.getNonConformableArgs(ast); }
             int p = dimb[1];
 
             double[] res;
             if (RDouble.RDoubleUtils.hasNAorNaN(a) || RDouble.RDoubleUtils.hasNAorNaN(b) || m == 0 || n == 0 || p == 0) {
                 if (USE_PRIMITIVE_ACCESS && a.size() > 1 && b.size() > 1) {
-                    res =  matrixTimesMatrixPrimitive(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
+                    res = matrixTimesMatrixPrimitive(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
                 } else {
                     res = matrixTimesMatrixGetters(a, b, m, n, p);
                 }
@@ -162,9 +153,8 @@ public abstract class MatrixOperation extends BaseR {
                 res = matrixTimesMatrixNative(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
             }
 
-            return RDouble.RDoubleFactory.getFor(res, new int[] {m, p}, null);
+            return RDouble.RDoubleFactory.getFor(res, new int[]{m, p}, null);
         }
-
 
         public static double[] matrixTimesMatrixGetters(RDouble a, RDouble b, int m, int n, int p) {
 
@@ -207,8 +197,7 @@ public abstract class MatrixOperation extends BaseR {
             return res;
         }
 
-        @Override
-        public Object execute(RAny l, RAny r) {
+        @Override public Object execute(RAny l, RAny r) {
 
             checkNumeric(l, r, ast); // TODO: support also complex matrices
             RDouble ld = l.asDouble().materialize(); // FIXME: double materialization (again in matrixTimesMatrixNative)
@@ -240,14 +229,11 @@ public abstract class MatrixOperation extends BaseR {
             super(ast, left, right);
         }
 
-        @Override
-        public Object execute(RAny l, RAny r) {
+        @Override public Object execute(RAny l, RAny r) {
 
             // TODO: support also complex matrices
-            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) &&
-                            (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) {
-                throw RError.getNumericComplexMatrixVector(ast);
-            }
+            if (!((l instanceof RDouble || l instanceof RInt || l instanceof RLogical) && (r instanceof RDouble || r instanceof RInt || r instanceof RLogical))) { throw RError
+                    .getNumericComplexMatrixVector(ast); }
             RDouble ld = l.asDouble().materialize();
             RDouble rd = r.asDouble().materialize();
 
@@ -262,10 +248,10 @@ public abstract class MatrixOperation extends BaseR {
             int[] ldims = ld.dimensions();
             int[] rdims = rd.dimensions();
             if (ldims == null && rdims == null) {
-                return RDouble.RDoubleFactory.getFor(content, new int[] {m, n}, null);
+                return RDouble.RDoubleFactory.getFor(content, new int[]{m, n}, null);
             } else {
                 Utils.nyi("unsupported case");
-                return  null;
+                return null;
             }
         }
     }

@@ -8,9 +8,7 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 
 import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 // TODO: clean-up generic code using .getRef
 
@@ -2666,16 +2664,14 @@ public abstract class UpdateVector extends BaseR {
     // ---------------------------------------------------------------------------------------
 
     /**
-     * Base class for all dollar selection ($) assignments. Defines final
-     * methods for updates, updates in place and appends of lists, typecasts to
-     * lists, position checking, etc. This class does not define the execute
-     * method and only acts as a common codebase for its descendants, where the
-     * DollarListUpdate is the root of the hierarchy.
+     * Base class for all dollar selection ($) assignments. Defines final methods for updates, updates in place and
+     * appends of lists, typecasts to lists, position checking, etc. This class does not define the execute method and
+     * only acts as a common codebase for its descendants, where the DollarListUpdate is the root of the hierarchy.
      */
     public abstract static class DollarUpdateBase extends UpdateVector {
 
         DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
-            super(ast, isSuper, var, lhs, new RNode[] { index }, rhs, false);
+            super(ast, isSuper, var, lhs, new RNode[]{index}, rhs, false);
         }
 
         DollarUpdateBase(DollarUpdateBase from) {
@@ -2683,8 +2679,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Converts the given base to list, emitting the warning about coercion
-         * for R compatibility.
+         * Converts the given base to list, emitting the warning about coercion for R compatibility.
          */
         protected final RList convertToList(RAny base) {
             RContext.warning(ast, RError.COERCING_LHS_TO_LIST);
@@ -2692,8 +2687,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Returns the position of the given symbol in the specified array
-         * names, or -1 if no such name exists in the array.
+         * Returns the position of the given symbol in the specified array names, or -1 if no such name exists in the
+         * array.
          */
         protected static int elementPos(RArray.Names names, RSymbol idx) {
             return (names == null) ? -1 : names.map(idx);
@@ -2717,8 +2712,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Creates a copy of the given list and then updates the specified
-         * position in it.
+         * Creates a copy of the given list and then updates the specified position in it.
          */
         protected static RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
             RArray res = Utils.createArray(base, size, base.dimensions(), names, base.attributesRef());
@@ -2732,8 +2726,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Updates the given list in place - its specified position is rewritten
-         * to the supplied value and the same list is returned.
+         * Updates the given list in place - its specified position is rewritten to the supplied value and the same list
+         * is returned.
          */
         protected static RAny updateListInPlace(RArray base, RAny value, int pos) {
             base.set(pos, value);
@@ -2742,11 +2736,9 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Fast update of a non shared list. This class assumes that it has (a) a
-     * list, (b) it must update the list, not append to it, and (c) the list is
-     * not shared, in which case performs the operation. Otherwise rewrites
-     * itself to either DollarUpdate if not a list, DollarSharedListUpdate if
-     * not shared update and DollarListAppend.
+     * Fast update of a non shared list. This class assumes that it has (a) a list, (b) it must update the list, not
+     * append to it, and (c) the list is not shared, in which case performs the operation. Otherwise rewrites itself to
+     * either DollarUpdate if not a list, DollarSharedListUpdate if not shared update and DollarListAppend.
      */
     public static class DollarListUpdate extends DollarUpdateBase {
 
@@ -2763,8 +2755,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Performs in place update of a list, or rewrites itself to the
-         * appropriate nodes.
+         * Performs in place update of a list, or rewrites itself to the appropriate nodes.
          */
         @Override RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
@@ -2800,9 +2791,8 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Performs an update of a shared list, or an update of a non-shared list
-     * without rewriting itself, rewrites to append instead of update, or to
-     * perform the general operation with coercion to list.
+     * Performs an update of a shared list, or an update of a non-shared list without rewriting itself, rewrites to
+     * append instead of update, or to perform the general operation with coercion to list.
      */
     public static class DollarSharedListUpdate extends DollarUpdateBase {
 
@@ -2819,8 +2809,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Updates shared list while first copying it, or non-shared list in
-         * place. Rewrites to general case or to append instead of update.
+         * Updates shared list while first copying it, or non-shared list in place. Rewrites to general case or to
+         * append instead of update.
          */
         @Override RAny execute(RAny base, RAny index, RAny value) {
             assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
@@ -2856,8 +2846,8 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Appends given list (shared or non shared). If not append, or not a list
-     * rewrites to the general case DollarUpdate.
+     * Appends given list (shared or non shared). If not append, or not a list rewrites to the general case
+     * DollarUpdate.
      */
     public static class DollarListAppend extends DollarUpdateBase {
 
@@ -2892,8 +2882,7 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * General update/append on a list/vector. Coerces the input type to a list
-     * if required.
+     * General update/append on a list/vector. Coerces the input type to a list if required.
      */
     public static class DollarUpdate extends DollarUpdateBase {
 

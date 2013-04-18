@@ -1,6 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.builtins.internal.*;
@@ -18,7 +18,7 @@ public class Rbinom extends CallFactory {
         super(name, params, required);
     }
 
-    static final double[] defaultScale = new double[] {1};
+    static final double[] defaultScale = new double[]{1};
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
@@ -32,10 +32,8 @@ public class Rbinom extends CallFactory {
                 double[] size = Random.parseNumericArgument(args[sizePosition], ast);
                 double[] prob = Random.parseNumericArgument(args[probPosition], ast);
 
-                if (size.length == 0 || prob.length == 0) {
-                    return Random.allNAs(n, ast);
-                }
-                int [] rngKind = Random.updateNativeSeed(ast);
+                if (size.length == 0 || prob.length == 0) { return Random.allNAs(n, ast); }
+                int[] rngKind = Random.updateNativeSeed(ast);
                 try {
                     return RDouble.RDoubleFactory.getFor(rbinom(n, size, prob, ast));
                 } finally {
@@ -49,7 +47,7 @@ public class Rbinom extends CallFactory {
         double[] res = new double[n];
         boolean naProduced = GNUR.rbinom(res, n, size, size.length, prob, prob.length);
         if (naProduced) {
-            RContext.warning(ast, RError.NA_PRODUCED);  // FIXME: can this happen for std normal and R generators?
+            RContext.warning(ast, RError.NA_PRODUCED); // FIXME: can this happen for std normal and R generators?
         }
         return res;
     }

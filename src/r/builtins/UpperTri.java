@@ -6,11 +6,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "upper.tri"
- *
+ * 
  * <pre>
  * x -- a matrix.
  * diag -- logical. Should the diagonal be included?

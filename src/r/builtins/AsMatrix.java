@@ -1,7 +1,6 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
+import r.Truffle.*;
 import r.*;
 import r.data.*;
 import r.errors.*;
@@ -31,8 +30,7 @@ final class AsMatrix extends CallFactory {
     }
 
     public static RArray asMatrix(RAny x, ASTNode ast) {
-        if (!(x instanceof RArray)) {
-            throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message, GNU-R uses implicit error in R
+        if (!(x instanceof RArray)) { throw RError.getInvalidArgument(ast, "x"); // FIXME: not an R error message, GNU-R uses implicit error in R
         }
         return asMatrix((RArray) x);
     }
@@ -48,7 +46,7 @@ final class AsMatrix extends CallFactory {
 
     public static RArray castToMatrix(RArray a) {
         int size = a.size();
-        int[] ndims = new int[] {size, 1};
+        int[] ndims = new int[]{size, 1};
         RArray na;
         if (!a.isTemporary()) {
             na = Utils.copyArray(a);

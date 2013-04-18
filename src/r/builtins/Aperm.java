@@ -1,17 +1,16 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
+import r.Truffle.*;
 
 /**
  * "aperm". Transpose an array by permuting its dimensions and optionally resizing it.
- *
+ * 
  * <pre>
  * a -- the array to be transposed.
  * perm -- the subscript permutation vector, usually a permutation of the integers 1:n, where n is the number of
@@ -217,13 +216,13 @@ final class Aperm extends CallFactory {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 if (ary instanceof IntImpl) {
-                    return replace(new Int(this)).aperm(ary, perm, resize);
+                    return ((Int) replace(new Int(this))).aperm(ary, perm, resize);
                 } else if (ary instanceof DoubleImpl) {
-                    return replace(new Double(this)).aperm(ary, perm, resize);
+                    return ((Double) replace(new Double(this))).aperm(ary, perm, resize);
                 } else if (ary instanceof ComplexImpl) {
-                    return replace(new Complex(this)).aperm(ary, perm, resize);
+                    return ((Complex) replace(new Complex(this))).aperm(ary, perm, resize);
                 } else {
-                    return replace(new Generalized(this)).aperm(ary, perm, resize);
+                    return ((Generalized) replace(new Generalized(this))).aperm(ary, perm, resize);
                 }
             }
         }
@@ -257,7 +256,7 @@ final class Aperm extends CallFactory {
                 }
                 return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
-                return replace(new Generalized(this)).aperm(ary, perm, resize);
+                return ((Generalized) replace(new Generalized(this))).aperm(ary, perm, resize);
             }
         }
     }
@@ -291,7 +290,7 @@ final class Aperm extends CallFactory {
                 }
                 return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
-                return replace(new Generalized(this)).aperm(ary, perm, resize);
+                return ((Generalized) replace(new Generalized(this))).aperm(ary, perm, resize);
             }
         }
     }
@@ -326,7 +325,7 @@ final class Aperm extends CallFactory {
                 }
                 return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
             } catch (UnexpectedResultException e) {
-                return replace(new Generalized(this)).aperm(ary, perm, resize);
+                return ((Generalized) replace(new Generalized(this))).aperm(ary, perm, resize);
             }
         }
     }

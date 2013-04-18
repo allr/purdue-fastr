@@ -1,9 +1,7 @@
 package r.nodes.truffle;
 
 import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -27,18 +25,17 @@ public class ReadMatrix extends BaseR {
         super(ast);
         this.subset = subset;
         this.matrixExpr = adoptChild(matrixExpr);
-        this.selIExpr = adoptChild(selIExpr);
-        this.selJExpr = adoptChild(selJExpr);
-        this.dropExpr = adoptChild(dropExpr);
-        this.exactExpr = adoptChild(exactExpr);
+        this.selIExpr = (SelectorNode) adoptChild(selIExpr);
+        this.selJExpr = (SelectorNode) adoptChild(selJExpr);
+        this.dropExpr = (OptionNode) adoptChild(dropExpr);
+        this.exactExpr = (OptionNode) adoptChild(exactExpr);
     }
 
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         RAny matrix = (RAny) matrixExpr.execute(frame);
         Selector selI = selIExpr.executeSelector(frame);
         Selector selJ = selJExpr.executeSelector(frame);
-        int drop = dropExpr.executeLogical(frame);  // FIXME: what is the correct execution order of these args?
+        int drop = dropExpr.executeLogical(frame); // FIXME: what is the correct execution order of these args?
         int exact = exactExpr.executeLogical(frame);
 
         return execute(matrix, selI, selJ, drop, exact);
@@ -53,9 +50,7 @@ public class ReadMatrix extends BaseR {
         }
         RArray base = (RArray) matrix;
         int[] dim = base.dimensions();
-        if (dim == null || dim.length != 2) {
-            throw RError.getIncorrectDimensions(ast);
-        }
+        if (dim == null || dim.length != 2) { throw RError.getIncorrectDimensions(ast); }
         int m = dim[0];
         int n = dim[1];
 
@@ -122,20 +117,25 @@ public class ReadMatrix extends BaseR {
         return res;
     }
 
-
     public abstract static class Selector {
-        public void setIndex(RAny index) {
-        }
+        public void setIndex(RAny index) {}
+
         public RAny getIndex() {
             return null;
         }
+
         public Transition getTransition() {
             return null;
         }
+
         public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
+
         public abstract void restart();
+
         public abstract int size();
+
         public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
+
         public abstract boolean isConstant();
     }
 
@@ -144,29 +144,24 @@ public class ReadMatrix extends BaseR {
         private int size = -1;
         private int last = -1;
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             size = dataSize;
             last = 0;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             last = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) { // zero-based
+        @Override public int nextIndex(ASTNode ast) { // zero-based
             return last++;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return true;
         }
     }
@@ -179,28 +174,21 @@ public class ReadMatrix extends BaseR {
             this.index = value;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
-            if (index > dataSize) {
-                throw RError.getSubscriptBounds(ast);
-            }
+        @Override public void start(int dataSize, ASTNode ast) {
+            if (index > dataSize) { throw RError.getSubscriptBounds(ast); }
         }
 
-        @Override
-        public void restart() { }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             return index;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return true;
         }
     }
@@ -212,40 +200,33 @@ public class ReadMatrix extends BaseR {
         int offset;
         Transition transition;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public Transition getTransition() {
+        @Override public Transition getTransition() {
             return transition;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             this.dataSize = dataSize;
             offset = 0;
             transition = null;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return index.size();
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             int value = index.getInt(offset++);
             if (value > 0) {
                 value--;
@@ -262,8 +243,7 @@ public class ReadMatrix extends BaseR {
             throw new UnexpectedResultException(this);
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
     }
@@ -276,23 +256,19 @@ public class ReadMatrix extends BaseR {
         int indexValue;
         Transition transition;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public Transition getTransition() {
+        @Override public Transition getTransition() {
             return transition;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        @Override public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             if (index.size() == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
@@ -308,22 +284,17 @@ public class ReadMatrix extends BaseR {
             throw new UnexpectedResultException(this);
         }
 
-        @Override
-        public void restart() {
-        }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
     }
@@ -334,18 +305,15 @@ public class ReadMatrix extends BaseR {
         int dataSize;
         int indexValue;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        @Override public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             int isize = index.size();
             if (isize == 1) {
                 int i = index.getInt(0);
@@ -370,22 +338,17 @@ public class ReadMatrix extends BaseR {
             }
         }
 
-        @Override
-        public void restart() {
-        }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
     }
@@ -395,18 +358,16 @@ public class ReadMatrix extends BaseR {
 
         RInt index;
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
-        boolean positiveSelection;  // positive indexes and NA and zeros
+        boolean positiveSelection; // positive indexes and NA and zeros
 
         int offset;
         boolean[] omit;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
 
             boolean hasNA = false;
             boolean hasNegative = false;
@@ -418,9 +379,7 @@ public class ReadMatrix extends BaseR {
                 int value = index.getInt(i);
                 if (value > 0) {
                     hasPositive = true;
-                    if (value - 1 > dataSize) {
-                        throw RError.getSubscriptBounds(ast);
-                    }
+                    if (value - 1 > dataSize) { throw RError.getSubscriptBounds(ast); }
                     continue;
                 }
                 if (value == 0) {
@@ -480,18 +439,15 @@ public class ReadMatrix extends BaseR {
             offset = 0;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             if (positiveSelection) {
                 int i = index.getInt(offset++);
                 while (i == 0) {
@@ -511,8 +467,7 @@ public class ReadMatrix extends BaseR {
             }
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
     }
@@ -528,14 +483,12 @@ public class ReadMatrix extends BaseR {
 
         boolean reuse;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RLogical) index;
             indexSize = this.index.size();
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             offset = 0;
             indexOffset = 0;
 
@@ -547,9 +500,7 @@ public class ReadMatrix extends BaseR {
                 reuse = false;
                 return;
             }
-            if (isize > dataSize) {
-                throw RError.getLogicalSubscriptLong(ast);
-            }
+            if (isize > dataSize) { throw RError.getLogicalSubscriptLong(ast); }
             reuse = true;
             int times = dataSize / isize;
             int extra = dataSize - times * isize;
@@ -561,25 +512,20 @@ public class ReadMatrix extends BaseR {
             }
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
             indexOffset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             for (;;) {
                 int v = index.getLogical(indexOffset);
                 if (!reuse) {
-                    if (v == RLogical.TRUE) {
-                        return indexOffset++;
-                    }
+                    if (v == RLogical.TRUE) { return indexOffset++; }
                     indexOffset++;
                     if (v == RLogical.FALSE) {
                         continue;
@@ -591,9 +537,7 @@ public class ReadMatrix extends BaseR {
                     if (indexOffset == indexSize) {
                         indexOffset = 0;
                     }
-                    if (v == RLogical.TRUE) {
-                        return offset++;
-                    }
+                    if (v == RLogical.TRUE) { return offset++; }
                     offset++;
                     if (v == RLogical.FALSE) {
                         continue;
@@ -604,8 +548,7 @@ public class ReadMatrix extends BaseR {
             }
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
@@ -614,13 +557,11 @@ public class ReadMatrix extends BaseR {
     public static SelectorNode createConstantSelectorNode(ASTNode ast, RNode child, final Selector selector) {
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(Frame frame) {
+            @Override public Selector executeSelector(Frame frame) {
                 return selector;
             }
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 return selector;
             }
         };
@@ -639,8 +580,7 @@ public class ReadMatrix extends BaseR {
             return createSelectorNode(ast, subset, index, node, true, null);
         }
         return new SelectorNode(ast, node) {
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
@@ -704,10 +644,8 @@ public class ReadMatrix extends BaseR {
                 AnalyzedIndex a = analyzeIndex(index);
                 if (a.hasPositive && !a.hasNegative && !a.hasNA && !a.hasZero) {
                     if (isConstant) {
-                        if (index.size() == 1) {
-                            return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1));
-                        }
-                     // FIXME: handle more cases? e.g. set of positive integer indexes
+                        if (index.size() == 1) { return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1)); }
+                        // FIXME: handle more cases? e.g. set of positive integer indexes
                     }
                     if (subset) {
                         if (index.size() == 1) {
@@ -732,8 +670,7 @@ public class ReadMatrix extends BaseR {
         final SimpleNumericSubsetSelector selector = new SimpleNumericSubsetSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -754,8 +691,7 @@ public class ReadMatrix extends BaseR {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -776,8 +712,7 @@ public class ReadMatrix extends BaseR {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -800,8 +735,7 @@ public class ReadMatrix extends BaseR {
             final GenericNumericSubsetSelector numericSelector = new GenericNumericSubsetSelector();
             final GenericLogicalSubsetSelector logicalSelector = new GenericLogicalSubsetSelector();
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble) {
                     numericSelector.setIndex(index.asInt());
                     return numericSelector;
@@ -821,8 +755,7 @@ public class ReadMatrix extends BaseR {
 
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
                     selector.setIndex(index.asInt());
                     return selector;
@@ -841,8 +774,7 @@ public class ReadMatrix extends BaseR {
             this.child = adoptChild(child);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
@@ -859,17 +791,14 @@ public class ReadMatrix extends BaseR {
     public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
         return new OptionNode(ast) {
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 return value;
             }
         };
     }
 
     public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
-        if (node == null) {
-            return createConstantOptionNode(ast, defaultValue);
-        }
+        if (node == null) { return createConstantOptionNode(ast, defaultValue); }
         if (node.getAST() instanceof r.nodes.Constant) {
             RAny value = (RAny) node.execute(null);
             return createConstantOptionNode(ast, value.asLogical().getLogical(0));
@@ -878,8 +807,7 @@ public class ReadMatrix extends BaseR {
 
             @Child RNode child = adoptChild(node);
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 RAny value = (RAny) child.execute(frame);
                 return value.asLogical().getLogical(0);
             }
@@ -901,8 +829,7 @@ public class ReadMatrix extends BaseR {
             super(ast);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }

@@ -6,11 +6,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "seq"
- *
+ * 
  * <pre>
  * from, to -- the starting and (maximal) end values of the sequence. Of length 1 unless just from is supplied
  *        as an unnamed argument.

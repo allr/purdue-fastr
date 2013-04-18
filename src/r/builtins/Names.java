@@ -5,11 +5,11 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "names"
- *
+ * 
  * <pre>
  * x -- an R object.
  * </pre>

@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import r.Truffle.*;
+
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
@@ -41,17 +41,19 @@ public class UpdateArrayAssignment extends BaseR {
 
         /**
          * Override this method to define the assignment operation.
-         *
-         * @param frame Frame of the execute method.
-         * @param lhs   Left hand side (assign to)
-         * @param rhs   Right hand side (assign from)
+         * 
+         * @param frame
+         *            Frame of the execute method.
+         * @param lhs
+         *            Left hand side (assign to)
+         * @param rhs
+         *            Right hand side (assign from)
          * @return Left hand side object after assignment.
          */
-        public abstract RAny execute(Frame frame, RAny lhs, RAny rhs);
+        @Override public abstract RAny execute(Frame frame, RAny lhs, RAny rhs);
 
         /** Calls to execute method on frame only are *not* supported. */
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             assert (false) : " calls to execute(frame) method for AssignmentNode is not supported.";
             return null;
         }
@@ -67,12 +69,11 @@ public class UpdateArrayAssignment extends BaseR {
     /** UpdateVariable node performing the assignment itself. */
     @Child AssignmentNode assignment;
 
-
     protected UpdateArrayAssignment(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
         super(orig);
         this.lhs = lhs;
         this.rhs = adoptChild(rhs);
-        this.assignment = adoptChild(assignment);
+        this.assignment = (AssignmentNode) adoptChild(assignment);
     }
 
     /** Copy constructor for the replacement calls. */
@@ -80,15 +81,14 @@ public class UpdateArrayAssignment extends BaseR {
         super(other.getAST());
         this.lhs = other.lhs;
         this.rhs = adoptChild(other.rhs);
-        this.assignment = adoptChild(other.assignment);
+        this.assignment = (AssignmentNode) adoptChild(other.assignment);
     }
 
     /**
      * Default execution, rewrites itself either to a top level assignment, or determines the frameslot and replaces to
      * the LocalAssignment.
      */
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
@@ -117,8 +117,7 @@ public class UpdateArrayAssignment extends BaseR {
          * Default execution, rewrites itself either to a top level assignment, or determines the frameslot and replaces
          * to the LocalAssignment.
          */
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
@@ -141,9 +140,9 @@ public class UpdateArrayAssignment extends BaseR {
     protected static class Local extends UpdateArrayAssignment {
 
         public static enum Failure {
-            NULL_FRAME,
-            NULL_SLOT
+            NULL_FRAME, NULL_SLOT
         }
+
         /** Frameslot of the lhs variable. */
         final FrameSlot frameSlot;
 
@@ -153,8 +152,7 @@ public class UpdateArrayAssignment extends BaseR {
             this.frameSlot = frameSlot;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
@@ -167,9 +165,7 @@ public class UpdateArrayAssignment extends BaseR {
                 if (lhsValue == null) {
                     // TODO maybe turn this to decompile for smaller methods?
                     lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);
-                    if (lhsValue == null) {
-                        throw RError.getUnknownVariable(getAST(), lhs);
-                    }
+                    if (lhsValue == null) { throw RError.getUnknownVariable(getAST(), lhs); }
                     lhsValue.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                 }
@@ -180,10 +176,10 @@ public class UpdateArrayAssignment extends BaseR {
                 return rhsValue;
             } catch (UnexpectedResultException e) {
                 switch ((Failure) e.getResult()) {
-                    case NULL_FRAME:
-                        return replace(new TopLevel(this)).execute(frame);
-                    case NULL_SLOT:
-                        return replace(new UpdateArrayAssignment(this)).execute(frame);
+                case NULL_FRAME:
+                    return replace(new TopLevel(this)).execute(frame);
+                case NULL_SLOT:
+                    return replace(new UpdateArrayAssignment(this)).execute(frame);
                 }
             }
             return null;
@@ -199,8 +195,7 @@ public class UpdateArrayAssignment extends BaseR {
             rhsVal = rhs;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
@@ -212,9 +207,7 @@ public class UpdateArrayAssignment extends BaseR {
                 if (lhsValue == null) {
                     // TODO maybe turn this to decompile for smaller methods?
                     lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);
-                    if (lhsValue == null) {
-                        throw RError.getUnknownVariable(getAST(), lhs);
-                    }
+                    if (lhsValue == null) { throw RError.getUnknownVariable(getAST(), lhs); }
                     lhsValue.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                 }
@@ -225,10 +218,10 @@ public class UpdateArrayAssignment extends BaseR {
                 return rhsVal;
             } catch (UnexpectedResultException e) {
                 switch ((Failure) e.getResult()) {
-                    case NULL_FRAME:
-                        return replace(new TopLevel(this)).execute(frame);
-                    case NULL_SLOT:
-                        return replace(new Const(this)).execute(frame);
+                case NULL_FRAME:
+                    return replace(new TopLevel(this)).execute(frame);
+                case NULL_SLOT:
+                    return replace(new Const(this)).execute(frame);
                 }
             }
             return null;
@@ -241,17 +234,14 @@ public class UpdateArrayAssignment extends BaseR {
             super(other);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 if (frame != null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(null);
                 }
                 RAny rhsValue = (RAny) rhs.execute(frame);
                 RAny lhsValue = lhs.getValue();
-                if (lhsValue == null) {
-                    throw RError.getUnknownVariable(getAST(), lhs);
-                }
+                if (lhsValue == null) { throw RError.getUnknownVariable(getAST(), lhs); }
                 RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeToTopLevelRef(lhs, newLhs);
@@ -273,23 +263,20 @@ public class UpdateArrayAssignment extends BaseR {
             rhsVal = rhs;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             try {
                 if (frame != null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(null);
                 }
                 RAny lhsValue = lhs.getValue();
-                if (lhsValue == null) {
-                    throw RError.getUnknownVariable(getAST(), lhs);
-                }
+                if (lhsValue == null) { throw RError.getUnknownVariable(getAST(), lhs); }
                 RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
                 if (lhsValue != newLhs) {
                     RFrameHeader.writeToTopLevelRef(lhs, newLhs);
                 }
                 return rhsVal;
             } catch (UnexpectedResultException e) {
-             // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
+                // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
                 return replace(new Const(this)).execute(frame);
             }
         }

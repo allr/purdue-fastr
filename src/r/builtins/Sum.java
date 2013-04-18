@@ -5,12 +5,12 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 import java.lang.Integer;
 
 /**
  * "sum"
- *
+ * 
  * <pre>
  * ... -- numeric or complex or logical vectors.
  * na.rm -- logical. Should missing values (including NaN) be removed?
@@ -32,7 +32,7 @@ final class Sum extends CallFactory {
         double rreal = 0;
         double rimag = 0;
         for (int i = 0; i < size; i++) {
-            double real = v.getReal(i);  // FIXME: this will be very slow for complex arithmetic views
+            double real = v.getReal(i); // FIXME: this will be very slow for complex arithmetic views
             double imag = v.getImag(i);
             if (narm) {
                 if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
@@ -129,9 +129,7 @@ final class Sum extends CallFactory {
                         hasDouble = true;
                     } else if (v instanceof RComplex) {
                         hasComplex = true;
-                    } else if (v instanceof RList) {
-                        throw RError.getInvalidTypeList(ast);
-                    }
+                    } else if (v instanceof RList) { throw RError.getInvalidTypeList(ast); }
                 }
 
                 if (hasComplex) {

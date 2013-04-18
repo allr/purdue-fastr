@@ -8,9 +8,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 /**
  * "cat" Outputs the objects, concatenating the representations. cat performs much less conversion than print.

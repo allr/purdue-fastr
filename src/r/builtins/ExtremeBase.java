@@ -6,7 +6,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 // TODO: support na.rm
 abstract class ExtremeBase extends CallFactory {

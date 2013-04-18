@@ -14,11 +14,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "scan"
- *
+ * 
  * <pre>
  * file -- the name of a file to read data values from. If the specified file is "", then input
  *     is taken from the keyboard (or whatever stdin() reads if input is redirected or R is embedded).

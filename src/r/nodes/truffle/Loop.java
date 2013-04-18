@@ -5,9 +5,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 public abstract class Loop extends BaseR {
 
@@ -35,8 +33,7 @@ public abstract class Loop extends BaseR {
             super(ast);
         }
 
-        @Override
-        public final RAny execute(Frame frame) {
+        @Override public final RAny execute(Frame frame) {
             throw BreakException.instance;
         }
     }
@@ -46,8 +43,7 @@ public abstract class Loop extends BaseR {
             super(ast);
         }
 
-        @Override
-        public final RAny execute(Frame frame) {
+        @Override public final RAny execute(Frame frame) {
             throw ContinueException.instance;
         }
     }
@@ -57,8 +53,7 @@ public abstract class Loop extends BaseR {
             super(ast, body);
         }
 
-        @Override
-        public final RAny execute(Frame frame) {
+        @Override public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering repeat loop");
                 for (;;) {
@@ -79,13 +74,13 @@ public abstract class Loop extends BaseR {
     public static class While extends Loop {
 
         @Child RNode cond;
+
         public While(ASTNode ast, RNode cond, RNode body) {
             super(ast, body);
             this.cond = adoptChild(cond);
         }
 
-        @Override
-        public final RAny execute(Frame frame) {
+        @Override public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering while loop");
                 for (;;) {
@@ -102,9 +97,7 @@ public abstract class Loop extends BaseR {
                         if (condVal == RLogical.FALSE) {
                             break;
                         }
-                        if (condVal == RLogical.NA) {
-                            throw RError.getUnexpectedNA(ast);
-                        }
+                        if (condVal == RLogical.NA) { throw RError.getUnexpectedNA(ast); }
                         body.execute(frame);
                     } catch (ContinueException ce) {
                         if (DEBUG_LO) Utils.debug("loop - while loop received continue exception");
@@ -135,8 +128,7 @@ public abstract class Loop extends BaseR {
                 super(ast, cvar, range, body);
             }
 
-            @Override
-            public RAny execute(Frame frame) {
+            @Override public RAny execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -160,18 +152,15 @@ public abstract class Loop extends BaseR {
                     super(ast, cvar, range, body);
                 }
 
-                @Override
-                public final RAny execute(Frame frame) {
+                @Override public final RAny execute(Frame frame) {
                     RAny rval = (RAny) range.execute(frame);
                     try {
-                        if (!(rval instanceof IntImpl.RIntSequence)) {
-                            throw new UnexpectedResultException(null);
-                        }
+                        if (!(rval instanceof IntImpl.RIntSequence)) { throw new UnexpectedResultException(null); }
                         IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
                         int size = sval.size();
                         try {
                             return execute(frame, sval, size);
-                        } catch (BreakException be) { }
+                        } catch (BreakException be) {}
                     } catch (UnexpectedResultException e) {
                         Generic gn;
                         if (frame == null) {
@@ -190,8 +179,7 @@ public abstract class Loop extends BaseR {
 
             public static Specialized createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Specialized(ast, cvar, range, body) {
-                    @Override
-                    public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
+                    @Override public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -200,12 +188,12 @@ public abstract class Loop extends BaseR {
                                 RFrameHeader.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
-                                } catch (ContinueException ce) { }
+                                } catch (ContinueException ce) {}
                                 if (i == to) {
                                     break;
                                 }
                             }
-                        } catch (BreakException be) { }
+                        } catch (BreakException be) {}
                         return RNull.getNull();
                     }
                 };
@@ -213,8 +201,7 @@ public abstract class Loop extends BaseR {
 
             public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Specialized(ast, cvar, range, body) {
-                    @Override
-                    public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
+                    @Override public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
@@ -224,12 +211,12 @@ public abstract class Loop extends BaseR {
                                 RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
-                                } catch (ContinueException ce) { }
+                                } catch (ContinueException ce) {}
                                 if (i == to) {
                                     break;
                                 }
                             }
-                        } catch (BreakException be) { }
+                        } catch (BreakException be) {}
                         return RNull.getNull();
                     }
                 };
@@ -243,8 +230,7 @@ public abstract class Loop extends BaseR {
                 super(ast, cvar, range, body);
             }
 
-            @Override
-            public final RAny execute(Frame frame) {
+            @Override public final RAny execute(Frame frame) {
                 RAny rval = (RAny) range.execute(frame);
                 return execute(frame, rval);
             }
@@ -269,11 +255,8 @@ public abstract class Loop extends BaseR {
 
             public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Generic(ast, cvar, range, body) {
-                    @Override
-                    public final RAny execute(Frame frame, RAny rval) {
-                        if (!(rval instanceof RArray)) {
-                            throw RError.getInvalidForSequence(ast);
-                        }
+                    @Override public final RAny execute(Frame frame, RAny rval) {
+                        if (!(rval instanceof RArray)) { throw RError.getInvalidForSequence(ast); }
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
@@ -282,9 +265,9 @@ public abstract class Loop extends BaseR {
                                 RFrameHeader.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(frame);
-                                } catch (ContinueException ce) { }
+                                } catch (ContinueException ce) {}
                             }
-                        } catch (BreakException be) { }
+                        } catch (BreakException be) {}
                         return RNull.getNull();
                     }
                 };
@@ -292,11 +275,8 @@ public abstract class Loop extends BaseR {
 
             public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
                 return new Generic(ast, cvar, range, body) {
-                    @Override
-                    public final RAny execute(Frame frame, RAny rval) {
-                        if (!(rval instanceof RArray)) {
-                            throw RError.getInvalidForSequence(ast);
-                        }
+                    @Override public final RAny execute(Frame frame, RAny rval) {
+                        if (!(rval instanceof RArray)) { throw RError.getInvalidForSequence(ast); }
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
@@ -305,9 +285,9 @@ public abstract class Loop extends BaseR {
                                 RFrameHeader.writeAtRef(frame, slot, vvalue);
                                 try {
                                     body.execute(frame);
-                                } catch (ContinueException ce) { }
+                                } catch (ContinueException ce) {}
                             }
-                        } catch (BreakException be) { }
+                        } catch (BreakException be) {}
                         return RNull.getNull();
                     }
                 };

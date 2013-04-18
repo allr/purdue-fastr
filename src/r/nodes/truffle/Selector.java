@@ -1,7 +1,7 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import r.Truffle.*;
+
 import r.Utils;
 import r.data.*;
 import r.data.internal.*;
@@ -12,9 +12,8 @@ import java.util.Arrays;
 
 public abstract class Selector {
 
-    /** Initializes the selectors to their respective values using given source array.
-     *
-     * Returns the selector sizes array.
+    /**
+     * Initializes the selectors to their respective values using given source array. Returns the selector sizes array.
      */
     public static void initializeSelectors(RArray source, Selector[] selectors, ASTNode ast, int[] selSizes) throws UnexpectedResultException {
         int[] sourceDim = source.dimensions();
@@ -24,27 +23,22 @@ public abstract class Selector {
         }
     }
 
-    /** Calculates the result dimensions given the selector sizes. If the drop argument is true any dimension of size
-     * 1 is dropped and if the final result has only one dimension even that one is dropped (a vector will be returned
-     * in this case).
+    /**
+     * Calculates the result dimensions given the selector sizes. If the drop argument is true any dimension of size 1
+     * is dropped and if the final result has only one dimension even that one is dropped (a vector will be returned in
+     * this case).
      */
     public static int[] calculateDestinationDimensions(int[] selSizes, boolean drop) {
 
-        if (!drop) {
-            return selSizes;
-        }
+        if (!drop) { return selSizes; }
         int nones = 0;
         for (int s : selSizes) {
             if (s == 1) {
                 nones++;
             }
         }
-        if (nones == 0) {
-            return selSizes;
-        }
-        if (nones >= selSizes.length - 1) {
-            return null;
-        }
+        if (nones == 0) { return selSizes; }
+        if (nones >= selSizes.length - 1) { return null; }
         int[] res = new int[selSizes.length - nones];
         int i = 0;
         for (int s : selSizes) {
@@ -55,7 +49,8 @@ public abstract class Selector {
         return res;
     }
 
-    /** Calculates the selection size from selector sizes (their product).
+    /**
+     * Calculates the selection size from selector sizes (their product).
      */
     public static int calculateSizeFromSelectorSizes(int[] selectorSizes) {
 
@@ -66,17 +61,18 @@ public abstract class Selector {
         return result;
     }
 
-
-    /** Given the index vector, selector indices, sizes and the selectors themselves, increments the index vector by one
-     * returning true on overflow.
-     *
-     * Increments in different order starting from left to right so that the destination offset does not have to be
-     * recalculated each time.
-     *
-     * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
+    /**
+     * Given the index vector, selector indices, sizes and the selectors themselves, increments the index vector by one
+     * returning true on overflow. Increments in different order starting from left to right so that the destination
+     * offset does not have to be recalculated each time.
+     * 
+     * @param idx
+     *            The index vector. Contains as many elements as the selectors and each element is the 0based index to
      *            the source array as specified by the current selector.
-     * @param selSizes Size of the selector.
-     * @param selectors Selectors to be used in the increment.
+     * @param selSizes
+     *            Size of the selector.
+     * @param selectors
+     *            Selectors to be used in the increment.
      */
     public static boolean increment(int[] idx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
         for (int i = 0; i < idx.length; ++i) {
@@ -91,7 +87,8 @@ public abstract class Selector {
         return true; // overflow
     }
 
-    /** Calculates the source index from given index vector. If any of the index values is NA, then the result is NA
+    /**
+     * Calculates the source index from given index vector. If any of the index values is NA, then the result is NA
      * itself.
      */
     public static int calculateSourceOffset(RArray source, int[] idx) {
@@ -99,9 +96,7 @@ public abstract class Selector {
         int m = 1;
         int[] dims = source.dimensions();
         for (int i = 0; i < idx.length; ++i) {
-            if (idx[i] == RInt.NA) {
-                return RInt.NA;
-            }
+            if (idx[i] == RInt.NA) { return RInt.NA; }
             result += idx[i] * m;
             m *= dims[i];
         }
@@ -271,23 +266,30 @@ public abstract class Selector {
         partialToFullOffsetsNoNA(offsets, i + 1);
     }
 
-
     private static final boolean DEBUG_M = false;
 
-    public void setIndex(RAny index) {
-    }
+    public void setIndex(RAny index) {}
+
     public RAny getIndex() {
         return null;
     }
+
     public Transition getTransition() {
         return null;
     }
+
     public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
+
     public abstract void restart();
+
     public abstract int size();
+
     public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
+
     public abstract boolean isConstant();
+
     public abstract boolean isExhausted(); // the next call to nextIndex would go above selector size (always for selectors of size 1)
+
     public abstract boolean mayHaveNA();
 
     // non-failing
@@ -295,39 +297,32 @@ public abstract class Selector {
         private int size = -1;
         private int last = -1;
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             size = dataSize;
             last = 0;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             last = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) { // zero-based
+        @Override public int nextIndex(ASTNode ast) { // zero-based
             return last++;
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return last == size;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return true;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return false;
         }
     }
@@ -340,38 +335,29 @@ public abstract class Selector {
             this.index = value;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
-            if (index > dataSize) {
-                throw RError.getSubscriptBounds(ast);
-            }
+        @Override public void start(int dataSize, ASTNode ast) {
+            if (index > dataSize) { throw RError.getSubscriptBounds(ast); }
         }
 
-        @Override
-        public void restart() { }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             return index;
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return true;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return true;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return false;
         }
     }
@@ -383,40 +369,33 @@ public abstract class Selector {
         int offset;
         Transition transition;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public Transition getTransition() {
+        @Override public Transition getTransition() {
             return transition;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             this.dataSize = dataSize;
             offset = 0;
             transition = null;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return index.size();
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             int value = index.getInt(offset++);
             if (value > 0) {
                 value--;
@@ -430,18 +409,15 @@ public abstract class Selector {
             throw new UnexpectedResultException(this);
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return offset == index.size();
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             // on NA it would fail in nextIndex
             return false;
         }
@@ -455,23 +431,19 @@ public abstract class Selector {
         int indexValue;
         Transition transition;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public Transition getTransition() {
+        @Override public Transition getTransition() {
             return transition;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        @Override public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             if (index.size() == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
@@ -487,32 +459,25 @@ public abstract class Selector {
             throw new UnexpectedResultException(this);
         }
 
-        @Override
-        public void restart() {
-        }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return true;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return false;
         }
     }
@@ -523,18 +488,15 @@ public abstract class Selector {
         int dataSize;
         int indexValue;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public RInt getIndex() {
+        @Override public RInt getIndex() {
             return index;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        @Override public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             int isize = index.size();
             if (isize == 1) {
                 int i = index.getInt(0);
@@ -559,32 +521,25 @@ public abstract class Selector {
             }
         }
 
-        @Override
-        public void restart() {
-        }
+        @Override public void restart() {}
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return 1;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        @Override public int nextIndex(ASTNode ast) throws UnexpectedResultException {
             return indexValue;
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return true;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return false;
         }
     }
@@ -594,19 +549,17 @@ public abstract class Selector {
 
         RInt index;
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
-        boolean positiveSelection;  // positive indexes and NA and zeros
+        boolean positiveSelection; // positive indexes and NA and zeros
 
         int offset;
         boolean[] omit;
         boolean hasNA;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RInt) index;
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
 
             hasNA = false;
             boolean hasNegative = false;
@@ -618,9 +571,7 @@ public abstract class Selector {
                 int value = index.getInt(i);
                 if (value > 0) {
                     hasPositive = true;
-                    if (value - 1 > dataSize) {
-                        throw RError.getSubscriptBounds(ast);
-                    }
+                    if (value - 1 > dataSize) { throw RError.getSubscriptBounds(ast); }
                     continue;
                 }
                 if (value == 0) {
@@ -680,18 +631,15 @@ public abstract class Selector {
             offset = 0;
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             if (positiveSelection) {
                 int i = index.getInt(offset++);
                 while (i == 0) {
@@ -713,18 +661,15 @@ public abstract class Selector {
             }
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return offset == size;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return hasNA;
         }
     }
@@ -740,14 +685,12 @@ public abstract class Selector {
 
         boolean reuse;
 
-        @Override
-        public void setIndex(RAny index) {
+        @Override public void setIndex(RAny index) {
             this.index = (RLogical) index;
             indexSize = this.index.size();
         }
 
-        @Override
-        public void start(int dataSize, ASTNode ast) {
+        @Override public void start(int dataSize, ASTNode ast) {
             offset = 0;
             indexOffset = 0;
 
@@ -759,9 +702,7 @@ public abstract class Selector {
                 reuse = false;
                 return;
             }
-            if (isize > dataSize) {
-                throw RError.getLogicalSubscriptLong(ast);
-            }
+            if (isize > dataSize) { throw RError.getLogicalSubscriptLong(ast); }
             reuse = true;
             int times = dataSize / isize;
             int extra = dataSize - times * isize;
@@ -773,25 +714,20 @@ public abstract class Selector {
             }
         }
 
-        @Override
-        public void restart() {
+        @Override public void restart() {
             offset = 0;
             indexOffset = 0;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int nextIndex(ASTNode ast) {
+        @Override public int nextIndex(ASTNode ast) {
             for (;;) {
                 int v = index.getLogical(indexOffset);
                 if (!reuse) {
-                    if (v == RLogical.TRUE) {
-                        return indexOffset++;
-                    }
+                    if (v == RLogical.TRUE) { return indexOffset++; }
                     indexOffset++;
                     if (v == RLogical.FALSE) {
                         continue;
@@ -803,9 +739,7 @@ public abstract class Selector {
                     if (indexOffset == indexSize) {
                         indexOffset = 0;
                     }
-                    if (v == RLogical.TRUE) {
-                        return offset++;
-                    }
+                    if (v == RLogical.TRUE) { return offset++; }
                     offset++;
                     if (v == RLogical.FALSE) {
                         continue;
@@ -816,18 +750,15 @@ public abstract class Selector {
             }
         }
 
-        @Override
-        public boolean isExhausted() {
+        @Override public boolean isExhausted() {
             return indexOffset == size;
         }
 
-        @Override
-        public boolean isConstant() {
+        @Override public boolean isConstant() {
             return false;
         }
 
-        @Override
-        public boolean mayHaveNA() {
+        @Override public boolean mayHaveNA() {
             return true; // would have to do more work in start to rule out
         }
 
@@ -836,13 +767,11 @@ public abstract class Selector {
     public static SelectorNode createConstantSelectorNode(ASTNode ast, RNode child, final Selector selector) {
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(Frame frame) {
+            @Override public Selector executeSelector(Frame frame) {
                 return selector;
             }
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 return selector;
             }
         };
@@ -863,8 +792,7 @@ public abstract class Selector {
             return createSelectorNode(ast, subset, index, node, true, null);
         }
         return new SelectorNode(ast, node) {
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
@@ -928,9 +856,7 @@ public abstract class Selector {
                 AnalyzedIndex a = analyzeIndex(index);
                 if (a.hasPositive && !a.hasNegative && !a.hasNA && !a.hasZero) {
                     if (isConstant) {
-                        if (index.size() == 1) {
-                            return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1));
-                        }
+                        if (index.size() == 1) { return createConstantSelectorNode(ast, child, new SinglePositiveConstantIndexSelector(index.getInt(0) - 1)); }
                         // FIXME: handle more cases? e.g. set of positive integer indexes
                     }
                     if (subset) {
@@ -956,8 +882,7 @@ public abstract class Selector {
         final SimpleNumericSubsetSelector selector = new SimpleNumericSubsetSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -980,26 +905,23 @@ public abstract class Selector {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         if (template instanceof ScalarIntImpl) {
 
+        return new SelectorNode(ast, child) {
 
-            return new SelectorNode(ast, child) {
-
-                @Override
-                public Selector executeSelector(RAny index) {
-                    try {
-                        if (index instanceof ScalarIntImpl) {
-                            selector.setIndex(index);
-                            return selector;
-                        }
-                        throw new UnexpectedResultException(null);
-                    } catch (UnexpectedResultException e) {
-                        if (DEBUG_M) Utils.debug("SpecializedSimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
-                        SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
-                        replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
-                        return gn.executeSelector(index);
+            @Override public Selector executeSelector(RAny index) {
+                try {
+                    if (index instanceof ScalarIntImpl) {
+                        selector.setIndex(index);
+                        return selector;
                     }
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_M) Utils.debug("SpecializedSimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
+                    SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
+                    replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
+                    return gn.executeSelector(index);
                 }
-            };
-        }
+            }
+        }; }
         return createGenericSimpleSubscriptSelectorNode(ast, child);
     }
 
@@ -1007,8 +929,7 @@ public abstract class Selector {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
                         selector.setIndex(index.asInt());
@@ -1029,8 +950,7 @@ public abstract class Selector {
         final SimpleScalarNumericSelector selector = new SimpleScalarNumericSelector();
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
                         selector.setIndex(index.asInt());
@@ -1053,8 +973,7 @@ public abstract class Selector {
             final GenericNumericSubsetSelector numericSelector = new GenericNumericSubsetSelector();
             final GenericLogicalSubsetSelector logicalSelector = new GenericLogicalSubsetSelector();
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RNull) {
                     numericSelector.setIndex(index.asInt());
                     return numericSelector;
@@ -1074,8 +993,7 @@ public abstract class Selector {
 
         return new SelectorNode(ast, child) {
 
-            @Override
-            public Selector executeSelector(RAny index) {
+            @Override public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical || index instanceof RNull) {
                     selector.setIndex(index.asInt());
                     return selector;
@@ -1089,17 +1007,14 @@ public abstract class Selector {
     public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
         return new OptionNode(ast) {
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 return value;
             }
         };
     }
 
     public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
-        if (node == null) {
-            return createConstantOptionNode(ast, defaultValue);
-        }
+        if (node == null) { return createConstantOptionNode(ast, defaultValue); }
         if (node.getAST() instanceof r.nodes.Constant) {
             RAny value = (RAny) node.execute(null);
             return createConstantOptionNode(ast, value.asLogical().getLogical(0));
@@ -1108,8 +1023,7 @@ public abstract class Selector {
 
             @Child RNode child = adoptChild(node);
 
-            @Override
-            public int executeLogical(Frame frame) {
+            @Override public int executeLogical(Frame frame) {
                 RAny value = (RAny) child.execute(frame);
                 return value.asLogical().getLogical(0);
             }
@@ -1131,8 +1045,7 @@ public abstract class Selector {
             super(ast);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
@@ -1152,8 +1065,7 @@ public abstract class Selector {
             this.child = adoptChild(child);
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             Utils.check(false, "unreachable");
             return null;
         }
@@ -1167,6 +1079,5 @@ public abstract class Selector {
         public abstract Selector executeSelector(RAny index);
 
     }
-
 
 }

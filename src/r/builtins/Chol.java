@@ -3,7 +3,7 @@ package r.builtins;
 import org.netlib.lapack.*;
 import org.netlib.util.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -17,7 +17,7 @@ import r.nodes.truffle.*;
 // TODO: add pivoting with LAPACK and add LINPACK
 final class Chol extends CallFactory {
 
-    static final CallFactory _ = new Chol("chol", new String[]{"x", "pivot", "LINPACK"}, new String[] {"x"});
+    static final CallFactory _ = new Chol("chol", new String[]{"x", "pivot", "LINPACK"}, new String[]{"x"});
 
     private Chol(String name, String[] params, String[] required) {
         super(name, params, required);
@@ -44,14 +44,10 @@ final class Chol extends CallFactory {
                     dims = x.dimensions();
                     if (dims != null && dims.length == 2) {
                         n = dims[0];
-                        if (n != dims[1]) {
-                            throw RError.getNonSquareMatrix(ast, "chol");
-                        }
+                        if (n != dims[1]) { throw RError.getNonSquareMatrix(ast, "chol"); }
                     } else {
                         n = x.size();
-                        if (n != 1) {
-                            throw RError.getNonMatrix(ast, "chol");
-                        }
+                        if (n != 1) { throw RError.getNonMatrix(ast, "chol"); }
                     }
                 } else if (xarg instanceof RComplex) {
                     throw RError.getComplexNotPermitted(ast);
@@ -64,12 +60,11 @@ final class Chol extends CallFactory {
 
                 if (!linpack) {
                     // lapack without pivoting
-                    if (n == 0) {
-                        throw RError.getDimsGTZero(ast, "x"); // NOTE: GNU-R says "a" because this is down in LAPACK wrapper
+                    if (n == 0) { throw RError.getDimsGTZero(ast, "x"); // NOTE: GNU-R says "a" because this is down in LAPACK wrapper
                     }
                     if (dims == null) {
-                        if (x instanceof ScalarDoubleImpl) {  // FIXME: should this go to RDouble?
-                            x = new DoubleImpl(new double[] { x.getDouble(0) }, RArray.SCALAR_DIMENSIONS, null, null, false);
+                        if (x instanceof ScalarDoubleImpl) { // FIXME: should this go to RDouble?
+                            x = new DoubleImpl(new double[]{x.getDouble(0)}, RArray.SCALAR_DIMENSIONS, null, null, false);
                         } else {
                             x.setDimensions(RArray.SCALAR_DIMENSIONS); // see above we have our private copy
                         }

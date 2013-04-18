@@ -1,10 +1,7 @@
 package r.nodes.truffle;
 
-
 import java.util.*;
-
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.data.*;
@@ -52,32 +49,31 @@ public class Arithmetic extends BaseR {
     }
 
     public static boolean returnsDouble(ValueArithmetic arit) {
-//        return (arit == POW || arit == DIV);
+        //        return (arit == POW || arit == DIV);
         return arit.returnsDouble();
     }
 
-    @Override
-    public Object execute(Frame frame) {
+    @Override public Object execute(Frame frame) {
         RAny lexpr = (RAny) left.execute(frame);
         RAny rexpr = (RAny) right.execute(frame);
         return execute(lexpr, rexpr);
     }
 
-//    @Override
-//    public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
-//        try {
-//            throw new UnexpectedResultException(null);
-//        } catch (UnexpectedResultException e) {
-//            if (left instanceof Constant) {
-//                return (RAny) execute(((Constant) left).value(), variableValue);
-//            } else if (right instanceof Constant) {
-//                return (RAny) execute(variableValue, ((Constant) right).value());
-//            } else {
-//                Utils.nyi("unreachable");
-//                return null;
-//            }
-//        }
-//    }
+    //    @Override
+    //    public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
+    //        try {
+    //            throw new UnexpectedResultException(null);
+    //        } catch (UnexpectedResultException e) {
+    //            if (left instanceof Constant) {
+    //                return (RAny) execute(((Constant) left).value(), variableValue);
+    //            } else if (right instanceof Constant) {
+    //                return (RAny) execute(variableValue, ((Constant) right).value());
+    //            } else {
+    //                Utils.nyi("unreachable");
+    //                return null;
+    //            }
+    //        }
+    //    }
 
     public Object execute(RAny lexpr, RAny rexpr) {
         try {
@@ -99,11 +95,10 @@ public class Arithmetic extends BaseR {
     }
 
     public enum FailedSpecialization {
-        FIXED_TYPE,
-        MULTI_TYPE
+        FIXED_TYPE, MULTI_TYPE
     }
 
-    static class Specialized extends Arithmetic {
+    public static class Specialized extends Arithmetic {
         final String dbg;
         final Calculator calc;
 
@@ -120,11 +115,8 @@ public class Arithmetic extends BaseR {
         public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarComplexImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarComplexImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
                         double lreal = lcomp.getReal();
                         double limag = lcomp.getImag();
@@ -142,11 +134,8 @@ public class Arithmetic extends BaseR {
             }
             if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
                         double lreal = lcomp.getReal();
                         double limag = lcomp.getImag();
@@ -162,11 +151,8 @@ public class Arithmetic extends BaseR {
             }
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarComplexImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarComplexImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
                         ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
                         double rreal = rcomp.getReal();
@@ -182,16 +168,11 @@ public class Arithmetic extends BaseR {
             }
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
@@ -199,16 +180,11 @@ public class Arithmetic extends BaseR {
             }
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         int rint = ((ScalarIntImpl) rexpr).getInt();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                     }
                 };
@@ -216,16 +192,11 @@ public class Arithmetic extends BaseR {
             }
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                     }
                 };
@@ -234,32 +205,22 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
                 if (returnsDouble(arit)) {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             int rint = ((ScalarIntImpl) rexpr).getInt();
-                            if (lint == RInt.NA || rint == RInt.NA) {
-                                return RDouble.BOXED_NA;
-                            }
+                            if (lint == RInt.NA || rint == RInt.NA) { return RDouble.BOXED_NA; }
                             return RDouble.RDoubleFactory.getScalar(arit.op(ast, (double) lint, (double) rint));
                         }
                     };
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
                 } else {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             int rint = ((ScalarIntImpl) rexpr).getInt();
-                            if (lint == RInt.NA || rint == RInt.NA) {
-                                return RInt.BOXED_NA;
-                            }
+                            if (lint == RInt.NA || rint == RInt.NA) { return RInt.BOXED_NA; }
                             return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
@@ -270,28 +231,22 @@ public class Arithmetic extends BaseR {
         }
 
         public static Specialized createSpecializedMultiType(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
-            if ((leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarDoubleImpl) &&
-               (rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarDoubleImpl)) {
+            if ((leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarDoubleImpl)) {
 
                 final boolean alwaysDouble = returnsDouble(arit);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                         if (lexpr instanceof ScalarDoubleImpl) {
                             double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                             boolean leftIsNA = RDouble.RDoubleUtils.isNA(ldbl);
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                             }
                             if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
-                                if (leftIsNA || rint == RInt.NA) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (leftIsNA || rint == RInt.NA) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                             }
                         } else if (lexpr instanceof ScalarIntImpl) {
@@ -299,23 +254,17 @@ public class Arithmetic extends BaseR {
                             boolean leftIsNA = lint == RInt.NA;
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                             }
                             if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
                                 boolean isNA = leftIsNA || rint == RInt.NA;
                                 if (alwaysDouble) {
-                                    if (isNA) {
-                                        return RDouble.BOXED_NA;
-                                    }
+                                    if (isNA) { return RDouble.BOXED_NA; }
                                     return RDouble.RDoubleFactory.getScalar(arit.op(ast, (double) lint, (double) rint));
                                 } else {
-                                    if (isNA) {
-                                        return RInt.BOXED_NA;
-                                    }
+                                    if (isNA) { return RInt.BOXED_NA; }
                                     return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                                 }
                             }
@@ -332,8 +281,7 @@ public class Arithmetic extends BaseR {
             Calculator c;
             final boolean returnsDouble = returnsDouble(arit);
             c = new Calculator() {
-                @Override
-                public Object calc(RAny lexpr, RAny rexpr) {
+                @Override public Object calc(RAny lexpr, RAny rexpr) {
                     if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
                         RComplex lcmp = lexpr.asComplex();
                         RComplex rcmp = rexpr.asComplex();
@@ -373,15 +321,13 @@ public class Arithmetic extends BaseR {
             return new Specialized(ast, left, right, arit, c, "<Generic, Generic>");
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             RAny lexpr = (RAny) left.execute(frame);
             RAny rexpr = (RAny) right.execute(frame);
             return execute(lexpr, rexpr);
         }
 
-        @Override
-        public final Object execute(RAny lexpr, RAny rexpr) {
+        @Override public final Object execute(RAny lexpr, RAny rexpr) {
             try {
                 return calc.calc(lexpr, rexpr);
             } catch (UnexpectedResultException e) {
@@ -400,7 +346,7 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    static class SpecializedConst extends Arithmetic {
+    public static class SpecializedConst extends Arithmetic {
         final String dbg;
         final Calculator calc;
 
@@ -418,125 +364,98 @@ public class Arithmetic extends BaseR {
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
             // non-const is complex
-            if (leftConst && (rightTemplate instanceof ScalarComplexImpl) &&
-               (leftTemplate instanceof ScalarComplexImpl || leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
+            if (leftConst && (rightTemplate instanceof ScalarComplexImpl)
+                    && (leftTemplate instanceof ScalarComplexImpl || leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
                 RComplex lcmp = leftTemplate.asComplex();
                 final double lreal = lcmp.getReal(0);
-                final double limag =  lcmp.getImag(0);
+                final double limag = lcmp.getImag(0);
                 final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarComplexImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         ScalarComplexImpl rcmp = (ScalarComplexImpl) rexpr;
                         double rreal = rcmp.getReal();
                         double rimag = rcmp.getImag();
-                        if (isLeftNA || RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
-                            return RComplex.BOXED_NA;
-                        }
+                        if (isLeftNA || RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) { return RComplex.BOXED_NA; }
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
                     }
                 };
                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarNumber, ScalarComplex>");
             }
-            if (rightConst && (leftTemplate instanceof ScalarComplexImpl) &&
-                (rightTemplate instanceof ScalarComplexImpl || rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
-                 RComplex rcmp = rightTemplate.asComplex();
-                 final double rreal = rcmp.getReal(0);
-                 final double rimag =  rcmp.getImag(0);
-                 final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
-                 Calculator c = new Calculator() {
-                     @Override
-                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                         if (!(lexpr instanceof ScalarComplexImpl)) {
-                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                         }
-                         ScalarComplexImpl lcmp = (ScalarComplexImpl) lexpr;
-                         double lreal = lcmp.getReal();
-                         double limag = lcmp.getImag();
-                         if (isRightNA || RComplex.RComplexUtils.eitherIsNA(lreal, limag)) {
-                             return RComplex.BOXED_NA;
-                         }
-                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
-                     }
-                 };
-                 return createRightConst(ast, left, right, arit, c, "<ScalarComplex, ConstScalarNumber>");
+            if (rightConst
+                    && (leftTemplate instanceof ScalarComplexImpl)
+                    && (rightTemplate instanceof ScalarComplexImpl || rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
+                RComplex rcmp = rightTemplate.asComplex();
+                final double rreal = rcmp.getReal(0);
+                final double rimag = rcmp.getImag(0);
+                final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
+                Calculator c = new Calculator() {
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarComplexImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
+                        ScalarComplexImpl lcmp = (ScalarComplexImpl) lexpr;
+                        double lreal = lcmp.getReal();
+                        double limag = lcmp.getImag();
+                        if (isRightNA || RComplex.RComplexUtils.eitherIsNA(lreal, limag)) { return RComplex.BOXED_NA; }
+                        return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
+                    }
+                };
+                return createRightConst(ast, left, right, arit, c, "<ScalarComplex, ConstScalarNumber>");
             }
             // non-const is double and const is complex
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarComplexImpl)) {
-                 ScalarComplexImpl lcmp = (ScalarComplexImpl) leftTemplate;
-                 final double lreal = lcmp.getReal(0);
-                 final double limag =  lcmp.getImag(0);
-                 final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
-                 Calculator c = new Calculator() {
-                     @Override
-                     public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                         if (!(rexpr instanceof ScalarDoubleImpl)) {
-                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                         }
-                         double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
-                         if (isLeftNA || RDouble.RDoubleUtils.isNA(rreal)) {
-                             return RComplex.BOXED_NA;
-                         }
-                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, 0), arit.opImag(ast, lreal, limag, rreal, 0));
-                     }
-                 };
-                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarComplex, ScalarDouble>");
+                ScalarComplexImpl lcmp = (ScalarComplexImpl) leftTemplate;
+                final double lreal = lcmp.getReal(0);
+                final double limag = lcmp.getImag(0);
+                final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
+                Calculator c = new Calculator() {
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
+                        double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
+                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rreal)) { return RComplex.BOXED_NA; }
+                        return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, 0), arit.opImag(ast, lreal, limag, rreal, 0));
+                    }
+                };
+                return createLeftConst(ast, left, right, arit, c, "<ConstScalarComplex, ScalarDouble>");
             }
             if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarComplexImpl)) {
                 ScalarComplexImpl rcmp = (ScalarComplexImpl) rightTemplate;
                 final double rreal = rcmp.getReal(0);
-                final double rimag =  rcmp.getImag(0);
+                final double rimag = rcmp.getImag(0);
                 final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.isNA(lreal)) {
-                            return RComplex.BOXED_NA;
-                        }
+                        if (isRightNA || RDouble.RDoubleUtils.isNA(lreal)) { return RComplex.BOXED_NA; }
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, 0, rreal, rimag), arit.opImag(ast, lreal, 0, rreal, rimag));
                     }
                 };
                 return createRightConst(ast, left, right, arit, c, "<ScalarDouble, ConstScalarComplex>");
-           }
+            }
             // non-const is double
-            if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
+            if (leftConst && (rightTemplate instanceof ScalarDoubleImpl)
+                    && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
                 final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
                 return createLeftConst(ast, left, right, arit, c, "<ConstScalarNon-Complex, ScalarDouble>");
             }
-            if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
+            if (rightConst && (leftTemplate instanceof ScalarDoubleImpl)
+                    && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
                 final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                     }
                 };
@@ -548,15 +467,10 @@ public class Arithmetic extends BaseR {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
                 final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         int rint = ((ScalarIntImpl) rexpr).getInt();
-                        if (isLeftNA || rint == RInt.NA) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (isLeftNA || rint == RInt.NA) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                     }
                 };
@@ -566,15 +480,10 @@ public class Arithmetic extends BaseR {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
                 final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
                 Calculator c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                        if (!(lexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                        }
+                    @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
-                        if (isRightNA || lint == RInt.NA) {
-                            return RDouble.BOXED_NA;
-                        }
+                        if (isRightNA || lint == RInt.NA) { return RDouble.BOXED_NA; }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                     }
                 };
@@ -587,30 +496,20 @@ public class Arithmetic extends BaseR {
                 if (returnsDouble(arit)) {
                     final double ldbl = lint;
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int rint = ((ScalarIntImpl) rexpr).getInt();
-                            if (isLeftNA || rint == RInt.NA) {
-                                return RDouble.BOXED_NA;
-                            }
+                            if (isLeftNA || rint == RInt.NA) { return RDouble.BOXED_NA; }
                             return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, (double) rint));
                         }
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt>");
                 } else {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(rexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int rint = ((ScalarIntImpl) rexpr).getInt();
-                            if (isLeftNA || rint == RInt.NA) {
-                                return RInt.BOXED_NA;
-                            }
+                            if (isLeftNA || rint == RInt.NA) { return RInt.BOXED_NA; }
                             return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
@@ -623,30 +522,20 @@ public class Arithmetic extends BaseR {
                 if (returnsDouble(arit)) {
                     final double rdbl = rint;
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
-                            if (isRightNA || lint == RInt.NA) {
-                                return RDouble.BOXED_NA;
-                            }
+                            if (isRightNA || lint == RInt.NA) { return RDouble.BOXED_NA; }
                             return RDouble.RDoubleFactory.getScalar(arit.op(ast, (double) lint, rdbl));
                         }
                     };
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt, ConstScalarInt>");
                 } else {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
-                            if (!(lexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
-                            }
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                            if (!(lexpr instanceof ScalarIntImpl)) { throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE); }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
-                            if (isRightNA || lint == RInt.NA) {
-                                return RInt.BOXED_NA;
-                            }
+                            if (isRightNA || lint == RInt.NA) { return RInt.BOXED_NA; }
                             return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                         }
                     };
@@ -660,15 +549,10 @@ public class Arithmetic extends BaseR {
 
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
-            if (!leftConst && !rightConst) {
-                return null;
-            }
+            if (!leftConst && !rightConst) { return null; }
             final boolean alwaysDouble = returnsDouble(arit);
 
-            if (!(leftTemplate instanceof ScalarIntImpl) && !(leftTemplate instanceof ScalarDoubleImpl) &&
-               !(rightTemplate instanceof ScalarIntImpl) && !(rightTemplate instanceof ScalarDoubleImpl)) {
-                return null;
-            }
+            if (!(leftTemplate instanceof ScalarIntImpl) && !(leftTemplate instanceof ScalarDoubleImpl) && !(rightTemplate instanceof ScalarIntImpl) && !(rightTemplate instanceof ScalarDoubleImpl)) { return null; }
 
             if (leftConst) {
                 double tldbl;
@@ -693,19 +577,14 @@ public class Arithmetic extends BaseR {
 
                 if (isLeftDouble || alwaysDouble) {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                             } else if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
-                                if (isLeftNA || rint == RInt.NA) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isLeftNA || rint == RInt.NA) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
@@ -716,19 +595,14 @@ public class Arithmetic extends BaseR {
                 } else {
                     // left is constant int
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                             } else if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
-                                if (isLeftNA || rint == RInt.NA) {
-                                    return RInt.BOXED_NA;
-                                }
+                                if (isLeftNA || rint == RInt.NA) { return RInt.BOXED_NA; }
                                 return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
@@ -761,19 +635,14 @@ public class Arithmetic extends BaseR {
 
                 if (isRightDouble || alwaysDouble) {
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
                             } else if (lexpr instanceof ScalarIntImpl) {
                                 int lint = ((ScalarIntImpl) lexpr).getInt();
-                                if (isRightNA || lint == RInt.NA) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isRightNA || lint == RInt.NA) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
@@ -784,19 +653,14 @@ public class Arithmetic extends BaseR {
                 } else {
                     // left is constant int
                     Calculator c = new Calculator() {
-                        @Override
-                        public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                        @Override public Object calc(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
-                                    return RDouble.BOXED_NA;
-                                }
+                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) { return RDouble.BOXED_NA; }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                             } else if (lexpr instanceof ScalarIntImpl) {
                                 int lint = ((ScalarIntImpl) lexpr).getInt();
-                                if (isRightNA || lint == RInt.NA) {
-                                    return RInt.BOXED_NA;
-                                }
+                                if (isRightNA || lint == RInt.NA) { return RInt.BOXED_NA; }
                                 return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
                                 throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
@@ -824,15 +688,12 @@ public class Arithmetic extends BaseR {
                 final RDouble ldbl = (leftDouble) ? (RDouble) leftTemplate : leftTemplate.asDouble();
                 final RInt lint = (leftLogicalOrInt) ? leftTemplate.asInt() : null;
                 c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) {
+                    @Override public Object calc(RAny lexpr, RAny rexpr) {
                         if (leftComplex || rexpr instanceof RComplex) {
                             RComplex rcmp = rexpr.asComplex();
                             return ComplexView.create(lcmp, rcmp, arit, ast);
                         }
-                        if (returnsDouble) {
-                            return doubleBinary(ldbl, rexpr.asDouble(), arit, ast);
-                        }
+                        if (returnsDouble) { return doubleBinary(ldbl, rexpr.asDouble(), arit, ast); }
                         if (leftDouble) {
                             if (rexpr instanceof RDouble) {
                                 return doubleBinary(ldbl, (RDouble) rexpr, arit, ast);
@@ -868,15 +729,12 @@ public class Arithmetic extends BaseR {
                 final RDouble rdbl = (rightDouble) ? (RDouble) rightTemplate : rightTemplate.asDouble();
                 final RInt rint = (rightLogicalOrInt) ? rightTemplate.asInt() : null;
                 c = new Calculator() {
-                    @Override
-                    public Object calc(RAny lexpr, RAny rexpr) {
+                    @Override public Object calc(RAny lexpr, RAny rexpr) {
                         if (rightComplex || lexpr instanceof RComplex) {
                             RComplex lcmp = lexpr.asComplex();
                             return ComplexView.create(lcmp, rcmp, arit, ast);
                         }
-                        if (returnsDouble) {
-                            return doubleBinary(lexpr.asDouble(), rdbl, arit, ast);
-                        }
+                        if (returnsDouble) { return doubleBinary(lexpr.asDouble(), rdbl, arit, ast); }
                         if (rightDouble) {
                             if (lexpr instanceof RDouble) {
                                 return doubleBinary((RDouble) lexpr, rdbl, arit, ast);
@@ -918,8 +776,7 @@ public class Arithmetic extends BaseR {
             assert Utils.check(left instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
 
-                @Override
-                public Object execute(Frame frame) {
+                @Override public Object execute(Frame frame) {
                     RAny rexpr = (RAny) right.execute(frame);
                     return execute(null, rexpr);
                 }
@@ -930,8 +787,7 @@ public class Arithmetic extends BaseR {
             assert Utils.check(right instanceof Constant);
             return new SpecializedConst(ast, left, right, arit, calc, dbg) {
 
-                @Override
-                public Object execute(Frame frame) {
+                @Override public Object execute(Frame frame) {
                     RAny lexpr = (RAny) left.execute(frame);
                     return execute(lexpr, null);
                 }
@@ -946,8 +802,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public Object execute(RAny lexpr, RAny rexpr) {
+        @Override public Object execute(RAny lexpr, RAny rexpr) {
             try {
                 return calc.calc(lexpr, rexpr);
             } catch (UnexpectedResultException e) {
@@ -971,10 +826,13 @@ public class Arithmetic extends BaseR {
 
     public abstract static class ValueArithmetic {
         public abstract double opReal(ASTNode ast, double a, double b, double c, double d); // (a + bi)  op  (c + di)
+
         public abstract double opImag(ASTNode ast, double a, double b, double c, double d);
 
         public abstract double op(ASTNode ast, double a, double b);
+
         public abstract int op(ASTNode ast, int a, int b);
+
         public abstract void emitOverflowWarning(ASTNode ast);
 
         public final int opWarnOverflow(ASTNode ast, int a, int b) {
@@ -984,17 +842,21 @@ public class Arithmetic extends BaseR {
             }
             return res;
         }
+
         public final double op(ASTNode ast, double a, int b) {
             return op(ast, a, (double) b);
         }
+
         public final double op(ASTNode ast, int a, double b) {
             return op(ast, (double) a, b);
         }
 
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes);
+
         public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes);
 
         public abstract void op(ASTNode ast, double[] x, double[] y, double[] res, int size);
+
         public abstract void op(ASTNode ast, double[] x, double y, double[] res, int size);
 
         public RDouble op(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
@@ -1032,38 +894,34 @@ public class Arithmetic extends BaseR {
     }
 
     public static final class Add extends ValueArithmetic {
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             return a + c;
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             return b + d;
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             return a + b;
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a + b;
             boolean bLTr = b < r;
             if (a > 0) {
-                if (bLTr) {
-                    return r;
-                }
+                if (bLTr) { return r; }
             } else {
-                if (!bLTr) {
-                    return r;
-                }
+                if (!bLTr) { return r; }
             }
             return RInt.NA;
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
+
         private static void add(double[] res, double[] x, double[] y, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
@@ -1080,8 +938,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] x = xcomp.getContent();
             double[] y = ycomp.getContent();
@@ -1099,6 +957,7 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
+
         private static void add(double[] res, double[] x, double c, double d, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
@@ -1113,8 +972,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] x = xcomp.getContent();
             if (IN_PLACE && xcomp.isTemporary()) {
@@ -1127,8 +986,8 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1142,8 +1001,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a + y;
@@ -1156,27 +1015,26 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return false;
         }
     }
 
     public static final class Sub extends ValueArithmetic {
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             return a - c;
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             return b - d;
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             return a - b;
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a - b;
             if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
@@ -1185,12 +1043,12 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -1211,8 +1069,8 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -1230,8 +1088,8 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1245,8 +1103,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a - y;
@@ -1259,8 +1117,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return false;
         }
     }
@@ -1321,30 +1179,29 @@ public class Arithmetic extends BaseR {
                 imag = Double.POSITIVE_INFINITY * (ra * rd + rb * rc);
             }
         }
-        res[ offset ] = real;
-        res[ offset + 1 ] = imag;
+        res[offset] = real;
+        res[offset + 1] = imag;
     }
 
     public static final class Mult extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
 
         private static final double[] opTMP = new double[2];
 
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             Arithmetic.cmult(a, b, c, d, opTMP, 0);
             return opTMP[0];
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             Arithmetic.cmult(a, b, c, d, opTMP, 0);
             return opTMP[1];
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             return a * b;
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             long l = (long) a * (long) b;
             if (!(l < Integer.MIN_VALUE || l > Integer.MAX_VALUE)) {
                 return (int) l;
@@ -1352,10 +1209,11 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
+
         private static void cmult(double[] res, double[] x, double[] y, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
@@ -1371,8 +1229,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] x = xcomp.getContent();
             double[] y = ycomp.getContent();
@@ -1390,8 +1248,8 @@ public class Arithmetic extends BaseR {
                 return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
             }
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -1408,8 +1266,8 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1423,8 +1281,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a * y;
@@ -1437,8 +1295,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return false;
         }
     }
@@ -1581,80 +1439,62 @@ public class Arithmetic extends BaseR {
 
         private static final double[] opTMP = new double[2];
 
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             cpow(a, b, c, d, opTMP, 0);
             return opTMP[0];
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             cpow(a, b, c, d, opTMP, 0); // FIXME: remember last values? would a boxed version be faster?
             return opTMP[1];
         }
 
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+        @Override public double op(ASTNode ast, double a, double b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
             // NOTE: Math.pow (which uses FDLIBM) is very slow, the version written in assembly in GLIBC (SSE2 optimized) is about 2x faster
 
             // arithmetic.c (GNU R)
-            if (b == 2) {
-                return a * a;
-            }
-            if (a == 1 || b == 0) {
-                return 1;
-            }
+            if (b == 2) { return a * a; }
+            if (a == 1 || b == 0) { return 1; }
             if (a == 0) {
-                if (b > 0) {
-                    return 0;
-                }
-                if (b < 0) {
-                    return Double.POSITIVE_INFINITY;
-                }
-                return b;  // NA or NaN
+                if (b > 0) { return 0; }
+                if (b < 0) { return Double.POSITIVE_INFINITY; }
+                return b; // NA or NaN
             }
-            if (isFinite(a) && isFinite(b)) {
-                return pow(a, b);
-            }
+            if (isFinite(a) && isFinite(b)) { return pow(a, b); }
             if (RDouble.RDoubleUtils.isNAorNaN(a) || RDouble.RDoubleUtils.isNAorNaN(b)) {
                 // NA check was before, so this can only mean NaN
                 return a + b;
             }
             if (!isFinite(a)) {
                 if (a > 0) { // Inf ^ y
-                    if (b < 0) {
-                        return 0;
-                    }
+                    if (b < 0) { return 0; }
                     return Double.POSITIVE_INFINITY;
                 } else if (isFinite(b) && b == Math.floor(b)) { // (-Inf) ^ n
-                    if (b < 0) {
-                        return 0;
-                    }
+                    if (b < 0) { return 0; }
                     return fmod(ast, b, 2) != 0 ? a : -a;
                 }
             }
             if (!isFinite(b)) {
                 if (a >= 0) {
-                    if (b > 0) {
-                        return (a >= 1) ? Double.POSITIVE_INFINITY : 0;
-                    }
+                    if (b > 0) { return (a >= 1) ? Double.POSITIVE_INFINITY : 0; }
                     return (a < 1) ? Double.POSITIVE_INFINITY : 0;
                 }
             }
             return Double.NaN;
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             Utils.nyi("unreachable");
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xcomp.getContent();
             double[] y = ycomp.getContent();
             double[] z = new double[x.length];
@@ -1663,7 +1503,7 @@ public class Arithmetic extends BaseR {
                 double xi = x[i + 1];
                 double yr = y[i];
                 double yi = y[i + 1];
-                if (!RComplex.RComplexUtils.eitherIsNA(xr,  xi) && !RComplex.RComplexUtils.eitherIsNA(yr, yi)) {
+                if (!RComplex.RComplexUtils.eitherIsNA(xr, xi) && !RComplex.RComplexUtils.eitherIsNA(yr, yi)) {
                     cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
                 } else {
                     z[i] = RDouble.NA;
@@ -1703,8 +1543,8 @@ public class Arithmetic extends BaseR {
                     imag = Double.POSITIVE_INFINITY * (ra * rb);
                 }
             }
-            res[ offset ] = real;
-            res[ offset + 1 ] = imag;
+            res[offset] = real;
+            res[offset + 1] = imag;
         }
 
         private static void cpow(double[] res, double[] x, double yr, double yi) {
@@ -1734,8 +1574,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double yr, double yi, int size, int[] dimensions, Names names, Attributes attributes) {
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double yr, double yi, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xcomp.getContent();
             if (IN_PLACE && xcomp.isTemporary()) {
                 cpow(x, x, yr, yi);
@@ -1748,8 +1587,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             if (!RContext.hasGNUR()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -1767,8 +1605,8 @@ public class Arithmetic extends BaseR {
                 GNUR.pow(x, y, res, size);
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             if (!RContext.hasGNUR()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -1785,8 +1623,8 @@ public class Arithmetic extends BaseR {
                 GNUR.pow(x, y, res, size);
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return true;
         }
     }
@@ -1849,31 +1687,30 @@ public class Arithmetic extends BaseR {
 
         private static final double[] opTMP = new double[2];
 
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             cdiv(a, b, c, d, opTMP, 0);
             return opTMP[0];
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             cdiv(a, b, c, d, opTMP, 0);
             return opTMP[1];
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             return a / b; // FIXME: check that the R rules correspond to Java
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             Utils.nyi("unreachable");
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -1893,8 +1730,8 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             int rsize = size * 2;
             double[] res = new double[rsize];
             double[] x = xcomp.getContent();
@@ -1911,8 +1748,8 @@ public class Arithmetic extends BaseR {
             }
             return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1926,8 +1763,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a / y;
@@ -1940,23 +1777,22 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return true;
         }
     }
 
     public static final class IntegerDiv extends ValueArithmetic {
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             double q = a / b;
             if (b != 0) {
@@ -1968,28 +1804,28 @@ public class Arithmetic extends BaseR {
                 return q;
             }
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             if (b != 0) {
                 return (int) Math.floor((double) a / (double) b); // FIXME: this is R implementation, can we do faster without floating point?
             } else {
                 return RInt.NA;
             }
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             // no warning
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -2003,8 +1839,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = op(ast, a, y);
@@ -2017,8 +1853,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return false;
         }
     }
@@ -2039,20 +1875,19 @@ public class Arithmetic extends BaseR {
     }
 
     public static final class Mod extends ValueArithmetic {
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+
+        @Override public double op(ASTNode ast, double a, double b) {
             return fmod(ast, a, b);
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+
+        @Override public int op(ASTNode ast, int a, int b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             if (b != 0) {
                 if (a >= 0 && b > 0) {
@@ -2064,20 +1899,20 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
+
+        @Override public void emitOverflowWarning(ASTNode ast) {
             // no warning
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             throw RError.getUnimplementedComplex(ast);
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -2091,8 +1926,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = fmod(ast, a, y);
@@ -2105,8 +1940,8 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
-        @Override
-        public boolean returnsDouble() {
+
+        @Override public boolean returnsDouble() {
             return false;
         }
     }
@@ -2118,7 +1953,6 @@ public class Arithmetic extends BaseR {
     public static final Div DIV = new Div();
     public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
     public static final Mod MOD = new Mod();
-
 
     public static class ComplexView extends View.RComplexView implements RComplex {
         final RComplex a;
@@ -2135,22 +1969,20 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        private int depth; // total views involved
 
         public static RComplex create(RComplex a, RComplex b, ValueArithmetic arit, ASTNode ast) {
             if (EAGER_COMPLEX) {
                 int asize = a.size();
                 if (asize > 1) {
                     int bsize = b.size();
-                    if (asize == bsize) {
-                        return arit.op(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                    }
+                    if (asize == bsize) { return arit.op(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b),
+                            resultAttributes(ast, a, b)); }
                     if (bsize == 1) {
                         double c = b.getReal(0);
                         double d = b.getImag(0);
-                        if (!RComplexUtils.eitherIsNA(c, d)) {
-                            return arit.op(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                        }
+                        if (!RComplexUtils.eitherIsNA(c, d)) { return arit.op(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b),
+                                resultAttributes(ast, a, b)); }
                         // NOTE: NA case falls back, could be added here
                     }
                 }
@@ -2165,9 +1997,7 @@ public class Arithmetic extends BaseR {
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
             ComplexView res = new ComplexView(a, b, dim, names, attributes, depth, arit, ast);
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl)) {
-                return RComplexFactory.copy(res);
-            }
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl)) { return RComplexFactory.copy(res); }
             return res;
         }
 
@@ -2196,13 +2026,11 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return n;
         }
 
-        @Override
-        public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+        @Override public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
             int ai;
             int bi;
             if (i >= na) {
@@ -2226,8 +2054,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+        @Override public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
             int ai;
             int bi;
             if (i >= na) {
@@ -2251,34 +2078,28 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override
-        public boolean isSharedReal() {
+        @Override public boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
-        @Override
-        public void ref() {
+        @Override public void ref() {
             a.ref();
             b.ref();
         }
 
-        @Override
-        public int[] dimensions() {
+        @Override public int[] dimensions() {
             return dimensions;
         }
 
-        @Override
-        public Names names() {
+        @Override public Names names() {
             return names;
         }
 
-        @Override
-        public Attributes attributes() {
+        @Override public Attributes attributes() {
             return attributes;
         }
 
-        @Override
-        public boolean dependsOn(RAny value) {
+        @Override public boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
     }
@@ -2308,9 +2129,7 @@ public class Arithmetic extends BaseR {
             }
             res = new DoubleView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (nb == 1 && na > 0) {
-            if (arit == POW && na > 1) {
-                return arit.op(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
-            }
+            if (arit == POW && na > 1) { return arit.op(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes); }
             if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
                 // FIXME: re-visit the condition, like above
                 return arit.op(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
@@ -2322,9 +2141,7 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             res = new DoubleView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
         }
-        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
-        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) { return RDouble.RDoubleFactory.copy(res); }
         return res;
     }
 
@@ -2353,9 +2170,7 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             res = new DoubleView.Generic(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
         }
-        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
-        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) { return RDouble.RDoubleFactory.copy(res); }
         return res;
     }
 
@@ -2384,12 +2199,9 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             res = new DoubleView.Generic(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
         }
-        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
-        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) { return RDouble.RDoubleFactory.copy(res); }
         return res;
     }
-
 
     // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
     // int and double combinations; unfortunately, that leads to slower execution
@@ -2405,7 +2217,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        private int depth; // total views involved
 
         public DoubleView(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
@@ -2419,39 +2231,32 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
         }
 
-        @Override
-        public final int size() {
+        @Override public final int size() {
             return n;
         }
 
-        @Override
-        public final boolean isSharedReal() {
+        @Override public final boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
-        @Override
-        public final void ref() {
+        @Override public final void ref() {
             a.ref();
             b.ref();
         }
 
-        @Override
-        public final int[] dimensions() {
+        @Override public final int[] dimensions() {
             return dimensions;
         }
 
-        @Override
-        public final Names names() {
+        @Override public final Names names() {
             return names;
         }
 
-        @Override
-        public final Attributes attributes() {
+        @Override public final Attributes attributes() {
             return attributes;
         }
 
-        @Override
-        public final boolean dependsOn(RAny value) {
+        @Override public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
@@ -2469,8 +2274,7 @@ public class Arithmetic extends BaseR {
                 nb = b.size();
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
 
                 int ai;
                 int bi;
@@ -2491,7 +2295,7 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
         }
 
         static final class EqualSize extends DoubleView implements RDouble {
@@ -2500,8 +2304,7 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
 
                 double adbl = a.getDouble(i);
                 double bdbl = b.getDouble(i);
@@ -2510,7 +2313,7 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
         }
 
         static final class VectorScalar extends DoubleView implements RDouble {
@@ -2524,15 +2327,14 @@ public class Arithmetic extends BaseR {
                 isNA = RDouble.RDoubleUtils.isNA(bdbl);
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 double adbl = a.getDouble(i);
                 if (isNA || RDouble.RDoubleUtils.isNA(adbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
@@ -2547,18 +2349,16 @@ public class Arithmetic extends BaseR {
                 isNA = RDouble.RDoubleUtils.isNA(adbl);
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 double bdbl = b.getDouble(i);
                 if (isNA || RDouble.RDoubleUtils.isNA(bdbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
         }
     }
-
 
     // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
     abstract static class DoubleViewForDoubleInt extends View.RDoubleView implements RDouble {
@@ -2573,7 +2373,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        private int depth; // total views involved
 
         public DoubleViewForDoubleInt(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
@@ -2587,39 +2387,32 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
         }
 
-        @Override
-        public final int size() {
+        @Override public final int size() {
             return n;
         }
 
-        @Override
-        public final boolean isSharedReal() {
+        @Override public final boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
-        @Override
-        public final void ref() {
+        @Override public final void ref() {
             a.ref();
             b.ref();
         }
 
-        @Override
-        public final int[] dimensions() {
+        @Override public final int[] dimensions() {
             return dimensions;
         }
 
-        @Override
-        public final Names names() {
+        @Override public final Names names() {
             return names;
         }
 
-        @Override
-        public final Attributes attributes() {
+        @Override public final Attributes attributes() {
             return attributes;
         }
 
-        @Override
-        public final boolean dependsOn(RAny value) {
+        @Override public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
@@ -2633,20 +2426,17 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
 
                 double adbl = a.getDouble(i);
                 int bint = b.getInt(i);
-                if (RDouble.RDoubleUtils.isNA(adbl) || bint == RInt.NA) {
-                    return RDouble.NA;
-                }
+                if (RDouble.RDoubleUtils.isNA(adbl) || bint == RInt.NA) { return RDouble.NA; }
                 return arit.op(ast, adbl, bint);
-             }
+            }
         }
     }
 
- // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
+    // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
     abstract static class DoubleViewForIntDouble extends View.RDoubleView implements RDouble {
         final RInt a;
         final RDouble b;
@@ -2659,7 +2449,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        private int depth; // total views involved
 
         public DoubleViewForIntDouble(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
@@ -2673,39 +2463,32 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
         }
 
-        @Override
-        public final int size() {
+        @Override public final int size() {
             return n;
         }
 
-        @Override
-        public final boolean isSharedReal() {
+        @Override public final boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
-        @Override
-        public final void ref() {
+        @Override public final void ref() {
             a.ref();
             b.ref();
         }
 
-        @Override
-        public final int[] dimensions() {
+        @Override public final int[] dimensions() {
             return dimensions;
         }
 
-        @Override
-        public final Names names() {
+        @Override public final Names names() {
             return names;
         }
 
-        @Override
-        public final Attributes attributes() {
+        @Override public final Attributes attributes() {
             return attributes;
         }
 
-        @Override
-        public final boolean dependsOn(RAny value) {
+        @Override public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
@@ -2724,8 +2507,7 @@ public class Arithmetic extends BaseR {
                 isNA = RDouble.RDoubleUtils.isNA(bdbl);
             }
 
-            @Override
-            public double getDouble(int i) {
+            @Override public double getDouble(int i) {
                 double aint = a.getInt(i);
                 if (isNA || aint == RInt.NA) {
                     return RDouble.NA;
@@ -2760,9 +2542,7 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             res = new IntView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
         }
-        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RInt.RIntFactory.copy(res);
-        }
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) { return RInt.RIntFactory.copy(res); }
         return res;
     }
 
@@ -2779,7 +2559,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        private int depth; // total views involved
 
         public IntView(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;
@@ -2793,39 +2573,32 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
         }
 
-        @Override
-        public final int size() {
+        @Override public final int size() {
             return n;
         }
 
-        @Override
-        public boolean isSharedReal() {
+        @Override public boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
 
-        @Override
-        public void ref() {
+        @Override public void ref() {
             a.ref();
             b.ref();
         }
 
-        @Override
-        public int[] dimensions() {
+        @Override public int[] dimensions() {
             return dimensions;
         }
 
-        @Override
-        public Names names() {
+        @Override public Names names() {
             return names;
         }
 
-        @Override
-        public Attributes attributes() {
+        @Override public Attributes attributes() {
             return attributes;
         }
 
-        @Override
-        public boolean dependsOn(RAny value) {
+        @Override public boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
@@ -2843,8 +2616,7 @@ public class Arithmetic extends BaseR {
                 nb = b.size();
             }
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
                 int ai;
                 int bi;
                 if (i >= na) {
@@ -2878,8 +2650,7 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
 
                 int aint = a.getInt(i);
                 int bint = b.getInt(i);
@@ -2893,7 +2664,7 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
         }
 
         static final class VectorScalar extends IntView implements RInt {
@@ -2907,8 +2678,7 @@ public class Arithmetic extends BaseR {
                 isNA = bint == RInt.NA;
             }
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
 
                 int aint = a.getInt(i);
                 if (isNA || aint == RInt.NA) {
@@ -2921,7 +2691,7 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
         }
 
         static final class ScalarVector extends IntView implements RInt {
@@ -2935,8 +2705,7 @@ public class Arithmetic extends BaseR {
                 isNA = aint == RInt.NA;
             }
 
-            @Override
-            public int getInt(int i) {
+            @Override public int getInt(int i) {
 
                 int bint = b.getInt(i);
                 if (isNA || bint == RInt.NA) {
@@ -2949,7 +2718,7 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
         }
 
     }
@@ -2957,27 +2726,17 @@ public class Arithmetic extends BaseR {
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
         int[] dima = a.dimensions();
         int[] dimb = b.dimensions();
-        if (dimb == null) {
-            return dima;
-        }
-        if (dima == null) {
-            return dimb;
-        }
-        if (dima == dimb) {
-            return dima;
-        }
+        if (dimb == null) { return dima; }
+        if (dima == null) { return dimb; }
+        if (dima == dimb) { return dima; }
         int alen = dima.length;
         int blen = dimb.length;
 
-        if (alen == 2 && blen == 2 && dima[0] == dimb[0] && dima[1] == dimb[1]) {
-            return dima;
-        }
+        if (alen == 2 && blen == 2 && dima[0] == dimb[0] && dima[1] == dimb[1]) { return dima; }
 
         if (alen == blen) {
             for (int i = 0; i < alen; i++) {
-                if (dima[i] != dimb[i]) {
-                    throw RError.getNonConformableArrays(ast);
-                }
+                if (dima[i] != dimb[i]) { throw RError.getNonConformableArrays(ast); }
             }
             return dima;
         }
@@ -2987,15 +2746,9 @@ public class Arithmetic extends BaseR {
     public static Names resultNames(ASTNode ast, RArray a, RArray b) {
         Names na = a.names();
         Names nb = b.names();
-        if (nb == null) {
-            return na;
-        }
-        if (na == null) {
-            return nb;
-        }
-        if (na == nb) {
-            return na;
-        }
+        if (nb == null) { return na; }
+        if (na == null) { return nb; }
+        if (na == nb) { return na; }
         int asize = a.size();
         int bsize = b.size();
 
@@ -3011,25 +2764,15 @@ public class Arithmetic extends BaseR {
         Attributes aa = a.attributes();
         Attributes ba = b.attributes();
 
-        if (ba == null && aa == null) {
-            return null;
-        }
+        if (ba == null && aa == null) { return null; }
         int asize = a.size();
         int bsize = b.size();
 
-        if (asize > bsize) {
-            return Attributes.markShared(aa);
-        }
-        if (bsize > asize) {
-            return Attributes.markShared(ba);
-        }
+        if (asize > bsize) { return Attributes.markShared(aa); }
+        if (bsize > asize) { return Attributes.markShared(ba); }
         // asize == bsize
-        if (ba == null) {
-            return Attributes.markShared(aa);
-        }
-        if (aa == null) {
-            return Attributes.markShared(ba);
-        }
+        if (ba == null) { return Attributes.markShared(aa); }
+        if (aa == null) { return Attributes.markShared(ba); }
         // both aa != null and ba != null
 
         Attributes res = ba.copy();
@@ -3044,9 +2787,7 @@ public class Arithmetic extends BaseR {
 
     public static int resultSize(ASTNode ast, int na, int nb) {
         int n;
-        if (na == 0 || nb == 0) {
-            return 0;
-        }
+        if (na == 0 || nb == 0) { return 0; }
         if (na > nb) {
             n = na;
             if ((n / nb) * nb != n) {
@@ -3061,4 +2802,3 @@ public class Arithmetic extends BaseR {
         return n;
     }
 }
-

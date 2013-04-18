@@ -15,11 +15,11 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 /**
  * "rep"
- *
+ * 
  * <pre>
  * x  -- a vector (of any mode including a list) or a pairlist or a factor or (except for rep.int) a POSIXct or POSIXlt or
  *        date object; or also, an S4 object containing a vector of the above kind.
@@ -43,6 +43,7 @@ class Rep extends CallFactory {
     }
 
     public static final boolean EAGER = true;
+
     // eager is important when rep is used to initialize e.g. a double vector, then passed to vector operations
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {

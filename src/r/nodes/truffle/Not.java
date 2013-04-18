@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.data.*;
 import r.data.internal.*;
@@ -17,8 +16,7 @@ public abstract class Not extends BaseR {
         this.lhs = adoptChild(lhs);
     }
 
-    @Override
-    public final Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         RAny value = (RAny) lhs.execute(frame);
         return execute(value);
     }
@@ -31,20 +29,22 @@ public abstract class Not extends BaseR {
             super(ast, lhs);
         }
 
-        @Override
-        RAny execute(RAny value) {
+        @Override RAny execute(RAny value) {
             try {
                 if (value instanceof ScalarLogicalImpl) {
-                    switch(((ScalarLogicalImpl) value).getLogical()) {
-                        case RLogical.TRUE: return RLogical.BOXED_FALSE;
-                        case RLogical.FALSE: return RLogical.BOXED_TRUE;
-                        default: return RLogical.BOXED_NA;
+                    switch (((ScalarLogicalImpl) value).getLogical()) {
+                    case RLogical.TRUE:
+                        return RLogical.BOXED_FALSE;
+                    case RLogical.FALSE:
+                        return RLogical.BOXED_TRUE;
+                    default:
+                        return RLogical.BOXED_NA;
                     }
                 } else {
                     throw new UnexpectedResultException(null);
                 }
             } catch (UnexpectedResultException e) {
-                RawScalar n = new RawScalar(ast, lhs);  // FIXME: also create a specialized note for a logical vector
+                RawScalar n = new RawScalar(ast, lhs); // FIXME: also create a specialized note for a logical vector
                 replace(n, "install RawScalar from LogicalScalar");
                 return n.execute(value);
             }
@@ -57,17 +57,12 @@ public abstract class Not extends BaseR {
             super(ast, lhs);
         }
 
-        @Override
-        RAny execute(RAny value) {
+        @Override RAny execute(RAny value) {
             try {
-                if (!(value instanceof RRaw)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(value instanceof RRaw)) { throw new UnexpectedResultException(null); }
                 RRaw rvalue = (RRaw) value;
                 // TODO: get rid of this, perhaps by creating a ScalarRawImpl type
-                if (rvalue.size() != 1 || rvalue.dimensions() != null || rvalue.names() != null || rvalue.attributes() != null) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (rvalue.size() != 1 || rvalue.dimensions() != null || rvalue.names() != null || rvalue.attributes() != null) { throw new UnexpectedResultException(null); }
                 byte b = rvalue.getRaw(0);
                 return RRaw.RRawFactory.getScalar((byte) ~b);
             } catch (UnexpectedResultException e) {
@@ -83,15 +78,13 @@ public abstract class Not extends BaseR {
             super(ast, lhs);
         }
 
-        @Override
-        RAny execute(RAny value) {
+        @Override RAny execute(RAny value) {
             if (value instanceof RLogical || value instanceof RDouble || value instanceof RInt) {
                 final RLogical lvalue = value.asLogical();
 
                 return new View.RLogicalProxy<RLogical>(lvalue) {
 
-                    @Override
-                    public int getLogical(int i) {
+                    @Override public int getLogical(int i) {
                         int l = lvalue.getLogical(i);
                         if (l == RLogical.TRUE) {
                             return RLogical.FALSE;
@@ -102,8 +95,7 @@ public abstract class Not extends BaseR {
                         }
                     }
 
-                    @Override
-                    public Attributes attributes() {
+                    @Override public Attributes attributes() {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
@@ -114,23 +106,19 @@ public abstract class Not extends BaseR {
 
                 return new View.RRawProxy<RRaw>(rvalue) {
 
-                    @Override
-                    public byte getRaw(int i) {
+                    @Override public byte getRaw(int i) {
                         byte v = rvalue.getRaw(i);
                         return (byte) ~v;
                     }
 
-                    @Override
-                    public Attributes attributes() {
+                    @Override public Attributes attributes() {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
                 };
             }
             if (value instanceof RArray) {
-                if (((RArray) value).size() == 0) {
-                    return RLogical.EMPTY;
-                }
+                if (((RArray) value).size() == 0) { return RLogical.EMPTY; }
             }
             throw RError.getInvalidArgType(ast);
         }

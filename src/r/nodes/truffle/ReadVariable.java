@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 
 import r.*;
 import r.builtins.*;
@@ -37,8 +36,7 @@ public abstract class ReadVariable extends BaseR {
     public static ReadVariable getUninitialized(ASTNode orig, RSymbol sym) {
         return new ReadVariable(orig, sym) {
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
@@ -56,7 +54,7 @@ public abstract class ReadVariable extends BaseR {
                         node = getReadLocal(getAST(), symbol, slot);
                         reason = "installReadLocalNode";
                     } else if ((rse = RFrameHeader.readSetEntry(frame, symbol)) == null) {
-                            // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
+                        // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
                         node = getReadTopLevel(getAST(), symbol);
                         reason = "installReadTopLevel";
                     } else {
@@ -64,7 +62,9 @@ public abstract class ReadVariable extends BaseR {
                         reason = "installReadEnclosingNode";
                     }
                     replace(node, reason);
-                    if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" uninitialized rewritten: "+reason); }
+                    if (DEBUG_R) {
+                        Utils.debug("read - " + symbol.pretty() + " uninitialized rewritten: " + reason);
+                    }
                     return node.execute(frame);
                 }
             }
@@ -74,13 +74,12 @@ public abstract class ReadVariable extends BaseR {
     public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
-                if (val == null) {
-                    return readNonVariable(ast, symbol);
+                if (val == null) { return readNonVariable(ast, symbol); }
+                if (DEBUG_R) {
+                    Utils.debug("read - " + symbol.pretty() + " local-ws, returns " + val + " (" + val.pretty() + ") from slot " + slot);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+slot); }
                 return val;
             }
         };
@@ -90,13 +89,12 @@ public abstract class ReadVariable extends BaseR {
         // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 RAny val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
-                if (val == null) {
-                    return readNonVariable(ast, symbol);
+                if (val == null) { return readNonVariable(ast, symbol); }
+                if (DEBUG_R) {
+                    Utils.debug("read - " + symbol.pretty() + " read-set, returns " + val + " (" + val.pretty() + ") from slot " + slot + " hops " + hops);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from slot "+slot+" hops "+hops); }
                 return val;
             }
         };
@@ -107,8 +105,7 @@ public abstract class ReadVariable extends BaseR {
 
             int version;
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 RAny val;
 
                 // TODO check if 'version' is enough, I think the good test has to be:
@@ -125,10 +122,10 @@ public abstract class ReadVariable extends BaseR {
                 } else {
                     val = symbol.getValue();
                 }
-                if (val == null) {
-                    return readNonVariable(ast, symbol);
+                if (val == null) { return readNonVariable(ast, symbol); }
+                if (DEBUG_R) {
+                    Utils.debug("read - " + symbol.pretty() + " top-level, returns " + val + " (" + val.pretty() + ")");
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
                 return val;
             }
         };
@@ -137,11 +134,10 @@ public abstract class ReadVariable extends BaseR {
     public static ReadVariable getReadOnlyFromTopLevel(ASTNode orig, RSymbol sym) {
         return new ReadVariable(orig, sym) {
 
-            @Override
-            public final Object execute(Frame frame) {
+            @Override public final Object execute(Frame frame) {
                 assert Utils.check(frame == null);
                 RAny val = symbol.getValue();
-                if (val == null) {  // TODO: another node
+                if (val == null) { // TODO: another node
                     return readNonVariable(ast, symbol);
                 }
                 return val;

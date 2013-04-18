@@ -4,10 +4,7 @@ import r.*;
 import r.data.*;
 import r.nodes.Function;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.*;
+import r.Truffle.*;
 import r.builtins.Return.ReturnException;
 
 // FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
@@ -75,7 +72,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
     }
 
-    @Override public Object execute(VirtualFrame frame) {
+    @Override public Object execute(Frame frame) {
         RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
         for (int i = 0; i < paramSlots.length; i++) {

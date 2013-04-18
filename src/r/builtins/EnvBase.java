@@ -1,11 +1,12 @@
 package r.builtins;
 
 import r.*;
+import r.Truffle.Frame;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-import com.oracle.truffle.api.frame.*;
+import r.Truffle.*;
 
 final class EnvBase {
 
@@ -79,4 +80,5 @@ final class EnvBase {
         // FIXME: add other environments when supported
         throw RError.getInvalidArgument(ast, "pos");
     }
+
 }
