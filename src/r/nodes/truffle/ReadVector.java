@@ -140,7 +140,7 @@ public abstract class ReadVector extends BaseR {
                 RInt irint = (RInt) index;
                 if (irint.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
                 int i = irint.getInt(0);
-                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS                
+                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
                 } else {
@@ -959,6 +959,77 @@ public abstract class ReadVector extends BaseR {
                 replace(gs, "install GenericSelection from IntSelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
                 return gs.execute(index, base);
+            }
+        }
+    }
+
+    // for selections like d[x == c], where c is a scalar double constant and x is a double and d is a double ; and where d has the same size as x
+    public static class LogicalEqualitySelection extends BaseR {
+        final RNode lhs;
+        final RNode xExpr;
+        final double c;
+
+        public LogicalEqualitySelection(ASTNode ast, RNode lhs, RNode xExpr, double c) {
+            // only for subset
+            super(ast);
+            this.lhs = adoptChild(lhs);
+            this.xExpr = adoptChild(xExpr);
+            assert Utils.check(RDouble.RDoubleUtils.isFinite(c));
+            this.c = c;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny base = (RAny) lhs.execute(frame); // note: order is important
+            RAny x = (RAny) xExpr.execute(frame);
+            return execute(base, x);
+        }
+
+        public RAny execute(RAny base, RAny xArg) {
+            try {
+                if (!(base instanceof RDouble && xArg instanceof RDouble) || xArg instanceof View) { // FIXME: also could materialize
+                    throw new UnexpectedResultException(null);
+                }
+                RDouble b = (RDouble) base;
+                RDouble x = (RDouble) xArg;
+                int size = b.size();
+                if (x.size() != size || b.names() != null) {
+                    throw new UnexpectedResultException(null);
+                }
+                int nsize = 0;
+                for (int i = 0; i < size; i++) {
+                    double d = x.getDouble(i);
+                    if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
+                        nsize ++;
+                    }
+                }
+                double[] content = new double[nsize];
+                int j = 0;
+                for (int i = 0; i < size; i++) {
+                    double d = x.getDouble(i);
+                    if (d == c) {
+                        content[j++] = b.getDouble(i);
+                    } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                        content[j++] = RDouble.NA;
+                    }
+                }
+                return RDouble.RDoubleFactory.getFor(content);
+
+            } catch(UnexpectedResultException e) {
+                AccessVector av = (AccessVector) ast;
+                EQ eq = (EQ) av.getArgs().first().getValue();
+                RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
+
+                Comparison indexExpr = new Comparison(eq, xExpr, new Constant(eq.getRHS(), boxedC),
+                        r.nodes.truffle.Comparison.getEQ());
+
+                LogicalSelection ls = new LogicalSelection(ast, lhs, new RNode[] { indexExpr }, true);
+                replace(ls, "install LogicalSelection from LogicalEqualitySelection");
+                if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with LogicalSelection");
+
+                // index
+                return ls.execute((RAny) indexExpr.execute(xArg, boxedC), base);
+
             }
         }
     }

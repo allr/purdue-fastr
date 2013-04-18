@@ -356,6 +356,24 @@ public class Truffleize implements Visitor {
         SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
 
         if (sa.convertedExpressions.length == 1) { // vector
+
+            if (a.isSubset()) {
+                // expressions like b[x == c]
+                // FIXME: add more variations of this
+                ASTNode indexNode = a.getArgs().first().getValue();
+                if (indexNode instanceof EQ) {
+                    EQ eqNode = (EQ) indexNode;
+                    if (eqNode.getRHS() instanceof Constant) {
+                        RAny cv = ((Constant) eqNode.getRHS()).getValue();
+                        if (cv instanceof RDouble && ((RDouble) cv).size() == 1) {
+                            double c = ((RDouble) cv).getDouble(0);
+                            result = new ReadVector.LogicalEqualitySelection(a, createTree(a.getVector()), createTree(eqNode.getLHS()), c);
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
