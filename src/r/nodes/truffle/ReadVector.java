@@ -964,6 +964,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // for selections like d[x == c], where c is a scalar double constant and x is a double and d is a double ; and where d has the same size as x
+    // FIXME: make this more generic, supporting any type of base "d" should not be (much?) slower
     public static class LogicalEqualitySelection extends BaseR {
         final RNode lhs;
         final RNode xExpr;
