@@ -54,9 +54,20 @@ final class T extends CallFactory {
                             return a.setNames(null).setDimensions(ndim);
                         } else {
                             RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
-                            for (int i = 0; i < m; i++) {
-                                for (int j = 0; j < n; j++) {
-                                    res.set(i * n + j, a.getRef(j * m + i));
+
+// naive version is slower than the R version below
+//                            for (int i = 0; i < m; i++) {
+//                                for (int j = 0; j < n; j++) {
+//                                    res.set(i * n + j, a.getRef(j * m + i));
+//                                }
+//                            }
+                            int j = 0;  // LICENSE: transcribed from GNU-R, which is licensed under GPL
+                            int size1 = size - 1;
+                            for (int i = 0; i < size ; i++) {
+                                res.set(i, a.getRef(j));
+                                j += m;
+                                if (j > size1) {
+                                    j -= size1;
                                 }
                             }
                             return res.setDimensions(ndim);
