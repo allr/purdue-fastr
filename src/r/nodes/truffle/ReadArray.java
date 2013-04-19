@@ -364,6 +364,7 @@ public abstract class ReadArray extends BaseR {
             selectorJ.start(n, ast);
             int nm = selectorI.size();
             int nn = selectorJ.size();
+            boolean mayHaveNA = selectorI.mayHaveNA() || selectorJ.mayHaveNA();
             int nsize = nm * nn;
             if (!subset && (nsize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
@@ -374,27 +375,42 @@ public abstract class ReadArray extends BaseR {
                 ndim = null;
             }
             RArray res = Utils.createArray(source, nsize, ndim, null, null); // drop attributes
-            for (int nj = 0; nj < nn; nj++) {
-                int j = selectorJ.nextIndex(ast);
-                if (j != RInt.NA) {
-                    selectorI.restart();
+            if (!mayHaveNA) {
+                int resoffset = 0;
+                for (int nj = 0; nj < nn; nj++) {
+                    int j = selectorJ.nextIndex(ast);
+                    int srcoffset = j * m;
                     for (int ni = 0; ni < nm; ni++) {
-                        int offset = nj * nm + ni;
                         int i = selectorI.nextIndex(ast);
-                        if (i != RInt.NA) {
-                            Object value;
-                            value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
-                            res.set(offset, value);
-                        } else {
-                            Utils.setNA(res, offset);
-                        }
+                        Object value = source.getRef(srcoffset + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
+                        res.set(resoffset++, value);
                     }
-                } else {
-                    for (int ni = 0; ni < nm; ni++) {
-                        Utils.setNA(res, nj * nm + ni);
+                    selectorI.restart();
+                }
+            } else {
+                for (int nj = 0; nj < nn; nj++) {
+                    int j = selectorJ.nextIndex(ast);
+                    if (j != RInt.NA) {
+                        selectorI.restart();
+                        for (int ni = 0; ni < nm; ni++) {
+                            int offset = nj * nm + ni;
+                            int i = selectorI.nextIndex(ast);
+                            if (i != RInt.NA) {
+                                Object value;
+                                value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
+                                res.set(offset, value);
+                            } else {
+                                Utils.setNA(res, offset);
+                            }
+                        }
+                    } else {
+                        for (int ni = 0; ni < nm; ni++) {
+                            Utils.setNA(res, nj * nm + ni);
+                        }
                     }
                 }
             }
+
             return res;
         }
 
