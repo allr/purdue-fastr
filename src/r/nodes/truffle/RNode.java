@@ -2,16 +2,18 @@ package r.nodes.truffle;
 
 import r.*;
 import r.Truffle.Frame;
-import r.Truffle.VirtualFrame;
+import r.Truffle.UnexpectedResultException;
 import r.data.*;
 import r.nodes.*;
-import r.Truffle.*;
 
 public abstract class RNode {
 
     public ASTNode getAST() {
         return (getParent()).getAST();
     }
+
+    static RNode[] Empty = new RNode[0];
+    RNode[] children = Empty;
 
     public abstract Object execute(Frame frame);
 
@@ -34,32 +36,33 @@ public abstract class RNode {
     }
 
     public RNode replace(RNode sc, String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return replace(sc);
     }
 
     public RNode replace(RNode sc) {
-        // TODO Auto-generated method stub
-        return null;
+        return getParent().replaceChild(this, sc);
     }
 
-    public RNode replaceChild(RNode sc, RNode s) {
-        // TODO Auto-generated method stub
-        return null;
+    public RNode replaceChild(RNode old, RNode nw) {
+        for (int i = 0; i < children.length; i++)
+            if (children[i] == old) children[i] = nw;
+        return adoptChild(nw);
     }
 
     public RNode adoptChild(RNode o) {
-        return null;
+        if (o != null) o.parent = this;
+        return o;
     }
 
-    public RNode[] adoptChildren(RNode[] argsExprs) {
-        // TODO Auto-generated method stub
-        return null;
+    public RNode[] adoptChildren(RNode[] c) {
+        if (c != null) for (RNode n : c)
+            adoptChild(n);
+        return c;
     }
 
     public RNode getParent() {
-        // TODO Auto-generated method stub
-        return null;
+        return parent;
     }
 
+    private RNode parent;
 }

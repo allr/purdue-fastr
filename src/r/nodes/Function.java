@@ -156,8 +156,8 @@ public class Function extends ASTNode {
             RFunction p = parent;
             int hops = 1;
             while (p != null) {
-                FrameSlot slot = p.localSlot(s);
-                if (slot != null) {
+                int slot = p.localSlot(s);
+                if (slot != -1) {
                     rsl.add(new EnclosingSlot(s, hops, slot));
                     break;
                 }

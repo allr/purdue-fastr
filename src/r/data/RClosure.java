@@ -6,7 +6,7 @@ public interface RClosure extends RAny, RCallable {
 
     String TYPE_STRING = "closure";
 
-    MaterializedFrame enclosingFrame();
+    Frame enclosingFrame();
 
     RFunction function();
 }

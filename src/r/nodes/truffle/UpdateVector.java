@@ -33,7 +33,7 @@ public abstract class UpdateVector extends BaseR {
     RAny newVector;
     final boolean isSuper;
 
-    FrameSlot frameSlot = null;
+    int frameSlot = -1;
     boolean slotInitialized = false;
 
     private static final boolean DEBUG_UP = false;
@@ -108,7 +108,7 @@ public abstract class UpdateVector extends BaseR {
             // variable has a local slot
             // note: this always has to be the case because the variable is in the write set
             // FIXME: this won't work for reflections
-            assert Utils.check(frameSlot != null);
+            assert Utils.check(frameSlot != -1);
             RAny base = (RAny) frame.getObject(frameSlot);
             if (base != null) {
                 RAny newBase = execute(base, index, value);

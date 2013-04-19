@@ -59,7 +59,7 @@ final class Recall extends CallFactory {
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             Object[] argValues = placeArgs(frame, argPositions, usedArgNames, nparams);
-            RFrameHeader arguments = new RFrameHeader(function, (MaterializedFrame) RFrameHeader.enclosingFrame(frame), argValues);
+            RFrameHeader arguments = new RFrameHeader(function, RFrameHeader.enclosingFrame(frame), argValues);
             return (RAny) callTarget.call(arguments);
         }
     }

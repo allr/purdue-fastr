@@ -199,7 +199,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
                         final int from = sval.from();
@@ -273,7 +273,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
                 return new Generic(ast, cvar, range, body) {
                     @Override public final RAny execute(Frame frame, RAny rval) {
                         if (!(rval instanceof RArray)) { throw RError.getInvalidForSequence(ast); }

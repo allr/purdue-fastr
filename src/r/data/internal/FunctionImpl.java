@@ -1,17 +1,15 @@
 package r.data.internal;
 
+import r.Truffle.CallTarget;
+import r.Truffle.Children;
+import r.Truffle.Frame;
 import r.*;
+import r.builtins.Return.ReturnException;
 import r.data.*;
 import r.nodes.Function;
 import r.nodes.truffle.*;
-import r.Truffle.*;
-import r.builtins.Return.ReturnException;
 
-// FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
-// FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
-// FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
-
-public class FunctionImpl extends RootNode implements RFunction {
+public class FunctionImpl extends RNode implements RFunction {
 
     final RFunction enclosingFunction;
     final Function source;
@@ -20,8 +18,8 @@ public class FunctionImpl extends RootNode implements RFunction {
     @Children final RNode[] paramValues;
     final RNode body;
 
-    final FrameDescriptor frameDescriptor;
-    final FrameSlot[] paramSlots;
+    final RSymbol[] frameDescriptor;
+    final int[] paramSlots;
     final CallTarget callTarget;
 
     final RSymbol[] writeSet;
@@ -60,16 +58,14 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
-        paramSlots = new FrameSlot[nparams];
-        frameDescriptor = new FrameDescriptor();
-        for (int i = 0; i < nparams; i++) {
-            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]);
-        }
-        for (int i = nparams; i < writeSet.length; i++) {
-            frameDescriptor.addFrameSlot(writeSet[i]);
-        }
-
-        callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
+        paramSlots = new int[nparams];
+        frameDescriptor = writeSet;
+        //new FrameDescriptor();
+        /*
+         * for (int i = 0; i < nparams; i++) { paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]); } for (int i =
+         * nparams; i < writeSet.length; i++) { frameDescriptor.addFrameSlot(writeSet[i]); }
+         */
+        callTarget = new CallTarget(this, frameDescriptor);
     }
 
     @Override public Object execute(Frame frame) {
@@ -205,7 +201,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         return callTarget;
     }
 
-    @Override public RClosure createClosure(MaterializedFrame enclosingEnvironment) {
+    @Override public RClosure createClosure(Frame enclosingEnvironment) {
         return new ClosureImpl(this, enclosingEnvironment);
     }
 
@@ -219,16 +215,19 @@ public class FunctionImpl extends RootNode implements RFunction {
         return writeSet;
     }
 
-    @Override public FrameSlot localSlot(RSymbol symbol) {
-        return frameDescriptor.findFrameSlot(symbol);
+    @Override public int localSlot(RSymbol symbol) {
+        for (int i = 0; i < frameDescriptor.length; i++)
+            if (symbol == frameDescriptor[i]) return i;
+        return -1;
+        //    return frameDescriptor.findFrameSlot(symbol);
     }
 
     @Override public EnclosingSlot enclosingSlot(RSymbol symbol) {
         int hops = 0;
         for (RFunction func = enclosingFunction; func != null; func = func.enclosingFunction()) {
             hops++;
-            FrameSlot slot = func.localSlot(symbol);
-            if (slot != null) { return new EnclosingSlot(symbol, hops, slot); }
+            int slot = func.localSlot(symbol);
+            if (slot != -1) { return new EnclosingSlot(symbol, hops, slot); }
         }
         return null;
     }

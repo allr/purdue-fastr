@@ -14,7 +14,7 @@ public interface REnvironment extends RAny {
 
     DummyFunction DUMMY_FUNCTION = new DummyFunction(); // a placeholder for no local variables, for Frames that do not belong to a real function
 
-    MaterializedFrame frame();
+    Frame frame();
 
     void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast);
 
@@ -45,32 +45,26 @@ public interface REnvironment extends RAny {
         }
 
         @Override public RFunction enclosingFunction() {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override public RSymbol[] paramNames() {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override public RNode[] paramValues() {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override public RNode body() {
-            // TODO Auto-generated method stub
             return null;
         }
 
-        @Override public RClosure createClosure(MaterializedFrame frame) {
-            // TODO Auto-generated method stub
+        @Override public RClosure createClosure(Frame frame) {
             return null;
         }
 
         @Override public ASTNode getSource() {
-            // TODO Auto-generated method stub
             return null;
         }
 
@@ -88,8 +82,8 @@ public interface REnvironment extends RAny {
             return emptySet;
         }
 
-        @Override public FrameSlot localSlot(RSymbol sym) {
-            return null;
+        @Override public int localSlot(RSymbol sym) {
+            return -1;
         }
 
         @Override public CallTarget callTarget() {

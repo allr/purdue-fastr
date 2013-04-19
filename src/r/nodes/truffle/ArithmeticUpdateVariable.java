@@ -43,9 +43,9 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
     // x <- x + 1L   or x <- 1L + x, only for x local, ScalarIntImpl, otherwise rewrites
     public static class ScalarIntLocalIncrement extends ArithmeticUpdateVariable {
 
-        final FrameSlot slot;
+        final int slot;
 
-        public ScalarIntLocalIncrement(SimpleAssignVariable ast, FrameSlot slot) {
+        public ScalarIntLocalIncrement(SimpleAssignVariable ast, int slot) {
             super(ast);
             this.slot = slot;
         }
@@ -91,9 +91,9 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
     // x <- x - 1L,  only for x local, ScalarIntImpl, otherwise rewrites
     public static class ScalarIntLocalDecrement extends ArithmeticUpdateVariable {
 
-        final FrameSlot slot;
+        final int slot;
 
-        public ScalarIntLocalDecrement(SimpleAssignVariable ast, FrameSlot slot) {
+        public ScalarIntLocalDecrement(SimpleAssignVariable ast, int slot) {
             super(ast);
             this.slot = slot;
         }

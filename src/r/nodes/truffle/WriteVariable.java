@@ -45,8 +45,8 @@ public abstract class WriteVariable extends BaseR {
                         node = getWriteTopLevel(getAST(), symbol, expr);
                         reason = "installWriteTopLevelNode";
                     } else {
-                        FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                        if (slot != null) {
+                        int slot = RFrameHeader.findVariable(frame, symbol);
+                        if (slot != -1) {
                             node = getWriteLocal(getAST(), symbol, slot, expr);
                             reason = "installWriteLocalNode";
                         } else {
@@ -66,7 +66,7 @@ public abstract class WriteVariable extends BaseR {
         };
     }
 
-    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final FrameSlot slot, RNode rhs) {
+    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final int slot, RNode rhs) {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override public final Object execute(Frame frame) {

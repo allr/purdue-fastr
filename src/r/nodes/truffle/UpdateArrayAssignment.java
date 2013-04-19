@@ -93,7 +93,7 @@ public class UpdateArrayAssignment extends BaseR {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
             if (frame != null) {
-                FrameSlot frameSlot = RFrameHeader.findVariable(frame, lhs);
+                int frameSlot = RFrameHeader.findVariable(frame, lhs);
                 return replace(new Local(this, frameSlot)).execute(frame);
             } else {
                 return replace(new TopLevel(this)).execute(frame);
@@ -122,7 +122,7 @@ public class UpdateArrayAssignment extends BaseR {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 if (frame != null) {
-                    FrameSlot frameSlot = RFrameHeader.findVariable(frame, lhs);
+                    int frameSlot = RFrameHeader.findVariable(frame, lhs);
                     return replace(new ConstLocal(this, frameSlot, (RAny) rhs.execute(frame))).execute(frame);
                 } else {
                     return replace(new ConstTopLevel(this, (RAny) rhs.execute(frame))).execute(frame);
@@ -144,10 +144,10 @@ public class UpdateArrayAssignment extends BaseR {
         }
 
         /** Frameslot of the lhs variable. */
-        final FrameSlot frameSlot;
+        final int frameSlot;
 
         /** Copy constructor from the assignment node and a frameslot Specification. */
-        protected Local(UpdateArrayAssignment other, FrameSlot frameSlot) {
+        protected Local(UpdateArrayAssignment other, int frameSlot) {
             super(other);
             this.frameSlot = frameSlot;
         }
@@ -157,7 +157,7 @@ public class UpdateArrayAssignment extends BaseR {
                 if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
                 }
-                if (frameSlot == null) { // FIXME: this won't happen unless with eval
+                if (frameSlot == -1) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
                 RAny rhsValue = (RAny) rhs.execute(frame);
@@ -190,7 +190,7 @@ public class UpdateArrayAssignment extends BaseR {
 
         final RAny rhsVal;
 
-        protected ConstLocal(UpdateArrayAssignment other, FrameSlot slot, RAny rhs) {
+        protected ConstLocal(UpdateArrayAssignment other, int slot, RAny rhs) {
             super(other, slot);
             rhsVal = rhs;
         }
@@ -200,7 +200,7 @@ public class UpdateArrayAssignment extends BaseR {
                 if (frame == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_FRAME);
                 }
-                if (frameSlot == null) { // FIXME: this won't happen unless with eval
+                if (frameSlot == -1) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
                 RAny lhsValue = (RAny) frame.getObject(frameSlot);

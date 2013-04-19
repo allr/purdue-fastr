@@ -1,15 +1,10 @@
 package r;
 
 import r.data.*;
-import r.data.internal.*;
 import r.nodes.truffle.Arithmetic.FailedSpecialization;
 import r.nodes.truffle.*;
 
 public class Truffle {
-
-    public abstract static class RootNode extends RNode {
-
-    }
 
     public static class ControlFlowException extends Error {
 
@@ -19,46 +14,26 @@ public class Truffle {
 
     }
 
-    public class VirtualFrame extends Frame {
-
-        public void setObject(FrameSlot frameSlot, RAny value) {
-            // TODO Auto-generated method stub
-
-        }
-
-    }
-
     public @interface Child {
 
     }
 
     public static class CallTarget {
 
-        public Object call(RFrameHeader arguments) {
-            // TODO Auto-generated method stub
-            return null;
+        RNode r;
+        RSymbol[] d;
+
+        public CallTarget(RNode r, RSymbol[] d) {
+            this.r = r;
+            this.d = d;
         }
 
-    }
-
-    public static class FrameSlot {
-
-    }
-
-    public static class Arguments {
-
-    }
-
-    public static class FrameDescriptor {
-
-        public FrameSlot findFrameSlot(RSymbol symbol) {
-            // TODO Auto-generated method stub
-            return null;
+        public Object call(Frame caller, RFrameHeader a) {
+            return r.execute(new Frame(d, caller, a));
         }
 
-        public FrameSlot addFrameSlot(RSymbol rSymbol) {
-            // TODO Auto-generated method stub
-            return null;
+        public Object call(RFrameHeader a) {
+            return r.execute(new Frame(d, null, a));
         }
 
     }
@@ -67,69 +42,47 @@ public class Truffle {
 
     }
 
-    public static Runtime getRuntime() {
-        return rt;
-    }
-
-    static Runtime rt = new Runtime();
-
-    public static class Runtime {
-
-        public MaterializedFrame createMaterializedFrame(RFrameHeader header) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        public CallTarget createCallTarget(FunctionImpl functionImpl, FrameDescriptor frameDescriptor) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-    }
-
     public static class UnexpectedResultException extends Exception {
+        Object v;
 
         public UnexpectedResultException(Object value) {
-            // TODO Auto-generated constructor stub
-        }
-
-        public UnexpectedResultException(FailedSpecialization fixedType) {
-            // TODO Auto-generated constructor stub
+            v = value;
         }
 
         public Object getResult() {
-            // TODO Auto-generated method stub
-            return null;
+            return v;
         }
     }
 
     public static class Frame {
+        private final Frame caller;
+        private final RFrameHeader arguments;
+        protected Object[] locals;
+        RSymbol[] names;
 
-        public MaterializedFrame materialize() {
-            // TODO Auto-generated method stub
-            return null;
+        public Frame(RSymbol[] d, Frame f, RFrameHeader a) {
+            names = d;
+            this.caller = f;
+            this.arguments = a;
+            this.locals = new Object[d.length];
         }
 
         public RFrameHeader getArguments() {
-            // TODO Auto-generated method stub
-            return null;
+            return arguments;
         }
 
-        public FrameDescriptor getFrameDescriptor() {
-            // TODO Auto-generated method stub
-            return null;
+        public void setObject(int i, RAny v) {
+            locals[i] = v;
         }
 
-        public Object getObject(FrameSlot slot) {
-            // TODO Auto-generated method stub
-            return null;
+        public Object getObject(int i) {
+            return locals[i];
         }
 
-        public void setObject(FrameSlot slot, Object value) {
-            // TODO Auto-generated method stub
-
+        public int find(RSymbol symbol) {
+            for (int i = 0; i < names.length; i++)
+                if (symbol == names[i]) return i;
+            return -1;
         }
     }
-
-    public static class MaterializedFrame extends Frame {}
 }

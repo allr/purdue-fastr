@@ -13,7 +13,7 @@ public class RContext {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", false);
     private static boolean debuggingFormat = false;
-    private static boolean usesTruffleOptimizer = Truffle.getRuntime().equals("Default Truffle Runtime");
+    private static boolean usesTruffleOptimizer = false;
     private static ManageError errorManager = new ManageError(System.err);
     private static Truffleize truffleize = new Truffleize();
     private static final int NCONNECTIONS = 128;

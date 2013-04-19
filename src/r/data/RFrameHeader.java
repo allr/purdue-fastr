@@ -2,10 +2,9 @@ package r.data;
 
 import java.util.*;
 
+import r.Truffle.Frame;
 import r.*;
-import r.Truffle.VirtualFrame;
-import r.Truffle.*;
-import r.data.RFunction.*;
+import r.data.RFunction.EnclosingSlot;
 import r.data.internal.*;
 
 // FIXME: make sure that there is no non-inlineable recursion on VirtualFrame (extract recursion to work on MaterializedFrame, or cut off)
@@ -15,17 +14,17 @@ import r.data.internal.*;
 
 // FIXME: if there was a way to refactor without incurring performance overhead, it would be great (read, superWrite and match operations have a lot in common)
 
-public class RFrameHeader extends Arguments {
+public class RFrameHeader {
     final Object[] arguments;
     Object returnValue; // for top-level frames, used to store REnvironment
     boolean isDirty;
 
-    final MaterializedFrame enclosingFrame;
+    final Frame enclosingFrame;
     final RFunction function;
     RFrameExtension extension;
     REnvironment environment;
 
-    public RFrameHeader(RFunction function, MaterializedFrame enclosingFrame, Object[] arguments) {
+    public RFrameHeader(RFunction function, Frame enclosingFrame, Object[] arguments) {
         this.function = function;
         this.enclosingFrame = enclosingFrame;
         this.arguments = arguments;
@@ -76,7 +75,7 @@ public class RFrameHeader extends Arguments {
         RFrameHeader h = header(f);
         REnvironment env = h.environment;
         if (env == null) {
-            env = new EnvironmentImpl(f.materialize());
+            env = new EnvironmentImpl(f);
             h.environment = env;
         }
         return env;
@@ -99,7 +98,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RFrameHeader header(Frame f) {
-        return (RFrameHeader) f.getArguments();
+        return f.getArguments();
     }
 
     public static void setReturnValue(Frame f, RAny value) {
@@ -126,16 +125,15 @@ public class RFrameHeader extends Arguments {
         return function().isInWriteSet(sym);
     }
 
-    public static FrameSlot findVariable(Frame frame, RSymbol symbol) {
-        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
-        return frameDescriptor.findFrameSlot(symbol);
+    public static int findVariable(Frame frame, RSymbol symbol) {
+        return frame.find(symbol);
     }
 
     private void markDirty() {
         isDirty = true;
     }
 
-    public static RAny readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
+    public static RAny readViaWriteSet(Frame frame, int slot, RSymbol symbol) {
         Object value = frame.getObject(slot);
 
         if (value != null) { // TODO: another node (one branch needs to have deopt)
@@ -173,9 +171,6 @@ public class RFrameHeader extends Arguments {
 
     // this method does NOT check the extension of childFrame
     public static RAny readFromExtensionsAndRootLevel(Frame childFrame, RSymbol symbol) {
-        assert Utils.check(childFrame != null);
-        assert Utils.check(childFrame instanceof MaterializedFrame);
-
         Frame f = childFrame;
         for (;;) {
             Frame enclosing = enclosingFrame(f);
@@ -191,9 +186,6 @@ public class RFrameHeader extends Arguments {
 
     // this method checks the extension of frame
     public static RAny readFromExtensionsAndRootLevelInclusive(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame != null);
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         Frame f = frame;
         for (;;) {
             RFrameExtension ext = extension(f);
@@ -208,19 +200,16 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static RAny readViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol) {
+    public static RAny readViaReadSet(Frame frame, int hops, int slot, RSymbol symbol) {
         assert Utils.check(hops != 0);
         Frame enclosing = enclosingFrame(frame); // enclosing is MaterializedFrame
         return readViaEnclosingSlot(enclosing, hops - 1, slot, symbol, frame);
     }
 
-    private static RAny readViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, Frame firstFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-        assert Utils.check(frame != null);
-
+    private static RAny readViaEnclosingSlot(Frame frame, int frameHops, int frameSlot, RSymbol symbol, Frame firstFrame) {
         Frame f = frame;
         int hops = frameHops;
-        FrameSlot slot = frameSlot;
+        int slot = frameSlot;
         Frame first = firstFrame;
 
         for (;;) {
@@ -246,8 +235,6 @@ public class RFrameHeader extends Arguments {
     }
 
     private static RAny readFromExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
-        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
-        assert Utils.check(stopFrame == null || stopFrame instanceof MaterializedFrame);
 
         for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
             RFrameExtension ext = extension(f);
@@ -274,7 +261,6 @@ public class RFrameHeader extends Arguments {
     public static RAny readFromExtensionEntry(Frame frame, RSymbol symbol, Frame stopFrame) {
         // note: frame can be a VirtualFrame
         // note: stopFrame can be == frame (so VirtualFrame), otherwise it is not a Virtual Frame
-        assert Utils.check(frame == stopFrame || stopFrame == null || stopFrame instanceof MaterializedFrame);
 
         if (frame == stopFrame) { return null; }
         RFrameExtension ext = extension(frame);
@@ -289,7 +275,7 @@ public class RFrameHeader extends Arguments {
         return getRootEnvironment(frame).get(sym, true);
     }
 
-    public static RCallable matchViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
+    public static RCallable matchViaWriteSet(Frame frame, int slot, RSymbol symbol) {
         Object value = frame.getObject(slot);
 
         if (value != null && value instanceof RCallable) { // TODO: another node (one branch needs to have deopt)
@@ -326,7 +312,6 @@ public class RFrameHeader extends Arguments {
     public static RCallable matchFromExtensionEntry(Frame frame, RSymbol symbol, Frame stopFrame) {
         // note: frame can be a VirtualFrame
         // note: stopFrame can be ==frame (so VirtualFrame), otherwise it is not a Virtual Frame
-        assert Utils.check(frame == stopFrame || stopFrame == null || stopFrame instanceof MaterializedFrame);
 
         if (frame == stopFrame) { return null; }
         RFrameExtension ext = extension(frame);
@@ -374,7 +359,6 @@ public class RFrameHeader extends Arguments {
 
     private static RCallable matchFromExtensionsAndRootLevel(Frame childFrame, RSymbol symbol) {
         assert Utils.check(childFrame != null);
-        assert Utils.check(childFrame instanceof MaterializedFrame);
 
         Frame f = childFrame;
         for (;;) {
@@ -393,13 +377,10 @@ public class RFrameHeader extends Arguments {
         return getRootEnvironment(frame).match(symbol);
     }
 
-    private static RCallable matchViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, Frame firstFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-        assert Utils.check(frame != null);
-
+    private static RCallable matchViaEnclosingSlot(Frame frame, int frameHops, int frameSlot, RSymbol symbol, Frame firstFrame) {
         Frame f = frame;
         int hops = frameHops;
-        FrameSlot slot = frameSlot;
+        int slot = frameSlot;
         Frame first = firstFrame;
 
         for (;;) {
@@ -425,8 +406,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RCallable matchFromExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
-        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
-        assert Utils.check(stopFrame == null || stopFrame instanceof MaterializedFrame);
         assert Utils.check(frame != null || stopFrame == null);
 
         for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
@@ -439,7 +418,7 @@ public class RFrameHeader extends Arguments {
         return null;
     }
 
-    public static RCallable matchViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol) {
+    public static RCallable matchViaReadSet(Frame frame, int hops, int slot, RSymbol symbol) {
         assert Utils.check(hops != 0);
         Frame enclosing = enclosingFrame(frame); // enclosing is MaterializedFrame
         return matchViaEnclosingSlot(enclosing, hops - 1, slot, symbol, frame);
@@ -451,8 +430,8 @@ public class RFrameHeader extends Arguments {
 
         if (frame == null) { return REnvironment.GLOBAL.match(symbol); // FIXME: get rid of this special case, FIX it for eval
         }
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) { return matchViaWriteSet(frame, slot, symbol); }
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) { return matchViaWriteSet(frame, slot, symbol); }
         EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
         if (eslot != null) { return matchViaEnclosingSlot(enclosingFrame(frame), eslot.hops - 1, eslot.slot, symbol, frame); }
         return matchFromExtensionsAndRootLevelInclusiveEntry(frame, symbol);
@@ -478,25 +457,19 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RAny localRead(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) { return Utils.cast(frame.getObject(slot)); }
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) { return Utils.cast(frame.getObject(slot)); }
         RFrameExtension ext = extension(frame);
         if (ext != null) { return ext.get(symbol); }
         return null;
     }
 
     public static RAny customLocalRead(Frame frame, RSymbol sym) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         RFrameExtension ext = extension(frame);
         return ext.get(sym);
     }
 
     public static RAny customRead(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         RAny val;
         RFrameExtension ext = extension(frame);
         val = Utils.cast(ext.get(symbol));
@@ -512,35 +485,28 @@ public class RFrameHeader extends Arguments {
 
     public static RAny read(Frame frame, RSymbol symbol) {
         assert Utils.check(frame != null);
-        assert Utils.check(frame instanceof MaterializedFrame);
 
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) { return readViaWriteSet(frame, slot, symbol); }
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) { return readViaWriteSet(frame, slot, symbol); }
         EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
         if (eslot != null) { return readViaEnclosingSlot(enclosingFrame(frame), eslot.hops - 1, eslot.slot, symbol, frame); }
         return readFromExtensionsAndRootLevelInclusive(frame, symbol);
     }
 
     public static boolean localExists(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) { return frame.getObject(slot) != null; }
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) { return frame.getObject(slot) != null; }
         RFrameExtension ext = extension(frame);
         if (ext != null) { return ext.get(symbol) != null; }
         return false;
     }
 
     public static boolean customLocalExists(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         RFrameExtension ext = extension(frame);
         return ext.get(symbol) != null;
     }
 
     public static boolean customExists(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         RFrameExtension ext = extension(frame);
         if (ext.get(symbol) != null) { return true; }
         Frame parent = enclosingFrame(frame);
@@ -552,10 +518,8 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean exists(Frame frame, RSymbol symbol) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) {
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) {
             if (frame.getObject(slot) != null) { return true; }
         }
         EnclosingSlot rse = readSetEntry(frame, symbol);
@@ -572,10 +536,8 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol) {
+    public static boolean existsViaReadSet(Frame frame, int hops, int slot, RSymbol symbol) {
         assert Utils.check(hops != 0);
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         Frame enclosing = enclosingFrame(frame);
         if (existsViaReadSet(enclosing, hops - 1, slot, symbol, frame)) {
             return true;
@@ -584,9 +546,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
+    private static boolean existsViaReadSet(Frame frame, int hops, int slot, RSymbol symbol, Frame first) {
         if (hops == 0) {
             if (frame.getObject(slot) != null) { return true; }
             if (isDirty(frame)) {
@@ -606,8 +566,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean existsInExtension(Frame frame, RSymbol sym, Frame stopFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         if (frame == stopFrame) { return false; }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -648,7 +606,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static void writeAtCondRef(Frame f, FrameSlot slot, RAny value) {
+    public static void writeAtCondRef(Frame f, int slot, RAny value) {
         Object oldContent = f.getObject(slot);
         if (value != oldContent) {
             f.setObject(slot, value);
@@ -656,23 +614,16 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static void writeAtNoRef(Frame f, FrameSlot slot, RAny value) {
+    public static void writeAtNoRef(Frame f, int slot, RAny value) {
         f.setObject(slot, value);
     }
 
-    public static void writeAtRef(Frame f, FrameSlot slot, Object value) {
-        f.setObject(slot, value);
-        ((RAny) value).ref();
-    }
-
-    public static void writeAtRef(Frame f, FrameSlot slot, RAny value) {
+    public static void writeAtRef(Frame f, int slot, RAny value) {
         f.setObject(slot, value);
         value.ref();
     }
 
-    public static boolean superWriteViaWriteSet(Frame enclosingFrame, FrameSlot slot, RSymbol symbol, RAny value) {
-        assert Utils.check(enclosingFrame instanceof MaterializedFrame);
-
+    public static boolean superWriteViaWriteSet(Frame enclosingFrame, int slot, RSymbol symbol, RAny value) {
         Object oldVal = enclosingFrame.getObject(slot);
         if (oldVal != null) {
             if (oldVal != value) {
@@ -686,8 +637,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean superWriteViaWriteSetSlowPath(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
         Frame enclosing = enclosingFrame(frame);
         if (eslot == null) { return superWriteToExtensionsAndTopLevel(enclosing, symbol, value); }
@@ -697,8 +646,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean superWriteToExtensionsAndTopLevel(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
         if (superWriteToExtensionEntry(frame, symbol, value)) { return true; }
         return superWriteToTopLevel(symbol, value);
     }
@@ -727,8 +674,6 @@ public class RFrameHeader extends Arguments {
     public static boolean superWriteToExtensionEntry(Frame frame, RSymbol symbol, RAny value, Frame stopFrame) {
         // note: frame can be a VirtualFrame
         // note: stopFrame can be == frame (so VirtualFrame), otherwise it is not a Virtual Frame
-        assert Utils.check(frame == stopFrame || stopFrame == null || stopFrame instanceof MaterializedFrame);
-
         if (frame == stopFrame) { return false; }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -742,9 +687,6 @@ public class RFrameHeader extends Arguments {
     }
 
     private static boolean superWriteToExtension(Frame frame, RSymbol symbol, RAny value, Frame stopFrame) {
-        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
-        assert Utils.check(stopFrame == null || stopFrame instanceof MaterializedFrame);
-
         for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
             RFrameExtension ext = extension(f);
             if (ext != null) {
@@ -758,9 +700,8 @@ public class RFrameHeader extends Arguments {
         return false;
     }
 
-    public static boolean superWriteViaEnclosingSlotAndTopLevel(Frame frame, int hops, FrameSlot slot, RSymbol symbol, RAny value) {
+    public static boolean superWriteViaEnclosingSlotAndTopLevel(Frame frame, int hops, int slot, RSymbol symbol, RAny value) {
         assert Utils.check(hops != 0);
-        assert Utils.check(frame instanceof MaterializedFrame);
 
         if (superWriteViaEnclosingSlot(enclosingFrame(frame), hops - 1, slot, symbol, value, frame)) {
             return true;
@@ -769,13 +710,10 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    private static boolean superWriteViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, RAny value, Frame firstFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-        assert Utils.check(frame != null);
-
+    private static boolean superWriteViaEnclosingSlot(Frame frame, int frameHops, int frameSlot, RSymbol symbol, RAny value, Frame firstFrame) {
         Frame f = frame;
         int hops = frameHops;
-        FrameSlot slot = frameSlot;
+        int slot = frameSlot;
         Frame first = firstFrame;
 
         for (;;) {
@@ -803,24 +741,11 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static void localWrite(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame instanceof MaterializedFrame);
-
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) {
-            writeAtRef(frame, slot, value);
-        } else {
-            writeToExtension(frame, symbol, value); // marks the defining slot dirty
-        }
-    }
-
     // this is like "superWrite" - but starts with current frame
     // used for assign with inherits == TRUE
     public static void reflectiveInheritsWrite(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame != null && frame instanceof MaterializedFrame);
-
-        FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) {
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) {
             superWriteViaWriteSet(frame, slot, symbol, value);
             return;
         }
@@ -998,13 +923,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static void localWrite(MaterializedFrame frame, RSymbol name, RAny value) {
-        // TODO Auto-generated method stub
-
-    }
-
-    public static RFrameHeader header(VirtualFrame frame) {
-        // TODO Auto-generated method stub
-        return null;
+    public static void localWrite(Frame frame, RSymbol name, RAny value) {
+        frame.setObject(frame.find(name), value);
     }
 }

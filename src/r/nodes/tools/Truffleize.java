@@ -182,11 +182,11 @@ public class Truffleize implements Visitor {
             if (binVar != null && constNode != null) {
                 RSymbol binVarSymbol = binVar.getSymbol();
                 RFunction encFunction = getEnclosingFunction(assign);
-                FrameSlot slot = null;
+                int slot = -1;
                 if (encFunction != null) {
                     slot = encFunction.localSlot(binVarSymbol);
                 }
-                if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != null) {
+                if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != -1) {
                     int cValue = ((ScalarIntImpl) constNode.getValue()).getInt();
                     if (cValue == 1) {
                         if (valueNode instanceof Add) {

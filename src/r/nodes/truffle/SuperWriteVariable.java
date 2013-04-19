@@ -33,8 +33,8 @@ public abstract class SuperWriteVariable extends BaseR {
 
                     if (enclosingFrame == null) { return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", frame); }
 
-                    FrameSlot slot = RFrameHeader.findVariable(enclosingFrame, symbol);
-                    if (slot != null) { return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame); }
+                    int slot = RFrameHeader.findVariable(enclosingFrame, symbol);
+                    if (slot != -1) { return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame); }
 
                     EnclosingSlot eslot = RFrameHeader.findEnclosingVariable(enclosingFrame, symbol);
                     if (eslot == null) {
@@ -47,7 +47,7 @@ public abstract class SuperWriteVariable extends BaseR {
         };
     }
 
-    public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final FrameSlot slot) {
+    public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final int slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override public Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
@@ -59,7 +59,7 @@ public abstract class SuperWriteVariable extends BaseR {
         };
     }
 
-    public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
+    public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final int slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);

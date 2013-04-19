@@ -48,7 +48,7 @@ public abstract class FunctionCall extends AbstractCall {
                 // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
                 RClosure closure = (RClosure) callable;
                 RFunction function = closure.function();
-                MaterializedFrame enclosingFrame = closure.enclosingFrame();
+                Frame enclosingFrame = closure.enclosingFrame();
                 Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
                 RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
                 return function.callTarget().call(arguments);
@@ -72,7 +72,7 @@ public abstract class FunctionCall extends AbstractCall {
         if (callable instanceof RClosure) {
             RClosure closure = (RClosure) callable;
             RFunction function = closure.function();
-            MaterializedFrame enclosingFrame = closure.enclosingFrame();
+            Frame enclosingFrame = closure.enclosingFrame();
             RSymbol[] argsNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
             int[] argPositions = computePositions(function, argsNames);
             Object[] argValues = placeArgs(callerFrame, argPositions, argsNames, function.nparams());
@@ -98,7 +98,7 @@ public abstract class FunctionCall extends AbstractCall {
         RSymbol[] functionArgNames; // FIXME: is this faster than remembering just the function?
         int[] functionArgPositions;
         CallTarget functionCallTarget;
-        MaterializedFrame closureEnclosingFrame;
+        Frame closureEnclosingFrame;
 
         // for builtins
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin

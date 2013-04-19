@@ -55,8 +55,8 @@ public abstract class MatchCallable extends BaseR {
 
                     if (frame == null) { return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", frame); }
 
-                    FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                    if (slot != null) { return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", frame); }
+                    int slot = RFrameHeader.findVariable(frame, symbol);
+                    if (slot != -1) { return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", frame); }
 
                     EnclosingSlot rse = RFrameHeader.readSetEntry(frame, symbol);
                     if (rse == null) {
@@ -69,7 +69,7 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
-    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final FrameSlot slot) {
+    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final int slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override public final Object execute(Frame frame) {
@@ -80,7 +80,7 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
-    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final FrameSlot slot) {
+    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final int slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override public final Object execute(Frame frame) {

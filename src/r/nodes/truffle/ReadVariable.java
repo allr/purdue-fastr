@@ -42,7 +42,7 @@ public abstract class ReadVariable extends BaseR {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     ReadVariable node;
-                    FrameSlot slot;
+                    int slot;
                     EnclosingSlot rse;
                     String reason;
 
@@ -50,7 +50,7 @@ public abstract class ReadVariable extends BaseR {
                     if (frame == null) {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";
-                    } else if ((slot = RFrameHeader.findVariable(frame, symbol)) != null) {
+                    } else if ((slot = RFrameHeader.findVariable(frame, symbol)) != -1) {
                         node = getReadLocal(getAST(), symbol, slot);
                         reason = "installReadLocalNode";
                     } else if ((rse = RFrameHeader.readSetEntry(frame, symbol)) == null) {
@@ -71,7 +71,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+    public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final int slot) {
         return new ReadVariable(orig, sym) {
 
             @Override public final Object execute(Frame frame) {
@@ -85,7 +85,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
+    public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final int slot) {
         // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 

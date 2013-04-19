@@ -10,13 +10,13 @@ import r.Truffle.*;
 
 public class EnvironmentImpl extends BaseObject implements REnvironment {
 
-    final MaterializedFrame frame;
+    final Frame frame;
 
-    public EnvironmentImpl(MaterializedFrame frame) {
+    public EnvironmentImpl(Frame frame) {
         this.frame = frame;
     }
 
-    @Override public MaterializedFrame frame() {
+    @Override public Frame frame() {
         return frame;
     }
 
@@ -150,15 +150,15 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     // it always has an extension
     public static class Custom extends EnvironmentImpl implements REnvironment {
 
-        public Custom(MaterializedFrame frame) {
+        public Custom(Frame frame) {
             super(frame);
             assert Utils.check(frame != null);
         }
 
-        public static Custom create(MaterializedFrame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
+        public static Custom create(Frame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
 
             RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
-            MaterializedFrame newFrame = Truffle.getRuntime().createMaterializedFrame(header);
+            Frame newFrame = new Frame(null, null, header);
             if (hash) {
                 RFrameHeader.installHashedExtension(newFrame, hashSize);
             } else {

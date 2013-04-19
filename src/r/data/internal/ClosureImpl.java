@@ -7,10 +7,10 @@ import r.data.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 
-    final MaterializedFrame environment;
+    final Frame environment;
     final RFunction function;
 
-    public ClosureImpl(RFunction function, MaterializedFrame environment) {
+    public ClosureImpl(RFunction function, Frame environment) {
         this.function = function;
         this.environment = environment;
     }
@@ -60,7 +60,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
         return null;
     }
 
-    @Override public MaterializedFrame enclosingFrame() {
+    @Override public Frame enclosingFrame() {
         return environment;
     }
 
