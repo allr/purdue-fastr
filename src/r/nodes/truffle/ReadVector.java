@@ -50,6 +50,11 @@ public abstract class ReadVector extends BaseR {
     @Children RNode[] indexes;
     final boolean subset;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+        replace(indexes, o, n);
+    }
+
     private static final boolean DEBUG_SEL = false;
 
     ReadVector(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
@@ -1408,6 +1413,10 @@ public abstract class ReadVector extends BaseR {
             super(orig);
             this.lhs = adoptChild(lhs);
             this.index = index;
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+            if (lhs == o) lhs = n;
         }
 
         @Override public Object execute(Frame frame) {

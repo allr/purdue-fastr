@@ -69,6 +69,12 @@ final class LApply extends CallFactory {
         public void setValue(RAny value) {
             this.value = value;
         }
+
+        @Override public void replace0(RNode o, RNode n) {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 
     public static class CallableProvider extends BaseR {
@@ -106,6 +112,11 @@ final class LApply extends CallFactory {
                 return;
             }
             throw RError.getNotFunction(setAst);
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+            // TODO Auto-generated method stub
+
         }
     }
 

@@ -22,6 +22,10 @@ public abstract class WriteVariable extends BaseR {
         this.symbol = symbol;
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (expr == o) expr = n;
+    }
+
     public void setExpr(RNode expr) {
         this.expr = adoptChild(expr);
     }

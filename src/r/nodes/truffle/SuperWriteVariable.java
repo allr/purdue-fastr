@@ -17,6 +17,10 @@ public abstract class SuperWriteVariable extends BaseR {
         this.expr = adoptChild(expr);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (expr == o) expr = n;
+    }
+
     public static SuperWriteVariable getUninitialized(ASTNode orig, RSymbol sym, RNode rhs) {
         return new SuperWriteVariable(orig, sym, rhs) {
 

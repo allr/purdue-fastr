@@ -21,6 +21,12 @@ public abstract class ReadArray extends BaseR {
     @Child OptionNode dropExpr;
     @Child OptionNode exactExpr;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+        if (dropExpr == o) dropExpr = (OptionNode) n;
+        if (exactExpr == o) exactExpr = (OptionNode) n;
+    }
+
     public ReadArray(ASTNode ast, boolean subset, RNode lhs, OptionNode dropExpr, OptionNode exactExpr) {
         super(ast);
         this.subset = subset;
@@ -84,6 +90,8 @@ public abstract class ReadArray extends BaseR {
         }
 
         public abstract int executeLogical(Frame frame);
+
+        @Override public void replace0(RNode o, RNode n) {}
     }
 
     // =================================================================================================================

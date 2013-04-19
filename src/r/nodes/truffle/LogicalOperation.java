@@ -21,6 +21,11 @@ public abstract class LogicalOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
+    }
+
     @Override public final Object execute(Frame frame) {
         return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
     }
@@ -92,6 +97,11 @@ public abstract class LogicalOperation extends BaseR {
         }
 
         abstract int extract(RAny value) throws UnexpectedResultException;
+
+        @Override public void replace0(RNode o, RNode n) {
+            if (child == o) child = n;
+        }
+
     }
 
     public static CastNode createCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {

@@ -11,6 +11,10 @@ import r.nodes.*;
 public abstract class Not extends BaseR {
     @Child RNode lhs;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+    }
+
     Not(ASTNode ast, RNode lhs) {
         super(ast);
         this.lhs = adoptChild(lhs);

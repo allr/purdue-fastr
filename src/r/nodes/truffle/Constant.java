@@ -28,4 +28,8 @@ public class Constant extends BaseR {
     @Override public String toString() {
         return "Constant(" + value + ")";
     }
+
+    @Override public void replace0(RNode o, RNode n) {
+
+    }
 }

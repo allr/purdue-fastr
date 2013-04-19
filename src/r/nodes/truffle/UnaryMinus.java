@@ -23,6 +23,10 @@ public abstract class UnaryMinus extends BaseR {
         return execute(value);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+    }
+
     abstract RAny execute(RAny value);
 
     enum Failure {

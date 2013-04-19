@@ -2801,4 +2801,9 @@ public class Arithmetic extends BaseR {
         }
         return n;
     }
+
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
+    }
 }

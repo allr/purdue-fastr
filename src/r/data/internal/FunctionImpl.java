@@ -29,6 +29,10 @@ public class FunctionImpl extends RNode implements RFunction {
 
     private static final boolean DEBUG_CALLS = false;
 
+    @Override public void replace0(RNode o, RNode n) {
+        replace(paramValues, o, n);
+    }
+
     public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosingFunction, RSymbol[] writeSet, EnclosingSlot[] readSet) {
         this.source = source;
         this.paramNames = paramNames;

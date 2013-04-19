@@ -1051,6 +1051,8 @@ public abstract class Selector {
         }
 
         public abstract int executeLogical(Frame frame);
+
+        @Override public void replace0(RNode o, RNode n) {}
     }
 
     // =================================================================================================================
@@ -1078,6 +1080,9 @@ public abstract class Selector {
 
         public abstract Selector executeSelector(RAny index);
 
+        @Override public void replace0(RNode o, RNode n) {
+            if (child == o) child = n;
+        }
     }
 
 }

@@ -25,6 +25,10 @@ public abstract class ConvertToLogicalOne extends RNode {
         return executeScalarLogical((RAny) input.execute(frame));
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (input == o) input = n;
+    }
+
     // The execute methods are use by intermediate cast nodes - those assuming an array of logicals or ints
     public int executeScalarLogical(RAny condValue) {
         try {

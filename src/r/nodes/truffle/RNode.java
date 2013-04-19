@@ -12,9 +12,6 @@ public abstract class RNode {
         return (getParent()).getAST();
     }
 
-    static RNode[] Empty = new RNode[0];
-    RNode[] children = Empty;
-
     public abstract Object execute(Frame frame);
 
     public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
@@ -36,16 +33,25 @@ public abstract class RNode {
     }
 
     public RNode replace(RNode sc, String string) {
-        return replace(sc);
+        return parent.replaceChild(this, sc);
     }
 
     public RNode replace(RNode sc) {
-        return getParent().replaceChild(this, sc);
+        return replace(sc, "");
+    }
+
+    public abstract void replace0(RNode o, RNode n);
+
+    public static void replace(RNode[] a, RNode o, RNode n) {
+        for (int i = 0; i < a.length; i++)
+            if (a[i] == o) {
+                a[i] = n;
+                break;
+            }
     }
 
     public RNode replaceChild(RNode old, RNode nw) {
-        for (int i = 0; i < children.length; i++)
-            if (children[i] == old) children[i] = nw;
+        replace0(old, nw);
         return adoptChild(nw);
     }
 

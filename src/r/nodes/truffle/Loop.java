@@ -11,6 +11,10 @@ public abstract class Loop extends BaseR {
 
     @Child RNode body;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (body == o) body = n;
+    }
+
     private static final boolean DEBUG_LO = false;
 
     Loop(ASTNode ast, RNode body) {
@@ -36,6 +40,12 @@ public abstract class Loop extends BaseR {
         @Override public final RAny execute(Frame frame) {
             throw BreakException.instance;
         }
+
+        @Override public void replace0(RNode o, RNode n) {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 
     public static class Next extends BaseR {
@@ -45,6 +55,11 @@ public abstract class Loop extends BaseR {
 
         @Override public final RAny execute(Frame frame) {
             throw ContinueException.instance;
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+            // TODO Auto-generated method stub
+
         }
     }
 
@@ -74,6 +89,11 @@ public abstract class Loop extends BaseR {
     public static class While extends Loop {
 
         @Child RNode cond;
+
+        @Override public void replace0(RNode o, RNode n) {
+            super.replace0(o, n);
+            if (cond == o) cond = n;
+        }
 
         public While(ASTNode ast, RNode cond, RNode body) {
             super(ast, body);
@@ -120,6 +140,11 @@ public abstract class Loop extends BaseR {
             super(ast, body);
             this.range = adoptChild(range);
             this.cvar = cvar;
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+            super.replace0(o, n);
+            if (range == o) range = n;
         }
 
         // when a range is a sequence of integers

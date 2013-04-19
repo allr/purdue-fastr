@@ -39,6 +39,10 @@ public class Truffleize implements Visitor {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
+
+            @Override public void replace0(RNode o, RNode n) {
+                if (node == o) node = n;
+            }
         };
     }
 

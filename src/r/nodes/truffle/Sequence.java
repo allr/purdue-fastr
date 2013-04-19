@@ -23,4 +23,9 @@ public class Sequence extends BaseR {
         }
         return res;
     }
+
+    @Override public void replace0(RNode o, RNode n) {
+        replace(exprs, o, n);
+    }
+
 }

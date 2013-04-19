@@ -28,10 +28,16 @@ public abstract class UpdateVector extends BaseR {
     @Children RNode[] indexes;
     @Child RNode rhs;
     final boolean subset;
-
     @Child RNode assign; // node which will assign the whole new vector to var
     RAny newVector;
     final boolean isSuper;
+
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+        if (rhs == o) rhs = n;
+        replace(indexes, o, n);
+        if (assign == o) assign = n;
+    }
 
     int frameSlot = -1;
     boolean slotInitialized = false;
@@ -56,6 +62,8 @@ public abstract class UpdateVector extends BaseR {
                 @Override public final Object execute(Frame frame) {
                     return newVector;
                 }
+
+                @Override public void replace0(RNode o, RNode n) {}
             });
             this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {

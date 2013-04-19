@@ -17,6 +17,10 @@ public abstract class AbstractCall extends BaseR {
         this.argExprs = adoptChildren(argsExprs);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        replace(argExprs, o, n);
+    }
+
     @Override public String toString() {
         String args = "";
         for (int i = 0; i < argExprs.length; i++) {

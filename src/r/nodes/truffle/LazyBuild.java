@@ -42,4 +42,8 @@ public class LazyBuild extends BaseR {
         }
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+
+    }
+
 }

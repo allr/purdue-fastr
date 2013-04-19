@@ -67,6 +67,8 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                 return constantAddReplaceAndExecute(frame);
             }
         }
+
+        @Override public void replace0(RNode o, RNode n) {}
     }
 
     // recovery method for a constant add x <- x - c
@@ -115,5 +117,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                 return constantSubReplaceAndExecute(frame);
             }
         }
+
+        @Override public void replace0(RNode o, RNode n) {}
     }
 }

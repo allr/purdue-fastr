@@ -28,6 +28,11 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
         return execute(leftValue, rightValue);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
+    }
+
     public abstract RAny execute(RAny leftValue, RAny rightValue);
 
     public static ElementwiseLogicalOperation createUninitialized(ASTNode ast, RNode left, Operation op, RNode right) {

@@ -19,6 +19,14 @@ public class ReadMatrix extends BaseR {
     @Child OptionNode exactExpr;
     final boolean subset;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (matrixExpr == o) matrixExpr = n;
+        if (selIExpr == o) selIExpr = (SelectorNode) n;
+        if (selJExpr == o) selJExpr = (SelectorNode) n;
+        if (dropExpr == o) dropExpr = (OptionNode) n;
+        if (exactExpr == o) exactExpr = (OptionNode) n;
+    }
+
     private static final boolean DEBUG_M = false;
 
     public ReadMatrix(ASTNode ast, boolean subset, RNode matrixExpr, SelectorNode selIExpr, SelectorNode selJExpr, OptionNode dropExpr, OptionNode exactExpr) {
@@ -785,6 +793,10 @@ public class ReadMatrix extends BaseR {
 
         }
 
+        @Override public void replace0(RNode o, RNode n) {
+            if (child == o) child = n;
+        }
+
         public abstract Selector executeSelector(RAny index);
     }
 
@@ -835,5 +847,7 @@ public class ReadMatrix extends BaseR {
         }
 
         public abstract int executeLogical(Frame frame);
+
+        @Override public void replace0(RNode o, RNode n) {}
     }
 }

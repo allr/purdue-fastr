@@ -25,6 +25,11 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     final int[] selSizes;
     final int[] offsets;
 
+    @Override public void replace0(RNode o, RNode n) {
+        for (int i = 0; i < selectorExprs.length; i++)
+            if (selectorExprs[i] == o) selectorExprs[i] = (SelectorNode) n;
+    }
+
     /**
      * Returns the array update node, or if the peephole chain optimizations are enabled returns the update node
      * prefixed with the optimizer node. // TODO peepholer is currently not used as all optimizations are visible from

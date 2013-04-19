@@ -137,5 +137,10 @@ public abstract class MatchCallable extends BaseR {
                 return val;
             }
         };
+
+    }
+
+    @Override public void replace0(RNode o, RNode n) {
+
     }
 }

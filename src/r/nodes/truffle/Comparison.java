@@ -223,6 +223,10 @@ public class Comparison extends BaseR {
             return execute(lexpr, rexpr);
         }
 
+        @Override public void replace0(RNode o, RNode n) {
+
+        }
+
         public Object execute(RAny lexpr, RAny rexpr) { // FIXME: some of these checks should be rewritten as we now enforce scalar representation
             try { // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
@@ -318,6 +322,10 @@ public class Comparison extends BaseR {
 
         public GenericComparison(ASTNode ast) {
             super(ast);
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+
         }
 
         @Override public final Object execute(Frame frame) {
@@ -848,5 +856,10 @@ public class Comparison extends BaseR {
                 return a.compareTo(b) > 0;
             }
         };
+    }
+
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
     }
 }

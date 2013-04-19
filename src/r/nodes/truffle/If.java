@@ -22,6 +22,12 @@ public class If extends BaseR {
         this.falseBranch = adoptChild(falseBranch);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (cond == o) cond = n;
+        if (trueBranch == o) trueBranch = n;
+        if (falseBranch == o) falseBranch = n;
+    }
+
     // The condition is treated as follows:
     //   - no special node for a 1-value logical argument
     //   - a special intermediate conversion node for multi-value logical argument, another for multi-value integer argument
@@ -57,6 +63,11 @@ public class If extends BaseR {
             this.trueBranch = adoptChild(trueBranch);
         }
 
+        @Override public void replace0(RNode o, RNode n) {
+            if (cond == o) cond = n;
+            if (trueBranch == o) trueBranch = n;
+        }
+
         @Override public final Object execute(Frame frame) {
             int ifVal;
 
@@ -84,6 +95,12 @@ public class If extends BaseR {
         @Child RNode cond;
         @Child RNode trueBranch;
         @Child RNode falseBranch;
+
+        @Override public void replace0(RNode o, RNode n) {
+            if (cond == o) cond = n;
+            if (trueBranch == o) trueBranch = n;
+            if (falseBranch == o) falseBranch = n;
+        }
 
         public IfElse(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
             super(ast);
@@ -122,6 +139,13 @@ public class If extends BaseR {
         @Child RNode trueBranch;
         @Child RNode falseBranch;
         final RAny constant;
+
+        @Override public void replace0(RNode o, RNode n) {
+            if (cond == o) cond = n;
+            if (expr == o) expr = n;
+            if (trueBranch == o) trueBranch = n;
+            if (falseBranch == o) falseBranch = n;
+        }
 
         public IfConst(ASTNode ast, RNode cond, RNode expr, RNode trueBranch, RNode falseBranch, RAny constant) {
             super(ast);

@@ -19,4 +19,9 @@ public class Function extends RNode {
     @Override public final ASTNode getAST() {
         return function.getSource();
     }
+
+    @Override public void replace0(RNode o, RNode n) {
+        // TODO Auto-generated method stub
+
+    }
 }

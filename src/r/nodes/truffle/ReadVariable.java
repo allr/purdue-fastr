@@ -144,4 +144,6 @@ public abstract class ReadVariable extends BaseR {
             }
         };
     }
+
+    @Override public void replace0(RNode o, RNode n) {}
 }

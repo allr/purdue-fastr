@@ -16,6 +16,12 @@ public class ReplacementCall extends BaseR {
     @Child RememberLast valueNode;
     @Child RNode assign;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (callNode == o) callNode = n;
+        if (valueNode == o) valueNode = (RememberLast) n;
+        if (assign == o) assign = n;
+    }
+
     final boolean isSuper;
 
     Object newContent;
@@ -30,6 +36,8 @@ public class ReplacementCall extends BaseR {
             @Override public final Object execute(Frame frame) {
                 return newContent;
             }
+
+            @Override public void replace0(RNode o, RNode n) {}
         });
         if (isSuper) {
             this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
@@ -61,5 +69,10 @@ public class ReplacementCall extends BaseR {
         public Object lastValue() {
             return lastValue;
         }
+
+        @Override public void replace0(RNode o, RNode n) {
+            if (node == o) node = n;
+        }
+
     }
 }

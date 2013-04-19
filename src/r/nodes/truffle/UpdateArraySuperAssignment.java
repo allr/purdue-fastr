@@ -42,6 +42,12 @@ public class UpdateArraySuperAssignment extends BaseR {
      */
     RAny newVector;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (lhs == o) lhs = n;
+        if (rhs == o) rhs = n;
+        if (writeBack == o) writeBack = n;
+    }
+
     /**
      * Creates the superassignment for given lhs and rhs and specific AssignmentNode. Based on rhs being constant uses
      * the non-const, or const versions of the supperassignment.
@@ -71,6 +77,9 @@ public class UpdateArraySuperAssignment extends BaseR {
             @Override public final Object execute(Frame frame) {
                 return newVector;
             }
+
+            @Override public void replace0(RNode o, RNode n) {}
+
         });
         this.writeBack = adoptChild(SuperWriteVariable.getUninitialized(ast, lhsSymbol, node));
     }
@@ -88,6 +97,8 @@ public class UpdateArraySuperAssignment extends BaseR {
             @Override public final Object execute(Frame frame) {
                 return newVector;
             }
+
+            @Override public void replace0(RNode o, RNode n) {}
         });
         this.writeBack = adoptChild(SuperWriteVariable.getUninitialized(ast, lhsSymbol, node));
     }

@@ -28,6 +28,15 @@ public class UpdateMatrix extends BaseR {
     @Child protected RNode rhs;
     private final boolean subset;
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (matrixExpr == o) matrixExpr = n;
+        if (selIExpr == o) selIExpr = (SelectorNode) n;
+        if (selJExpr == o) selJExpr = (SelectorNode) n;
+        if (dropExpr == o) dropExpr = (OptionNode) n;
+        if (exactExpr == o) exactExpr = (OptionNode) n;
+        if (rhs == o) rhs = n;
+    }
+
     private static final boolean DEBUG_M = false;
 
     /** Creates the new matrix updater. */

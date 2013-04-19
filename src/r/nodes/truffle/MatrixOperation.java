@@ -22,6 +22,11 @@ public abstract class MatrixOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
+    }
+
     @Override public Object execute(Frame frame) {
         RAny l = (RAny) left.execute(frame);
         RAny r = (RAny) right.execute(frame);

@@ -19,6 +19,11 @@ public class InOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
+    @Override public void replace0(RNode o, RNode n) {
+        if (left == o) left = n;
+        if (right == o) right = n;
+    }
+
     @Override public final Object execute(Frame frame) {
         RAny leftValue = (RAny) left.execute(frame);
         RAny rightValue = (RAny) right.execute(frame);
