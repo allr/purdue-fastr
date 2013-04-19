@@ -9,40 +9,22 @@ public class LazyBuild extends BaseR {
 
     public LazyBuild(ASTNode orig) {
         super(orig);
-        assert Utils.check(orig != null);
     }
 
     @Override public final Object execute(Frame frame) {
-        try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
-            RNode node = RContext.createNode(getAST());
-            replace(node, "expandLazyBuildNode");
-            return node.execute(frame);
-        }
+        return replace(RContext.createNode(getAST()), "expandLazyBuildNode").execute(frame);
     }
 
     @Override public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
-        try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
-            RNode node = RContext.createNode(getAST());
-            replace(node, "expandLazyBuildNode");
-            return node.executeScalarLogical(frame);
-        }
+        return replace(RContext.createNode(getAST()), "expandLazyBuildNode").executeScalarLogical(frame);
     }
 
     @Override public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
-        try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
-            RNode node = RContext.createNode(getAST());
-            replace(node, "expandLazyBuildNode");
-            return node.executeScalarNonNALogical(frame);
-        }
+        return replace(RContext.createNode(getAST()), "expandLazyBuildNode").executeScalarNonNALogical(frame);
     }
 
     @Override public void replace0(RNode o, RNode n) {
+        // TODO Auto-generated method stub
 
     }
 

@@ -1,7 +1,6 @@
 package r;
 
 import r.data.*;
-import r.nodes.truffle.Arithmetic.FailedSpecialization;
 import r.nodes.truffle.*;
 
 public class Truffle {

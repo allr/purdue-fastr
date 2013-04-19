@@ -87,6 +87,7 @@ public final class RSymbol extends BaseObject implements RAny {
         final Map<String, RSymbol> table = new HashMap<>();
 
         private RSymbol get(String name) {
+            if (name == null) return null;
             RSymbol sym = table.get(name);
             if (sym == null) {
                 table.put(name, sym = new RSymbol(name));

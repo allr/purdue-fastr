@@ -105,6 +105,11 @@ public abstract class FunctionCall extends AbstractCall {
         RSymbol builtInName;
         RNode builtInNode;
 
+        @Override public void replace0(RNode o, RNode n) {
+            super.replace0(o, n);
+            if (builtInNode == o) builtInNode = n;
+        }
+
         GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
             super(ast, callableExpr, argNames, argExprs);
         }
