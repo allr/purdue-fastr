@@ -19,7 +19,6 @@ public class FunctionImpl extends RNode implements RFunction {
     final RNode body;
 
     final RSymbol[] frameDescriptor;
-    final int[] paramSlots;
     final CallTarget callTarget;
 
     final RSymbol[] writeSet;
@@ -62,7 +61,6 @@ public class FunctionImpl extends RNode implements RFunction {
 
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
-        paramSlots = new int[nparams];
         frameDescriptor = writeSet;
         //new FrameDescriptor();
         /*
@@ -75,17 +73,17 @@ public class FunctionImpl extends RNode implements RFunction {
     @Override public Object execute(Frame frame) {
         RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
-        for (int i = 0; i < paramSlots.length; i++) {
+        for (int i = 0; i < paramNames.length; i++) {
             RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
             if (value != null) {
-                frame.setObject(paramSlots[i], value);
+                frame.setObject(i, value);
                 value.ref();
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {
                     value = (RAny) n.execute(frame); // TODO: get rid of the context
                     if (value != null) {
-                        frame.setObject(paramSlots[i], value);
+                        frame.setObject(i, value);
                         value.ref();
                     }
                     // NOTE: value can be null when a parameter is missing
