@@ -6,13 +6,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "character"
- * 
- * <pre>
- * length -- desired length.
- * </pre>
- */
 final class Character extends ArrayConstructorBase {
     static final CallFactory _ = new Character("character", new String[]{"length"}, new String[]{});
 

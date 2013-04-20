@@ -7,19 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "exists"
- * 
- * <pre>
- * x -- a variable name (given as a character string).
- * where -- where to look for the object (see the details section); if omitted, the function will search as if the name of 
- *         the object appeared unquoted in an expression.
- * envir -- an alternative way to specify an environment to look in, but it is usually simpler to just use the where argument.
- * frame -- a frame in the calling list. Equivalent to giving where as sys.frame(frame).
- * mode -- the mode or type of object sought
- * inherits -- should the enclosing frames of the environment be searched?
- * </pre>
- */
 final class Exists extends CallFactory {
     static final CallFactory _ = new Exists("exists", new String[]{"x", "where", "envir", "frame", "mode", "inherits"}, new String[]{"x"});
 

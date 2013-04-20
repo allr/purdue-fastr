@@ -3,13 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "toupper"
- * 
- * <pre>
- * x -- a character vector, or an object that can be coerced to character by as.character.
- * </pre>
- */
 final class Toupper extends CharBase {
 
     private Toupper(String name, String[] params, String[] required) {

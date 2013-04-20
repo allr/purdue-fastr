@@ -8,17 +8,6 @@ import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 import r.Truffle.*;
 
-/**
- * "aperm". Transpose an array by permuting its dimensions and optionally resizing it.
- * 
- * <pre>
- * a -- the array to be transposed.
- * perm -- the subscript permutation vector, usually a permutation of the integers 1:n, where n is the number of
- *         dimensions of a. When a has named dimnames, it can be a character vector of length n giving a permutation of
- *         those names. The default (used whenever perm has zero length) is to reverse the order of the dimensions.
- * resize -- a flag indicating whether the vector should be resized as well as having its elements reordered (default TRUE).
- * </pre>
- */
 final class Aperm extends CallFactory {
 
     static final CallFactory _ = new Aperm("aperm", new String[]{"a", "perm", "resize"}, new String[]{"a"});

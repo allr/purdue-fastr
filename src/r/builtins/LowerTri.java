@@ -3,15 +3,7 @@ package r.builtins;
 import r.builtins.UpperTri.*;
 import r.data.*;
 
-/**
- * "lower.tri"
- *
- * <pre>
- * x -- a matrix.
- * diag -- logical. Should the diagonal be included?
- * </pre>
- */
-// note: in GNU-R, this is implemented in R
+//ote: in GNU-R, this is implemented in R
 final class LowerTri extends UpperTri {
 
     static final Triangular LOWER = new Triangular() {

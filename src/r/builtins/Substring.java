@@ -9,15 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "substring"
- * 
- * <pre>
- * text --a character vector.
- * first-- integer. The first element to be replaced.
- * last -- integer. The last element to be replaced.
- * </pre>
- */
 class Substring extends CallFactory {
 
     static final CallFactory _ = new Substring("substring", new String[]{"text", "first", "last"}, new String[]{"text", "first"});

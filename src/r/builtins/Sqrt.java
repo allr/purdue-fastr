@@ -9,13 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "sqrt"
- * 
- * <pre>
- * x -- a numeric or complex vector or array.
- * </pre>
- */
 // FIXME: scalar optimizations
 final class Sqrt extends CallFactory {
 

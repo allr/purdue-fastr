@@ -14,15 +14,6 @@ import r.nodes.truffle.FunctionCall;
 
 import r.Truffle.*;
 
-/**
- * "outer"
- * 
- * <pre>
- * X, Y -- First and second arguments for function FUN. Typically a vector or array.
- * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").
- * ... -- optional arguments to be passed to FUN.
- * </pre>
- */
 final class Outer extends CallFactory {
     static final CallFactory _ = new Outer("outer", new String[]{"X", "Y", "FUN", "..."}, new String[]{"X", "Y"});
 

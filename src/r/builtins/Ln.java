@@ -2,14 +2,6 @@ package r.builtins;
 
 import r.nodes.*;
 
-
-/**
- * "ln"
- *
- * <pre>
- * x -- a numeric or complex vector.
- * </pre>
- */
 // TODO: complex numbers
 final class Ln extends MathBase {
 

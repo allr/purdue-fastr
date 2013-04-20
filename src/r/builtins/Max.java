@@ -2,14 +2,6 @@ package r.builtins;
 
 import r.data.*;
 
-/**
- * "max"
- * 
- * <pre>
- * ... -- numeric or character arguments
- * na.rm -- a logical indicating whether missing values should be removed.
- * </pre>
- */
 // FIXME should issue a warning
 final class Max extends ExtremeBase {
     static final CallFactory _ = new Max("max", new String[]{"...", "na.rm"}, new String[]{});

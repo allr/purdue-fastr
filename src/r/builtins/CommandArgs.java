@@ -8,13 +8,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "commandArgs"
- * 
- * <pre>
- * trailingOnly -- logical. Should only arguments after --args be returned?
- * </pre>
- */
 final class CommandArgs extends CallFactory {
 
     static final CallFactory _ = new CommandArgs("commandArgs", new String[]{"trailingOnly"}, new String[]{});

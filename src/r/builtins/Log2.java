@@ -2,13 +2,6 @@ package r.builtins;
 
 import r.nodes.*;
 
-/**
- * "log2"
- * 
- * <pre>
- * x -- a numeric or complex vector.
- * </pre>
- */
 // TODO: complex numbers
 final class Log2 extends MathBase {
 

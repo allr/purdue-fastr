@@ -7,13 +7,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.Truffle.*;
 
-/**
- * "abs"
- * 
- * <pre>
- * x -- a numeric or complex vector or array.
- * </pre>
- */
 // FIXME: use node rewriting to get rid of the type checks
 public class Abs extends CallFactory {
 

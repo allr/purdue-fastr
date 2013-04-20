@@ -2,14 +2,6 @@ package r.builtins;
 
 import r.data.*;
 
-/**
- * "min"
- * 
- * <pre>
- * ... -- numeric or character arguments
- * na.rm -- a logical indicating whether missing values should be removed.
- * </pre>
- */
 final class Min extends ExtremeBase {
     static final CallFactory _ = new Min("min", new String[]{"...", "na.rm"}, new String[]{});
 

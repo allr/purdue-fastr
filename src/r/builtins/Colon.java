@@ -8,14 +8,6 @@ import r.errors.*;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
-/**
- * ":"
- * 
- * <pre>
- * from -- starting value of sequence.
- * to -- (maximal) end value of the sequence.
- * </pre>
- */
 // FIXME: there is a version of colon for factors that is currently not implemented.
 final class Colon extends CallFactory {
 

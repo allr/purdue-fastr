@@ -16,69 +16,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "scan"
- * 
- * <pre>
- * file -- the name of a file to read data values from. If the specified file is "", then input
- *     is taken from the keyboard (or whatever stdin() reads if input is redirected or R is embedded).
- *     (In this case input can be terminated by a blank line or an EOF signal, Ctrl-D on Unix and Ctrl-Z
- *     on Windows.)Otherwise, the file name is interpreted relative to the current working directory
- *     (given by getwd()), unless it specifies an absolute path. Tilde-expansion is performed where
- *     supported. When running R from a script, file="stdin" can be used to refer to the process's stdin file stream.
- *     As from R 2.10.0 this can be a compressed file (see file). Alternatively, file can be a connection,
- *     which will be opened if necessary, and if so closed at the end of the function call. Whatever mode
- *     the connection is opened in, any of LF, CRLF or CR will be accepted as the EOL marker for a line and so will match sep = "\n".
- *     file can also be a complete URL. (For the supported URL schemes, see the URLs section of the help for url.)
- *     To read a data file not in the current encoding (for example a Latin-1 file in a UTF-8 locale or conversely) use a
- *     file connection setting its encoding argument (or scan's fileEncoding argument).
- * what -- the type of what gives the type of data to be read. The supported types are logical, integer, numeric, complex,
- *     character, raw and list. If what is a list, it is assumed that the lines of the data file are records each containing
- *     length(what) items (fields) and the list components should have elements which are one of the first six types
- *     listed or NUL
- * nmax -- integer: the maximum number of data values to be read, or if what is a list, the maximum number of records
- *     to be read. If omitted or not positive or an invalid value for an integer (and nlines is not set to
- *     a positive value), scan will read to the end of file.
- * n -- integer: the maximum number of data values to be read, defaulting to no limit. Invalid values will be ignored.
- * sep -- by default, scan expects to read white-space delimited input fields. Alternatively, sep can be used to specify
- *     a character which delimits fields. A field is always delimited by an end-of-line marker unless it is quoted.
- *     If specified this should be the empty character string (the default) or NULL or a character string containing
- *     just one single-byte character.
- * quote -- the set of quoting characters as a single character string or NULL. In a multibyte locale the quoting
- *     characters must be ASCII (single-byte).
- * dec -- decimal point character. This should be a character string containing just one single-byte character.
- *     (NULL and a zero-length character vector are also accepted, and taken as the default.)
- * skip -- the number of lines of the input file to skip before beginning to read data values.
- * nlines -- if positive, the maximum number of lines of data to be read.
- * na.strings -- character vector. Elements of this vector are to be interpreted as missing (NA) values. Blank
- *      fields are also considered to be missing values in logical, integer, numeric and complex fields.
- * flush -- logical: if TRUE, scan will flush to the end of the line after reading the last of the fields requested.
- *     This allows putting comments after the last field, but precludes putting more that one record on a line.
- * fill -- logical: if TRUE, scan will implicitly add empty fields to any lines with fewer fields than implied by what.
- * strip.white -- vector of logical value(s) corresponding to items in the what argument. It is used only when sep has been
- *      specified, and allows the stripping of leading and trailing 'white space' from character fields (numeric fields are always stripped).
- *      Note: white space inside quoted strings is not stripped. If strip.white is of length 1, it applies to all fields; otherwise, if
- *      strip.white[i] is TRUE and the i-th field is of mode character (because what[i] is) then the leading and trailing
- *      unquoted white space from field i is stripped.
- * quiet -- logical: if FALSE (default), scan() will print a line, saying how many items have been read.
- * blank.lines.skip -- logical: if TRUE blank lines in the input are ignored, except when counting skip and nlines.
- * multi.line -- logical. Only used if what is a list. If FALSE, all of a record must appear on one line
- *      (but more than one record can appear on a single line). Note that using fill = TRUE implies that a record
- *      will be terminated at the end of a line.
- * comment.char -- character: a character vector of length one containing a single character or an empty string.
- *      Use "" to turn off the interpretation of comments altogether (the default).
- * allowEscapes -- logical. Should C-style escapes such as \n be processed (the default) or read verbatim? Note that
- *      if not within quotes these could be interpreted as a delimiter (but not as a comment character).
- *      The escapes which are interpreted are the control characters \a, \b, \f, \n, \r, \t, \v and octal and hexadecimal
- *      representations like \ 040 and \ 0x2A. Any other escaped character is treated as itself, including backslash. Note that
- *      Unicode escapes (starting \ u or \ U: see Quotes) are never processed.
- * fileEncoding -- character string: if non-empty declares the encoding used on a file (not a connection nor the keyboard) so
- *      the character data can be re-encoded.
- * encoding -- encoding to be assumed for input strings. If the value is "latin1" or "UTF-8" it is used to mark character
- *      strings as known to be in Latin-1 or UTF-8: it is not used to re-encode the input
- * text -- character string: if file is not supplied and this is, then data are read from the value of text via a text connection.
- * </pre>
- */
 // TODO: a very incomplete implementation, the full method has 21 parameters
 // note also that some of the current implementation will likely have to be rewritten for the full set of features
 final class Scan extends CallFactory {

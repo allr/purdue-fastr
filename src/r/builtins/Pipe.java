@@ -9,15 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "pipe"
- * 
- * <pre>
- * description -- character string. A description of the connection
- * open -- character. A description of how to open the connection (if it should be opened initially).
- * encoding -- The name of the encoding to be used.
- * </pre>
- */
 final class Pipe extends CallFactory {
 
     static final CallFactory _ = new Pipe("pipe", new String[]{"description", "open", "encoding"}, new String[]{"description"});

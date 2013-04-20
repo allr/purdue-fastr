@@ -9,13 +9,6 @@ import r.nodes.ASTNode;
 import r.nodes.truffle.Arithmetic;
 import r.nodes.truffle.RNode;
 
-/**
- * "exp"
- * 
- * <pre>
- * x -- a numeric or complex vector.
- * </pre>
- */
 final class Exp extends CallFactory {
     static final CallFactory _ = new Exp("exp", new String[]{"x"}, new String[]{"x"});
 

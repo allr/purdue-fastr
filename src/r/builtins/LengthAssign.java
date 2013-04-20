@@ -8,15 +8,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "length<-"
- * 
- * <pre>
- * x -- an R object. For replacement, a vector or factor.
- * value -- an integer: double values will be coerced to integer.
- * </pre>
- */
-
 final class LengthAssign extends CallFactory {
 
     static final CallFactory _ = new LengthAssign("length<-", new String[]{"x", "value"}, new String[]{"x", "value"});

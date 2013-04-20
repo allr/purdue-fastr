@@ -8,14 +8,6 @@ import r.nodes.truffle.*;
 import r.Truffle.*;
 import java.lang.Integer;
 
-/**
- * "sum"
- * 
- * <pre>
- * ... -- numeric or complex or logical vectors.
- * na.rm -- logical. Should missing values (including NaN) be removed?
- * </pre>
- */
 // FIXME: optimize for single argument
 // NOTE: we could probably get some performance if we gave up on preserving NA vs NaN in double computations; the current implementation strives to be strict
 

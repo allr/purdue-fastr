@@ -907,7 +907,6 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public int op(ASTNode ast, int a, int b) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a + b;
             boolean bLTr = b < r;
             if (a > 0) {
@@ -1035,7 +1034,6 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public int op(ASTNode ast, int a, int b) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a - b;
             if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
                 return r;
@@ -1302,7 +1300,6 @@ public class Arithmetic extends BaseR {
     }
 
     public static double chypot(double real, double imag) {
-        // LICENSE: transcribed code from GCC, which is licensed under GPL
 
         // after libgcc2's x86 hypot - note the sign of NaN below (what GNU-R uses)
         // note that Math.hypot in Java is _very_ slow as it tries to be more precise

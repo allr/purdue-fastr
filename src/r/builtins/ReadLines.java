@@ -13,20 +13,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "readLines"
- * 
- * <pre>
- * con -- a connection object or a character string.
- * n -- integer. The (maximal) number of lines to read. Negative values indicate that one should read up to the end of input 
- * on the connection.
- * ok -- logical. Is it OK to reach the end of the connection before n > 0 lines are read? If not, an error will be generated.
- * warn -- logical. Warn if a text file is missing a final EOL.
- * encoding -- encoding to be assumed for input strings. It is used to mark character strings as known to be in Latin-1 or 
- * UTF-8: it is not used to re-encode the input. To do the latter, specify the encoding as part of the connection con or via 
- * options(encoding=)
- * </pre>
- */
 // TODO: this is incomplete implementation of R semantics
 final class ReadLines extends CallFactory {
     static final CallFactory _ = new ReadLines("readLines", new String[]{"con", "n", "ok", "warn", "encoding"}, new String[]{});

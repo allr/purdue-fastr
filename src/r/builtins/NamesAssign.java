@@ -8,13 +8,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "names"
- * 
- * <pre>
- * x -- an R object.
- * </pre>
- */
 final class NamesAssign extends CallFactory {
     static final CallFactory _ = new NamesAssign("names<-", new String[]{"x", "value"}, new String[]{"x", "value"});
 

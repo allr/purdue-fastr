@@ -9,14 +9,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "close"
- * 
- * <pre>
- * con -- a connection.
- * ... -- arguments passed to or from other methods.
- * </pre>
- */
 final class Close extends CallFactory {
 
     static final CallFactory _ = new Close("close", new String[]{"con", "..."}, new String[]{"con"});

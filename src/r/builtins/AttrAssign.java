@@ -7,17 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "attr<-" Arguments are:
- * 
- * <pre>
- *  x -- an object whose attributes are to be accessed.
- *  which -- a non-empty character string specifying which attribute is to be accessed.
- *  value -- an object, the new value of the attribute, or NULL to remove the attribute.
- * </pre>
- * 
- * The function only uses exact matches. The function does not allow missing values of which.
- */
 final class AttrAssign extends CallFactory {
 
     static final CallFactory _ = new AttrAssign("attr<-", new String[]{"x", "which", "value"}, null);

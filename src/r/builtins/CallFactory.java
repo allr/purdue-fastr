@@ -10,12 +10,7 @@ import r.nodes.truffle.*;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
 
-/**
- * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
- */
 public abstract class CallFactory {
-
-    // LICENSE: Some sub-classes include comments that are copy-pasted from GNU R online manual. GNU R is licensed under GPL.
 
     /** Declared name of function. */
     final RSymbol name;
@@ -77,7 +72,7 @@ public abstract class CallFactory {
 
     /**
      * Create a RNode for a call to a function.
-     *
+     * 
      * @param call
      *            the abstract syntax tree node for this function call
      * @param names
@@ -89,7 +84,7 @@ public abstract class CallFactory {
 
     /**
      * Create a RNode for a binary operation.
-     *
+     * 
      * @param call
      *            the abstract syntax tree node for this function call
      * @param left
@@ -159,7 +154,7 @@ public abstract class CallFactory {
      * Match the formal (parameters) to the actuals (arguments) at a call site. This is done in three passes, first
      * gather all the argument passed by exact name, then get the arguments passed by partial name as long as they are
      * not ambiguous. Last get the positional arguments.
-     *
+     * 
      * @param names
      *            array of the names of arguments (or null)
      * @param exprs
@@ -286,35 +281,27 @@ public abstract class CallFactory {
         }
 
         public int match(RAny arg, ASTNode ast, String argName) {
-            if (arg instanceof RNull) {
-                return 0; // default value
+            if (arg instanceof RNull) { return 0; // default value
             }
-            if (!(arg instanceof RString)) {
-                throw RError.getMustNullOrString(ast, argName);
-            }
+            if (!(arg instanceof RString)) { throw RError.getMustNullOrString(ast, argName); }
             RString m = (RString) arg;
-            if (m.size() != 1) {
-                throw RError.getMustBeScalar(ast, argName); // in GNU-R, this will appear part of match.arg
+            if (m.size() != 1) { throw RError.getMustBeScalar(ast, argName); // in GNU-R, this will appear part of match.arg
             }
             String s = m.getString(0);
-            if (s == RString.NA) {
-                throw RError.getArgOneOf(ast, argName, allowed);
-            }
+            if (s == RString.NA) { throw RError.getArgOneOf(ast, argName, allowed); }
             int match = -1;
             int nmatches = 0;
             for (int i = 0; i < allowed.length; i++) {
                 String a = allowed[i];
                 if (a.startsWith(s)) {
-                    if (a.length() == s.length()) {  // FIXME: does this check pay off?
+                    if (a.length() == s.length()) { // FIXME: does this check pay off?
                         return i;
                     }
                     nmatches++;
                     match = i;
                 }
             }
-            if (nmatches == 1) {
-                return match;
-            }
+            if (nmatches == 1) { return match; }
             throw RError.getArgOneOf(ast, argName, allowed);
         }
     }
@@ -327,9 +314,7 @@ public abstract class CallFactory {
         int size = l.size();
         if (size >= 1) {
             int v = l.getLogical(0);
-            if (v == RLogical.NA) {
-                throw RError.getUnexpectedNA(ast);
-            }
+            if (v == RLogical.NA) { throw RError.getUnexpectedNA(ast); }
             if (size > 1) {
                 RContext.warning(ast, RError.LENGTH_GT_1);
             }

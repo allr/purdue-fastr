@@ -7,16 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "nchar"
- * 
- * <pre>
- * x -- character vector, or a vector to be coerced to a character vector. Giving a factor is an error.
- * type -- character string: partial matching to one of c("bytes", "chars", "width").
- * allowNA -- Logical: should NA be returned for invalid multibyte strings or "bytes"-encoded strings
- * (rather than throwing an error)?
- * </pre>
- */
 // FIXME: only partial semantics
 final class Nchar extends CallFactory {
 

@@ -10,18 +10,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "file"
- * 
- * <pre>
- * description -- character string. A description of the connection
- * open -- character. A description of how to open the connection (if it should be opened initially). 
- * blocking --logical. 
- * encoding -- The name of the encoding to be used.
- * raw -- logical. If true, a raw interface is used which will be more suitable for arguments which are not regular
- *     files, e.g. character devices. This suppresses the check for a compressed file when opening for text-mode reading,
- * and asserts that the file may not be seekable
- */
 final class File extends CallFactory {
 
     static final CallFactory _ = new File("file", new String[]{"description", "open", "blocking", "encoding", "raw"}, new String[]{});

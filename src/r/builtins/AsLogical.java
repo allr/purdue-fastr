@@ -3,13 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "as.logical"
- * 
- * <pre>
- * x -- An object.
- * </pre>
- */
 final class AsLogical extends AsBase {
     static final CallFactory _ = new AsLogical("as.logical", new String[]{"x", "..."}, new String[]{});
 

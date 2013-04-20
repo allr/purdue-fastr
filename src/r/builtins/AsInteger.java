@@ -3,13 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "as.integer"
- * 
- * <pre>
- * x -- An object.
- * </pre>
- */
 final class AsInteger extends AsBase {
     static final CallFactory _ = new AsInteger("as.integer", new String[]{"x", "..."}, new String[]{});
 

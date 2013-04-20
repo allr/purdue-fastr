@@ -8,19 +8,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "seq"
- * 
- * <pre>
- * from, to -- the starting and (maximal) end values of the sequence. Of length 1 unless just from is supplied
- *        as an unnamed argument.
- *  by -- number: increment of the sequence.
- *  length.out -- desired length of the sequence. A non-negative number, which for seq and seq.int will be
- *        rounded up if fractional.
- * along.with -- take the length from the length of this argument.
- * ... -- arguments passed to or from methods.
- * </pre>
- */
 // FIXME: this would have been easier to write in R
 //        GNU R has this written in R, but the code depends on too many things we don't support yet
 final class Seq extends CallFactory {

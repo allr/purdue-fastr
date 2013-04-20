@@ -9,16 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "new.env"
- * 
- * <pre>
- * hash  -- a logical, if TRUE the environment will use a hash table.
- * parent -- an environment to be used as the enclosure of the environment created.
- * size -- an integer specifying the initial size for a hashed environment. An internal default value will be used if
- *         size is NA or zero. This argument is ignored if hash is FALSE.
- * </pre>
- */
 final class Newenv extends CallFactory {
     static final CallFactory _ = new Newenv("new.env", new String[]{"hash", "parent", "size"}, new String[]{});
 

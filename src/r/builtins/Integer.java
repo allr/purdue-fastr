@@ -6,13 +6,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "integer"
- * 
- * <pre>
- * length -- desired length.
- * </pre>
- */
 final class Integer extends ArrayConstructorBase {
     static final CallFactory _ = new Integer("integer", new String[]{"length"}, new String[]{});
 

@@ -3,14 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "as.character"
- * 
- * <pre>
- * x -- An object. 
- * mode -- A character string giving an atomic mode or "list", or (except for vector) "any".
- * </pre>
- */
 final class AsCharacter extends AsBase {
     static final CallFactory _ = new AsCharacter("as.character", new String[]{"x", "..."}, new String[]{});
 

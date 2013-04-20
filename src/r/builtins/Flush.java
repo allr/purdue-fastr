@@ -9,13 +9,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "flush"
- * 
- * <pre>
- * con -- a connection.
- * </pre>
- */
 final class Flush extends CallFactory {
 
     static final CallFactory _ = new Flush("flush", new String[]{"con",}, null);

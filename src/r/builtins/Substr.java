@@ -8,15 +8,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.Truffle.*;
 
-/**
- * "substr"
- * 
- * <pre>
- * text --a character vector.
- * first-- integer. The first element to be replaced.
- * last -- integer. The last element to be replaced.
- * </pre>
- */
 class Substr extends CallFactory {
 
     static final CallFactory _ = new Substr("substr", new String[]{"x", "start", "stop"}, new String[]{"x", "start", "stop"});

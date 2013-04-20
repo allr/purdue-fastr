@@ -5,11 +5,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * <pre>
- * x --  an R object, for example a matrix, array or data frame.
- * </pre>
- */
 abstract class DimensionsBase extends CallFactory {
 
     DimensionsBase(String name) {

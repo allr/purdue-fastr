@@ -12,13 +12,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "cumsum"
- * 
- * <pre>
- * x -- a numeric or complex (not cummin or cummax) object, or an object that can be coerced to one of these.
- * </pre>
- */
 // FIXME: could be made much faster with direct access to the arrays (after materialization that is done anyway)
 final class Cumsum extends CallFactory {
 

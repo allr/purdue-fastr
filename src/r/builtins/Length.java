@@ -7,14 +7,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "length"
- * 
- * <pre>
- * x -- an R object. For replacement, a vector or factor.
- * </pre>
- */
-
 final class Length extends CallFactory {
 
     static final CallFactory _ = new Length("length", new String[]{"x"}, new String[]{"x"});

@@ -8,16 +8,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "which"
- * 
- * <pre>
- * x  --  logical vector or array. NAs are allowed and omitted (treated as if FALSE).
- * arr.ind -- logical; should array indices be returned when x is an array?
- * useNames -- logical indicating if the value of arrayInd() should have (non-null) dimnames at all.
- * 
- * <pre>
- */
 // FIXME: implements only part of R semantics
 final class Which extends CallFactory {
     static final CallFactory _ = new Which("which", new String[]{"x", "arr.ind", "useNames"}, new String[]{"x"});

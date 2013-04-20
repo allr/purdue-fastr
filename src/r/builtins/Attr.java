@@ -10,22 +10,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "attr"
- * 
- * <pre>
- *  x -- an object whose attributes are to be accessed.
- *  which -- a non-empty character string specifying which attribute is to be accessed.
- *  exact -- logical: should which be matched exactly?
- * </pre>
- * 
- * The extraction function first looks for an exact match to which amongst the attributes of x, then (unless exact =
- * TRUE) a unique partial match. (Setting options(warnPartialMatchAttr=TRUE) causes partial matches to give warnings.)
- * Some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have
- * restrictions on the values which can be set. The extractor function allows (and does not match) empty and missing
- * values of which. NOTE: testing reveals that if x has a single attribute, a value of "" for which will return its
- * value. If there are more than one value, "" is ambiguous.
- */
 final class Attr extends CallFactory {
 
     static final CallFactory _ = new Attr("attr", new String[]{"x", "which", "exact"}, new String[]{"x", "which"});

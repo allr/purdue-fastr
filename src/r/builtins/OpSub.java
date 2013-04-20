@@ -5,14 +5,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.UnaryMinus;
 
-/**
- * "-"
- * 
- * <pre>
- * x, y -- numeric or complex vectors or objects which can be coerced to such, or other objects for which methods have been 
- *         written.
- * </pre>
- */
 final class OpSub extends OperationsBase {
     static final CallFactory _ = new OpSub("-");
 

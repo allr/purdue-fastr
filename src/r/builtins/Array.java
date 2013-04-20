@@ -8,20 +8,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "array"
- * 
- * <pre>
- * data -- a vector (including a list or expression vector) giving data to fill the array. Other objects are coerced by
- *        as.vector.
- * dim -- the dim attribute for the array to be created, that is a vector of length one or more giving the maximal
- *         indices in each dimension.
- * dimnames -- either NULL or the names for the dimensions. This is a list with one component for each dimension,
- *        either NULL or a character vector of the length given by dim for that dimension. The list can be named,
- *        and the list names will be used as names for the dimensions. If the list is shorter than the number of
- *        dimensions, it is extended by NULLs to the length required.
- * </pre>
- */
 final class Array extends CallFactory {
 
     static final CallFactory _ = new Array("array", new String[]{"data", "dim", "dimnames"}, new String[]{});

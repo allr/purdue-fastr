@@ -7,14 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "as.vector"
- * 
- * <pre>
- * x -- An object.
- * mode -- A character string giving an atomic mode or "list", or (except for vector) "any".
- * </pre>
- */
 final class AsVector extends AsBase {
     static final CallFactory _ = new AsVector("as.vector", new String[]{"x", "mode"}, new String[]{"x"});
 

@@ -7,15 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "paste"
- * 
- * <pre>
- * ... -- one or more R objects, to be converted to character vectors.
- * sep -- a character string to separate the terms. Not NA_character_.
- * collapse -- an optional character string to separate the results. Not NA_character_.
- * </pre>
- */
 // FIXME: this is an unoptimized version
 final class Paste extends CallFactory {
     static final CallFactory _ = new Paste("paste", new String[]{"...", "sep", "collapse"}, new String[]{});

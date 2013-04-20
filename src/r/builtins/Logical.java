@@ -6,14 +6,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "logical" Integer vectors exist so that data can be passed to C or Fortran code which expects them, and so that
- * (small) integer data can be represented exactly and compactly.
- * 
- * <pre>
- * length -- desired length.
- * </pre>
- */
 final class Logical extends ArrayConstructorBase {
     static final CallFactory _ = new Logical("logical", new String[]{"length"}, new String[]{});
 

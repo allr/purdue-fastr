@@ -12,18 +12,7 @@ import r.Truffle.*;
 
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also used in lapply
-/**
- * "lapply" returns a list of the same length as X, each element of which is the result of applying FUN to the
- * corresponding element of X.
- * 
- * <pre>
- * X -- a vector (atomic or list) or an expression object. Other objects
- *      (including classed objects) will be coerced by base::as.list.
- * FUN -- the function to be applied to each element of X. In the case of functions like
- *        +, %*%, the function name must be backquoted or quoted.
- *  ... -- optional arguments to FUN.
- * </pre>
- */
+
 final class LApply extends CallFactory {
 
     static final CallFactory _ = new LApply("lapply", new String[]{"X", "FUN", "..."}, new String[]{"X", "FUN"});

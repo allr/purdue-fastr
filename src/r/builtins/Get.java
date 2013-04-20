@@ -7,19 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "get"
- * 
- * <pre>
- * x -- a variable name (given as a character string).
- * pos -- where to look for the object; if omitted, the function will search as if the name of the object appeared 
- *         unquoted in an expression.
- * envir -- an alternative way to specify an environment to look in
- * mode -- the mode or type of object sought
- * inherits -- should the enclosing frames of the environment be searched?
- * ifnotfound -- A list of values to be used if the item is not found: it will be coerced to list if necessary.
- * </pre>
- */
 final class Get extends CallFactory {
     static final CallFactory _ = new Get("get", new String[]{"x", "pos", "envir", "mode", "inherits"}, new String[]{"x"});
 

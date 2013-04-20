@@ -5,9 +5,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "emptyenv".
- */
 final class Emptyenv extends CallFactory {
     static final CallFactory _ = new Emptyenv("emptyenv", new String[]{}, null);
 

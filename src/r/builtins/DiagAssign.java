@@ -8,15 +8,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "diag<-"
- * 
- * <pre>
- * x -- a matrix, vector or 1D array, or missing.
- * value -- either a single value or a vector of length equal to that of the current diagonal. Should be of a mode which 
- *        can be coerced to that of x.
- * </pre>
- */
 // FIXME: this is super-slow generic version, can be type-specialized and scalar-specialized, can take advantage of non-shared replacements
 final class DiagAssign extends CallFactory {
     static final CallFactory _ = new DiagAssign("diag<-", new String[]{"x", "value"}, null);

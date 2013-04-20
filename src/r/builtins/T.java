@@ -9,13 +9,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "t"
- * 
- * <pre>
- * x -- a matrix or data frame, typically.
- * </pre>
- */
 // FIXME: also could do a lazy version using views
 // TODO: there is a more efficient, cache-oblivious algorithm, which operates on parts of the original matrix
 // TODO: the m*n matrix (m != n) can also be transposed nearly-in-place

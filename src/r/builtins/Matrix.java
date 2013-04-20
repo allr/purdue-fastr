@@ -9,19 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "matrix"
- * 
- * <pre>
- * data -- an optional data vector (including a list or expression vector). Other R objects are coerced by as.vector.
- * nrow -- the desired number of rows.
- * ncol -- the desired number of columns.
- * byrow -- logical. If FALSE (the default) the matrix is filled by columns, otherwise the matrix is filled by rows.
- * dimnames -- A dimnames attribute for the matrix: NULL or a list of length 2 giving the row and column names respectively.
- *  An empty list is treated as NULL, and a list of length one as row names. The list can be named, and the list names will be
- *   used as names for the dimensions.
- * </pre>
- */
 final class Matrix extends CallFactory {
     static final CallFactory _ = new Matrix("matrix", new String[]{"data", "nrow", "ncol", "byrow", "dimnames"}, new String[]{});
 

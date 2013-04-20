@@ -5,14 +5,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "log"
- * 
- * <pre>
- * x -- a numeric or complex vector.
- * base -- a positive or complex number: the base with respect to which logarithms are computed. Defaults to e=exp(1).
- * </pre>
- */
 // TODO: complex numbers
 final class Log extends CallFactory {
 

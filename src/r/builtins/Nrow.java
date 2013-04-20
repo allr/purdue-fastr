@@ -4,15 +4,6 @@ import r.data.*;
 
 // TODO: add a replacement version
 
-/**
- * "nrow(x)"
- * 
- * <pre>
- * x --  a vector, array or data frame
- * </pre>
- * 
- * Returns an integer of length 1 or NULL.
- */
 final class Nrow extends DimensionsBase {
 
     static final CallFactory _ = new Nrow("nrow");

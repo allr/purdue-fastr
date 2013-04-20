@@ -8,15 +8,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "attributes(obj)"
- * 
- * <pre>
- * obj -- an object
- * </pre>
- * 
- * The names of a pairlist are not stored as attributes, but are reported as if they were.
- */
 class Attributes extends CallFactory {
 
     static final CallFactory _ = new Attributes("attributes", new String[]{"obj"}, null);

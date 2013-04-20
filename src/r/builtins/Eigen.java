@@ -14,18 +14,6 @@ import r.Truffle.*;
 import java.lang.Integer;
 import java.lang.Double;
 
-/**
- * "eigen"
- * 
- * <pre>
- * x -- a matrix whose spectral decomposition is to be computed.
- * symmetric -- if TRUE, the matrix is assumed to be symmetric (or Hermitian if complex) and only its lower triangle
- *                (diagonal included) is used. If symmetric is not specified, the matrix is inspected for symmetry.
- * only.values -- if TRUE, only the eigenvalues are computed and returned, otherwise both eigenvalues and eigenvectors
- *                are returned.
- * EISPACK -- logical. Should EISPACK be used (for compatibility with R < 1.7.0)?
- * </pre>
- */
 // NOTE: GNU-R has some of the eigen code implemented in R (and some uses LAPACK)
 final class Eigen extends CallFactory {
     // LICENSE: transcribed code from GNU R, which is licensed under GPL

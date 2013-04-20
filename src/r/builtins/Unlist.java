@@ -9,15 +9,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "unlist"
- * 
- * <pre>
- * x -- an R object, typically a list or vector.
- * recursive -- logical. Should unlisting be applied to list components of x?
- * use.names -- logical. Should names be preserved?
- * </pre>
- */
 // TODO: add optimized nodes, node-rewriting
 // FIXME: some of this code should be refactored into more general classes (e.g. finding a common subtype, cast mixins
 final class Unlist extends CallFactory {

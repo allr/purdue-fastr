@@ -5,13 +5,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.Truffle.*;
 
-/**
- * "double"
- * 
- * <pre>
- * length -- desired length.
- * </pre>
- */
 final class Double extends ArrayConstructorBase {
     static final CallFactory _ = new Double("double", new String[]{"length"}, new String[]{});
 

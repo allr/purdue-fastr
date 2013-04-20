@@ -3,13 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "as.raw"
- * 
- * <pre>
- * x -- An object.
- * </pre>
- */
 final class AsRaw extends AsBase {
     static final CallFactory _ = new AsRaw("as.raw", new String[]{"x"}, new String[]{"x"});
 

@@ -10,20 +10,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "strsplit"
- * 
- * <pre>
- * x -- character vector, each element of which is to be split. Other inputs, including a factor, will give an error.
- * split -- character vector (or object which can be coerced to such) containing regular expression(s) (unless fixed = TRUE)
- *           to use for splitting. If empty matches occur, in particular if split has length 0, x is split into single 
- *           characters. If split has length greater than 1, it is re-cycled along x.
- * fixed -- logical. If TRUE match split exactly, otherwise use regular expressions. Has priority over perl.
- * perl -- logical. Should perl-compatible regexps be used?
- * useBytes -- logical. If TRUE the matching is done byte-by-byte rather than character-by-character, and inputs with marked 
- *         encodings are not converted. This is forced (with a warning) if any input is found which is marked as "bytes".
- * </pre>
- */
 // FIXME: this implementation is very slow and is only partial
 // the supported regular expressions may not be exactly like in GNU-R
 final class Strsplit extends CallFactory {

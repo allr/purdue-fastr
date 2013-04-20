@@ -8,13 +8,6 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "rev"
- * 
- * <pre>
- * x -- a vector or another object for which reversal is defined.
- * </pre>
- */
 // FIXME: could also do lazy rev of int sequence
 class Rev extends CallFactory {
     static final CallFactory _ = new Rev("rev", new String[]{"x"}, new String[]{"x"});

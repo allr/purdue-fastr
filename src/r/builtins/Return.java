@@ -7,13 +7,6 @@ import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "rep"
- * 
- * <pre>
- * value -- An expression.
- * </pre>
- */
 public final class Return extends CallFactory {
 
     static final CallFactory _ = new Return("return", new String[]{"value"}, new String[]{});

@@ -8,15 +8,6 @@ import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * "c"
- * 
- * <pre>
- * ... -- objects to be concatenated.
- * recursive -- logical. If recursive = TRUE, the function recursively descends through lists
- *              (and pairlists) combining all their elements into a vector.
- * </pre>
- */
 // FIXME: the set of specializations already implemented is biased by the binarytrees benchmark
 // TODO: do more specializations, obvious opportunities include: vectors of same type, same result type, perhaps something for lists as well
 // TODO: implement "recursive" argument and note that once this is done, the code will become even closer to that of unlist (refactor)

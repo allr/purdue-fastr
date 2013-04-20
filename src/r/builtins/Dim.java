@@ -2,16 +2,6 @@ package r.builtins;
 
 import r.data.*;
 
-/**
- * "dim(x)"
- *
- * <pre>
- * x -- an R object, for example a matrix, array or data frame.
- * </pre>
- *
- * dim has a method for data.frames, which returns the lengths of the row.names attribute of x and of x (as the numbers
- * of rows and columns respectively).
- */
 final class Dim extends DimensionsBase {
 
     static final CallFactory _ = new Dim("dim");

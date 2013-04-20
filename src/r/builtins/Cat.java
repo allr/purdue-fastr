@@ -10,24 +10,6 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.Truffle.*;
 
-/**
- * "cat" Outputs the objects, concatenating the representations. cat performs much less conversion than print.
- * 
- * <pre>
- * ... -- R objects
- * file -- A connection, or a character string naming the file to print to. If "" (the default), cat prints to the 
- *      standard output connection, the console unless redirected by sink. If it is "|cmd", the output is piped to the 
- *      command given by cmd, by opening a pipe connection.
- * sep -- a character vector of strings to append after each element.
- * fill -- a logical or (positive) numeric controlling how the output is broken into successive lines. If FALSE (default), 
- *        newlines created explicitly by "\n" are printed. Otherwise, the output is broken into lines with print width equal
- *         to the option width if fill is TRUE, or the value of fill if this is numeric. Non-positive fill values are
- *          ignored, with a warning.
- * labels -- character vector of labels for the lines printed. Ignored if fill is FALSE.
- * append --logical. Only used if the argument file is the name of file (and not a connection or "|cmd"). If TRUE output
- *           will be appended to file; otherwise, it will overwrite the contents of file.
- * </pre>
- */
 // FIXME: not quite the GNU-R output particularly for numbers; re-visit if some code could be removed once we have
 // fully GNU-R string representation of numerics
 final class Cat extends CallFactory {

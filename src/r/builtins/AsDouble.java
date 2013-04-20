@@ -3,14 +3,6 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 
-/**
- * "as.double"
- * 
- * <pre>
- * x -- An object. 
- * mode -- A character string giving an atomic mode or "list", or (except for vector) "any".
- * </pre>
- */
 final class AsDouble extends AsBase {
     static final CallFactory _ = new AsDouble("as.double", new String[]{"x", "..."}, new String[]{});
 

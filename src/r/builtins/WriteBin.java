@@ -12,17 +12,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "writebin"
- * 
- * <pre>
- * con --A connection object or a character string naming a file or a raw vector.
- * size-- integer. The number of bytes per element in the byte stream. The default, NA_integer_, uses the natural size. Size changing is not supported for raw and complex vectors.
- * endian -- The endian-ness ("big" or "little" of the target system for the file. Using "swap" will force swapping endian-ness.
- * object -- An R object to be written to the connection.
- * 
- * <pre>
- */
 //FIXME: implements only part of R semantics
 final class WriteBin extends CallFactory {
     static final CallFactory _ = new WriteBin("writeBin", new String[]{"object", "con", "size", "endian", "useBytes"}, new String[]{"object", "con"});

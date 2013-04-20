@@ -7,23 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "attributes(obj) <- value"
- * 
- * <pre>
- * obj -- an object
- * value -- an appropriate named list of attributes, or NULL.
- * </pre>
- * 
- * Unlike attr it is possible to set attributes on a NULL object: it will first be coerced to an empty list. Note that
- * some attributes (namely class, comment, dim, dimnames, names, row.names and tsp) are treated specially and have
- * restrictions on the values which can be set. (Note that this is not true of levels which should be set for factors
- * via the levels replacement function.) Attributes are not stored internally as a list and should be thought of as a
- * set and not a vector. They must have unique names (and NA is taken as "NA", not a missing value). Assigning
- * attributes first removes all attributes, then sets any dim attribute and then the remaining attributes in the order
- * given: this ensures that setting a dim attribute always precedes the dimnames attribute. The names of a pairlist are
- * not stored as attributes, but are reported as if they were (and can be set by the replacement form of attributes).
- */
 class AttributesAssign extends CallFactory {
 
     static final CallFactory _ = new AttributesAssign("attributes<-", new String[]{"obj", "value"}, null);

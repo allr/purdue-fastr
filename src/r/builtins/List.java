@@ -7,13 +7,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "list"
- * 
- * <pre>
- * ...  -- objects, possibly named.
- * </pre>
- */
 final class List extends CallFactory {
 
     static final CallFactory _ = new List("list", new String[]{"..."}, new String[]{});

@@ -14,25 +14,7 @@ import r.Truffle.*;
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also
 // used in lapply
-/**
- * "sapply" is a user-friendly version and wrapper of lapply by default returning a vector, matrix or, if
- * simplify="array ", an array if appropriate, by applying simplify2array(). sapply(x, f, simplify=FALSE,
- * USE.NAMES=FALSE) is the same as lapply(x,f).
- * 
- * <pre>
- * X -- a vector (atomic or list) or an expression object. Other objects 
- *      (including classed objects) will be coerced by base::as.list.
- * FUN -- the function to be applied to each element of X. In the case of functions like 
- *        +, %*%, the function name must be backquoted or quoted.
- *  ... -- optional arguments to FUN.
- *  simplify -- logical or character string; should the result be simplified to a vector, matrix or higher dimensional 
- *    array if possible? For sapply it must be named and not abbreviated. The default value, TRUE, returns a vector or matrix
- *    if appropriate, whereas if simplify = "array" the result may be an array of "rank" (=length(dim(.))) one higher than 
- *    the result of FUN(X[[i]]).
- * USE.NAMES -- logical; if TRUE and if X is character, use X as names for the result unless it had names already. 
- *    Since this argument follows ... its name cannot be abbreviated.
- * </pre>
- */
+
 final class SApply extends CallFactory {
 
     static final CallFactory _ = new SApply("sapply", new String[]{"X", "FUN", "...", "simplify", "USE.NAMES"}, new String[]{"X", "FUN"});

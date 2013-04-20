@@ -6,19 +6,6 @@ import r.nodes.truffle.*;
 
 import r.Truffle.*;
 
-/**
- * "assign"
- * 
- * <pre>
- * x -- a variable name, given as a character string. No coercion is done, and the first element of a character vector 
- *      of length greater than one will be used, with a warning.
- * value -- a value to be assigned to x.
- * pos -- where to do the assignment. By default, assigns into the current environment.
- * envir -- the environment to use. 
- * inherits -- should the enclosing frames of the environment be inspected?
- * immediate -- an ignored compatibility feature.
- * </pre>
- */
 final class Assign extends CallFactory {
     static final CallFactory _ = new Assign("assign", new String[]{"x", "value", "pos", "envir", "inherits", "immediate"}, new String[]{"x", "value"});
 
