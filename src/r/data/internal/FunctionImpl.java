@@ -1,5 +1,7 @@
 package r.data.internal;
 
+import java.util.*;
+
 import r.Truffle.CallTarget;
 import r.Truffle.Children;
 import r.Truffle.Frame;
@@ -25,6 +27,7 @@ public class FunctionImpl extends RNode implements RFunction {
     final int writeSetBloom;
     final EnclosingSlot[] readSet;
     final int readSetBloom;
+    final HashMap<RSymbol, Integer> h;
 
     private static final boolean DEBUG_CALLS = false;
 
@@ -62,12 +65,15 @@ public class FunctionImpl extends RNode implements RFunction {
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
         frameDescriptor = writeSet;
+        h = new HashMap<>(frameDescriptor.length);
+        for (int i = 0; i < frameDescriptor.length; i++)
+            h.put(frameDescriptor[i], i);
         //new FrameDescriptor();
         /*
          * for (int i = 0; i < nparams; i++) { paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]); } for (int i =
          * nparams; i < writeSet.length; i++) { frameDescriptor.addFrameSlot(writeSet[i]); }
          */
-        callTarget = new CallTarget(this, frameDescriptor);
+        callTarget = new CallTarget(this, h, frameDescriptor);
     }
 
     @Override public Object execute(Frame frame) {

@@ -1,5 +1,7 @@
 package r;
 
+import java.util.*;
+
 import r.data.*;
 import r.nodes.truffle.*;
 
@@ -21,18 +23,16 @@ public class Truffle {
 
         RNode r;
         RSymbol[] d;
+        HashMap<RSymbol, Integer> h;
 
-        public CallTarget(RNode r, RSymbol[] d) {
+        public CallTarget(RNode r, HashMap<RSymbol, Integer> h, RSymbol[] d) {
             this.r = r;
             this.d = d;
-        }
-
-        public Object call(Frame caller, RFrameHeader a) {
-            return r.execute(new Frame(d, caller, a));
+            this.h = h;
         }
 
         public Object call(RFrameHeader a) {
-            return r.execute(new Frame(d, null, a));
+            return r.execute(new Frame(d, h, a));
         }
 
     }
@@ -54,14 +54,12 @@ public class Truffle {
     }
 
     public static class Frame {
-        private final Frame caller;
         private final RFrameHeader arguments;
         protected Object[] locals;
-        RSymbol[] names;
+        HashMap<RSymbol, Integer> h;
 
-        public Frame(RSymbol[] d, Frame f, RFrameHeader a) {
-            names = d;
-            this.caller = f;
+        public Frame(RSymbol[] d, HashMap<RSymbol, Integer> h, RFrameHeader a) {
+            this.h = h;
             this.arguments = a;
             this.locals = new Object[d.length];
         }
@@ -79,9 +77,9 @@ public class Truffle {
         }
 
         public int find(RSymbol symbol) {
-            for (int i = 0; i < names.length; i++)
-                if (symbol == names[i]) return i;
-            return -1;
+            Integer i = h.get(symbol);
+            if (i == null) return -1;
+            else return i;
         }
     }
 }

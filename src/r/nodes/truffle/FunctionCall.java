@@ -10,11 +10,17 @@ import r.nodes.*;
 
 public abstract class FunctionCall extends AbstractCall {
 
-    final RNode callableExpr;
+    RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);
         this.callableExpr = adoptChild(callableExpr);
+    }
+
+    @Override public void replace0(RNode o, RNode n) {
+        super.replace0(o, n);
+        if (callableExpr == o) callableExpr = n;
+        if (dummyNode == o) dummyNode = n;
     }
 
     public static FunctionCall getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
@@ -43,19 +49,15 @@ public abstract class FunctionCall extends AbstractCall {
 
     @Override public Object execute(Frame callerFrame) {
         RCallable callable = (RCallable) callableExpr.execute(callerFrame);
-        try {
-            if (callable instanceof RClosure) {
-                // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
-                RClosure closure = (RClosure) callable;
-                RFunction function = closure.function();
-                Frame enclosingFrame = closure.enclosingFrame();
-                Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
-                RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
-                return function.callTarget().call(arguments);
-            } else {
-                throw new UnexpectedResultException(null);
-            }
-        } catch (UnexpectedResultException e) {
+        if (callable instanceof RClosure) {
+            // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
+            RClosure closure = (RClosure) callable;
+            RFunction function = closure.function();
+            Frame enclosingFrame = closure.enclosingFrame();
+            Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
+            RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
+            return function.callTarget().call(arguments);
+        } else {
             GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
             replace(n, "install GenericCall from FunctionCall");
             return generic(callerFrame, callable);
