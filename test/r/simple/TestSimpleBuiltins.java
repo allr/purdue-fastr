@@ -477,6 +477,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
         assertEval("{ abs(NA+0.1) }", "NA");
         assertEval("{ abs(0/0) }", "NaN");
+        assertEval("{ abs((1:2)[3] }", "NA");
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
         assertEval("{ floor(c(0.2,-3.4)) }", "0.0, -4.0");
         assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");

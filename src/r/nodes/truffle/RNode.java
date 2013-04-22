@@ -19,6 +19,10 @@ public abstract class RNode extends Node {
         return RValueConversion.expectScalarLogical((RAny) execute(frame));
     }
 
+    public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+        return RValueConversion.expectScalarInteger((RAny) execute(frame));
+    }
+
     public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
         return RValueConversion.expectScalarNonNALogical((RAny) execute(frame));
     }

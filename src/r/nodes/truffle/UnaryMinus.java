@@ -81,11 +81,7 @@ public abstract class UnaryMinus extends BaseR {
                 throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
             }
             int i = ivalue.getInt(0);
-            if (i == RInt.NA) {
-                return RInt.BOXED_NA;
-            } else {
-                return RInt.RIntFactory.getScalar(-i);
-            }
+            return RInt.RIntFactory.getScalar(-i); // NOTE: this also works for NA
         }
 
         public Specialized createSimple(RAny valueTemplate) {
@@ -261,11 +257,7 @@ public abstract class UnaryMinus extends BaseR {
                     @Override
                     public int getInt(int i) {
                         int v = ivalue.getInt(i);
-                        if (v == RInt.NA) {
-                            return RInt.NA;
-                        } else {
-                            return -v;
-                        }
+                        return -v; // NOTE: this also works for NA
                     }
                 };
             }
