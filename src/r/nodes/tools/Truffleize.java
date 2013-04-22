@@ -403,6 +403,7 @@ public class Truffleize implements Visitor {
             RNode drop = null;
             RNode exact = null;
             RNode[] selectors = new RNode[sa.convertedExpressions.length];
+            int[] nodeIndexes = new int[selectors.length];
 
             RNode[] nodes = sa.convertedExpressions;
             RSymbol[] names = sa.convertedNames;
@@ -421,6 +422,7 @@ public class Truffleize implements Visitor {
                     exact = nodes[i];
                 } else {
                     selectors[dims] = nodes[i];
+                    nodeIndexes[dims] = i;
                     ++dims;
                 }
             }
@@ -441,6 +443,22 @@ public class Truffleize implements Visitor {
                             ReadArray.createExactOptionNode(a, exact));
                     return;
                 }
+
+                // special handling of m[a:b, c:d]
+                ASTNode node0 = a.getArgs().getNode(nodeIndexes[0]);
+                ASTNode node1 = a.getArgs().getNode(nodeIndexes[1]);
+
+                if (a.isSubset() && node0 != null && node1 != null && node0 instanceof Colon && node1 instanceof Colon) {
+                    Colon rows = (Colon) node0;
+                    Colon cols = (Colon) node1;
+                    result = new ReadArray.MatrixSequenceSubset(a, createTree(a.getVector()),
+                            createTree(rows.getLHS()), createTree(rows.getRHS()), createTree(cols.getLHS()), createTree(cols.getRHS()),
+                            ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
+
+                }
+
                 Selector.SelectorNode selectorIExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[0]);
                 Selector.SelectorNode selectorJExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[1]);
 

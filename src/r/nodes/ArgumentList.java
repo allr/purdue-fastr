@@ -21,6 +21,8 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
         ASTNode getValue();
     }
 
+    ASTNode getNode(int i);
+
     class Default extends ArrayList<Entry> implements ArgumentList {
 
         private static final long serialVersionUID = 1L;
@@ -44,6 +46,12 @@ public interface ArgumentList extends Collection<ArgumentList.Entry> {
         public Entry first() {
             return this.get(0);
         }
+
+        @Override
+        public ASTNode getNode(int i) {
+            return this.get(i).getValue();
+        }
+
 
         public static void updateParent(ASTNode parent, ArgumentList list) {
             for (Entry e : list) {
