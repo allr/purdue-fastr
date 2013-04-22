@@ -7,7 +7,7 @@ import r.nodes.truffle.*;
 
 public class Truffle {
 
-    public static class ControlFlowException extends Error {
+    @SuppressWarnings("serial") public static class ControlFlowException extends Error {
 
     }
 
@@ -41,7 +41,7 @@ public class Truffle {
 
     }
 
-    public static class UnexpectedResultException extends Exception {
+    @SuppressWarnings("serial") public static class UnexpectedResultException extends Exception {
         Object v;
 
         public UnexpectedResultException(Object value) {
@@ -77,7 +77,7 @@ public class Truffle {
         }
 
         public int find(RSymbol symbol) {
-            Integer i = h.get(symbol);
+            final Integer i = h.get(symbol);
             if (i == null) return -1;
             else return i;
         }

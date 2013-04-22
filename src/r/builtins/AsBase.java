@@ -42,7 +42,7 @@ abstract class AsBase extends CallFactory {
     }
 
     // list
-    static RAny genericAsList(ASTNode ast, RAny arg) {
+    @SuppressWarnings("unused") static RAny genericAsList(ASTNode ast, RAny arg) {
         throw Utils.nyi();
     }
 

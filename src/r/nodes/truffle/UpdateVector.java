@@ -1,15 +1,17 @@
 package r.nodes.truffle;
 
+import java.util.*;
+
 import r.*;
+import r.Truffle.Child;
+import r.Truffle.Children;
+import r.Truffle.Frame;
+import r.Truffle.UnexpectedResultException;
 import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
-import r.errors.RError;
+import r.errors.*;
 import r.nodes.*;
-import r.nodes.truffle.ReadVector.*;
-
-import java.util.*;
-import r.Truffle.*;
 
 // TODO: clean-up generic code using .getRef
 
@@ -1740,28 +1742,23 @@ public abstract class UpdateVector extends BaseR {
         final double c;
 
         public LogicalEqualitySelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode xExpr, double c, RNode rhs, boolean subset) {
-            super(ast, isSuper, var, lhs, new RNode[] { xExpr }, rhs, subset);
-                // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
-                // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
+            super(ast, isSuper, var, lhs, new RNode[]{xExpr}, rhs, subset);
+            // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
+            // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
 
             Utils.check(subset);
-            this.c =c;
+            this.c = c;
         }
 
-        @Override
-        RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
+        @Override RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
             try {
-                if (!(baseArg instanceof RDouble && xArg instanceof RDouble && valueArg instanceof RDouble)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(baseArg instanceof RDouble && xArg instanceof RDouble && valueArg instanceof RDouble)) { throw new UnexpectedResultException(null); }
                 RDouble base = (RDouble) baseArg;
                 RDouble x = (RDouble) xArg;
                 RDouble value = (RDouble) valueArg;
                 int size = base.size();
                 int vsize = value.size();
-                if (x.size() != size) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (x.size() != size) { throw new UnexpectedResultException(null); }
                 // FIXME: avoid copying of private base, when the rhs does not depend on it
 
                 boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
@@ -1780,9 +1777,7 @@ public abstract class UpdateVector extends BaseR {
                         content[i] = base.getDouble(i);
                     }
                 }
-                if (hasNA && vsize >= 2) {
-                    throw RError.getNASubscripted(ast);
-                }
+                if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                 if (vi != 0) {
                     RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                 }
@@ -1793,10 +1788,9 @@ public abstract class UpdateVector extends BaseR {
                 EQ eq = (EQ) av.getArgs().first().getValue();
                 RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
 
-                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC),
-                        r.nodes.truffle.Comparison.getEQ());
+                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC), r.nodes.truffle.Comparison.getEQ());
 
-                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[] { indexExpr }, rhs, true);
+                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[]{indexExpr}, rhs, true);
                 replace(ls, "install LogicalSelection from LogicalEqualitySelection");
                 if (DEBUG_UP) Utils.debug("selection - replaced and re-executing with LogicalSelection");
 
@@ -2422,9 +2416,7 @@ public abstract class UpdateVector extends BaseR {
                 bsymbols = null;
             } else {
                 nmap = bnames.getMap();
-                if (bnames.keepsMap()) {
-                    nmap = new HashMap<RSymbol, Integer>(nmap);
-                }
+                nmap = new HashMap<>(nmap);
                 bsymbols = bnames.sequence();
             }
 

@@ -139,7 +139,8 @@ public class UpdateMatrix extends BaseR {
         }
     }
 
-    protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value) throws UnexpectedResultException {
+    @SuppressWarnings("unused") protected Object execute(RArray base, int m, int n, ReadMatrix.Selector selI, ReadMatrix.Selector selJ, int drop, int exact, RArray value)
+            throws UnexpectedResultException {
         throw new Error("UNREACHABLE");
     }
 

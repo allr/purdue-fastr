@@ -32,7 +32,7 @@ final class Sort extends CallFactory {
         super(name, params, required);
     }
 
-    final static ArgumentMatch methodMatch = new ArgumentMatch(new String[]{"shell", "quick"});
+    static final ArgumentMatch methodMatch = new ArgumentMatch(new String[]{"shell", "quick"});
 
     // returns true for quicksort, false for shellsort (shellsort is the default)
     public static boolean parseMethod(RAny arg, ASTNode ast) {

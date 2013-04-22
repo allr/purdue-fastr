@@ -30,7 +30,7 @@ final class QrCoef extends CallFactory {
     static final RSymbol rankSymbol = RSymbol.getSymbol("rank");
     static final RSymbol useLAPACKSymbol = RSymbol.getSymbol("useLAPACK");
 
-    public static RAny coef(RAny qrArg, RAny yArg, ASTNode ast) {
+    @SuppressWarnings("unused") public static RAny coef(RAny qrArg, RAny yArg, ASTNode ast) {
         throw Utils.nyi("not imeplemented");
 
     }

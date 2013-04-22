@@ -59,12 +59,12 @@ final class Rank extends CallFactory {
         throw RError.getInvalidArgument(ast, "na.last");
     }
 
-    final static ArgumentMatch tiesMethodMatch = new ArgumentMatch(new String[]{"average", "first", "random", "max", "min"});
-    final static int TM_AVERAGE = 0;
-    final static int TM_FIRST = 1;
-    final static int TM_RANDOM = 2;
-    final static int TM_MAX = 3;
-    final static int TM_MIN = 4;
+    static final ArgumentMatch tiesMethodMatch = new ArgumentMatch(new String[]{"average", "first", "random", "max", "min"});
+    static final int TM_AVERAGE = 0;
+    static final int TM_FIRST = 1;
+    static final int TM_RANDOM = 2;
+    static final int TM_MAX = 3;
+    static final int TM_MIN = 4;
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);

@@ -5,10 +5,9 @@ import r.data.internal.View;
 import java.util.HashMap;
 
 /**
- * The interface for all arrays. R makes the distinction between vectors and
- * arrays. In R, a array can be considered as a multiply subscripted collection
- * of data entries.
- *
+ * The interface for all arrays. R makes the distinction between vectors and arrays. In R, a array can be considered as
+ * a multiply subscripted collection of data entries.
+ * 
  * <pre>
  *  TODO: dimensions array should never be modified (only can be replaced, to allow sharing)
  *  TODO: names object should never be modified (only can be replaced, to allow sharing)
@@ -16,7 +15,7 @@ import java.util.HashMap;
  */
 public interface RArray extends RAny {
 
-    int[] SCALAR_DIMENSIONS = new int[] {1, 1};
+    int[] SCALAR_DIMENSIONS = new int[]{1, 1};
 
     int size();
 
@@ -73,21 +72,16 @@ public interface RArray extends RAny {
     }
 
     /**
-     * Implementation of the names attribute. When fewer names are provided than
-     * the vector's size, they are extended by character NAs to the length of x.
-     * Multiple occurrences of the same symbol are possible in names attribute
-     * for the same vector. The name "" is special: it is used to indicate that
-     * there is no name associated with an element of a (atomic or generic)
-     * vector. Subscripting by "" will match nothing (not even elements which
-     * have no name). A name can be character NA, but such a name will never be
-     * matched and is likely to lead to confusion.
+     * Implementation of the names attribute. When fewer names are provided than the vector's size, they are extended by
+     * character NAs to the length of x. Multiple occurrences of the same symbol are possible in names attribute for the
+     * same vector. The name "" is special: it is used to indicate that there is no name associated with an element of a
+     * (atomic or generic) vector. Subscripting by "" will match nothing (not even elements which have no name). A name
+     * can be character NA, but such a name will never be matched and is likely to lead to confusion.
      * <p>
-     * For vectors, the names are one of the attributes with restrictions on the
-     * possible values. For pairlists, the names are the tags and converted to
-     * and from a character vector. For a one-dimensional array the names
-     * attribute really is dimnames[[1]]. Formally classed aka S4 objects
-     * typically have slotNames() (and no names()).
-     *
+     * For vectors, the names are one of the attributes with restrictions on the possible values. For pairlists, the
+     * names are the tags and converted to and from a character vector. For a one-dimensional array the names attribute
+     * really is dimnames[[1]]. Formally classed aka S4 objects typically have slotNames() (and no names()).
+     * 
      * <pre>
      * FIXME: Should we really have an object that wraps around an array. This seems slightly wasteful.
      * FIXME: Note that when using a hashmap we have to be careful. The same symbol can occur multiple times
@@ -147,9 +141,9 @@ public interface RArray extends RAny {
         }
 
         /**
-         * Compares two symbols to see if src is a partial match with tgt.
-         * Return false if either of them has a null name().
-         *
+         * Compares two symbols to see if src is a partial match with tgt. Return false if either of them has a null
+         * name().
+         * 
          * <pre>
          * FIXME: Is it possible for name() to be null?
          * </pre>
@@ -160,8 +154,7 @@ public interface RArray extends RAny {
         }
 
         /**
-         * Returns the offset of the symbol name or -1 one if either not present
-         * or matched multiple times.
+         * Returns the offset of the symbol name or -1 one if either not present or matched multiple times.
          */
         public int mapPartial(RSymbol name) {
             int res = -1;
@@ -180,8 +173,8 @@ public interface RArray extends RAny {
         }
 
         /**
-         * NA and "" never match, and thus need not be put in the hashmap. For
-         * multiply occurring names we return the first index.
+         * NA and "" never match, and thus need not be put in the hashmap. For multiply occurring names we return the
+         * first index.
          */
         private void initializeMapIfNeeded() {
             if (map != null) { return; }
@@ -205,12 +198,6 @@ public interface RArray extends RAny {
             return map;
         }
 
-        /**
-         * FIXME: What is this method doing?
-         */
-        public boolean keepsMap() {
-            return true;
-        }
     }
 
     public static class RListView extends View.RListView implements RList {

@@ -310,7 +310,7 @@ public class Truffleize implements Visitor {
 
         // replacement assignment
         RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
-        RNode parentOfValueExpr = (RNode) valueExpr.getParent();
+        RNode parentOfValueExpr = valueExpr.getParent();
         RememberLast remValueExpr = new RememberLast(valueExpr.getAST(), valueExpr);
         parentOfValueExpr.replaceChild(valueExpr, remValueExpr);
         a.convertedExpressions[a.convertedExpressions.length - 1] = remValueExpr;
@@ -463,8 +463,8 @@ public class Truffleize implements Visitor {
                         if (cv instanceof RDouble && ((RDouble) cv).size() == 1) {
                             double c = ((RDouble) cv).getDouble(0);
                             if (RDouble.RDoubleUtils.isFinite(c)) {
-                                result = new r.nodes.truffle.UpdateVector.LogicalEqualitySelection(a, u.isSuper(), var, createTree(varAccess), createTree(eqNode.getLHS()),
-                                        c, createTree(u.getRHS()), a.isSubset());
+                                result = new r.nodes.truffle.UpdateVector.LogicalEqualitySelection(a, u.isSuper(), var, createTree(varAccess), createTree(eqNode.getLHS()), c, createTree(u.getRHS()),
+                                        a.isSubset());
 
                                 return;
                             }
@@ -472,7 +472,6 @@ public class Truffleize implements Visitor {
                     }
                 }
             }
-
 
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
                 result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());

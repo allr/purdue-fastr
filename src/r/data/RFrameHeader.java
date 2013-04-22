@@ -887,7 +887,7 @@ public class RFrameHeader {
             private HashMap<RSymbol, Integer> map; // FIXME: use a primitive map
 
             private Hashed(int size) {
-                map = new HashMap<RSymbol, Integer>(size);
+                map = new HashMap<>(size);
             }
 
             @Override protected int getPosition(RSymbol name) {

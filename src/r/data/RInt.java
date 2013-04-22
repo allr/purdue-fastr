@@ -13,13 +13,16 @@ public interface RInt extends RNumber {
     ScalarIntImpl BOXED_ZERO = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(0));
     ScalarIntImpl BOXED_ONE = (ScalarIntImpl) RArrayUtils.markShared(RIntFactory.getScalar(1));
     IntImpl EMPTY = (IntImpl) RArrayUtils.markShared(RIntFactory.getUninitializedArray(0));
-    IntImpl EMPTY_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
-    IntImpl NA_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
+    IntImpl EMPTY_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[]{}, null, Names.create(new RSymbol[]{RSymbol.NA_SYMBOL})));
+    IntImpl NA_NAMED_NA = (IntImpl) RArrayUtils.markShared(RIntFactory.getFor(new int[]{NA}, null, Names.create(new RSymbol[]{RSymbol.NA_SYMBOL})));
 
     int getInt(int i);
+
     RInt set(int i, int val);
+
     RInt materialize();
-    public int[] getContent();
+
+    int[] getContent();
 
     public class RIntUtils {
         public static RRaw intToRaw(RInt value, ConversionStatus warn) { // eager to keep error semantics eager
@@ -31,10 +34,11 @@ public interface RInt extends RNumber {
             }
             return RRaw.RRawFactory.getFor(content, value.dimensions(), value.names());
         }
+
         public static int[] copyAsIntArray(RInt v) {
             int size = v.size();
             if (size == 1) {
-                return new int[] {v.getInt(0)};
+                return new int[]{v.getInt(0)};
             } else {
                 int[] res = new int[size];
 
@@ -49,99 +53,98 @@ public interface RInt extends RNumber {
             }
         }
     }
+
     public class RIntFactory {
         public static ScalarIntImpl getScalar(int value) {
             return new ScalarIntImpl(value);
         }
+
         public static RInt getScalar(int value, int[] dimensions) {
             if (dimensions == null) {
                 return new ScalarIntImpl(value);
             } else {
-                return getFor(new int[] {value}, dimensions, null);
+                return getFor(new int[]{value}, dimensions, null);
             }
         }
+
         public static RInt getArray(int... values) {
-            if (values.length == 1) {
-                return new ScalarIntImpl(values[0]);
-            }
+            if (values.length == 1) { return new ScalarIntImpl(values[0]); }
             return new IntImpl(values);
         }
+
         public static RInt getArray(int[] values, int[] dimensions) {
-            if (dimensions == null && values.length == 1) {
-                return new ScalarIntImpl(values[0]);
-            }
+            if (dimensions == null && values.length == 1) { return new ScalarIntImpl(values[0]); }
             return new IntImpl(values, dimensions, null);
         }
+
         public static RInt getUninitializedArray(int size) {
-            if (size == 1) {
-                return new ScalarIntImpl(0);
-            }
+            if (size == 1) { return new ScalarIntImpl(0); }
             return new IntImpl(size);
         }
+
         public static RInt getUninitializedNonScalarArray(int size) {
             return new IntImpl(size);
         }
+
         public static RInt getUninitializedArray(int size, int[] dimensions, Names names, Attributes attributes) {
-            if (size == 1 && dimensions == null && names == null && attributes == null) {
-                return new ScalarIntImpl(0);
-            }
+            if (size == 1 && dimensions == null && names == null && attributes == null) { return new ScalarIntImpl(0); }
             return new IntImpl(new int[size], dimensions, names, attributes, false);
         }
+
         public static RInt getNAArray(int size) {
             return getNAArray(size, null);
         }
+
         public static RInt getNAArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
-                return BOXED_NA;
-            }
+            if (size == 1 && dimensions == null) { return BOXED_NA; }
             int[] content = new int[size];
             Arrays.fill(content, NA);
             return new IntImpl(content, dimensions, null, null, false);
         }
+
         public static IntImpl getMatrixFor(int[] values, int m, int n) {
-            return new IntImpl(values, new int[] {m, n}, null, null, false);
+            return new IntImpl(values, new int[]{m, n}, null, null, false);
         }
+
         public static RInt copy(RInt i) {
-            if (i.size() == 1 && i.dimensions() == null && i.names() == null && i.attributes() == null) {
-                return new ScalarIntImpl(i.getInt(0));
-            }
+            if (i.size() == 1 && i.dimensions() == null && i.names() == null && i.attributes() == null) { return new ScalarIntImpl(i.getInt(0)); }
             return new IntImpl(i, false);
         }
+
         public static RInt strip(RInt v) {
-            if (v.size() == 1) {
-                return new ScalarIntImpl(v.getInt(0));
-            }
+            if (v.size() == 1) { return new ScalarIntImpl(v.getInt(0)); }
             return new IntImpl(v, true);
         }
+
         public static RInt getFor(int[] values) { // re-uses values!
             return getFor(values, null, null);
         }
-        public static RInt getFor(int[] values, int[] dimensions, Names names) {  // re-uses values!
-            if (values.length == 1 && dimensions == null && names == null) {
-                return new ScalarIntImpl(values[0]);
-            }
+
+        public static RInt getFor(int[] values, int[] dimensions, Names names) { // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null) { return new ScalarIntImpl(values[0]); }
             return new IntImpl(values, dimensions, names, null, false);
         }
-        public static RInt getFor(int[] values, int[] dimensions, Names names, Attributes attributes) {  // re-uses values!
-            if (values.length == 1 && dimensions == null && names == null && attributes == null) {
-                return new ScalarIntImpl(values[0]);
-            }
+
+        public static RInt getFor(int[] values, int[] dimensions, Names names, Attributes attributes) { // re-uses values!
+            if (values.length == 1 && dimensions == null && names == null && attributes == null) { return new ScalarIntImpl(values[0]); }
             return new IntImpl(values, dimensions, names, attributes, false);
         }
+
         public static RInt forSequence(int from, int to, int step) {
             return new IntImpl.RIntSequence(from, to, step);
         }
+
         public static RInt getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;
         }
+
         public static RInt getNA(boolean named) {
             return named ? NA_NAMED_NA : BOXED_NA;
         }
+
         public static RInt exclude(int excludeIndex, RInt orig) {
             Names names = orig.names();
-            if (names == null) {
-                return new RIntExclusion(excludeIndex, orig);
-            }
+            if (names == null) { return new RIntExclusion(excludeIndex, orig); }
             int size = orig.size();
             int nsize = size - 1;
             int[] content = new int[nsize];
@@ -153,6 +156,7 @@ public interface RInt extends RNumber {
             }
             return RIntFactory.getFor(content, null, names.exclude(excludeIndex));
         }
+
         public static RInt subset(RInt value, RInt index) {
             return new RIntSubset(value, index);
         }
@@ -164,48 +168,39 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
-        @Override
-        public RComplex asComplex() {
+        @Override public RComplex asComplex() {
             return orig.asComplex();
         }
 
-        @Override
-        public RDouble asDouble() {
+        @Override public RDouble asDouble() {
             return orig.asDouble();
         }
 
-        @Override
-        public RInt asInt() {
+        @Override public RInt asInt() {
             return orig;
         }
 
-        @Override
-        public RRaw asRaw() {
+        @Override public RRaw asRaw() {
             return orig.asRaw();
         }
 
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
+        @Override public RComplex asComplex(ConversionStatus warn) {
             return orig.asComplex();
         }
 
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
+        @Override public RDouble asDouble(ConversionStatus warn) {
             return orig.asDouble();
         }
 
-        @Override
-        public RInt asInt(ConversionStatus warn) {
+        @Override public RInt asInt(ConversionStatus warn) {
             return orig;
         }
 
-        @Override
-        public RRaw asRaw(ConversionStatus warn) {
+        @Override public RRaw asRaw(ConversionStatus warn) {
             return orig.asRaw(warn);
         }
 
-        @Override
-        public String getString(int i) {
+        @Override public String getString(int i) {
             int v = orig.getInt(i);
             return Convert.int2string(v);
         }
@@ -217,54 +212,44 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
-        @Override
-        public RDouble asDouble() {
+        @Override public RDouble asDouble() {
             return orig.asDouble();
         }
 
-        @Override
-        public RInt asInt() {
+        @Override public RInt asInt() {
             return orig;
         }
 
-        @Override
-        public RLogical asLogical() {
+        @Override public RLogical asLogical() {
             return orig.asLogical();
         }
 
-        @Override
-        public RRaw asRaw() {
+        @Override public RRaw asRaw() {
             return orig.asRaw();
         }
 
-        @Override
-        public RDouble asDouble(ConversionStatus warn) {
+        @Override public RDouble asDouble(ConversionStatus warn) {
             return orig.asDouble();
         }
 
-        @Override
-        public RInt asInt(ConversionStatus warn) {
+        @Override public RInt asInt(ConversionStatus warn) {
             return orig;
         }
 
-        @Override
-        public RLogical asLogical(ConversionStatus warn) {
+        @Override public RLogical asLogical(ConversionStatus warn) {
             return orig.asLogical();
         }
 
-        @Override
-        public RRaw asRaw(ConversionStatus warn) {
+        @Override public RRaw asRaw(ConversionStatus warn) {
             return orig.asRaw(warn);
         }
 
-        @Override
-        public double getReal(int i) {
+        @Override public double getReal(int i) {
             int v = orig.getInt(i);
             return Convert.int2double(v);
         }
 
-        @Override
-        public double getImag(int i) {
+        @Override public double getImag(int i) {
             return 0;
         }
     }
@@ -275,54 +260,45 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
-     // fast debugging format does not support this shortcut, non-debugging format probably would
-//        @Override
-//        public RString asString() {
-//            return orig.asString();
-//        }
+        // fast debugging format does not support this shortcut, non-debugging format probably would
+        //        @Override
+        //        public RString asString() {
+        //            return orig.asString();
+        //        }
 
-        @Override
-        public RComplex asComplex() {
+        @Override public RComplex asComplex() {
             return orig.asComplex();
         }
 
-        @Override
-        public RInt asInt() {
+        @Override public RInt asInt() {
             return orig;
         }
 
-        @Override
-        public RLogical asLogical() {
+        @Override public RLogical asLogical() {
             return orig.asLogical();
         }
 
-        @Override
-        public RRaw asRaw() {
+        @Override public RRaw asRaw() {
             return orig.asRaw();
         }
 
-        @Override
-        public RComplex asComplex(ConversionStatus warn) {
+        @Override public RComplex asComplex(ConversionStatus warn) {
             return orig.asComplex();
         }
 
-        @Override
-        public RInt asInt(ConversionStatus warn) {
+        @Override public RInt asInt(ConversionStatus warn) {
             return orig;
         }
 
-        @Override
-        public RLogical asLogical(ConversionStatus warn) {
+        @Override public RLogical asLogical(ConversionStatus warn) {
             return orig.asLogical();
         }
 
-        @Override
-        public RRaw asRaw(ConversionStatus warn) {
+        @Override public RRaw asRaw(ConversionStatus warn) {
             return orig.asRaw(warn);
         }
 
-        @Override
-        public double getDouble(int i) {
+        @Override public double getDouble(int i) {
             int v = orig.getInt(i);
             return Convert.int2double(v);
         }
@@ -334,8 +310,7 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
-        @Override
-        public int getLogical(int i) {
+        @Override public int getLogical(int i) {
             int v = orig.getInt(i);
             return Convert.int2logical(v);
         }
@@ -347,8 +322,7 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
-        @Override
-        public byte getRaw(int i) {
+        @Override public byte getRaw(int i) {
             int v = orig.getInt(i);
             return Convert.int2raw(v);
         }
@@ -366,13 +340,11 @@ public interface RInt extends RNumber {
             this.size = orig.size() - 1;
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return size;
         }
 
-        @Override
-        public int getInt(int i) {
+        @Override public int getInt(int i) {
             assert Utils.check(i < size, "bounds check");
             assert Utils.check(i >= 0, "bounds check");
 
@@ -383,18 +355,15 @@ public interface RInt extends RNumber {
             }
         }
 
-        @Override
-        public boolean isSharedReal() {
+        @Override public boolean isSharedReal() {
             return orig.isShared();
         }
 
-        @Override
-        public void ref() {
+        @Override public void ref() {
             orig.ref();
         }
 
-        @Override
-        public boolean dependsOn(RAny value) {
+        @Override public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
     }
@@ -415,13 +384,11 @@ public interface RInt extends RNumber {
             this.vsize = value.size();
         }
 
-        @Override
-        public int size() {
+        @Override public int size() {
             return isize;
         }
 
-        @Override
-        public int getInt(int i) {
+        @Override public int getInt(int i) {
             int j = index.getInt(i);
             if (j > vsize) {
                 return RInt.NA;
@@ -430,19 +397,16 @@ public interface RInt extends RNumber {
             }
         }
 
-        @Override
-        public boolean isSharedReal() {
+        @Override public boolean isSharedReal() {
             return value.isShared() || index.isShared();
         }
 
-        @Override
-        public void ref() {
+        @Override public void ref() {
             value.ref();
             index.ref();
         }
 
-        @Override
-        public boolean dependsOn(RAny v) {
+        @Override public boolean dependsOn(RAny v) {
             return value.dependsOn(v) || index.dependsOn(v);
         }
     }

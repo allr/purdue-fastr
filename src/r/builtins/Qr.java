@@ -26,7 +26,7 @@ public class Qr extends CallFactory {
         return d.getDouble(0);
     }
 
-    public static RAny qr(RAny xArg, RAny tolArg, RAny lapackArg, ASTNode ast) {
+    @SuppressWarnings("unused") public static RAny qr(RAny xArg, RAny tolArg, RAny lapackArg, ASTNode ast) {
         throw Utils.nyi("not implemented");
 
     }

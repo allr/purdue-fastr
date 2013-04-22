@@ -7,7 +7,6 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
 import java.lang.Integer; // needed because there is a class Integer in this package
 
 public abstract class CallFactory {

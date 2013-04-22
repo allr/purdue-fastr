@@ -124,7 +124,7 @@ final class Scan extends CallFactory {
 
     private static ConversionStatus cs = new ConversionStatus();
 
-    public static RString scanString(ArrayList<String> src, ASTNode ast) {
+    public static RString scanString(ArrayList<String> src, @SuppressWarnings("unused") ASTNode ast) {
         int size = src.size();
         String[] content = new String[size];
         return RString.RStringFactory.getFor(src.toArray(content));

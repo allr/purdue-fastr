@@ -1,6 +1,7 @@
 package r.nodes;
 
-/** UpdateField AST, for $ operator at top level LHS of assignment.
+/**
+ * * UpdateField AST, for $ operator at top level LHS of assignment.
  */
 public class UpdateField extends ASTNode {
 
@@ -8,7 +9,7 @@ public class UpdateField extends ASTNode {
     ASTNode rhs;
     final boolean isSuper;
 
-    public UpdateField(boolean isSuper, FieldAccess vector, ASTNode rhs) {
+    public UpdateField(final boolean isSuper, final FieldAccess vector, final ASTNode rhs) {
         this.vector = updateParent(vector);
         this.rhs = updateParent(rhs);
         this.isSuper = isSuper;
@@ -26,13 +27,11 @@ public class UpdateField extends ASTNode {
         return isSuper;
     }
 
-    @Override
-    public void accept(Visitor v) {
+    @Override public void accept(final Visitor v) {
         v.visit(this);
     }
 
-    @Override
-    public void visit_all(Visitor v) {
+    @Override public void visit_all(final Visitor v) {
         rhs.accept(v);
         vector.accept(v);
     }

@@ -13,8 +13,6 @@ public class If extends BaseR {
     @Child RNode trueBranch;
     @Child RNode falseBranch;
 
-    private static final boolean DEBUG_IF = false;
-
     public If(ASTNode ast, RNode cond, RNode trueBranch, RNode falseBranch) {
         super(ast);
         this.cond = adoptChild(cond);
@@ -34,13 +32,9 @@ public class If extends BaseR {
     //   - a generic conversion node that can convert anything
     @Override public final Object execute(Frame frame) {
         int ifVal;
-
         try {
-            if (DEBUG_IF) Utils.debug("executing condition");
             ifVal = cond.executeScalarLogical(frame);
-            if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (UnexpectedResultException e) {
-            if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
             replaceChild(cond, castNode);

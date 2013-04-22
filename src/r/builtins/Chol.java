@@ -17,7 +17,7 @@ final class Chol extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        ArgumentInfo ia = check(call, names, exprs);
+        check(call, names, exprs);
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 throw Utils.nyi("LINPACK version not implemented");

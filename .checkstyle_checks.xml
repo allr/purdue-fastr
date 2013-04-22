@@ -5,8 +5,9 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Checks
-    Description: none
+    Checkstyle-Configuration: Fastr Checks
+    Description: 
+Customized Checkstyle Checks for Fastr
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
@@ -33,28 +34,46 @@
     <module name="LineLength">
       <property name="max" value="300"/>
     </module>
-    <module name="MethodParamPad"/>
+    <module name="MethodParamPad">
+      <property name="severity" value="ignore"/>
+    </module>
     <module name="NoWhitespaceAfter">
+      <property name="severity" value="ignore"/>
       <property name="tokens" value="ARRAY_INIT,BNOT,DEC,DOT,INC,LNOT,UNARY_MINUS,UNARY_PLUS"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="NoWhitespaceBefore">
+      <property name="severity" value="ignore"/>
       <property name="tokens" value="SEMI,DOT,POST_DEC,POST_INC"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
-    <module name="ParenPad"/>
+    <module name="ParenPad">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="TypecastParenPad">
+      <property name="severity" value="ignore"/>
       <property name="tokens" value="RPAREN,TYPECAST"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
-    <module name="WhitespaceAfter"/>
+    <module name="WhitespaceAfter">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="WhitespaceAround">
+      <property name="severity" value="ignore"/>
       <property name="tokens" value="ASSIGN,BAND,BAND_ASSIGN,BOR,BOR_ASSIGN,BSR,BSR_ASSIGN,BXOR,BXOR_ASSIGN,COLON,DIV,DIV_ASSIGN,EQUAL,GE,GT,LAND,LE,LITERAL_ASSERT,LITERAL_CATCH,LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_FOR,LITERAL_IF,LITERAL_RETURN,LITERAL_SYNCHRONIZED,LITERAL_TRY,LITERAL_WHILE,LOR,LT,MINUS,MINUS_ASSIGN,MOD,MOD_ASSIGN,NOT_EQUAL,PLUS,PLUS_ASSIGN,QUESTION,SL,SLIST,SL_ASSIGN,SR,SR_ASSIGN,STAR,STAR_ASSIGN,LITERAL_ASSERT,TYPE_EXTENSION_AND"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="RedundantModifier"/>
     <module name="AvoidNestedBlocks">
       <property name="allowInSwitchCase" value="true"/>
     </module>
     <module name="EmptyBlock">
+      <property name="severity" value="ignore"/>
       <property name="option" value="text"/>
       <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_TRY,LITERAL_WHILE,STATIC_INIT"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="LeftCurly">
       <property name="severity" value="ignore"/>
@@ -66,6 +85,7 @@
     </module>
     <module name="RightCurly">
       <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="EmptyStatement"/>
     <module name="HiddenField">
@@ -101,8 +121,14 @@
     <module name="StaticVariableName">
       <property name="format" value="^[A-Za-z][a-zA-Z0-9]*$"/>
     </module>
-    <module name="EmptyForInitializerPad"/>
-    <module name="EmptyForIteratorPad"/>
+    <module name="EmptyForInitializerPad">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
+    <module name="EmptyForIteratorPad">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="ModifierOrder"/>
     <module name="DefaultComesLast"/>
     <module name="InnerAssignment">
@@ -136,7 +162,8 @@
     </module>
   </module>
   <module name="FileTabCharacter">
-    <property name="severity" value="error"/>
+    <property name="severity" value="ignore"/>
+    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="error"/>
   </module>
   <module name="NewlineAtEndOfFile">
     <property name="lineSeparator" value="lf"/>

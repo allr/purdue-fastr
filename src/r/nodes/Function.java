@@ -2,14 +2,12 @@ package r.nodes;
 
 import java.util.*;
 
-import r.Truffle.*;
-
 import r.*;
 import r.data.*;
-import r.data.RFunction.*;
+import r.data.RFunction.EnclosingSlot;
 import r.data.internal.*;
 import r.nodes.tools.*;
-import r.nodes.truffle.RNode;
+import r.nodes.truffle.*;
 
 public class Function extends ASTNode {
 

@@ -96,7 +96,7 @@ final class Cat extends CallFactory {
     // speculates on that all arguments are strings and separator is an empty string
     // the empty separator is a usual thing in R programs
     // all args strings is inspired by fasta
-    static void catStringsBuilder(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
+    static void catStringsBuilder(PrintWriter out, RAny[] args, int sepArgPos, @SuppressWarnings("unused") ASTNode ast) throws UnexpectedResultException {
         if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
         StringBuilder str = new StringBuilder();
         int argslen = args.length;
@@ -118,6 +118,9 @@ final class Cat extends CallFactory {
     }
 
     // a (slightly) faster version of catStringsBuilder
+    /**
+     * @param ast
+     */
     static void catStrings(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
         if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
         int argslen = args.length;
@@ -157,7 +160,7 @@ final class Cat extends CallFactory {
     // argument; however, it is unlikely to help much, if printing a lot and doing it line-by-line, we cannot really help much
     // an optimization to do a lazy flush could help more
 
-    static void catScalarStringsNoCopy(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
+    static void catScalarStringsNoCopy(PrintWriter out, RAny[] args, int sepArgPos, @SuppressWarnings("unused") ASTNode ast) throws UnexpectedResultException {
         if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
         int argslen = args.length;
         for (int j = 0; j < argslen; j++) {
