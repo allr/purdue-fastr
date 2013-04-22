@@ -25,19 +25,14 @@ final class Round extends CallFactory {
         super(name, params, required);
     }
 
-    @Override
-    public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
         final int digitsPosition = ia.position("digits");
 
-        if (digitsPosition == -1) {
-            return new Arithmetic(call,  exprs[0], new Constant(call, RDouble.BOXED_ZERO), ROUND_JAVA);
-        }
-        if (digitsPosition == 1) {
-            return new Arithmetic(call,  exprs[0], exprs[1], ROUND_JAVA);
-        }
+        if (digitsPosition == -1) { return new Arithmetic(call, exprs[0], new Constant(call, RDouble.BOXED_ZERO), ROUND_JAVA); }
+        if (digitsPosition == 1) { return new Arithmetic(call, exprs[0], exprs[1], ROUND_JAVA); }
         // digitsPosition == 0;
-        return new Arithmetic(call,  exprs[1], exprs[0], ROUND_JAVA);
+        return new Arithmetic(call, exprs[1], exprs[0], ROUND_JAVA);
     }
 
     static final int MAX_DIGITS = 37; // FIXME: check it reflects R
@@ -45,23 +40,16 @@ final class Round extends CallFactory {
     public static double round(double x, double digits) {
         // LICENSE: transcribed code from GNU R's math library, which is licensed under GPL
         int d;
-        if (RDouble.RDoubleUtils.isNAorNaN(x) || RDouble.RDoubleUtils.isNAorNaN(digits)) {
-            return x + digits;
-        }
-        if (digits == Double.NEGATIVE_INFINITY) {
-            return 0;
-        }
-        if (digits == Double.POSITIVE_INFINITY) {
-            return x;
-        }
+        if (RDouble.RDoubleUtils.isNAorNaN(x) || RDouble.RDoubleUtils.isNAorNaN(digits)) { return x + digits; }
+        if (digits == Double.NEGATIVE_INFINITY) { return 0; }
+        if (digits == Double.POSITIVE_INFINITY) { return x; }
         if (digits > MAX_DIGITS) {
             d = MAX_DIGITS;
         } else {
             d = (int) Math.floor(digits + 0.5);
         }
 
-        if (!RDouble.RDoubleUtils.isFinite(x)) {
-            return x; // NOTE: BigDecimal cannot be constructed for a non-finite number
+        if (!RDouble.RDoubleUtils.isFinite(x)) { return x; // NOTE: BigDecimal cannot be constructed for a non-finite number
         }
         return new BigDecimal(x).setScale(d, RoundingMode.HALF_EVEN).doubleValue();
     }
@@ -79,7 +67,7 @@ final class Round extends CallFactory {
             }
             return;
         }
-        boolean naDigits =  RDouble.RDoubleUtils.isNAorNaN(digits);
+        boolean naDigits = RDouble.RDoubleUtils.isNAorNaN(digits);
         int d;
         if (naDigits) {
             d = 0;
@@ -103,39 +91,31 @@ final class Round extends CallFactory {
     // in GNU-R, they do not use the same infrastructure for round as for arithmetic operators
     public static final class RoundJava extends ValueArithmetic {
 
-        @Override
-        public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            return round(a,c);
+        @Override public double opReal(ASTNode ast, double a, double b, double c, double d) {
+            return round(a, c);
         }
 
-        @Override
-        public double opImag(ASTNode ast, double a, double b, double c, double d) {
+        @Override public double opImag(ASTNode ast, double a, double b, double c, double d) {
             return round(b, c);
         }
 
-        @Override
-        public double op(ASTNode ast, double a, double b) {
+        @Override public double op(ASTNode ast, double a, double b) {
             return round(a, b);
         }
 
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+        @Override public int op(ASTNode ast, int a, int b) {
             Utils.nyi("unreachable");
             return -1;
         }
 
-        @Override
-        public void emitOverflowWarning(ASTNode ast) {
-        }
+        @Override public void emitOverflowWarning(ASTNode ast) {}
 
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
             Utils.nyi();
             return null;
         }
 
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        @Override public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xcomp.getContent();
             if (xcomp.isTemporary()) {
                 round(x, c, x);
@@ -148,8 +128,7 @@ final class Round extends CallFactory {
             }
         }
 
-        @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -163,8 +142,8 @@ final class Round extends CallFactory {
                 }
             }
         }
-        @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+
+        @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = round(a, y);
@@ -178,8 +157,7 @@ final class Round extends CallFactory {
             }
         }
 
-        @Override
-        public boolean returnsDouble() {
+        @Override public boolean returnsDouble() {
             return true;
         }
     }

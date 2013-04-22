@@ -32,7 +32,7 @@ public class Cor extends CallFactory {
     final static int M_NA_OR_COMPLETE = 4;
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        ArgumentInfo ia = check(call, names, exprs);
+        check(call, names, exprs);
         if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny xarg) {
                 // x must be matrix-like

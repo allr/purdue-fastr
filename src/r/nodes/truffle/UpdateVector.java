@@ -5,7 +5,8 @@ import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.RError;
-import r.nodes.ASTNode;
+import r.nodes.*;
+import r.nodes.truffle.ReadVector.*;
 
 import java.util.*;
 import r.Truffle.*;
@@ -1726,6 +1727,81 @@ public abstract class UpdateVector extends BaseR {
                 replace(gs, "install GenericSelection from NumericSelection");
                 if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
                 return gs.execute(base, index, value);
+            }
+        }
+    }
+
+    // for expressions like d[x == c] <- v, where
+    //   x is double, d is double, x and d are of the same length
+    //   c is a double constant
+    //   v is double
+    // FIXME: support more combinations
+    public static final class LogicalEqualitySelection extends UpdateVector {
+        final double c;
+
+        public LogicalEqualitySelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode xExpr, double c, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, new RNode[] { xExpr }, rhs, subset);
+                // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
+                // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
+
+            Utils.check(subset);
+            this.c =c;
+        }
+
+        @Override
+        RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
+            try {
+                if (!(baseArg instanceof RDouble && xArg instanceof RDouble && valueArg instanceof RDouble)) {
+                    throw new UnexpectedResultException(null);
+                }
+                RDouble base = (RDouble) baseArg;
+                RDouble x = (RDouble) xArg;
+                RDouble value = (RDouble) valueArg;
+                int size = base.size();
+                int vsize = value.size();
+                if (x.size() != size) {
+                    throw new UnexpectedResultException(null);
+                }
+                // FIXME: avoid copying of private base, when the rhs does not depend on it
+
+                boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
+                double[] content = new double[size];
+                int vi = 0;
+
+                for (int i = 0; i < size; i++) {
+                    double d = x.getDouble(i);
+                    if (d == c) {
+                        content[i] = value.getDouble(vi++);
+                        if (vi == vsize) {
+                            vi = 0;
+                        }
+                    } else {
+                        hasNA = hasNA || RDouble.RDoubleUtils.isNAorNaN(d);
+                        content[i] = base.getDouble(i);
+                    }
+                }
+                if (hasNA && vsize >= 2) {
+                    throw RError.getNASubscripted(ast);
+                }
+                if (vi != 0) {
+                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                }
+                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
+
+            } catch (UnexpectedResultException e) {
+                AccessVector av = (AccessVector) ast;
+                EQ eq = (EQ) av.getArgs().first().getValue();
+                RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
+
+                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC),
+                        r.nodes.truffle.Comparison.getEQ());
+
+                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[] { indexExpr }, rhs, true);
+                replace(ls, "install LogicalSelection from LogicalEqualitySelection");
+                if (DEBUG_UP) Utils.debug("selection - replaced and re-executing with LogicalSelection");
+
+                // index
+                return ls.execute(baseArg, (RAny) indexExpr.execute(xArg, boxedC), valueArg);
             }
         }
     }

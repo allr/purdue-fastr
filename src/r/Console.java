@@ -217,8 +217,8 @@ public class Console {
     static void parseError(RParser parser, RecognitionException e) {
         Token token = e.token;
         String[] tokenNames = parser.getTokenNames();
-        System.err
-                .print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1) + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "). " : ". "));
+        System.err.print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1)
+                + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "). " : ". "));
         System.err.println(parser.getErrorMessage(e, null));
     }
 

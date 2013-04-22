@@ -171,27 +171,37 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         if (itemsToReplace > 0) {
             int rhsOffset = 0;
-            for (;;) {
-                int lhsOffset = offsets[0];
-                if (lhsOffset != RInt.NA) {
+            if (!mayHaveNA) {
+                for (;;) {
+                    int lhsOffset = offsets[0];
                     lhs.set(lhsOffset, rhs.getRef(rhsOffset));
-                }
-                rhsOffset++;
-                if (rhsOffset < replacementSize) {
-                    if (!mayHaveNA) {
+                    rhsOffset++;
+                    if (rhsOffset < replacementSize) {
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                     } else {
-                        Selector.advance(offsets, lhsDim, selectorVals, ast);
-                    }
-                } else {
-                    itemsToReplace -= replacementSize;
-                    if (itemsToReplace == 0) {
-                        break;
-                    }
-                    rhsOffset = 0;
-                    if (!mayHaveNA) {
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
+                        }
+                        rhsOffset = 0;
                         Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                    }
+                }
+            } else {
+                for (;;) {
+                    int lhsOffset = offsets[0];
+                    if (lhsOffset != RInt.NA) {
+                        lhs.set(lhsOffset, rhs.getRef(rhsOffset));
+                    }
+                    rhsOffset++;
+                    if (rhsOffset < replacementSize) {
+                        Selector.advance(offsets, lhsDim, selectorVals, ast);
                     } else {
+                        itemsToReplace -= replacementSize;
+                        if (itemsToReplace == 0) {
+                            break;
+                        }
+                        rhsOffset = 0;
                         Selector.restart(offsets, selectorVals, lhsDim, ast);
                     }
                 }
@@ -999,16 +1009,22 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 int[] lhsVal = ((LogicalImpl) lhs).getContent();
                 int rhsVal = ((RLogical) rhs).getLogical(0);
 
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal;
-                    }
-                    replacementSize--;
-                    if (replacementSize == 0) { return lhs; }
-                    if (!mayHaveNA) {
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
-                    } else {
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal;
+                        }
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 }
@@ -1042,16 +1058,22 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 int[] lhsVal = ((IntImpl) lhs).getContent();
                 int rhsVal = ((RInt) rhs).getInt(0);
 
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal;
-                    }
-                    replacementSize--;
-                    if (replacementSize == 0) { return lhs; }
-                    if (!mayHaveNA) {
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
-                    } else {
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal;
+                        }
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 }
@@ -1085,16 +1107,22 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 double[] lhsVal = ((DoubleImpl) lhs).getContent();
                 double rhsVal = ((RDouble) rhs).getDouble(0);
 
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal;
-                    }
-                    replacementSize--;
-                    if (replacementSize == 0) { return lhs; }
-                    if (!mayHaveNA) {
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
-                    } else {
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal;
+                        }
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 }
@@ -1129,17 +1157,24 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 double re = ((RComplex) rhs).getReal(0);
                 double im = ((RComplex) rhs).getImag(0);
 
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset * 2] = re;
                         lhsVal[lhsOffset * 2 + 1] = im;
-                    }
-                    replacementSize--;
-                    if (replacementSize == 0) { return lhs; }
-                    if (!mayHaveNA) {
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
-                    } else {
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset * 2] = re;
+                            lhsVal[lhsOffset * 2 + 1] = im;
+                        }
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 }
@@ -1173,16 +1208,22 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 java.lang.String[] lhsVal = ((StringImpl) lhs).getContent();
                 java.lang.String rhsVal = ((RString) rhs).getString(0);
 
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal;
-                    }
-                    replacementSize--;
-                    if (replacementSize == 0) { return lhs; }
-                    if (!mayHaveNA) {
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
-                    } else {
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal;
+                        }
+                        replacementSize--;
+                        if (replacementSize == 0) { return lhs; }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
                 }
@@ -1435,31 +1476,44 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
+
                 }
+
             }
             return lhs;
         }
@@ -1515,31 +1569,42 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
+
             }
             return lhs;
         }
@@ -1596,31 +1661,42 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[lhsOffset] = rhsVal[rhsOffset];
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
+
             }
             return lhs;
         }
@@ -1675,32 +1751,44 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
                         lhsVal[2 * lhsOffset + 1] = 0;
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
+                            lhsVal[2 * lhsOffset + 1] = 0;
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
+
             }
             return lhs;
         }
@@ -1756,32 +1844,44 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
                         lhsVal[2 * lhsOffset + 1] = 0;
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
+                            lhsVal[2 * lhsOffset + 1] = 0;
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
+
             }
             return lhs;
         }
@@ -1838,32 +1938,44 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             if (itemsToReplace > 0) {
                 int rhsOffset = 0;
-                for (;;) {
-                    int lhsOffset = offsets[0];
-                    if (lhsOffset != RInt.NA) {
+                if (!mayHaveNA) {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
                         lhsVal[2 * lhsOffset] = rhsVal[2 * rhsOffset];
                         lhsVal[2 * lhsOffset + 1] = rhsVal[2 * rhsOffset + 1];
-                    }
-                    rhsOffset++;
-                    if (rhsOffset < replacementSize) {
-                        if (!mayHaveNA) {
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
                             Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                         } else {
-                            Selector.advance(offsets, lhsDim, selectorVals, ast);
-                        }
-                    } else {
-                        itemsToReplace -= replacementSize;
-                        if (itemsToReplace == 0) {
-                            break;
-                        }
-                        rhsOffset = 0;
-                        if (!mayHaveNA) {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restartNoNA(offsets, selectorVals, lhsDim, ast);
+                        }
+                    }
+                } else {
+                    for (;;) {
+                        int lhsOffset = offsets[0];
+                        if (lhsOffset != RInt.NA) {
+                            lhsVal[2 * lhsOffset] = rhsVal[2 * rhsOffset];
+                            lhsVal[2 * lhsOffset + 1] = rhsVal[2 * rhsOffset + 1];
+                        }
+                        rhsOffset++;
+                        if (rhsOffset < replacementSize) {
+                            Selector.advance(offsets, lhsDim, selectorVals, ast);
                         } else {
+                            itemsToReplace -= replacementSize;
+                            if (itemsToReplace == 0) {
+                                break;
+                            }
+                            rhsOffset = 0;
                             Selector.restart(offsets, selectorVals, lhsDim, ast);
                         }
                     }
                 }
+
             }
             return lhs;
         }

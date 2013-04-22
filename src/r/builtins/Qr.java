@@ -1,15 +1,9 @@
 package r.builtins;
 
-import org.netlib.lapack.*;
-import org.netlib.util.*;
-
-import r.Truffle.*;
-
 import r.*;
+import r.Truffle.Frame;
 import r.data.*;
-import r.data.RDouble.*;
 import r.errors.*;
-import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 

@@ -1,8 +1,7 @@
 package r.builtins;
 
-import r.Truffle.*;
-
 import r.*;
+import r.Truffle.Frame;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;

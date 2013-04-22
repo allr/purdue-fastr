@@ -7,17 +7,22 @@ import r.data.*;
 import r.data.RArray.Names;
 import r.data.RLogical.RLogicalFactory;
 import r.data.internal.*;
+import r.data.internal.View.RLogicalView;
 import r.errors.*;
 import r.nodes.*;
 
 // FIXME: update debugs for new specializations
 // FIXME: add more scalar specializations
+// TODO: add node rewriting to scalar/vector and vector/scalar specializations
 
 public class Comparison extends BaseR {
 
     final ValueComparison cmp;
     @Child RNode left;
     @Child RNode right;
+
+    private static final boolean LAZY_COMPARISON_IN_VECTOR_INDEX = false;
+    // surprisingly, this is not helping, it prevents allocation but overall is more expensive
 
     private static final boolean DEBUG_CMP = false;
 
@@ -47,6 +52,14 @@ public class Comparison extends BaseR {
     @Override public final Object execute(Frame frame) {
         try {
             return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
+        } catch (UnexpectedResultException e) {
+            return e.getResult();
+        }
+    }
+
+    public Object execute(RAny lexpr, RAny rexpr) {
+        try {
+            return RLogical.RLogicalFactory.getScalar(executeScalarLogical(lexpr, rexpr));
         } catch (UnexpectedResultException e) {
             return e.getResult();
         }
@@ -202,6 +215,11 @@ public class Comparison extends BaseR {
                     return sc.executeScalarLogical(lexpr, rexpr);
                 } else {
                     if (DEBUG_CMP) Utils.debug("comparison - optimistic comparison failed, values are not scalar numbers");
+                    if (LAZY_COMPARISON_IN_VECTOR_INDEX && isPartOfArrayIndex(ast)) {
+                        LazyComparison ln = new LazyComparison(ast);
+                        replace(ln, "installLazyComparison");
+                        throw new UnexpectedResultException(ln.execute(lexpr, rexpr));
+                    }
                     VectorScalarComparison vs = new VectorScalarComparison(ast);
                     replace(vs, "specializeNumericVectorScalarComparison");
                     Object res = vs.execute(lexpr, rexpr);
@@ -318,6 +336,119 @@ public class Comparison extends BaseR {
         }
     }
 
+    public static boolean isPartOfArrayIndex(ASTNode ast) {
+        ASTNode n = ast;
+        while (n != null) {
+            ASTNode pn = n.getParent();
+            if (pn instanceof AccessVector) {
+                AccessVector av = (AccessVector) pn;
+                if (av.getVector() != n) {
+                    //return true;
+                    return false;
+                }
+            }
+            n = pn;
+        }
+        return false;
+    }
+
+    abstract static class LogicalView extends RLogicalView {
+
+        final RArray a; // FIXME: the views have each of the operand twice, templates were observed slow for this in e.g. Arithmetic
+        final RArray b;
+        final int n;
+        final int[] dimensions;
+        final Names names;
+
+        final ValueComparison cmp;
+        final ASTNode ast;
+
+        public LogicalView(RArray a, RArray b, int n, ValueComparison cmp, ASTNode ast) {
+            this.a = a;
+            this.b = b;
+            this.dimensions = Arithmetic.resultDimensions(ast, a, b);
+            this.names = Arithmetic.resultNames(ast, a, b);
+            this.n = n;
+            this.cmp = cmp;
+            this.ast = ast;
+        }
+
+        @Override public final int size() {
+            return n;
+        }
+
+        @Override public final boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override public final void ref() {
+            a.ref();
+            b.ref();
+        }
+
+        @Override public final int[] dimensions() {
+            return dimensions;
+        }
+
+        @Override public final Names names() {
+            return names;
+        }
+
+        @Override public final boolean dependsOn(RAny value) {
+            return a.dependsOn(value) || b.dependsOn(value);
+        }
+    }
+
+    class LazyComparison extends BaseR {
+        public LazyComparison(ASTNode ast) {
+            super(ast);
+        }
+
+        @Override public final Object execute(Frame frame) {
+            RAny lexpr = (RAny) left.execute(frame);
+            RAny rexpr = (RAny) right.execute(frame);
+            return execute(lexpr, rexpr);
+        }
+
+        public Object execute(RAny lexpr, RAny rexpr) {
+            try {
+                if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
+                    final RDouble adbl = lexpr.asDouble();
+                    final RDouble bdbl = rexpr.asDouble(); // if the cast fails, a zero-length array is returned
+
+                    int na = adbl.size();
+                    int nb = bdbl.size();
+                    if (na > 1 && nb == 1) {
+
+                        final double bconst = bdbl.getDouble(0);
+                        if (RDouble.RDoubleUtils.isNAorNaN(bconst)) { return RLogicalFactory.getNAArray(na, adbl.dimensions()); }
+                        if (Comparison.this.cmp.resultForNaN() == false) { return new LogicalView(adbl, bdbl, na, Comparison.this.cmp, ast) {
+
+                            @Override public int getLogical(int i) {
+                                double aval = adbl.getDouble(i);
+                                if (cmp.cmp(aval, bconst)) {
+                                    return RLogical.TRUE;
+                                } else {
+                                    return RDouble.RDoubleUtils.isNAorNaN(aval) ? RLogical.NA : RLogical.FALSE;
+                                }
+                            }
+                        }; }
+
+                    }
+                }
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                GenericComparison vs = new GenericComparison(ast);
+                replace(vs, "genericComparison");
+                return vs.execute(lexpr, rexpr);
+            }
+        }
+
+        @Override public void replace0(RNode o, RNode n) {
+
+        }
+    }
+
     class GenericComparison extends BaseR {
 
         public GenericComparison(ASTNode ast) {
@@ -383,6 +514,8 @@ public class Comparison extends BaseR {
 
         public abstract boolean cmp(String a, String b);
 
+        public abstract boolean resultForNaN();
+
         public boolean cmp(int a, double b) {
             return cmp((double) a, b);
         }
@@ -425,13 +558,25 @@ public class Comparison extends BaseR {
             int n = a.size();
             if (RDouble.RDoubleUtils.isNAorNaN(b)) { return RLogicalFactory.getNAArray(n, a.dimensions()); }
             int[] content = new int[n];
-            for (int i = 0; i < n; i++) {
-                double adbl = a.getDouble(i);
-                if (RDouble.RDoubleUtils.isNAorNaN(adbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(adbl, b) ? RLogical.TRUE : RLogical.FALSE;
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(i);
+                    if (cmp(adbl, b)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.FALSE;
+                    }
                 }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(i);
+                    if (cmp(adbl, b)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
+                }
+
             }
             return RLogical.RLogicalFactory.getFor(content, a.dimensions(), a.names());
         }
@@ -440,13 +585,25 @@ public class Comparison extends BaseR {
             int n = b.size();
             if (RDouble.RDoubleUtils.isNAorNaN(a)) { return RLogicalFactory.getNAArray(n, b.dimensions()); }
             int[] content = new int[n];
-            for (int i = 0; i < n; i++) {
-                double bdbl = b.getDouble(i);
-                if (RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(a, bdbl) ? RLogical.TRUE : RLogical.FALSE;
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double bdbl = b.getDouble(i);
+                    if (cmp(a, bdbl)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                    }
                 }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double bdbl = b.getDouble(i);
+                    if (cmp(a, bdbl)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
+                }
+
             }
             return RLogical.RLogicalFactory.getFor(content, b.dimensions(), b.names());
         }
@@ -567,20 +724,39 @@ public class Comparison extends BaseR {
             int ai = 0;
             int bi = 0;
 
-            for (int i = 0; i < n; i++) {
-                double adbl = a.getDouble(ai++);
-                if (ai == na) {
-                    ai = 0;
-                }
-                double bdbl = b.getDouble(bi++);
-                if (bi == nb) {
-                    bi = 0;
-                }
+            if (resultForNaN() == false) {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(ai++);
+                    if (ai == na) {
+                        ai = 0;
+                    }
+                    double bdbl = b.getDouble(bi++);
+                    if (bi == nb) {
+                        bi = 0;
+                    }
 
-                if (RDouble.RDoubleUtils.isNAorNaN(adbl) || RDouble.RDoubleUtils.isNAorNaN(bdbl)) {
-                    content[i] = RLogical.NA;
-                } else {
-                    content[i] = cmp(adbl, bdbl) ? RLogical.TRUE : RLogical.FALSE;
+                    if (cmp(adbl, bdbl)) {
+                        content[i] = RLogical.TRUE;
+                    } else {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                    }
+                }
+            } else {
+                for (int i = 0; i < n; i++) {
+                    double adbl = a.getDouble(ai++);
+                    if (ai == na) {
+                        ai = 0;
+                    }
+                    double bdbl = b.getDouble(bi++);
+                    if (bi == nb) {
+                        bi = 0;
+                    }
+
+                    if (cmp(adbl, bdbl)) {
+                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                    } else {
+                        content[i] = RLogical.FALSE;
+                    }
                 }
             }
 
@@ -715,6 +891,10 @@ public class Comparison extends BaseR {
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) == 0; // FIXME: intern?
             }
+
+            @Override public boolean resultForNaN() {
+                return false;
+            }
         };
     }
 
@@ -738,6 +918,10 @@ public class Comparison extends BaseR {
 
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) != 0; // FIXME: intern?
+            }
+
+            @Override public boolean resultForNaN() {
+                return true;
             }
         };
     }
@@ -768,6 +952,10 @@ public class Comparison extends BaseR {
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) <= 0;
             }
+
+            @Override public boolean resultForNaN() {
+                return false;
+            }
         };
     }
 
@@ -796,6 +984,10 @@ public class Comparison extends BaseR {
 
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) >= 0;
+            }
+
+            @Override public boolean resultForNaN() {
+                return false;
             }
         };
     }
@@ -826,6 +1018,10 @@ public class Comparison extends BaseR {
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) < 0;
             }
+
+            @Override public boolean resultForNaN() {
+                return false;
+            }
         };
     }
 
@@ -854,6 +1050,10 @@ public class Comparison extends BaseR {
 
             @Override public boolean cmp(String a, String b) {
                 return a.compareTo(b) > 0;
+            }
+
+            @Override public boolean resultForNaN() {
+                return false;
             }
         };
     }

@@ -10,7 +10,7 @@ import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-public class Rbinom extends CallFactory {
+public final class Rbinom extends CallFactory {
 
     static final CallFactory _ = new Rbinom("rbinom", new String[]{"n", "size", "prob"}, null);
 

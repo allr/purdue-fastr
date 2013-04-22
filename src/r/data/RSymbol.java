@@ -4,6 +4,7 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
+import r.builtins.Primitives.PrimitiveEntry;
 import r.data.internal.*;
 
 public final class RSymbol extends BaseObject implements RAny {
@@ -34,6 +35,8 @@ public final class RSymbol extends BaseObject implements RAny {
     // The next two fields are for the topLevel
     RAny value;
     int version;
+    // The next is for the builtins registration
+    PrimitiveEntry primitive;
 
     private RSymbol(String identifier) {
         name = identifier;
@@ -157,6 +160,14 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public int getVersion() {
         return version;
+    }
+
+    public PrimitiveEntry getPrimitiveEntry() {
+        return primitive;
+    }
+
+    public void setPrimitiveEntry(PrimitiveEntry primitive) {
+        this.primitive = primitive;
     }
 
     void markDirty() {

@@ -94,6 +94,10 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- TRUE;  y<-c(1,1) ; x[y] }", "TRUE, TRUE");
         assertEval("{ x <- \"hi\";  y<-c(1,1) ; x[y] }", "\"hi\", \"hi\"");
         assertEval("{ x <- 1+2i;  y<-c(1,2) ; x[y] }", "1.0+2.0i, NA");
+
+        // logical equality selection
+        assertEval("{ f<-function(x,l) { x[l == 3] } ; f(c(1,2,3), c(1,2,3)) ; f(c(1,2,3), 1:3) ; f(1:3, c(3,3,2)) }", "1L, 2L");
+        assertEval("{ f<-function(x,l) { x[l == 3] <- 4 } ; f(c(1,2,3), c(1,2,3)) ; f(c(1,2,3), 1:3) ; f(1:3, c(3,3,2)) }", "4.0");
     }
 
     @Test

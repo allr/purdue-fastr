@@ -23,8 +23,7 @@ public abstract class Option {
         this.params = nbParams;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return option;
     }
 
@@ -88,8 +87,7 @@ public abstract class Option {
             super("-?", "Help (this screen)", 0);
         }
 
-        @Override
-        public boolean hasOption(String arg) {
+        @Override public boolean hasOption(String arg) {
             return "--help".equals(arg) || super.hasOption(arg);
         }
 
@@ -109,17 +107,13 @@ public abstract class Option {
             super("", text, 0);
         }
 
-        @Override
-        protected void processOption(String name, String[] opts) {
-        }
+        @Override protected void processOption(String name, String[] opts) {}
 
-        @Override
-        public boolean hasOption(String opt) {
+        @Override public boolean hasOption(String opt) {
             return false;
         }
 
-        @Override
-        public String formatHelpText() {
+        @Override public String formatHelpText() {
             return getHelp();
         }
     }
@@ -132,8 +126,7 @@ public abstract class Option {
             super("-v", "Be more verbose", 0);
         }
 
-        @Override
-        protected void processOption(String name, String[] opts) {
+        @Override protected void processOption(String name, String[] opts) {
             verbose = true;
         }
     }
@@ -147,8 +140,7 @@ public abstract class Option {
             Verbose.verbose = true;
         }
 
-        @Override
-        protected void processOption(String name, String[] opts) {
+        @Override protected void processOption(String name, String[] opts) {
             Verbose.verbose = false;
         }
     }

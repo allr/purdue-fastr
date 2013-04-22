@@ -105,7 +105,7 @@ public abstract class FunctionCall extends AbstractCall {
         // for builtins
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin
         RSymbol builtInName;
-        RNode builtInNode;
+        @Child RNode builtInNode;
 
         @Override public void replace0(RNode o, RNode n) {
             super.replace0(o, n);
@@ -140,7 +140,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             } else {
-                // callable instanceof RBuiltin                
+                // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {

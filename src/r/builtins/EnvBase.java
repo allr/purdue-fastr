@@ -6,8 +6,6 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
-import r.Truffle.*;
-
 final class EnvBase {
 
     static RSymbol parseX(RAny arg, ASTNode ast) {

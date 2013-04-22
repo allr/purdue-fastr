@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.builtins.UpperTri.*;
 import r.data.*;
 
 //ote: in GNU-R, this is implemented in R
