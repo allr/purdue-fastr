@@ -58,7 +58,7 @@ final class T extends CallFactory {
                                 square(a, n, res);
                                 return res.setDimensions(ndim);
                             }
-                            int j = 0; // LICENSE: transcribed from GNU-R, which is licensed under GPL
+                            int j = 0;
                             int size1 = size - 1;
                             for (int i = 0; i < size; i++) {
                                 res.set(i, a.getRef(j));

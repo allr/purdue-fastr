@@ -6,7 +6,6 @@ import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 public abstract class RError extends RuntimeException {
-    // LICENSE: The error messages are copy-pasted and/or hand re-written from GNU R, which is licensed under GPL
 
     private static final long serialVersionUID = 1L;
 
@@ -414,8 +413,7 @@ public abstract class RError extends RuntimeException {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getMessage() {
+            @Override public String getMessage() {
                 return RError.INCORRECT_SUBSCRIPTS_MATRIX;
             }
         };

@@ -2,6 +2,7 @@ package r.builtins;
 
 import org.netlib.blas.*;
 
+import r.*;
 import r.Truffle.*;
 
 import r.data.*;
@@ -52,45 +53,7 @@ final class Crossprod extends CallFactory {
 
     public static RAny crossprod(RAny l, RAny r, ASTNode ast) {
 
-        // LICENSE: transcribed code from GNU R, which is licensed under GPL
-        MatrixOperation.checkNumeric(l, r, ast); // TODO: support also complex matrices
-        RDouble ld = l.asDouble().materialize();
-        RDouble rd = r.asDouble().materialize();
-        int[] ldims = ld.dimensions();
-        int nldims = ldims == null ? 0 : ldims.length;
-        int[] rdims = rd.dimensions();
-        int nrdims = rdims == null ? 0 : rdims.length;
-
-        int lrow;
-        int lcol;
-        int rrow;
-        int rcol;
-
-        if (nldims != 2) {
-            if (nrdims != 2) {
-                return MatrixOperation.dotProduct(ast, ld, rd);
-            } else { // FIXME: could have a special case like with matrix product
-                lrow = ld.size();
-                lcol = 1;
-                rrow = rdims[0];
-                rcol = rdims[1];
-            }
-        } else {
-            lrow = ldims[0];
-            lcol = ldims[1];
-            if (nrdims != 2) { // FIXME: could have a special case like with matrix product
-                rrow = rd.size();
-                rcol = 1;
-            } else {
-                rrow = rdims[0];
-                rcol = rdims[1];
-            }
-        }
-
-        if (lrow != rrow) { throw RError.getNonConformableArgs(ast); }
-        //        double[] res = matrixTimesMatrixGetters(ld, rd, lcol, lrow, rcol);
-        double[] res = matrixTimesMatrixNative(ld, rd, lcol, lrow, rcol);
-        return RDouble.RDoubleFactory.getFor(res, new int[]{lcol, rcol}, null);
+        throw Utils.nyi();
     }
 
     public static RAny crossprod(RAny x, ASTNode ast) {

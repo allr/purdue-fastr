@@ -89,12 +89,8 @@ final class Outer extends CallFactory {
         }
 
         public RAny outer(Frame frame, RAny xarg, RAny yarg, RAny farg) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
-            if (!(xarg instanceof RArray && yarg instanceof RArray)) {
-                Utils.nyi("unsupported type");
-                return null;
-            }
+            if (!(xarg instanceof RArray && yarg instanceof RArray)) throw Utils.nyi("unsupported type");
 
             RArray x = (RArray) xarg;
             RArray y = (RArray) yarg;

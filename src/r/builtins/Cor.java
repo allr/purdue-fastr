@@ -1,16 +1,12 @@
 package r.builtins;
 
-import r.Truffle.*;
-
 import r.*;
 import r.data.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 // TODO: finish this, by now only pearson/matrix/no NA filtering supported
 public final class Cor extends CallFactory {
-    // LICENSE: transcribed code from GNU R, which is licensed under GPL
 
     static final CallFactory _ = new Cor("cor", new String[]{"x", "y", "use", "method"}, new String[]{"x"});
 
@@ -33,97 +29,6 @@ public final class Cor extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
-        if (names.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
-            @Override public RAny doBuiltIn(Frame frame, RAny xarg) {
-                // x must be matrix-like
-                // method is pearson
-                // use is everything
-
-                RDouble xd;
-                if (xarg instanceof RDouble || xarg instanceof RInt || xarg instanceof RLogical) {
-                    xd = xarg.asDouble().materialize();
-                } else {
-                    if (xarg instanceof RArray) {
-                        throw RError.getXNumeric(ast);
-                    } else {
-                        throw RError.getSupplyXYMatrix(ast);
-                    }
-                }
-                final int[] dim = xd.dimensions();
-                if (dim == null || dim.length != 2) { throw RError.getSupplyXYMatrix(ast); }
-
-                final int nrow = dim[0];
-                final int ncol = dim[1];
-                final double[] res = new double[ncol * ncol];
-                final double[] x = xd.getContent();
-
-                final boolean[] hasNA = columnsNAMap(x, nrow, ncol);
-                final double[] colMeans = columnMeans(x, nrow, ncol, hasNA);
-                final int n1 = nrow - 1;
-
-                for (int i = 0; i < ncol; i++) {
-                    if (hasNA[i]) {
-                        for (int j = 0; j <= i; j++) {
-                            res[j * ncol + i] = RDouble.NA; // FIXME: break this into two loops?
-                            res[i * ncol + j] = RDouble.NA;
-                        }
-                        continue;
-                    }
-                    final double imean = colMeans[i];
-                    final int ioffset = i * nrow;
-                    for (int j = 0; j <= i; j++) {
-                        if (hasNA[j]) {
-                            res[j * ncol + i] = RDouble.NA;
-                            res[i * ncol + j] = RDouble.NA;
-                            continue;
-                        }
-                        final double jmean = colMeans[j];
-                        final int joffset = j * nrow;
-                        double sum = 0;
-                        for (int k = 0; k < nrow; k++) {
-                            sum += (x[ioffset + k] - imean) * (x[joffset + k] - jmean);
-                        }
-                        final double tmp = sum / n1;
-                        res[j * ncol + i] = tmp;
-                        res[i * ncol + j] = tmp;
-                    }
-                }
-                final double[] srcov = colMeans; // colMeans no longer needed
-                for (int i = 0; i < ncol; i++) {
-                    if (!hasNA[i]) {
-                        srcov[i] = Math.sqrt(res[i * ncol + i]);
-                    }
-                }
-                boolean sdZero = false;
-                for (int i = 0; i < ncol; i++) {
-                    if (!hasNA[i]) {
-                        for (int j = 0; j < i; j++) {
-                            if (srcov[i] == 0 || srcov[j] == 0) {
-                                sdZero = true;
-                                res[j * ncol + i] = RDouble.NA;
-                                res[i * ncol + j] = RDouble.NA;
-                            } else {
-                                double tmp = res[i * ncol + j] / (srcov[i] * srcov[j]);
-                                if (tmp > 1) {
-                                    tmp = 1;
-                                }
-                                res[j * ncol + i] = tmp;
-                                res[i * ncol + j] = tmp;
-                            }
-                        }
-                    }
-                    res[i * ncol + i] = 1;
-                }
-                if (sdZero) {
-                    RContext.warning(ast, RError.SD_ZERO);
-                }
-                return RDouble.RDoubleFactory.getFor(res, new int[]{ncol, ncol}, null);
-            }
-        }; }
-        //        final int xPosition = ia.position("x");
-        //        final int yPosition = ia.position("y");
-        //        final int usePosition = ia.position("use");
-        //        final int methodPosition = ia.position("method");
 
         Utils.nyi("finish cor");
         return null;
