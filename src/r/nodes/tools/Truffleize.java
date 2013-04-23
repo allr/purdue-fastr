@@ -577,16 +577,20 @@ public class Truffleize implements Visitor {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
             }
             // Create the assignment, or super assignment nodes
+            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
+
             ASTNode varAccess = a.getVector();
-            RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
+            RSymbol varName = ((SimpleAccessVariable) varAccess).getSymbol();
             if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expecting matrix name for matrix update");
             }
-            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
+            RFunction encFunction =  getEnclosingFunction(a);
+            FrameSlot varSlot = encFunction == null ? null : encFunction.localSlot(varName);
+
             if (u.isSuper()) {
-                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
+                result = UpdateArraySuperAssignment.create(a, varName, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
             } else {
-                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
+                result = UpdateArrayAssignment.create(a, varName, encFunction, varSlot, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
                 return;
             }
         } else {

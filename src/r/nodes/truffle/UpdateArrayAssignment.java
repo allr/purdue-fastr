@@ -2,6 +2,8 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
+
+import r.*;
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
@@ -16,13 +18,20 @@ import r.nodes.ASTNode;
 //     assignmentNode.execute returns the new value of x
 //   UpdateVariable then assigns newValueOfX to xSymbol
 
-public class UpdateArrayAssignment extends BaseR {
+public abstract class UpdateArrayAssignment extends BaseR {
 
-    public static UpdateArrayAssignment create(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
-        if (rhs instanceof Constant) {
-            return new UpdateArrayAssignment.Const(orig, lhs, rhs, assignment);
+    public static UpdateArrayAssignment create(ASTNode ast, RSymbol varName, RFunction enclosingFunction, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+
+        boolean topLevel = enclosingFunction == null;
+        if (topLevel) {
+            if (rhs instanceof Constant) {
+                return new ConstTopLevel(ast, varName, rhs, assignment, ((Constant) rhs).value());
+            } else {
+                return new TopLevel(ast, varName, rhs, assignment);
+            }
         } else {
-            return new UpdateArrayAssignment(orig, lhs, rhs, assignment);
+            assert Utils.check(varSlot != null);
+            return new LocalInitial(ast, varName, varSlot, rhs, assignment);
         }
     }
 
@@ -52,14 +61,14 @@ public class UpdateArrayAssignment extends BaseR {
         /** Calls to execute method on frame only are *not* supported. */
         @Override
         public Object execute(Frame frame) {
-            assert (false) : " calls to execute(frame) method for AssignmentNode is not supported.";
+            Utils.nyi("unreachable");
             return null;
         }
 
     }
 
     /** LHS of the assignment operator == what to update. */
-    final RSymbol lhs;
+    final RSymbol varName;
 
     /** RHS of the assignment operator == new values. */
     @Child RNode rhs;
@@ -68,230 +77,166 @@ public class UpdateArrayAssignment extends BaseR {
     @Child AssignmentNode assignment;
 
 
-    protected UpdateArrayAssignment(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
+    protected UpdateArrayAssignment(ASTNode orig, RSymbol varName, RNode rhs, AssignmentNode assignment) {
         super(orig);
-        this.lhs = lhs;
+        this.varName = varName;
         this.rhs = adoptChild(rhs);
         this.assignment = adoptChild(assignment);
     }
 
-    /** Copy constructor for the replacement calls. */
-    protected UpdateArrayAssignment(UpdateArrayAssignment other) {
-        super(other.getAST());
-        this.lhs = other.lhs;
-        this.rhs = adoptChild(other.rhs);
-        this.assignment = adoptChild(other.assignment);
-    }
+    // update with a local slot, rewrites once (if) that local slot contains a value
+    protected static class LocalInitial extends UpdateArrayAssignment {
 
-    /**
-     * Default execution, rewrites itself either to a top level assignment, or determines the frameslot and replaces to
-     * the LocalAssignment.
-     */
-    @Override
-    public Object execute(Frame frame) {
-        try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
-            if (frame != null) {
-                FrameSlot frameSlot = RFrameHeader.findVariable(frame, lhs);
-                return replace(new Local(this, frameSlot)).execute(frame);
-            } else {
-                return replace(new TopLevel(this)).execute(frame);
-            }
-        }
-    }
+        final FrameSlot varSlot;
 
-    /** Basic assignment for const rhs values. */
-    public static class Const extends UpdateArrayAssignment {
-
-        protected Const(ASTNode orig, RSymbol lhs, RNode rhs, AssignmentNode assignment) {
-            super(orig, lhs, rhs, assignment);
-            assert (rhs instanceof Constant) : "for non-constant RHS use UpdateVariable class";
-        }
-
-        protected Const(UpdateArrayAssignment other) {
-            super(other);
-        }
-
-        /**
-         * Default execution, rewrites itself either to a top level assignment, or determines the frameslot and replaces
-         * to the LocalAssignment.
-         */
-        @Override
-        public Object execute(Frame frame) {
-            try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
-                if (frame != null) {
-                    FrameSlot frameSlot = RFrameHeader.findVariable(frame, lhs);
-                    return replace(new ConstLocal(this, frameSlot, (RAny) rhs.execute(frame))).execute(frame);
-                } else {
-                    return replace(new ConstTopLevel(this, (RAny) rhs.execute(frame))).execute(frame);
-                }
-            }
-        }
-    }
-
-    /**
-     * Assigns a local variable.
-     * <p/>
-     * The assignment already knows its frameslot. If the frameslot is null, the node rewrites itself to the general
-     * assignment. If the frame is null, the node rewrites itself to the top level assignment.
-     */
-    protected static class Local extends UpdateArrayAssignment {
-
-        public static enum Failure {
-            NULL_FRAME,
-            NULL_SLOT
-        }
-        /** Frameslot of the lhs variable. */
-        final FrameSlot frameSlot;
-
-        /** Copy constructor from the assignment node and a frameslot Specification. */
-        protected Local(UpdateArrayAssignment other, FrameSlot frameSlot) {
-            super(other);
-            this.frameSlot = frameSlot;
+        protected LocalInitial(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+            super(ast, varName, rhs, assignment);
+            this.varSlot = varSlot;
         }
 
         @Override
         public Object execute(Frame frame) {
-            try {
-                if (frame == null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(Failure.NULL_FRAME);
-                }
-                if (frameSlot == null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(Failure.NULL_SLOT);
-                }
-                RAny rhsValue = (RAny) rhs.execute(frame);
-                RAny lhsValue = (RAny) frame.getObject(frameSlot);
+
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = (RAny) frame.getObject(varSlot);
+            if (lhsValue == null) {
+                // TODO maybe turn this to decompile for smaller methods?
+                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
                 if (lhsValue == null) {
-                    // TODO maybe turn this to decompile for smaller methods?
-                    lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);
-                    if (lhsValue == null) {
-                        throw RError.getUnknownVariable(getAST(), lhs);
-                    }
-                    lhsValue.ref(); // reading from parent, hence need to copy on update
-                    // ref once will make it shared unless it is stateless (like int sequence)
+                    throw RError.getUnknownVariable(getAST(), varName);
                 }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
-                if (lhsValue != newLhs) {
-                    RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
-                }
-                return rhsValue;
-            } catch (UnexpectedResultException e) {
-                switch ((Failure) e.getResult()) {
-                    case NULL_FRAME:
-                        return replace(new TopLevel(this)).execute(frame);
-                    case NULL_SLOT:
-                        return replace(new UpdateArrayAssignment(this)).execute(frame);
-                }
+                lhsValue.ref(); // reading from parent, hence need to copy on update
+                // ref once will make it shared unless it is stateless (like int sequence)
             }
-            return null;
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (lhsValue != newLhs) {
+                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+            }
+
+            try {
+                if (lhsValue != null) {
+                    throw new UnexpectedResultException(null);
+                }
+            } catch (UnexpectedResultException e) {
+                replace(new LocalSimple(ast, varName, varSlot, rhs, assignment));
+            }
+            return rhsValue;
         }
     }
 
-    protected static class ConstLocal extends Local {
+    // update with a local slot that actually has a valid value, rewrites if it does not
+    protected static class LocalSimple extends UpdateArrayAssignment {
+
+        final FrameSlot varSlot;
+
+        protected LocalSimple(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+            super(ast, varName, rhs, assignment);
+            this.varSlot = varSlot;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = (RAny) frame.getObject(varSlot);
+
+            try {
+                if (lhsValue == null) {
+                   throw new UnexpectedResultException(null);
+                }
+            } catch (UnexpectedResultException e) {
+
+                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
+                if (lhsValue == null) {
+                    throw RError.getUnknownVariable(getAST(), varName);
+                }
+                lhsValue.ref(); // reading from parent, hence need to copy on update
+                // ref once will make it shared unless it is stateless (like int sequence)
+
+                replace(new LocalGeneric(ast, varName, varSlot, rhs, assignment));
+
+            }
+
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (lhsValue != newLhs) {
+                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+            }
+            return rhsValue;
+        }
+    }
+
+    protected static class LocalGeneric extends UpdateArrayAssignment {
+
+        final FrameSlot varSlot;
+
+        protected LocalGeneric(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+            super(ast, varName, rhs, assignment);
+            this.varSlot = varSlot;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = (RAny) frame.getObject(varSlot);
+            if (lhsValue == null) {
+                // TODO maybe turn this to decompile for smaller methods?
+                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
+                if (lhsValue == null) {
+                    throw RError.getUnknownVariable(getAST(), varName);
+                }
+                lhsValue.ref(); // reading from parent, hence need to copy on update
+                // ref once will make it shared unless it is stateless (like int sequence)
+            }
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (lhsValue != newLhs) {
+                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+            }
+            return rhsValue;
+        }
+    }
+
+    protected static final class TopLevel extends UpdateArrayAssignment {
+
+        protected TopLevel(ASTNode orig, RSymbol varName, RNode rhs, AssignmentNode assignment) {
+            super(orig, varName, rhs, assignment);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = varName.getValue();
+            if (lhsValue == null) {
+                throw RError.getUnknownVariable(getAST(), varName);
+            }
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (lhsValue != newLhs) {
+                RFrameHeader.writeToTopLevelRef(varName, newLhs);
+            }
+            return rhsValue;
+        }
+    }
+
+    protected static final class ConstTopLevel extends UpdateArrayAssignment {
 
         final RAny rhsVal;
 
-        protected ConstLocal(UpdateArrayAssignment other, FrameSlot slot, RAny rhs) {
-            super(other, slot);
-            rhsVal = rhs;
+        protected ConstTopLevel(ASTNode orig, RSymbol varName, RNode rhs, AssignmentNode assignment, RAny rhsVal) {
+            super(orig, varName, rhs, assignment);
+            this.rhsVal = rhsVal;
         }
 
         @Override
         public Object execute(Frame frame) {
-            try {
-                if (frame == null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(Failure.NULL_FRAME);
-                }
-                if (frameSlot == null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(Failure.NULL_SLOT);
-                }
-                RAny lhsValue = (RAny) frame.getObject(frameSlot);
-                if (lhsValue == null) {
-                    // TODO maybe turn this to decompile for smaller methods?
-                    lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);
-                    if (lhsValue == null) {
-                        throw RError.getUnknownVariable(getAST(), lhs);
-                    }
-                    lhsValue.ref(); // reading from parent, hence need to copy on update
-                    // ref once will make it shared unless it is stateless (like int sequence)
-                }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
-                if (lhsValue != newLhs) {
-                    RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
-                }
-                return rhsVal;
-            } catch (UnexpectedResultException e) {
-                switch ((Failure) e.getResult()) {
-                    case NULL_FRAME:
-                        return replace(new TopLevel(this)).execute(frame);
-                    case NULL_SLOT:
-                        return replace(new Const(this)).execute(frame);
-                }
+            RAny lhsValue = varName.getValue();
+            if (lhsValue == null) {
+                throw RError.getUnknownVariable(getAST(), varName);
             }
-            return null;
-        }
-    }
-
-    protected static class TopLevel extends UpdateArrayAssignment {
-
-        protected TopLevel(UpdateArrayAssignment other) {
-            super(other);
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            try {
-                if (frame != null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(null);
-                }
-                RAny rhsValue = (RAny) rhs.execute(frame);
-                RAny lhsValue = lhs.getValue();
-                if (lhsValue == null) {
-                    throw RError.getUnknownVariable(getAST(), lhs);
-                }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
-                if (lhsValue != newLhs) {
-                    RFrameHeader.writeToTopLevelRef(lhs, newLhs);
-                }
-                return rhsValue;
-            } catch (UnexpectedResultException e) {
-                // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
-                return replace(new UpdateArrayAssignment(this)).execute(frame);
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
+            if (lhsValue != newLhs) {
+                RFrameHeader.writeToTopLevelRef(varName, newLhs);
             }
-        }
-    }
-
-    protected static class ConstTopLevel extends TopLevel {
-
-        final RAny rhsVal;
-
-        protected ConstTopLevel(UpdateArrayAssignment other, RAny rhs) {
-            super(other);
-            rhsVal = rhs;
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            try {
-                if (frame != null) { // FIXME: this won't happen unless with eval
-                    throw new UnexpectedResultException(null);
-                }
-                RAny lhsValue = lhs.getValue();
-                if (lhsValue == null) {
-                    throw RError.getUnknownVariable(getAST(), lhs);
-                }
-                RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
-                if (lhsValue != newLhs) {
-                    RFrameHeader.writeToTopLevelRef(lhs, newLhs);
-                }
-                return rhsVal;
-            } catch (UnexpectedResultException e) {
-             // FIXME: if this could be reached, the rewrite could lead to unbounded rewriting
-                return replace(new Const(this)).execute(frame);
-            }
+            return rhsVal;
         }
 
     }
