@@ -293,5 +293,8 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[[1:2,1]] <- integer() }", "replacement has length zero");
         assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[1,2] <- integer() }", "replacement has length zero");
         assertEvalError("{ m <- matrix(1:6, nrow=2) ; m[1,2] <- 1:3 }", "number of items to replace is not a multiple of replacement length");
+
+        // pushback child of a selector node
+        assertEval("{ m <- matrix(1:100, nrow=10) ; z <- 1; s <- 0 ; for(i in 1:3) { m[z <- z + 1,z <- z + 1] <- z * z * 1000 } ; sum(m) }", "39918.0");
     }
 }

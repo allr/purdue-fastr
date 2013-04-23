@@ -96,7 +96,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         try {
             throw new UnexpectedResultException(null);
         } catch (UnexpectedResultException e) {
-            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset && !column) {
+            if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset && !column && !MatrixScalarIndex.isMatrixScalar(selectorExprs, frame)) {
                 if (!lhs.isShared()) {
                     if ((lhs instanceof IntImpl) && (rhs instanceof IntImpl)) {
                         return replace(new IntToIntDirect(this)).execute(frame, lhs, rhs);
@@ -293,6 +293,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (column) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Column");
                     return replace(Column.create(this, lhs, rhs)).execute(frame, lhs, rhs);
+                }
+                if (MatrixScalarIndex.isMatrixScalar(selectorExprs, frame)) {
+                    return replace(MatrixScalarIndex.create(this,  lhs,  rhs)).execute(frame, lhs, rhs);
                 }
                 if (rhs instanceof RArray && ((RArray) rhs).size() == 1) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Scalar");
@@ -1004,7 +1007,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
             } catch (UnexpectedResultException e) {
                 if (DEBUG_UP) Utils.debug("Column -> Generalized");
-                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return Generic.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
 
@@ -1041,6 +1044,162 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         public RArray update(RArray lhs, RArray rhs, Selector columnSelector) throws UnexpectedResultException {
             return doUpdate(lhs, rhs, selectorExprs.length, columnSelector, ast);
+        }
+
+        @Override
+        public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            Utils.nyi("unreachable");
+            return null;
+        }
+    }
+
+    // when each selector is a scalar positive finite value, and the value is a scalar, and the types agree
+    protected static final class MatrixScalarIndex extends UpdateArray {
+
+        final TypeGuard guard;
+
+        public MatrixScalarIndex(UpdateArray other, TypeGuard guard) {
+            super(other);
+            this.guard = guard;
+        }
+
+        public static MatrixScalarIndex create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
+            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            return new MatrixScalarIndex(other, g);
+        }
+
+        public static class PushbackNode extends BaseR {
+            @Child RNode realChildNode;
+            final Object nextValue;
+
+            public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
+                super(ast);
+                this.realChildNode = adoptChild(realChildNode);
+                this.nextValue = nextValue;
+            }
+
+            @Override
+            public Object execute(Frame frame) {
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    replace(realChildNode);
+                    return nextValue;
+                }
+            }
+        }
+
+        // this is quite tricky, the operation of checking whether we have a matrix scalar is destructive in that the selector nodes
+        // have to be executed, which means the index expressions must be evaluated
+        //
+        // but the rest of the UpdateArray code would evaluate selectors again :(
+        // so this HACK will temporarily replace the selectors' index nodes to return the pre-evaluated value and then rewrite
+        // to the real selector nodes
+
+        public static boolean isMatrixScalar(SelectorNode[] selNodes, Frame frame) {
+            if (selNodes.length != 2) {
+                return false;
+            }
+
+            RNode ichild = selNodes[0].child;
+            RNode jchild = selNodes[1].child;
+            if (ichild == null || jchild == null) {
+                return false;
+            }
+            Object ival;
+            Object jval;
+            boolean replace;
+            if (ichild instanceof PushbackNode && jchild instanceof PushbackNode) {
+                ival = ((PushbackNode) ichild).nextValue;
+                jval = ((PushbackNode) jchild).nextValue;
+                replace = false;
+            } else {
+                ival = ichild.execute(frame);
+                jval = jchild.execute(frame);
+                replace = true;
+            }
+
+            boolean result;
+            try {
+                extractIndex(ival);
+                extractIndex(jval);
+                result = true;
+            } catch (UnexpectedResultException e) {
+                result = false;
+            }
+
+            if (replace) {
+                ichild = selNodes[0].child;
+                jchild = selNodes[1].child;
+                selNodes[0].replaceChild(ichild, new PushbackNode(ichild.getAST(), ichild, ival));
+                selNodes[1].replaceChild(jchild, new PushbackNode(jchild.getAST(), jchild, jval));
+            }
+
+            return result;
+        }
+
+        public static int extractIndex(Object val) throws UnexpectedResultException {
+            if (val instanceof ScalarIntImpl) {
+                int i = ((ScalarIntImpl) val).getInt();
+                if (i > 0) {
+                    return i - 1;
+                }
+            } else if (val instanceof ScalarDoubleImpl) {
+                double d = ((ScalarDoubleImpl) val).getDouble();
+                if (d > 0 && d <= Integer.MAX_VALUE) {
+                    return ((int) d) - 1; // truncate towards zero
+                }
+            }
+            throw new UnexpectedResultException(null);
+        }
+
+        public static int extractIndex(RNode n, Frame frame) throws UnexpectedResultException { // zero based
+            Object val = n.execute(frame);
+            return extractIndex(val);
+        }
+
+        @Override
+        public RAny execute(Frame frame, RAny lhsArg, RAny rhsArg) {
+            RArray lhs = (RArray) lhsArg; // FIXME: get rid of this
+            RArray rhs = (RArray) rhsArg;
+            try {
+                if (lhs.isShared()) {
+                    throw new UnexpectedResultException(null);
+                }
+                guard.check(lhs, rhs);
+                int i = extractIndex(selectorExprs[0].child, frame);
+                int j = extractIndex(selectorExprs[1].child, frame);
+                int[] dim = lhs.dimensions();
+                if (dim == null || dim.length != 2) {
+                    throw RError.getIncorrectSubscriptsMatrix(ast);
+                }
+                int rsize = rhs.size();
+                if (rsize != 1) {
+                    if (rsize == 0) {
+                        throw RError.getReplacementZero(ast);
+                    } else {
+                        if (subset) {
+                            throw RError.getNotMultipleReplacement(ast);
+                        } else {
+                            throw RError.getMoreElementsSupplied(ast);
+                        }
+                    }
+                }
+                int m = dim[0];
+                int n = dim[1];
+                if (i > m || j > n) {
+                    throw RError.getSubscriptBounds(ast);
+                }
+                return lhs.set(j * m + i, rhs.get(0));
+            } catch (UnexpectedResultException e) {
+                if (DEBUG_UP) Utils.debug("MatrixScalarIndex -> Generalized");
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+            }
+        }
+
+        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
+            Utils.nyi("unreachable");
+            return null;
         }
 
         @Override
@@ -1597,8 +1756,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     private static void checkReplacementSize(int itemsToReplace, int replacementSize, boolean subset, ASTNode ast) {
         if (itemsToReplace != replacementSize && replacementSize != 1) {
-            // TODO: add these checks to all other updates - it is necessary to do before the update whenever the update is potentially running in-place,
-            // because we must not modify the matrix even in case of error
             if (replacementSize == 0) {
                 throw RError.getReplacementZero(ast);
             }
