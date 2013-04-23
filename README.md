@@ -1,7 +1,7 @@
 # FastR
 
 FastR is an implementation of the [R Language](http://www.r-project.org/). 
-At the moment, FastR can run the [R
+At the moment, FastR is can run the [R
 implementation](http://r.cs.purdue.edu/hg/r-shootout/) of the [Language
 Shootout Benchmarks](http://shootout.alioth.debian.org/).
 
