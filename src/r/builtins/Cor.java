@@ -30,7 +30,7 @@ public final class Cor extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
 
-        Utils.nyi("finish cor");
+        Utils.nyi("cor to be implemented");
         return null;
     }
 

@@ -7,8 +7,7 @@ import r.*;
 
 public class TestSimpleBuiltins extends SimpleTestBase {
 
-    @Test
-    public void testSequence() throws RecognitionException {
+    @Test public void testSequence() throws RecognitionException {
         assertEval("{ 5L:10L }", "5L, 6L, 7L, 8L, 9L, 10L");
         assertEval("{ 5L:(0L-5L) }", "5L, 4L, 3L, 2L, 1L, 0L, -1L, -2L, -3L, -4L, -5L");
         assertEval("{ 1:10 }", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L"); // note: yes, GNU R will convert to integers
@@ -46,8 +45,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ seq(along=c(10,11,12)) }", "1L, 2L, 3L"); // test partial name match
     }
 
-    @Test
-    public void testArrayConstructors() throws RecognitionException {
+    @Test public void testArrayConstructors() throws RecognitionException {
         assertEval("{ integer() }", "integer(0)");
         assertEval("{ double() }", "numeric(0)");
         assertEval("{ logical() }", "logical(0)");
@@ -56,8 +54,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ character(1L) }", "\"\"");
     }
 
-    @Test
-    public void testMaximum() throws RecognitionException {
+    @Test public void testMaximum() throws RecognitionException {
         assertEval("{ max((-1):100) }", "100L");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0)) }", "200.0");
         assertEval("{ max(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
@@ -67,8 +64,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ max(\"hi\",\"abbey\",\"hello\") }", "\"hi\"");
     }
 
-    @Test
-    public void testMinimum() throws RecognitionException {
+    @Test public void testMinimum() throws RecognitionException {
         assertEval("{ min((-1):100) }", "-1L");
         assertEval("{ min(1:10, 100:200, c(4.0, -5.0)) }", "-5.0");
         assertEval("{ min(1:10, 100:200, c(4.0, 5.0), c(TRUE,FALSE,NA)) }", "NA");
@@ -79,8 +75,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ min(\"hi\",100) }", "\"100.0\"");
     }
 
-    @Test
-    public void testRep() throws RecognitionException {
+    @Test public void testRep() throws RecognitionException {
         assertEval("{ rep(1,3) }", "1.0, 1.0, 1.0");
         assertEval("{ rep(1:3,2) }", "1L, 2L, 3L, 1L, 2L, 3L");
         assertEval("{ rep(c(1,2),0) }", "numeric(0)");
@@ -98,8 +93,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- c(\"A\",\"B\") ; names(x) <- c(\"X\") ; rep(x, length.out=3) }", "  X <NA>   X\n\"A\"  \"B\" \"A\"");
     }
 
-    @Test
-    public void testCombine() throws RecognitionException {
+    @Test public void testCombine() throws RecognitionException {
         assertEval("{ c(1.0,1L) }", "1.0, 1.0");
         assertEval("{ c(1L,1.0) }", "1.0, 1.0");
         assertEval("{ c(TRUE,1L,1.0,list(3,4)) }", "[[1]]\nTRUE\n\n[[2]]\n1L\n\n[[3]]\n1.0\n\n[[4]]\n3.0\n\n[[5]]\n4.0");
@@ -120,16 +114,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ c(1,z=list(1,b=22,3)) }", "[[1]]\n1.0\n\n$z1\n1.0\n\n$z.b\n22.0\n\n$z3\n3.0");
     }
 
-    @Test
-    public void testIsNA() throws RecognitionException {
+    @Test public void testIsNA() throws RecognitionException {
         assertEval("{ is.na(c(1,2,3,4)) }", "FALSE, FALSE, FALSE, FALSE");
         assertEval("{ is.na(1[10]) }", "TRUE");
         assertEval("{ is.na(c(1[10],2[10],3)) }", "TRUE, TRUE, FALSE");
         assertEval("{ is.na(list(1[10],1L[10],list(),integer())) }", "TRUE, TRUE, FALSE, FALSE");
     }
 
-    @Test
-    public void testCasts() throws RecognitionException {
+    @Test public void testCasts() throws RecognitionException {
         assertEval("{ as.integer(c(1,2,3)) }", "1L, 2L, 3L");
         assertEval("{ as.integer(list(c(1),2,3)) }", "1L, 2L, 3L");
         assertEval("{ as.integer(list(integer(),2,3)) }", "NA, 2L, 3L");
@@ -203,8 +195,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:3 ; attr(x,\"my\") <- 10 ; attributes(as.matrix(x)) }", "$dim\n3L, 1L");
     }
 
-    @Test
-    public void testSum() throws RecognitionException {
+    @Test public void testSum() throws RecognitionException {
         assertEval("{ sum(1:6, 3, 4) }", "28.0");
         assertEval("{ sum(1:6, 3L, TRUE) }", "25L");
         assertEval("{ sum() }", "0L");
@@ -217,8 +208,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sum(1+1i,2,NA, na.rm=TRUE) }", "3.0+1.0i");
     }
 
-    @Test
-    public void testApply() throws RecognitionException {
+    @Test public void testApply() throws RecognitionException {
         assertEval("{ lapply(1:3, function(x) { 2*x }) }", "[[1]]\n2.0\n\n[[2]]\n4.0\n\n[[3]]\n6.0");
         assertEval("{ lapply(1:3, function(x,y) { x*y }, 2) }", "[[1]]\n2.0\n\n[[2]]\n4.0\n\n[[3]]\n6.0");
 
@@ -244,7 +234,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         // matrix support
         assertEval("{ sapply(1:3, function(i) { list(1,2) }) }", "     [,1] [,2] [,3]\n[1,]  1.0  1.0  1.0\n[2,]  2.0  2.0  2.0");
         assertEval("{ sapply(1:3, function(i) { if (i < 3) { list(1,2) } else { c(11,12) } }) }", "     [,1] [,2] [,3]\n[1,]  1.0  1.0 11.0\n[2,]  2.0  2.0 12.0");
-        assertEval("{ sapply(1:3, function(i) { if (i < 3) { c(1+1i,2) } else { c(11,12) } }) }", "         [,1]     [,2]      [,3]\n[1,] 1.0+1.0i 1.0+1.0i 11.0+0.0i\n[2,] 2.0+0.0i 2.0+0.0i 12.0+0.0i");
+        assertEval("{ sapply(1:3, function(i) { if (i < 3) { c(1+1i,2) } else { c(11,12) } }) }",
+                "         [,1]     [,2]      [,3]\n[1,] 1.0+1.0i 1.0+1.0i 11.0+0.0i\n[2,] 2.0+0.0i 2.0+0.0i 12.0+0.0i");
 
         // names
         assertEval("{ ( sapply(1:3, function(i) { if (i < 3) { list(xxx=1) } else {list(zzz=2)} })) }", "$xxx\n1.0\n\n$xxx\n1.0\n\n$zzz\n2.0");
@@ -259,8 +250,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sapply(c(\"a\",\"b\",\"c\"), function(x) { x }) }", "  a   b   c\n\"a\" \"b\" \"c\"");
     }
 
-    @Test
-    public void testCat() throws RecognitionException {
+    @Test public void testCat() throws RecognitionException {
         assertEval("{ cat(\"hi\",1:3,\"hello\") }", "hi 1L 2L 3L hello", "NULL");
         assertEval("{ cat(\"hi\",NULL,\"hello\",sep=\"-\") }", "hi-hello", "NULL");
         assertEval("{ cat(\"hi\",integer(0),\"hello\",sep=\"-\") }", "hi--hello", "NULL");
@@ -269,8 +259,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ cat(sep=\" \", \"hello\") }", "hello", "NULL");
     }
 
-    @Test
-    public void testOuter() throws RecognitionException {
+    @Test public void testOuter() throws RecognitionException {
         assertEval("{ outer(1:3,1:2) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
         assertEval("{ outer(1:3,1:2,\"*\") }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
         assertEval("{ outer(1, 3, \"-\") }", "     [,1]\n[1,] -2.0");
@@ -279,8 +268,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ outer(1:2, 1:3, '<') }", "      [,1]  [,2] [,3]\n[1,] FALSE  TRUE TRUE\n[2,] FALSE FALSE TRUE");
     }
 
-    @Test
-    public void testOperators() throws RecognitionException {
+    @Test public void testOperators() throws RecognitionException {
         assertEval("{ `+`(1,2) }", "3.0");
         assertEval("{ `-`(1,2) }", "-1.0");
         assertEval("{ `*`(1,2) }", "2.0");
@@ -299,8 +287,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- `+` ; f <- function() { x <- 1 ; x(2,3) } ; f() }", "5.0");
     }
 
-    @Test
-    public void testTriangular() throws RecognitionException {
+    @Test public void testTriangular() throws RecognitionException {
         assertEval("{ m <- matrix(1:6, nrow=2) ;  upper.tri(m, diag=TRUE) }", "      [,1] [,2] [,3]\n[1,]  TRUE TRUE TRUE\n[2,] FALSE TRUE TRUE");
         assertEval("{ m <- matrix(1:6, nrow=2) ;  upper.tri(m, diag=FALSE) }", "      [,1]  [,2] [,3]\n[1,] FALSE  TRUE TRUE\n[2,] FALSE FALSE TRUE");
         assertEval("{ m <- matrix(1:6, nrow=2) ;  lower.tri(m, diag=TRUE) }", "     [,1]  [,2]  [,3]\n[1,] TRUE FALSE FALSE\n[2,] TRUE  TRUE FALSE");
@@ -316,15 +303,13 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ m <- { matrix( as.raw(11:16), nrow=2 ) } ; diag(m) <- c(as.raw(1),as.raw(2)) ; m }", "     [,1] [,2] [,3]\n[1,]   01   0d   0f\n[2,]   0c   02   10");
     }
 
-    @Test
-    public void testDiagonal() throws RecognitionException {
+    @Test public void testDiagonal() throws RecognitionException {
         assertEval("{ m <- matrix(1:6, nrow=3) ; diag(m) <- c(1,2) ; m }", "     [,1] [,2]\n[1,]  1.0  4.0\n[2,]  2.0  2.0\n[3,]  3.0  6.0");
         assertEval("{ x <- (m <- matrix(1:6, nrow=3)) ; diag(m) <- c(1,2) ; x }", "     [,1] [,2]\n[1,]   1L   4L\n[2,]   2L   5L\n[3,]   3L   6L");
         assertEval("{ m <- matrix(1:6, nrow=3) ; f <- function() { diag(m) <- c(100,200) } ; f() ; m }", "     [,1] [,2]\n[1,]   1L   4L\n[2,]   2L   5L\n[3,]   3L   6L");
     }
 
-    @Test
-    public void testDimensions() throws RecognitionException {
+    @Test public void testDimensions() throws RecognitionException {
         assertEval("{ dim(1) }", "NULL");
         assertEval("{ dim(1:3) }", "NULL");
         assertEval("{ m <- matrix(1:6, nrow=3) ; dim(m) }", "3L, 2L");
@@ -346,8 +331,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:2 ; attr(x, \"dim\") <- c(2,1) ; x }", "     [,1]\n[1,]   1L\n[2,]   2L");
     }
 
-    @Test
-    public void testCumulativeSum() throws RecognitionException {
+    @Test public void testCumulativeSum() throws RecognitionException {
         assertEval("{ cumsum(1:10) }", "1L, 3L, 6L, 10L, 15L, 21L, 28L, 36L, 45L, 55L");
         assertEval("{ cumsum(c(1,2,3)) }", "1.0, 3.0, 6.0");
         assertEval("{ cumsum(rep(1e308, 3) ) }", "1.0E308, Infinity, Infinity");
@@ -362,15 +346,13 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ cumsum(c(1,0/0,5+1i)) }", "1.0+0.0i, NaN+0.0i, NaN+1.0i");
     }
 
-    @Test
-    public void testWhich() throws RecognitionException {
+    @Test public void testWhich() throws RecognitionException {
         assertEval("{ which(c(TRUE, FALSE, NA, TRUE)) }", "1L, 4L");
         assertEval("{ which(logical()) }", "integer(0)");
         assertEval("{ which(c(a=TRUE,b=FALSE,c=TRUE)) }", " a  c\n1L 3L");
     }
 
-    @Test
-    public void testColumnsRowsStat() throws RecognitionException {
+    @Test public void testColumnsRowsStat() throws RecognitionException {
         assertEval("{ m <- matrix(1:6, nrow=2) ; colMeans(m) }", "1.5, 3.5, 5.5");
         assertEval("{ m <- matrix(1:6, nrow=2) ; colSums(na.rm = FALSE, x = m) }", "3.0, 7.0, 11.0");
         assertEval("{ m <- matrix(1:6, nrow=2) ; rowMeans(x = m, na.rm = TRUE) }", "3.0, 4.0");
@@ -402,15 +384,13 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ o <- outer(1:3, 1:4, \"<\") ; colSums(o) }", "0.0, 1.0, 2.0, 3.0");
     }
 
-    @Test
-    public void testNChar() throws RecognitionException {
+    @Test public void testNChar() throws RecognitionException {
         assertEval("{ nchar(c(\"hello\", \"hi\")) }", "5L, 2L");
         assertEval("{ nchar(c(\"hello\", \"hi\", 10, 130)) }", "5L, 2L, 4L, 5L"); // incompatible with R because of different number printing
         assertEval("{ nchar(c(10,130)) }", "4L, 5L"); // incompatible with R because of different number printing
     }
 
-    @Test
-    public void testStrSplit() throws RecognitionException {
+    @Test public void testStrSplit() throws RecognitionException {
         assertEval("{ strsplit(\"helloh\", \"h\", fixed=TRUE) }", "[[1]]\n\"\", \"ello\"");
         assertEval("{ strsplit( c(\"helloh\", \"hi\"), c(\"h\",\"\"), fixed=TRUE) }", "[[1]]\n\"\", \"ello\"\n\n[[2]]\n\"h\", \"i\"");
         assertEval("{ strsplit(\"helloh\", \"\", fixed=TRUE) }", "[[1]]\n\"h\", \"e\", \"l\", \"l\", \"o\", \"h\"");
@@ -419,8 +399,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ strsplit(\"ahoj\", split=\"\") [[c(1,2)]] }", "\"h\"");
     }
 
-    @Test
-    public void testPaste() throws RecognitionException {
+    @Test public void testPaste() throws RecognitionException {
         assertEval("{ paste(1:2, 1:3, FALSE, collapse=NULL) }", "\"1L 1L FALSE\", \"2L 2L FALSE\", \"1L 3L FALSE\"");
         assertEval("{ paste(1:2, 1:3, FALSE, collapse=\"-\", sep=\"+\") }", "\"1L+1L+FALSE-2L+2L+FALSE-1L+3L+FALSE\"");
         assertEval("{ paste() }", "character(0)");
@@ -428,8 +407,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; paste(a, b) }", "\"c8 ff\"");
     }
 
-    @Test
-    public void testSubstring() throws RecognitionException {
+    @Test public void testSubstring() throws RecognitionException {
         assertEval("{ substr(\"123456\", start=2, stop=4) }", "\"234\"");
         assertEval("{ substr(\"123456\", start=2L, stop=4L) }", "\"234\"");
         assertEval("{ substr(\"123456\", start=2.8, stop=4) }", "\"234\"");
@@ -442,8 +420,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ substring(\"fastr\", first=NA, last=2) }", "NA");
     }
 
-    @Test
-    public void testOrder() throws RecognitionException {
+    @Test public void testOrder() throws RecognitionException {
         assertEval("{ order(1:3) }", "1L, 2L, 3L");
         assertEval("{ order(3:1) }", "3L, 2L, 1L");
         assertEval("{ order(c(1,1,1), 3:1) }", "3L, 2L, 1L");
@@ -461,8 +438,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ order(c(0/0, -1/0, 2), na.last=NA) }", "2L, 3L");
     }
 
-    @Test
-    public void testMathFunctions() throws RecognitionException {
+    @Test public void testMathFunctions() throws RecognitionException {
         assertEval("{ log(1) } ", "0.0");
         assertEval("{ m <- matrix(1:4, nrow=2) ; round( log10(m), digits=5 )  }", "        [,1]    [,2]\n[1,]     0.0 0.47712\n[2,] 0.30103 0.60206");
 
@@ -482,8 +458,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");
     }
 
-    @Test
-    public void testCharUtils() throws RecognitionException {
+    @Test public void testCharUtils() throws RecognitionException {
         assertEval("{ toupper(c(\"hello\",\"bye\")) }", "\"HELLO\", \"BYE\"");
         assertEval("{ tolower(c(\"Hello\",\"ByE\")) }", "\"hello\", \"bye\"");
         assertEval("{ tolower(1E100) }", "\"1.0e100\"");
@@ -495,8 +470,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ tolower(c(a=\"HI\", \"HELlo\")) }", "   a        \n\"hi\" \"hello\"");
     }
 
-    @Test
-    public void testTypeOf() throws RecognitionException {
+    @Test public void testTypeOf() throws RecognitionException {
         assertEval("{ typeof(1) }", "\"double\"");
         assertEval("{ typeof(1L) }", "\"integer\"");
         assertEval("{ typeof(sum) }", "\"builtin\"");
@@ -504,8 +478,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ typeof(\"hi\") }", "\"character\"");
     }
 
-    @Test
-    public void testSub() throws RecognitionException {
+    @Test public void testSub() throws RecognitionException {
         assertEval("{ gsub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague aalley\"");
         assertEval("{ sub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague alley\"");
         assertEval("{ gsub(\"a\",\"aa\", \"prAgue alley\", fixed=TRUE) }", "\"prAgue aalley\"");
@@ -521,22 +494,19 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ gsub(\"([a-e])\",\"\\\\1\\\\1\", \"prague alley\") }", "\"praaguee aalleey\"");
     }
 
-    @Test
-    public void testRegExpr() throws RecognitionException {
+    @Test public void testRegExpr() throws RecognitionException {
         assertEval("gregexpr(\"(a)[^a]\\\\1\", c(\"andrea apart\", \"amadeus\", NA))", "[[1]]\n6L\n\n[[2]]\n1L\n\n[[3]]\nNA"); // NOTE: this is without attributes
         assertEval("regexpr(\"(a)[^a]\\\\1\", c(\"andrea apart\", \"amadeus\", NA))", "6L, 1L, NA"); // NOTE: this is without attributes
     }
 
-    @Test
-    public void testLength() throws RecognitionException {
+    @Test public void testLength() throws RecognitionException {
         assertEval("{ x <- 1:4 ; length(x) <- 2 ; x }", "1L, 2L");
         assertEval("{ x <- 1:2 ; length(x) <- 4 ; x }", "1L, 2L, NA, NA");
         assertEval("{ x <- 1:2 ; z <- (length(x) <- 4) ; z }", "4.0");
         assertEval("{ length(c(z=1:4)) }", "4L");
     }
 
-    @Test
-    public void testNames() throws RecognitionException {
+    @Test public void testNames() throws RecognitionException {
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\", \"hi\"); names(x) } ", "\"hello\", \"hi\"");
         assertEval("{ x <- 1:2 ; names(x) <- c(\"hello\"); names(x) }", "\"hello\", NA");
         assertEval("{ x <- 1:2; names(x) <- c(\"hello\", \"hi\") ; x }", "hello hi\n   1L 2L");
@@ -550,14 +520,12 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:2; names(x) <- c(\"A\", \"B\") ; abs(x) }", " A  B\n1L 2L");
     }
 
-    @Test
-    public void testRev() throws RecognitionException {
+    @Test public void testRev() throws RecognitionException {
         assertEval("{ rev(c(1+1i, 2+2i)) }", "2.0+2.0i, 1.0+1.0i");
         assertEval("{ rev(1:3) }", "3L, 2L, 1L");
     }
 
-    @Test
-    public void testEnvironment() throws RecognitionException {
+    @Test public void testEnvironment() throws RecognitionException {
         // note: this function also includes lookup tests that do not explicitly invoke environment-related builtins
 
         assertEval("{ f <- function() { assign(\"x\", 1) ; x } ; f() }", "1.0");
@@ -613,8 +581,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1; exists(\"x\", inherits = FALSE) }", "TRUE");
     }
 
-    @Test
-    public void testTranspose() throws RecognitionException {
+    @Test public void testTranspose() throws RecognitionException {
         assertEval("{ t(1:3) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
         assertEval("{ t(t(1:3)) }", "     [,1]\n[1,]   1L\n[2,]   2L\n[3,]   3L");
         assertEval("{ t(t(t(1:3))) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
@@ -629,8 +596,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ m <- matrix(c(rep(1:10,100200),100L), nrow=1001) ; sum(m * t(m)) }", "38587000L");
     }
 
-    @Test
-    public void testTypeCheck() throws RecognitionException {
+    @Test public void testTypeCheck() throws RecognitionException {
         assertEval("{ is.double(10L) }", "FALSE");
         assertEval("{ is.double(10) }", "TRUE");
         assertEval("{ is.double(\"10\") }", "FALSE");
@@ -651,14 +617,12 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ is.matrix(NULL) }", "FALSE");
     }
 
-    @Test
-    public void testOverride() throws RecognitionException {
+    @Test public void testOverride() throws RecognitionException {
         assertEval("{ sub <- function(x,y) { x - y }; sub(10,5) }", "5.0");
         assertEval("{ sub(\"a\",\"aa\", \"prague alley\", fixed=TRUE) }", "\"praague alley\"");
     }
 
-    @Test
-    public void testEigen() throws RecognitionException {
+    @Test public void testEigen() throws RecognitionException {
         // symmetric real input
         assertEval("{ r <- eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) ; round( r$vectors, digits=5 ) }", "        [,1]     [,2]\n[1,] 0.70711 -0.70711\n[2,] 0.70711  0.70711");
         assertEval("{ r <- eigen(matrix(rep(1,4), nrow=2), only.values=FALSE) ; round( r$values, digits=5 ) }", "2.0, 0.0");
@@ -672,12 +636,12 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         // non-symmetric real input, complex output
         // FIXME: GNUR is won't print the minus sign for negative zero
-        assertEval("{ r <- eigen(matrix(c(3,-2,4,-1), nrow=2), only.values=FALSE); round( r$vectors, digits=5 ) }", "                  [,1]              [,2]\n[1,]       0.8165+0.0i       0.8165+0.0i\n[2,] -0.40825+0.40825i -0.40825-0.40825i");
+        assertEval("{ r <- eigen(matrix(c(3,-2,4,-1), nrow=2), only.values=FALSE); round( r$vectors, digits=5 ) }",
+                "                  [,1]              [,2]\n[1,]       0.8165+0.0i       0.8165+0.0i\n[2,] -0.40825+0.40825i -0.40825-0.40825i");
         assertEval("{ r <- eigen(matrix(c(3,-2,4,-1), nrow=2), only.values=FALSE); round( r$values, digits=5 ) }", "1.0+2.0i, 1.0-2.0i");
     }
 
-    @Test
-    public void testAttributes() throws RecognitionException {
+    @Test public void testAttributes() throws RecognitionException {
         assertEval("{ x <- 1; attributes(x) }", "NULL");
         assertEval("{ x <- 1; names(x) <- \"hello\" ; attributes(x) }", "$names\n\"hello\"");
         assertEval("{ x <- 1:3 ; attr(x, \"myatt\") <- 2:4 ; attributes(x) }", "$myatt\n2L, 3L, 4L");
@@ -690,8 +654,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:2; attr(x, \"aa\") <- 1 ; attr(x, \"ab\") <- 2; attr(x, \"bb\") <- 3; attr(x, \"b\") }", "3.0");
     }
 
-    @Test
-    public void testUnlist() throws RecognitionException {
+    @Test public void testUnlist() throws RecognitionException {
         assertEval("{ unlist(list(\"hello\", \"hi\")) }", "\"hello\", \"hi\"");
         assertEval("{ unlist(list(a=\"hello\", b=\"hi\")) }", "      a    b\n\"hello\" \"hi\"");
         assertEval("{ x <- list(a=1,b=2:3,list(x=FALSE)) ; unlist(x, recursive=FALSE) }", "$a\n1.0\n\n$b1\n2L\n\n$b2\n3L\n\n$x\nFALSE");
@@ -705,13 +668,11 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- list(a=list(1,FALSE,b=list(2:4))) ; unlist(x) }", " a1  a2 a.b1 a.b2 a.b3\n1.0 0.0  2.0  3.0  4.0");
     }
 
-    @Test
-    public void testOther() throws RecognitionException {
+    @Test public void testOther() throws RecognitionException {
         assertEval("{ rev.mine <- function(x) { if (length(x)) x[length(x):1L] else x } ; rev.mine(1:3) }", "3L, 2L, 1L");
     }
 
-    @Test
-    public void testAperm() throws RecognitionException {
+    @Test public void testAperm() throws RecognitionException {
         // default argument for permutation is transpose
         assertTrue("{ a = array(1:4,c(2,2)); b = aperm(a); (a[1,1] == b[1,1]) && (a[1,2] == b[2,1]) && (a[2,1] == b[1,2]) && (a[2,2] == b[2,2]); }");
 
@@ -749,8 +710,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEvalWarning("{ aperm(array(1:27,c(3,3,3)), c(1+1i,3+3i,2+2i))[1,2,3] == array(1:27,c(3,3,3))[1,3,2]; }", "TRUE", "imaginary parts discarded in coercion");
     }
 
-    @Test
-    public void testColStatsMatrix() {
+    @Test public void testColStatsMatrix() {
         // colSums on matrix drop dimension
         assertTrue("{ a = colSums(matrix(1:12,3,4)); is.null(dim(a)); }");
 
@@ -761,8 +721,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertTrue("{ a = colSums(matrix(1:12,3,4)); a[1] == 6 && a[2] == 15 && a[3] == 24 && a[4] == 33; }");
     }
 
-    @Test
-    public void testColStatsArray() {
+    @Test public void testColStatsArray() {
         // colSums on array have correct dimension
         assertTrue("{ a = colSums(array(1:24,c(2,3,4))); d = dim(a); d[1] == 3 && d[2] == 4; }");
 
@@ -773,8 +732,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertTrue("{ a = colSums(array(1:24,c(2,3,4))); a[1,1] == 3 && a[2,2] == 19 && a[3,3] == 35 && a[3,4] == 47; }");
     }
 
-    @Test
-    public void testRowStats() {
+    @Test public void testRowStats() {
         // rowSums on matrix drop dimension
         assertTrue("{ a = rowSums(matrix(1:12,3,4)); is.null(dim(a)); }");
 
@@ -785,8 +743,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertTrue("{ a = rowSums(matrix(1:12,3,4)); a[1] == 22 && a[2] == 26 && a[3] == 30; }");
     }
 
-    @Test
-    public void testRowStatsArray() {
+    @Test public void testRowStatsArray() {
         // rowSums on array have no dimension
         assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); is.null(dim(a)); }");
 
@@ -797,16 +754,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertTrue("{ a = rowSums(array(1:24,c(2,3,4))); a[1] == 144 && a[2] == 156; }");
     }
 
-    @Test
-    public void testRecall() throws RecognitionException {
+    @Test public void testRecall() throws RecognitionException {
         assertEval("{ f<-function(i) { if(i<=1) 1 else i*Recall(i-1) } ; f(10) }", "3628800.0");
         assertEval("{ f<-function(i) { if(i<=1) 1 else i*Recall(i-1) } ; g <- f ; f <- sum ; g(10) }", "3628800.0");
         assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { Recall(i-1) + Recall(i-2) } } ; f(10) }", "55.0");
         assertEvalError("{ Recall(10) }", "'Recall' called from outside a closure");
     }
 
-    @Test
-    public void testCrossprod() throws RecognitionException {
+    @Test public void testCrossprod() throws RecognitionException {
         assertEval("{ x <- 1:6 ; crossprod(x) }", "     [,1]\n[1,] 91.0");
         assertEval("{ x <- 1:2 ; crossprod(t(x)) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0");
         assertEval("{ crossprod(1:3, matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,] 14.0 32.0");
@@ -814,8 +769,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ crossprod(c(1,NA,2), matrix(1:6, ncol=2)) }", "     [,1] [,2]\n[1,]   NA   NA");
     }
 
-    @Test
-    public void testSort() throws RecognitionException {
+    @Test public void testSort() throws RecognitionException {
         assertEval("{ sort(c(1L,10L,2L)) }", "1L, 2L, 10L");
         assertEval("{ sort(c(3,10,2)) }", "2.0, 3.0, 10.0");
         assertEval("{ sort(c(1,2,0/0,NA)) }", "1.0, 2.0");
@@ -830,12 +784,11 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sort(c(a=0/0,b=1/0,c=3,d=NA),na.last=TRUE, decreasing=FALSE) }", "  c        b   a  d\n3.0 Infinity NaN NA");
         assertEval("{ sort(double()) }", "numeric(0)");
         assertEval("{ sort(c(a=NA,b=NA,c=3L,d=-1L),na.last=TRUE, decreasing=FALSE) }", "  d  c  a  b\n-1L 3L NA NA");
-        assertEval("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }","$x\n           d\n1.0 3.0 10.0\n\n$ix\n2L, 1L, 3L");
+        assertEval("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }", "$x\n           d\n1.0 3.0 10.0\n\n$ix\n2L, 1L, 3L");
         assertEval("{ sort(3:1, index.return=TRUE) }", "$x\n1L, 2L, 3L\n\n$ix\n3L, 2L, 1L");
     }
 
-    @Test
-    public void testCbind() throws RecognitionException {
+    @Test public void testCbind() throws RecognitionException {
         assertEval("{ cbind(1:3,1:3) }", "     [,1] [,2]\n[1,]   1L   1L\n[2,]   2L   2L\n[3,]   3L   3L");
         assertEval("{ cbind() }", "NULL");
         assertEval("{ m <- matrix(1:6, nrow=2) ; cbind(11:12, m) }", "     [,1] [,2] [,3] [,4]\n[1,]  11L   1L   3L   5L\n[2,]  12L   2L   4L   6L");
@@ -844,8 +797,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ cbind(1:3,2) }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  2.0\n[3,]  3.0  2.0");
     }
 
-    @Test
-    public void testRank() throws RecognitionException {
+    @Test public void testRank() throws RecognitionException {
         assertEval("{ rank(c(10,100,100,1000)) }", "1.0, 2.5, 2.5, 4.0");
         assertEval("{ rank(c(1000,100,100,100, 10)) }", "5.0, 3.0, 3.0, 3.0, 1.0");
         assertEval("{ rank(c(a=2,b=1,c=3,40)) }", "  a   b   c    \n2.0 1.0 3.0 4.0");
@@ -858,48 +810,37 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ rank(c(1000, 100, 100, NA, 1, 20), ties.method=\"first\") }", "5L, 3L, 4L, 6L, 1L, 2L");
     }
 
-    @Test
-    public void testCor() throws RecognitionException {
+    @Test public void testCor() throws RecognitionException {
         assertEval("{ cor(cbind(c(1:9,0/0), 101:110)) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0");
         assertEval("{ round( cor(cbind(c(10,5,4,1), c(2,5,10,5))), digits=5 ) }", "         [,1]     [,2]\n[1,]      1.0 -0.53722\n[2,] -0.53722      1.0");
         assertEval("{ cor(cbind(c(3,2,1), c(1,2,3))) }", "     [,1] [,2]\n[1,]  1.0 -1.0\n[2,] -1.0  1.0");
         assertEvalWarning("{ cor(cbind(c(1,1,1), c(1,1,1))) }", "     [,1] [,2]\n[1,]  1.0   NA\n[2,]   NA  1.0", "the standard deviation is zero");
     }
 
-    @Test
-    public void testDet() throws RecognitionException {
+    @Test public void testDet() throws RecognitionException {
         assertEval("{ det(matrix(c(1,2,4,5),nrow=2)) }", "-3.0");
         assertEval("{ det(matrix(c(1,-3,4,-5),nrow=2)) }", "7.0");
         assertEval("{ det(matrix(c(1,0,4,NA),nrow=2)) }", "NA");
     }
 
-    @Test
-    public void testFFT() throws RecognitionException {
-        if (!RContext.hasGNUR()) {
-            return;
-        }
-        assertEval("{ fft(1:4) }","10.0+0.0i, -2.0+2.0i, -2.0+0.0i, -2.0-2.0i");
+    @Test public void testFFT() throws RecognitionException {
+        if (!RContext.hasGNUR()) { return; }
+        assertEval("{ fft(1:4) }", "10.0+0.0i, -2.0+2.0i, -2.0+0.0i, -2.0-2.0i");
         assertEval("{ fft(1:4, inverse=TRUE) }", "10.0+0.0i, -2.0-2.0i, -2.0+0.0i, -2.0+2.0i");
         assertEval("{ fft(10) }", "10.0+0.0i");
         assertEval("{ fft(cbind(1:2,3:4)) }", "          [,1]      [,2]\n[1,] 10.0+0.0i -4.0+0.0i\n[2,] -2.0+0.0i  0.0+0.0i");
     }
 
-    @Test
-    public void testChol() throws RecognitionException {
-        if (!RContext.hasGNUR()) {
-            return;
-        }
+    @Test public void testChol() throws RecognitionException {
+        if (!RContext.hasGNUR()) { return; }
         assertEval("{ chol(1) }", "     [,1]\n[1,]  1.0");
         assertEval("{ round( chol(10), digits=5) }", "        [,1]\n[1,] 3.16228");
         assertEval("{ m <- matrix(c(5,1,1,3),2) ; round( chol(m), digits=5 ) }", "        [,1]    [,2]\n[1,] 2.23607 0.44721\n[2,]     0.0 1.67332");
         assertEvalError("{ m <- matrix(c(5,-5,-5,3),2,2) ; chol(m) }", "the leading minor of order 2 is not positive definite");
     }
 
-    @Test
-    public void testQr() throws RecognitionException {
-        if (!RContext.hasGNUR()) {
-            return;
-        }
+    @Test public void testQr() throws RecognitionException {
+        if (!RContext.hasGNUR()) { return; }
         assertEval("{ qr(10, LAPACK=TRUE) }", "$qr\n     [,1]\n[1,] 10.0\n\n$rank\n1L\n\n$qraux\n0.0\n\n$pivot\n1L\nattr(,\"useLAPACK\")\nTRUE");
         assertEval("{ round( qr(matrix(1:6,nrow=2), LAPACK=TRUE)$qr, digits=5) }", "         [,1]     [,2]     [,3]\n[1,] -7.81025 -2.17663 -4.99344\n[2,]  0.46837  0.51215  0.25607");
         assertEval("{ qr(matrix(1:6,nrow=2), LAPACK=FALSE)$pivot }", "1L, 2L, 3L");
@@ -912,7 +853,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=TRUE) ; qr.coef(x, 1:2) }", "1.0, NA, NA, NA, NA, NA, NA, NA, NA, 0.0");
         assertEval(" { x <- qr(cbind(1:10,2:11), LAPACK=TRUE) ; round( qr.coef(x, 1:10), digits=5 ) }", "1.0, 0.0");
         assertEval("{ x <- qr(c(3,1,2), LAPACK=TRUE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
-          // FIXME: GNU-R will print negative zero as zero
+        // FIXME: GNU-R will print negative zero as zero
         assertEval("{ x <- qr(t(cbind(1:10,2:11)), LAPACK=FALSE) ; qr.coef(x, 1:2) }", "1.0, -0.0, NA, NA, NA, NA, NA, NA, NA, NA");
         assertEval("{ x <- qr(c(3,1,2), LAPACK=FALSE) ; round( qr.coef(x, c(1,3,2)), digits=5 ) }", "0.71429");
         assertEval("{ m <- matrix(c(1,0,0,0,1,0,0,0,1),nrow=3) ; x <- qr(m, LAPACK=FALSE) ; qr.coef(x, 1:3) }", "1.0, 2.0, 3.0");
@@ -923,16 +864,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ round( qr.solve(c(1,3,4,2), c(1,2,3,4)), digits=5) }", "0.9");
     }
 
-    @Test
-    public void testComplex() throws RecognitionException {
+    @Test public void testComplex() throws RecognitionException {
         assertEval("{ x <- 1:2 ; attr(x,\"my\") <- 2 ; Im(x) }", "0.0, 0.0\nattr(,\"my\")\n2.0");
         assertEval("{ x <- c(1+2i,3-4i) ; attr(x,\"my\") <- 2 ; Im(x) }", "2.0, -4.0\nattr(,\"my\")\n2.0");
         assertEval("{ x <- 1:2 ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 2.0\nattr(,\"my\")\n2.0");
         assertEval("{ x <- c(1+2i,3-4i) ; attr(x,\"my\") <- 2 ; Re(x) }", "1.0, 3.0\nattr(,\"my\")\n2.0");
     }
 
-    @Test
-    public void testRound() throws RecognitionException {
+    @Test public void testRound() throws RecognitionException {
         assertEval("{ round(0.4) }", "0.0");
         assertEval("{ round(0.5) }", "0.0");
         assertEval("{ round(0.6) }", "1.0");
@@ -942,11 +881,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ round(1/0) }", "Infinity");
     }
 
-    @Test
-    public void testRandom() throws RecognitionException {
-        if (!RContext.hasGNUR()) {
-            return;
-        }
+    @Test public void testRandom() throws RecognitionException {
+        if (!RContext.hasGNUR()) { return; }
         assertEval("{ round( rnorm(3), digits = 5 ) }", "-1.26974, -0.33447, 3.03882");
         assertEval("{ round( rnorm(3,1000,10), digits = 5 ) }", "987.30263, 996.65534, 1030.38818");
         assertEval("{ round( rnorm(3,c(1000,2,3),c(10,11)), digits = 5 ) }", "987.30263, -1.67912, 33.38818");

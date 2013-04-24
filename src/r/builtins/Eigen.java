@@ -45,7 +45,7 @@ final class Eigen extends CallFactory {
 
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-                throw Utils.nyi();
+                throw Utils.nyi("eigen to be implemented");
             }
         };
     }

@@ -61,7 +61,7 @@ public class Truffle {
         public Frame(RSymbol[] d, HashMap<RSymbol, Integer> h, RFrameHeader a) {
             this.h = h;
             this.arguments = a;
-            this.locals = new Object[d.length];
+            this.locals = d == null ? null : new Object[d.length];
         }
 
         public RFrameHeader getArguments() {

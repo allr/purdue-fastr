@@ -11,7 +11,6 @@ import r.data.RComplex.RComplexUtils;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
-import r.gnur.*;
 import r.nodes.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
@@ -1586,39 +1585,31 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
-                for (int i = 0; i < size; i++) {
-                    double a = x[i];
-                    double b = y[i];
-                    double c = pow(a, b);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
-                            res[i] = RDouble.NA;
-                        }
-                    } else {
-                        res[i] = c;
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = pow(a, b);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
                     }
+                } else {
+                    res[i] = c;
                 }
-            } else {
-                GNUR.pow(x, y, res, size);
             }
         }
 
         @Override public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
-                for (int i = 0; i < size; i++) {
-                    double a = x[i];
-                    double c = pow(a, y);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
-                            res[i] = RDouble.NA;
-                        }
-                    } else {
-                        res[i] = c;
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double c = pow(a, y);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                        res[i] = RDouble.NA;
                     }
+                } else {
+                    res[i] = c;
                 }
-            } else {
-                GNUR.pow(x, y, res, size);
             }
         }
 
@@ -1633,11 +1624,7 @@ public class Arithmetic extends BaseR {
     }
 
     public static double pow(double a, double b) {
-        if (!RContext.hasGNUR()) {
-            return Math.pow(a, b);
-        } else {
-            return GNUR.pow(a, b);
-        }
+        return Math.pow(a, b);
     }
 
     public static void cdiv(double a, double b, double c, double d, double[] res, int offset) {
@@ -1910,23 +1897,16 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
-                for (int i = 0; i < size; i++) {
-                    double a = x[i];
-                    double b = y[i];
-                    double c = fmod(ast, a, b);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
-                            res[i] = RDouble.NA;
-                        }
-                    } else {
-                        res[i] = c;
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                double b = y[i];
+                double c = fmod(ast, a, b);
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
                     }
-                }
-            } else { // FIXME: check if it won't be better to use the Java version for short vectors (branch above)
-                boolean warn = GNUR.fmod(x, y, res, size);
-                if (warn) {
-                    RContext.warning(ast, RError.ACCURACY_MODULUS); // FIXME: will only appear once per vector
+                } else {
+                    res[i] = c;
                 }
             }
         }

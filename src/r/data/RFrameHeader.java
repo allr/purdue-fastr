@@ -923,7 +923,12 @@ public class RFrameHeader {
         }
     }
 
-    public static void localWrite(Frame frame, RSymbol name, RAny value) {
-        frame.setObject(frame.find(name), value);
+    public static void localWrite(Frame frame, RSymbol symbol, RAny value) {
+        int slot = findVariable(frame, symbol);
+        if (slot != -1) {
+            writeAtRef(frame, slot, value);
+        } else {
+            writeToExtension(frame, symbol, value); // marks the defining slot dirty
+        }
     }
 }
