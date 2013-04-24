@@ -1160,41 +1160,62 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         @Override
         public RAny execute(Frame frame, RAny lhsArg, RAny rhsArg) {
-            RArray lhs = (RArray) lhsArg; // FIXME: get rid of this
-            RArray rhs = (RArray) rhsArg;
+            RArray lhs = Utils.cast(lhsArg); // FIXME: get rid of this
+            RArray rhs = Utils.cast(rhsArg);
             try {
                 if (lhs.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
                 guard.check(lhs, rhs);
-                int i = extractIndex(selectorExprs[0].child, frame);
-                int j = extractIndex(selectorExprs[1].child, frame);
-                int[] dim = lhs.dimensions();
-                if (dim == null || dim.length != 2) {
-                    throw RError.getIncorrectSubscriptsMatrix(ast);
-                }
-                int rsize = rhs.size();
-                if (rsize != 1) {
-                    if (rsize == 0) {
-                        throw RError.getReplacementZero(ast);
-                    } else {
-                        if (subset) {
-                            throw RError.getNotMultipleReplacement(ast);
-                        } else {
-                            throw RError.getMoreElementsSupplied(ast);
-                        }
-                    }
-                }
-                int m = dim[0];
-                int n = dim[1];
-                if (i > m || j > n) {
-                    throw RError.getSubscriptBounds(ast);
-                }
-                return lhs.set(j * m + i, rhs.get(0));
             } catch (UnexpectedResultException e) {
                 if (DEBUG_UP) Utils.debug("MatrixScalarIndex -> Generalized");
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
+
+            // note - the code below has so complex error handling to ensure that the index is not evaluated twice in case
+            // of node rewriting - note that the index expression can indeed have side effects
+            Object ival = selectorExprs[0].child.execute(frame);
+            Object jval = selectorExprs[1].child.execute(frame);
+            int i;
+            int j;
+            try {
+                i = extractIndex(ival);
+                j = extractIndex(jval);
+            } catch (UnexpectedResultException e) {
+                RNode ichild = selectorExprs[0].child;
+                RNode jchild = selectorExprs[1].child;
+                selectorExprs[0].replaceChild(ichild, new PushbackNode(ichild.getAST(), ichild, ival));
+                selectorExprs[1].replaceChild(jchild, new PushbackNode(jchild.getAST(), jchild, jval));
+
+                if (rhs.size() == 1) {
+                    return replace(new Scalar(this)).execute(frame, lhs, rhs);
+                } else {
+                    return replace(new NonScalar(this)).execute(frame, lhs, rhs);
+                }
+            }
+
+            int[] dim = lhs.dimensions();
+            if (dim == null || dim.length != 2) {
+                throw RError.getIncorrectSubscriptsMatrix(ast);
+            }
+            int rsize = rhs.size();
+            if (rsize != 1) {
+                if (rsize == 0) {
+                    throw RError.getReplacementZero(ast);
+                } else {
+                    if (subset) {
+                        throw RError.getNotMultipleReplacement(ast);
+                    } else {
+                        throw RError.getMoreElementsSupplied(ast);
+                    }
+                }
+            }
+            int m = dim[0];
+            int n = dim[1];
+            if (i > m || j > n) {
+                throw RError.getSubscriptBounds(ast);
+            }
+            return lhs.set(j * m + i, rhs.get(0));
         }
 
         public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {

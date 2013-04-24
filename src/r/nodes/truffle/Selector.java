@@ -594,6 +594,7 @@ public abstract class Selector {
 
         RInt index;
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
+        int dataSize; // only needed with negative selection
         boolean positiveSelection;  // positive indexes and NA and zeros
 
         int offset;
@@ -663,6 +664,7 @@ public abstract class Selector {
                 if (hasNegative) {
                     if (!hasNA) {
                         positiveSelection = false;
+                        this.dataSize = dataSize;
                         // all elements are negative, selection size will depend on the data size
                     } else {
                         throw RError.getOnlyZeroMixed(ast);
@@ -715,7 +717,20 @@ public abstract class Selector {
 
         @Override
         public boolean isExhausted() {
-            return offset == size;
+            if (positiveSelection) {
+                return offset == size;
+            } else {
+                // negative selection, advancing the "offset" over elements to omit is benign
+                int tmpOffset = offset;
+                while(omit[tmpOffset]) {
+                    tmpOffset ++;
+                    if (tmpOffset == dataSize) {
+                        return true;
+                    }
+                }
+                offset = tmpOffset; // do not repeat the search in nextIndex
+                return false;
+            }
         }
 
         @Override
