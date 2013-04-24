@@ -145,6 +145,9 @@ public abstract class Selector {
             mayHaveNA = mayHaveNA || sel.mayHaveNA();
             int size = sel.size();
             selSizes[i] = size;
+            if (size == 0) {
+                return true;
+            }
             int next = sel.nextIndex(ast);
             if (next != RInt.NA) {
                 offsets[i] = next * mult;
@@ -670,8 +673,8 @@ public abstract class Selector {
                         throw RError.getOnlyZeroMixed(ast);
                     }
                 } else {
+                    positiveSelection = true;
                     if (hasNA) {
-                        positiveSelection = true;
                         size = isize;
                     } else {
                         // empty
@@ -706,10 +709,8 @@ public abstract class Selector {
                 }
             } else {
                 // negative selection
-                if (omit != null) {
-                    while (omit[offset]) {
-                        offset++;
-                    }
+                while (omit[offset]) {
+                    offset++;
                 }
                 return offset++;
             }
@@ -721,15 +722,15 @@ public abstract class Selector {
                 return offset == size;
             } else {
                 // negative selection, advancing the "offset" over elements to omit is benign
-                int tmpOffset = offset;
-                while(omit[tmpOffset]) {
-                    tmpOffset ++;
-                    if (tmpOffset == dataSize) {
+                for(;;) {
+                    if (offset == dataSize) {
                         return true;
                     }
+                    if (!omit[offset]) {
+                        return false;
+                    }
+                    offset++;
                 }
-                offset = tmpOffset; // do not repeat the search in nextIndex
-                return false;
             }
         }
 

@@ -300,5 +300,13 @@ public class TestSimpleArrays extends SimpleTestBase {
         // recovery from scalar selection update
         assertEval("{ m <- matrix(as.double(1:6), nrow=2) ; mi <- matrix(1:6, nrow=2) ; f <- function(v,i,j) { v[i,j] <- 100 ; v[i,j] * i * j } ; f(m, 1L, 2L) ; f(m,1L,TRUE)  }", "100.0, 100.0, 100.0");
         assertEval("{ m <- matrix(as.double(1:6), nrow=2) ; mi <- matrix(1:6, nrow=2) ; f <- function(v,i,j) { v[i,j] <- 100 ; v[i,j] * i * j } ; f(m, 1L, 2L) ; f(m,1L,-1)  }", "-100.0, -100.0");
+
+        assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1,-1) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0  4.0  6.0");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1, c(-1,-10)) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0  4.0  6.0");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1,c(-1,-10)) ; m <- f(1,-1) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0  4.0  6.0");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1,c(-1,-10)) ; m <- f(-1,2) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0 10.0  6.0");
+        assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(2,1:3) ; m <- f(1,-2) ; m }", "     [,1] [,2] [,3]\n[1,] 10.0  3.0 10.0\n[2,] 10.0 10.0 10.0");
+        assertEval("{ x <- array(c(1,2,3), dim=c(3,1)) ; x[1:2,1] <- 2:1 ; x }", "     [,1]\n[1,]  2.0\n[2,]  1.0\n[3,]  3.0");
+
     }
 }
