@@ -104,7 +104,7 @@ public class Abs extends CallFactory {
                         throw new UnexpectedResultException(null);
                     }
                     int i = ((ScalarIntImpl) val).getInt();
-                    return RInt.RIntFactory.getScalar(abs(i));
+                    return (i < 0) ? RInt.RIntFactory.getScalar(-i) : val; // NOTE: this also works with NA, NA will remain NA
                 } catch(UnexpectedResultException e) {
                     replace(createGeneric(call, names, exprs));
                     return generic((RAny) val);
