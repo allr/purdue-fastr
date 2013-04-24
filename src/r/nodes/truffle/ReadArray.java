@@ -288,6 +288,11 @@ public abstract class ReadArray extends BaseR {
             super(other);
         }
 
+        @Override public void replace0(RNode o, RNode n) {
+            if (selectorIExpr == o) selectorIExpr = (SelectorNode) n;
+            if (selectorJExpr == o) selectorJExpr = (SelectorNode) n;
+        }
+
         @Override public Object execute(Frame frame) {
             RAny lhsVal = (RAny) lhs.execute(frame);
             Selector selectorI = selectorIExpr.executeSelector(frame);

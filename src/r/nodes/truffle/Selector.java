@@ -498,27 +498,14 @@ public abstract class Selector {
 
         @Override public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
             int isize = index.size();
-            if (isize == 1) {
-                int i = index.getInt(0);
-                if (i > 0) {
-                    i--;
-                    if (i < dataSize) {
-                        this.dataSize = dataSize;
-                        indexValue = i;
-                        return;
-                    } else {
-                        throw RError.getSubscriptBounds(ast);
-                    }
-                } else {
-                    throw RError.getSelectLessThanOne(ast);
-                }
-            } else {
-                if (isize > 1) {
-                    throw RError.getSelectMoreThanOne(ast);
-                } else {
-                    throw RError.getSelectLessThanOne(ast);
-                }
-            }
+            if (isize != 1) throw isize > 1 ? RError.getSelectMoreThanOne(ast) : RError.getSelectLessThanOne(ast);
+            int i = index.getInt(0);
+            if (!(i > 0)) throw RError.getSelectLessThanOne(ast);
+            i--;
+            if (i >= dataSize) throw RError.getSubscriptBounds(ast);
+            this.dataSize = dataSize;
+            indexValue = i;
+            return;
         }
 
         @Override public void restart() {}
@@ -793,13 +780,9 @@ public abstract class Selector {
         }
         return new SelectorNode(ast, node) {
             @Override public Selector executeSelector(RAny index) {
-                try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    SelectorNode sn = createSelectorNode(ast, subset, index, child, false, null);
-                    replace(sn, "install Selector from Uninitialized");
-                    return sn.executeSelector(index);
-                }
+                SelectorNode sn = createSelectorNode(ast, subset, index, child, false, null);
+                replace(sn, "install Selector from Uninitialized");
+                return sn.executeSelector(index);
             }
 
         };
@@ -883,18 +866,13 @@ public abstract class Selector {
         return new SelectorNode(ast, child) {
 
             @Override public Selector executeSelector(RAny index) {
-                try {
-                    if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
-                        selector.setIndex(index.asInt());
-                        return selector;
-                    }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    if (DEBUG_M) Utils.debug("SimpleNumericSubsetSelector failed in Selector.execute (unexpected type), replacing.");
-                    SelectorNode gn = createGenericSubsetSelectorNode(ast, child);
-                    replace(gn, "install GenericSubsetSelectorNode from SimpleNumericSubsetSelectorNode");
-                    return gn.executeSelector(index);
+                if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
+                    selector.setIndex(index.asInt());
+                    return selector;
                 }
+                SelectorNode gn = createGenericSubsetSelectorNode(ast, child);
+                replace(gn, "install GenericSubsetSelectorNode from SimpleNumericSubsetSelectorNode");
+                return gn.executeSelector(index);
             }
         };
     }
@@ -908,18 +886,13 @@ public abstract class Selector {
         return new SelectorNode(ast, child) {
 
             @Override public Selector executeSelector(RAny index) {
-                try {
-                    if (index instanceof ScalarIntImpl) {
-                        selector.setIndex(index);
-                        return selector;
-                    }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    if (DEBUG_M) Utils.debug("SpecializedSimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
-                    SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
-                    replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
-                    return gn.executeSelector(index);
+                if (index instanceof ScalarIntImpl) {
+                    selector.setIndex(index);
+                    return selector;
                 }
+                SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
+                replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
+                return gn.executeSelector(index);
             }
         }; }
         return createGenericSimpleSubscriptSelectorNode(ast, child);
@@ -930,18 +903,13 @@ public abstract class Selector {
         return new SelectorNode(ast, child) {
 
             @Override public Selector executeSelector(RAny index) {
-                try {
-                    if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
-                        selector.setIndex(index.asInt());
-                        return selector;
-                    }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    if (DEBUG_M) Utils.debug("SimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
-                    SelectorNode gn = createGenericSubscriptSelectorNode(ast, child);
-                    replace(gn, "install GenericSubscriptSelectorNode from SimpleSubscriptSelectorNode");
-                    return gn.executeSelector(index);
+                if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
+                    selector.setIndex(index.asInt());
+                    return selector;
                 }
+                SelectorNode gn = createGenericSubscriptSelectorNode(ast, child);
+                replace(gn, "install GenericSubscriptSelectorNode from SimpleSubscriptSelectorNode");
+                return gn.executeSelector(index);
             }
         };
     }
@@ -951,18 +919,13 @@ public abstract class Selector {
         return new SelectorNode(ast, child) {
 
             @Override public Selector executeSelector(RAny index) {
-                try {
-                    if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
-                        selector.setIndex(index.asInt());
-                        return selector;
-                    }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    if (DEBUG_M) Utils.debug("SimpleScalarNumericSelector failed in Selector.execute (unexpected type), replacing.");
-                    SelectorNode gn = createSimpleNumericSubsetSelectorNode(ast, child);
-                    replace(gn, "install SimpleNumericSubsetSelectorNode from SimpleScalarNumericSubsetSelectorNode");
-                    return gn.executeSelector(index);
+                if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
+                    selector.setIndex(index.asInt());
+                    return selector;
                 }
+                SelectorNode gn = createSimpleNumericSubsetSelectorNode(ast, child);
+                replace(gn, "install SimpleNumericSubsetSelectorNode from SimpleScalarNumericSubsetSelectorNode");
+                return gn.executeSelector(index);
             }
         };
     }
@@ -1022,6 +985,10 @@ public abstract class Selector {
         return new OptionNode(ast) {
 
             @Child RNode child = adoptChild(node);
+
+            @Override public void replace0(RNode o, RNode n) {
+                if (o == child) child = n;
+            }
 
             @Override public int executeLogical(Frame frame) {
                 RAny value = (RAny) child.execute(frame);
