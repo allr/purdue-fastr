@@ -1134,8 +1134,9 @@ public class Arithmetic extends BaseR {
     }
 
     public static void cmult(double a, double b, double c, double d, double[] res, int offset) {
-        // LICENSE: transcribed code from GCC, which is licensed under GPL
-        // libgcc2
+        // this code follows the example implementation from the C11 standard
+        // (page 553 in draft version N1570)
+        // (GCC uses the same code)
 
         double ac = a * c;
         double bd = b * d;
@@ -1308,7 +1309,6 @@ public class Arithmetic extends BaseR {
         if (!isFinite(real) || !isFinite(imag)) {
             if (Double.isInfinite(real) || Double.isInfinite(imag)) {
                 res = Double.POSITIVE_INFINITY;
-            } else if (Double.isNaN(imag)) {
                 res = imag;
             } else {
                 res = real;
@@ -1321,117 +1321,63 @@ public class Arithmetic extends BaseR {
     public static final class Pow extends ValueArithmetic {
 
         private static void creciprocal(double[] z, int offset) {
-            // LICENSE: this code is derived from the division code, which is transcribed code from GCC, which is licensed under GPL
+            // this code is derived from cdiv, which is the example implementation from the C11 standard
 
             double c = z[offset];
             double d = z[offset + 1];
-            double ratio;
-            double denom;
-            double x;
-            double y;
 
-            if (Math.abs(c) < Math.abs(d)) {
-                ratio = c / d;
-                denom = (c * ratio) + d;
-                x = ratio / denom;
-                y = -1 / denom;
+            int ilogbw = 0;
+            double sc;
+            double sd;
+            double expArg = fmax(Math.abs(c), Math.abs(d)); // NOTE: Java does not have logb
+            int exponent = Math.getExponent(expArg);
+            if (exponent >= Double.MIN_EXPONENT && exponent <= Double.MAX_EXPONENT) {
+                ilogbw = exponent;
+                sc = Math.scalb(c, -ilogbw);
+                sd = Math.scalb(d, -ilogbw);
             } else {
-                ratio = d / c;
-                denom = (d * ratio) + c;
-                x = 1 / denom;
-                y = -ratio / denom;
+                sc = c;
+                sd = d;
             }
+            double denom = sc * sc + sd * sd;
+
+            double x = Math.scalb( sc / denom, -ilogbw);
+            double y = Math.scalb( -sd / denom, -ilogbw);
 
             if (Double.isNaN(x) && Double.isNaN(y)) {
-                if (c == 0.0 && d == 0.0) {
-                    x = Math.copySign(Double.POSITIVE_INFINITY, c);
-                    y = Math.copySign(Double.NaN, c);
-                } else if (Double.isInfinite(c) || Double.isInfinite(d)) {
-                    double rc = convertInf(c);
-                    double rd = convertInf(d);
+                if (denom == 0.0) {
+                    x = Math.copySign(Double.POSITIVE_INFINITY, sc);
+                    y = Math.copySign(Double.POSITIVE_INFINITY, sc) * 0.0;
+                } else if (Double.isInfinite(expArg)) {
+                    double rc = convertInf(sc);
+                    double rd = convertInf(sd);
                     x = 0.0 * rc;
-                    y = 0.0 * (-rd);
+                    y = 0.0 * -rd;
                 }
             }
             z[offset] = x;
             z[offset + 1] = y;
         }
 
-        private static final double[] cpowTMP = new double[2];
-
-        // R_cpow_n in complex.c
-        private static void cpow(double xr, double xi, int k, double[] z, int offset) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
-
-            if (k == 0) {
-                z[offset] = 1;
-                z[offset + 1] = 0; // FIXME: perhaps should rely on cleared z
-                return;
-            }
-            if (k == 1) {
-                z[offset] = xr;
-                z[offset + 1] = xi;
-                return;
-            }
-            if (k < 0) {
-                cpow(xr, xi, -k, z, offset); // x^(-k)
-                creciprocal(z, offset);
-                return;
-            }
-            double[] x = cpowTMP; // "x"
-            x[0] = xr;
-            x[1] = xi;
-            z[offset] = 1; // "z"
-            z[offset + 1] = 0;
-            int kk = k;
-            while (kk > 0) {
-                if ((kk & 1) != 0) {
-                    // "z = z * X"
-                    cmult(z[offset], z[offset + 1], x[0], x[1], z, offset);
-                    if (kk == 1) {
-                        break;
-                    }
-                }
-                kk = kk / 2;
-                // "X = X * X"
-                cpow2(x[0], x[1], x, 0);
-            }
-        }
-
         private static void cpow(double xr, double xi, double yr, double yi, double[] z, int offset) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
-            if (xr == 0) {
-                if (yi == 0) {
-                    z[offset] = pow(0, yr);
-                    z[offset + 1] = xi;
-                } else {
-                    z[offset] = Double.NaN;
-                    z[offset + 1] = Double.NaN;
-                }
-                return;
-            }
+            // TODO: this is very slow, optimize
+            // TODO: corner-cases (Infs, NaNs) are not compatible with R
 
-            if (yi == 0) {
-                int k = (int) yr;
-                if (yr == k && Math.abs(k) <= 65536) {
-                    cpow(xr, xi, k, z, offset);
-                    return;
-                }
-            }
-
-            double zr = chypot(xr, xi);
-            double zi = Math.atan2(xi, xr);
-            double theta = zi * yr;
-            double rho;
-            if (yi == 0) {
-                rho = pow(zr, yr);
+            double xlogReal;
+            double xlogImag;
+            if (RComplex.RComplexUtils.eitherIsNAorNaN(xr, xi)) {
+                xlogReal = RDouble.NaN;
+                xlogImag = RDouble.NaN;
             } else {
-                zr = Math.log(zr);
-                theta += zr * yi;
-                rho = Math.exp(zr * yr - zi * yi);
+                xlogReal = Math.log(Math.hypot(xr, xi));
+                xlogImag = Math.atan2(xi, xr);
             }
-            z[offset] = rho * Math.cos(theta);
-            z[offset + 1] = rho * Math.sin(theta);
+
+            cmult(xlogReal, xlogImag, yr, yi, z, offset);
+
+            double exp = Math.exp(z[offset]);
+            z[offset] = exp * Math.cos(z[offset + 1]);
+            z[offset + 1] = exp * Math.sin(z[offset + 1]);
         }
 
         private static final double[] opTMP = new double[2];
@@ -1447,39 +1393,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public double op(ASTNode ast, double a, double b) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
-
-            // NOTE: Math.pow (which uses FDLIBM) is very slow, the version written in assembly in GLIBC (SSE2 optimized) is about 2x faster
-
-            // arithmetic.c (GNU R)
-            if (b == 2) { return a * a; }
-            if (a == 1 || b == 0) { return 1; }
-            if (a == 0) {
-                if (b > 0) { return 0; }
-                if (b < 0) { return Double.POSITIVE_INFINITY; }
-                return b; // NA or NaN
-            }
-            if (isFinite(a) && isFinite(b)) { return pow(a, b); }
-            if (RDouble.RDoubleUtils.isNAorNaN(a) || RDouble.RDoubleUtils.isNAorNaN(b)) {
-                // NA check was before, so this can only mean NaN
-                return a + b;
-            }
-            if (!isFinite(a)) {
-                if (a > 0) { // Inf ^ y
-                    if (b < 0) { return 0; }
-                    return Double.POSITIVE_INFINITY;
-                } else if (isFinite(b) && b == Math.floor(b)) { // (-Inf) ^ n
-                    if (b < 0) { return 0; }
-                    return fmod(ast, b, 2) != 0 ? a : -a;
-                }
-            }
-            if (!isFinite(b)) {
-                if (a >= 0) {
-                    if (b > 0) { return (a >= 1) ? Double.POSITIVE_INFINITY : 0; }
-                    return (a < 1) ? Double.POSITIVE_INFINITY : 0;
-                }
-            }
-            return Double.NaN;
+            return pow(a, b);
         }
 
         @Override public int op(ASTNode ast, int a, int b) {
@@ -1512,8 +1426,8 @@ public class Arithmetic extends BaseR {
         }
 
         public static void cpow2(double a, double b, double[] res, int offset) {
-            // LICENSE: this code is derived from the multiplication code, which is transcribed code from GCC, which is licensed under GPL
-
+            // this code is derived from cmult, which is the example implementation from the C11 standard
+            // a = c , b = d
             double a2 = a * a;
             double b2 = b * b;
             double ab = a * b;
@@ -1525,7 +1439,7 @@ public class Arithmetic extends BaseR {
                 boolean recalc = false;
                 double ra = a;
                 double rb = b;
-                if (Double.isInfinite(ra) || Double.isInfinite(rb)) {
+                if (Double.isInfinite(ra) || Double.isInfinite(rb)) { // FIXME: simplify this
                     ra = convertInf(ra);
                     rb = convertInf(rb);
                     recalc = true;
@@ -1624,42 +1538,63 @@ public class Arithmetic extends BaseR {
     }
 
     public static double pow(double a, double b) {
-        return Math.pow(a, b);
+        if (a == 1.0 || b == 0.0) {
+            return 1.0;
+        }
+        if (a < 0 && Double.isInfinite(b)) {
+            return RDouble.NaN;
+        }
+        return Math.pow(a, b); // NOTE: Math.pow is very slow
+    }
+
+    // NOTE: Math.max does not have the same semantics as C's fmax
+    public static double fmax(double a, double b) {
+        if (a != a) {
+            return b;
+        }
+        if (b != b) {
+            return a;
+        }
+        if ((a == 0.0d) && (b == 0.0d)) { return Math.max(a, b); } // handle negative zero
+        return (a >= b) ? a : b;
     }
 
     public static void cdiv(double a, double b, double c, double d, double[] res, int offset) {
-        // LICENSE: transcribed code from GCC, which is licensed under GPL
-        // libgcc2
 
-        double ratio;
-        double denom;
-        double x;
-        double y;
+        // this code follows the example implementation from the C11 standard
+        // (page 555 in draft version N1570)
+        // (GCC uses different code)
 
-        if (Math.abs(c) < Math.abs(d)) {
-            ratio = c / d;
-            denom = (c * ratio) + d;
-            x = ((a * ratio) + b) / denom;
-            y = ((b * ratio) - a) / denom;
+        int ilogbw = 0;
+        double sc;
+        double sd;
+        double expArg = fmax(Math.abs(c), Math.abs(d)); // NOTE: Java does not have logb
+        int exponent = Math.getExponent(expArg);
+        if (exponent >= Double.MIN_EXPONENT && exponent <= Double.MAX_EXPONENT) {
+            ilogbw = exponent;
+            sc = Math.scalb(c, -ilogbw);
+            sd = Math.scalb(d, -ilogbw);
         } else {
-            ratio = d / c;
-            denom = (d * ratio) + c;
-            x = ((b * ratio) + a) / denom;
-            y = (b - (a * ratio)) / denom;
+            sc = c;
+            sd = d;
         }
+        double denom = sc * sc + sd * sd;
+
+        double x = Math.scalb((a * sc + b * sd) / denom, -ilogbw);
+        double y = Math.scalb((b * sc - a * sd) / denom, -ilogbw);
 
         if (Double.isNaN(x) && Double.isNaN(y)) {
-            if (c == 0.0 && d == 0.0 && (!Double.isNaN(a) || !Double.isNaN(b))) {
-                x = Math.copySign(Double.POSITIVE_INFINITY, c) * a;
-                y = Math.copySign(Double.POSITIVE_INFINITY, c) * b;
-            } else if ((Double.isInfinite(a) || Double.isInfinite(b)) && isFinite(c) && isFinite(d)) {
+            if (denom == 0.0 && (!Double.isNaN(a) || !Double.isNaN(b))) {
+                x = Math.copySign(Double.POSITIVE_INFINITY, sc) * a;
+                y = Math.copySign(Double.POSITIVE_INFINITY, sc) * b;
+            } else if ((Double.isInfinite(a) || Double.isInfinite(b)) && isFinite(sc) && isFinite(sd)) {
                 double ra = convertInf(a);
                 double rb = convertInf(b);
-                x = Double.POSITIVE_INFINITY * (ra * c + rb * d);
-                y = Double.POSITIVE_INFINITY * (rb * c - ra * d);
-            } else if ((Double.isInfinite(c) || Double.isInfinite(d)) && isFinite(a) && isFinite(b)) {
-                double rc = convertInf(c);
-                double rd = convertInf(d);
+                x = Double.POSITIVE_INFINITY * (ra * sc + rb * sd);
+                y = Double.POSITIVE_INFINITY * (rb * sc - ra * sd);
+            } else if (Double.isInfinite(expArg) && isFinite(a) && isFinite(b)) {
+                double rc = convertInf(sc);
+                double rd = convertInf(sd);
                 x = 0.0 * (a * rc + b * rd);
                 y = 0.0 * (b * rc - a * rd);
             }
@@ -1778,21 +1713,17 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public double op(ASTNode ast, double a, double b) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
-            double q = a / b;
             if (b != 0) {
-                double qfloor = Math.floor(q);
-                double tmp = a - qfloor * b; // FIXME: this is R implementation, check if we can avoid this in Java
-                return qfloor + Math.floor(tmp / b);
-
+                return Math.floor(a / b); // FIXME: not exactly R's semantics
             } else {
-                return q;
+                return a / b;
             }
         }
 
         @Override public int op(ASTNode ast, int a, int b) {
             if (b != 0) {
-                return (int) Math.floor((double) a / (double) b); // FIXME: this is R implementation, can we do faster without floating point?
+                return (int) Math.floor((double) a / (double) b);
+                // FIXME: this is R implementation, can we do faster without floating point?
             } else {
                 return RInt.NA;
             }
@@ -1845,14 +1776,10 @@ public class Arithmetic extends BaseR {
     }
 
     public static double fmod(ASTNode ast, double a, double b) { // FIXME: this is R implementation, can we do faster in Java?
-        // LICENSE: transcribed code from GNU R, which is licensed under GPL
-        double q = a / b;
+
         if (b != 0) {
-            double tmp = a - Math.floor(q) * b;
-            if (RDouble.RDoubleUtils.isFinite(q) && Math.abs(q) > 1 / RDouble.EPSILON) {
-                RContext.warning(ast, RError.ACCURACY_MODULUS);
-            }
-            return tmp - Math.floor(tmp / b) * b;
+            return a - Math.floor(a / b) * b; // FIXME: not exactly R semantics
+            // TODO: detect loss of precision and produce a warning
         } else {
             return RDouble.NaN;
         }
@@ -1872,13 +1799,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override public int op(ASTNode ast, int a, int b) {
-            // LICENSE: transcribed code from GNU R, which is licensed under GPL
             if (b != 0) {
-                if (a >= 0 && b > 0) {
-                    return a % b;
-                } else {
-                    return (int) fmod(ast, a, b);
-                }
+                return (int) fmod(ast, a, b); // FIXME: check if this is R semantics
             } else {
                 return RInt.NA;
             }
