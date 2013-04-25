@@ -145,7 +145,7 @@ final class C extends CallFactory {
                             names[j++] = RSymbol.getSymbol(eprefix + (k + 1));
                         }
                     } else {
-                        String n = prefix + Convert.prettyNA(aNames[k].pretty());
+                        String n = prefix + Convert.prettyNA(ksymbol.pretty());
                         names[j++] = RSymbol.getSymbol(n);
                     }
                 }
