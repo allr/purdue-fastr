@@ -1,0 +1,2 @@
+These versions use the same random seed and random number generator for each
+run, and also for GNU R and FastR.
