@@ -11,6 +11,12 @@ public class TestSpectralNorm extends ShootoutTestBase {
     }
 
     @Test
+    public void testSpectralNormAlt() {
+        assertShootout("spectralnorm", "spectralnorm-alt", 10, "1.2718440192507243 \n", "", "NULL");
+        assertShootout("spectralnorm", "spectralnorm-alt", 15, "1.273394737237051 \n", "", "NULL");
+    }
+
+    @Test
     public void testSpectralNormAlt2() {
         assertShootout("spectralnorm", "spectralnorm-alt2", 10, "1.2718440192507243 \n", "", "NULL");
         assertShootout("spectralnorm", "spectralnorm-alt2", 15, "1.273394737237051 \n", "", "NULL");
