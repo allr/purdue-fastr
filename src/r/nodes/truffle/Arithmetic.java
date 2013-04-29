@@ -1358,6 +1358,22 @@ public class Arithmetic extends BaseR {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
         private static void cmult(double[] res, double[] x, double[] y, int rsize) {
+
+            if (x == y) {
+                int j = 1;
+                for (int i = 0; i < rsize; i++, i++, j++, j++) {
+                    double a = x[i];
+                    double b = x[j];
+                    if (!RComplexUtils.eitherIsNA(a, b)) {
+                        Arithmetic.Pow.cpow2(a, b, res, i);
+                    } else {
+                        res[i] = RDouble.NA;
+                        res[j] = RDouble.NA;
+                    }
+                }
+                return;
+            }
+
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
