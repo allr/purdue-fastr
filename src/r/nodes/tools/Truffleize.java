@@ -512,7 +512,7 @@ public class Truffleize implements Visitor {
             }
             RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
 
-            if (false && a.isSubset()) { //FIXME: this optimization is slow for some reason, why? a bug?
+            if (a.isSubset()) { //FIXME: this optimization is helping only so little.. why?
                 // expressions like b[x == c] <- ...
                 // FIXME: add more variations of this
                 ASTNode indexNode = a.getArgs().first().getValue();

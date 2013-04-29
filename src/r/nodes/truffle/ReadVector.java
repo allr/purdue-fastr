@@ -988,13 +988,16 @@ public abstract class ReadVector extends BaseR {
 
         public RAny execute(RAny base, RAny xArg) {
             try {
-                if (!(base instanceof RDouble && xArg instanceof RDouble) || xArg instanceof View) { // FIXME: also could materialize
+                if (!(base instanceof DoubleImpl && xArg instanceof DoubleImpl)) { // FIXME: also could materialize
                     throw new UnexpectedResultException(null);
                 }
-                RDouble b = (RDouble) base;
-                RDouble x = (RDouble) xArg;
-                int size = b.size();
-                if (x.size() != size || b.names() != null) {
+                // NOTE: in this case, it is very important for performance to access the arrays directly (found out experimentally)
+                // it is indeed puzzling as e.g. with matrix multiply, going through .getDouble did cost nothing
+                DoubleImpl bdi = (DoubleImpl) base;
+                double[] b = ((DoubleImpl) base).getContent();
+                double[] x = ((DoubleImpl) xArg).getContent();
+                int size = b.length;
+                if (x.length != size || bdi.names() != null) {
                     throw new UnexpectedResultException(null);
                 }
                 if (size > 1000) {  // TODO: a tuning parameter, what is the right cutoff???
@@ -1005,9 +1008,9 @@ public abstract class ReadVector extends BaseR {
                     double[] tmp = new double[size];
                     int j = 0;
                     for (int i = 0; i < size; i++) {
-                        double d = x.getDouble(i);
+                        double d = x[i];
                         if (d == c) {
-                            tmp[j++] = b.getDouble(i);
+                            tmp[j++] = b[i];
                         } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
                             tmp[j++] = RDouble.NA;
                         }
@@ -1015,6 +1018,7 @@ public abstract class ReadVector extends BaseR {
                     if (j == size) {
                         return RDouble.RDoubleFactory.getFor(tmp); // we are lucky
                     } else {
+//                        Utils.debug("j is "+j+" size is "+size);
                         double[] content = new double[j];
                         System.arraycopy(tmp, 0, content, 0, j);
                         return RDouble.RDoubleFactory.getFor(content);
@@ -1023,7 +1027,7 @@ public abstract class ReadVector extends BaseR {
                 } else {
                     int nsize = 0;
                     for (int i = 0; i < size; i++) {
-                        double d = x.getDouble(i);
+                        double d = x[i];
                         if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
                             nsize ++;
                         }
@@ -1031,9 +1035,9 @@ public abstract class ReadVector extends BaseR {
                     double[] content = new double[nsize];
                     int j = 0;
                     for (int i = 0; i < size; i++) {
-                        double d = x.getDouble(i);
+                        double d = x[i];
                         if (d == c) {
-                            content[j++] = b.getDouble(i);
+                            content[j++] = b[i];
                         } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
                             content[j++] = RDouble.NA;
                         }

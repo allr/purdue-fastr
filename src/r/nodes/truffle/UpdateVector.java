@@ -1745,7 +1745,7 @@ public abstract class UpdateVector extends BaseR {
         @Override
         RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
             try {
-                if (!(baseArg instanceof RDouble && xArg instanceof RDouble && valueArg instanceof RDouble)) {
+                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) {
                     throw new UnexpectedResultException(null);
                 }
                 RDouble base = (RDouble) baseArg;
@@ -1764,11 +1764,14 @@ public abstract class UpdateVector extends BaseR {
                     throw new UnexpectedResultException(null);
                 } else {
                     int vi = 0;
+                    double[] baseArr = base.getContent();
+                    double[] valueArr = value.getContent();
+                    double[] xArr = x.getContent();
 
                     for (int i = 0; i < size; i++) {
-                        double d = x.getDouble(i);
+                        double d = xArr[i];
                         if (d == c) {
-                            base.set(i, value.getDouble(vi++));
+                            baseArr[i] = valueArr[vi++];
                             if (vi == vsize) {
                                 vi = 0;
                             }
