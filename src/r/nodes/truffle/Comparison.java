@@ -643,14 +643,14 @@ public class Comparison extends BaseR {
                     if (cmp(a, bdbl)) {
                         content[i] = RLogical.TRUE;
                     } else {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(bdbl) */ bdbl != bdbl ? RLogical.NA : RLogical.FALSE;
                     }
                 }
             } else {
                 for (int i = 0; i < n; i++) {
                     double bdbl = b.getDouble(i);
                     if (cmp(a, bdbl)) {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(bdbl) */ bdbl != bdbl ? RLogical.NA : RLogical.TRUE;
                     } else {
                         content[i] = RLogical.FALSE;
                     }
@@ -797,7 +797,7 @@ public class Comparison extends BaseR {
                     if (cmp(adbl, bdbl)) {
                         content[i] = RLogical.TRUE;
                     } else {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.FALSE;
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(bdbl) */ bdbl != bdbl ? RLogical.NA : RLogical.FALSE;
                     }
                 }
             } else {
@@ -812,7 +812,7 @@ public class Comparison extends BaseR {
                     }
 
                     if (cmp(adbl, bdbl)) {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(bdbl) ? RLogical.NA : RLogical.TRUE;
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(bdbl) */ bdbl != bdbl ? RLogical.NA : RLogical.TRUE;
                     } else {
                         content[i] = RLogical.FALSE;
                     }
