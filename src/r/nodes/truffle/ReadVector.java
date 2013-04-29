@@ -997,24 +997,49 @@ public abstract class ReadVector extends BaseR {
                 if (x.size() != size || b.names() != null) {
                     throw new UnexpectedResultException(null);
                 }
-                int nsize = 0;
-                for (int i = 0; i < size; i++) {
-                    double d = x.getDouble(i);
-                    if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
-                        nsize ++;
+                if (size > 1000) {  // TODO: a tuning parameter, what is the right cutoff???
+                    // NOTE: this is faster at least for larger vectors, I suppose because it is more cache friendly
+                    // TODO: similar optimizations will likely help elsewhere
+                    // TODO: this is yet another case for "growable" vector types, perhaps even non-contiguous
+                    // TODO: this wastes memory, too
+                    double[] tmp = new double[size];
+                    int j = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x.getDouble(i);
+                        if (d == c) {
+                            tmp[j++] = b.getDouble(i);
+                        } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            tmp[j++] = RDouble.NA;
+                        }
                     }
-                }
-                double[] content = new double[nsize];
-                int j = 0;
-                for (int i = 0; i < size; i++) {
-                    double d = x.getDouble(i);
-                    if (d == c) {
-                        content[j++] = b.getDouble(i);
-                    } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                        content[j++] = RDouble.NA;
+                    if (j == size) {
+                        return RDouble.RDoubleFactory.getFor(tmp); // we are lucky
+                    } else {
+                        double[] content = new double[j];
+                        System.arraycopy(tmp, 0, content, 0, j);
+                        return RDouble.RDoubleFactory.getFor(content);
                     }
+
+                } else {
+                    int nsize = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x.getDouble(i);
+                        if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            nsize ++;
+                        }
+                    }
+                    double[] content = new double[nsize];
+                    int j = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x.getDouble(i);
+                        if (d == c) {
+                            content[j++] = b.getDouble(i);
+                        } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            content[j++] = RDouble.NA;
+                        }
+                    }
+                    return RDouble.RDoubleFactory.getFor(content);
                 }
-                return RDouble.RDoubleFactory.getFor(content);
 
             } catch(UnexpectedResultException e) {
                 AccessVector av = (AccessVector) ast;
