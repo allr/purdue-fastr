@@ -368,10 +368,10 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_fmod
     } else {
       double q = a / b;
       double tmp = a - floor(q) * b;
-      if(R_FINITE(q) && (fabs(q) > 1/DBL_EPSILON )) {   // R_AccuracyInfo.eps
+      if ((fabs(q) > 1/DBL_EPSILON ) && R_FINITE(q)) {   // R_AccuracyInfo.eps
         lostAccuracy = 1;
       }
-      res[i] = tmp - floor(tmp/b) * b;    
+      res[i] = tmp - floor(tmp/b) * b;  
     }    
   }
    
