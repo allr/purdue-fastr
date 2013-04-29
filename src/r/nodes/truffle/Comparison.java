@@ -614,14 +614,15 @@ public class Comparison extends BaseR {
                     if (cmp(adbl, b)) {
                         content[i] = RLogical.TRUE;
                     } else {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.FALSE;
+                        // FIXME: it is ridiculous but it helps to hand-inline this (e.g. b25-prog3)
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(adbl) */ adbl != adbl ? RLogical.NA : RLogical.FALSE;
                     }
                 }
             } else {
                 for (int i = 0; i < n; i++) {
                     double adbl = a.getDouble(i);
                     if (cmp(adbl, b)) {
-                        content[i] = RDouble.RDoubleUtils.isNAorNaN(adbl) ? RLogical.NA : RLogical.TRUE;
+                        content[i] = /* RDouble.RDoubleUtils.isNAorNaN(adbl) */ adbl != adbl ? RLogical.NA : RLogical.TRUE;
                     } else {
                         content[i] = RLogical.FALSE;
                     }
