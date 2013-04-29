@@ -1739,7 +1739,7 @@ public abstract class UpdateVector extends BaseR {
                 // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
 
             Utils.check(subset);
-            this.c =c;
+            this.c = c;
         }
 
         @Override
@@ -1760,13 +1760,13 @@ public abstract class UpdateVector extends BaseR {
 
                 boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
 
-                if (base.isShared() || value.dependsOn(base) || x.dependsOn(base)) {
+                if (base.isShared()) {
                     throw new UnexpectedResultException(null);
                 } else {
                     int vi = 0;
                     double[] baseArr = base.getContent();
                     double[] valueArr = value.getContent();
-                    double[] xArr = x.getContent();
+                    double[] xArr = x.getContent(); // NOTE: xArr or valueArr can be the same as base
 
                     for (int i = 0; i < size; i++) {
                         double d = xArr[i];
@@ -1785,11 +1785,12 @@ public abstract class UpdateVector extends BaseR {
                     if (vi != 0) {
                         RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     }
-                    return base.stripAttributes();
+                    return base;
                 }
 
             } catch (UnexpectedResultException e) {
-                AccessVector av = (AccessVector) ast;
+                r.nodes.UpdateVector uv = (r.nodes.UpdateVector) ast;
+                AccessVector av = uv.getVector();
                 EQ eq = (EQ) av.getArgs().first().getValue();
                 RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
 
