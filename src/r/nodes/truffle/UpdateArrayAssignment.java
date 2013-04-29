@@ -163,7 +163,13 @@ public class UpdateArrayAssignment extends BaseR {
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
                 RAny rhsValue = (RAny) rhs.execute(frame);
-                RAny lhsValue = (RAny) frame.getObject(frameSlot);
+                RAny lhsValue = null;
+                try {
+                    lhsValue = (RAny) frame.getObject(frameSlot);
+                } catch (FrameSlotTypeException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
                 if (lhsValue == null) {
                     // TODO maybe turn this to decompile for smaller methods?
                     lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);
@@ -208,7 +214,13 @@ public class UpdateArrayAssignment extends BaseR {
                 if (frameSlot == null) { // FIXME: this won't happen unless with eval
                     throw new UnexpectedResultException(Failure.NULL_SLOT);
                 }
-                RAny lhsValue = (RAny) frame.getObject(frameSlot);
+                RAny lhsValue = null;
+                try {
+                    lhsValue = (RAny) frame.getObject(frameSlot);
+                } catch (FrameSlotTypeException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
                 if (lhsValue == null) {
                     // TODO maybe turn this to decompile for smaller methods?
                     lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, lhs);

@@ -101,7 +101,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RFrameHeader header(Frame f) {
-        return (RFrameHeader) f.getArguments();
+        return (RFrameHeader) f.getArguments(RFrameHeader.class);
     }
 
     public static void setReturnValue(Frame f, RAny value) {
@@ -138,7 +138,13 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RAny readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = frame.getObject(slot);
+        Object value = null;
+        try {
+            value = frame.getObject(slot);
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+        }
 
         if (value != null) {  // TODO: another node (one branch needs to have deopt)
             return Utils.cast(value);
@@ -248,7 +254,13 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no inserted extension slot
-            Object res = f.getObject(slot);
+            Object res = null;
+            try {
+                res = f.getObject(slot);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
             if (res != null) {
                 return Utils.cast(res);
             }
@@ -318,7 +330,13 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RCallable matchViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = frame.getObject(slot);
+        Object value = null;
+        try {
+            value = frame.getObject(slot);
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+        }
 
         if (value != null && value instanceof RCallable) {  // TODO: another node (one branch needs to have deopt)
             return Utils.cast(value);
@@ -461,7 +479,13 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no extension inserted slot
-            Object res = f.getObject(slot);
+            Object res = null;
+            try {
+                res = f.getObject(slot);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
             if (res != null && res instanceof RCallable) {
                 return Utils.cast(res);
             }
@@ -543,7 +567,12 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return Utils.cast(frame.getObject(slot));
+            try {
+                return Utils.cast(frame.getObject(slot));
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -597,7 +626,12 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return frame.getObject(slot) != null;
+            try {
+                return frame.getObject(slot) != null;
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -633,8 +667,13 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            if (frame.getObject(slot) != null) {
-                return true;
+            try {
+                if (frame.getObject(slot) != null) {
+                    return true;
+                }
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
             }
         }
         EnclosingSlot rse = readSetEntry(frame, symbol);
@@ -671,8 +710,13 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (hops == 0) {
-            if (frame.getObject(slot) != null) {
-                return true;
+            try {
+                if (frame.getObject(slot) != null) {
+                    return true;
+                }
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
             }
             if (isDirty(frame)) {
                 if (existsInExtension(first, symbol, frame)) {
@@ -743,39 +787,64 @@ public class RFrameHeader extends Arguments {
     }
 
     public static void writeAtCondRef(Frame f, FrameSlot slot, RAny value) {
-        Object oldContent = f.getObject(slot);
-        if (value != oldContent) {
-            f.setObject(slot, value);
-            value.ref();
+        try {
+            Object oldContent = f.getObject(slot);
+            if (value != oldContent) {
+                f.setObject(slot, value);
+                value.ref();
+            }
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();
+            System.exit(-1);
         }
     }
 
     public static void writeAtNoRef(Frame f, FrameSlot slot, RAny value) {
-        f.setObject(slot, value);
+        try {
+            f.setObject(slot, value);
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+        }
     }
 
     public static void writeAtRef(Frame f, FrameSlot slot, Object value) {
-        f.setObject(slot, value);
-        ((RAny) value).ref();
+        try {
+            f.setObject(slot, value);
+            ((RAny) value).ref();
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+        }
     }
 
     public static void writeAtRef(Frame f, FrameSlot slot, RAny value) {
-        f.setObject(slot, value);
-        value.ref();
+        try {
+            f.setObject(slot, value);
+            value.ref();
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+        }
     }
 
     public static boolean superWriteViaWriteSet(Frame enclosingFrame, FrameSlot slot, RSymbol symbol, RAny value) {
         assert Utils.check(enclosingFrame instanceof MaterializedFrame);
-
-        Object oldVal = enclosingFrame.getObject(slot);
-        if (oldVal != null) {
-            if (oldVal != value) {
-                RFrameHeader.writeAtNoRef(enclosingFrame, slot, value);
-                value.ref();
+        try {
+            Object oldVal = enclosingFrame.getObject(slot);
+            if (oldVal != null) {
+                if (oldVal != value) {
+                    RFrameHeader.writeAtNoRef(enclosingFrame, slot, value);
+                    value.ref();
+                }
+                return true;
+            } else {
+                return superWriteViaWriteSetSlowPath(enclosingFrame, symbol, value);
             }
-            return true;
-        } else {
-            return superWriteViaWriteSetSlowPath(enclosingFrame, symbol, value);
+        } catch (FrameSlotTypeException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            System.exit(-1);
+            return false;
         }
     }
 
@@ -884,14 +953,19 @@ public class RFrameHeader extends Arguments {
             for (int i = 0; i < hops; i++) {
                 f = enclosingFrame(frame);
             }
-            Object val;
+            Object val = null;
             if (isDirty(f)) {
                 if (superWriteToExtensionEntry(first, symbol, value, f)) {
                     return true;
                 }
             }
             // no inserted extension slot
-            val = f.getObject(slot);
+            try {
+                val = f.getObject(slot);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
             if (val != null) {
                 writeAtRef(f, slot, value);
                 return true;

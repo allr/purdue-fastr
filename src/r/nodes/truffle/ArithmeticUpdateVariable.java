@@ -72,6 +72,10 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     }
                 }
                 throw new UnexpectedResultException(null);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();
+                System.exit(-1);
+                return null;
             } catch (UnexpectedResultException e) {
                 return constantAddReplaceAndExecute(frame);
             }
@@ -124,6 +128,10 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     }
                 }
                 throw new UnexpectedResultException(null);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();
+                System.exit(-1);
+                return null;
             } catch (UnexpectedResultException e) {
                 return constantSubReplaceAndExecute(frame);
             }

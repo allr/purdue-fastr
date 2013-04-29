@@ -91,6 +91,8 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static final class GenericCall extends FunctionCall {
 
+        private static RNode NO_BUILTIN = new Dummy();
+
         RCallable lastCallable;
         boolean lastWasFunction;
 
@@ -105,10 +107,13 @@ public abstract class FunctionCall extends AbstractCall {
         // for builtins
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin
         RSymbol builtInName;
-        RNode builtInNode;
+        @Child RNode builtInNode;
 
         GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
             super(ast, callableExpr, argNames, argExprs);
+            // TODO this is terribly inefficient, and should likely be rewritten to a node rewrite or something, but
+            // it works, so I do not care that much atm.
+            builtInNode = adoptChild(new Dummy());
         }
 
         @Override public Object execute(Frame callerFrame) {
@@ -140,7 +145,12 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    try {
+                        builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                        System.exit(-1);
+                    }
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -178,7 +188,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -216,7 +226,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;

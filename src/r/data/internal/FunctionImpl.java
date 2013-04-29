@@ -66,10 +66,10 @@ public class FunctionImpl extends RootNode implements RFunction {
         paramSlots = new FrameSlot[nparams];
         frameDescriptor = new FrameDescriptor();
         for (int i = 0; i < nparams; i++) {
-            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]);
+            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
         }
         for (int i = nparams; i < writeSet.length; i++) {
-            frameDescriptor.addFrameSlot(writeSet[i]);
+            frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
         }
 
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
@@ -81,14 +81,24 @@ public class FunctionImpl extends RootNode implements RFunction {
         for (int i = 0; i < paramSlots.length; i++) {
             RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
             if (value != null) {
-                frame.setObject(paramSlots[i], value);
+                try {
+                    frame.setObject(paramSlots[i], value);
+                } catch (FrameSlotTypeException e) {
+                    e.printStackTrace();
+                  System.exit(-1);
+                }
                 value.ref();
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {
                     value = (RAny) n.execute(frame); // TODO: get rid of the context
                     if (value != null) {
-                        frame.setObject(paramSlots[i], value);
+                        try {
+                            frame.setObject(paramSlots[i], value);
+                        } catch (FrameSlotTypeException e) {
+                            e.printStackTrace();
+                            System.exit(-1);
+                        }
                         value.ref();
                     }
                     // NOTE: value can be null when a parameter is missing

@@ -164,7 +164,7 @@ public abstract class ReadArray extends BaseR {
                         if (selectorVals[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
                             SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
-                            replaceChild(selectorExprs[i], newSelector);
+                            selectorExprs[i] = adoptChild(newSelector); // ok, we change parent of the old selector in the above call
                             selectorVals[i] = newSelector.executeSelector(index);
                         }
                     }
@@ -344,12 +344,12 @@ public abstract class ReadArray extends BaseR {
                     Selector failedSelector = (Selector) e.getResult();
                     if (failedSelector == selI) {
                         RAny index = selI.getIndex();
-                        replaceChild(selectorIExpr, Selector.createSelectorNode(ast, subset, index, selectorIExpr.child, false, selectorI.getTransition()));
+                        selectorIExpr.replace(Selector.createSelectorNode(ast, subset, index, selectorIExpr.child, false, selectorI.getTransition()));
                         selI = selectorIExpr.executeSelector(index);
                     } else {
                         // failedSelector == selectorJ
                         RAny index = selJ.getIndex();
-                        replaceChild(selectorJExpr, Selector.createSelectorNode(ast, subset, index, selectorJExpr.child, false, selectorJ.getTransition()));
+                        selectorJExpr.replace(Selector.createSelectorNode(ast, subset, index, selectorJExpr.child, false, selectorJ.getTransition()));
                         selJ = selectorJExpr.executeSelector(index);
                     }
                 }

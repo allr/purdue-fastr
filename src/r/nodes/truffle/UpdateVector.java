@@ -111,7 +111,13 @@ public abstract class UpdateVector extends BaseR {
             // note: this always has to be the case because the variable is in the write set
             // FIXME: this won't work for reflections
             assert Utils.check(frameSlot != null);
-            RAny base = (RAny) frame.getObject(frameSlot);
+            RAny base = null;
+            try {
+                base = (RAny) frame.getObject(frameSlot);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                System.exit(-1);
+            }
             if (base != null) {
                 RAny newBase = execute(base, index, value);
                 if (newBase != base) {

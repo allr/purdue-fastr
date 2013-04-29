@@ -37,8 +37,8 @@ public abstract class LogicalOperation extends BaseR {
                 return curNode.executeScalarLogical(frame);
             } catch (UnexpectedResultException e) {
                 RNode newNode = createCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
-                replaceChild(curNode, newNode);
-                curNode = newNode;
+                //curNode.replace(newNode);
+                curNode = adoptChild(newNode); // ok we change parent of the old node above
                 continue;
             }
         }
