@@ -1154,11 +1154,21 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 i = extractIndex(ival);
                 j = extractIndex(jval);
+
+                int[] dim = lhs.dimensions();
+                if (dim == null || dim.length != 2 || rhs.size() != 1) {
+                    throw new UnexpectedResultException(null);
+                }
+                int m = dim[0];
+                int n = dim[1];
+                if (i > m || j > n) {
+                    throw new UnexpectedResultException(null);
+                }
+                return lhs.set(j * m + i, rhs.get(0));
+
             } catch (UnexpectedResultException e) {
-                RNode ichild = selectorExprs[0].child;
-                RNode jchild = selectorExprs[1].child;
-                selectorExprs[0].replaceChild(ichild, new PushbackNode(ichild.getAST(), ichild, ival));
-                selectorExprs[1].replaceChild(jchild, new PushbackNode(jchild.getAST(), jchild, jval));
+                selectorExprs[0].pushBack(selectorExprs[0].child, ival);
+                selectorExprs[1].pushBack(selectorExprs[1].child, jval);
 
                 if (rhs.size() == 1) {
                     return replace(new Scalar(this)).execute(frame, lhs, rhs);
@@ -1166,29 +1176,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return replace(new NonScalar(this)).execute(frame, lhs, rhs);
                 }
             }
-
-            int[] dim = lhs.dimensions();
-            if (dim == null || dim.length != 2) {
-                throw RError.getIncorrectSubscriptsMatrix(ast);
-            }
-            int rsize = rhs.size();
-            if (rsize != 1) {
-                if (rsize == 0) {
-                    throw RError.getReplacementZero(ast);
-                } else {
-                    if (subset) {
-                        throw RError.getNotMultipleReplacement(ast);
-                    } else {
-                        throw RError.getMoreElementsSupplied(ast);
-                    }
-                }
-            }
-            int m = dim[0];
-            int n = dim[1];
-            if (i > m || j > n) {
-                throw RError.getSubscriptBounds(ast);
-            }
-            return lhs.set(j * m + i, rhs.get(0));
         }
 
         public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
