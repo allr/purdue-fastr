@@ -125,7 +125,14 @@ public class Truffleize implements Visitor {
         for (int i = 0; i < exprs.length; i++) {
             rexprs[i] = createTree(exprs[i]);
         }
-        result = new r.nodes.truffle.Sequence(sequence, rexprs);
+        switch(exprs.length) {
+            case 1: result = rexprs[0]; break;
+            case 2: result = new r.nodes.truffle.Sequence.Sequence2(sequence, rexprs); break;
+            case 3: result = new r.nodes.truffle.Sequence.Sequence3(sequence, rexprs); break;
+            case 4: result = new r.nodes.truffle.Sequence.Sequence4(sequence, rexprs); break;
+            case 5: result = new r.nodes.truffle.Sequence.Sequence5(sequence, rexprs); break;
+            default: result = new r.nodes.truffle.Sequence(sequence, rexprs); break;
+        }
     }
 
     @Override
