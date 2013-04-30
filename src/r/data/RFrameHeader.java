@@ -241,8 +241,36 @@ public class RFrameHeader extends Arguments {
         Frame f = frame;
         int hops = frameHops;
         FrameSlot slot = frameSlot;
-        Frame first = firstFrame;
-
+        Frame first = null;
+        if (!(firstFrame instanceof MaterializedFrame)) {
+            for (int i = 0; i < hops; i++)
+                f = enclosingFrame(frame);
+            if (isDirty(f)) {
+                first = firstFrame.materialize();
+                RAny res = readFromExtensionEntry(first, symbol,f);
+                if (res != null)
+                    return Utils.cast(res);
+            }
+            try {
+                Object res = f.getObject(slot);
+                if (res != null)
+                  return Utils.cast(res);
+            } catch (FrameSlotTypeException e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+            // variable not present in the enclosing slot
+            EnclosingSlot eslot = findEnclosingVariable(f, symbol);
+            if (eslot == null)
+                return readFromExtensionsAndRootLevel(f, symbol);
+            // try the next enclosing slot
+            f = enclosingFrame(f);
+            first = f;
+            hops = eslot.hops - 1;
+            slot = eslot.slot;
+        } else {
+            first = firstFrame.materialize();
+        }
         for (;;) {
             for (int i = 0; i < hops; i++) {
                 f = enclosingFrame(frame);

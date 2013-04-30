@@ -20,24 +20,26 @@ public class FunctionImpl extends RootNode implements RFunction {
     final Function source;
 
     final RSymbol[] paramNames;
-    @Children final RNode[] paramValues;
+    //@Children final RNode[] paramValues;
     final RNode body;
 
     final FrameDescriptor frameDescriptor;
-    final FrameSlot[] paramSlots;
+    //final FrameSlot[] paramSlots;
     final CallTarget callTarget;
 
     final RSymbol[] writeSet;
     final int writeSetBloom;
     final EnclosingSlot[] readSet;
     final int readSetBloom;
+    @Children final ParamWriter[] _paramWriters;
 
     private static final boolean DEBUG_CALLS = false;
 
     public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosingFunction, RSymbol[] writeSet, EnclosingSlot[] readSet) {
         this.source = source;
         this.paramNames = paramNames;
-        this.paramValues = paramValues;
+        //this.paramValues = paramValues;
+        this._paramWriters = new ParamWriter[paramValues.length];
         this.body = body;
         this.enclosingFunction = enclosingFunction;
         this.writeSet = writeSet;
@@ -63,10 +65,11 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
-        paramSlots = new FrameSlot[nparams];
+        //paramSlots = new FrameSlot[nparams];
         frameDescriptor = new FrameDescriptor();
         for (int i = 0; i < nparams; i++) {
-            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
+            _paramWriters[i] = adoptChild(new ParamWriter(i,paramValues[i], frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object)));
+            //paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
         }
         for (int i = nparams; i < writeSet.length; i++) {
             frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
@@ -75,8 +78,61 @@ public class FunctionImpl extends RootNode implements RFunction {
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
     }
 
+    /** Writes given argument to the frameslot.
+     *
+     */
+    static class ParamWriter extends RNode {
+
+        final int _idx;
+        @Child final RNode _value;
+        final FrameSlot _slot;
+
+
+        public ParamWriter(int idx, RNode value, FrameSlot slot) {
+            _idx = idx;
+            _value = value;
+            _slot = slot;
+
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RFrameHeader h = RFrameHeader.header(frame);
+            Object[] args = h.arguments();
+            RAny value = (RAny) args[_idx];
+            if (value != null) {
+                try {
+                    frame.setObject(_slot, value);
+                } catch (FrameSlotTypeException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+                value.ref();
+            } else {
+                RNode n = _value;
+                if (n != null) {
+                    value = (RAny) n.execute(frame); // TODO: get rid of the context
+                    if (value != null) {
+                        try {
+                            frame.setObject(_slot, value);
+                        } catch (FrameSlotTypeException e) {
+                            e.printStackTrace();
+                            System.exit(-1);
+                        }
+                        value.ref();
+                    }
+                    // NOTE: value can be null when a parameter is missing
+                    // NOTE: if such a parameter is not used by the function, R is happy
+                }
+            }
+            return null;
+        }
+    }
+
+
+    @ExplodeLoop
     @Override public Object execute(VirtualFrame frame) {
-        RFrameHeader h = RFrameHeader.header(frame);
+/*        RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
         for (int i = 0; i < paramSlots.length; i++) {
             RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
@@ -105,13 +161,17 @@ public class FunctionImpl extends RootNode implements RFunction {
                     // NOTE: if such a parameter is not used by the function, R is happy
                 }
             }
-        }
-
+        } */
+        for (ParamWriter pw : _paramWriters)
+        //for (int i = 0; i < _paramWriters.length; ++i)
+            pw.execute(frame);
         Object res;
         try {
             res = body.execute(frame);
         } catch (ReturnException re) {
-            res = h.returnValue();
+            //RFrameHeader h = RFrameHeader.header(frame);
+            res = RFrameHeader.header(frame).returnValue();
+            //res = h.returnValue();
         }
         return res;
     }
@@ -198,9 +258,9 @@ public class FunctionImpl extends RootNode implements RFunction {
         return paramNames;
     }
 
-    @Override public RNode[] paramValues() {
+/*    @Override public RNode[] paramValues() {
         return paramValues;
-    }
+    } */
 
     @Override public RNode body() {
         return body;
