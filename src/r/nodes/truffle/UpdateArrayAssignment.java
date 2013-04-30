@@ -145,16 +145,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
                    throw new UnexpectedResultException(null);
                 }
             } catch (UnexpectedResultException e) {
-
-                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
-                if (lhsValue == null) {
-                    throw RError.getUnknownVariable(getAST(), varName);
-                }
-                lhsValue.ref(); // reading from parent, hence need to copy on update
-                // ref once will make it shared unless it is stateless (like int sequence)
-
-                replace(new LocalGeneric(ast, varName, varSlot, rhs, assignment));
-
+                return replace(rhs, rhsValue, new LocalGeneric(ast, varName, varSlot, rhs, assignment), frame);
             }
 
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);

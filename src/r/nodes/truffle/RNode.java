@@ -57,4 +57,9 @@ public abstract class RNode extends Node {
         replaceChild(childNode, new PushbackNode(childNode.getAST(), childNode, value));
     }
 
+    public <T extends RNode> Object replace(T childNode, Object childValue, RNode newNode, Frame frame) {
+        pushBack(childNode, childValue);
+        return replace(newNode).execute(frame);
+    }
+
 }
