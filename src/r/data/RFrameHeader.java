@@ -138,19 +138,22 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RAny readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = null;
-        try {
-            value = frame.getObject(slot);
-        } catch (FrameSlotTypeException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            System.exit(-1);
-        }
-
-        if (value != null) {  // TODO: another node (one branch needs to have deopt)
-            return Utils.cast(value);
-        } else {
+        RAny value = readViaWriteSetFastPath(frame, slot);
+        if (value != null)
+            return value;
+        else
             return readViaWriteSetSlowPath(frame, symbol);
+    }
+
+    public static RAny readViaWriteSetFastPath(Frame frame, FrameSlot slot) {
+        try {
+            Object result = frame.getObject(slot);
+            if (result != null)
+                return Utils.cast(result);
+        } catch (FrameSlotTypeException e) {
+            assert (false);
         }
+        return null;
     }
 
     public static RAny readViaWriteSetSlowPath(Frame frame, RSymbol symbol) {

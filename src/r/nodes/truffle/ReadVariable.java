@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
@@ -72,7 +73,8 @@ public abstract class ReadVariable extends BaseR {
     }
 
     public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
-        return new ReadVariable(orig, sym) {
+        return new ReadLocalVariable(orig, sym, slot);
+        /*return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(Frame frame) {
@@ -83,8 +85,71 @@ public abstract class ReadVariable extends BaseR {
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+slot); }
                 return val;
             }
-        };
+        }; */
     }
+
+    static class ReadLocalVariable extends ReadVariable {
+
+        protected final FrameSlot _slot;
+
+        public ReadLocalVariable(ASTNode ast, RSymbol sym, FrameSlot slot) {
+            super(ast, sym);
+            _slot = slot;
+        }
+
+        public ReadLocalVariable(ReadLocalVariable from) {
+            super(from.ast, from.symbol);
+            _slot = from._slot;
+        }
+
+        @Override
+        public RAny execute(Frame frame) {
+            RAny result = RFrameHeader.readViaWriteSetFastPath(frame, _slot);
+            CompilerDirectives.transferToInterpreter();
+            if (result != null)
+                replace(new ReadExistingLocalVariable(this));
+            else
+                result = replace(new ReadGenericLocalVariable(this)).execute(frame);
+            return result;
+        }
+    }
+
+    static class ReadExistingLocalVariable extends ReadLocalVariable {
+
+        public ReadExistingLocalVariable(ReadLocalVariable from) {
+            super(from);
+        }
+
+        @Override
+        public RAny execute(Frame frame) {
+            RAny result = RFrameHeader.readViaWriteSetFastPath(frame, _slot);
+            if (result != null)
+                return result;
+            CompilerDirectives.transferToInterpreter();
+            return replace(new ReadGenericLocalVariable(this)).execute(frame);
+        }
+    }
+
+    static class ReadGenericLocalVariable extends ReadLocalVariable {
+
+        public ReadGenericLocalVariable(ReadLocalVariable from) {
+            super(from);
+        }
+
+
+        @Override
+        public final RAny execute(Frame frame) {
+            RAny val = RFrameHeader.readViaWriteSet(frame, _slot, symbol);
+            if (val == null) {
+                return readNonVariable(ast, symbol);
+            }
+            if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+_slot); }
+            return val;
+        }
+
+    }
+
+
 
     public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
         // FIXME: could we get better performance through updating hops, position ?
