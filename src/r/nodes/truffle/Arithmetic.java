@@ -1082,6 +1082,22 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        public abstract void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size);
+
+        public RInt op(ASTNode ast, IntImpl xint, IntImpl.RIntSequence y, int size, int[] dimensions, Names names, Attributes attributes) {
+            int[] x = xint.getContent();
+
+            if (IN_PLACE && xint.isTemporary()) {
+                op(ast, x, y.from(), y.to(), y.step(), x, size);
+                xint.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xint;
+            } else {
+                int[] res = new int[size];
+                op(ast, x, y.from(), y.to(), y.step(), res, size);
+                return RInt.RIntFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
         public abstract boolean returnsDouble();
     }
 
@@ -1098,8 +1114,7 @@ public class Arithmetic extends BaseR {
         public double op(ASTNode ast, double a, double b) {
             return a + b;
         }
-        @Override
-        public int op(ASTNode ast, int a, int b) {
+        public static int add(int a, int b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a + b;
             boolean bLTr = b < r;
@@ -1113,6 +1128,11 @@ public class Arithmetic extends BaseR {
                 }
             }
             return RInt.NA;
+        }
+
+        @Override
+        public int op(ASTNode ast, int a, int b) {
+            return add(a, b);
         }
         @Override
         public void emitOverflowWarning(ASTNode ast) {
@@ -1210,6 +1230,36 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            // TODO: why is this not faster than the view???
+            int y = yfrom;
+            boolean overflown = false;
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                if (a == RInt.NA) {
+                    res[i] = RInt.NA;
+                } else {
+                    int r = add(a, y);
+                    if (r == RInt.NA) {
+                        overflown = true;
+                    }
+                    res[i] = r;
+                }
+                y += ystep;
+                if (y > yto) {
+                    y = yfrom;
+                }
+            }
+            if (y != yfrom) {
+                RContext.warning(ast, RError.LENGTH_NOT_MULTI);
+            }
+            if (overflown) {
+                emitOverflowWarning(ast);
+            }
+        }
+
         @Override
         public boolean returnsDouble() {
             return false;
@@ -1312,6 +1362,10 @@ public class Arithmetic extends BaseR {
                     res[i] = c;
                 }
             }
+        }
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
         }
         @Override
         public boolean returnsDouble() {
@@ -1506,6 +1560,10 @@ public class Arithmetic extends BaseR {
                     res[i] = c;
                 }
             }
+        }
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
         }
         @Override
         public boolean returnsDouble() {
@@ -1855,6 +1913,12 @@ public class Arithmetic extends BaseR {
                 GNUR.pow(x, y, res, size);
             }
         }
+
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
+        }
+
         @Override
         public boolean returnsDouble() {
             return true;
@@ -2011,6 +2075,10 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
+        }
+        @Override
         public boolean returnsDouble() {
             return true;
         }
@@ -2086,6 +2154,10 @@ public class Arithmetic extends BaseR {
                     res[i] = c;
                 }
             }
+        }
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
         }
         @Override
         public boolean returnsDouble() {
@@ -2182,6 +2254,10 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+        }
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
         }
         @Override
         public boolean returnsDouble() {
@@ -3166,6 +3242,12 @@ public class Arithmetic extends BaseR {
 //                if (na > 1 && arit == ADD && a.isTemporary() && n == na) {
 //                    return hackAddTemporaryIntandSequence(a, (RIntSequence) b, na, nb, arit, ast);
 //                }
+
+                // TODO: why is this actually slowing us down?
+//                if (a instanceof IntImpl && a.isTemporary() && n == na) {
+//                    return arit.op(ast, (IntImpl) a, (RIntSequence) b, n, dim, names, attributes);
+//                }
+
                 res = new IntView.VectorSequence(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
             } else if (a instanceof RIntSequence) {
                 res = new IntView.SequenceVector((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
