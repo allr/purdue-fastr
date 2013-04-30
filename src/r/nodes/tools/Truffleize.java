@@ -22,10 +22,50 @@ import com.oracle.truffle.api.frame.*;
 
 public class Truffleize implements Visitor {
 
+    private static class RootLazyNode extends BaseR {
+
+        @Child RNode node;
+
+        public RootLazyNode(final ASTNode ast) {
+            super(ast);
+            node = adoptChild(createLazyTree(ast));
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                return node.execute(frame);
+            } catch (Loop.ContinueException ce) {
+                throw RError.getNoLoopForBreakNext(ast);
+            } catch (Loop.BreakException be) {
+                throw RError.getNoLoopForBreakNext(ast);
+            }
+        }
+    }
+
+    private static class RewritingLazyNode extends RootLazyNode {
+
+
+        public RewritingLazyNode(ASTNode ast) {
+            super(ast);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            Object result = super.execute(frame);
+            replace(node);
+            return result;
+        }
+    }
+
     RNode result;
     public static final boolean DEBUG_SPECIAL_NODES = false;
 
+
     public RNode createLazyRootTree(final ASTNode ast) {
+
+        return new RootLazyNode(ast);
+        /*
         return new BaseR(ast) {
 
             @Child RNode node = adoptChild(createLazyTree(ast));
@@ -40,7 +80,7 @@ public class Truffleize implements Visitor {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
-        };
+        }; */
     }
 
     public RNode createTree(ASTNode ast) {
@@ -48,8 +88,8 @@ public class Truffleize implements Visitor {
         return result;
     }
 
-    @SuppressWarnings("static-method")
-    private RNode createLazyTree(ASTNode ast) {
+    //@SuppressWarnings("static-method")
+    private static RNode createLazyTree(ASTNode ast) {
         return new LazyBuild(ast);
     }
 
@@ -257,7 +297,7 @@ public class Truffleize implements Visitor {
                     if (exp instanceof Constant) { // hack to make builtins see their constant arguments, constant won't rewrite anyway
                         expressions[i] = createTree(exp);
                     } else {
-                        expressions[i] = createLazyRootTree(exp);
+                        expressions[i] = createLazyTree(exp);
                     }
                 } else {
                     expressions[i] = createTree(exp);
@@ -277,8 +317,8 @@ public class Truffleize implements Visitor {
 
         SplitArgumentList a = splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
 
-            // note: body has to be built lazily, otherwise nested functions won't work correctly
-        RFunction impl = function.createImpl(a.convertedNames, a.convertedExpressions, createLazyRootTree(function.getBody()), encf);
+        // note: body has to be built lazily, otherwise nested functions won't work correctly
+        RFunction impl = function.createImpl(a.convertedNames, a.convertedExpressions, createLazyTree(function.getBody()), encf);
         r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
 
         result = functionNode;

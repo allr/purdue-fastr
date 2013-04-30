@@ -4,7 +4,7 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
 
-public class ScalarComplexImpl extends ArrayImpl implements RComplex {
+public class ScalarComplexImpl extends ArrayImpl implements RComplex, RAny.NotRefCounted{
     double real;
     double imag;
 

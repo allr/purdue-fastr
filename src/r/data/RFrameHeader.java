@@ -101,7 +101,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RFrameHeader header(Frame f) {
-        return (RFrameHeader) f.getArguments(RFrameHeader.class);
+        return f.getArguments(RFrameHeader.class);
     }
 
     public static void setReturnValue(Frame f, RAny value) {

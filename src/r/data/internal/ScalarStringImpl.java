@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public class ScalarStringImpl extends ArrayImpl implements RString {
+public class ScalarStringImpl extends ArrayImpl implements RString, RAny.NotRefCounted {
 
     String value;
 

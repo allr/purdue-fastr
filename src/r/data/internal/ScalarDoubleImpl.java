@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
+public final class ScalarDoubleImpl extends ArrayImpl implements RDouble, RAny.NotRefCounted {
 
     double value;
 

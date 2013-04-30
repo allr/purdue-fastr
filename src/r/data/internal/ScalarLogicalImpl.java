@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
+public final class ScalarLogicalImpl extends ArrayImpl implements RLogical, RAny.NotRefCounted {
 
     int value;
 

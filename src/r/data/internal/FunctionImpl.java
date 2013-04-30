@@ -21,7 +21,7 @@ public class FunctionImpl extends RootNode implements RFunction {
 
     final RSymbol[] paramNames;
     //@Children final RNode[] paramValues;
-    final RNode body;
+    @Child final RNode body;
 
     final FrameDescriptor frameDescriptor;
     //final FrameSlot[] paramSlots;
@@ -40,7 +40,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         this.paramNames = paramNames;
         //this.paramValues = paramValues;
         this._paramWriters = new ParamWriter[paramValues.length];
-        this.body = body;
+        this.body = adoptChild(body);
         this.enclosingFunction = enclosingFunction;
         this.writeSet = writeSet;
         this.readSet = readSet;
@@ -67,13 +67,11 @@ public class FunctionImpl extends RootNode implements RFunction {
         int nparams = paramNames.length;
         //paramSlots = new FrameSlot[nparams];
         frameDescriptor = new FrameDescriptor();
-        for (int i = 0; i < nparams; i++) {
+        for (int i = 0; i < nparams; i++)
             _paramWriters[i] = adoptChild(new ParamWriter(i,paramValues[i], frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object)));
-            //paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
-        }
-        for (int i = nparams; i < writeSet.length; i++) {
+
+        for (int i = nparams; i < writeSet.length; i++)
             frameDescriptor.addFrameSlot(writeSet[i], FrameSlotKind.Object);
-        }
 
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
     }
@@ -90,7 +88,7 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         public ParamWriter(int idx, RNode value, FrameSlot slot) {
             _idx = idx;
-            _value = value;
+            _value = adoptChild(value);
             _slot = slot;
 
         }
@@ -101,6 +99,81 @@ public class FunctionImpl extends RootNode implements RFunction {
             Object[] args = h.arguments();
             RAny value = (RAny) args[_idx];
             if (value != null) {
+                if (value instanceof RAny.NotRefCounted) {
+                    CompilerDirectives.transferToInterpreter();
+                    replace(new ScalarParamWriter(this)).execute(frame);
+                    return null;
+                }
+            }
+            CompilerDirectives.transferToInterpreter();
+            replace(new GenericParamWriter(this)).execute(frame);
+            return null;
+        }
+
+        protected void writeParamDefaultValue(Frame frame) {
+            RNode n = _value;
+            if (n != null) {
+                RAny value = (RAny) n.execute(frame); // TODO: get rid of the context
+                if (value != null) {
+                    try {
+                        frame.setObject(_slot, value);
+                    } catch (FrameSlotTypeException e) {
+                        e.printStackTrace();
+                        System.exit(-1);
+                    }
+                    value.ref();
+                }
+                // NOTE: value can be null when a parameter is missing
+                // NOTE: if such a parameter is not used by the function, R is happy
+            }
+        }
+    }
+
+    /** Scalar param writer, that does not call the ref() method on itself. */
+    static class ScalarParamWriter extends ParamWriter {
+
+        public ScalarParamWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RFrameHeader h = RFrameHeader.header(frame);
+            Object[] args = h.arguments();
+            RAny value = (RAny) args[_idx];
+            if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
+                writeParamDefaultValue(frame);
+            } else {
+                if (value instanceof RAny.NotRefCounted) {
+                    try {
+                        frame.setObject(_slot, value);
+                    } catch (FrameSlotTypeException e) {
+                        e.printStackTrace();
+                        System.exit(-1);
+                    }
+                } else {
+                    CompilerDirectives.transferToInterpreter();
+                    replace(new GenericParamWriter(this)).execute(frame);
+                }
+            }
+            return null;
+        }
+    }
+
+    static class GenericParamWriter extends ParamWriter {
+
+        public GenericParamWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RFrameHeader h = RFrameHeader.header(frame);
+            Object[] args = h.arguments();
+            RAny value = (RAny) args[_idx];
+            if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
+                writeParamDefaultValue(frame);
+            } else {
                 try {
                     frame.setObject(_slot, value);
                 } catch (FrameSlotTypeException e) {
@@ -108,70 +181,24 @@ public class FunctionImpl extends RootNode implements RFunction {
                     System.exit(-1);
                 }
                 value.ref();
-            } else {
-                RNode n = _value;
-                if (n != null) {
-                    value = (RAny) n.execute(frame); // TODO: get rid of the context
-                    if (value != null) {
-                        try {
-                            frame.setObject(_slot, value);
-                        } catch (FrameSlotTypeException e) {
-                            e.printStackTrace();
-                            System.exit(-1);
-                        }
-                        value.ref();
-                    }
-                    // NOTE: value can be null when a parameter is missing
-                    // NOTE: if such a parameter is not used by the function, R is happy
-                }
             }
             return null;
         }
     }
 
 
+
+
+
     @ExplodeLoop
     @Override public Object execute(VirtualFrame frame) {
-/*        RFrameHeader h = RFrameHeader.header(frame);
-        Object[] args = h.arguments();
-        for (int i = 0; i < paramSlots.length; i++) {
-            RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
-            if (value != null) {
-                try {
-                    frame.setObject(paramSlots[i], value);
-                } catch (FrameSlotTypeException e) {
-                    e.printStackTrace();
-                  System.exit(-1);
-                }
-                value.ref();
-            } else {
-                RNode n = paramValues[i];
-                if (n != null) {
-                    value = (RAny) n.execute(frame); // TODO: get rid of the context
-                    if (value != null) {
-                        try {
-                            frame.setObject(paramSlots[i], value);
-                        } catch (FrameSlotTypeException e) {
-                            e.printStackTrace();
-                            System.exit(-1);
-                        }
-                        value.ref();
-                    }
-                    // NOTE: value can be null when a parameter is missing
-                    // NOTE: if such a parameter is not used by the function, R is happy
-                }
-            }
-        } */
         for (ParamWriter pw : _paramWriters)
-        //for (int i = 0; i < _paramWriters.length; ++i)
             pw.execute(frame);
         Object res;
         try {
             res = body.execute(frame);
         } catch (ReturnException re) {
-            //RFrameHeader h = RFrameHeader.header(frame);
             res = RFrameHeader.header(frame).returnValue();
-            //res = h.returnValue();
         }
         return res;
     }

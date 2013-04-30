@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarIntImpl extends ArrayImpl implements RInt {
+public final class ScalarIntImpl extends ArrayImpl implements RInt, RAny.NotRefCounted {
 
     int value;
 

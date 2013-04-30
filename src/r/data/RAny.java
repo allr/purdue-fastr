@@ -16,6 +16,11 @@ import r.nodes.truffle.*;
 //    (this is not fully implemented in R)
 public interface RAny {
 
+    /** Marker interface that marks down those values that do not have reference counting implemented saving us
+     * reference counts updates in function headers.
+     */
+    public static interface NotRefCounted { }
+
     public static enum Mode {
         LOGICAL,
         INT,
