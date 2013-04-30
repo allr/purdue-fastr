@@ -1093,9 +1093,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         // to the real selector nodes
 
         public static boolean isMatrixScalar(SelectorNode[] selNodes, Frame frame) {
-            if (true) {
-                return false;
-            }
             if (selNodes.length != 2) {
                 return false;
             }
