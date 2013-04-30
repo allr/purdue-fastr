@@ -59,19 +59,19 @@ final class T extends CallFactory {
                             if (a instanceof RDouble) {
                                 double[] content = new double[size];
                                 squareBlocked(((RDouble) a).getContent(), n, content);
-                                return RDouble.RDoubleFactory.getFor(content, null, null, a.attributesRef());
+                                return RDouble.RDoubleFactory.getFor(content, ndim, null, a.attributesRef());
                             } else if (a instanceof RInt) {
                                 int[] content = new int[size];
                                 squareBlocked(((RInt) a).getContent(), n, content);
-                                return RInt.RIntFactory.getFor(content, null, null, a.attributesRef());
+                                return RInt.RIntFactory.getFor(content, ndim, null, a.attributesRef());
                             } else {
-                                RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
+                                RArray res = Utils.createArray(a, size, ndim, null, a.attributesRef());
                                 squareBlocked(a, n, res);
-                                return res.setDimensions(ndim);
+                                return res;
                             }
                         }
 
-                        RArray res = Utils.createArray(a, size, null, null, a.attributesRef());
+                        RArray res = Utils.createArray(a, size, ndim, null, a.attributesRef());
 
                             // TODO: re-check that type specialization won't help here
                         int j = 0;  // LICENSE: transcribed from GNU-R, which is licensed under GPL
@@ -83,7 +83,7 @@ final class T extends CallFactory {
                                 j -= size1;
                             }
                         }
-                        return res.setDimensions(ndim);
+                        return res;
                     }
                 }
                 throw RError.getArgumentNotMatrix(ast);
