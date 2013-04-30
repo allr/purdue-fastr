@@ -185,6 +185,10 @@ public class Primitives {
         add(CommandArgs._);
         // fastr specific
         add("__inspect", Inspect._);
+
+
+        add(_timerStart._);
+        add(_timerEnd._);
     }
 
     public static boolean hasCallFactory(final RSymbol name, final RFunction enclosing) {

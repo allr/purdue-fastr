@@ -39,6 +39,14 @@ public class FunctionImpl extends RootNode implements RFunction {
 
     private static final boolean DEBUG_CALLS = false;
 
+
+    public String toString() {
+        String result ="FunctionImpl";
+        for (RSymbol r: paramNames)
+            result += r.name();
+        return result;
+    }
+
     public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosingFunction, RSymbol[] writeSet, EnclosingSlot[] readSet) {
         this.source = source;
         this.paramNames = paramNames;
