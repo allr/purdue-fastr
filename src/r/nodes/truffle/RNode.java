@@ -31,4 +31,30 @@ public abstract class RNode extends Node {
         execute(frame);
         return RNull.getNull();
     }
+
+    public static class PushbackNode extends BaseR {
+        @Child RNode realChildNode;
+        final Object nextValue;
+
+        public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
+            super(ast);
+            this.realChildNode = adoptChild(realChildNode);
+            this.nextValue = nextValue;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                replace(realChildNode);
+                return nextValue;
+            }
+        }
+    }
+
+    public <T extends RNode> void pushBack(T childNode, Object value) {
+        replaceChild(childNode, new PushbackNode(childNode.getAST(), childNode, value));
+    }
+
 }

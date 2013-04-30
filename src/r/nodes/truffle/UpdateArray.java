@@ -1064,27 +1064,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return new MatrixScalarIndex(other, g);
         }
 
-        public static class PushbackNode extends BaseR {
-            @Child RNode realChildNode;
-            final Object nextValue;
-
-            public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
-                super(ast);
-                this.realChildNode = adoptChild(realChildNode);
-                this.nextValue = nextValue;
-            }
-
-            @Override
-            public Object execute(Frame frame) {
-                try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    replace(realChildNode);
-                    return nextValue;
-                }
-            }
-        }
-
         // this is quite tricky, the operation of checking whether we have a matrix scalar is destructive in that the selector nodes
         // have to be executed, which means the index expressions must be evaluated
         //
@@ -1125,10 +1104,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
 
             if (replace) {
-                ichild = selNodes[0].child;
-                jchild = selNodes[1].child;
-                selNodes[0].replaceChild(ichild, new PushbackNode(ichild.getAST(), ichild, ival));
-                selNodes[1].replaceChild(jchild, new PushbackNode(jchild.getAST(), jchild, jval));
+                selNodes[0].pushBack(selNodes[0].child, ival);
+                selNodes[1].pushBack(selNodes[1].child, jval);
             }
 
             return result;
