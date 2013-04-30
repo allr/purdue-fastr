@@ -72,6 +72,9 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
+    /** GRAAL changed read variable for a really fast path for existing local variables. Anonymous inner class replaced
+     * too.
+     */
     public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadLocalVariable(orig, sym, slot);
         /*return new ReadVariable(orig, sym) {

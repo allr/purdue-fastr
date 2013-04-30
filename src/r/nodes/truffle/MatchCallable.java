@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -105,8 +106,12 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
+    /** GRAAL - rewritten for a clearer fastpath matcher for the functions when symbols are not dirty. Also got rid of
+     * the anonymous class.
+     */
     public static MatchCallable getMatchTopLevel(ASTNode ast, RSymbol symbol) {
-        return new MatchCallable(ast, symbol) {
+        return new TopLevelMatcher(ast,symbol);
+/*        return new MatchCallable(ast, symbol) {
 
             int version;
 
@@ -135,8 +140,108 @@ public abstract class MatchCallable extends BaseR {
                 }
                 return val;
             }
-        };
+        };*/
     }
+
+    public static class TopLevelMatcher extends MatchCallable {
+
+        int version;
+
+        public TopLevelMatcher(ASTNode ast, RSymbol symbol) {
+            super(ast, symbol);
+        }
+
+        public TopLevelMatcher(TopLevelMatcher from) {
+            super(from.ast, from.symbol);
+            version = from.version;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny val; // TODO check if 'version' is enough, I think the good test has to be:
+            // if (frame != oldFrame || version != symbol.getVersion()) {
+            if (version != symbol.getVersion()) {
+                val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
+                if (val != null) {
+                    return val;
+                }
+                version = symbol.getVersion();
+                // oldFrame = frame;
+                val = symbol.getValue();
+            } else {
+                val = symbol.getValue();
+            }
+            if (val == null || !(val instanceof RCallable)) {
+                if (Primitives.STATIC_LOOKUP) {
+                    throw RError.getUnknownFunction(ast, symbol);
+                } else {
+                    CompilerDirectives.transferToInterpreter();
+                    replace(new GenericTopLevelMatcher(this));
+                    return matchNonVariable(ast, symbol);
+                }
+            } else {
+                CompilerDirectives.transferToInterpreter();
+                replace(new FastPathTopLevelMatcher(this));
+            }
+            return val;
+        }
+    }
+
+    public static class FastPathTopLevelMatcher extends TopLevelMatcher {
+
+        public FastPathTopLevelMatcher(TopLevelMatcher from) {
+            super(from);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            if (version != symbol.getVersion()) {
+                CompilerDirectives.transferToInterpreter();
+                replace(new GenericTopLevelMatcher(this));
+            }
+            RAny val = symbol.getValue();
+            if ((val == null) || !(val instanceof RCallable)) {
+                CompilerDirectives.transferToInterpreter();
+                replace(new GenericTopLevelMatcher(this));
+            }
+            return val;
+        }
+    }
+
+    public static class GenericTopLevelMatcher extends TopLevelMatcher {
+
+        public GenericTopLevelMatcher(TopLevelMatcher from) {
+            super(from);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny val; // TODO check if 'version' is enough, I think the good test has to be:
+            // if (frame != oldFrame || version != symbol.getVersion()) {
+            if (version != symbol.getVersion()) {
+                val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
+                if (val != null) {
+                    return val;
+                }
+                version = symbol.getVersion();
+                // oldFrame = frame;
+                val = symbol.getValue();
+            } else {
+                val = symbol.getValue();
+            }
+            if (val == null || !(val instanceof RCallable)) {
+                if (Primitives.STATIC_LOOKUP) {
+                    throw RError.getUnknownFunction(ast, symbol);
+                } else {
+                    return matchNonVariable(ast, symbol);
+                }
+            } else {
+                return val;
+            }
+        }
+
+    }
+
 
     public static MatchCallable getMatchOnlyFromTopLevel(ASTNode ast, RSymbol symbol) {
         return new MatchCallable(ast, symbol) {

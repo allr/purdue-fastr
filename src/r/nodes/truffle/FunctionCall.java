@@ -91,8 +91,6 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static final class GenericCall extends FunctionCall {
 
-        private static RNode NO_BUILTIN = new Dummy();
-
         RCallable lastCallable;
         boolean lastWasFunction;
 

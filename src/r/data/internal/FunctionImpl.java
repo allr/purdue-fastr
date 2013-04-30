@@ -14,6 +14,10 @@ import r.builtins.Return.ReturnException;
 // FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
 
+/** GRAAL Changed the way arguments are stored to the frame to a list of specific nodes for each argument. Those nodes
+ * furthes speculate on the fact that the argument is scalar and therefore does not need to call the highly polymorphic
+ * ref() method Graal is not capable of inlining.
+ */
 public class FunctionImpl extends RootNode implements RFunction {
 
     final RFunction enclosingFunction;
@@ -284,10 +288,6 @@ public class FunctionImpl extends RootNode implements RFunction {
     @Override public RSymbol[] paramNames() {
         return paramNames;
     }
-
-/*    @Override public RNode[] paramValues() {
-        return paramValues;
-    } */
 
     @Override public RNode body() {
         return body;
