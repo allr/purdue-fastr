@@ -18,6 +18,13 @@ import r.nodes.ASTNode;
 //     assignmentNode.execute returns the new value of x
 //   UpdateVariable then assigns newValueOfX to xSymbol
 
+// TODO: BUG BUG this approach leads to incorrect order of evaluation, in R, indexes are evaluated before the lhs (variable to update),
+// but here they are evaluated last.
+//
+// this snippet triggers the error:
+//  { z <- 4L ; m <- matrix(1:6, nrow=2) ; x <- m ; m[1, (m[1,3] <- (z <- z + 1L) ) - 7L] <- (z <- z * 2L) ; m }
+
+
 public abstract class UpdateArrayAssignment extends BaseR {
 
     public static UpdateArrayAssignment create(ASTNode ast, RSymbol varName, RFunction enclosingFunction, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {

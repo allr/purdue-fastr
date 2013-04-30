@@ -59,26 +59,16 @@ public class Arithmetic extends BaseR {
 
     @Override
     public Object execute(Frame frame) {
+
+//        // an experiment
+//        if (!arit.returnsDouble()) {
+//            return replace(new ScalarIntSpecialized(ast, left, right, arit)).execute(frame);
+//        }
+
         RAny lexpr = (RAny) left.execute(frame);
         RAny rexpr = (RAny) right.execute(frame);
         return execute(lexpr, rexpr);
     }
-
-//    @Override
-//    public RAny executeAssignment(Frame frame, RAny variableValue, RAny operandValue) {
-//        try {
-//            throw new UnexpectedResultException(null);
-//        } catch (UnexpectedResultException e) {
-//            if (left instanceof Constant) {
-//                return (RAny) execute(((Constant) left).value(), variableValue);
-//            } else if (right instanceof Constant) {
-//                return (RAny) execute(variableValue, ((Constant) right).value());
-//            } else {
-//                Utils.nyi("unreachable");
-//                return null;
-//            }
-//        }
-//    }
 
     public Object execute(RAny lexpr, RAny rexpr) {
         try {
@@ -400,6 +390,69 @@ public class Arithmetic extends BaseR {
             }
         }
     }
+
+    // just an experiment for now
+    static class ScalarIntSpecialized extends BaseR {
+        @Child RNode left;
+        @Child RNode right;
+        final ValueArithmetic arit;
+
+        public ScalarIntSpecialized(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
+            super(ast);
+            this.left = adoptChild(left);
+            this.right = adoptChild(right);
+            this.arit = arit;
+            assert Utils.check(!arit.returnsDouble());
+        }
+
+        private Object recover(Object lobj, Object robj) {
+            RAny lexpr = (RAny) lobj;
+            RAny rexpr = (RAny) robj;
+
+            Arithmetic an = new Arithmetic(ast, left, right, arit);
+            replace(an);
+            return an.execute(lexpr, rexpr);
+
+//            Specialized sn = Specialized.createSpecializedMultiType(lexpr, rexpr, ast, left, right, arit);
+//            if (sn != null) {
+//                replace(sn, "install SpecializedMultiType from ScalarIntSpecialized");
+//                return sn.execute(lexpr, rexpr);
+//            }
+//            Specialized gn = Specialized.createGeneric(ast, left, right, arit);
+//            replace(gn, "install Specialized<Generic, Generic> from ScalarIntSpecialized");
+//            return gn.execute(lexpr, rexpr);
+        }
+
+        @Override
+        public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+            int lint;
+            try {
+                lint = left.executeScalarInteger(frame);
+            } catch (UnexpectedResultException e) {
+                throw new UnexpectedResultException(recover(e.getResult(), right.execute(frame)));
+            }
+            int rint;
+            try {
+                rint = right.executeScalarInteger(frame);
+            } catch (UnexpectedResultException e) {
+                throw new UnexpectedResultException(recover(left.execute(frame), e.getResult()));
+            }
+            if (lint == RInt.NA || rint == RInt.NA) {
+                return RInt.NA;
+            }
+            return arit.opWarnOverflow(ast, lint, rint);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                return RInt.RIntFactory.getScalar(executeScalarInteger(frame)); // does the rewriting
+            } catch (UnexpectedResultException e) {
+                return e.getResult();
+            }
+        }
+    }
+
 
     static class SpecializedConst extends Arithmetic {
         final String dbg;
