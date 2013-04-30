@@ -226,7 +226,7 @@ public abstract class Loop extends BaseR {
                             final int from = sval.from();
                             final int to = sval.to();
                             final int step = sval.step();
-                            if (to > from || step != 1 || from != 1) {
+                            if (from > to || step != 1 || from != 1) {
                                 throw new UnexpectedResultException(null);
                             }
                             try {
