@@ -88,7 +88,7 @@ public class Abs extends CallFactory {
 
     public static RNode createScalarInt(final ASTNode call, final RSymbol[] names, final RNode[] exprs) {
 
-        return new BaseR(call) {
+        return new Specialized(call, exprs[0]) {
 
             // use this - but when the executeScalarInteger is used widely
 //            @Override
@@ -98,7 +98,7 @@ public class Abs extends CallFactory {
 
             @Override
             public Object execute(Frame frame) {
-                Object val = exprs[0].execute(frame);
+                Object val = expr.execute(frame);
                 try {
                     if (!(val instanceof ScalarIntImpl)) {
                         throw new UnexpectedResultException(null);
@@ -114,7 +114,7 @@ public class Abs extends CallFactory {
             @Override
             public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
                 try {
-                    int i = exprs[0].executeScalarInteger(frame);
+                    int i = expr.executeScalarInteger(frame);
                     return abs(i);
                 } catch(UnexpectedResultException e) {
                     replace(createGeneric(call, names, exprs));
