@@ -27,7 +27,7 @@ public abstract class UpdateVector extends BaseR {
 
     final RSymbol var;
     @Child RNode lhs;
-    @Children RNode[] indexes;
+    @Children final RNode[] indexes;
     @Child RNode rhs;
     final boolean subset;
 

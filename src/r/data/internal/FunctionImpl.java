@@ -113,7 +113,7 @@ public class FunctionImpl extends RootNode implements RFunction {
             if (value != null) {
                 if (value instanceof RAny.NotRefCounted) {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new ScalarParamWriter(this)).execute(frame);
+                    replace(new ScalarParamNotDefaultWriter(this)).execute(frame);
                     return null;
                 }
             }
@@ -139,6 +139,34 @@ public class FunctionImpl extends RootNode implements RFunction {
                 // NOTE: if such a parameter is not used by the function, R is happy
             }
         }
+    }
+
+    static class ScalarParamNotDefaultWriter extends ParamWriter {
+        public ScalarParamNotDefaultWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RFrameHeader h = RFrameHeader.header(frame);
+            Object[] args = h.arguments();
+            RAny value = (RAny) args[_idx];
+            if (value == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ScalarParamWriter(this)).execute(frame);
+            } else if (! (value instanceof RAny.NotRefCounted)) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new GenericParamWriter(this)).execute(frame);
+            } else {
+                try {
+                    frame.setObject(_slot, value);
+                } catch (FrameSlotTypeException e) {
+                    assert (false);
+                }
+            }
+            return null;
+        }
+
     }
 
     /** Scalar param writer, that does not call the ref() method on itself. */

@@ -115,7 +115,7 @@ public abstract class ReadArray extends BaseR {
 
         final int[] offsets;
         final int[] selSizes;
-        @Children SelectorNode[] selectorExprs;
+        @Children final SelectorNode[] selectorExprs;
         final Selector[] selectorVals;
 
         public GenericRead(ASTNode ast, boolean subset, RNode lhs, SelectorNode[] selectorExprs, OptionNode dropExpr, OptionNode exactExpr) {

@@ -20,7 +20,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     final boolean column;
 
     /** Selector nodes for respective dimensions. These are likely to be rewritten. */
-    @Children SelectorNode[] selectorExprs;
+    @Children final SelectorNode[] selectorExprs;
 
     final Selector[] selectorVals;
     final int[] selSizes;
@@ -137,6 +137,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      * proceed further. It assumes (without checking) that the lhs and rhs arrays are of the same
      * type.
      */
+    @ExplodeLoop
     protected final RAny executeAndUpdateSelectors(Frame frame, RArray lhs, RArray rhs) {
         // this is safe even for the non-shared variant, because here we already have the copy,
         // which is never shared
