@@ -148,7 +148,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         if (!inherits) {
             return RFrameHeader.localRead(frame, name);
         } else {
-            return RFrameHeader.read(frame, name);
+            return Utils.cast(RFrameHeader.read(frame, name));
         }
     }
 
@@ -212,7 +212,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             if (!inherits) {
                 return RFrameHeader.customLocalRead(frame, name);
             } else {
-                return RFrameHeader.customRead(frame, name);
+                return Utils.cast(RFrameHeader.customRead(frame, name));
             }
         }
 

@@ -53,7 +53,7 @@ public abstract class ReadVariable extends BaseR {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";
                     } else if ((slot = RFrameHeader.findVariable(frame, symbol)) != null) {
-                        node = getReadLocal(getAST(), symbol, slot);
+                        node = getSimpleReadLocal(getAST(), symbol, slot);
                         reason = "installReadLocalNode";
                     } else if ((rse = RFrameHeader.readSetEntry(frame, symbol)) == null) {
                             // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
@@ -71,16 +71,34 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
+    public static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+        return new ReadVariable(orig, sym) {
+
+            @Override
+            public final Object execute(Frame frame) {
+                try {
+                    Object value = frame.getObject(slot);
+                    if (value == null) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return value;
+                } catch (UnexpectedResultException e) {
+                    return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+                }
+            }
+        };
+    }
+
     public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
+                Object val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+slot); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+((RAny)val).pretty()+") from slot "+slot); }
                 return val;
             }
         };

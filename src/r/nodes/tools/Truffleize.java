@@ -308,7 +308,9 @@ public class Truffleize implements Visitor {
 
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
         // It's maybe smarter to move this instance of here and replace the type of name by expression
-        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), true);
+        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), false);
+            // NOTE: the "false" argument, which currently ensures that the arguments are not lazy, which in turn
+            // makes it easy for hotspot to optimize the code
 
         RSymbol sym = functionCall.getName();
         r.builtins.CallFactory factory;

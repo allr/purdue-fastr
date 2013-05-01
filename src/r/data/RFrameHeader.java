@@ -137,11 +137,11 @@ public class RFrameHeader extends Arguments {
         isDirty = true;
     }
 
-    public static RAny readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
+    public static Object readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
         Object value = frame.getObject(slot);
 
         if (value != null) {  // TODO: another node (one branch needs to have deopt)
-            return Utils.cast(value);
+            return value;
         } else {
             return readViaWriteSetSlowPath(frame, symbol);
         }
@@ -559,7 +559,7 @@ public class RFrameHeader extends Arguments {
         return ext.get(sym);
     }
 
-    public static RAny customRead(Frame frame, RSymbol symbol) {
+    public static Object customRead(Frame frame, RSymbol symbol) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RAny val;
@@ -577,7 +577,7 @@ public class RFrameHeader extends Arguments {
         return val;
     }
 
-    public static RAny read(Frame frame, RSymbol symbol) {
+    public static Object read(Frame frame, RSymbol symbol) {
         assert Utils.check(frame != null);
         assert Utils.check(frame instanceof MaterializedFrame);
 
