@@ -91,7 +91,7 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static final class GenericCall extends FunctionCall {
 
-        RCallable lastCallable;
+        Object lastCallable; // RCallable, but using Object to avoid cast
         boolean lastWasFunction;
 
         // for functions
@@ -112,7 +112,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
         @Override public Object execute(Frame callerFrame) {
-            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
                 Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
