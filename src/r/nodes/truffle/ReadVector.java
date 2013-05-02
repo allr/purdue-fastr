@@ -140,7 +140,7 @@ public abstract class ReadVector extends BaseR {
                 RInt irint = (RInt) index;
                 if (irint.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
                 int i = irint.getInt(0);
-                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS                
+                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
                 } else {
@@ -959,6 +959,107 @@ public abstract class ReadVector extends BaseR {
                 replace(gs, "install GenericSelection from IntSelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
                 return gs.execute(index, base);
+            }
+        }
+    }
+
+    // for selections like d[x == c], where c is a scalar double constant and x is a double and d is a double ; and where d has the same size as x
+    // FIXME: make this more generic, supporting any type of base "d" should not be (much?) slower
+    public static class LogicalEqualitySelection extends BaseR {
+        final RNode lhs;
+        final RNode xExpr;
+        final double c;
+
+        public LogicalEqualitySelection(ASTNode ast, RNode lhs, RNode xExpr, double c) {
+            // only for subset
+            super(ast);
+            this.lhs = adoptChild(lhs);
+            this.xExpr = adoptChild(xExpr);
+            assert Utils.check(RDouble.RDoubleUtils.isFinite(c));
+            this.c = c;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny base = (RAny) lhs.execute(frame); // note: order is important
+            RAny x = (RAny) xExpr.execute(frame);
+            return execute(base, x);
+        }
+
+        public RAny execute(RAny base, RAny xArg) {
+            try {
+                if (!(base instanceof DoubleImpl && xArg instanceof DoubleImpl)) { // FIXME: also could materialize
+                    throw new UnexpectedResultException(null);
+                }
+                // NOTE: in this case, it is very important for performance to access the arrays directly (found out experimentally)
+                // it is indeed puzzling as e.g. with matrix multiply, going through .getDouble did cost nothing
+                DoubleImpl bdi = (DoubleImpl) base;
+                double[] b = ((DoubleImpl) base).getContent();
+                double[] x = ((DoubleImpl) xArg).getContent();
+                int size = b.length;
+                if (x.length != size || bdi.names() != null) {
+                    throw new UnexpectedResultException(null);
+                }
+                if (size > 1000) {  // TODO: a tuning parameter, what is the right cutoff???
+                    // NOTE: this is faster at least for larger vectors, I suppose because it is more cache friendly
+                    // TODO: similar optimizations will likely help elsewhere
+                    // TODO: this is yet another case for "growable" vector types, perhaps even non-contiguous
+                    // TODO: this wastes memory, too
+                    double[] tmp = new double[size];
+                    int j = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x[i];
+                        if (d == c) {
+                            tmp[j++] = b[i];
+                        } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            tmp[j++] = RDouble.NA;
+                        }
+                    }
+                    if (j == size) {
+                        return RDouble.RDoubleFactory.getFor(tmp); // we are lucky
+                    } else {
+//                        Utils.debug("j is "+j+" size is "+size);
+                        double[] content = new double[j];
+                        System.arraycopy(tmp, 0, content, 0, j);
+                        return RDouble.RDoubleFactory.getFor(content);
+                    }
+
+                } else {
+                    int nsize = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x[i];
+                        if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            nsize ++;
+                        }
+                    }
+                    double[] content = new double[nsize];
+                    int j = 0;
+                    for (int i = 0; i < size; i++) {
+                        double d = x[i];
+                        if (d == c) {
+                            content[j++] = b[i];
+                        } else if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                            content[j++] = RDouble.NA;
+                        }
+                    }
+                    return RDouble.RDoubleFactory.getFor(content);
+                }
+
+            } catch(UnexpectedResultException e) {
+                AccessVector av = (AccessVector) ast;
+                EQ eq = (EQ) av.getArgs().first().getValue();
+                RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
+
+                Comparison indexExpr = new Comparison(eq, xExpr, new Constant(eq.getRHS(), boxedC),
+                        r.nodes.truffle.Comparison.getEQ());
+
+                LogicalSelection ls = new LogicalSelection(ast, lhs, new RNode[] { indexExpr }, true);
+                replace(ls, "install LogicalSelection from LogicalEqualitySelection");
+                if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with LogicalSelection");
+
+                // index
+                return ls.execute((RAny) indexExpr.execute(xArg, boxedC), base);
+
             }
         }
     }

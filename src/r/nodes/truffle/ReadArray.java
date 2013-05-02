@@ -1,6 +1,7 @@
 package r.nodes.truffle;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -364,6 +365,7 @@ public abstract class ReadArray extends BaseR {
             selectorJ.start(n, ast);
             int nm = selectorI.size();
             int nn = selectorJ.size();
+            boolean mayHaveNA = selectorI.mayHaveNA() || selectorJ.mayHaveNA();
             int nsize = nm * nn;
             if (!subset && (nsize > 1)) {
                 throw RError.getSelectMoreThanOne(getAST());
@@ -374,27 +376,42 @@ public abstract class ReadArray extends BaseR {
                 ndim = null;
             }
             RArray res = Utils.createArray(source, nsize, ndim, null, null); // drop attributes
-            for (int nj = 0; nj < nn; nj++) {
-                int j = selectorJ.nextIndex(ast);
-                if (j != RInt.NA) {
-                    selectorI.restart();
+            if (!mayHaveNA) {
+                int resoffset = 0;
+                for (int nj = 0; nj < nn; nj++) {
+                    int j = selectorJ.nextIndex(ast);
+                    int srcoffset = j * m;
                     for (int ni = 0; ni < nm; ni++) {
-                        int offset = nj * nm + ni;
                         int i = selectorI.nextIndex(ast);
-                        if (i != RInt.NA) {
-                            Object value;
-                            value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
-                            res.set(offset, value);
-                        } else {
-                            Utils.setNA(res, offset);
-                        }
+                        Object value = source.getRef(srcoffset + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
+                        res.set(resoffset++, value);
                     }
-                } else {
-                    for (int ni = 0; ni < nm; ni++) {
-                        Utils.setNA(res, nj * nm + ni);
+                    selectorI.restart();
+                }
+            } else {
+                for (int nj = 0; nj < nn; nj++) {
+                    int j = selectorJ.nextIndex(ast);
+                    if (j != RInt.NA) {
+                        selectorI.restart();
+                        for (int ni = 0; ni < nm; ni++) {
+                            int offset = nj * nm + ni;
+                            int i = selectorI.nextIndex(ast);
+                            if (i != RInt.NA) {
+                                Object value;
+                                value = source.getRef(j * m + i); // FIXME: check overflow? (the same is at many locations, whenever indexing a matrix)
+                                res.set(offset, value);
+                            } else {
+                                Utils.setNA(res, offset);
+                            }
+                        }
+                    } else {
+                        for (int ni = 0; ni < nm; ni++) {
+                            Utils.setNA(res, nj * nm + ni);
+                        }
                     }
                 }
             }
+
             return res;
         }
 
@@ -555,6 +572,148 @@ public abstract class ReadArray extends BaseR {
                 replace(nn, "install MatrixRead from MatrixRowSubset");
                 Selector selI = selIExpr.executeSelector(rowVal);
                 Selector selJ = selJExpr.executeSelector(frame);
+                return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
+            }
+        }
+    }
+
+    // subset using two sequences, m[a:b, c:d], only simple cases (positive limits, within bounds)
+    public static class MatrixSequenceSubset extends ReadArray {
+
+        @Child RNode rowFromExpr;
+        @Child RNode rowToExpr;
+        @Child RNode colFromExpr;
+        @Child RNode colToExpr;
+
+        public MatrixSequenceSubset(ASTNode ast, RNode lhs, RNode rowFromExpr, RNode rowToExpr, RNode colFromExpr, RNode colToExpr, OptionNode dropExpr, OptionNode exactExpr) {
+            super(ast, true, lhs, dropExpr, exactExpr);
+            this.rowFromExpr = adoptChild(rowFromExpr);
+            this.rowToExpr = adoptChild(rowToExpr);
+            this.colFromExpr = adoptChild(colFromExpr);
+            this.colToExpr = adoptChild(colToExpr);
+        }
+
+        private static int extractLimit(Object value) throws UnexpectedResultException { // zero-based
+            if (value instanceof ScalarDoubleImpl) {
+                double d = ((ScalarDoubleImpl) value).getDouble();
+                if (d > 0 && d <= Integer.MAX_VALUE) {
+                    return ((int) d) - 1; // truncate towards zero
+                }
+            } else if (value instanceof ScalarIntImpl) {
+                int i = ((ScalarIntImpl) value).getInt();
+                if (i > 0) {
+                    return i - 1;
+                }
+            }
+            throw new UnexpectedResultException(null);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+
+            RAny lhsVal = (RAny) lhs.execute(frame);
+            Object rowFromVal = rowFromExpr.execute(frame);
+            Object rowToVal = rowToExpr.execute(frame);
+            Object colFromVal = colFromExpr.execute(frame);
+            Object colToVal = colToExpr.execute(frame);
+            boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
+            int exactVal = exactExpr.executeLogical(frame);
+            if (!(lhsVal instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
+            }
+            RArray array = (RArray) lhsVal;
+
+            try {
+
+                int rowFrom = extractLimit(rowFromVal); // zero-based
+                int rowTo = extractLimit(rowToVal);
+                int colFrom = extractLimit(colFromVal);
+                int colTo = extractLimit(colToVal);
+
+
+                int[] dim = array.dimensions();
+                if (dim == null || dim.length != 2) {
+                    throw RError.getIncorrectDimensions(getAST());
+                }
+                int m = dim[0];
+                int n = dim[1];
+
+                int rowStep;
+                int rowSize;
+                if (rowFrom <= rowTo) {
+                    rowStep = 1;
+                    if (rowTo > m) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    rowSize = rowTo - rowFrom + 1;
+                } else {
+                    rowStep = -1;
+                    if (rowFrom > m) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    rowSize = rowFrom - rowTo + 1;
+                }
+
+                int colStep;
+                int colSize;
+                if (colFrom <= colTo) {
+                    colStep = 1;
+                    if (colTo > n) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    colSize = colTo - colFrom + 1;
+                } else {
+                    colStep = -1;
+                    if (colFrom > n) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    colSize = colFrom - colTo + 1;
+                }
+
+
+                int[] ndim;
+                if (!dropVal || (rowSize > 1 && colSize > 1)) {
+                    ndim = new int[]{rowSize, colSize};
+                } else {
+                    ndim = null;
+                }
+
+                int size = rowSize * colSize;
+                RArray res = Utils.createArray(array, size, ndim, null, null); // drop attributes
+
+                if (colStep == 1 && rowStep == 1) {
+                    int j = colFrom * m + rowFrom; // j - index to source matrix
+                    int jmax = j + rowSize;
+                    int jadvance = m - rowSize;
+                    for (int i = 0; i < size; i++) {
+                        res.set(i, array.getRef(j++));  // i - index to target matrix
+                        if (j == jmax) {
+                            j += jadvance;
+                            jmax += m;
+                        }
+                    }
+                } else {
+                    int i = 0;
+                    // NOTE: here we know that colFrom != colTo and rowFrom != rowTo
+                    for (int col = colFrom; col != colTo; col += colStep) {
+                        for (int row = rowFrom; row != rowTo; row += rowStep) {
+                            res.set(i++, array.getRef(col * m + row));
+                        }
+                    }
+                }
+                return res;
+            } catch (UnexpectedResultException e) {
+                    // FIXME: clean this up; does Colon need to be package-private?
+                ASTNode rowAST = rowFromExpr.getAST().getParent();
+                Builtin rowColon = (Builtin) Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(rowAST, rowFromExpr, rowToExpr);
+                SelectorNode selIExpr = Selector.createSelectorNode(rowAST, true, rowColon);
+                ASTNode colAST = colFromExpr.getAST().getParent();
+                Builtin colColon = (Builtin)Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(colAST, colFromExpr, colToExpr);
+                SelectorNode selJExpr = Selector.createSelectorNode(ast, true, colColon);
+                MatrixRead nn = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
+                replace(nn, "install MatrixRead from MatrixSequenceSubset");
+                Selector selI = selIExpr.executeSelector(rowColon.doBuiltIn(frame, new RAny[] {(RAny) rowFromVal, (RAny) rowToVal}));
+                Selector selJ = selJExpr.executeSelector(colColon.doBuiltIn(frame, new RAny[] {(RAny) colFromVal, (RAny) colToVal}));
                 return nn.executeLoop(array, selI, selJ, dropVal, exactVal);
             }
         }

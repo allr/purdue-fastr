@@ -46,6 +46,8 @@ public class GNUR {
     public static native void pow(double[] x, double[] y, double[] res, int size);
     public static native void pow(double[] x, double y, double[] res, int size);
 
+    public static native boolean fmod(double[] x, double[] y, double[] res, int size);
+
 
     static {
         System.loadLibrary("gnurglue");

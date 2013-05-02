@@ -81,11 +81,11 @@ public abstract class ReadVariable extends BaseR {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
+                Object val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+val.pretty()+") from slot "+slot); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+((RAny)val).pretty()+") from slot "+slot); }
                 return val;
             }
         }; */

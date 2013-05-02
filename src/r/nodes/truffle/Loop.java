@@ -9,6 +9,9 @@ import r.nodes.*;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
+// FIXME: re-visit with eval in mind
+// FIXME: local slot for functions can be looked up statically
+
 public abstract class Loop extends BaseR {
 
     @Child RNode body;
@@ -136,19 +139,19 @@ public abstract class Loop extends BaseR {
             }
 
             @Override
-            public RAny execute(Frame frame) {
+            public Object execute(Frame frame) {
 
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
-                    Specialized sn;
+                    RNode sn;
                     String dbg;
                     if (frame == null) {
                         sn = createToplevel(ast, cvar, range, body);
                         dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
                     } else {
-                        sn = create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
-                        dbg = "install IntSequenceRange from IntSequenceRange (uninitialized)";
+                        sn = createSimple(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
+                        dbg = "install IntSequenceRange.Simple from IntSequenceRange (uninitialized)";
                     }
                     replace(sn, dbg);
                     return sn.execute(frame);
@@ -169,9 +172,7 @@ public abstract class Loop extends BaseR {
                         }
                         IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
                         int size = sval.size();
-                        try {
-                            return execute(frame, sval, size);
-                        } catch (BreakException be) { }
+                        return execute(frame, sval, size);
                     } catch (UnexpectedResultException e) {
                         Generic gn;
                         if (frame == null) {
@@ -182,7 +183,6 @@ public abstract class Loop extends BaseR {
                         replace(gn, "install Generic from IntSequenceRange");
                         return gn.execute(frame, rval);
                     }
-                    return RNull.getNull();
                 }
 
                 public abstract RAny execute(Frame frame, IntImpl.RIntSequence sval, int size);
@@ -207,6 +207,54 @@ public abstract class Loop extends BaseR {
                             }
                         } catch (BreakException be) { }
                         return RNull.getNull();
+                    }
+                };
+            }
+
+            // for a sequence l:k, l <= k
+            // FIXME: could make this even simpler with a bit of analysis (removal of break, continue catch blocks)
+            public static RNode createSimple(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+                return new IntSequenceRange(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame) {
+                        RAny rval = (RAny) range.execute(frame);
+                        try {
+                            if (!(rval instanceof IntImpl.RIntSequence)) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
+                            final int from = sval.from();
+                            final int to = sval.to();
+                            final int step = sval.step();
+                            if (from > to || step != 1 || from != 1) {
+                                throw new UnexpectedResultException(null);
+                            }
+                            try {
+                                for (int i = 1; i <= to; i++) {
+                                    // no ref needed because scalars do not have reference counts
+                                    RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
+                                    try {
+                                        body.execute(frame);
+                                    } catch (ContinueException ce) { }
+                                }
+                            } catch (BreakException be) { }
+                            return RNull.getNull();
+                        } catch (UnexpectedResultException e) {
+                            if (rval instanceof IntImpl.RIntSequence) {
+                                Specialized sn = Specialized.create(ast, cvar, range, body, slot);
+                                replace(sn, "install Specialized from IntSequenceRange.Simple");
+                                return sn.execute(frame, (IntImpl.RIntSequence) rval, ((IntImpl.RIntSequence) rval).size());
+                            } else {
+                                Generic gn;
+                                if (frame == null) {
+                                    gn = Generic.createToplevel(ast, cvar, range, body);
+                                } else {
+                                    gn = Generic.create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
+                                }
+                                replace(gn, "install Generic from IntSequenceRange.Simple");
+                                return gn.execute(frame, rval);
+                            }
+                        }
                     }
                 };
             }

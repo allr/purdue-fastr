@@ -60,17 +60,17 @@
         <mkdir dir="${junit.output.dir}"/>
         <junit fork="yes" printsummary="withOutAndErr">
             <formatter type="plain"/>
-            <test name="r.TestSimpleArithmetic" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleArrays" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleAssignment" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleAttributes" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleBuiltins" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleComparison" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleFunctions" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleIfEvaluator" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleLoop" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleTruffle" todir="${junit.output.dir}"/>
-            <test name="r.TestSimpleVectors" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleArithmetic" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleArrays" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleAssignment" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleAttributes" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleBuiltins" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleComparison" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleFunctions" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleIfEvaluator" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleLoop" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleTruffle" todir="${junit.output.dir}"/>
+            <test name="r.simple.TestSimpleVectors" todir="${junit.output.dir}"/>
             <test name="r.nodes.tools.TestPP" todir="${junit.output.dir}"/>
             <test name="r.shootout.binarytrees.TestBinaryTrees" todir="${junit.output.dir}"/>
             <test name="r.shootout.fannkuch.TestFannkuch" todir="${junit.output.dir}"/>

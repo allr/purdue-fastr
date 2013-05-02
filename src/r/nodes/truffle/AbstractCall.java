@@ -5,10 +5,13 @@ import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 
 public abstract class AbstractCall extends BaseR {
+
+    private static final boolean MATERIALIZE_ON_FUNCTION_CALL = true;
 
     protected final RSymbol[] argNames;
     @Children protected final RNode[] argExprs;
@@ -109,7 +112,13 @@ public abstract class AbstractCall extends BaseR {
             if (p >= 0) {
                 RNode v = argExprs[i];
                 if (v != null) {
-                    argValues[p] = argExprs[i].execute(callerFrame);
+                    Object argV = argExprs[i].execute(callerFrame);
+                    if (MATERIALIZE_ON_FUNCTION_CALL) {
+                        if (argV instanceof View) {
+                            argV = ((View) argV).materialize();
+                        }
+                    }
+                    argValues[p] = argV;
                     // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                 }
             } else {

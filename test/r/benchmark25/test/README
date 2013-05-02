@@ -1,0 +1,4 @@
+These versions are stripped down so they finish quickly. They use always the
+same random seed and random number generator to ensure deterministic
+results. They print a result so that some correctness checking is possible.
+This is for correctness testing only.

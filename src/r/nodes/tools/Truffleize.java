@@ -165,7 +165,14 @@ public class Truffleize implements Visitor {
         for (int i = 0; i < exprs.length; i++) {
             rexprs[i] = createTree(exprs[i]);
         }
-        result = new r.nodes.truffle.Sequence(sequence, rexprs);
+        switch(exprs.length) {
+            case 1: result = rexprs[0]; break;
+            case 2: result = new r.nodes.truffle.Sequence.Sequence2(sequence, rexprs); break;
+            case 3: result = new r.nodes.truffle.Sequence.Sequence3(sequence, rexprs); break;
+            case 4: result = new r.nodes.truffle.Sequence.Sequence4(sequence, rexprs); break;
+            case 5: result = new r.nodes.truffle.Sequence.Sequence5(sequence, rexprs); break;
+            default: result = new r.nodes.truffle.Sequence(sequence, rexprs); break;
+        }
     }
 
     @Override
@@ -341,7 +348,9 @@ public class Truffleize implements Visitor {
 
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
         // It's maybe smarter to move this instance of here and replace the type of name by expression
-        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), true);
+        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), false);
+            // NOTE: the "false" argument, which currently ensures that the arguments are not lazy, which in turn
+            // makes it easy for hotspot to optimize the code
 
         RSymbol sym = functionCall.getName();
         r.builtins.CallFactory factory;
@@ -397,6 +406,26 @@ public class Truffleize implements Visitor {
         SplitArgumentList sa = splitArgumentList(a.getArgs(), false);
 
         if (sa.convertedExpressions.length == 1) { // vector
+
+            if (a.isSubset()) {
+                // expressions like b[x == c]
+                // FIXME: add more variations of this
+                ASTNode indexNode = a.getArgs().first().getValue();
+                if (indexNode instanceof EQ) {
+                    EQ eqNode = (EQ) indexNode;
+                    if (eqNode.getRHS() instanceof Constant) {
+                        RAny cv = ((Constant) eqNode.getRHS()).getValue();
+                        if (cv instanceof RDouble && ((RDouble) cv).size() == 1) {
+                            double c = ((RDouble) cv).getDouble(0);
+                            if (RDouble.RDoubleUtils.isFinite(c)) {
+                                result = new ReadVector.LogicalEqualitySelection(a, createTree(a.getVector()), createTree(eqNode.getLHS()), c);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
               result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
@@ -424,6 +453,7 @@ public class Truffleize implements Visitor {
             RNode drop = null;
             RNode exact = null;
             RNode[] selectors = new RNode[sa.convertedExpressions.length];
+            int[] nodeIndexes = new int[selectors.length];
 
             RNode[] nodes = sa.convertedExpressions;
             RSymbol[] names = sa.convertedNames;
@@ -442,6 +472,7 @@ public class Truffleize implements Visitor {
                     exact = nodes[i];
                 } else {
                     selectors[dims] = nodes[i];
+                    nodeIndexes[dims] = i;
                     ++dims;
                 }
             }
@@ -462,6 +493,22 @@ public class Truffleize implements Visitor {
                             ReadArray.createExactOptionNode(a, exact));
                     return;
                 }
+
+                // special handling of m[a:b, c:d]
+                ASTNode node0 = a.getArgs().getNode(nodeIndexes[0]);
+                ASTNode node1 = a.getArgs().getNode(nodeIndexes[1]);
+
+                if (a.isSubset() && node0 != null && node1 != null && node0 instanceof Colon && node1 instanceof Colon) {
+                    Colon rows = (Colon) node0;
+                    Colon cols = (Colon) node1;
+                    result = new ReadArray.MatrixSequenceSubset(a, createTree(a.getVector()),
+                            createTree(rows.getLHS()), createTree(rows.getRHS()), createTree(cols.getLHS()), createTree(cols.getRHS()),
+                            ReadArray.createDropOptionNode(a, drop),
+                            ReadArray.createExactOptionNode(a, exact));
+                    return;
+
+                }
+
                 Selector.SelectorNode selectorIExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[0]);
                 Selector.SelectorNode selectorJExpr = Selector.createSelectorNode(a, a.isSubset(), selectors[1]);
 
@@ -514,6 +561,29 @@ public class Truffleize implements Visitor {
                 Utils.nyi("expecting vector name for vector update");
             }
             RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
+
+            if (a.isSubset()) { //FIXME: this optimization is helping only so little.. why?
+                // expressions like b[x == c] <- ...
+                // FIXME: add more variations of this
+                ASTNode indexNode = a.getArgs().first().getValue();
+                if (indexNode instanceof EQ) {
+                    EQ eqNode = (EQ) indexNode;
+                    if (eqNode.getRHS() instanceof Constant) {
+                        RAny cv = ((Constant) eqNode.getRHS()).getValue();
+                        if (cv instanceof RDouble && ((RDouble) cv).size() == 1) {
+                            double c = ((RDouble) cv).getDouble(0);
+                            if (RDouble.RDoubleUtils.isFinite(c)) {
+                                result = new r.nodes.truffle.UpdateVector.LogicalEqualitySelection(u, u.isSuper(), var, createTree(varAccess), createTree(eqNode.getLHS()),
+                                        c, createTree(u.getRHS()), a.isSubset());
+
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
                 result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
@@ -557,16 +627,20 @@ public class Truffleize implements Visitor {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
             }
             // Create the assignment, or super assignment nodes
+            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
+
             ASTNode varAccess = a.getVector();
-            RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
+            RSymbol varName = ((SimpleAccessVariable) varAccess).getSymbol();
             if (!(varAccess instanceof SimpleAccessVariable)) {
                 Utils.nyi("expecting matrix name for matrix update");
             }
-            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
+            RFunction encFunction =  getEnclosingFunction(a);
+            FrameSlot varSlot = encFunction == null ? null : encFunction.localSlot(varName);
+
             if (u.isSuper()) {
-                result = UpdateArraySuperAssignment.create(a, var, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
+                result = UpdateArraySuperAssignment.create(a, varName, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
             } else {
-                result = UpdateArrayAssignment.create(a, var, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
+                result = UpdateArrayAssignment.create(a, varName, encFunction, varSlot, createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));
                 return;
             }
         } else {

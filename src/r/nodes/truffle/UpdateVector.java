@@ -5,7 +5,8 @@ import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.RError;
-import r.nodes.ASTNode;
+import r.nodes.*;
+import r.nodes.truffle.ReadVector.*;
 
 import java.util.*;
 
@@ -1730,6 +1731,88 @@ public abstract class UpdateVector extends BaseR {
         }
     }
 
+    // for expressions like d[x == c] <- v, where
+    //   x is double, d is double, x and d are of the same length
+    //   c is a double constant
+    //   v is double
+    // FIXME: support more combinations
+    public static final class LogicalEqualitySelection extends UpdateVector {
+        final double c;
+
+        public LogicalEqualitySelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode xExpr, double c, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, new RNode[] { xExpr }, rhs, subset);
+                // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
+                // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
+
+            Utils.check(subset);
+            this.c = c;
+        }
+
+        @Override
+        RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
+            try {
+                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) {
+                    throw new UnexpectedResultException(null);
+                }
+                RDouble base = (RDouble) baseArg;
+                RDouble x = (RDouble) xArg;
+                RDouble value = (RDouble) valueArg;
+                int size = base.size();
+                int vsize = value.size();
+                if (x.size() != size) {
+                    throw new UnexpectedResultException(null);
+                }
+                // FIXME: avoid copying of private base, when the rhs does not depend on it
+
+                boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
+
+                if (base.isShared()) {
+                    throw new UnexpectedResultException(null);
+                } else {
+                    int vi = 0;
+                    double[] baseArr = base.getContent();
+                    double[] valueArr = value.getContent();
+                    double[] xArr = x.getContent(); // NOTE: xArr or valueArr can be the same as base
+
+                    for (int i = 0; i < size; i++) {
+                        double d = xArr[i];
+                        if (d == c) {
+                            baseArr[i] = valueArr[vi++];
+                            if (vi == vsize) {
+                                vi = 0;
+                            }
+                        } else {
+                            hasNA = hasNA || RDouble.RDoubleUtils.isNAorNaN(d);
+                        }
+                    }
+                    if (hasNA && vsize >= 2) {
+                        throw RError.getNASubscripted(ast);
+                    }
+                    if (vi != 0) {
+                        RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                    }
+                    return base;
+                }
+
+            } catch (UnexpectedResultException e) {
+                r.nodes.UpdateVector uv = (r.nodes.UpdateVector) ast;
+                AccessVector av = uv.getVector();
+                EQ eq = (EQ) av.getArgs().first().getValue();
+                RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
+
+                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC),
+                        r.nodes.truffle.Comparison.getEQ());
+
+                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[] { indexExpr }, rhs, true);
+                replace(ls, "install LogicalSelection from LogicalEqualitySelection");
+                if (DEBUG_UP) Utils.debug("selection - replaced and re-executing with LogicalSelection");
+
+                // index
+                return ls.execute(baseArg, (RAny) indexExpr.execute(xArg, boxedC), valueArg);
+            }
+        }
+    }
+
     // for updates where the index is a logical sequence
     // specializes for types (base, value) in simple cases
     // handles also corner cases and when the type of the base changes
@@ -1782,34 +1865,58 @@ public abstract class UpdateVector extends BaseR {
                             int isize = index.size();
                             if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
-                            RAny[] content = new RAny[bsize];
                             int ii = 0;
                             int vi = 0;
                             boolean hasNA = false;
-                            for (int bi = 0; bi < bsize; bi++) {
-                                int v = index.getLogical(ii);
-                                ii++;
-                                if (ii == isize) {
-                                    ii = 0;
-                                }
-                                if (v == RLogical.TRUE) { // shallow copy
-                                    content[bi] = typedValue.getRAnyRef(vi);
-                                    vi++;
-                                    if (vi == vsize) {
-                                        vi = 0;
+                            RList res;
+                            if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
                                     }
-                                    continue;
+                                    if (v == RLogical.TRUE) { // shallow copy
+                                        typedBase.set(bi, typedValue.getRAnyRef(vi));
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
                                 }
-                                if (v == RLogical.NA) {
-                                    hasNA = true;
+                                res = typedBase;
+                            } else {
+                                RAny[] content = new RAny[bsize];
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
+                                    }
+                                    if (v == RLogical.TRUE) { // shallow copy
+                                        content[bi] = typedValue.getRAnyRef(vi);
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
+                                    content[bi] = typedBase.getRAny(bi); // shallow copy
                                 }
-                                content[bi] = typedBase.getRAny(bi); // shallow copy
+                                res = RList.RListFactory.getFor(content, base.dimensions(), base.names());
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
                                 RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RList.RListFactory.getFor(content, base.dimensions(), base.names());
+                            return res;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
@@ -1834,34 +1941,58 @@ public abstract class UpdateVector extends BaseR {
                             int isize = index.size();
                             if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
-                            double[] content = new double[bsize];
                             int ii = 0;
                             int vi = 0;
                             boolean hasNA = false;
-                            for (int bi = 0; bi < bsize; bi++) {
-                                int v = index.getLogical(ii);
-                                ii++;
-                                if (ii == isize) {
-                                    ii = 0;
-                                }
-                                if (v == RLogical.TRUE) {
-                                    content[bi] = typedValue.getDouble(vi);
-                                    vi++;
-                                    if (vi == vsize) {
-                                        vi = 0;
+                            RDouble res;
+                            if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
                                     }
-                                    continue;
+                                    if (v == RLogical.TRUE) {
+                                        typedBase.set(bi, typedValue.getDouble(vi));
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
                                 }
-                                if (v == RLogical.NA) {
-                                    hasNA = true;
+                                res = typedBase;
+                            } else {
+                                double[] content = new double[bsize];
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
+                                    }
+                                    if (v == RLogical.TRUE) {
+                                        content[bi] = typedValue.getDouble(vi);
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
+                                    content[bi] = typedBase.getDouble(bi);
                                 }
-                                content[bi] = typedBase.getDouble(bi);
+                                res = RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
                                 RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names());
+                            return res;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
@@ -1886,34 +2017,58 @@ public abstract class UpdateVector extends BaseR {
                             int isize = index.size();
                             if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
-                            int[] content = new int[bsize];
                             int ii = 0;
                             int vi = 0;
                             boolean hasNA = false;
-                            for (int bi = 0; bi < bsize; bi++) {
-                                int v = index.getLogical(ii);
-                                ii++;
-                                if (ii == isize) {
-                                    ii = 0;
-                                }
-                                if (v == RLogical.TRUE) {
-                                    content[bi] = typedValue.getInt(vi);
-                                    vi++;
-                                    if (vi == vsize) {
-                                        vi = 0;
+                            RInt res;
+                            if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
                                     }
-                                    continue;
+                                    if (v == RLogical.TRUE) {
+                                        typedBase.set(bi, typedValue.getInt(vi));
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
                                 }
-                                if (v == RLogical.NA) {
-                                    hasNA = true;
+                                res = typedBase;
+                            } else {
+                                int[] content = new int[bsize];
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
+                                    }
+                                    if (v == RLogical.TRUE) {
+                                        content[bi] = typedValue.getInt(vi);
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
+                                    content[bi] = typedBase.getInt(bi);
                                 }
-                                content[bi] = typedBase.getInt(bi);
+                                res = RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
                                 RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RInt.RIntFactory.getFor(content, base.dimensions(), base.names());
+                            return res;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
@@ -1940,30 +2095,54 @@ public abstract class UpdateVector extends BaseR {
                             int ii = 0;
                             int vi = 0;
                             boolean hasNA = false;
-                            for (int bi = 0; bi < bsize; bi++) {
-                                int v = index.getLogical(ii);
-                                ii++;
-                                if (ii == isize) {
-                                    ii = 0;
-                                }
-                                if (v == RLogical.TRUE) {
-                                    content[bi] = typedValue.getLogical(vi);
-                                    vi++;
-                                    if (vi == vsize) {
-                                        vi = 0;
+                            RLogical res;
+                            if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
                                     }
-                                    continue;
+                                    if (v == RLogical.TRUE) {
+                                        typedBase.set(bi, typedValue.getLogical(vi));
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
                                 }
-                                if (v == RLogical.NA) {
-                                    hasNA = true;
+                                res = typedBase;
+                            } else {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
+                                    }
+                                    if (v == RLogical.TRUE) {
+                                        content[bi] = typedValue.getLogical(vi);
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
+                                    content[bi] = typedBase.getLogical(bi);
                                 }
-                                content[bi] = typedBase.getLogical(bi);
+                                res = RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
                                 RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names());
+                            return res;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
@@ -1990,30 +2169,55 @@ public abstract class UpdateVector extends BaseR {
                             int ii = 0;
                             int vi = 0;
                             boolean hasNA = false;
-                            for (int bi = 0; bi < bsize; bi++) {
-                                int v = index.getLogical(ii);
-                                ii++;
-                                if (ii == isize) {
-                                    ii = 0;
-                                }
-                                if (v == RLogical.TRUE) {
-                                    content[bi] = typedValue.getString(vi);
-                                    vi++;
-                                    if (vi == vsize) {
-                                        vi = 0;
+                            RString res;
+                            if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
                                     }
-                                    continue;
+                                    if (v == RLogical.TRUE) {
+                                        typedBase.set(bi, typedValue.getString(vi));
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
                                 }
-                                if (v == RLogical.NA) {
-                                    hasNA = true;
+                                res = typedBase;
+                            } else {
+
+                                for (int bi = 0; bi < bsize; bi++) {
+                                    int v = index.getLogical(ii);
+                                    ii++;
+                                    if (ii == isize) {
+                                        ii = 0;
+                                    }
+                                    if (v == RLogical.TRUE) {
+                                        content[bi] = typedValue.getString(vi);
+                                        vi++;
+                                        if (vi == vsize) {
+                                            vi = 0;
+                                        }
+                                        continue;
+                                    }
+                                    if (v == RLogical.NA) {
+                                        hasNA = true;
+                                    }
+                                    content[bi] = typedBase.getString(bi);
                                 }
-                                content[bi] = typedBase.getString(bi);
+                                res = RString.RStringFactory.getFor(content, base.dimensions(), base.names());
                             }
                             if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                             if (vi != 0) {
                                 RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                             }
-                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names());
+                            return res;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");

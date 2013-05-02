@@ -619,7 +619,7 @@ public class RFrameHeader extends Arguments {
         return ext.get(sym);
     }
 
-    public static RAny customRead(Frame frame, RSymbol symbol) {
+    public static Object customRead(Frame frame, RSymbol symbol) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RAny val;
@@ -637,7 +637,7 @@ public class RFrameHeader extends Arguments {
         return val;
     }
 
-    public static RAny read(Frame frame, RSymbol symbol) {
+    public static Object read(Frame frame, RSymbol symbol) {
         assert Utils.check(frame != null);
         assert Utils.check(frame instanceof MaterializedFrame);
 

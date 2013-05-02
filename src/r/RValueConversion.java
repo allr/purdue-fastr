@@ -24,6 +24,13 @@ public class RValueConversion {
         throw new UnexpectedResultException(value);
     }
 
+    public static int expectScalarInteger(RAny value) throws UnexpectedResultException {
+        if (value instanceof ScalarIntImpl) {
+            return ((ScalarIntImpl) value).getInt();
+        }
+        throw new UnexpectedResultException(value);
+    }
+
     public static RArray expectScalar(RAny value) throws UnexpectedResultException {
         if (value instanceof RArray) {
             RArray array = (RArray) value;

@@ -43,7 +43,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
     };
 
-    @Override public Object execute(Frame callerFrame) {
+    @Override public Object execute(Frame callerFrame) { // FIXME: is this still needed?
         RCallable callable = (RCallable) callableExpr.execute(callerFrame);
         try {
             if (callable instanceof RClosure) {
@@ -62,33 +62,65 @@ public abstract class FunctionCall extends AbstractCall {
                 return replace(new FastPathBuiltInCall(ast, callableExpr, argNames, argExprs, (RBuiltIn) callable)).builtInNode.execute(callerFrame);
             }
             GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
-            replace(n, "install GenericCall from FunctionCall");
-            return generic(callerFrame, callable);
+            return replace(callableExpr, callable, n, callerFrame);
         }
     }
 
-    // this is used in node-rewriting instead of having a special execute method that takes callable
-    // having such method slows down the fast path by one virtual call (this had measurable overhead in binarytrees)
-    // TODO: get rid of this (a private function should do the trick)
+    public static final class UninitializedCall extends FunctionCall {
 
-    RNode dummyNode;
+        public UninitializedCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+            super(ast, callableExpr, argNames, argExprs);
+        }
 
-    public Object generic(Frame callerFrame, RCallable callable) {
-        if (callable instanceof RClosure) {
-            RClosure closure = (RClosure) callable;
-            RFunction function = closure.function();
-            MaterializedFrame enclosingFrame = closure.enclosingFrame();
-            RSymbol[] argsNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-            int[] argPositions = computePositions(function, argsNames);
-            Object[] argValues = placeArgs(callerFrame, argPositions, argsNames, function.nparams());
-            RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
-            return function.callTarget().call(arguments);
-        } else {
-            // callable instanceof RBuiltin
-            RBuiltIn builtIn = (RBuiltIn) callable;
-            dummyNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
-            // FIXME: adoptChild should not be used outside constructor, but we'll get rid of this, anyway
-            return dummyNode.execute(callerFrame); // yikes, this can be slow
+        @Override public Object execute(Frame callerFrame) {
+            Object callable = callableExpr.execute(callerFrame);
+            try {
+                throw new UnexpectedResultException(null);
+            } catch (UnexpectedResultException e) {
+                RNode n;
+                if (callable instanceof RBuiltIn) {
+                    RBuiltIn builtIn = (RBuiltIn) callable;
+                    RNode builtInNode = builtIn.callFactory().create(ast, argNames, argExprs);
+                    n = new StableBuiltinCall(ast, callableExpr, argNames, argExprs, builtIn, builtInNode);
+                } else {
+                    n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                }
+                return replace(callableExpr, callable, n, callerFrame);
+            }
+        }
+    }
+
+    public static final class StableBuiltinCall extends BaseR {
+
+        final RBuiltIn builtIn; // null when last callable wasn't a builtin
+        @Child RNode builtInNode;
+        @Child RNode callableExpr;
+
+        final RNode[] rememberedArgExprs; // NOTE: not children - the real parent of the exprs is the builtin
+        final RSymbol[] rememberedArgNames;
+
+
+        StableBuiltinCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RBuiltIn builtIn, RNode builtInNode) {
+            super(ast);
+            this.callableExpr = adoptChild(callableExpr);
+            this.rememberedArgNames = argNames;
+            this.rememberedArgExprs = argExprs; // NOTE: not children
+            this.builtIn = builtIn;
+            this.builtInNode = adoptChild(builtInNode);
+        }
+
+        @Override
+        public Object execute(Frame callerFrame) {
+            Object callable = callableExpr.execute(callerFrame);
+            try {
+                if (callable != builtIn) {
+                    throw new UnexpectedResultException(null);
+                }
+                return builtInNode.execute(callerFrame);
+            } catch (UnexpectedResultException e) {
+                GenericCall n = new GenericCall(ast, callableExpr, rememberedArgNames, rememberedArgExprs);
+                return replace(callableExpr, callable, n, callerFrame);
+            }
         }
     }
 
@@ -137,7 +169,7 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static final class GenericCall extends FunctionCall {
 
-        RCallable lastCallable;
+        Object lastCallable; // RCallable, but using Object to avoid cast
         boolean lastWasFunction;
 
         // for functions
@@ -166,7 +198,6 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
         final public Object execute(Frame callerFrame, RCallable callable) {
-//            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
                 Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
@@ -189,7 +220,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             } else {
-                // callable instanceof RBuiltin                
+                // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {

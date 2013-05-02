@@ -477,6 +477,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
         assertEval("{ abs(NA+0.1) }", "NA");
         assertEval("{ abs(0/0) }", "NaN");
+        assertEval("{ abs((1:2)[3] }", "NA");
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
         assertEval("{ floor(c(0.2,-3.4)) }", "0.0, -4.0");
         assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");
@@ -622,6 +623,11 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ t(t(matrix(1:6, nrow=2))) }", "     [,1] [,2] [,3]\n[1,]   1L   3L   5L\n[2,]   2L   4L   6L");
         assertEval("{ t(matrix(1:4, nrow=2)) }", "     [,1] [,2]\n[1,]   1L   2L\n[2,]   3L   4L");
         assertEval("{ t(t(matrix(1:4, nrow=2))) }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L");
+
+        assertEval("{ m <- matrix(1:49, nrow=7) ; sum(m * t(m)) }", "33369L");
+        assertEval("{ m <- matrix(1:81, nrow=9) ; sum(m * t(m)) }", "145881L");
+        assertEval("{ m <- matrix(-5000:4999, nrow=100) ; sum(m * t(m)) }", "1666502500L");
+        assertEval("{ m <- matrix(c(rep(1:10,100200),100L), nrow=1001) ; sum(m * t(m)) }", "38587000L");
     }
 
     @Test

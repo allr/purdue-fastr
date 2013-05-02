@@ -177,7 +177,10 @@ final class Round extends CallFactory {
                 }
             }
         }
-
+        @Override
+        public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+            Utils.nyi();
+        }
         @Override
         public boolean returnsDouble() {
             return true;

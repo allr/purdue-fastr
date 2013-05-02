@@ -7,6 +7,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.*;
 
 /**
  * "abs"
@@ -29,7 +30,7 @@ public class Abs extends CallFactory {
     }
 
     public static int abs(int v) {
-        return v == RInt.NA ? RInt.NA : Math.abs(v);
+        return (v < 0) ? -v : v; // NOTE: this also works with NA, NA will remain NA
     }
 
     public static double abs(double real, double imag) {
@@ -64,22 +65,105 @@ public class Abs extends CallFactory {
         };
     }
 
-    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    @Override
+    public RNode create(final ASTNode call, final RSymbol[] names, final RNode[] exprs) {
         check(call, names, exprs);
         return new Builtin.Builtin1(call, names, exprs) {
-            @Override public final RAny doBuiltIn(Frame frame, RAny arg) { // FIXME: turn this into node rewriting
-                if (arg instanceof ScalarDoubleImpl) { return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble())); }
-                if (arg instanceof ScalarIntImpl) { return RInt.RIntFactory.getScalar(abs(((ScalarIntImpl) arg).getInt())); }
-                if (arg instanceof ScalarComplexImpl) {
-                    ScalarComplexImpl c = (ScalarComplexImpl) arg;
-                    return RDouble.RDoubleFactory.getScalar(abs(c.getReal(), c.getImag()));
+            @Override public final RAny doBuiltIn(Frame frame, RAny arg) {
+                try {
+                    throw new UnexpectedResultException(null);
+                } catch (UnexpectedResultException e) {
+                    if (arg instanceof ScalarIntImpl) {
+                        replace(createScalarInt(call, names, exprs));
+
+                    } else {
+                        replace(createGeneric(call, names, exprs));
+                    }
+                    return generic(arg);
+
                 }
-                if (arg instanceof RDouble) { return abs((RDouble) arg); }
-                if (arg instanceof RInt) { return abs((RInt) arg); }
-                if (arg instanceof RComplex) { return abs((RComplex) arg); }
-                if (arg instanceof RLogical) { return arg.asInt(); }
-                throw Utils.nyi();
             }
         };
+    }
+
+    public static RNode createScalarInt(final ASTNode call, final RSymbol[] names, final RNode[] exprs) {
+
+        return new Specialized(call, exprs[0]) {
+
+            // use this - but when the executeScalarInteger is used widely
+//            @Override
+//            public  Object execute(Frame frame) {
+//                return RLogical.RLogicalFactory.getScalar(executeScalarInteger(frame));
+//            }
+
+            @Override
+            public Object execute(Frame frame) {
+                Object val = expr.execute(frame);
+                try {
+                    if (!(val instanceof ScalarIntImpl)) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    int i = ((ScalarIntImpl) val).getInt();
+                    return (i < 0) ? RInt.RIntFactory.getScalar(-i) : val; // NOTE: this also works with NA, NA will remain NA
+                } catch(UnexpectedResultException e) {
+                    replaceChild(exprs[0], expr); // keep the new child
+                    replace(createGeneric(call, names, exprs));
+                    return generic((RAny) val);
+                }
+            }
+
+            @Override
+            public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+                try {
+                    int i = expr.executeScalarInteger(frame);
+                    return abs(i);
+                } catch(UnexpectedResultException e) {
+                    replace(createGeneric(call, names, exprs));
+                    throw new UnexpectedResultException(generic((RAny) e.getResult()));
+                }
+            }
+
+        };
+    }
+
+    public static RNode createGeneric(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        return new Builtin.Builtin1(call, names, exprs) {
+
+            @Override
+            public RAny doBuiltIn(Frame frame, RAny arg) {
+                return generic(arg);
+            }
+
+        };
+    }
+
+    public abstract static class Specialized extends BaseR {
+
+        @Child RNode expr;
+
+        public Specialized(ASTNode ast, RNode expr) {
+            super(ast);
+            this.expr = adoptChild(expr);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+
+    public static RAny generic(RAny arg) {
+        if (arg instanceof ScalarDoubleImpl) { return RDouble.RDoubleFactory.getScalar(abs(((ScalarDoubleImpl) arg).getDouble())); }
+        if (arg instanceof ScalarIntImpl) { return RInt.RIntFactory.getScalar(abs(((ScalarIntImpl) arg).getInt())); }
+        if (arg instanceof ScalarComplexImpl) {
+            ScalarComplexImpl c = (ScalarComplexImpl) arg;
+            return RDouble.RDoubleFactory.getScalar(abs(c.getReal(), c.getImag()));
+        }
+        if (arg instanceof RDouble) { return abs((RDouble) arg); }
+        if (arg instanceof RInt) { return abs((RInt) arg); }
+        if (arg instanceof RComplex) { return abs((RComplex) arg); }
+        if (arg instanceof RLogical) { return arg.asInt(); }
+        throw Utils.nyi();
     }
 }

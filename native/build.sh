@@ -4,11 +4,11 @@
 
 JDK=$JAVA_HOME
 
-gcc -O2 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses \
+gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses \
   -I $JDK/include/ -I $JDK/include/linux/ -I /usr/share/R/include -I. \
   -c r_gnur_GNUR.c
   
-gcc -O2 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
+gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
   -Wl,-soname=libgnurglue.so -static-libgcc \
   -shared -o libgnurglue.so r_gnur_GNUR.o \
   -lRmath -lR -lc

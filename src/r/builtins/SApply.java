@@ -20,18 +20,18 @@ import com.oracle.truffle.api.nodes.*;
  * "sapply" is a user-friendly version and wrapper of lapply by default returning a vector, matrix or, if
  * simplify="array ", an array if appropriate, by applying simplify2array(). sapply(x, f, simplify=FALSE,
  * USE.NAMES=FALSE) is the same as lapply(x,f).
- * 
+ *
  * <pre>
- * X -- a vector (atomic or list) or an expression object. Other objects 
+ * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.
- * FUN -- the function to be applied to each element of X. In the case of functions like 
+ * FUN -- the function to be applied to each element of X. In the case of functions like
  *        +, %*%, the function name must be backquoted or quoted.
  *  ... -- optional arguments to FUN.
- *  simplify -- logical or character string; should the result be simplified to a vector, matrix or higher dimensional 
+ *  simplify -- logical or character string; should the result be simplified to a vector, matrix or higher dimensional
  *    array if possible? For sapply it must be named and not abbreviated. The default value, TRUE, returns a vector or matrix
- *    if appropriate, whereas if simplify = "array" the result may be an array of "rank" (=length(dim(.))) one higher than 
+ *    if appropriate, whereas if simplify = "array" the result may be an array of "rank" (=length(dim(.))) one higher than
  *    the result of FUN(X[[i]]).
- * USE.NAMES -- logical; if TRUE and if X is character, use X as names for the result unless it had names already. 
+ * USE.NAMES -- logical; if TRUE and if X is character, use X as names for the result unless it had names already.
  *    Since this argument follows ... its name cannot be abbreviated.
  * </pre>
  */
@@ -72,11 +72,11 @@ final class SApply extends CallFactory {
 
         @Child ValueProvider firstArgProvider;
         @Child CallableProvider callableProvider;
-        @Child FunctionCall callNode;
+        @Child RNode callNode;
         final int xPosition;
         final int funPosition;
 
-        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
+        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
             this.callableProvider = adoptChild(callableProvider);
             this.firstArgProvider = adoptChild(firstArgProvider);
@@ -157,7 +157,7 @@ final class SApply extends CallFactory {
                 RAny v;
                 if (partialContent == null || content[i] == null) {
                     argIterator.setNext();
-                    FunctionCall callNode = sapply.callNode;
+                    RNode callNode = sapply.callNode;
                     v = (RAny) callNode.execute(frame);
                     content[i] = v;
                 } else {
@@ -640,7 +640,7 @@ final class SApply extends CallFactory {
             final ArgIterator argIterator;
             final String dbg;
 
-            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,
+            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,
                     ArgIterator argIterator, ApplyFunc apply, String dbg) {
                 super(call, names, exprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition);
                 this.apply = apply;

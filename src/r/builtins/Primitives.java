@@ -1,7 +1,5 @@
 package r.builtins;
 
-import java.util.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -10,9 +8,7 @@ public class Primitives {
 
     public static final boolean STATIC_LOOKUP = false;
 
-    private static Map<RSymbol, PrimitiveEntry> map;
     static {
-        map = new HashMap<>();
         initializePrimitives();
     }
 
@@ -34,7 +30,6 @@ public class Primitives {
     }
 
     public static void initializePrimitives() {
-        map.clear();
         add(":", Colon._);
         add("+", OpAdd._);
         add("-", OpSub._);
@@ -215,7 +210,7 @@ public class Primitives {
 
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {
         PrimitiveEntry pe = get(name);
-        if (pe != null && fun != null && fun.isInWriteSet(name)) { // TODO: fix these checks
+        if (STATIC_LOOKUP && pe != null && fun != null && fun.isInWriteSet(name)) { // TODO: fix these checks
             Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
             throw Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
             // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?
@@ -225,7 +220,7 @@ public class Primitives {
     }
 
     public static PrimitiveEntry get(RSymbol name) {
-        return map.get(name);
+        return name.getPrimitiveEntry();
     }
 
     private static void add(String name, CallFactory body) {
@@ -237,6 +232,7 @@ public class Primitives {
     }
 
     private static void add(RSymbol sym, CallFactory body) {
-        map.put(sym, new PrimitiveEntry(sym, body));
+        PrimitiveEntry entry = new PrimitiveEntry(sym, body);
+        sym.setPrimitiveEntry(entry);
     }
 }
