@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import r.data.*;
@@ -94,7 +95,7 @@ public class UpdateArrayAssignment extends BaseR {
         } catch (UnexpectedResultException e) {
             if (frame != null) {
                 FrameSlot frameSlot = RFrameHeader.findVariable(frame, lhs);
-                return replace(new Local(this, frameSlot)).execute(frame);
+                return replace(new LocalFastPath(this, frameSlot)).execute(frame);
             } else {
                 return replace(new TopLevel(this)).execute(frame);
             }
@@ -138,7 +139,7 @@ public class UpdateArrayAssignment extends BaseR {
      * The assignment already knows its frameslot. If the frameslot is null, the node rewrites itself to the general
      * assignment. If the frame is null, the node rewrites itself to the top level assignment.
      */
-    protected static class Local extends UpdateArrayAssignment {
+    protected static class LocalGeneric extends UpdateArrayAssignment {
 
         public static enum Failure {
             NULL_FRAME,
@@ -148,7 +149,7 @@ public class UpdateArrayAssignment extends BaseR {
         final FrameSlot frameSlot;
 
         /** Copy constructor from the assignment node and a frameslot Specification. */
-        protected Local(UpdateArrayAssignment other, FrameSlot frameSlot) {
+        protected LocalGeneric(UpdateArrayAssignment other, FrameSlot frameSlot) {
             super(other);
             this.frameSlot = frameSlot;
         }
@@ -196,7 +197,72 @@ public class UpdateArrayAssignment extends BaseR {
         }
     }
 
-    protected static class ConstLocal extends Local {
+    protected static class LocalFastPath extends LocalGeneric {
+
+        protected LocalFastPath(LocalGeneric from) {
+            super(from, from.frameSlot);
+        }
+
+        protected LocalFastPath(UpdateArrayAssignment other, FrameSlot frameSlot) {
+            super(other, frameSlot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            if (frame == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new TopLevel(this)).execute(frame);
+            }
+            if (frameSlot == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new UpdateArrayAssignment(this)).execute(frame);
+            }
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = RFrameHeader.readViaWriteSetFastPath(frame, frameSlot);
+            if (lhsValue == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new LocalGeneric(this,frameSlot)).execute(frame);
+            }
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (newLhs != lhsValue) {
+                CompilerDirectives.transferToInterpreter();
+                replace(new LocalFastPathWithWriteAtRef(this));
+                RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
+            }
+            return rhsValue;
+        }
+    }
+
+    protected static class LocalFastPathWithWriteAtRef extends LocalGeneric {
+
+        protected LocalFastPathWithWriteAtRef(LocalGeneric from) {
+            super(from, from.frameSlot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            if (frame == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new TopLevel(this)).execute(frame);
+            }
+            if (frameSlot == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new UpdateArrayAssignment(this)).execute(frame);
+            }
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = RFrameHeader.readViaWriteSetFastPath(frame, frameSlot);
+            if (lhsValue == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new LocalGeneric(this,frameSlot)).execute(frame);
+            }
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (newLhs != lhsValue)
+                RFrameHeader.writeAtRef(frame, frameSlot, newLhs);
+            return rhsValue;
+        }
+    }
+
+    protected static class ConstLocal extends LocalGeneric {
 
         final RAny rhsVal;
 

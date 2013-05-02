@@ -22,7 +22,7 @@ public abstract class FunctionCall extends AbstractCall {
     public static FunctionCall getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         // place optimized nodes here, e.g. for positional-only argument passing
         // these are present in the old truffle api version, but not here, as they were not really helping
-        return new GenericCall(ast, callableExpr, argNames, argExprs);
+        return new FirstFunctionCall(ast, callableExpr, argNames, argExprs);
     }
 
     public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
@@ -58,6 +58,9 @@ public abstract class FunctionCall extends AbstractCall {
                 throw new UnexpectedResultException(null);
             }
         } catch (UnexpectedResultException e) {
+            if (callable instanceof RBuiltIn) {
+                return replace(new FastPathBuiltInCall(ast, callableExpr, argNames, argExprs, (RBuiltIn) callable)).builtInNode.execute(callerFrame);
+            }
             GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
             replace(n, "install GenericCall from FunctionCall");
             return generic(callerFrame, callable);
@@ -89,6 +92,49 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
+    /** GRAAL The fastpath builtin node is used to make calling builtins fast without the need of huge inlining of the
+     * code that never gets used in most cases.
+     */
+    public static final class FastPathBuiltInCall extends FunctionCall {
+        @Child final RNode builtInNode;
+        final RBuiltIn builtIn;
+
+
+        public FastPathBuiltInCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RBuiltIn callable) {
+            super(ast, callableExpr, argNames, argExprs);
+            builtIn = callable;
+            builtInNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
+        }
+
+        @Override public Object execute(Frame callerFrame) {
+            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            if (callable != builtIn) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new GenericCall(ast, callableExpr, argNames, argExprs)).execute(callerFrame, callable);
+            }
+            return builtInNode.execute(callerFrame);
+        }
+    }
+
+    public static final class FirstFunctionCall extends FunctionCall {
+
+        private FirstFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+            super(ast, callableExpr, argNames, argExprs);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RCallable callable = (RCallable) callableExpr.execute(frame);
+            if (callable instanceof RBuiltIn) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new FastPathBuiltInCall(ast,callableExpr, argNames, argExprs, (RBuiltIn) callable)).builtInNode.execute(frame);
+            } else {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new GenericCall(ast, callableExpr, argNames, argExprs)).execute(frame, callable);
+            }
+        }
+    }
+
     public static final class GenericCall extends FunctionCall {
 
         RCallable lastCallable;
@@ -116,6 +162,11 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public Object execute(Frame callerFrame) {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            return execute(callerFrame, callable);
+        }
+
+        final public Object execute(Frame callerFrame, RCallable callable) {
+//            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
                 Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);

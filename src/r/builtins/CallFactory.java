@@ -271,9 +271,9 @@ public abstract class CallFactory {
 
     @Override public String toString() {
         String res = "CallFactory[" + name + "(";
-        for (RSymbol r : parameters) {
-            res += r + " ";
-        }
+        if (parameters != null)
+            for (RSymbol r : parameters)
+                res += r + " ";
         return res + ")]";
     }
 

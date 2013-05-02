@@ -176,7 +176,8 @@ public abstract class MatchCallable extends BaseR {
                     throw RError.getUnknownFunction(ast, symbol);
                 } else {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new GenericTopLevelMatcher(this));
+                    //replace(new GenericTopLevelMatcher(this));
+                    replace(new FastPathBuiltinMatcher(this));
                     return matchNonVariable(ast, symbol);
                 }
             } else {
@@ -185,6 +186,28 @@ public abstract class MatchCallable extends BaseR {
             }
             return val;
         }
+    }
+
+    public static class FastPathBuiltinMatcher extends TopLevelMatcher {
+
+        public FastPathBuiltinMatcher(TopLevelMatcher from) {
+            super(from);
+        }
+        @Override
+        public Object execute(Frame frame) {
+            // if (frame != oldFrame || version != symbol.getVersion()) {
+            if (version != symbol.getVersion()) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new GenericTopLevelMatcher(this)).execute(frame);
+            }
+            if (Primitives.STATIC_LOOKUP) {
+                throw RError.getUnknownFunction(ast, symbol);
+            } else {
+                return matchNonVariable(ast, symbol);
+            }
+        }
+
+
     }
 
     public static class FastPathTopLevelMatcher extends TopLevelMatcher {
