@@ -755,7 +755,15 @@ public class Truffleize implements Visitor {
     @Override
     public void visit(Colon col) {
         // FIXME: allow symbol override?
-        result = r.builtins.Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(col, createTree(col.getLHS()), createTree(col.getRHS()));
+        ASTNode lhs = col.getLHS();
+        ASTNode rhs = col.getRHS();
+        result = r.builtins.Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(col, createTree(lhs), createTree(rhs));
+        if (lhs instanceof Constant && rhs instanceof Constant) { // TODO: more general constant folding
+            RAny value = (RAny) result.execute(null);
+            value.ref();
+            value.ref();
+            result = new r.nodes.truffle.Constant(col, value);
+        }
     }
 
     @Override
