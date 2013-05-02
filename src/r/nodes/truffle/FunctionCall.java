@@ -40,10 +40,31 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
-            RNode fexp = r.nodes.truffle.MatchCallable.getUninitialized(call, fcall.getName());
+            RSymbol fname = fcall.getName();
+            RNode fexp = r.nodes.truffle.MatchCallable.getUninitialized(call, fname);
             return getFunctionCall(fcall, fexp, names, exprs);
         }
     };
+
+    public static RNode createBuiltinCall(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
+        RSymbol fname = fcall.getName();
+
+        RBuiltIn builtin = Primitives.getBuiltIn(fname, null);
+        if (builtin != null) {
+            // probably calling a builtin, but maybe not
+            RNode builtinNode;
+            try {
+                builtinNode = builtin.callFactory().create(call, names, exprs);
+            } catch (RError e) {
+                // not a builtin
+                // TODO: what if the attempt to create a builtin has produced warnings???
+                return null;
+            }
+            return new SimpleBuiltinCall(fcall, fname, names, exprs, builtinNode);
+        }
+        return null;
+    }
 
     @Override public Object execute(Frame callerFrame) { // FIXME: is this still needed?
         RCallable callable = (RCallable) callableExpr.execute(callerFrame);
@@ -85,6 +106,38 @@ public abstract class FunctionCall extends AbstractCall {
                     n = new GenericCall(ast, callableExpr, argNames, argExprs);
                 }
                 return replace(callableExpr, callable, n, callerFrame);
+            }
+        }
+    }
+
+    // calling a non-overriden builtin via its standard name
+    public static final class SimpleBuiltinCall extends BaseR {
+
+        final RSymbol builtinName;
+        @Child RNode builtinNode;
+
+        final RNode[] rememberedArgExprs; // NOTE: not children - the real parent of the exprs is the builtin
+        final RSymbol[] rememberedArgNames;
+
+
+        SimpleBuiltinCall(ASTNode ast, RSymbol builtinName, RSymbol[] argNames, RNode[] argExprs, RNode builtInNode) {
+            super(ast);
+            this.builtinName = builtinName;
+            this.rememberedArgNames = argNames;
+            this.rememberedArgExprs = argExprs; // NOTE: not children
+            this.builtinNode = adoptChild(builtInNode);
+        }
+
+        @Override
+        public Object execute(Frame callerFrame) {
+            try {
+                if (builtinName.getValue() != null || builtinName.getVersion() != 0) {
+                    throw new UnexpectedResultException(null);
+                }
+                return builtinNode.execute(callerFrame);
+            } catch (UnexpectedResultException e) {
+                RNode callableExpr = r.nodes.truffle.MatchCallable.getUninitialized(ast, builtinName);
+                return replace(getFunctionCall(ast, callableExpr, rememberedArgNames, rememberedArgExprs)).execute(callerFrame);
             }
         }
     }

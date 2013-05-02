@@ -313,18 +313,26 @@ public class Truffleize implements Visitor {
             // makes it easy for hotspot to optimize the code
 
         RSymbol sym = functionCall.getName();
-        r.builtins.CallFactory factory;
-
+        RNode rCall = null;
         if (Primitives.STATIC_LOOKUP) {
-            factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
+            r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
             if (factory == null) {
                 factory = r.nodes.truffle.FunctionCall.FACTORY;
             }
+            rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
         } else {
-            factory = r.nodes.truffle.FunctionCall.FACTORY;
+            RFunction encFunction =  getEnclosingFunction(functionCall);
+            FrameSlot slot = null;
+            if (encFunction != null) {
+                slot = encFunction.localSlot(sym);
+            }
+            if (slot == null) {
+                rCall = r.nodes.truffle.FunctionCall.createBuiltinCall(functionCall, a.convertedNames, a.convertedExpressions);
+            }
+            if (rCall == null) {
+                rCall = r.nodes.truffle.FunctionCall.FACTORY.create(functionCall, a.convertedNames, a.convertedExpressions);
+            }
         }
-
-        RNode rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
 
         if (!functionCall.isAssignment()) {
             result = rCall;
