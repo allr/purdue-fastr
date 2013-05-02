@@ -36,8 +36,9 @@ public abstract class RNode extends Node {
         @Child RNode realChildNode;
         final Object nextValue;
 
-        public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
+        public PushbackNode(RNode oldNode, ASTNode ast, RNode realChildNode, Object nextValue) {
             super(ast);
+            oldNode.replace(this);
             this.realChildNode = adoptChild(realChildNode);
             this.nextValue = nextValue;
         }
@@ -54,7 +55,7 @@ public abstract class RNode extends Node {
     }
 
     public <T extends RNode> void pushBack(T childNode, Object value) {
-        replaceChild(childNode, new PushbackNode(childNode.getAST(), childNode, value));
+        new PushbackNode(childNode, childNode.getAST(), childNode, value);
     }
 
     public <T extends RNode> Object replace(T childNode, Object childValue, RNode newNode, Frame frame) {
