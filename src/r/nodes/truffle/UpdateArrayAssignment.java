@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
@@ -125,7 +126,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
                     throw new UnexpectedResultException(null);
                 }
             } catch (UnexpectedResultException e) {
-                replace(new LocalSimple(ast, varName, varSlot, rhs, assignment));
+                replace(new LocalFastPathNoWriteback(ast, varName, varSlot, rhs, assignment));
             }
             return rhsValue;
         }
@@ -139,6 +140,11 @@ public abstract class UpdateArrayAssignment extends BaseR {
         protected LocalSimple(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
             super(ast, varName, rhs, assignment);
             this.varSlot = varSlot;
+        }
+
+        protected LocalSimple(LocalSimple from) {
+            super(from.ast, from.varName, from.rhs, from.assignment);
+            varSlot = from.varSlot;
         }
 
         @Override
@@ -162,6 +168,37 @@ public abstract class UpdateArrayAssignment extends BaseR {
             return rhsValue;
         }
     }
+
+
+    protected static class LocalFastPathNoWriteback extends LocalSimple {
+
+        protected LocalFastPathNoWriteback(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+            super(ast, varName, varSlot, rhs, assignment);
+        }
+
+        protected LocalFastPathNoWriteback(LocalSimple from) {
+            super(from);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            RAny lhsValue = RFrameHeader.readViaWriteSetFastPath(frame,varSlot);
+            if (lhsValue == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(rhs, rhsValue, new LocalGeneric(ast, varName, varSlot, rhs, assignment), frame);
+            }
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            if (lhsValue != newLhs) {
+                CompilerDirectives.transferToInterpreter();
+                replace(new LocalGeneric(ast, varName, varSlot, rhs, assignment));
+                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+                return rhsValue;
+            }
+            return rhsValue;
+        }
+    }
+
 
     protected static class LocalGeneric extends UpdateArrayAssignment {
 
