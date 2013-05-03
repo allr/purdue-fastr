@@ -1018,7 +1018,6 @@ public abstract class ReadVector extends BaseR {
                     if (j == size) {
                         return RDouble.RDoubleFactory.getFor(tmp); // we are lucky
                     } else {
-//                        Utils.debug("j is "+j+" size is "+size);
                         double[] content = new double[j];
                         System.arraycopy(tmp, 0, content, 0, j);
                         return RDouble.RDoubleFactory.getFor(content);

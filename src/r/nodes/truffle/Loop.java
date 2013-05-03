@@ -3,8 +3,10 @@ package r.nodes.truffle;
 import r.*;
 import r.data.*;
 import r.data.internal.*;
+import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.tools.*;
 
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
@@ -131,6 +133,73 @@ public abstract class Loop extends BaseR {
             this.range = adoptChild(range);
             this.cvar = cvar;
         }
+
+//        public static final class NestedLocalIntSequenceRange extends BaseR {
+//            @Child RNode range;
+//            @Child RNode innerRange;
+//            @Child RNode innerBody;
+//
+//            final FrameSlot cvarSlot;
+//            final FrameSlot innerCvarSlot;
+//
+//            public NestedLocalIntSequenceRange(ASTNode ast, FrameSlot cvarSlot, RNode range, FrameSlot innerCvarSlot, RNode innerRange, RNode innerBody) {
+//                super(ast);
+//                this.cvarSlot = cvarSlot;
+//                this.range = adoptChild(range);
+//                this.innerCvarSlot = innerCvarSlot;
+//                this.innerRange = adoptChild(innerRange);
+//                this.innerBody = adoptChild(innerBody);
+//            }
+//
+//            @Override
+//            public final Object execute(Frame frame) {
+//
+//                Object rangeVal = range.execute(frame);
+//                Object innerRangeVal = innerRange.execute(frame); // TODO: this has to be evaluated repeatedly if not invariant
+//
+//                try {
+//                    if (!(rangeVal instanceof RIntSequence && innerRangeVal instanceof RIntSequence)) {
+//                        throw new UnexpectedResultException(null);
+//                    }
+//                    RIntSequence srng = (RIntSequence) rangeVal;
+//                    RIntSequence sinnerRng = (RIntSequence) innerRangeVal;
+//                    final int from = srng.from();
+//                    final int to = srng.to();
+//                    final int step = srng.step();
+//                    final int innerFrom = sinnerRng.from();
+//                    final int innerTo = sinnerRng.to();
+//                    final int innerStep = sinnerRng.step();
+//
+//                    if (from > to || step != 1 || from != 1) {
+//                        throw new UnexpectedResultException(null);
+//                    }
+//                    if (innerFrom > innerTo || innerStep != 1 || innerFrom != 1) {
+//                        throw new UnexpectedResultException(null);
+//                    }
+//
+//                    for (int i = 1; i <= to; i++) {
+//                        RFrameHeader.writeAtNoRef(frame, cvarSlot, RInt.RIntFactory.getScalar(i));
+//                        try {
+//                            for (int j = 1; j <= innerTo; j++) {
+//                                RFrameHeader.writeAtNoRef(frame, innerCvarSlot, RInt.RIntFactory.getScalar(j));
+//                                try {
+//                                    innerBody.execute(frame);
+//                                } catch (ContinueException ce) { }
+//                            }
+//                        } catch (BreakException be) { }
+//                    }
+//                    return RNull.getNull();
+//                } catch (UnexpectedResultException e) {
+//                    pushBack(range, rangeVal);
+//                    pushBack(innerRange, innerRangeVal);
+//                    r.nodes.For outerAST = (r.nodes.For) ast;
+//                    r.nodes.For innerAST = (r.nodes.For) Truffleize.skipTrivialSequences(outerAST.getBody());
+//                    RNode inner = IntSequenceRange.create(innerAST, innerAST.getCVar(), innerRange, innerBody, innerCvarSlot);
+//                    RNode outer = IntSequenceRange.create(outerAST, outerAST.getCVar(), range, inner, cvarSlot);
+//                    return outer.execute(frame);
+//                }
+//            }
+//        }
 
         // when a range is a sequence of integers
         public static class IntSequenceRange extends For {

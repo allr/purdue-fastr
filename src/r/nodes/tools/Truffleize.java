@@ -105,6 +105,20 @@ public class Truffleize implements Visitor {
 
     @Override
     public void visit(For n) {
+// an experiment: this actually didn't give any speedups, but it doesn't make any sense...
+//        ASTNode body = n.getBody();
+//
+//        ASTNode sbody = skipTrivialSequences(body);
+//        if (sbody instanceof For) {
+//            // inner loops
+//            For innerFor = (For) sbody;
+//            FrameSlot cvarSlot = getFrameSlot(n, n.getCVar());
+//            FrameSlot innerCvarSlot = getFrameSlot(innerFor, innerFor.getCVar());
+//            if (cvarSlot != null && innerCvarSlot != null) {
+//                result = new r.nodes.truffle.Loop.For.NestedLocalIntSequenceRange(n, cvarSlot, createTree(n.getRange()), innerCvarSlot, createTree(innerFor.getRange()), createLazyTree(innerFor.getBody()));
+//                return;
+//            }
+//        }
         result = new r.nodes.truffle.Loop.For.IntSequenceRange(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
     }
 
@@ -202,11 +216,7 @@ public class Truffleize implements Visitor {
             }
             if (binVar != null && constNode != null) {
                 RSymbol binVarSymbol = binVar.getSymbol();
-                RFunction encFunction =  getEnclosingFunction(assign);
-                FrameSlot slot = null;
-                if (encFunction != null) {
-                    slot = encFunction.localSlot(binVarSymbol);
-                }
+                FrameSlot slot = getFrameSlot(assign, binVarSymbol);
                 if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != null) {
                     int cValue = ((ScalarIntImpl) constNode.getValue()).getInt();
                     if (cValue == 1) {
@@ -302,6 +312,29 @@ public class Truffleize implements Visitor {
         return rfunc;
     }
 
+    private static FrameSlot getFrameSlot(ASTNode ast, RSymbol symbol) {
+        RFunction encFunction =  getEnclosingFunction(ast);
+        if (encFunction != null) {
+            return encFunction.localSlot(symbol);
+        }
+        return null;
+    }
+
+    public static ASTNode skipTrivialSequences(ASTNode astArg) {
+        ASTNode ast = astArg;
+        for(;;) {
+            if (ast == null || !(ast instanceof Sequence)) {
+                return ast;
+            }
+            Sequence s = (Sequence) ast;
+            ASTNode[] exprs = s.getExprs();
+            if (exprs.length != 1) {
+                return ast;
+            }
+            ast = exprs[0];
+        }
+    }
+
     @Override
     public void visit(FunctionCall functionCall) {
         // FIXME: In R, function call needs not have a symbol, it can be a lambda expression
@@ -321,11 +354,7 @@ public class Truffleize implements Visitor {
             }
             rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
         } else {
-            RFunction encFunction =  getEnclosingFunction(functionCall);
-            FrameSlot slot = null;
-            if (encFunction != null) {
-                slot = encFunction.localSlot(sym);
-            }
+            FrameSlot slot = getFrameSlot(functionCall, sym);
             if (slot == null) {
                 rCall = r.nodes.truffle.FunctionCall.createBuiltinCall(functionCall, a.convertedNames, a.convertedExpressions);
             }
@@ -602,7 +631,7 @@ public class Truffleize implements Visitor {
                 Utils.nyi("expecting matrix name for matrix update");
             }
             RFunction encFunction =  getEnclosingFunction(a);
-            FrameSlot varSlot = encFunction == null ? null : encFunction.localSlot(varName);
+            FrameSlot varSlot = getFrameSlot(a, varName);
 
             if (u.isSuper()) {
                 result = UpdateArraySuperAssignment.create(a, varName, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));

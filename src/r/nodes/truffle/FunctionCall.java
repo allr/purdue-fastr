@@ -110,7 +110,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-    // calling a non-overriden builtin via its standard name
+    // calling a non-overridden builtin via its standard name
     public static final class SimpleBuiltinCall extends BaseR {
 
         final RSymbol builtinName;

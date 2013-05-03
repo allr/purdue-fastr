@@ -257,6 +257,30 @@ public class Arithmetic extends BaseR {
                     return new Specialized(ast, left, right, arit, c, "<ScalarInt, ScalarInt>");
                 }
             }
+            if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof RDouble && rexpr instanceof RDouble)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        return doubleBinary((RDouble)lexpr,  (RDouble)rexpr, arit, ast);
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<RDouble, RDouble>");
+            }
+            if (leftTemplate instanceof RInt && rightTemplate instanceof RInt && !returnsDouble(arit)) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        return intBinary((RInt)lexpr,  (RInt)rexpr, arit, ast);
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<RInt, RInt>");
+            }
             return createGeneric(ast, left, right, arit);
         }
 
