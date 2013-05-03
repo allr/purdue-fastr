@@ -203,13 +203,9 @@ public abstract class ReadVector extends BaseR {
             try {
                 if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) base;
-                if (index > vrarr.size() || vrarr.names() != null) { throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                if (index > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 }
-                if (subset || !(vrarr instanceof RList)) {
-                    return vrarr.boxedGet(index - 1);
-                } else {
-                    return ((RList) vrarr).getRAny(index - 1);
-                }
+                return getWithName(vrarr, index - 1, subset);
             } catch (UnexpectedResultException e) {
                 GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                 replace(gen, "");
