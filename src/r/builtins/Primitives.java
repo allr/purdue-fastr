@@ -223,7 +223,8 @@ public class Primitives {
         add(RSymbol.getSymbol(name), body);
     }
 
-    private static void add(CallFactory body) {
+    /** TODO: made public for the Interop class... revisit... */
+    public static void add(CallFactory body) {
         add(body.name(), body);
     }
 

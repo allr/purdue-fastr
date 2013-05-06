@@ -5,6 +5,7 @@ import java.util.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
+import r.ifc.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
@@ -21,6 +22,7 @@ public class RContext {
 
     static {
         Arrays.fill(connections, null);
+        Interop.initialize();
     }
 
     public static boolean usesTruffleOptimizer() {
