@@ -115,6 +115,10 @@ public class FunctionImpl extends RootNode implements RFunction {
                     CompilerDirectives.transferToInterpreter();
                     replace(new ScalarParamNotDefaultWriter(this)).execute(frame);
                     return null;
+                } else if (value instanceof NonScalarArrayImpl) {
+                    CompilerDirectives.transferToInterpreter();
+                    replace(new DirectParamNoDefaultWriter(this)).execute(frame);
+                    return null;
                 }
             }
             CompilerDirectives.transferToInterpreter();
@@ -130,8 +134,7 @@ public class FunctionImpl extends RootNode implements RFunction {
                     try {
                         frame.setObject(_slot, value);
                     } catch (FrameSlotTypeException e) {
-                        e.printStackTrace();
-                        System.exit(-1);
+                        assert (false);
                     }
                     value.ref();
                 }
@@ -156,7 +159,10 @@ public class FunctionImpl extends RootNode implements RFunction {
                 return replace(new ScalarParamWriter(this)).execute(frame);
             } else if (! (value instanceof RAny.NotRefCounted)) {
                 CompilerDirectives.transferToInterpreter();
-                return replace(new GenericParamWriter(this)).execute(frame);
+                if (value instanceof NonScalarArrayImpl)
+                    return replace(new DirectParamNoDefaultWriter(this)).execute(frame);
+                else
+                    return replace(new GenericParamWriter(this)).execute(frame);
             } else {
                 try {
                     frame.setObject(_slot, value);
@@ -188,8 +194,7 @@ public class FunctionImpl extends RootNode implements RFunction {
                     try {
                         frame.setObject(_slot, value);
                     } catch (FrameSlotTypeException e) {
-                        e.printStackTrace();
-                        System.exit(-1);
+                        assert (false);
                     }
                 } else {
                     CompilerDirectives.transferToInterpreter();
@@ -200,9 +205,41 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
     }
 
-    static class GenericParamWriter extends ParamWriter {
+    static class DirectParamNoDefaultWriter extends ParamWriter {
 
-        public GenericParamWriter(ParamWriter other) {
+        public DirectParamNoDefaultWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RFrameHeader h = RFrameHeader.header(frame);
+            Object[] args = h.arguments();
+            RAny value = (RAny) args[_idx];
+            if (value == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new DirectParamWriter(this)).execute(frame);
+            }
+            if (value instanceof NonScalarArrayImpl) {
+                try {
+                    frame.setObject(_slot, value);
+                } catch (FrameSlotTypeException e) {
+                    assert (false);
+                }
+                value.ref();
+            } else {
+                CompilerDirectives.transferToInterpreter();
+                replace(new GenericParamWriter(this)).execute(frame);
+            }
+            return null;
+        }
+
+
+    }
+
+    static class DirectParamWriter extends ParamWriter {
+
+        public DirectParamWriter(ParamWriter other) {
             super(other._idx, other._value, other._slot);
         }
 
@@ -214,13 +251,47 @@ public class FunctionImpl extends RootNode implements RFunction {
             if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
                 writeParamDefaultValue(frame);
             } else {
-                try {
-                    frame.setObject(_slot, value);
-                } catch (FrameSlotTypeException e) {
-                    e.printStackTrace();
-                    System.exit(-1);
+                if (value instanceof NonScalarArrayImpl) {
+                    try {
+                        frame.setObject(_slot, value);
+                    } catch (FrameSlotTypeException e) {
+                        assert (false);
+                    }
+                    value.ref();
+                } else {
+                    CompilerDirectives.transferToInterpreter();
+                    replace(new GenericParamWriter(this)).execute(frame);
                 }
-                value.ref();
+            }
+            return null;
+        }
+
+
+    }
+
+    static class GenericParamWriter extends ParamWriter {
+
+        public GenericParamWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                RFrameHeader h = RFrameHeader.header(frame);
+                Object[] args = h.arguments();
+                RAny value = (RAny) args[_idx];
+                if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
+                    writeParamDefaultValue(frame);
+                } else {
+                    frame.setObject(_slot, value);
+                    /** GRAAL this megamorphic vcall causes graal to leak frames. Workaround is to create a specialized
+                     * nodes for the types we see. (see above)
+                     */
+                    value.ref();
+                }
+            } catch (FrameSlotTypeException e) {
+                assert (false);
             }
             return null;
         }

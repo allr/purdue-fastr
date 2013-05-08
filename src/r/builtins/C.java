@@ -256,7 +256,7 @@ final class C extends CallFactory {
     }
 
     public static class Specialized extends Builtin {
-        CombineAction combine;
+        final CombineAction combine;
 
         public Specialized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, CombineAction combine) {
             super(orig, argNames, argExprs);
