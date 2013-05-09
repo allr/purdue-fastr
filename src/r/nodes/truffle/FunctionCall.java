@@ -12,7 +12,7 @@ import r.nodes.*;
 
 public abstract class FunctionCall extends AbstractCall {
 
-    final RNode callableExpr;
+    @Child final RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         super(ast, argNames, argExprs);

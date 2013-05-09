@@ -170,37 +170,139 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
+    /** GRAAL read top level variable rewritten for more specialized nodes to avoid frame leaking to the reading from
+     * the extension entry on fastpaths.
+     */
     public static ReadVariable getReadTopLevel(ASTNode orig, RSymbol sym) {
-        return new ReadVariable(orig, sym) {
+        return new ReadTopLevelVariableVersioned(orig,sym);
+    }
 
-            int version;
+    /** Parent class for all variable accesses where the variable is versioned.
+     *
+     * Its execute method also decides on the top level variable reads.
+     */
+    public static class ReadTopLevelVariableVersioned extends ReadVariable {
 
-            @Override
-            public final Object execute(Frame frame) {
-                RAny val;
+        protected int version;
 
-                // TODO check if 'version' is enough, I think the good test has to be:
-                // if (frame != oldFrame || version != symbol.getVersion()) {
-                // (same as SuperWriteVariable)
+        public ReadTopLevelVariableVersioned(ASTNode ast, RSymbol symbol) {
+            super(ast, symbol);
+        }
 
-                if (version != symbol.getVersion()) {
-                    val = RFrameHeader.readFromExtensionEntry(frame, symbol);
-                    if (val == null) {
-                        version = symbol.getVersion();
-                        // oldFrame = frame;
-                        val = symbol.getValue();
-                    }
+        public ReadTopLevelVariableVersioned(ReadTopLevelVariableVersioned other) {
+            super(other.ast, other.symbol);
+            version = other.version;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            if (version == symbol.getVersion()) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadTopLevelFastPath(this)).execute(frame);
+            } else {
+                CompilerDirectives.transferToInterpreter();
+                // try reading the variable and doing fastpath, maybe the variable has just changed once
+                RAny value = RFrameHeader.readFromExtensionEntry(frame, symbol);
+                if (value == null) {
+                    version = symbol.getVersion();
+                    return replace(new ReadTopLevelFastPath(this)).execute(frame);
                 } else {
+                    return replace(new ReadTopLevelNonVariable(this)).execute(frame);
+                }
+            }
+        }
+    }
+
+    /** Fastpath node for reading top level variables assuming that the symbol's version has been the same. Rewrites
+     * itself to more general nodes on failure.
+     */
+    public static class ReadTopLevelFastPath extends ReadTopLevelVariableVersioned {
+
+        public ReadTopLevelFastPath(ReadTopLevelVariableVersioned other) {
+            super(other);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            if (version != symbol.getVersion()) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadTopLevelGeneric(this)).execute(frame);
+            }
+            RAny value = symbol.getValue();
+            if (value == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadTopLevelNonVariable(this)).execute(frame);
+            }
+            if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+value+" ("+value.pretty()+")" ); }
+            return value;
+        }
+    }
+
+    /** Reads from the top level variable, possibly symbol has changed its version. If non variable, rewrites itself
+     * to the ReadTopLevelNonVariable node.
+     */
+    public static class ReadTopLevelGeneric extends ReadTopLevelVariableVersioned {
+
+        public ReadTopLevelGeneric(ReadTopLevelVariableVersioned other) {
+            super(other);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny value;
+            if (version != symbol.getVersion()) {
+                value = RFrameHeader.readFromExtensionEntry(frame, symbol);
+                if (value == null) {
+                    version = symbol.getVersion();
+                    // oldFrame = frame;
+                    value = symbol.getValue();
+                }
+            } else {
+                value = symbol.getValue();
+            }
+            if (value == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadTopLevelNonVariable(this)).execute(frame);
+            }
+            if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+value+" ("+value.pretty()+")" ); }
+            return value;
+        }
+    }
+
+    /** Reads the top level variable which may not even be a variable itself.
+     */
+    public static class ReadTopLevelNonVariable extends ReadTopLevelVariableVersioned {
+
+        public ReadTopLevelNonVariable(ReadTopLevelVariableVersioned other) {
+            super(other);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny val;
+
+            // TODO check if 'version' is enough, I think the good test has to be:
+            // if (frame != oldFrame || version != symbol.getVersion()) {
+            // (same as SuperWriteVariable)
+
+            if (version != symbol.getVersion()) {
+                val = RFrameHeader.readFromExtensionEntry(frame, symbol);
+                if (val == null) {
+                    version = symbol.getVersion();
+                    // oldFrame = frame;
                     val = symbol.getValue();
                 }
-                if (val == null) {
-                    return readNonVariable(ast, symbol);
-                }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
-                return val;
+            } else {
+                val = symbol.getValue();
             }
-        };
+            if (val == null) {
+                return readNonVariable(ast, symbol);
+            }
+            if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
+            return val;
+        }
     }
+
 
     public static ReadVariable getReadOnlyFromTopLevel(ASTNode orig, RSymbol sym) {
         return new ReadVariable(orig, sym) {

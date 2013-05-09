@@ -825,8 +825,7 @@ public class RFrameHeader extends Arguments {
                 value.ref();
             }
         } catch (FrameSlotTypeException e) {
-            e.printStackTrace();
-            System.exit(-1);
+            assert (false);
         }
     }
 
@@ -834,8 +833,7 @@ public class RFrameHeader extends Arguments {
         try {
             f.setObject(slot, value);
         } catch (FrameSlotTypeException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            System.exit(-1);
+            assert (false);
         }
     }
 
@@ -844,8 +842,7 @@ public class RFrameHeader extends Arguments {
             f.setObject(slot, value);
             ((RAny) value).ref();
         } catch (FrameSlotTypeException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            System.exit(-1);
+            assert (false);
         }
     }
 
@@ -854,8 +851,7 @@ public class RFrameHeader extends Arguments {
             f.setObject(slot, value);
             value.ref();
         } catch (FrameSlotTypeException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            System.exit(-1);
+            assert (false);
         }
     }
 

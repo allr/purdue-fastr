@@ -127,34 +127,15 @@ final class Cumsum extends CallFactory {
             if (arg instanceof RDouble) {
                 CompilerDirectives.transferToInterpreter();
                 return replace(new DoubleCumSum(this)).doBuiltIn(frame, arg);
-            } else if (arg instanceof RString) {
-                CompilerDirectives.transferToInterpreter();
-                return replace(new DoubleOrStringCumSum(this)).doBuiltIn(frame, arg);
             } else {
                 CompilerDirectives.transferToInterpreter();
-                System.out.println("Transferring to generic from initial, arg is " + arg.getClass().getName());
-                return replace(new GenericCumSum(this)).doBuiltIn(frame,arg);
+                /* GRAAL pass materialized frame to the cumsum builting which is quite large. This may not be the proper
+                 * fix, as I am now unable to determine whether it works on not because materialized frames do not work
+                 * yet in graal.*/
+                GenericCumSum node = new GenericCumSum(this);
+                replace(new Utils.FrameMaterializer(node));
+                return node.doBuiltIn(frame,arg);
             }
-        }
-    }
-    static class DoubleOrStringCumSum extends InitialCumSum {
-
-        public DoubleOrStringCumSum(InitialCumSum from) {
-            super(from);
-        }
-
-        @Override
-        public RAny doBuiltIn(Frame frame, RAny arg) {
-            RDouble dx;
-            if (arg instanceof RDouble) {
-                dx = (RDouble) arg;
-            } else if (arg instanceof RString) {
-                dx = Convert.coerceToDoubleWarning((RString) arg, ast);
-            } else {
-                CompilerDirectives.transferToInterpreter();
-                return replace(new GenericCumSum(this)).doBuiltIn(frame,arg);
-            }
-            return cumsum(dx).setNames(dx.names());
         }
     }
 
@@ -172,8 +153,12 @@ final class Cumsum extends CallFactory {
                 return cumsum(dx).setNames(dx.names());
             } else {
                 CompilerDirectives.transferToInterpreter();
-                System.out.println("Transferring to generic, arg is "+arg.getClass().getName());
-                return replace(new GenericCumSum(this)).doBuiltIn(frame,arg);
+                /* GRAAL pass materialized frame to the cumsum builting which is quite large. This may not be the proper
+                 * fix, as I am now unable to determine whether it works on not because materialized frames do not work
+                 * yet in graal.*/
+                GenericCumSum node = new GenericCumSum(this);
+                replace(new Utils.FrameMaterializer(node));
+                return node.doBuiltIn(frame,arg);
             }
         }
     }
@@ -181,7 +166,6 @@ final class Cumsum extends CallFactory {
 
 
     static class GenericCumSum extends InitialCumSum {
-
 
         public GenericCumSum(InitialCumSum from) {
             super(from);

@@ -1,9 +1,11 @@
 package r;
 
+import com.oracle.truffle.api.frame.Frame;
 import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
 import r.errors.*;
+import r.nodes.truffle.RNode;
 
 public final class Utils {
 
@@ -251,5 +253,20 @@ public final class Utils {
             a[other] = tmp;
         }
         return a;
+    }
+
+
+    public static class FrameMaterializer extends RNode {
+
+        @Child RNode child;
+
+        public FrameMaterializer(RNode child) {
+            this.child = child;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            return child.execute(frame.materialize());
+        }
     }
 }
