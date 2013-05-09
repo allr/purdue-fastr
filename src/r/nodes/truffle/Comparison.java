@@ -212,7 +212,7 @@ public class Comparison extends BaseR {
                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                 if (rexpr instanceof ScalarDoubleImpl) {
                     double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                    if (RDouble.RDoubleUtils.isNAorNaN(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
+                    if (RDouble.RDoubleUtils.isNAorNaN(ldbl) || RDouble.RDoubleUtils.isNAorNaN(rdbl)) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(ldbl, rdbl) ? RLogical.TRUE : RLogical.FALSE;
@@ -233,7 +233,7 @@ public class Comparison extends BaseR {
                     return cmp.cmp(lint, rint) ? RLogical.TRUE : RLogical.FALSE;
                 } else if (rexpr instanceof ScalarDoubleImpl) {
                     double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                    if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                    if (lint == RInt.NA || RDouble.RDoubleUtils.isNAorNaN(rdbl)) {
                         return RLogical.NA;
                     }
                     return cmp.cmp(lint, rdbl) ? RLogical.TRUE : RLogical.FALSE;

@@ -26,7 +26,7 @@ import r.nodes.*;
 // GNU-R depends on the C99 compiler to implement the low-level operations correctly.
 // Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
 
-// TODO: perhaps could be smarter about the isNA checks with doubles; one can rely on that if (with most math operations), if there is
+// TODO: perhaps could be smarter about the arithIsNA checks with doubles; one can rely on that if (with most math operations), if there is
 // na NA on input, there will be a double NaN on output (either NA or R'NaN). So instead of checking both inputs of a binary operation for NA,
 // one could just check the result for NaN, and only in the positive case check the operands for NA...
 
@@ -122,7 +122,7 @@ public class Arithmetic extends BaseR {
                         ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
                         double rreal = rcomp.getReal();
                         double rimag = rcomp.getImag();
-                        if (!RComplex.RComplexUtils.eitherIsNA(lreal, limag) && !RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                        if (!RComplex.RComplexUtils.arithEitherIsNA(lreal, limag) && !RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag)) {
                             return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
                         } else {
                             return RComplex.BOXED_NA;
@@ -142,7 +142,7 @@ public class Arithmetic extends BaseR {
                         double lreal = lcomp.getReal();
                         double limag = lcomp.getImag();
                         double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (!RComplex.RComplexUtils.eitherIsNA(lreal, limag) && !RDouble.RDoubleUtils.isNA(rreal)) {
+                        if (!RComplex.RComplexUtils.arithEitherIsNA(lreal, limag) && !RDouble.RDoubleUtils.arithIsNA(rreal)) {
                             return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, 0), arit.opImag(ast, lreal, limag, rreal, 0));
                         } else {
                             return RComplex.BOXED_NA;
@@ -162,7 +162,7 @@ public class Arithmetic extends BaseR {
                         ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
                         double rreal = rcomp.getReal();
                         double rimag = rcomp.getImag();
-                        if (!RDouble.RDoubleUtils.isNA(lreal) && !RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                        if (!RDouble.RDoubleUtils.arithIsNA(lreal) && !RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag)) {
                             return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, 0, rreal, rimag), arit.opImag(ast, lreal, 0, rreal, rimag));
                         } else {
                             return RComplex.BOXED_NA;
@@ -180,7 +180,7 @@ public class Arithmetic extends BaseR {
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || RDouble.RDoubleUtils.isNA(rdbl)) {
+                        if (RDouble.RDoubleUtils.arithIsNA(ldbl) || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -197,7 +197,7 @@ public class Arithmetic extends BaseR {
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         int rint = ((ScalarIntImpl) rexpr).getInt();
-                        if (RDouble.RDoubleUtils.isNA(ldbl) || rint == RInt.NA) {
+                        if (RDouble.RDoubleUtils.arithIsNA(ldbl) || rint == RInt.NA) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -214,7 +214,7 @@ public class Arithmetic extends BaseR {
                         }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (lint == RInt.NA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                        if (lint == RInt.NA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -294,10 +294,10 @@ public class Arithmetic extends BaseR {
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
                         if (lexpr instanceof ScalarDoubleImpl) {
                             double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                            boolean leftIsNA = RDouble.RDoubleUtils.isNA(ldbl);
+                            boolean leftIsNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (leftIsNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -314,21 +314,21 @@ public class Arithmetic extends BaseR {
                             boolean leftIsNA = lint == RInt.NA;
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (leftIsNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (leftIsNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                             }
                             if (rexpr instanceof ScalarIntImpl) {
                                 int rint = ((ScalarIntImpl) rexpr).getInt();
-                                boolean isNA = leftIsNA || rint == RInt.NA;
+                                boolean arithIsNA = leftIsNA || rint == RInt.NA;
                                 if (alwaysDouble) {
-                                    if (isNA) {
+                                    if (arithIsNA) {
                                         return RDouble.BOXED_NA;
                                     }
                                     return RDouble.RDoubleFactory.getScalar(arit.op(ast, (double) lint, (double) rint));
                                 } else {
-                                    if (isNA) {
+                                    if (arithIsNA) {
                                         return RInt.BOXED_NA;
                                     }
                                     return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
@@ -502,7 +502,7 @@ public class Arithmetic extends BaseR {
                 RComplex lcmp = leftTemplate.asComplex();
                 final double lreal = lcmp.getReal(0);
                 final double limag =  lcmp.getImag(0);
-                final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
+                final boolean isLeftNA = RComplex.RComplexUtils.arithEitherIsNA(lreal, limag);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -512,7 +512,7 @@ public class Arithmetic extends BaseR {
                         ScalarComplexImpl rcmp = (ScalarComplexImpl) rexpr;
                         double rreal = rcmp.getReal();
                         double rimag = rcmp.getImag();
-                        if (isLeftNA || RComplex.RComplexUtils.eitherIsNA(rreal, rimag)) {
+                        if (isLeftNA || RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag)) {
                             return RComplex.BOXED_NA;
                         }
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
@@ -525,7 +525,7 @@ public class Arithmetic extends BaseR {
                  RComplex rcmp = rightTemplate.asComplex();
                  final double rreal = rcmp.getReal(0);
                  final double rimag =  rcmp.getImag(0);
-                 final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
+                 final boolean isRightNA = RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag);
                  Calculator c = new Calculator() {
                      @Override
                      public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -535,7 +535,7 @@ public class Arithmetic extends BaseR {
                          ScalarComplexImpl lcmp = (ScalarComplexImpl) lexpr;
                          double lreal = lcmp.getReal();
                          double limag = lcmp.getImag();
-                         if (isRightNA || RComplex.RComplexUtils.eitherIsNA(lreal, limag)) {
+                         if (isRightNA || RComplex.RComplexUtils.arithEitherIsNA(lreal, limag)) {
                              return RComplex.BOXED_NA;
                          }
                          return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, rimag), arit.opImag(ast, lreal, limag, rreal, rimag));
@@ -548,7 +548,7 @@ public class Arithmetic extends BaseR {
                  ScalarComplexImpl lcmp = (ScalarComplexImpl) leftTemplate;
                  final double lreal = lcmp.getReal(0);
                  final double limag =  lcmp.getImag(0);
-                 final boolean isLeftNA = RComplex.RComplexUtils.eitherIsNA(lreal, limag);
+                 final boolean isLeftNA = RComplex.RComplexUtils.arithEitherIsNA(lreal, limag);
                  Calculator c = new Calculator() {
                      @Override
                      public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -556,7 +556,7 @@ public class Arithmetic extends BaseR {
                              throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                          }
                          double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
-                         if (isLeftNA || RDouble.RDoubleUtils.isNA(rreal)) {
+                         if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rreal)) {
                              return RComplex.BOXED_NA;
                          }
                          return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, 0), arit.opImag(ast, lreal, limag, rreal, 0));
@@ -568,7 +568,7 @@ public class Arithmetic extends BaseR {
                 ScalarComplexImpl rcmp = (ScalarComplexImpl) rightTemplate;
                 final double rreal = rcmp.getReal(0);
                 final double rimag =  rcmp.getImag(0);
-                final boolean isRightNA = RComplex.RComplexUtils.eitherIsNA(rreal, rimag);
+                final boolean isRightNA = RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -576,7 +576,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.isNA(lreal)) {
+                        if (isRightNA || RDouble.RDoubleUtils.arithIsNA(lreal)) {
                             return RComplex.BOXED_NA;
                         }
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, 0, rreal, rimag), arit.opImag(ast, lreal, 0, rreal, rimag));
@@ -587,7 +587,7 @@ public class Arithmetic extends BaseR {
             // non-const is double
             if (leftConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarDoubleImpl || leftTemplate instanceof ScalarIntImpl || leftTemplate instanceof ScalarLogicalImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
-                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
+                final boolean isLeftNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -595,7 +595,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                        if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                        if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -605,7 +605,7 @@ public class Arithmetic extends BaseR {
             }
             if (rightConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarDoubleImpl || rightTemplate instanceof ScalarIntImpl || rightTemplate instanceof ScalarLogicalImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
-                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
+                final boolean isRightNA = RDouble.RDoubleUtils.arithIsNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -613,7 +613,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                        if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
                             return RDouble.BOXED_NA;
                         }
                         return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -625,7 +625,7 @@ public class Arithmetic extends BaseR {
             // FIXME: handle also logical?
             if (leftConst && (leftTemplate instanceof ScalarDoubleImpl) && (rightTemplate instanceof ScalarIntImpl)) {
                 final double ldbl = (leftTemplate.asDouble()).getDouble(0);
-                final boolean isLeftNA = RDouble.RDoubleUtils.isNA(ldbl);
+                final boolean isLeftNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -643,7 +643,7 @@ public class Arithmetic extends BaseR {
             }
             if (rightConst && (rightTemplate instanceof ScalarDoubleImpl) && (leftTemplate instanceof ScalarIntImpl)) {
                 final double rdbl = (rightTemplate.asDouble()).getDouble(0);
-                final boolean isRightNA = RDouble.RDoubleUtils.isNA(rdbl);
+                final boolean isRightNA = RDouble.RDoubleUtils.arithIsNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
@@ -757,7 +757,7 @@ public class Arithmetic extends BaseR {
                 if (leftTemplate instanceof ScalarDoubleImpl) {
                     tlint = -1; // not used
                     tldbl = ((ScalarDoubleImpl) leftTemplate).getDouble();
-                    tisLeftNA = RDouble.RDoubleUtils.isNA(tldbl);
+                    tisLeftNA = RDouble.RDoubleUtils.arithIsNA(tldbl);
                     tisLeftDouble = true;
                 } else {
                     tlint = ((ScalarIntImpl) leftTemplate).getInt();
@@ -776,7 +776,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -799,7 +799,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
-                                if (isLeftNA || RDouble.RDoubleUtils.isNA(rdbl)) {
+                                if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
@@ -825,7 +825,7 @@ public class Arithmetic extends BaseR {
                 if (rightTemplate instanceof ScalarDoubleImpl) {
                     trint = -1; // not used
                     trdbl = ((ScalarDoubleImpl) rightTemplate).getDouble();
-                    tisRightNA = RDouble.RDoubleUtils.isNA(trdbl);
+                    tisRightNA = RDouble.RDoubleUtils.arithIsNA(trdbl);
                     tisRightDouble = true;
                 } else {
                     trint = ((ScalarIntImpl) rightTemplate).getInt();
@@ -844,7 +844,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                                if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rdbl));
@@ -867,7 +867,7 @@ public class Arithmetic extends BaseR {
                         public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
-                                if (isRightNA || RDouble.RDoubleUtils.isNA(ldbl)) {
+                                if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
                                     return RDouble.BOXED_NA;
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
@@ -1172,7 +1172,7 @@ public class Arithmetic extends BaseR {
                 double b = x[j];
                 double c = y[i];
                 double d = y[j];
-                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b) && !RComplexUtils.arithEitherIsNA(c, d)) {
                     res[i] = a + c;
                     res[j] = b + d;
                 } else {
@@ -1205,7 +1205,7 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
                 double b = x[j];
-                if (!RComplexUtils.eitherIsNA(a, b)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b)) {
                     res[i] = a + c;
                     res[j] = b + d;
                 } else {
@@ -1234,8 +1234,8 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = y[i];
                 double c = a + b;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1248,8 +1248,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a + y;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1332,7 +1332,7 @@ public class Arithmetic extends BaseR {
                 double b = x[j];
                 double c = y[i];
                 double d = y[j];
-                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b) && !RComplexUtils.arithEitherIsNA(c, d)) {
                     res[i] = a - c;
                     res[j] = b - d;
                 } else {
@@ -1351,7 +1351,7 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
                 double b = x[j];
-                if (!RComplexUtils.eitherIsNA(a, b)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b)) {
                     res[i] = a - c;
                     res[j] = b - d;
                 } else {
@@ -1367,8 +1367,8 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = y[i];
                 double c = a - b;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1381,8 +1381,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a - y;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1498,7 +1498,7 @@ public class Arithmetic extends BaseR {
                 for (int i = 0; i < rsize; i++, i++, j++, j++) {
                     double a = x[i];
                     double b = x[j];
-                    if (!RComplexUtils.eitherIsNA(a, b)) {
+                    if (!RComplexUtils.arithEitherIsNA(a, b)) {
                         Arithmetic.Pow.cpow2(a, b, res, i);
                     } else {
                         res[i] = RDouble.NA;
@@ -1514,7 +1514,7 @@ public class Arithmetic extends BaseR {
                 double b = x[j];
                 double c = y[i];
                 double d = y[j];
-                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b) && !RComplexUtils.arithEitherIsNA(c, d)) {
                     Arithmetic.cmult(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
@@ -1550,7 +1550,7 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
                 double b = x[j];
-                if (!RComplexUtils.eitherIsNA(a, b)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b)) {
                     Arithmetic.cmult(x[i], x[j], c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
@@ -1565,8 +1565,8 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = y[i];
                 double c = a * b;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1579,8 +1579,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a * y;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -1818,7 +1818,7 @@ public class Arithmetic extends BaseR {
                 double xi = x[i + 1];
                 double yr = y[i];
                 double yi = y[i + 1];
-                if (!RComplex.RComplexUtils.eitherIsNA(xr,  xi) && !RComplex.RComplexUtils.eitherIsNA(yr, yi)) {
+                if (!RComplex.RComplexUtils.arithEitherIsNA(xr,  xi) && !RComplex.RComplexUtils.arithEitherIsNA(yr, yi)) {
                     cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
                 } else {
                     z[i] = RDouble.NA;
@@ -1867,7 +1867,7 @@ public class Arithmetic extends BaseR {
                 for (int i = 0; i < x.length; i += 2) {
                     double xr = x[i];
                     double xi = x[i + 1];
-                    if (!RComplex.RComplexUtils.eitherIsNA(xr, xi)) {
+                    if (!RComplex.RComplexUtils.arithEitherIsNA(xr, xi)) {
                         cpow2(xr, xi, res, i);
                     } else {
                         res[i] = RDouble.NA;
@@ -1878,7 +1878,7 @@ public class Arithmetic extends BaseR {
                 for (int i = 0; i < x.length; i += 2) {
                     double xr = x[i];
                     double xi = x[i + 1];
-                    if (!RComplex.RComplexUtils.eitherIsNA(xr, xi)) {
+                    if (!RComplex.RComplexUtils.arithEitherIsNA(xr, xi)) {
                         cpow(x[i], x[i + 1], yr, yi, res, i); // FIXME: extract some checks on the exponent here
                     } else {
                         res[i] = RDouble.NA;
@@ -1910,8 +1910,8 @@ public class Arithmetic extends BaseR {
                     double a = x[i];
                     double b = y[i];
                     double c = pow(a, b);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                        if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                             res[i] = RDouble.NA;
                         }
                     } else {
@@ -1928,8 +1928,8 @@ public class Arithmetic extends BaseR {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
                     double c = pow(a, y);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                        if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                             res[i] = RDouble.NA;
                         }
                     } else {
@@ -2045,7 +2045,7 @@ public class Arithmetic extends BaseR {
                 double b = x[j];
                 double c = y[i];
                 double d = y[j];
-                if (!RComplexUtils.eitherIsNA(a, b) && !RComplexUtils.eitherIsNA(c, d)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b) && !RComplexUtils.arithEitherIsNA(c, d)) {
                     cdiv(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
@@ -2063,7 +2063,7 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
                 double b = x[j];
-                if (!RComplexUtils.eitherIsNA(a, b)) {
+                if (!RComplexUtils.arithEitherIsNA(a, b)) {
                     cdiv(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
@@ -2078,8 +2078,8 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = y[i];
                 double c = a / b;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -2092,8 +2092,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a / y;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -2159,8 +2159,8 @@ public class Arithmetic extends BaseR {
                 double a = x[i];
                 double b = y[i];
                 double c = op(ast, a, b);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -2173,8 +2173,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = op(ast, a, y);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -2251,8 +2251,8 @@ public class Arithmetic extends BaseR {
                     double a = x[i];
                     double b = y[i];
                     double c = fmod(ast, a, b);
-                    if (RDouble.RDoubleUtils.isNA(c)) {
-                        if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                        if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                             res[i] = RDouble.NA;
                         }
                     } else {
@@ -2272,8 +2272,8 @@ public class Arithmetic extends BaseR {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = fmod(ast, a, y);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -2329,7 +2329,7 @@ public class Arithmetic extends BaseR {
                     if (bsize == 1) {
                         double c = b.getReal(0);
                         double d = b.getImag(0);
-                        if (!RComplexUtils.eitherIsNA(c, d)) {
+                        if (!RComplexUtils.arithEitherIsNA(c, d)) {
                             return arit.op(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
                         }
                         // NOTE: NA case falls back, could be added here
@@ -2400,7 +2400,7 @@ public class Arithmetic extends BaseR {
             double aimag = a.getImag(ai);
             double breal = b.getReal(bi);
             double bimag = b.getImag(bi);
-            if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
+            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
                 return arit.opReal(ast, areal, aimag, breal, bimag);
             } else {
                 return RDouble.NA;
@@ -2425,7 +2425,7 @@ public class Arithmetic extends BaseR {
             double aimag = a.getImag(ai);
             double breal = b.getReal(bi);
             double bimag = b.getImag(bi);
-            if (!RComplexUtils.eitherIsNA(areal, aimag) && !RComplexUtils.eitherIsNA(breal, bimag)) {
+            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
                 return arit.opImag(ast, areal, aimag, breal, bimag);
             } else {
                 return RDouble.NA;
@@ -2691,7 +2691,7 @@ public class Arithmetic extends BaseR {
                 }
                 double adbl = a.getDouble(ai);
                 double bdbl = b.getDouble(bi);
-                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(adbl) || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
@@ -2710,7 +2710,7 @@ public class Arithmetic extends BaseR {
 
                 double adbl = a.getDouble(i);
                 double bdbl = b.getDouble(i);
-                if (RDouble.RDoubleUtils.isNA(adbl) || RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(adbl) || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
@@ -2727,19 +2727,19 @@ public class Arithmetic extends BaseR {
 
         static final class VectorScalar extends DoubleView implements RDouble {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final double bdbl;
 
             public VectorScalar(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(bdbl);
+                arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double adbl = a.getDouble(i);
-                if (isNA || RDouble.RDoubleUtils.isNA(adbl)) {
+                if (arithIsNA || RDouble.RDoubleUtils.arithIsNA(adbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
@@ -2750,19 +2750,19 @@ public class Arithmetic extends BaseR {
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
         static final class ScalarVector extends DoubleView implements RDouble {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final double adbl;
 
             public ScalarVector(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 adbl = a.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(adbl);
+                arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double bdbl = b.getDouble(i);
-                if (isNA || RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (arithIsNA || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bdbl);
@@ -2871,7 +2871,7 @@ public class Arithmetic extends BaseR {
                 }
                 double adbl = a.getDouble(ai);
                 int bint = bfrom + bi * bstep;
-                if (RDouble.RDoubleUtils.isNA(adbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(adbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bint);
@@ -2890,7 +2890,7 @@ public class Arithmetic extends BaseR {
 
                 double adbl = a.getDouble(i);
                 int bint = b.getInt(i);
-                if (bint == RInt.NA || RDouble.RDoubleUtils.isNA(adbl)) {
+                if (bint == RInt.NA || RDouble.RDoubleUtils.arithIsNA(adbl)) {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, bint);
@@ -2913,7 +2913,7 @@ public class Arithmetic extends BaseR {
 
                 double adbl = a.getDouble(i);
                 int bint = bfrom + i * bstep;
-                if (RDouble.RDoubleUtils.isNA(adbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(adbl)) {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, bint);
@@ -2922,7 +2922,7 @@ public class Arithmetic extends BaseR {
 
         static final class ScalarSequence extends DoubleViewForDoubleInt implements RDouble {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final double adbl;
             final int bfrom;
             final int bstep;
@@ -2930,7 +2930,7 @@ public class Arithmetic extends BaseR {
             public ScalarSequence(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 adbl = a.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(adbl);
+                arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
                 bfrom = b.from();
                 bstep = b.step();
             }
@@ -2938,7 +2938,7 @@ public class Arithmetic extends BaseR {
             @Override
             public double getDouble(int i) {
                 int bint = bfrom + i * bstep;
-                if (isNA) {
+                if (arithIsNA) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, adbl, bint);
@@ -3046,7 +3046,7 @@ public class Arithmetic extends BaseR {
                 int aint = afrom + ai * astep;
                 double bdbl = b.getDouble(bi);
 
-                if (RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, aint, bdbl);
@@ -3066,7 +3066,7 @@ public class Arithmetic extends BaseR {
                 int aint = a.getInt(i);
                 double bdbl = b.getDouble(i);
 
-                if (aint == RInt.NA || RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (aint == RInt.NA || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 }
                 return arit.op(ast, aint, bdbl);
@@ -3089,7 +3089,7 @@ public class Arithmetic extends BaseR {
                 int aint = afrom + i * astep;
                 double bdbl = b.getDouble(i);
 
-                if (RDouble.RDoubleUtils.isNA(bdbl)) {
+                if (RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 }
                 return arit.op(ast, aint, bdbl);
@@ -3098,19 +3098,19 @@ public class Arithmetic extends BaseR {
 
         static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final double bdbl;
 
             public VectorScalar(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(bdbl);
+                arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
             @Override
             public double getDouble(int i) {
                 double aint = a.getInt(i);
-                if (isNA || aint == RInt.NA) {
+                if (arithIsNA || aint == RInt.NA) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, aint, bdbl);
@@ -3120,7 +3120,7 @@ public class Arithmetic extends BaseR {
 
         static final class SequenceScalar extends DoubleViewForIntDouble implements RDouble {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final double bdbl;
             final int afrom;
             final int astep;
@@ -3128,7 +3128,7 @@ public class Arithmetic extends BaseR {
             public SequenceScalar(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
-                isNA = RDouble.RDoubleUtils.isNA(bdbl);
+                arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
                 afrom = a.from();
                 astep = a.step();
             }
@@ -3136,7 +3136,7 @@ public class Arithmetic extends BaseR {
             @Override
             public double getDouble(int i) {
                 double aint = afrom + i*astep;
-                if (isNA) {
+                if (arithIsNA) {
                     return RDouble.NA;
                 } else {
                     return arit.op(ast, aint, bdbl);
@@ -3565,20 +3565,20 @@ public class Arithmetic extends BaseR {
 
         static final class VectorScalar extends IntView implements RInt {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final int bint;
 
             public VectorScalar(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bint = b.getInt(0);
-                isNA = bint == RInt.NA;
+                arithIsNA = bint == RInt.NA;
             }
 
             @Override
             public int getInt(int i) {
 
                 int aint = a.getInt(i);
-                if (isNA || aint == RInt.NA) {
+                if (arithIsNA || aint == RInt.NA) {
                     return RInt.NA;
                 } else {
                     int res = arit.op(ast, aint, bint);
@@ -3593,7 +3593,7 @@ public class Arithmetic extends BaseR {
 
         static final class SequenceScalar extends IntView implements RInt {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final int bint;
             final int afrom;
             final int astep;
@@ -3601,7 +3601,7 @@ public class Arithmetic extends BaseR {
             public SequenceScalar(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bint = b.getInt(0);
-                isNA = bint == RInt.NA;
+                arithIsNA = bint == RInt.NA;
                 afrom = a.from();
                 astep = a.step();
             }
@@ -3610,7 +3610,7 @@ public class Arithmetic extends BaseR {
             public int getInt(int i) {
 
                 int aint = afrom + i * astep;
-                if (isNA) {
+                if (arithIsNA) {
                     return RInt.NA;
                 } else {
                     int res = arit.op(ast, aint, bint);
@@ -3625,20 +3625,20 @@ public class Arithmetic extends BaseR {
 
         static final class ScalarVector extends IntView implements RInt {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final int aint;
 
             public ScalarVector(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 aint = a.getInt(0);
-                isNA = aint == RInt.NA;
+                arithIsNA = aint == RInt.NA;
             }
 
             @Override
             public int getInt(int i) {
 
                 int bint = b.getInt(i);
-                if (isNA || bint == RInt.NA) {
+                if (arithIsNA || bint == RInt.NA) {
                     return RInt.NA;
                 } else {
                     int res = arit.op(ast, aint, bint);
@@ -3653,7 +3653,7 @@ public class Arithmetic extends BaseR {
 
         static final class ScalarSequence extends IntView implements RInt {
 
-            final boolean isNA;
+            final boolean arithIsNA;
             final int aint;
             final int bfrom;
             final int bstep;
@@ -3661,7 +3661,7 @@ public class Arithmetic extends BaseR {
             public ScalarSequence(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 aint = a.getInt(0);
-                isNA = aint == RInt.NA;
+                arithIsNA = aint == RInt.NA;
                 bfrom = b.from();
                 bstep = b.step();
             }
@@ -3670,7 +3670,7 @@ public class Arithmetic extends BaseR {
             public int getInt(int i) {
 
                 int bint = bfrom + i * bstep;
-                if (isNA) {
+                if (arithIsNA) {
                     return RInt.NA;
                 } else {
                     int res = arit.op(ast, aint, bint);

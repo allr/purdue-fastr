@@ -77,6 +77,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ min(c(\"hi\",\"abbey\",\"hello\")) }", "\"abbey\"");
         assertEval("{ min(\"hi\",\"abbey\",\"hello\") }", "\"abbey\"");
         assertEval("{ min(\"hi\",100) }", "\"100.0\"");
+        assertEval("{ min(c(1,2,0/0)) }", "NaN");
+        assertEval("{ max(c(1,2,0/0)) }", "NaN");
     }
 
     @Test

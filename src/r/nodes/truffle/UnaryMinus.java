@@ -69,7 +69,7 @@ public abstract class UnaryMinus extends BaseR {
                 throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
             }
             double d = dvalue.getDouble(0);
-            if (RDouble.RDoubleUtils.isNA(d)) {
+            if (RDouble.RDoubleUtils.arithIsNA(d)) {
                 return RDouble.BOXED_NA;
             } else {
                 return RDouble.RDoubleFactory.getScalar(-d);
@@ -238,7 +238,7 @@ public abstract class UnaryMinus extends BaseR {
                     @Override
                     public double getDouble(int i) {
                         double d = dvalue.getDouble(i);
-                        if (RDouble.RDoubleUtils.isNA(d)) {
+                        if (RDouble.RDoubleUtils.arithIsNA(d)) {
                             return RDouble.NA;
                         } else {
                             return -d;

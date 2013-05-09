@@ -26,7 +26,7 @@ public class Abs extends CallFactory {
     }
 
     public static double abs(double d) {
-        return RDouble.RDoubleUtils.isNA(d) ? RDouble.NA : Math.abs(d);
+        return RDouble.RDoubleUtils.arithIsNA(d) ? RDouble.NA : Math.abs(d);
     }
 
     public static int abs(int v) {

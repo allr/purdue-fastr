@@ -7,6 +7,7 @@ import r.Convert.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
+
     String TYPE_STRING = "double";
     long NA_LONGBITS = 0x7ff00000000007a2L; // R's NA is a special instance of IEEE's NaN
     int NA_LOWBITS = (int) NA_LONGBITS;
@@ -31,8 +32,16 @@ public interface RDouble extends RNumber {
     double[] getContent();
 
     public class RDoubleUtils {
+        private static final boolean ARITH_NA_CHECKS = false;
+        // should have explicit checks with floating point arithmetics to avoid NAs turning into NaNs?
+        // NOTE: GNU-R does not have these checks
+
+
         public static boolean isNA(double d) {
             return ((int) Double.doubleToRawLongBits(d)) == NA_LOWBITS;
+        }
+        public static boolean arithIsNA(double d) {
+            return ARITH_NA_CHECKS ? isNA(d) : false;
         }
         public static boolean fitsRInt(double d) {
             return d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE;

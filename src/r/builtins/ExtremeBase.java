@@ -15,12 +15,6 @@ abstract class ExtremeBase extends CallFactory {
         super(name, params, required);
     }
 
-    abstract boolean moreExtreme(int a, int b);
-
-    abstract boolean moreExtreme(double a, double b);
-
-    abstract boolean moreExtreme(String a, String b);
-
     abstract int extreme(int a, int b);
 
     abstract double extreme(double a, double b);
@@ -40,9 +34,7 @@ abstract class ExtremeBase extends CallFactory {
         for (int i = 1; i < size; i++) {
             String s = arg.getString(i);
             if (s != RString.NA) {
-                if (moreExtreme(s, res)) {
-                    res = s;
-                }
+                res = extreme(s, res);
             } else {
                 return RString.BOXED_NA;
             }
@@ -60,10 +52,8 @@ abstract class ExtremeBase extends CallFactory {
         double res = arg.getDouble(0);
         for (int i = 1; i < size; i++) {
             double d = arg.getDouble(i);
-            if (moreExtreme(d, res)) {
-                res = d;
-            }
-            if (RDouble.RDoubleUtils.isNA(d)) { return RDouble.BOXED_NA; }
+            res = extreme(d, res);
+            if (RDouble.RDoubleUtils.arithIsNA(d)) { return RDouble.BOXED_NA; }
         }
         return RDouble.RDoubleFactory.getScalar(res);
     }
@@ -78,9 +68,7 @@ abstract class ExtremeBase extends CallFactory {
         int res = arg.getInt(0);
         for (int i = 1; i < size; i++) {
             int v = arg.getInt(i);
-            if (moreExtreme(v, res)) {
-                res = v;
-            }
+            res = extreme(v, res);
             if (v == RInt.NA) { return RInt.BOXED_NA; }
         }
         return RInt.RIntFactory.getScalar(res);

@@ -154,8 +154,8 @@ final class Round extends CallFactory {
                 double a = x[i];
                 double b = y[i];
                 double c = round(a, b);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
                 } else {
@@ -168,8 +168,8 @@ final class Round extends CallFactory {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = round(a, y);
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(y)) {
+                if (RDouble.RDoubleUtils.arithIsNA(c)) {
+                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
                         res[i] = RDouble.NA;
                     }
                 } else {

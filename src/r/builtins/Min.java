@@ -4,7 +4,7 @@ import r.data.*;
 
 /**
  * "min"
- * 
+ *
  * <pre>
  * ... -- numeric or character arguments
  * na.rm -- a logical indicating whether missing values should be removed.
@@ -15,18 +15,6 @@ final class Min extends ExtremeBase {
 
     Min(String name, String[] params, String[] required) {
         super(name, params, required);
-    }
-
-    @Override boolean moreExtreme(int a, int b) {
-        return a < b;
-    }
-
-    @Override boolean moreExtreme(double a, double b) {
-        return a < b;
-    }
-
-    @Override boolean moreExtreme(String a, String b) {
-        return a.compareTo(b) < 0;
     }
 
     @Override int extreme(int a, int b) {

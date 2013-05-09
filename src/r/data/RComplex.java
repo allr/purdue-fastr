@@ -63,6 +63,9 @@ public interface RComplex extends RArray {
         public static boolean eitherIsNA(double real, double imag) {
             return RDouble.RDoubleUtils.isNA(real) || RDouble.RDoubleUtils.isNA(imag);
         }
+        public static boolean arithEitherIsNA(double real, double imag) {
+            return RDouble.RDoubleUtils.arithIsNA(real) || RDouble.RDoubleUtils.arithIsNA(imag);
+        }
         public static boolean eitherIsNAorNaN(double real, double imag) {
             return RDouble.RDoubleUtils.isNAorNaN(real) ||  RDouble.RDoubleUtils.isNAorNaN(imag);
         }
