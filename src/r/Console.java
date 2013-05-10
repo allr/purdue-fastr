@@ -1,11 +1,9 @@
 package r;
 
 import java.io.*;
-import java.util.Scanner;
+import java.util.*;
 
 import org.antlr.runtime.*;
-import org.netlib.blas.*;
-import org.netlib.lapack.*;
 
 import r.data.*;
 import r.errors.*;
@@ -28,6 +26,14 @@ public class Console {
     static boolean interactive;
     static boolean forceVisible;
     static boolean debuggingFormat;
+
+    static PrintStream out = System.out;
+    static PrintStream err = System.err;
+
+    public static void setStreams(PrintStream out_, PrintStream err_) {
+        out = out_;
+        err = err_;
+    }
 
     static Option[] options = new Option[]{
             //
@@ -59,7 +65,7 @@ public class Console {
             new Option("--waitForKey", "Wait for 'ENTER' before starting execution") {
 
                 @Override protected void processOption(String name, String[] opts) {
-                    System.out.println("Press ENTER to start...");
+                    out.println("Press ENTER to start...");
                     new Scanner(System.in).nextLine();
                 }
             }, //
@@ -75,7 +81,7 @@ public class Console {
             new Option.Help() {
 
                 @Override protected void processOption(String name, String[] opts) {
-                    Option.Help.displayHelp(System.out, options, 0);
+                    Option.Help.displayHelp(out, options, 0);
                 }
             }
     //
@@ -116,9 +122,9 @@ public class Console {
         try {
             RContext.debuggingFormat(debuggingFormat);
             if (interactive || inputFile == null) {
-                System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
-                System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
-                System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
+                //   System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
+                //   System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
+                //   System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
                 interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 processFile(openANTLRStream(inputFile));
@@ -126,7 +132,7 @@ public class Console {
         } catch (IOException e) {}
         long after = System.nanoTime();
         long elapsed = after - before;
-        System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
+        //System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
     static void interactive(BufferedReader in) throws IOException {
@@ -137,8 +143,8 @@ public class Console {
 
         do {
             try {
-                System.out.print(incomplete.length() == 0 ? prompt : promptMore);
-                System.out.flush();
+                out.print(incomplete.length() == 0 ? prompt : promptMore);
+                out.flush();
                 tree = parseStatement(in, lexer, parser, incomplete);
                 parser.reset();
                 if (tree != null) {
@@ -210,16 +216,16 @@ public class Console {
         if (DEBUG_GUI) {
             TreeViewer.showTree(tree);
         } else {
-            new PrettyPrinter(System.err).print(tree);
+            new PrettyPrinter(err).print(tree);
         }
     }
 
     static void parseError(RParser parser, RecognitionException e) {
         Token token = e.token;
         String[] tokenNames = parser.getTokenNames();
-        System.err.print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1)
+        err.print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1)
                 + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "). " : ". "));
-        System.err.println(parser.getErrorMessage(e, null));
+        err.println(parser.getErrorMessage(e, null));
     }
 
     static void printResult(ASTNode expr, RAny result) {
@@ -230,6 +236,6 @@ public class Console {
     }
 
     public static void println(String str) {
-        System.out.println(str);
+        out.println(str);
     }
 }

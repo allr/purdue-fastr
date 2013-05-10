@@ -1,12 +1,8 @@
 package r.builtins;
 
+import r.Truffle.Frame;
 import r.*;
-import r.Truffle.*;
-
 import r.data.*;
-import r.data.RComplex.*;
-import r.errors.*;
-import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
