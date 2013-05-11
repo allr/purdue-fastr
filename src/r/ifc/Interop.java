@@ -5,7 +5,7 @@ import r.builtins.*;
 import r.builtins.CallFactory.ArgumentInfo;
 import r.data.*;
 import r.data.internal.*;
-import r.ifc.Interop.Invokeable;
+import r.ifc.Interop.Invokable;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -15,7 +15,7 @@ import r.nodes.truffle.*;
 public class Interop {
 
     public static void initialize() {
-        register(new Invokeable() {
+        register(new Invokable() {
             public String name() {
                 return "jan";
             }
@@ -39,7 +39,7 @@ public class Interop {
     }
 
     /** Java has to implement this interface for R to be able to call it. */
-    public interface Invokeable {
+    public interface Invokable {
         /**
          * Method is called by R. The ai describes the order in which the arguments are passed. This can be different
          * from one call site to the next. Args is the actual list of argument values.
@@ -54,7 +54,7 @@ public class Interop {
     }
 
     /** Add the invokeable to the global R name space. */
-    public static void register(Invokeable fun) {
+    public static void register(Invokable fun) {
         Primitives.add(new ExternalJavaBuiltin(fun, fun.name(), fun.parameters(), fun.requiredParameters()));
     }
 
@@ -98,9 +98,9 @@ public class Interop {
 
 /** Internal implementation: adapter for calling Java code from R. **/
 class ExternalJavaBuiltin extends CallFactory {
-    private final Invokeable fun;
+    private final Invokable fun;
 
-    ExternalJavaBuiltin(Invokeable fun, String name, String[] parameters, String[] required) {
+    ExternalJavaBuiltin(Invokable fun, String name, String[] parameters, String[] required) {
         super(name, parameters, required);
         this.fun = fun;
     }
