@@ -118,21 +118,23 @@ public class Console {
         } catch (Exception e1) {
             return;
         }
-        long before = System.nanoTime();
         try {
             RContext.debuggingFormat(debuggingFormat);
             if (interactive || inputFile == null) {
-                //   System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
-                //   System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
-                //   System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
-                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
+                // interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
+                final BufferedReader fr = inputFile != null ? new BufferedReader(new FileReader(inputFile)) : null;
+                BufferedReader reader = new BufferedReader(new InputStreamReader(System.in)) {
+                    @Override public String readLine() throws IOException {
+                        String line = fr != null ? fr.readLine() : null;
+                        return line != null ? line : super.readLine();
+                    }
+                };
+                interactive(reader);
+
             } else {
                 processFile(openANTLRStream(inputFile));
             }
         } catch (IOException e) {}
-        long after = System.nanoTime();
-        long elapsed = after - before;
-        //System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
     static void interactive(BufferedReader in) throws IOException {
