@@ -602,7 +602,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            return ext.get(symbol) != null;
+            return ext.get(symbol) != null;  // TODO: avoid forcing a promise
         }
         return false;
     }
@@ -611,7 +611,7 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RFrameExtension ext = extension(frame);
-        return ext.get(symbol) != null;
+        return ext.get(symbol) != null; // TODO: avoid forcing a promise
     }
 
     public static boolean customExists(Frame frame, RSymbol symbol) {
@@ -625,11 +625,11 @@ public class RFrameHeader extends Arguments {
         if (parent != null) {
             return exists(parent, symbol);
         } else {
-            return readFromRootLevel(frame, symbol) != null;
+            return readFromRootLevel(frame, symbol) != null; // TODO: avoid forcing a promise
         }
     }
 
-    public static boolean exists(Frame frame, RSymbol symbol) {
+    public static boolean exists(Frame frame, RSymbol symbol) { // TODO: avoid forcing promises
         assert Utils.check(frame instanceof MaterializedFrame);
 
         FrameSlot slot = findVariable(frame, symbol);
@@ -668,7 +668,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) {
+    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) { // TODO: avoid forcing promises
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (hops == 0) {
@@ -695,7 +695,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static boolean existsInExtension(Frame frame, RSymbol sym, Frame stopFrame) {
+    public static boolean existsInExtension(Frame frame, RSymbol sym, Frame stopFrame) { // TODO: avoid forcing promises
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (frame == stopFrame) {
@@ -759,7 +759,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static void writeAtCondRef(Frame f, FrameSlot slot, RAny value) {
-        Object oldContent = RFrameHeader.getObject(f, slot);
+        Object oldContent = f.getObject(slot);
         if (value != oldContent) {
             f.setObject(slot, value);
             value.ref();

@@ -123,6 +123,7 @@ public class Primitives {
         add(Matrix._);
         add(Max._);
         add(Min._);
+        add(Missing._);
         add(Names._);
         add(NamesAssign._);
         add(Nchar._);

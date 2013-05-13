@@ -89,7 +89,7 @@ public class FunctionImpl extends RootNode implements RFunction {
                 RNode n = paramValues[i];
                 if (n != null) {
                     if (FunctionCall.PROMISES) {
-                        frame.setObject(paramSlots[i], new RPromise(n, frame));
+                        frame.setObject(paramSlots[i], RPromise.createDefault(n, frame));
                     } else {
                         RAny rvalue = (RAny) n.execute(frame);
 
@@ -100,7 +100,12 @@ public class FunctionImpl extends RootNode implements RFunction {
                         // NOTE: value can be null when a parameter is missing
                         // NOTE: if such a parameter is not used by the function, R is happy
                     }
+                } else {
+                    if (FunctionCall.PROMISES) {
+                        frame.setObject(paramSlots[i], RPromise.createMissing(paramNames[i], frame));
+                    }
                 }
+
             }
         }
 

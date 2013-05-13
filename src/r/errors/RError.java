@@ -54,7 +54,7 @@ public abstract class RError extends RuntimeException {
     public static final String NEGATIVE_NROW = "invalid 'nrow' value (< 0)";
     public static final String NON_CONFORMABLE_ARRAYS = "non-conformable arrays";
     public static final String INVALID_MODE = "invalid 'mode' argument";
-    public static final String UNKNOWN_VARIABLE = "object not found";
+    public static final String UNKNOWN_UNNAMED_OBJECT = "object not found";
     public static final String ONLY_MATRIX_DIAGONALS = "only matrix diagonals can be replaced";
     public static final String REPLACEMENT_DIAGONAL_LENGTH = "replacement diagonal has wrong length";
     public static final String NA_INTRODUCED_COERCION = "NAs introduced by coercion";
@@ -114,6 +114,7 @@ public abstract class RError extends RuntimeException {
     public static final String NON_NUMERIC_ARGUMENT_FUNCTION = "non-numeric argument to function";
     public static final String SEED_LENGTH = ".Random.seed has wrong length";
     public static final String PROMISE_CYCLE = "promise already under evaluation: recursive default argument reference?"; // not exactly GNU-R message
+    public static final String MISSING_ARGUMENTS = "'missing' can only be used for arguments";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -164,6 +165,7 @@ public abstract class RError extends RuntimeException {
     public static final String EXACT_SINGULARITY = "exact singularity in '%s'";
     public static final String SINGULAR_SOLVE = "singular matrix '%s' in solve";
     public static final String SEED_TYPE = ".Random.seed is not an integer vector but of type '%s'";
+    public static final String INVALID_USE = "invalid use of '%s'";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -972,12 +974,12 @@ public abstract class RError extends RuntimeException {
         };
     }
 
-    public static RError getUnknownVariable(ASTNode source) {
+    public static RError getUnknownObject(ASTNode source) {
         return new RErrorInExpr(source) {
             private static final long serialVersionUID = 1L;
 
             @Override public String getMessage() {
-                return UNKNOWN_VARIABLE;
+                return UNKNOWN_UNNAMED_OBJECT;
             }
         };
     }
@@ -1191,6 +1193,17 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getMissingArguments(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.MISSING_ARGUMENTS;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1217,6 +1230,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getUnknownVariable(ASTNode ast, RSymbol symbol) {
         return getGenericError(ast, String.format(RError.UNKNOWN_OBJECT, symbol.pretty()));
+    }
+
+    public static RError getArgumentMissing(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.ARGUMENT_MISSING, argName));
     }
 
     public static RError getUnknownFunction(ASTNode ast, RSymbol symbol) {
@@ -1398,5 +1415,9 @@ public abstract class RError extends RuntimeException {
 
     public static RError getSeedType(ASTNode ast, String typeName) {
         return getGenericError(ast, String.format(RError.SEED_TYPE, typeName));
+    }
+
+    public static RError getInvalidUse(ASTNode ast, String builtinName) {
+        return getGenericError(ast, String.format(RError.INVALID_USE, builtinName));
     }
 }

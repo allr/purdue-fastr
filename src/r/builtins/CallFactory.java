@@ -254,7 +254,7 @@ public abstract class CallFactory {
         }
         if (provided < minParameters) {
             for (int i = 0; i < required.length; i++) {
-                if (ai.paramPositions[ix(required[i])] == -1) { throw RError.getGenericError(call, String.format(RError.ARGUMENT_MISSING, required[i].name())); }
+                if (ai.paramPositions[ix(required[i])] == -1) { throw RError.getArgumentMissing(call, required[i].name()); }
             }
         }
         if (exprs.length < minParameters) { throw RError.getWrongArity(call, name().name(), minParameters, exprs.length); }

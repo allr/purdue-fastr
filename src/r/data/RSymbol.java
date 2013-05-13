@@ -154,6 +154,10 @@ public final class RSymbol extends BaseObject implements RAny {
         return RPromise.force(value);
     }
 
+    public Object getValueNoForce() {
+        return value;
+    }
+
     public void setValue(Object val) {
         value = val;
     }

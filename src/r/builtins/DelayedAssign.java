@@ -65,7 +65,7 @@ final class DelayedAssign extends CallFactory {
             RSymbol xSymbol = EnvBase.parseXSilent(xNode.execute(frame), ast);
             Frame evalFrame = extractFrame(frame, evalEnvNode, "eval.env");
             REnvironment assignEnv = parseEnv(frame, assignEnvNode, "assign.env");
-            assignEnv.delayedAssign(xSymbol, new RPromise(valueNode, evalFrame), ast);
+            assignEnv.delayedAssign(xSymbol, RPromise.createNormal(valueNode, evalFrame), ast);
             return RNull.getNull();
         }
 

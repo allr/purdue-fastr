@@ -37,7 +37,7 @@ public abstract class AssignVariable extends ASTNode {
         } else if (lhs instanceof FunctionCall) {
             return writeFunction(isSuper, (FunctionCall) lhs, rhs);
         } else if (lhs instanceof Constant) {
-            throw RError.getUnknownVariable(rhs); // TODO it's own exception
+            throw RError.getUnknownObject(rhs); // TODO it's own exception
         }
         Utils.nyi();
         return null;

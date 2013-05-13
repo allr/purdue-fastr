@@ -1,32 +1,63 @@
 package r.data;
 
 import r.errors.*;
+import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 
 public final class RPromise {
-    final RNode expression; // must be a root node
-    final MaterializedFrame frame;
-    RAny value;
+    private final RNode expression; // must be a root node
+    private final MaterializedFrame frame; // FIXME: can we merge the frame and value fields?
+    private RAny value;
+    private int bits;
 
-    public RPromise(RNode expression, Frame frame) {
+    private static final int FORCE_DIRTY_MASK = 1 << 0;
+    private static final int MISSING_DIRTY_MASK = 1 << 1;
+    private static final int MISSING_MASK = 1 << 2 | 1 << 3;
+    private static final int MISSING_SHIFT = 2;
+
+    private static final int MISSING_BITS_DEFAULT = 2 << MISSING_SHIFT;
+    private static final int MISSING_BITS_MISSING = 1 << MISSING_SHIFT; // NOTE: we use different encoding of missing states from GNU-R
+
+    private RPromise(RNode expression, Frame frame, int bits) {
         this.expression = expression; // root node
         this.frame = frame == null ? null : frame.materialize();
+        this.bits = bits;
     }
 
-    private RNode evaluatingExpr = null;
+    public static RPromise createNormal(RNode expression, Frame frame) {
+        return new RPromise(expression, frame, 0);
+    }
+
+    public static RPromise createDefault(RNode expression, Frame frame) {
+        return new RPromise(expression, frame, MISSING_BITS_DEFAULT);
+    }
+
+    public static RPromise createMissing(final RSymbol argName, Frame frame) {
+
+        final ASTNode errorAST = frame == null ? null : RFrameHeader.function(frame).getSource();
+        RNode errorExpression = new BaseR(errorAST) { // FIXME: don't need bits, could detect missing arg using instanceof
+
+            @Override
+            public Object execute(Frame dummy) {
+                throw RError.getArgumentMissing(errorAST, argName.pretty());
+            }
+
+        };
+
+        return new RPromise(errorExpression, frame, MISSING_BITS_MISSING);
+    }
 
     public Object forceOrGet() {
         if (value == null) {
-            if (evaluatingExpr != null) {
-                throw RError.getPromiseCycle(evaluatingExpr.getAST()); // TODO: use the correct AST - probably the current context
-            }
-            evaluatingExpr = expression;
             try {
+                if (!markForceDirty()) {
+                    throw RError.getPromiseCycle(expression.getAST()); // TODO: use the correct AST - probably the current context
+                }
                 value = (RAny) expression.execute(frame);
             } finally {
-                evaluatingExpr = null;
+                markForceClean();
             }
             value.ref();
         }
@@ -39,5 +70,41 @@ public final class RPromise {
         } else {
             return o;
         }
+    }
+
+    public boolean markForceDirty() {
+        boolean old = (bits & FORCE_DIRTY_MASK) != 0;
+        bits |= FORCE_DIRTY_MASK;
+        return !old;
+    }
+
+    public void markForceClean() {
+        bits &= ~FORCE_DIRTY_MASK;
+    }
+
+    public boolean markMissingDirty() {
+        boolean old = (bits & MISSING_DIRTY_MASK) != 0;
+        bits |= MISSING_DIRTY_MASK;
+        return !old;
+    }
+
+    public void markMissingClean() {
+        bits &= ~MISSING_DIRTY_MASK;
+    }
+
+    public boolean isDefault() {
+        return (bits & MISSING_MASK) == MISSING_BITS_DEFAULT;
+    }
+
+    public boolean isMissing() {
+        return (bits & MISSING_MASK) == MISSING_BITS_MISSING;
+    }
+
+    public RNode expression() {
+        return expression;
+    }
+
+    public MaterializedFrame frame() {
+        return frame;
     }
 }
