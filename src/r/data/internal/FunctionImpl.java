@@ -105,24 +105,28 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         }
 
+        // use method execute(Frame, Object[]) instead
         @Override
-        public Object execute(Frame frame) {
-            RFrameHeader h = RFrameHeader.header(frame);
-            Object[] args = h.arguments();
+        public final Object execute(Frame frame) {
+            assert (false);
+            return null;
+        }
+
+        public Object execute(Frame frame, Object[] args) {
             RAny value = (RAny) args[_idx];
             if (value != null) {
                 if (value instanceof RAny.NotRefCounted) {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new ScalarParamNotDefaultWriter(this)).execute(frame);
+                    replace(new ScalarParamNotDefaultWriter(this)).execute(frame, args);
                     return null;
                 } else if (value instanceof NonScalarArrayImpl) {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new DirectParamNoDefaultWriter(this)).execute(frame);
+                    replace(new DirectParamNoDefaultWriter(this)).execute(frame, args);
                     return null;
                 }
             }
             CompilerDirectives.transferToInterpreter();
-            replace(new GenericParamWriter(this)).execute(frame);
+            replace(new GenericScalarParamWriter(this)).execute(frame, args);
             return null;
         }
 
@@ -150,19 +154,17 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         @Override
-        public Object execute(Frame frame) {
-            RFrameHeader h = RFrameHeader.header(frame);
-            Object[] args = h.arguments();
+        public Object execute(Frame frame, Object[] args) {
             RAny value = (RAny) args[_idx];
             if (value == null) {
                 CompilerDirectives.transferToInterpreter();
-                return replace(new ScalarParamWriter(this)).execute(frame);
+                return replace(new ScalarParamWriter(this)).execute(frame, args);
             } else if (! (value instanceof RAny.NotRefCounted)) {
                 CompilerDirectives.transferToInterpreter();
                 if (value instanceof NonScalarArrayImpl)
-                    return replace(new DirectParamNoDefaultWriter(this)).execute(frame);
+                    return replace(new DirectParamNoDefaultWriter(this)).execute(frame, args);
                 else
-                    return replace(new GenericParamWriter(this)).execute(frame);
+                    return replace(new GenericParamWriter(this)).execute(frame, args);
             } else {
                 try {
                     frame.setObject(_slot, value);
@@ -183,9 +185,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         @Override
-        public Object execute(Frame frame) {
-            RFrameHeader h = RFrameHeader.header(frame);
-            Object[] args = h.arguments();
+        public Object execute(Frame frame, Object[] args) {
             RAny value = (RAny) args[_idx];
             if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
                 writeParamDefaultValue(frame);
@@ -198,7 +198,7 @@ public class FunctionImpl extends RootNode implements RFunction {
                     }
                 } else {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new GenericParamWriter(this)).execute(frame);
+                    replace(new GenericParamWriter(this)).execute(frame, args);
                 }
             }
             return null;
@@ -212,13 +212,11 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         @Override
-        public Object execute(Frame frame) {
-            RFrameHeader h = RFrameHeader.header(frame);
-            Object[] args = h.arguments();
+        public Object execute(Frame frame, Object[] args) {
             RAny value = (RAny) args[_idx];
             if (value == null) {
                 CompilerDirectives.transferToInterpreter();
-                return replace(new DirectParamWriter(this)).execute(frame);
+                return replace(new DirectParamWriter(this)).execute(frame, args);
             }
             if (value instanceof NonScalarArrayImpl) {
                 try {
@@ -229,7 +227,7 @@ public class FunctionImpl extends RootNode implements RFunction {
                 value.ref();
             } else {
                 CompilerDirectives.transferToInterpreter();
-                replace(new GenericParamWriter(this)).execute(frame);
+                replace(new GenericParamWriter(this)).execute(frame, args);
             }
             return null;
         }
@@ -244,9 +242,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         @Override
-        public Object execute(Frame frame) {
-            RFrameHeader h = RFrameHeader.header(frame);
-            Object[] args = h.arguments();
+        public Object execute(Frame frame, Object[] args) {
             RAny value = (RAny) args[_idx];
             if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
                 writeParamDefaultValue(frame);
@@ -260,13 +256,38 @@ public class FunctionImpl extends RootNode implements RFunction {
                     value.ref();
                 } else {
                     CompilerDirectives.transferToInterpreter();
-                    replace(new GenericParamWriter(this)).execute(frame);
+                    replace(new GenericParamWriter(this)).execute(frame, args);
                 }
             }
             return null;
         }
+    }
 
+    static class GenericScalarParamWriter extends ParamWriter {
 
+        public GenericScalarParamWriter(ParamWriter other) {
+            super(other._idx, other._value, other._slot);
+        }
+
+        @Override
+        public Object execute(Frame frame, Object[] args) {
+            try {
+                RAny value = (RAny) args[_idx];
+                if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
+                    writeParamDefaultValue(frame);
+                } else {
+                    frame.setObject(_slot, value);
+                    if (value instanceof NonScalarArrayImpl) {
+                        CompilerDirectives.transferToInterpreter();
+                        replace(new GenericParamWriter(this));
+                        value.ref();
+                    }
+                }
+            } catch (FrameSlotTypeException e) {
+                assert (false);
+            }
+            return null;
+        }
     }
 
     static class GenericParamWriter extends ParamWriter {
@@ -276,10 +297,8 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         @Override
-        public Object execute(Frame frame) {
+        public Object execute(Frame frame, Object[] args) {
             try {
-                RFrameHeader h = RFrameHeader.header(frame);
-                Object[] args = h.arguments();
                 RAny value = (RAny) args[_idx];
                 if (CompilerDirectives.injectBranchProbability(0.05, value == null)) {
                     writeParamDefaultValue(frame);
@@ -298,13 +317,15 @@ public class FunctionImpl extends RootNode implements RFunction {
     }
 
 
-
-
-
+    /** GRAAL getting arguments is hoisted out of the param writers to prevent multiple accesses.
+     */
     @ExplodeLoop
     @Override public Object execute(VirtualFrame frame) {
+        // TODO a possible optimization is special FunctionImpl node for argument-less functions
+        RFrameHeader h = RFrameHeader.header(frame);
+        Object[] args = h.arguments();
         for (ParamWriter pw : _paramWriters)
-            pw.execute(frame);
+            pw.execute(frame,args);
         Object res;
         try {
             res = body.execute(frame);

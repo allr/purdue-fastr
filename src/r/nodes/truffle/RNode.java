@@ -62,5 +62,4 @@ public abstract class RNode extends Node {
         pushBack(childNode, childValue);
         return replace(newNode).execute(frame);
     }
-
 }

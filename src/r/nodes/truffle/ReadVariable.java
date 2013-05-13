@@ -126,10 +126,12 @@ public abstract class ReadVariable extends BaseR {
         @Override
         public RAny execute(Frame frame) {
             RAny result = RFrameHeader.readViaWriteSetFastPath(frame, _slot);
-            if (result != null)
+            if (result == null) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadGenericLocalVariable(this)).execute(frame);
+            } else {
                 return result;
-            CompilerDirectives.transferToInterpreter();
-            return replace(new ReadGenericLocalVariable(this)).execute(frame);
+            }
         }
     }
 
