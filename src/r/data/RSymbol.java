@@ -6,6 +6,7 @@ import r.*;
 import r.Convert.*;
 import r.builtins.Primitives.PrimitiveEntry;
 import r.data.internal.*;
+import r.nodes.truffle.*;
 
 public final class RSymbol extends BaseObject implements RAny {
 
@@ -33,7 +34,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
     final String name;
     // The next two fields are for the topLevel
-    RAny value;
+    Object value;
     int version;
     // The next is for the builtins registration
     PrimitiveEntry primitive;
@@ -149,11 +150,11 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
-    public RAny getValue() {
-        return value;
+    public Object getValue() {
+        return RPromise.force(value);
     }
 
-    public void setValue(RAny val) {
+    public void setValue(Object val) {
         value = val;
     }
 

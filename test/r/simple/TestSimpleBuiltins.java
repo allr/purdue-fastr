@@ -4,6 +4,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
+import r.nodes.truffle.*;
 
 public class TestSimpleBuiltins extends SimpleTestBase {
 
@@ -970,5 +971,15 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         assertEval("{ round( rcauchy(3), digits = 5 ) }", "0.33219, -0.49318, 2.29137");
         assertEval("{ round( rcauchy(3, scale=4, location=1:3), digits = 5 ) }", "2.32876, 0.02726, 12.16546");
+    }
+
+    @Test
+    public void testDelayedAssign() throws RecognitionException {
+        if (FunctionCall.PROMISES) {
+            assertEval("{ delayedAssign(\"x\", y); y <- 10; x }", "10.0");
+            assertEval("{ delayedAssign(\"x\", a+b); a <- 1 ; b <- 3 ; x }", "4.0");
+            assertEval("{ f <- function() { delayedAssign(\"x\", y); y <- 10; x  } ; f() }", "10.0");
+            assertEval("{ h <- new.env(parent=emptyenv()) ; delayedAssign(\"x\", y, h, h) ; assign(\"y\", 2, h) ; get(\"x\", h) }", "2.0");
+        }
     }
 }

@@ -32,7 +32,7 @@ final class EnvBase {
         throw RError.getInvalidArgument(ast, "inherits");
     }
 
-    static REnvironment parseEnvir(RAny arg, ASTNode ast) {
+    static REnvironment parseEnvir(Object arg, ASTNode ast) {
         if (arg instanceof REnvironment) { return (REnvironment) arg; }
         throw RError.getInvalidArgument(ast, "envir");
     }
@@ -44,7 +44,7 @@ final class EnvBase {
     }
 
     // NOTE: get and assign have different failure modes for X
-    static RSymbol parseXSilent(RAny arg, ASTNode ast) {
+    static RSymbol parseXSilent(Object arg, ASTNode ast) {
         if (!(arg instanceof RString)) { throw RError.getInvalidFirstArgument(ast); }
         RString sarg = (RString) arg;
         if (sarg.size() == 0) { throw RError.getInvalidFirstArgument(ast); }

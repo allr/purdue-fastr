@@ -144,9 +144,14 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
+    public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
+        RFrameHeader.localWriteNoRef(frame, name, value);
+    }
+
+    @Override
     public RAny get(RSymbol name, boolean inherits) {
         if (!inherits) {
-            return RFrameHeader.localRead(frame, name);
+            return (RAny) RFrameHeader.localRead(frame, name);
         } else {
             return Utils.cast(RFrameHeader.read(frame, name));
         }
@@ -171,7 +176,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return RFrameHeader.listSymbols(frame);
     }
 
-    public static RAny readFromTopLevel(RSymbol sym) {
+    public static Object readFromTopLevel(RSymbol sym) {
         return sym.getValue();
     }
 
@@ -208,9 +213,14 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
+        public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
+            RFrameHeader.customLocalWriteNoRef(frame, name, value);
+        }
+
+        @Override
         public RAny get(RSymbol name, boolean inherits) {
             if (!inherits) {
-                return RFrameHeader.customLocalRead(frame, name);
+                return (RAny) RFrameHeader.customLocalRead(frame, name);
             } else {
                 return Utils.cast(RFrameHeader.customRead(frame, name));
             }
@@ -244,11 +254,16 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
+        public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
+            RFrameHeader.writeToTopLevelNoRef(name, value);
+        }
+
+        @Override
         public RAny get(RSymbol name, boolean inherits) {
             if (!inherits) {
-                return readFromTopLevel(name);
+                return Utils.cast(readFromTopLevel(name));
             } else {
-                RAny res = readFromTopLevel(name);
+                RAny res = Utils.cast(readFromTopLevel(name));
                 if (res != null) {
                     return res;
                 }
@@ -262,7 +277,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             if (!inherits) {
                 return readFromTopLevel(name) != null;
             } else {
-                RAny res = readFromTopLevel(name);
+                RAny res = Utils.cast(readFromTopLevel(name));
                 if (res != null) {
                     return true;
                 }
@@ -272,7 +287,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
         @Override
         public RCallable match(RSymbol name) {
-            RAny res = readFromTopLevel(name);
+            Object res = readFromTopLevel(name);
             if (res != null && res instanceof RCallable) {
                 return (RCallable) res;
             }
@@ -299,6 +314,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
         @Override
         public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
+            throw RError.getAssignEmpty(ast);
+        }
+
+        @Override
+        public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
             throw RError.getAssignEmpty(ast);
         }
 
@@ -348,4 +368,5 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     public boolean dependsOn(RAny value) {
         return false;
     }
+
 }

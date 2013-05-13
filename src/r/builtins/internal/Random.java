@@ -20,14 +20,14 @@ public final class Random {
 
     // returns the retrieved direct pointer to the workspace seed, to be later passed to updateWorkspaceSeed
     public static int[] updateNativeSeed(ASTNode ast) {
-        RAny v = seedSymbol.getValue(); // FIXME: check R semantics when running in eval
+        Object v = seedSymbol.getValue(); // FIXME: check R semantics when running in eval
         int[] kind;
         if (v == null) {
                 // TODO: should ideally randomize here
             v = defaultSeed;
         }
         if (!(v instanceof RInt)) {
-            throw RError.getSeedType(ast, v.typeOf());
+            throw RError.getSeedType(ast, ((RAny)v).typeOf());
         }
         RInt iv = (RInt) v;
         int size = iv.size();

@@ -112,7 +112,7 @@ public abstract class MatchCallable extends BaseR {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val; // TODO check if 'version' is enough, I think the good test has to be:
+                Object val; // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
                 if (version != symbol.getVersion()) {
                     val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
@@ -144,7 +144,7 @@ public abstract class MatchCallable extends BaseR {
             @Override
             public final Object execute(Frame frame) {
                 assert Utils.check(frame == null);
-                RAny val = symbol.getValue();
+                Object val = symbol.getValue();
                 if (val == null || !(val instanceof RCallable)) {
                     if (Primitives.STATIC_LOOKUP) {
                         throw RError.getUnknownFunction(ast, symbol);

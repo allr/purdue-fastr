@@ -119,7 +119,7 @@ public abstract class UpdateVector extends BaseR {
                     RFrameHeader.writeAtRef(frame, frameSlot, newBase);
                 }
             } else { // this should be uncommon
-                base = RFrameHeader.readViaWriteSetSlowPath(frame, var);
+                base = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, var));
                 if (base == null) { throw RError.getUnknownVariable(getAST()); }
                 base.ref(); // reading from parent, hence need to copy on update
                 // ref once will make it shared unless it is stateless (like int sequence)
@@ -129,7 +129,7 @@ public abstract class UpdateVector extends BaseR {
             }
         } else {
             // variable is top-level
-            RAny base = var.getValue();
+            RAny base = Utils.cast(var.getValue());
             if (base == null) { throw RError.getUnknownVariable(getAST()); }
             RAny newBase = execute(base, index, value);
             if (newBase != base) {

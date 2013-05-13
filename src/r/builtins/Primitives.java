@@ -80,6 +80,7 @@ public class Primitives {
         add(Cor._);
         add(Crossprod._);
         add(Cumsum._);
+        add(DelayedAssign._);
         add(Det._);
         add(DiagAssign._);
         add(Dim._);

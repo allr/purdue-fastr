@@ -108,7 +108,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             RAny lhsValue = (RAny) RFrameHeader.getObject(frame, varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
-                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
+                lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), varName);
                 }
@@ -179,7 +179,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             RAny lhsValue = (RAny) RFrameHeader.getObject(frame, varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
-                lhsValue = RFrameHeader.readViaWriteSetSlowPath(frame, varName);
+                lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), varName);
                 }
@@ -203,7 +203,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
         @Override
         public Object execute(Frame frame) {
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = varName.getValue();
+            RAny lhsValue = Utils.cast(varName.getValue());
             if (lhsValue == null) {
                 throw RError.getUnknownVariable(getAST(), varName);
             }
@@ -226,7 +226,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
 
         @Override
         public Object execute(Frame frame) {
-            RAny lhsValue = varName.getValue();
+            RAny lhsValue = Utils.cast(varName.getValue());
             if (lhsValue == null) {
                 throw RError.getUnknownVariable(getAST(), varName);
             }

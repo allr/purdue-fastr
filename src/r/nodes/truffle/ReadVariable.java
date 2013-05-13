@@ -110,11 +110,11 @@ public abstract class ReadVariable extends BaseR {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
+                Object val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+val.pretty()+") from slot "+slot+" hops "+hops); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+((RAny)val).pretty()+") from slot "+slot+" hops "+hops); }
                 return val;
             }
         };
@@ -127,7 +127,7 @@ public abstract class ReadVariable extends BaseR {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val;
+                Object val;
 
                 // TODO check if 'version' is enough, I think the good test has to be:
                 // if (frame != oldFrame || version != symbol.getVersion()) {
@@ -146,7 +146,7 @@ public abstract class ReadVariable extends BaseR {
                 if (val == null) {
                     return readNonVariable(ast, symbol);
                 }
-                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+val.pretty()+")" ); }
+                if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+((RAny) val).pretty()+")" ); }
                 return val;
             }
         };
@@ -158,7 +158,7 @@ public abstract class ReadVariable extends BaseR {
             @Override
             public final Object execute(Frame frame) {
                 assert Utils.check(frame == null);
-                RAny val = symbol.getValue();
+                Object val = symbol.getValue();
                 if (val == null) {  // TODO: another node
                     return readNonVariable(ast, symbol);
                 }
