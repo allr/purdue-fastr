@@ -1,5 +1,6 @@
 package r.data;
 
+import r.errors.*;
 import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
@@ -14,9 +15,19 @@ public final class RPromise {
         this.frame = frame == null ? null : frame.materialize();
     }
 
+    private RNode evaluatingExpr = null;
+
     public Object forceOrGet() {
         if (value == null) {
-            value = (RAny) expression.execute(frame);
+            if (evaluatingExpr != null) {
+                throw RError.getPromiseCycle(evaluatingExpr.getAST()); // TODO: use the correct AST - probably the current context
+            }
+            evaluatingExpr = expression;
+            try {
+                value = (RAny) expression.execute(frame);
+            } finally {
+                evaluatingExpr = null;
+            }
             value.ref();
         }
         return value;

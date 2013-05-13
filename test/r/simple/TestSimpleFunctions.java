@@ -93,6 +93,7 @@ public class TestSimpleFunctions extends SimpleTestBase {
             assertEval("{ f <- function(a) { g <- function(b) { x <<- 2; b } ; g(a) } ; x <- 1 ; f(x) }", "2.0");
             assertEval("{ f <- function(a) { g <- function(b) { a <<- 3; b } ; g(a) } ; x <- 1 ; f(x) }", "3.0");
             assertEval("{ f <- function(x) { function() {x} } ; a <- 1 ; b <- f(a) ; a <- 10 ; b() }", "10.0");
+            assertEvalError("{ f <- function(x = y, y = x) { y } ; f() }", "promise already under evaluation: recursive default argument reference?");
         }
     }
 }

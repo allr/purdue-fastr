@@ -980,6 +980,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEval("{ delayedAssign(\"x\", a+b); a <- 1 ; b <- 3 ; x }", "4.0");
             assertEval("{ f <- function() { delayedAssign(\"x\", y); y <- 10; x  } ; f() }", "10.0");
             assertEval("{ h <- new.env(parent=emptyenv()) ; delayedAssign(\"x\", y, h, h) ; assign(\"y\", 2, h) ; get(\"x\", h) }", "2.0");
+            assertEvalError("{ f <- function() { delayedAssign(\"x\", y); delayedAssign(\"y\", x) ; x } ; f() }", "promise already under evaluation: recursive default argument reference?");
         }
     }
 }
