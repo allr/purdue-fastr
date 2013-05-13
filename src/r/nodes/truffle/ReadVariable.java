@@ -77,7 +77,7 @@ public abstract class ReadVariable extends BaseR {
             @Override
             public final Object execute(Frame frame) {
                 try {
-                    Object value = frame.getObject(slot);
+                    Object value = RFrameHeader.getObject(frame, slot);
                     if (value == null) {
                         throw new UnexpectedResultException(null);
                     }

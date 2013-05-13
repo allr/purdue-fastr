@@ -12,6 +12,8 @@ import r.nodes.*;
 
 public abstract class FunctionCall extends AbstractCall {
 
+    public final static boolean PROMISES = true;
+
     final RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
@@ -312,14 +314,14 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
+    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) { // FIXME: is this still needed?
         return null;
     }
 
     // providedArgNames is an output parameter, it should be an array of argExprs.length nulls before the call
     // FIXME: what do we need the parameter for?
 
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int nparams) {
+    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int nparams) { // FIXME: is this still needed?
         Object[] argValues = new Object[nparams];
         int i = 0;
 

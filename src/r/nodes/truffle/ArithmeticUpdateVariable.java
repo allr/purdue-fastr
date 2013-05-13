@@ -61,7 +61,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                Object value = frame.getObject(slot);
+                Object value = RFrameHeader.getObject(frame, slot);
                 if (value != null && value instanceof ScalarIntImpl) {
                     int i = ((ScalarIntImpl) value).getInt();
                     int newi = i + 1;
@@ -113,7 +113,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                Object value = frame.getObject(slot);
+                Object value = RFrameHeader.getObject(frame, slot);
                 if (value != null && value instanceof ScalarIntImpl) {
                     int i = ((ScalarIntImpl) value).getInt();
                     int newi = i - 1;

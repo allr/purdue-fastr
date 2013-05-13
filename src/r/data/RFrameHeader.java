@@ -138,7 +138,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static Object readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = frame.getObject(slot);
+        Object value = RFrameHeader.getObject(frame, slot);
 
         if (value != null) {  // TODO: another node (one branch needs to have deopt)
             return value;
@@ -248,7 +248,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no inserted extension slot
-            Object res = f.getObject(slot);
+            Object res = RFrameHeader.getObject(f, slot);
             if (res != null) {
                 return Utils.cast(res);
             }
@@ -318,7 +318,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RCallable matchViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = frame.getObject(slot);
+        Object value = RFrameHeader.getObject(frame, slot);
 
         if (value != null && value instanceof RCallable) {  // TODO: another node (one branch needs to have deopt)
             return Utils.cast(value);
@@ -461,7 +461,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no extension inserted slot
-            Object res = f.getObject(slot);
+            Object res = RFrameHeader.getObject(f, slot);
             if (res != null && res instanceof RCallable) {
                 return Utils.cast(res);
             }
@@ -543,7 +543,7 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return Utils.cast(frame.getObject(slot));
+            return Utils.cast(RFrameHeader.getObject(frame, slot));
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -597,7 +597,7 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return frame.getObject(slot) != null;
+            return RFrameHeader.getObject(frame, slot) != null;
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -633,7 +633,7 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            if (frame.getObject(slot) != null) {
+            if (RFrameHeader.getObject(frame, slot) != null) {
                 return true;
             }
         }
@@ -671,7 +671,7 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (hops == 0) {
-            if (frame.getObject(slot) != null) {
+            if (RFrameHeader.getObject(frame, slot) != null) {
                 return true;
             }
             if (isDirty(frame)) {
@@ -743,7 +743,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static void writeAtCondRef(Frame f, FrameSlot slot, RAny value) {
-        Object oldContent = f.getObject(slot);
+        Object oldContent = RFrameHeader.getObject(f, slot);
         if (value != oldContent) {
             f.setObject(slot, value);
             value.ref();
@@ -767,7 +767,7 @@ public class RFrameHeader extends Arguments {
     public static boolean superWriteViaWriteSet(Frame enclosingFrame, FrameSlot slot, RSymbol symbol, RAny value) {
         assert Utils.check(enclosingFrame instanceof MaterializedFrame);
 
-        Object oldVal = enclosingFrame.getObject(slot);
+        Object oldVal = RFrameHeader.getObject(enclosingFrame, slot);
         if (oldVal != null) {
             if (oldVal != value) {
                 RFrameHeader.writeAtNoRef(enclosingFrame, slot, value);
@@ -891,7 +891,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no inserted extension slot
-            val = f.getObject(slot);
+            val = RFrameHeader.getObject(f, slot);
             if (val != null) {
                 writeAtRef(f, slot, value);
                 return true;
@@ -1110,5 +1110,10 @@ public class RFrameHeader extends Arguments {
         } else {
             return ws;
         }
+    }
+
+
+    public static Object getObject(Frame frame, FrameSlot slot) {
+        return RPromise.force(frame.getObject(slot));
     }
 }

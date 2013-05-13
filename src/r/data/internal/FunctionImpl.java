@@ -79,20 +79,27 @@ public class FunctionImpl extends RootNode implements RFunction {
         RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
         for (int i = 0; i < paramSlots.length; i++) {
-            RAny value = (RAny) args[i]; // FIXME: use RAny array instead?
+            Object value = args[i]; // FIXME: use RAny array instead?
             if (value != null) {
                 frame.setObject(paramSlots[i], value);
-                value.ref();
+                if (!FunctionCall.PROMISES) {
+                    ((RAny) value).ref();
+                }
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {
-                    value = (RAny) n.execute(frame); // TODO: get rid of the context
-                    if (value != null) {
-                        frame.setObject(paramSlots[i], value);
-                        value.ref();
+                    if (FunctionCall.PROMISES) {
+                        frame.setObject(paramSlots[i], new RPromise(n, frame));
+                    } else {
+                        RAny rvalue = (RAny) n.execute(frame);
+
+                        if (rvalue != null) {
+                            frame.setObject(paramSlots[i], rvalue);
+                            rvalue.ref();
+                        }
+                        // NOTE: value can be null when a parameter is missing
+                        // NOTE: if such a parameter is not used by the function, R is happy
                     }
-                    // NOTE: value can be null when a parameter is missing
-                    // NOTE: if such a parameter is not used by the function, R is happy
                 }
             }
         }

@@ -3,6 +3,8 @@ package r.simple;
 import org.antlr.runtime.*;
 import org.junit.*;
 
+import r.nodes.truffle.*;
+
 public class TestSimpleFunctions extends SimpleTestBase {
 
     @Test
@@ -80,5 +82,17 @@ public class TestSimpleFunctions extends SimpleTestBase {
         // Fibonacci numbers
         assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { f(i-1) + f(i-2) } } ; f(10) }", "55.0");
         assertEval("{ f<-function(i) { if (i==1L) { 1L } else if (i==2L) { 1L } else { f(i-1L) + f(i-2L) } } ; f(10L) }", "55L");
+    }
+
+    @Test
+    public void testPromises() throws RecognitionException {
+        if (FunctionCall.PROMISES) {
+            assertEval("{ f <- function(x = z) { z = 1 ; x } ; f() }", "1.0");
+            assertEval("{ z <- 1 ; f <- function(c = z) {  z <- z + 1 ; c  } ; f() }", "2.0");
+            assertEval("{ z <- 1 ; f <- function(c = z) { c(1,2) ; z <- z + 1 ; c  } ; f() }", "1.0");
+            assertEval("{ f <- function(a) { g <- function(b) { x <<- 2; b } ; g(a) } ; x <- 1 ; f(x) }", "2.0");
+            assertEval("{ f <- function(a) { g <- function(b) { a <<- 3; b } ; g(a) } ; x <- 1 ; f(x) }", "3.0");
+            assertEval("{ f <- function(x) { function() {x} } ; a <- 1 ; b <- f(a) ; a <- 10 ; b() }", "10.0");
+        }
     }
 }

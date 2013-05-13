@@ -112,14 +112,17 @@ public abstract class AbstractCall extends BaseR {
             if (p >= 0) {
                 RNode v = argExprs[i];
                 if (v != null) {
-                    Object argV = argExprs[i].execute(callerFrame);
-                    if (MATERIALIZE_ON_FUNCTION_CALL) {
-                        if (argV instanceof View) {
-                            argV = ((View) argV).materialize();
+                    if (FunctionCall.PROMISES) {
+                        argValues[p] = new RPromise(v, callerFrame);
+                    } else {
+                        Object argV = argExprs[i].execute(callerFrame);
+                        if (MATERIALIZE_ON_FUNCTION_CALL) {
+                            if (argV instanceof View) {
+                                argV = ((View) argV).materialize();
+                            }
                         }
+                        argValues[p] = argV;
                     }
-                    argValues[p] = argV;
-                    // FIXME this is wrong ! We have to build a promise at this point and not evaluate
                 }
             } else {
                 // TODO support ``...''
