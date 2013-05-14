@@ -983,4 +983,23 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEvalError("{ f <- function() { delayedAssign(\"x\", y); delayedAssign(\"y\", x) ; x } ; f() }", "promise already under evaluation: recursive default argument reference?");
         }
     }
+
+    @Test
+    public void testMissing() throws RecognitionException {
+        if (FunctionCall.PROMISES) {
+            assertEval("{ f <- function(a = 2 + 3) { missing(a) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a = z) { missing(a) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a = 2 + 3) { a;  missing(a) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a) { g(a) } ;  g <- function(b) { missing(b) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a = 2) { g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
+            assertEval("{ f <- function(a = z) {  g(a) } ; g <- function(b) { missing(b) } ; f() }", "FALSE");
+            assertEval("{ f <- function(a = z, z) {  g(a) } ; g <- function(b) { missing(b) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a) { g(a) } ; g <- function(b=2) { missing(b) } ; f() }", "TRUE");
+            assertEval("{ f <- function(x = y, y = x) { g(x, y) } ; g <- function(x, y) { missing(x) } ; f() }", "TRUE");
+            assertEval("{ f <- function(a,b,c) { missing(b) } ; f(1,,2) }", "TRUE");
+            assertEval("{ g <- function(a, b, c) { b } ; f <- function(a,b,c) { g(a,b=2,c) } ; f(1,,2) }", "2.0"); // not really the builtin, but somewhat related
+            assertEval("{ f <- function(x) { missing(x) } ; f(a) }", "FALSE");
+            assertEval("{ f <- function(a) { g <- function(b) { before <- missing(b) ; a <<- 2 ; after <- missing(b) ; c(before, after) } ; g(a) } ; f() }", "TRUE, FALSE");
+        }
+    }
 }

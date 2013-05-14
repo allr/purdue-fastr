@@ -58,6 +58,7 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEvalError("{ x<-function(){1} ; x(1) }", "unused argument(s) (1.0)");
         assertEvalError("{ x<-function(a){1} ; x(1,) }", "unused argument(s) ()");
         assertEvalError("{ x<-function(){1} ; x(y=sum(1:10)) }", "unused argument(s) (y = sum(1.0 : 10.0))");
+        assertEvalError("{ f <- function(x) { x } ; f() }", "argument 'x' is missing, with no default");
     }
 
     @Test

@@ -27,9 +27,57 @@ final class Missing extends CallFactory {
         throw RError.getInvalidUse(ast, "missing");
     }
 
+    public static RAny missing(Frame frame, RSymbol symbol, ASTNode ast) {
+
+        if (frame == null) {
+            // top-level
+            Object value = symbol.getValueNoForce();
+            if (value == null) {
+                throw RError.getMissingArguments(ast);
+            } else if (value instanceof RPromise) {
+                RPromise p = (RPromise) value;
+                return hasCycle(p) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+            } else {
+                return RLogical.BOXED_FALSE;
+            }
+        }
+        // non top-level
+        FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
+
+        if (slot == null) {
+            throw RError.getMissingArguments(ast);
+        }
+        Object value = frame.getObject(slot);
+        if (value == null) {
+            throw RError.getMissingArguments(ast);
+        }
+        if (value instanceof RPromise) {
+            RPromise p = (RPromise) value;
+            if (p.isDefault()) {
+                return RLogical.BOXED_TRUE;
+            } else {
+                return isMissing(p) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
+            }
+        } else {
+            return RLogical.BOXED_FALSE;
+        }
+    }
+
     @Override
     public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
+
+        final RSymbol symbol = getAccessedSymbol(exprs[0].getAST());
+        if (symbol != null) {
+            return new BaseR(call) {
+
+                @Override
+                public Object execute(Frame frame) {
+                    return missing(frame, symbol, ast);
+                }
+
+            };
+        }
 
         return new Builtin.Builtin1(call, names, exprs) {
 
@@ -38,38 +86,7 @@ final class Missing extends CallFactory {
                 assert Utils.check(FunctionCall.PROMISES);
 
                 RSymbol xSymbol = parseX(arg, ast);
-                if (frame == null) {
-                    // top-level
-                    Object value = xSymbol.getValueNoForce();
-                    if (value == null) {
-                        throw RError.getMissingArguments(ast);
-                    } else if (value instanceof RPromise) {
-                        RPromise p = (RPromise) value;
-                        return hasCycle(p) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
-                    } else {
-                        return RLogical.BOXED_FALSE;
-                    }
-                }
-                // non top-level
-                FrameSlot slot = RFrameHeader.findVariable(frame, xSymbol);
-
-                if (slot == null) {
-                    throw RError.getMissingArguments(ast);
-                }
-                Object value = frame.getObject(slot);
-                if (value == null) {
-                    throw RError.getMissingArguments(ast);
-                }
-                if (value instanceof RPromise) {
-                    RPromise p = (RPromise) value;
-                    if (p.isDefault()) {
-                        return RLogical.BOXED_TRUE;
-                    } else {
-                        return isMissing(p) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE;
-                    }
-                } else {
-                    return RLogical.BOXED_FALSE;
-                }
+                return missing(frame, xSymbol, ast);
             }
         };
     }
@@ -79,22 +96,13 @@ final class Missing extends CallFactory {
             if (!p.markMissingDirty()) {
                 return true;
             }
-            RNode expr = p.expression();
-            ASTNode ast = expr.getAST();
-
-            if (ast instanceof r.nodes.SimpleAccessVariable) {
-                RSymbol symbol = ((r.nodes.SimpleAccessVariable) ast).getSymbol();
-                Frame frame = p.frame();
-                FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                if (slot != null) {
-                    Object value = frame.getObject(slot);
-                    if (value != null && value instanceof RPromise) {
-                        return hasCycle((RPromise) value);
-                    }
-                }
-
+            RSymbol symbol = getAccessedSymbol(p.expression().getAST());
+            RPromise next = getPromiseNoForce(p.frame(), symbol);
+            if (next != null) {
+                return hasCycle(next);
+            } else {
+                return false;
             }
-            return false;
         } finally {
             p.markMissingClean();
         }
@@ -108,24 +116,43 @@ final class Missing extends CallFactory {
             if (!p.markMissingDirty()) {
                 return true; // cycle means missing
             }
-            RNode expr = p.expression();
-            ASTNode ast = expr.getAST();
-
-            if (ast instanceof r.nodes.SimpleAccessVariable) {
-                RSymbol symbol = ((r.nodes.SimpleAccessVariable) ast).getSymbol();
-                Frame frame = p.frame();
-                FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                if (slot != null) {
-                    Object value = frame.getObject(slot);
-                    if (value != null && value instanceof RPromise) {
-                        return isMissing((RPromise) value);
-                    }
-                }
-
+            RSymbol symbol = getAccessedSymbol(p.expression().getAST());
+            RPromise next = getPromiseNoForce(p.frame(), symbol);
+            if (next != null) {
+                return isMissing(next);
+            } else {
+                return false;
             }
-            return false;
         } finally {
             p.markMissingClean();
+        }
+    }
+
+    // returns the recursive promise, or null if not promise/not recursive/symbol does not exist
+
+    private static RPromise getPromiseNoForce(Frame frame, RSymbol symbol) {
+        Object value;
+        if (frame != null) {
+            FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
+            if (slot == null) {
+                return null;
+            }
+            value = frame.getObject(slot);
+        } else {
+            value = symbol.getValueNoForce();
+        }
+        if (value != null && value instanceof RPromise) {
+            return (RPromise) value;
+        }
+        return null;
+    }
+
+    private static RSymbol getAccessedSymbol(ASTNode ast) {
+        if (ast instanceof r.nodes.SimpleAccessVariable) {
+            RSymbol symbol = ((r.nodes.SimpleAccessVariable) ast).getSymbol();
+            return symbol;
+        } else {
+            return null;
         }
     }
 }

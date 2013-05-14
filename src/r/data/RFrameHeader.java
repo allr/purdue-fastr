@@ -5,7 +5,6 @@ import java.util.*;
 import r.*;
 import r.data.RFunction.*;
 import r.data.internal.*;
-import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
@@ -139,7 +138,7 @@ public class RFrameHeader extends Arguments {
     }
 
     public static Object readViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = RFrameHeader.getObject(frame, slot);
+        Object value = frame.getObject(slot);
 
         if (value != null) {  // TODO: another node (one branch needs to have deopt)
             return value;
@@ -170,7 +169,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(enclosing);
         if (ext != null) {
-            Object val = ext.get(symbol);
+            Object val = ext.getForcingPromises(symbol);
             if (val != null) {
                 return val;
             }
@@ -192,7 +191,7 @@ public class RFrameHeader extends Arguments {
             f = enclosing;
             RFrameExtension ext = extension(f);
             if (ext != null) {
-                Object val = ext.get(symbol);
+                Object val = ext.getForcingPromises(symbol);
                 if (val != null) {
                     return val;
                 }
@@ -209,7 +208,7 @@ public class RFrameHeader extends Arguments {
         for (;;) {
             RFrameExtension ext = extension(f);
             if (ext != null) {
-                Object val = ext.get(symbol);
+                Object val = ext.getForcingPromises(symbol);
                 if (val != null) {
                     return val;
                 }
@@ -249,7 +248,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no inserted extension slot
-            Object res = RFrameHeader.getObject(f, slot);
+            Object res = RFrameHeader.getObjectForcingPromises(f, slot);
             if (res != null) {
                 return Utils.cast(res);
             }
@@ -273,7 +272,7 @@ public class RFrameHeader extends Arguments {
         for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
             RFrameExtension ext = extension(f);
             if (ext != null) {
-                Object res = ext.get(symbol);
+                Object res = ext.getForcingPromises(symbol);
                 if (res != null) {
                     return res;
                 }
@@ -288,7 +287,7 @@ public class RFrameHeader extends Arguments {
 
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            Object res = ext.get(symbol);
+            Object res = ext.getForcingPromises(symbol);
             if (res != null) {
                 return res;
             }
@@ -306,7 +305,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            Object res = ext.get(symbol);
+            Object res = ext.getForcingPromises(symbol);
             if (res != null) {
                 return res;
             }
@@ -318,8 +317,12 @@ public class RFrameHeader extends Arguments {
         return getRootEnvironment(frame).get(sym, true);
     }
 
+    public static boolean existsFromRootLevel(Frame frame, RSymbol sym) {
+        return getRootEnvironment(frame).exists(sym, true);
+    }
+
     public static RCallable matchViaWriteSet(Frame frame, FrameSlot slot, RSymbol symbol) {
-        Object value = RFrameHeader.getObject(frame, slot);
+        Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
 
         if (value != null && value instanceof RCallable) {  // TODO: another node (one branch needs to have deopt)
             return Utils.cast(value);
@@ -346,7 +349,7 @@ public class RFrameHeader extends Arguments {
 
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            Object res = ext.get(symbol);
+            Object res = ext.getForcingPromises(symbol);
             if (res != null && res instanceof RCallable) {
                 return (RCallable) res;
             }
@@ -364,7 +367,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            Object res = ext.get(symbol);
+            Object res = ext.getForcingPromises(symbol);
             if (res != null && res instanceof RCallable) {
                 return (RCallable) res;
             }
@@ -382,7 +385,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(enclosing);
         if (ext != null) {
-            Object val = ext.get(symbol);
+            Object val = ext.getForcingPromises(symbol);
             if (val != null && val instanceof RCallable) {
                 return (RCallable) val;
             }
@@ -396,7 +399,7 @@ public class RFrameHeader extends Arguments {
 
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            Object val = ext.get(symbol);
+            Object val = ext.getForcingPromises(symbol);
             if (val != null && val instanceof RCallable) {
                 return (RCallable) val;
             }
@@ -409,7 +412,7 @@ public class RFrameHeader extends Arguments {
 
         ext = extension(enclosing);
         if (ext != null) {
-            Object val = ext.get(symbol);
+            Object val = ext.getForcingPromises(symbol);
             if (val != null && val instanceof RCallable) {
                 return (RCallable) val;
             }
@@ -430,7 +433,7 @@ public class RFrameHeader extends Arguments {
             f = enclosing;
             RFrameExtension ext = extension(f);
             if (ext != null) {
-                Object val = ext.get(symbol);
+                Object val = ext.getForcingPromises(symbol);
                 if (val != null && val instanceof RCallable) {
                     return (RCallable) val;
                 }
@@ -462,7 +465,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no extension inserted slot
-            Object res = RFrameHeader.getObject(f, slot);
+            Object res = RFrameHeader.getObjectForcingPromises(f, slot);
             if (res != null && res instanceof RCallable) {
                 return Utils.cast(res);
             }
@@ -487,7 +490,7 @@ public class RFrameHeader extends Arguments {
         for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
             RFrameExtension ext = extension(f);
             if (ext != null) {
-                Object res = ext.get(symbol);
+                Object res = ext.getForcingPromises(symbol);
                 if (res != null && res instanceof RCallable) {
                     return (RCallable) res;
                 }
@@ -544,11 +547,11 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return Utils.cast(RFrameHeader.getObject(frame, slot));
+            return Utils.cast(RFrameHeader.getObjectForcingPromises(frame, slot));
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            return ext.get(symbol);
+            return ext.getForcingPromises(symbol);
         }
         return null;
     }
@@ -557,7 +560,7 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RFrameExtension ext = extension(frame);
-        return ext.get(sym);
+        return ext.getForcingPromises(sym);
     }
 
     public static Object customRead(Frame frame, RSymbol symbol) {
@@ -565,7 +568,7 @@ public class RFrameHeader extends Arguments {
 
         RAny val;
         RFrameExtension ext = extension(frame);
-        val = Utils.cast(ext.get(symbol));
+        val = Utils.cast(ext.getForcingPromises(symbol));
         if (val != null) {
             return val;
         }
@@ -598,11 +601,11 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return RFrameHeader.getObject(frame, slot) != null;
+            return RFrameHeader.getObjectForcingPromises(frame, slot) != null;
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            return ext.get(symbol) != null;  // TODO: avoid forcing a promise
+            return ext.exists(symbol);
         }
         return false;
     }
@@ -611,30 +614,30 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RFrameExtension ext = extension(frame);
-        return ext.get(symbol) != null; // TODO: avoid forcing a promise
+        return ext.exists(symbol);
     }
 
     public static boolean customExists(Frame frame, RSymbol symbol) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RFrameExtension ext = extension(frame);
-        if (ext.get(symbol) != null) {
+        if (ext.getForcingPromises(symbol) != null) {
             return true;
         }
         Frame parent = enclosingFrame(frame);
         if (parent != null) {
             return exists(parent, symbol);
         } else {
-            return readFromRootLevel(frame, symbol) != null; // TODO: avoid forcing a promise
+            return existsFromRootLevel(frame, symbol);
         }
     }
 
-    public static boolean exists(Frame frame, RSymbol symbol) { // TODO: avoid forcing promises
+    public static boolean exists(Frame frame, RSymbol symbol) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            if (RFrameHeader.getObject(frame, slot) != null) {
+            if (frame.getObject(slot) != null) {
                 return true;
             }
         }
@@ -644,7 +647,7 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            if (ext.get(symbol) != null) {
+            if (ext.exists(symbol)) {
                 return true;
             }
         }
@@ -664,15 +667,15 @@ public class RFrameHeader extends Arguments {
         if (existsViaReadSet(enclosing, hops - 1, slot, symbol, frame)) {
             return true;
         } else {
-            return readFromRootLevel(enclosing, symbol) != null;
+            return existsFromRootLevel(enclosing, symbol);
         }
     }
 
-    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) { // TODO: avoid forcing promises
+    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (hops == 0) {
-            if (RFrameHeader.getObject(frame, slot) != null) {
+            if (frame.getObject(slot) != null) {
                 return true;
             }
             if (isDirty(frame)) {
@@ -695,7 +698,7 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static boolean existsInExtension(Frame frame, RSymbol sym, Frame stopFrame) { // TODO: avoid forcing promises
+    public static boolean existsInExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         if (frame == stopFrame) {
@@ -703,16 +706,16 @@ public class RFrameHeader extends Arguments {
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
-            if (ext.get(sym) != null) {
+            if (ext.exists(symbol)) {
                 return true;
             }
         }
-        return existsInExtension(enclosingFrame(frame), sym, stopFrame); // NOTE: recursion
+        return existsInExtension(enclosingFrame(frame), symbol, stopFrame); // NOTE: recursion
     }
 
 
     public static void writeToTopLevelCondRef(RSymbol sym, RAny value) {
-        Object oldValue = sym.getValue();
+        Object oldValue = sym.getValueNoForce();
         if (oldValue != value) {
             sym.setValue(value);
             value.ref();
@@ -783,7 +786,7 @@ public class RFrameHeader extends Arguments {
     public static boolean superWriteViaWriteSet(Frame enclosingFrame, FrameSlot slot, RSymbol symbol, RAny value) {
         assert Utils.check(enclosingFrame instanceof MaterializedFrame);
 
-        Object oldVal = RFrameHeader.getObject(enclosingFrame, slot);
+        Object oldVal = enclosingFrame.getObject(slot);
         if (oldVal != null) {
             if (oldVal != value) {
                 RFrameHeader.writeAtNoRef(enclosingFrame, slot, value);
@@ -820,7 +823,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean superWriteToTopLevel(RSymbol symbol, RAny value) {
-        // FIXME: allow modification of builtins
         writeToTopLevelCondRef(symbol, value);
         return true;
     }
@@ -907,7 +909,7 @@ public class RFrameHeader extends Arguments {
                 }
             }
             // no inserted extension slot
-            val = RFrameHeader.getObject(f, slot);
+            val = f.getObject(slot);
             if (val != null) {
                 writeAtRef(f, slot, value);
                 return true;
@@ -1026,12 +1028,16 @@ public class RFrameHeader extends Arguments {
         private RSymbol[] names = new RSymbol[capacity];
         private Object[] values = new Object[capacity];
 
-        protected Object get(RSymbol name) {
+        protected Object getForcingPromises(RSymbol name) {
             int pos = getPosition(name);
             if (pos >= 0) {
                 return RPromise.force(values[pos]);
             }
             return null;
+        }
+
+        protected boolean exists(RSymbol name) {
+            return getPosition(name) >= 0;
         }
 
         protected int getPosition(RSymbol name) {
@@ -1161,7 +1167,7 @@ public class RFrameHeader extends Arguments {
     }
 
 
-    public static Object getObject(Frame frame, FrameSlot slot) {
+    public static Object getObjectForcingPromises(Frame frame, FrameSlot slot) {
         return RPromise.force(frame.getObject(slot));
     }
 }

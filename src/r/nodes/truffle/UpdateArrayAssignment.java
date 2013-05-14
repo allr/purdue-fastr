@@ -105,7 +105,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObject(frame, varSlot);
+            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
                 lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
@@ -145,7 +145,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObject(frame, varSlot);
+            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
 
             try {
                 if (lhsValue == null) {
@@ -176,7 +176,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObject(frame, varSlot);
+            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
                 lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
