@@ -3,7 +3,7 @@ package r.nodes;
 
 public class While extends Loop {
     ASTNode cond;
-    While(ASTNode cond, ASTNode expr) {
+    public While(ASTNode cond, ASTNode expr) {
         super(expr);
         setCond(cond);
     }

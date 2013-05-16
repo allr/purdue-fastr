@@ -16,6 +16,10 @@ public class RLanguage extends BaseObject implements RAny {
         this.ast = ast;
     }
 
+    public ASTNode get() {
+        return ast;
+    }
+
     @Override public String typeOf() {
         return TYPE_STRING;
     }

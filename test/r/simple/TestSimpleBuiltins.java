@@ -1010,5 +1010,28 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ typeof(quote(1)) }", "\"double\"");
         assertEval("{ typeof(quote(x + y)) }", "\"language\"");
         assertEval("{ quote(x <- x + 1) }", "x <- x + 1.0"); // specific to fastr output format
+        assertEval("{ typeof(quote(x)) }", "\"symbol\"");
+    }
+
+    @Test
+    public void testSubstitute() throws RecognitionException {
+        assertEval("{ substitute(x + y, list(x=1)) }", "1.0 + y");
+        assertEval("{ f <- function(expr) { substitute(expr) } ; f(a * b) }", "a * b");
+        assertEval("{ f <- function() { delayedAssign(\"expr\", a * b) ; substitute(expr) } ; f() }", "a * b");
+        assertEval("{ delayedAssign(\"expr\", a * b) ; substitute(expr) }", "expr");
+        assertEval("{ f <- function(expr) { expr ; substitute(expr) } ; a <- 10; b <- 2; f(a * b) }", "a * b");
+        assertEval("{ f <- function(expra, exprb) { substitute(expra + exprb) } ; f(a * b, a + b) }", "a * b + a + b");
+        assertEval("{ f <- function(y) { substitute(y) } ; f() }", "");
+        assertEval("{ f <- function(y) { substitute(y) } ; typeof(f()) }", "\"symbol\"");
+        assertEval("{ f <- function(z) { g <- function(y) { substitute(y)  } ; g(z) } ; f(a + d) }", "z");
+        assertEval("{ f <- function(x) { g <- function() { substitute(x) } ; g() } ;  f(a * b) }", "x");
+        assertEval("{ substitute(a, list(a = quote(x + y), x = 1)) }", "x + y");
+        assertEval("{ f <- function(x = y, y = x) { substitute(x) } ; f() }", "y");
+        assertEval("{ f <- function(a, b=a, c=b, d=c) { substitute(d) } ; f(x + y) }", "c");
+        assertEval("{ substitute(if(a) { x } else { x * a }, list(a = quote(x + y), x = 1)) }", "if(x + y) { 1.0 } else { 1.0 * (x + y) }"); // specific to fastr output format
+        assertEval("{ substitute(function(x, a) { x + a }, list(a = quote(x + y), x = 1)) }", "function(x, a) { 1.0 + x + y }"); // specific to fastr output format
+        assertEval("{ substitute(a[x], list(a = quote(x + y), x = 1)) }", "x + y[1.0]");  // specific to fastr output format
+        assertEval("{ f <- function(x) { substitute(x, list(a=1,b=2)) } ; f(a + b) }", "x");
+        assertEval("{ f <- function() { substitute(x(1:10), list(x=quote(sum))) } ; f() }", "sum(1.0 : 10.0)"); // specific to fastr output format
     }
 }

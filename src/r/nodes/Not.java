@@ -4,7 +4,7 @@ package r.nodes;
 @PrettyName("!")
 public class Not extends UnaryOperation {
 
-    Not(ASTNode operand) {
+    public Not(ASTNode operand) {
         super(operand);
     }
 

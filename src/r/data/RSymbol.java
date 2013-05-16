@@ -38,6 +38,8 @@ public final class RSymbol extends BaseObject implements RAny {
     // The next is for the builtins registration
     PrimitiveEntry primitive;
 
+    final static String TYPE_STRING = "symbol";
+
     private RSymbol(String identifier) {
         name = identifier;
     }
@@ -212,7 +214,7 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override public String typeOf() {
-        throw Utils.nyi();
+        return TYPE_STRING;
     }
 
     @Override public Attributes attributes() {

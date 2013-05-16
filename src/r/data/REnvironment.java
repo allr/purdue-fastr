@@ -20,6 +20,7 @@ public interface REnvironment extends RAny {
     void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast);
     void delayedAssign(RSymbol name, RPromise value, ASTNode ast);
     RAny get(RSymbol name, boolean inherits);
+    Object localGetNotForcing(RSymbol name);
     boolean exists(RSymbol name, boolean inherits);
     RCallable match(RSymbol name);
     RSymbol[] ls();

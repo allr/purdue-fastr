@@ -37,7 +37,8 @@ public final class RPromise {
     public static RPromise createMissing(final RSymbol argName, Frame frame) {
 
         final ASTNode errorAST = frame == null ? null : RFrameHeader.function(frame).getSource();
-        RNode errorExpression = new BaseR(errorAST) { // FIXME: don't need bits, could detect missing arg using instanceof
+        RNode errorExpression = new BaseR(new r.nodes.Constant(RSymbol.EMPTY_SYMBOL)) {
+            // FIXME: don't need bits, could detect missing arg using instanceof
 
             @Override
             public Object execute(Frame dummy) {

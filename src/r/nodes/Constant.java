@@ -8,7 +8,7 @@ public class Constant extends ASTNode {
 
     final RAny value;
 
-    Constant(RAny val) {
+    public Constant(RAny val) {
         value = val;
     }
 

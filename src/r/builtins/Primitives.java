@@ -167,6 +167,7 @@ public class Primitives {
         add("sort.int", Sort._);
         add(Strsplit._);
         add(Sub._);
+        add(Substitute._);
         add(Substr._);
         add(Substring._);
         add(Sum._);

@@ -547,7 +547,7 @@ public class RFrameHeader extends Arguments {
 
         FrameSlot slot = findVariable(frame, symbol);
         if (slot != null) {
-            return Utils.cast(RFrameHeader.getObjectForcingPromises(frame, slot));
+            return RFrameHeader.getObjectForcingPromises(frame, slot);
         }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
@@ -556,11 +556,33 @@ public class RFrameHeader extends Arguments {
         return null;
     }
 
-    public static Object customLocalRead(Frame frame, RSymbol sym) {
+    public static Object localReadNotForcing(Frame frame, RSymbol symbol) {
+        assert Utils.check(frame instanceof MaterializedFrame);
+
+        FrameSlot slot = findVariable(frame, symbol);
+        if (slot != null) {
+            return frame.getObject(slot);
+        }
+        RFrameExtension ext = extension(frame);
+        if (ext != null) {
+            return ext.getNotForcing(symbol);
+        }
+        return null;
+    }
+
+
+    public static Object customLocalRead(Frame frame, RSymbol symbol) {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         RFrameExtension ext = extension(frame);
-        return ext.getForcingPromises(sym);
+        return ext.getForcingPromises(symbol);
+    }
+
+    public static Object customLocalReadNoForcing(Frame frame, RSymbol symbol) {
+        assert Utils.check(frame instanceof MaterializedFrame);
+
+        RFrameExtension ext = extension(frame);
+        return ext.getNotForcing(symbol);
     }
 
     public static Object customRead(Frame frame, RSymbol symbol) {
@@ -1032,6 +1054,14 @@ public class RFrameHeader extends Arguments {
             int pos = getPosition(name);
             if (pos >= 0) {
                 return RPromise.force(values[pos]);
+            }
+            return null;
+        }
+
+        protected Object getNotForcing(RSymbol name) {
+            int pos = getPosition(name);
+            if (pos >= 0) {
+                return values[pos];
             }
             return null;
         }

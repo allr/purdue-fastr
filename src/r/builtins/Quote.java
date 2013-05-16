@@ -22,7 +22,7 @@ final class Quote extends CallFactory {
         ASTNode ast = expr.getAST();
 
         // TODO: (or not) GNU-R returns a symbol representation - e.g. we would return RSymbol - if ast is just a variable read
-        final Object res = (ast instanceof r.nodes.Constant) ? expr.execute(null) : new RLanguage(ast);
+        final Object res = quote(ast, expr);
         return new BaseR(call) {
 
             @Override
@@ -31,5 +31,15 @@ final class Quote extends CallFactory {
             }
 
         };
+    }
+
+    public static Object quote(ASTNode ast, RNode expr) {
+        if (ast instanceof r.nodes.Constant) {
+            return expr.execute(null);
+        }
+        if (ast instanceof r.nodes.SimpleAccessVariable) {
+            return ((r.nodes.SimpleAccessVariable) ast).getSymbol();
+        }
+        return new RLanguage(ast);
     }
 }

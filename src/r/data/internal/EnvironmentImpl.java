@@ -158,6 +158,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     @Override
+    public Object localGetNotForcing(RSymbol name) {
+        return RFrameHeader.localReadNotForcing(frame, name);
+    }
+
+    @Override
     public boolean exists(RSymbol name, boolean inherits) {
         if (!inherits) {
             return RFrameHeader.localExists(frame, name);
@@ -176,8 +181,8 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return RFrameHeader.listSymbols(frame);
     }
 
-    public static Object readFromTopLevel(RSymbol sym) {
-        return sym.getValue();
+    public static Object readFromTopLevel(RSymbol symbol) {
+        return symbol.getValue();
     }
 
     // a custom environment has no function (no read set or write set)
@@ -227,6 +232,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
+        public Object localGetNotForcing(RSymbol name) {
+            return RFrameHeader.customLocalReadNoForcing(frame, name);
+        }
+
+        @Override
         public boolean exists(RSymbol name, boolean inherits) {
             if (!inherits) {
                 return RFrameHeader.customLocalExists(frame, name);
@@ -270,6 +280,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
                 // builtins
                 return Primitives.getBuiltIn(name, null);
             }
+        }
+
+        @Override
+        public Object localGetNotForcing(RSymbol name) {
+            return name.getValueNoForce();
         }
 
         @Override
@@ -324,6 +339,11 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
         @Override
         public RAny get(RSymbol name, boolean inherits) {
+            return null;
+        }
+
+        @Override
+        public Object localGetNotForcing(RSymbol name) {
             return null;
         }
 

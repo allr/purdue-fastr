@@ -4,7 +4,7 @@ package r.nodes;
 @PrettyName("-")
 public class UnaryMinus extends UnaryOperation {
 
-    UnaryMinus(ASTNode operand) {
+    public UnaryMinus(ASTNode operand) {
         super(operand);
     }
 

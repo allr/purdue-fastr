@@ -8,7 +8,7 @@ public class For extends Loop {
     RSymbol cvar;
     ASTNode range;
 
-    For(RSymbol cvar, ASTNode range, ASTNode body) {
+    public For(RSymbol cvar, ASTNode range, ASTNode body) {
         super(body);
         this.cvar = cvar;
         this.range = range;
