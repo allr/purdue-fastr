@@ -138,6 +138,7 @@ public class Primitives {
         add(Qr._);
         add(QrCoef._);
         add(QrSolve._);
+        add(Quote._);
         add(Rank._);
         add(Raw._);
         add(Rbinom._);

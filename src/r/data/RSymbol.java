@@ -6,7 +6,6 @@ import r.*;
 import r.Convert.*;
 import r.builtins.Primitives.PrimitiveEntry;
 import r.data.internal.*;
-import r.nodes.truffle.*;
 
 public final class RSymbol extends BaseObject implements RAny {
 

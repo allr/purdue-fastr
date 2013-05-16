@@ -1002,4 +1002,13 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEval("{ f <- function(a) { g <- function(b) { before <- missing(b) ; a <<- 2 ; after <- missing(b) ; c(before, after) } ; g(a) } ; f() }", "TRUE, FALSE");
         }
     }
+
+    @Test
+    public void testQuote() throws RecognitionException {
+        assertEval("{ quote(1:3) }", "1.0 : 3.0"); // specific to fastr output format
+        assertEval("{ quote(list(1,2)) }", "list(1.0, 2.0)"); // specific to fastr output format
+        assertEval("{ typeof(quote(1)) }", "\"double\"");
+        assertEval("{ typeof(quote(x + y)) }", "\"language\"");
+        assertEval("{ quote(x <- x + 1) }", "x <- x + 1.0"); // specific to fastr output format
+    }
 }

@@ -8,6 +8,8 @@ import r.data.*;
 // children of this class can still implement a scalar value, it would only not be very fast if scalars of that type were frequently used
 // FIXME: perhaps rename the class (but then also rename Scalar*Impl)
 
+// TODO: in GNU-R, attributes can also be added to a symbol, an environment, a closure, a language object; to support this, the attributes
+// will have to move to a super class, and we'd need a special super class for Scalar*Impl
 public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
 
     protected int[] dimensions; // the content shall never be modified once set
