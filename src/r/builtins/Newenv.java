@@ -46,9 +46,10 @@ final class Newenv extends CallFactory {
                         rootEnvironment = env;
                     }
                 } else {
-                    parentFrame = frame.materialize();
-                    if (parentFrame == null) {
+                    if (frame == null) {
                         rootEnvironment = REnvironment.GLOBAL;
+                    } else {
+                        parentFrame = frame.materialize();
                     }
                 }
                 int size = DEFAULT_SIZE;
