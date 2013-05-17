@@ -101,7 +101,10 @@ public abstract class Builtin extends AbstractCall {
         int len = argExprs.length;
         RAny[] args = new RAny[len];
         for (int i = 0; i < len; i++) {
-            args[i] = (RAny) argExprs[i].execute(frame);
+            RNode expr = argExprs[i];
+            if (expr != null) {
+                args[i] = (RAny) expr.execute(frame);
+            }
         }
         return args;
     }

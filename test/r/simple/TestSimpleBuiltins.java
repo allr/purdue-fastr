@@ -4,6 +4,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
+import r.gnur.*;
 import r.nodes.truffle.*;
 
 public class TestSimpleBuiltins extends SimpleTestBase {
@@ -467,6 +468,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
     @Test
     public void testMathFunctions() throws RecognitionException {
         assertEval("{ log(1) } ", "0.0");
+        assertEval("{ round( log(10,), digits = 5 ) }", "2.30259");
+        assertEval("{ round( log(10,2), digits = 5 ) }", "3.32193");
+        assertEval("{ round( log(10,10), digits = 5 ) }", "1.0");
         assertEval("{ m <- matrix(1:4, nrow=2) ; round( log10(m), digits=5 )  }", "        [,1]    [,2]\n[1,]     0.0 0.47712\n[2,] 0.30103 0.60206");
 
         assertEval("{ x <- c(a=1, b=10) ; round( c(log(x), log10(x), log2(x)), digits=5 ) }", "  a       b   a   b   a       b\n0.0 2.30259 0.0 1.0 0.0 3.32193");
@@ -1033,5 +1037,20 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ substitute(a[x], list(a = quote(x + y), x = 1)) }", "x + y[1.0]");  // specific to fastr output format
         assertEval("{ f <- function(x) { substitute(x, list(a=1,b=2)) } ; f(a + b) }", "x");
         assertEval("{ f <- function() { substitute(x(1:10), list(x=quote(sum))) } ; f() }", "sum(1.0 : 10.0)"); // specific to fastr output format
+    }
+
+    @Test
+    public void testInvocation() throws RecognitionException {
+        assertEvalError("{ rnorm(n=1,n=2) }", "formal argument \"n\" matched by multiple actual arguments");
+        assertEvalError("{ rnorm(s=1,s=1) }", "formal argument \"sd\" matched by multiple actual arguments");
+        assertEvalError("{ matrix(1:4,n=2) }", "argument 2 matches multiple formal arguments");
+        assertEvalError("{ matrix(x=1) }", "unused argument(s) (x = 1.0)");
+
+        if (RContext.hasGNUR()) {
+            assertEval("{ round( rnorm(1,), digits = 5 ) }", "-1.26974");
+        }
+
+        assertEvalError("{ max(1,2,) }", "argument 3 is empty");
+
     }
 }

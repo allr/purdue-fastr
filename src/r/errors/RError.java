@@ -167,6 +167,9 @@ public abstract class RError extends RuntimeException {
     public static final String SINGULAR_SOLVE = "singular matrix '%s' in solve";
     public static final String SEED_TYPE = ".Random.seed is not an integer vector but of type '%s'";
     public static final String INVALID_USE = "invalid use of '%s'";
+    public static final String FORMAL_MATCHED_MULTIPLE = "formal argument \"%s\" matched by multiple actual arguments";
+    public static final String ARGUMENT_MATCHES_MULTIPLE = "argument %d matches multiple formal arguments";
+    public static final String ARGUMENT_EMPTY = "argument %d is empty";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1431,5 +1434,17 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidUse(ASTNode ast, String builtinName) {
         return getGenericError(ast, String.format(RError.INVALID_USE, builtinName));
+    }
+
+    public static RError getFormalMatchedMultiple(ASTNode ast, String formalName) {
+        return getGenericError(ast, String.format(RError.FORMAL_MATCHED_MULTIPLE, formalName));
+    }
+
+    public static RError getArgumentMatchesMultiple(ASTNode ast, int argIndex) {
+        return getGenericError(ast, String.format(RError.ARGUMENT_MATCHES_MULTIPLE, argIndex));
+    }
+
+    public static RError getArgumentEmpty(ASTNode ast, int argIndex) {
+        return getGenericError(ast, String.format(RError.ARGUMENT_EMPTY, argIndex));
     }
 }

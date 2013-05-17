@@ -6,6 +6,7 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.tools.*;
 import r.nodes.truffle.*;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
@@ -160,66 +161,99 @@ public abstract class CallFactory {
      * gather all the argument passed by exact name, then get the arguments passed by partial name as long as they are
      * not ambiguous. Last get the positional arguments.
      *
-     * @param names
+     * @param argNames
      *            array of the names of arguments (or null)
-     * @param exprs
+     * @param argExprs
      *            array of the expressions passed as arguments (not null)
      */
-    ArgumentInfo resolveArguments(RSymbol[] names, RNode[] exprs) {
+    ArgumentInfo resolveArguments(RSymbol[] argNames, RNode[] argExprs, ASTNode ast) {
         ArgumentInfo a = new ArgumentInfo(parameters);
-        boolean[] used = new boolean[exprs.length];
+        int nArgs = argExprs.length;
+        int nParams = parameters.length;
+        boolean[] argUsed = new boolean[nArgs];
+
         // Match by name, remember which args are unused.
-        if (names != null) {
-            outer: for (int i = 0; i < exprs.length; i++) {
-                if (names[i] == null) continue;
-                for (int j = 0; j < parameters.length; j++) {
-                    if (names[i] == parameters[j]) {
+        if (argNames != null) {
+            for (int i = 0; i < nArgs; i++) {
+                RSymbol argName = argNames[i];
+                if (argName == null) {
+                    continue;
+                }
+                for (int j = 0; j < nParams; j++) {
+                    if (argName == parameters[j]) {
+                        if (a.paramPositions[j] != -1) {
+                            throw RError.getFormalMatchedMultiple(ast, argName.name());
+                        }
+                        // note: we know that parameter names are unique, so no need to check matching more of them by single argument
                         a.paramPositions[j] = i;
-                        used[i] = true;
-                        continue outer;
+                        argUsed[i] = true;
                     }
                 }
             }
         }
         // Match by partial name, ignore arguments already matched and with no name.
-        if (names != null) {
-            for (int i = 0; i < parameters.length; i++) {
-                if (a.paramPositions[i] != -1) continue;
-                boolean match = false;
-                for (int j = 0; j < exprs.length; j++) {
-                    if (used[j]) continue;
-                    if (names[j] == null) continue;
-                    if (parameters[i].startsWith(names[j])) {
-                        if (match) { throw RError.getGenericError(null, "Argument " + names[j] + " matches multiple formal arguments."); }
-                        a.paramPositions[i] = j;
-                        used[j] = true;
-                        match = true;
+        if (argNames != null) {
+            boolean[] argUsedPatternMatching = new boolean[nArgs]; // NOTE: could merge with argUsed if need be
+            for (int j = 0; j < nParams; j++) {
+                if (a.paramPositions[j] != -1) {
+                    continue;
+                }
+                RSymbol paramName = parameters[j];
+                if (paramName == RSymbol.THREE_DOTS_SYMBOL) {
+                    break;
+                    // NOTE: GNU-R continues in the search, but I don't see why - exact matching would have established such matches already
+                }
+
+                boolean paramMatched = false;
+                for (int i = 0; i < nArgs; i++) {
+                    if (argUsedPatternMatching[i]) {
+                        throw RError.getArgumentMatchesMultiple(ast, i + 1);
+                    }
+                    RSymbol argName = argNames[i];
+                    if (argName == null || argUsed[i]) {
+                        continue;
+                    }
+                    if (paramName.startsWith(argName)) {
+                        if (paramMatched) {
+                            throw RError.getFormalMatchedMultiple(ast, paramName.name());
+                        }
+                        a.paramPositions[j] = i;
+                        argUsed[i] = true;
+                        argUsedPatternMatching[i] = true;
+                        paramMatched = true;
                     }
                 }
             }
         }
+
         // Match the remaining arguments by position, taking care of the three dots and of extra arguments.
-        int nextP = 0;
-        for (int i = 0; i < exprs.length; i++) {
-            if (used[i]) continue;
-            while (nextP < parameters.length && a.paramPositions[nextP] != -1 && parameters[nextP] != RSymbol.THREE_DOTS_SYMBOL) {
-                nextP++; // skip params that have been matched already, but if the param is ..., don't advance
+        int j = 0;
+        for (int i = 0; i < nArgs; i++) {
+            if (argUsed[i]) continue;
+            while (j < nParams && a.paramPositions[j] != -1 && parameters[j] != RSymbol.THREE_DOTS_SYMBOL) {
+                j++; // skip params that have been matched already, but if the param is ..., don't advance
             }
-            if (nextP == parameters.length) { // Garbage params...
+            if (j == nParams) { // Garbage params...
+                // FIXME: do we still need to record these?
                 if (a.unusedArgs == null) {
                     a.unusedArgs = new ArrayList<>();
                 }
                 a.unusedArgs.add(i);
             } else {
-                if (parameters[nextP] == RSymbol.THREE_DOTS_SYMBOL) { // Record the last argument that was taken by ...
-                    a.paramPositions[nextP] = i;
+                if (parameters[j] == RSymbol.THREE_DOTS_SYMBOL) {
+                    if (argExprs[i] == null) {
+                        throw RError.getArgumentEmpty(ast, i + 1);
+                    }
+                    a.paramPositions[j] = i; // Record the last argument that was taken by ...
                     continue;
-                } else if (exprs[i] != null) { // positional match  (can the expr be null?????)
-                    if (names != null && names[i] != null) { throw RError.getGenericError(null, "Unknown parameter " + names[i].pretty() + " passed to " + name()); } // FIXME: better error message
-                    a.paramPositions[nextP] = i;
-                } else { // FIXME: JAN asks if this point can ever be reached?
-                    nextP++;
-                    throw new Error("Aha, so it does ...");
+                } else if (argExprs[i] != null) {
+                    if (argNames != null && argNames[i] != null) {
+                        throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
+                    }
+                    a.paramPositions[j] = i;
+                } else  {
+                    // NOTE: yes, this can happen - e.g. rnorm(1,,)
+                    j++;
                 }
             }
         }
@@ -245,7 +279,8 @@ public abstract class CallFactory {
     }
 
     ArgumentInfo check(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        ArgumentInfo ai = resolveArguments(names, exprs);
+        assert Utils.check(detectRepeatedParameters(call));
+        ArgumentInfo ai = resolveArguments(names, exprs, call);
         int provided = 0;
         for (int i = 0; i < ai.paramPositions.length; i++) {
             if (ai.paramPositions[i] != -1) {
@@ -260,6 +295,18 @@ public abstract class CallFactory {
         if (exprs.length < minParameters) { throw RError.getWrongArity(call, name().name(), minParameters, exprs.length); }
         if (ai.unusedArgs != null) { throw RError.getWrongArity(call, name().name(), maxParameters, exprs.length); }
         return ai;
+    }
+
+    boolean detectRepeatedParameters(ASTNode ast) {
+        int n = parameters.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (parameters[i] == parameters[j]) {
+                    Utils.nyi("Repeated formal argument \"" + parameters[i] + "\" in a builtin: " + PrettyPrinter.prettyPrint(ast));
+                }
+            }
+        }
+        return true;
     }
 
     /** Check that the argument provided has the right name else throw an error. */

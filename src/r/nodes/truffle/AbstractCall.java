@@ -110,10 +110,10 @@ public abstract class AbstractCall extends BaseR {
         for (i = 0; i < argExprs.length; i++) {
             int p = positions[i];
             if (p >= 0) {
-                RNode v = argExprs[i];
-                if (v != null) {
+                RNode argExpr = argExprs[i];
+                if (argExpr != null) {
                     if (FunctionCall.PROMISES) {
-                        argValues[p] = RPromise.createNormal(v, callerFrame);
+                        argValues[p] = RPromise.createNormal(argExpr, callerFrame);
                     } else {
                         Object argV = argExprs[i].execute(callerFrame);
                         if (MATERIALIZE_ON_FUNCTION_CALL) {

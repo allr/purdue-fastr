@@ -144,6 +144,7 @@ abstract class ExtremeBase extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
         if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
                 RContext.warning(ast, RError.NO_NONMISSING_MAX);

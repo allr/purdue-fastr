@@ -7,7 +7,7 @@ import r.nodes.truffle.*;
 
 /**
  * "log"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector.
  * base -- a positive or complex number: the base with respect to which logarithms are computed. Defaults to e=exp(1).
@@ -24,10 +24,21 @@ final class Log extends CallFactory {
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         ArgumentInfo ia = check(call, names, exprs);
-        if (exprs.length == 1) { return Ln._.create(call, names, exprs); }
-        RNode baseExpr = exprs[ia.position("base")];
-        if (Builtin.isNumericConstant(baseExpr, 10)) { return Log10._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("x")]}); }
-        if (Builtin.isNumericConstant(baseExpr, 2)) { return Log2._.create(call, new RSymbol[]{names[ia.position("x")]}, new RNode[]{exprs[ia.position("x")]}); }
+        int xPosition = ia.position("x");
+        int basePosition = ia.position("base");
+
+        if (basePosition == -1) {
+            return Ln._.create(call, new RSymbol[]{names[xPosition]}, new RNode[]{exprs[xPosition]});
+            // NOTE: cannot just pass names, exprs - a null argument may have been passed
+        }
+
+        RNode baseExpr = exprs[basePosition];
+        if (Builtin.isNumericConstant(baseExpr, 10)) {
+            return Log10._.create(call, new RSymbol[]{names[xPosition]}, new RNode[]{exprs[xPosition]});
+        }
+        if (Builtin.isNumericConstant(baseExpr, 2)) {
+            return Log2._.create(call, new RSymbol[]{names[xPosition]}, new RNode[]{exprs[xPosition]});
+        }
         // TODO: implement the generic case
         throw Utils.nyi("unsupported case");
     }
