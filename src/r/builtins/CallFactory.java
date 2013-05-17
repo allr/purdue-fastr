@@ -193,7 +193,7 @@ public abstract class CallFactory {
         }
         // Match by partial name, ignore arguments already matched and with no name.
         if (argNames != null) {
-            boolean[] argUsedPatternMatching = new boolean[nArgs]; // NOTE: could merge with argUsed if need be
+            boolean[] argUsedForPatternMatching = new boolean[nArgs]; // NOTE: could merge with argUsed if need be
             for (int j = 0; j < nParams; j++) {
                 if (a.paramPositions[j] != -1) {
                     continue;
@@ -207,20 +207,20 @@ public abstract class CallFactory {
 
                 boolean paramMatched = false;
                 for (int i = 0; i < nArgs; i++) {
-                    if (argUsedPatternMatching[i]) {
-                        throw RError.getArgumentMatchesMultiple(ast, i + 1);
-                    }
                     RSymbol argName = argNames[i];
-                    if (argName == null || argUsed[i]) {
+                    if (argName == null || (argUsed[i] && !argUsedForPatternMatching[i])) {
                         continue;
                     }
                     if (paramName.startsWith(argName)) {
+                        if (argUsedForPatternMatching[i]) {
+                            throw RError.getArgumentMatchesMultiple(ast, i + 1);
+                        }
                         if (paramMatched) {
                             throw RError.getFormalMatchedMultiple(ast, paramName.name());
                         }
                         a.paramPositions[j] = i;
                         argUsed[i] = true;
-                        argUsedPatternMatching[i] = true;
+                        argUsedForPatternMatching[i] = true;
                         paramMatched = true;
                     }
                 }
@@ -237,7 +237,7 @@ public abstract class CallFactory {
                 j++; // skip params that have been matched already, but if the param is ..., don't advance
             }
             if (j == nParams) { // Garbage params...
-                // FIXME: do we still need to record these?
+                // FIXME: do we still need to record these? currently this seems to be unreachable as we are checking the number of args
                 if (a.unusedArgs == null) {
                     a.unusedArgs = new ArrayList<>();
                 }

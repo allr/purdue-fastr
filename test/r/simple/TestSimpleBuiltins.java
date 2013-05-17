@@ -4,7 +4,6 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
-import r.gnur.*;
 import r.nodes.truffle.*;
 
 public class TestSimpleBuiltins extends SimpleTestBase {
@@ -1053,6 +1052,6 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         }
 
         assertEvalError("{ max(1,2,) }", "argument 3 is empty");
-
+        assertEval("{ matrix(da=1:3,1) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
     }
 }

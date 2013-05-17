@@ -107,5 +107,8 @@ public class TestSimpleFunctions extends SimpleTestBase {
     public void testMatching() throws RecognitionException {
         assertEval("{ x<-function(foo,bar){foo*bar} ; x(f=10,2) }", "20.0");
         assertEval("{ x<-function(foo,bar){foo*bar} ; x(fo=10, bar=2) }", "20.0");
+        assertEvalError("{ f <- function(hello, hi) { hello + hi } ; f(h = 1) }", "argument 1 matches multiple formal arguments");
+        assertEvalError("{ f <- function(hello, hi) { hello + hi } ; f(hello = 1, bye = 3) }", "unused argument(s) (bye = 3.0)");
+        assertEvalError("{ f <- function(a) { a } ; f(1,2) }", "unused argument(s) (2.0)");
     }
 }

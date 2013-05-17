@@ -70,7 +70,7 @@ public abstract class AbstractCall extends BaseR {
         }
 
         if (hasUnmatchedNamedArgs) { // partial matching
-            int[] argMatchedViaPatternMatching = new int[nArgs]; // 1-based, index of parameter pattern-matched by the argument
+            boolean[] argMatchedViaPatternMatching = new boolean[nArgs];
             for (int j = 0; j < nParams; j++) {
                 if (providedParams[j]) {
                     continue;
@@ -88,19 +88,17 @@ public abstract class AbstractCall extends BaseR {
                     if (argName == null) {
                         continue;
                     }
-                    if (argMatchedViaPatternMatching[i] == j + 1) {
-                        throw RError.getArgumentMatchesMultiple(ast, i + 1);
-                    }
-                    if (argPositions[i] != 0) {
-                        continue;
-                    }
-                    if (paramName.startsWith(argName)) {
+                    if (argMatchedViaPatternMatching[i]) {
+                        if (paramName.startsWith(argName)) {
+                            throw RError.getArgumentMatchesMultiple(ast, i + 1);
+                        }
+                    } else if (argPositions[i] == 0 && paramName.startsWith(argName)) {
                         if (paramMatched) {
                             throw RError.getFormalMatchedMultiple(ast, paramName.name());
                         }
                         argPositions[i] = j + 1;
                         providedParams[j] = true;
-                        argMatchedViaPatternMatching[i] = j + 1;
+                        argMatchedViaPatternMatching[i] = true;
                         paramMatched = true;
                     }
                 }
