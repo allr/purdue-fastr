@@ -55,10 +55,15 @@ public class TestSimpleFunctions extends SimpleTestBase {
     @Test
     public void testErrors() throws RecognitionException {
         assertEvalError("{ x<-function(){1} ; x(y=1) }", "unused argument(s) (y = 1.0)");
+        assertEvalError("{ x<-function(y, b){1} ; x(y=1, 2, 3, z = 5) }", "unused argument(s) (3.0, z = 5.0)");
         assertEvalError("{ x<-function(){1} ; x(1) }", "unused argument(s) (1.0)");
         assertEvalError("{ x<-function(a){1} ; x(1,) }", "unused argument(s) ()");
         assertEvalError("{ x<-function(){1} ; x(y=sum(1:10)) }", "unused argument(s) (y = sum(1.0 : 10.0))");
         assertEvalError("{ f <- function(x) { x } ; f() }", "argument 'x' is missing, with no default");
+        assertEvalError("{ x<-function(y,b){1} ; x(y=1,y=3,4) }", "formal argument \"y\" matched by multiple actual arguments");
+        assertEvalError("{ x<-function(foo,bar){foo*bar} ; x(fo=10,f=1,2) }", "formal argument \"foo\" matched by multiple actual arguments");
+
+        assertEvalError("{ f <- function(a,a) {1} }", "repeated formal argument 'a'"); // note exactly GNU-R message
     }
 
     @Test
@@ -96,5 +101,11 @@ public class TestSimpleFunctions extends SimpleTestBase {
             assertEval("{ f <- function(x) { function() {x} } ; a <- 1 ; b <- f(a) ; a <- 10 ; b() }", "10.0");
             assertEvalError("{ f <- function(x = y, y = x) { y } ; f() }", "promise already under evaluation: recursive default argument reference?");
         }
+    }
+
+    @Test
+    public void testMatching() throws RecognitionException {
+        assertEval("{ x<-function(foo,bar){foo*bar} ; x(f=10,2) }", "20.0");
+        assertEval("{ x<-function(foo,bar){foo*bar} ; x(fo=10, bar=2) }", "20.0");
     }
 }

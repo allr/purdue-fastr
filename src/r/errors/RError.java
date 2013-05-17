@@ -170,6 +170,7 @@ public abstract class RError extends RuntimeException {
     public static final String FORMAL_MATCHED_MULTIPLE = "formal argument \"%s\" matched by multiple actual arguments";
     public static final String ARGUMENT_MATCHES_MULTIPLE = "argument %d matches multiple formal arguments";
     public static final String ARGUMENT_EMPTY = "argument %d is empty";
+    public static final String REPEATED_FORMAL = "repeated formal argument '%s'"; // not exactly GNU-R message
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1385,6 +1386,10 @@ public abstract class RError extends RuntimeException {
                 msg.append(PrettyPrinter.prettyPrint(argExpr.getAST()));
             }
         }
+        return getUnusedArgument(ast, msg.toString());
+    }
+
+    public static RError getUnusedArgument(ASTNode ast, String msg) {
         return getGenericError(ast, String.format(RError.UNUSED_ARGUMENT, msg));
     }
 
@@ -1446,5 +1451,9 @@ public abstract class RError extends RuntimeException {
 
     public static RError getArgumentEmpty(ASTNode ast, int argIndex) {
         return getGenericError(ast, String.format(RError.ARGUMENT_EMPTY, argIndex));
+    }
+
+    public static RError getRepeatedFormal(ASTNode ast, String paramName) {
+        return getGenericError(ast, String.format(RError.REPEATED_FORMAL, paramName));
     }
 }

@@ -8,6 +8,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.tools.*;
 
 public abstract class AbstractCall extends BaseR {
 
@@ -33,59 +34,163 @@ public abstract class AbstractCall extends BaseR {
         return this.getClass() + "[" + args + "]";
     }
 
-    protected final int[] computePositions(RSymbol[] paramNames, RSymbol[] usedArgNames) {
+    // dotsArgNames is an output array to be filled in with names of arguments that will go into ... (but is it needed?)
+    // argument positions are 1-based (!)
+    protected final int[] computePositions(RSymbol[] paramNames, RSymbol[] dotsArgNames) {
 
         int nArgs = argExprs.length;
         int nParams = paramNames.length;
 
-        boolean[] provided = new boolean[nParams]; // Alloc in stack if the VM is not a shitty one (i.e. trivial escape analysis)
-
-        boolean has3dots = false;
-        int[] positions = new int[has3dots ? (nArgs + nParams) : nParams]; // The right size is unknown in presence of ``...'' !
+        boolean[] providedParams = new boolean[nParams];
+        int[] argPositions = new int[nArgs]; // 1-based !!!  (0 means unallocated)
 
         for (int i = 0; i < nArgs; i++) { // matching by name
-            if (argNames[i] != null) {
-                for (int j = 0; j < nParams; j++) {
-                    if (argNames[i] == paramNames[j]) {
-                        usedArgNames[i] = argNames[i];
-                        positions[i] = j;
-                        provided[j] = true;
+            RSymbol argName = argNames[i];
+            if (argName == null) {
+                continue;
+            }
+            for (int j = 0; j < nParams; j++) {
+                if (argName == paramNames[j]) {
+                    if (providedParams[j]) {
+                        throw RError.getFormalMatchedMultiple(ast, argName.name());
+                    }
+                    argPositions[i] = j + 1;
+                    providedParams[j] = true;
+                }
+            }
+        }
+
+        // do we need to do partial matching at all?
+        boolean hasUnmatchedNamedArgs = false;
+        for (int i = 0; i < nArgs; i++) {
+            if (argNames[i] != null && argPositions[i] == 0) {
+                hasUnmatchedNamedArgs = true;
+                break;
+            }
+        }
+
+        if (hasUnmatchedNamedArgs) { // partial matching
+            int[] argMatchedViaPatternMatching = new int[nArgs]; // 1-based, index of parameter pattern-matched by the argument
+            for (int j = 0; j < nParams; j++) {
+                if (providedParams[j]) {
+                    continue;
+                }
+                RSymbol paramName = paramNames[j];
+                if (paramName == RSymbol.THREE_DOTS_SYMBOL) {
+                    // only exact matches after ...
+                    // NOTE: GNU-R continues in the search, but I don't see why - exact matching would have established such matches already
+                    break;
+                }
+
+                boolean paramMatched = false;
+                for (int i = 0; i < nArgs; i++) {
+                    RSymbol argName = argNames[i];
+                    if (argName == null) {
+                        continue;
+                    }
+                    if (argMatchedViaPatternMatching[i] == j + 1) {
+                        throw RError.getArgumentMatchesMultiple(ast, i + 1);
+                    }
+                    if (argPositions[i] != 0) {
+                        continue;
+                    }
+                    if (paramName.startsWith(argName)) {
+                        if (paramMatched) {
+                            throw RError.getFormalMatchedMultiple(ast, paramName.name());
+                        }
+                        argPositions[i] = j + 1;
+                        providedParams[j] = true;
+                        argMatchedViaPatternMatching[i] = j + 1;
+                        paramMatched = true;
                     }
                 }
             }
         }
 
-        int nextParam = 0;
-        for (int i = 0; i < nArgs; i++) { // matching by position
-            if (usedArgNames[i] == null) {
-                while (nextParam < nParams && provided[nextParam]) {
-                    nextParam++;
+        int i = 0; // positional matching
+        int j = 0;
+        boolean hasUnusedArgsWithNames = false;
+
+        outer: for(;;) {
+            for(;;) {
+                if (i == nArgs) {
+                    if (hasUnusedArgsWithNames) {
+                        reportUnusedArgsError(nArgs, argPositions);
+                    }
+                    break outer;
                 }
-                if (nextParam == nParams) {
-                    // TODO support ``...''
-                    throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
+                if (argPositions[i] == 0) {
+                    break;
                 }
-                if (argExprs[i] != null) {
-                    usedArgNames[i] = paramNames[nextParam]; // This is for now useless but needed for ``...''
-                    positions[i] = nextParam;
-                    provided[nextParam] = true;
+                i++;
+            }
+            // i now points to unused argument
+
+            for(;;) {
+                if (j == nParams) {
+                    reportUnusedArgsError(nArgs, argPositions);
+                }
+                if (!providedParams[j]) {
+                    break;
+                }
+                j++;
+            }
+            // j now points to unmatched parameter
+
+            RSymbol paramName = paramNames[j];
+            if (paramName == RSymbol.THREE_DOTS_SYMBOL) { // handle three dots in parameters
+                for (;;) {
+                    argPositions[i] = -1; // part of three dots
+                    dotsArgNames[i] = argNames[i]; // ?? really needed ??
+                    i++;
+                    if (i < nArgs) {
+                        while(argPositions[i] != 0) {
+                            i++;
+                            if (i == nArgs) {
+                                break outer;
+                            }
+                        }
+                    }
+                } // not reached
+            }
+            // j now points to unmatched parameter, which is not the three dots
+
+            if (argNames[i] == null) {
+                argPositions[i] = j + 1;
+                providedParams[j] = true;
+                i++;
+                j++;
+            } else {
+                i++;
+                hasUnusedArgsWithNames = true;
+            }
+        }
+
+        return argPositions;
+    }
+
+    private int reportUnusedArgsError(int nArgs, int[] argPositions) {
+        StringBuilder str = new StringBuilder();
+        boolean first = true;
+        for(int i = 0; i < nArgs; i++) {
+            if (argPositions[i] == 0) {
+                if (!first) {
+                    str.append(", ");
                 } else {
-                    nextParam++;
+                    first = false;
+                }
+                RSymbol argName = argNames[i];
+                if (argName != null) {
+                    str.append(argName);
+                    str.append(" = ");
+                }
+                RNode argExpr = argExprs[i];
+                if (argExpr != null) {
+                    str.append(PrettyPrinter.prettyPrint(argExpr.getAST()));
                 }
             }
         }
-
-        // FIXME T: ??? - what is this? - why more positions than nArgs?
-        // FIXME F: answer there may be missing.
-        int j = nArgs;
-        while (j < nParams) {
-            if (!provided[nextParam]) {
-                positions[j++] = nextParam;
-            }
-            nextParam++;
-        }
-
-        return positions;
+        throw RError.getUnusedArgument(ast, str.toString());
     }
 
     protected final int[] computePositions(final RFunction func, RSymbol[] usedArgNames) {
@@ -98,24 +203,25 @@ public abstract class AbstractCall extends BaseR {
      * @param callerFrame
      *            The frame to evaluate exprs (it's the last argument, since with promises, it should be removed or at
      *            least changed)
-     * @param positions
-     *            Where arguments need to be displaced (-1 means ``...'')
+     * @param argPositions
+     *            Where arguments need to be displaced (-2 means ``...''), positions are 1-based
      * @param names
      *            Names of extra arguments (...).
      */
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] positions, RSymbol[] names, int nparams) {
+    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, RSymbol[] names, int nParams) {
 
-        Object[] argValues = new Object[nparams];
+        Object[] argValues = new Object[nParams];
         int i;
         for (i = 0; i < argExprs.length; i++) {
-            int p = positions[i];
+            int p = argPositions[i] - 1;
+            assert Utils.check(p != -1);
             if (p >= 0) {
                 RNode argExpr = argExprs[i];
                 if (argExpr != null) {
                     if (FunctionCall.PROMISES) {
                         argValues[p] = RPromise.createNormal(argExpr, callerFrame);
                     } else {
-                        Object argV = argExprs[i].execute(callerFrame);
+                        Object argV = argExpr.execute(callerFrame);
                         if (MATERIALIZE_ON_FUNCTION_CALL) {
                             if (argV instanceof View) {
                                 argV = ((View) argV).materialize();

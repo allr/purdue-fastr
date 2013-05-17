@@ -286,6 +286,17 @@ public class Truffleize implements Visitor {
         return new SplitArgumentList(names, expressions);
     }
 
+    private void detectRepeatedParameters(RSymbol[] params, ASTNode ast) {
+        int n = params.length;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (params[i] == params[j]) {
+                    throw RError.getRepeatedFormal(ast, params[i].name());
+                }
+            }
+        }
+    }
+
     @Override
     public void visit(Function function) {
         assert Utils.check(function.getRFunction() == null); // TODO the ast.Function must create the RFunction !
@@ -295,6 +306,7 @@ public class Truffleize implements Visitor {
         SplitArgumentList a = splitArgumentList(function.getSignature(), true); // the name is not really accurate since, these are parameters
 
             // note: body has to be built lazily, otherwise nested functions won't work correctly
+        detectRepeatedParameters(a.convertedNames, function);
         RFunction impl = function.createImpl(a.convertedNames, a.convertedExpressions, createLazyRootTree(function.getBody()), encf);
         r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
 

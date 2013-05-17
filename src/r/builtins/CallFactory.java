@@ -200,8 +200,9 @@ public abstract class CallFactory {
                 }
                 RSymbol paramName = parameters[j];
                 if (paramName == RSymbol.THREE_DOTS_SYMBOL) {
-                    break;
+                    // only exact matches after ...
                     // NOTE: GNU-R continues in the search, but I don't see why - exact matching would have established such matches already
+                    break;
                 }
 
                 boolean paramMatched = false;
@@ -229,7 +230,9 @@ public abstract class CallFactory {
         // Match the remaining arguments by position, taking care of the three dots and of extra arguments.
         int j = 0;
         for (int i = 0; i < nArgs; i++) {
-            if (argUsed[i]) continue;
+            if (argUsed[i]) {
+                continue;
+            }
             while (j < nParams && a.paramPositions[j] != -1 && parameters[j] != RSymbol.THREE_DOTS_SYMBOL) {
                 j++; // skip params that have been matched already, but if the param is ..., don't advance
             }
