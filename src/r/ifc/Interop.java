@@ -4,6 +4,7 @@ import r.Truffle.Frame;
 import r.builtins.*;
 import r.builtins.CallFactory.ArgumentInfo;
 import r.data.*;
+import r.data.RArray.Names;
 import r.data.internal.*;
 import r.ifc.Interop.Invokable;
 import r.nodes.*;
@@ -71,6 +72,12 @@ public class Interop {
         } else return null;
     }
 
+    /** Takes an R object representing a vector of strings and returns an array of String. */
+    public static String[] asStringArray(RAny r) {
+        if (r instanceof StringImpl) return ((StringImpl) r).getContent();
+        else return null;
+    }
+
     /** Takes an integer array and returns a R Int vector. */
     public static RInt asRIntVector(int[] v) {
         return new IntImpl(v);
@@ -94,6 +101,14 @@ public class Interop {
             return ((DoubleImpl) r).getContent();
         } else return null;
     }
+
+    public static RAny makeDoubleVector(double[] res, int[] dim, String[] names) {
+        RSymbol[] namesSym = new RSymbol[names.length];
+        for (int i = 0; i < names.length; i++)
+            namesSym[i] = RSymbol.getSymbol(names[i]);
+        return new DoubleImpl(res, dim, Names.create(namesSym));
+    }
+
 }
 
 /** Internal implementation: adapter for calling Java code from R. **/
