@@ -61,7 +61,7 @@ final class ReadLines extends CallFactory {
 
                 try {
                     BufferedReader reader = con.reader(ast);
-                    ArrayList<String> buf = new ArrayList<>();
+                    ArrayList<String> buf = new ArrayList();
                     String line = "";
                     int nlines = 0;
                     try {

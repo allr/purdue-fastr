@@ -96,8 +96,8 @@ public class Function extends ASTNode {
         // note: we cannot read fnode.argNames() here as it is not yet initialized
 
         // find variables accessed
-        Set<RSymbol> read = new HashSet<>();
-        Set<RSymbol> written = new HashSet<>();
+        Set<RSymbol> read = new HashSet();
+        Set<RSymbol> written = new HashSet();
         findAccesses(read, written);
         if (DEBUG_FUNCTIONS) {
             printAccesses(read, written);
@@ -149,7 +149,7 @@ public class Function extends ASTNode {
             }
             return emptyReadSet;
         }
-        ArrayList<EnclosingSlot> rsl = new ArrayList<>();
+        ArrayList<EnclosingSlot> rsl = new ArrayList();
         for (RSymbol s : origRSet) {
             RFunction p = parent;
             int hops = 1;

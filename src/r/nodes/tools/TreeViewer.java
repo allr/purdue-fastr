@@ -15,7 +15,7 @@ public class TreeViewer extends JTree {
 
     private static final long serialVersionUID = 1L;
 
-    private static Map<Class, Field[]> fieldsForClass = new LinkedHashMap<>();
+    private static Map<Class, Field[]> fieldsForClass = new LinkedHashMap();
 
     private static TreeViewer treeViewer;
 
@@ -31,11 +31,9 @@ public class TreeViewer extends JTree {
     JFrame frame;
 
     private static Field[] getFieldsFor(Class clazz) {
-        if (fieldsForClass.containsKey(clazz)) {
-            return fieldsForClass.get(clazz);
-        }
+        if (fieldsForClass.containsKey(clazz)) { return fieldsForClass.get(clazz); }
         Class current = clazz;
-        ArrayList<Field> fields = new ArrayList<>();
+        ArrayList<Field> fields = new ArrayList();
         while (current != ASTNode.class) {
             Field[] f = current.getDeclaredFields();
             for (int i = 0; i < f.length; i++) {
@@ -79,8 +77,7 @@ public class TreeViewer extends JTree {
         frame.setVisible(true);
     }
 
-    @Override
-    public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+    @Override public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         StringBuffer res = new StringBuffer();
         if (hasFocus) {
             ASTNode parent = ((ASTNode) value).getParent();
@@ -93,7 +90,9 @@ public class TreeViewer extends JTree {
                             res.append("] ");
                             break;
                         }
-                    } catch (IllegalArgumentException | IllegalAccessException e) {
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
                 }
@@ -112,55 +111,44 @@ public class TreeViewer extends JTree {
     private TreeModel newModel() {
         return new TreeModel() {
 
-            @Override
-            public Object getRoot() {
+            @Override public Object getRoot() {
                 return root;
             }
 
-            @Override
-            public Object getChild(Object parent, int index) {
+            @Override public Object getChild(Object parent, int index) {
                 try {
                     return getFieldsFor(parent.getClass())[index].get(parent);
-                } catch (IllegalArgumentException | IllegalAccessException e) {
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
                 return null;
             }
 
-            @Override
-            public int getChildCount(Object parent) {
+            @Override public int getChildCount(Object parent) {
                 return getFieldsFor(parent.getClass()).length;
             }
 
-            @Override
-            public boolean isLeaf(Object node) {
+            @Override public boolean isLeaf(Object node) {
                 return getChildCount(node) == 0;
             }
 
-            @Override
-            public void valueForPathChanged(TreePath path, Object newValue) {
-            }
+            @Override public void valueForPathChanged(TreePath path, Object newValue) {}
 
-            @Override
-            public int getIndexOfChild(Object parent, Object child) {
+            @Override public int getIndexOfChild(Object parent, Object child) {
                 int i = 0;
                 Field[] fields = getFieldsFor(parent.getClass());
                 for (Field field : fields) {
-                    if (field == child) {
-                        return i;
-                    }
+                    if (field == child) { return i; }
                     i++;
                 }
                 return -1;
             }
 
-            @Override
-            public void addTreeModelListener(TreeModelListener l) {
-            }
+            @Override public void addTreeModelListener(TreeModelListener l) {}
 
-            @Override
-            public void removeTreeModelListener(TreeModelListener l) {
-            }
+            @Override public void removeTreeModelListener(TreeModelListener l) {}
         };
     }
 }

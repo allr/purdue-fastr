@@ -65,7 +65,7 @@ public class FunctionImpl extends RNode implements RFunction {
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
         frameDescriptor = writeSet;
-        h = new HashMap<>(frameDescriptor.length);
+        h = new HashMap(frameDescriptor.length);
         for (int i = 0; i < frameDescriptor.length; i++)
             h.put(frameDescriptor[i], i);
         //new FrameDescriptor();

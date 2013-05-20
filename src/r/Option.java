@@ -50,7 +50,7 @@ public abstract class Option {
     protected abstract void processOption(String name, String[] opts) throws Exception;
 
     public static String[] processCommandLine(String[] args, Option[] availableOptions) throws Exception {
-        ArrayList<String> todo = new ArrayList<>(args.length);
+        ArrayList<String> todo = new ArrayList<String>(args.length);
 
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];

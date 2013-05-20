@@ -87,7 +87,7 @@ public final class RSymbol extends BaseObject implements RAny {
     private static class SymbolTable {
         // TODO A less stupid implementation for symbol table
         // i.e., close to a set implementation with linear probing
-        final Map<String, RSymbol> table = new HashMap<>();
+        final Map<String, RSymbol> table = new HashMap();
 
         private RSymbol get(String name) {
             RSymbol sym = table.get(name);

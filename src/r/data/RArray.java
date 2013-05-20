@@ -178,7 +178,7 @@ public interface RArray extends RAny {
          */
         private void initializeMapIfNeeded() {
             if (map != null) { return; }
-            map = new HashMap<>(names.length);
+            map = new HashMap(names.length);
             for (int i = 0; i < names.length; i++) {
                 RSymbol name = names[i];
                 if (name != RSymbol.EMPTY_SYMBOL && name != RSymbol.NA_SYMBOL && !map.containsKey(name)) {

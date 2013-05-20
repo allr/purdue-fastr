@@ -4,7 +4,9 @@ import java.util.*;
 
 import r.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
+import r.ifc.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 import java.lang.Integer; // needed because there is a class Integer in this package
@@ -139,6 +141,21 @@ public abstract class CallFactory {
             return paramPositions[ix(name)];
         }
 
+        public long get(RAny[] args, String name, long defaultValue) {
+            int pos = position(name);
+            return pos >= 0 ? (long) ((ScalarDoubleImpl) (args[pos])).getDouble() : defaultValue;
+        }
+
+        public String get(RAny[] args, String name, String defaultValue) {
+            int pos = position(name);
+            return pos >= 0 ? Interop.asString(args[pos]) : defaultValue;
+        }
+
+        public RAny getAny(RAny[] args, String name) {
+            int pos = position(name);
+            return pos >= 0 ? args[pos] : null;
+        }
+
         /** For debugging. */
         @Override public String toString() {
             String res = "[";
@@ -201,7 +218,7 @@ public abstract class CallFactory {
             }
             if (nextP == parameters.length) { // Garbage params...
                 if (a.unusedArgs == null) {
-                    a.unusedArgs = new ArrayList<>();
+                    a.unusedArgs = new ArrayList();
                 }
                 a.unusedArgs.add(i);
             } else {

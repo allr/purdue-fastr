@@ -2412,11 +2412,11 @@ public abstract class UpdateVector extends BaseR {
             RSymbol[] bsymbols;
             HashMap<RSymbol, Integer> nmap;
             if (bnames == null) {
-                nmap = new HashMap<>(bsize);
+                nmap = new HashMap(bsize);
                 bsymbols = null;
             } else {
                 nmap = bnames.getMap();
-                nmap = new HashMap<>(nmap);
+                nmap = new HashMap(nmap);
                 bsymbols = bnames.sequence();
             }
 
