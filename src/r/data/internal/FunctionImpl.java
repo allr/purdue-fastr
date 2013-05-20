@@ -82,9 +82,7 @@ public class FunctionImpl extends RootNode implements RFunction {
             Object value = args[i]; // FIXME: use RAny array instead?
             if (value != null) {
                 frame.setObject(paramSlots[i], value);
-                if (!FunctionCall.PROMISES) {
-                    ((RAny) value).ref();
-                }
+                // note: ref done by caller
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {

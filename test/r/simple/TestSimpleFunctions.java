@@ -59,7 +59,9 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEvalError("{ x<-function(){1} ; x(1) }", "unused argument(s) (1.0)");
         assertEvalError("{ x<-function(a){1} ; x(1,) }", "unused argument(s) ()");
         assertEvalError("{ x<-function(){1} ; x(y=sum(1:10)) }", "unused argument(s) (y = sum(1.0 : 10.0))");
-        assertEvalError("{ f <- function(x) { x } ; f() }", "argument 'x' is missing, with no default");
+        if (FunctionCall.PROMISES) {
+            assertEvalError("{ f <- function(x) { x } ; f() }", "argument 'x' is missing, with no default");
+        }
         assertEvalError("{ x<-function(y,b){1} ; x(y=1,y=3,4) }", "formal argument \"y\" matched by multiple actual arguments");
         assertEvalError("{ x<-function(foo,bar){foo*bar} ; x(fo=10,f=1,2) }", "formal argument \"foo\" matched by multiple actual arguments");
 
@@ -115,13 +117,30 @@ public class TestSimpleFunctions extends SimpleTestBase {
     @Test
     public void testDots() throws RecognitionException {
         assertEval("{ f <- function(...) { ..1 } ;  f(10) }", "10.0");
-        assertEval("{ f <- function(...) { x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+        if (FunctionCall.PROMISES) {
+            assertEval("{ f <- function(...) { x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+        }
         assertEval("{ f <- function(...) { ..1 ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "1.0");
-        assertEval("{ f <- function(...) { ..1 ; x <<- 10 ; ..2 } ; x <- 1 ; f(100,x) }", "10.0");
-        assertEval("{ f <- function(...) { ..2 ; x <<- 10 ; ..1 } ; x <- 1 ; f(x,100) }", "10.0");
-        assertEval("{ g <- function(...) { 0 } ; f <- function(...) { g(...) ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
-        assertEval("{ f <- function(...) { substitute(..1) } ;  f(x+y) }", "..1");
+        if (FunctionCall.PROMISES) {
+            assertEval("{ f <- function(...) { ..1 ; x <<- 10 ; ..2 } ; x <- 1 ; f(100,x) }", "10.0");
+            assertEval("{ f <- function(...) { ..2 ; x <<- 10 ; ..1 } ; x <- 1 ; f(x,100) }", "10.0");
+            assertEval("{ g <- function(...) { 0 } ; f <- function(...) { g(...) ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+            assertEval("{ f <- function(...) { substitute(..1) } ;  f(x+y) }", "..1");
+        }
         assertEval("{ f <- function(...) { g <- function() { ..1 } ; g() } ; f(a=2) }", "2.0");
         assertEval("{ f <- function(...) { ..1 <- 2 ; ..1 } ; f(z = 1) }", "1.0");
+
+        assertEval("{ g <- function(a,b) { a + b } ; f <- function(...) { g(...) }  ; f(1,2) }", "3.0");
+        assertEval("{ g <- function(a,b,x) { a + b * x } ; f <- function(...) { g(...,x=4) }  ; f(b=1,a=2) }", "6.0");
+        assertEval("{ g <- function(a,b,x) { a + b * x } ; f <- function(...) { g(x=4, ...) }  ; f(b=1,a=2) }", "6.0");
+        assertEval("{ g <- function(a,b,x) { a + b * x } ; f <- function(...) { g(x=4, ..., 10) }  ; f(b=1) }", "14.0");
+        assertEvalError("{ g <- function(a,b,x) { a + b * x } ; f <- function(...) { g(x=4, ..., 10) }  ; f(b=1,a=2) }", "unused argument(s) (10.0)");
+        if (FunctionCall.PROMISES) {
+            assertEval("{ g <- function(...) { 0 } ; f <- function(...) { g(...) ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+        }
+        assertEval("{ g <- function(a,b,aa,bb) { a ; x <<- 10 ; aa ; c(a, aa) } ; f <- function(...) {  g(..., ...) } ; x <- 1; y <- 2; f(x, y) }", "1.0, 1.0");
+        assertEval("{ f <- function(a, b) { a - b } ; g <- function(...) { f(1, ...) } ; g(b = 2) }", "-1.0");
+        assertEval("{ f <- function(a, b) { a - b } ; g <- function(...) { f(1, ...) } ; g(a = 2) }", "1.0");
+
     }
 }

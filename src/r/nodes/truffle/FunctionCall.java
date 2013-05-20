@@ -16,8 +16,8 @@ public abstract class FunctionCall extends AbstractCall {
 
     final RNode callableExpr;
 
-    private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
-        super(ast, argNames, argExprs);
+    private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, int[] dotsArgs) {
+        super(ast, argNames, argExprs, dotsArgs);
         this.callableExpr = adoptChild(callableExpr);
     }
 
@@ -25,18 +25,37 @@ public abstract class FunctionCall extends AbstractCall {
         // place optimized nodes here, e.g. for positional-only argument passing
         // these are present in the old truffle api version, but not here, as they were not really helping
 
-        //        return new GenericCall(ast, callableExpr, argNames, argExprs);
-        return new UninitializedCall(ast, callableExpr, argNames, argExprs);  // FIXME: this is not helping as much as one would think, why?
+        int[] dotsArgs = findDotsArgs(argExprs);
+        if (dotsArgs != null) {
+            return new GenericDotsCall(ast, callableExpr, argNames, argExprs, dotsArgs);
+        } else {
+            return new UninitializedCall(ast, callableExpr, argNames, argExprs);
+        }
     }
 
-//    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) { // FIXME: is this still needed?
-//        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
-//
-//            @Override protected final Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
-//                return placeArgs(callerFrame, func.nparams());
-//            }
-//        };
-//    }
+    // returns indexes of ... arguments (or null if none present)
+    public static int[] findDotsArgs(RNode[] argExprs) {
+
+        int[] res = new int[argExprs.length];
+        int j = 0;
+        for (int i = 0; i < argExprs.length; i++) {
+            RNode expr = argExprs[i];
+            if (expr == null) {
+                continue;
+            }
+            ASTNode ast = expr.getAST();
+            if (ast instanceof SimpleAccessVariable && ((SimpleAccessVariable) ast).getSymbol() == RSymbol.THREE_DOTS_SYMBOL) {
+                res[j++] = i;
+            }
+        }
+        if (j == 0) {
+            return null;
+        } else {
+            int[] toret = new int[j];
+            System.arraycopy(res, 0, toret, 0, j);
+            return toret;
+        }
+    }
 
     public static CallFactory FACTORY = new CallFactory("<empty>") {
 
@@ -68,30 +87,10 @@ public abstract class FunctionCall extends AbstractCall {
         return null;
     }
 
-//    @Override public Object execute(Frame callerFrame) { // FIXME: is this still needed?
-//        RCallable callable = (RCallable) callableExpr.execute(callerFrame);
-//        try {
-//            if (callable instanceof RClosure) {
-//                // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
-//                RClosure closure = (RClosure) callable;
-//                RFunction function = closure.function();
-//                MaterializedFrame enclosingFrame = closure.enclosingFrame();
-//                Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
-//                RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
-//                return function.callTarget().call(arguments);
-//            } else {
-//                throw new UnexpectedResultException(null);
-//            }
-//        } catch (UnexpectedResultException e) {
-//            GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
-//            return replace(callableExpr, callable, n, callerFrame);
-//        }
-//    }
-
     public static final class UninitializedCall extends FunctionCall {
 
         public UninitializedCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
-            super(ast, callableExpr, argNames, argExprs);
+            super(ast, callableExpr, argNames, argExprs, null);
         }
 
         @Override public Object execute(Frame callerFrame) {
@@ -181,7 +180,6 @@ public abstract class FunctionCall extends AbstractCall {
     public static final class GenericCall extends FunctionCall {
 
         Object lastCallable; // RCallable, but using Object to avoid cast
-        boolean lastWasFunction;
 
         // for functions
         RClosure lastClosure; // null when last callable wasn't a function (closure)
@@ -197,7 +195,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Child RNode builtInNode;
 
         GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
-            super(ast, callableExpr, argNames, argExprs);
+            super(ast, callableExpr, argNames, argExprs, null);
         }
 
         @Override public Object execute(Frame callerFrame) {
@@ -311,26 +309,27 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-//    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) { // FIXME: is this still needed?
-//        return null;
-//    }
-//
-//    // providedArgNames is an output parameter, it should be an array of argExprs.length nulls before the call
-//    // FIXME: what do we need the parameter for?
-//
-//    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int nparams) { // FIXME: is this still needed?
-//        Object[] argValues = new Object[nparams];
-//        int i = 0;
-//
-//        for (; i < argExprs.length; i++) {
-//            if (i < nparams) {
-//                // TODO: create a promise here, instead
-//                argValues[i] = argExprs[i].execute(callerFrame);
-//            } else {
-//                // TODO support ``...''
-//                throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
-//            }
-//        }
-//        return argValues;
-//    }
+    // function call that passes "..."
+    public static final class GenericDotsCall extends FunctionCall {
+
+        GenericDotsCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, int[] dotsArgs) {
+            super(ast, callableExpr, argNames, argExprs, dotsArgs);
+            assert Utils.check(dotsArgs != null);
+        }
+
+        @Override public Object execute(Frame callerFrame) {
+            Object callable = callableExpr.execute(callerFrame);
+            if (callable instanceof RClosure) {
+                RClosure closure = (RClosure) callable;
+                RFunction function = closure.function();
+                Object[] argValues = placeDotsArgs(callerFrame, function.paramNames());
+                RFrameHeader arguments = new RFrameHeader(function, closure.enclosingFrame(), argValues);
+                return function.callTarget().call(arguments);
+            } else {
+                Utils.nyi();
+                return null;
+            }
+        }
+    }
+
 }
