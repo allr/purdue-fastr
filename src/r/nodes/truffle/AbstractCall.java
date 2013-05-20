@@ -34,9 +34,13 @@ public abstract class AbstractCall extends BaseR {
         return this.getClass() + "[" + args + "]";
     }
 
-    // dotsArgNames is an output array to be filled in with names of arguments that will go into ... (but is it needed?)
+    public static class DotsInfo {
+        RSymbol[] names; // names of arguments to be passed into ... parameter
+        int paramIndex;
+    }
+
     // argument positions are 1-based (!)
-    protected final int[] computePositions(RSymbol[] paramNames, RSymbol[] dotsArgNames) {
+    protected final int[] computePositions(RSymbol[] paramNames, DotsInfo dotsInfo) {
 
         int nArgs = argExprs.length;
         int nParams = paramNames.length;
@@ -108,6 +112,8 @@ public abstract class AbstractCall extends BaseR {
         int i = 0; // positional matching
         int j = 0;
         boolean hasUnusedArgsWithNames = false;
+        int firstDotsArg = -1;
+        int nDotsArgs = 0;
 
         outer: for(;;) {
             for(;;) {
@@ -137,18 +143,24 @@ public abstract class AbstractCall extends BaseR {
 
             RSymbol paramName = paramNames[j];
             if (paramName == RSymbol.THREE_DOTS_SYMBOL) { // handle three dots in parameters
+                dotsInfo.paramIndex = j;
+                firstDotsArg = i;
+                argPositions[i] = -1; // part of three dots
+                i++;
+                nDotsArgs++;
                 for (;;) {
-                    argPositions[i] = -1; // part of three dots
-                    dotsArgNames[i] = argNames[i]; // ?? really needed ??
-                    i++;
-                    if (i < nArgs) {
-                        while(argPositions[i] != 0) {
-                            i++;
-                            if (i == nArgs) {
-                                break outer;
-                            }
+                    if (i == nArgs) {
+                        break outer;
+                    }
+                    while(argPositions[i] != 0) {
+                        i++;
+                        if (i == nArgs) {
+                            break outer;
                         }
                     }
+                    argPositions[i] = -1;
+                    i++;
+                    nDotsArgs++;
                 } // not reached
             }
             // j now points to unmatched parameter, which is not the three dots
@@ -162,6 +174,19 @@ public abstract class AbstractCall extends BaseR {
                 i++;
                 hasUnusedArgsWithNames = true;
             }
+        }
+
+        if (firstDotsArg >= 0) {
+            RSymbol[] dnames = new RSymbol[nDotsArgs];
+            int di = 0;
+            for (i = 0; i < nArgs; i++) {
+                if (argPositions[i] < 0) {
+                    dnames[di++] = argNames[i];
+                }
+            }
+            dotsInfo.names = dnames;
+        } else {
+            dotsInfo.names = null;
         }
 
         return argPositions;
@@ -191,48 +216,60 @@ public abstract class AbstractCall extends BaseR {
         throw RError.getUnusedArgument(ast, str.toString());
     }
 
-    protected final int[] computePositions(final RFunction func, RSymbol[] usedArgNames) {
-        return computePositions(func.paramNames(), usedArgNames);
+    protected final int[] computePositions(final RFunction func, DotsInfo dotsInfo) {
+        return computePositions(func.paramNames(), dotsInfo);
     }
 
-    /**
-     * Displace args provided at the good position in the frame.
-     *
-     * @param callerFrame
-     *            The frame to evaluate exprs (it's the last argument, since with promises, it should be removed or at
-     *            least changed)
-     * @param argPositions
-     *            Where arguments need to be displaced (-2 means ``...''), positions are 1-based
-     * @param names
-     *            Names of extra arguments (...).
-     */
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, RSymbol[] names, int nParams) {
+    protected final Object promiseForArgument(Frame callerFrame, int argIndex) {
+        RNode argExpr = argExprs[argIndex];
+        if (argExpr != null) {
+            if (FunctionCall.PROMISES) {
+                return RPromise.createNormal(argExpr, callerFrame);
+            } else {
+                Object argV = argExpr.execute(callerFrame);
+                if (MATERIALIZE_ON_FUNCTION_CALL) {
+                    if (argV instanceof View) {
+                        argV = ((View) argV).materialize();
+                    }
+                }
+                return argV;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    // argPositions
+    //   1-based, giving parameter index for argument index
+    //   == -1 for arguments to be placed into ...
+    // dots
+    //   dots.names == null when there are no ... in parameters
+    //   otherwise, names of symbols that will appear in ...
+    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int nParams) {
 
         Object[] argValues = new Object[nParams];
         int i;
-        for (i = 0; i < argExprs.length; i++) {
-            int p = argPositions[i] - 1;
-            assert Utils.check(p != -1);
-            if (p >= 0) {
-                RNode argExpr = argExprs[i];
-                if (argExpr != null) {
-                    if (FunctionCall.PROMISES) {
-                        argValues[p] = RPromise.createNormal(argExpr, callerFrame);
-                    } else {
-                        Object argV = argExpr.execute(callerFrame);
-                        if (MATERIALIZE_ON_FUNCTION_CALL) {
-                            if (argV instanceof View) {
-                                argV = ((View) argV).materialize();
-                            }
-                        }
-                        argValues[p] = argV;
-                    }
-                }
-            } else {
-                // TODO support ``...''
-                // Note that names[i] contains a key if needed
-                RContext.warning(argExprs[i].getAST(), "need to be put in ``...'', which is NYI");
+        RSymbol[] dnames = dotsInfo.names;
+        if (dnames == null) {  // FIXME: turn into node-rewriting ?
+            // no dots symbol in target
+            for (i = 0; i < argExprs.length; i++) {
+                int p = argPositions[i] - 1;
+                assert Utils.check(p >= 0);
+                argValues[p] = promiseForArgument(callerFrame, i);
             }
+        } else {
+            Object[] dargs = new Object[dnames.length];
+            int di = 0;
+            for (i = 0; i < argExprs.length; i++) {
+                int p = argPositions[i] - 1;
+                if (p >= 0) {
+                    argValues[p] = promiseForArgument(callerFrame, i);
+                } else {
+                    dargs[di++] =  promiseForArgument(callerFrame, i);
+                }
+            }
+            argValues[dotsInfo.paramIndex] = new RDots(dnames, dargs);
+
         }
         return argValues;
     }

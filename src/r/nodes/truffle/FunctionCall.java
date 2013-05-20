@@ -29,14 +29,14 @@ public abstract class FunctionCall extends AbstractCall {
         return new UninitializedCall(ast, callableExpr, argNames, argExprs);  // FIXME: this is not helping as much as one would think, why?
     }
 
-    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
-        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
-
-            @Override protected final Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
-                return placeArgs(callerFrame, func.nparams());
-            }
-        };
-    }
+//    public static FunctionCall getSimpleFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) { // FIXME: is this still needed?
+//        return new FunctionCall(ast, callableExpr, argNames, argExprs) {
+//
+//            @Override protected final Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) {
+//                return placeArgs(callerFrame, func.nparams());
+//            }
+//        };
+//    }
 
     public static CallFactory FACTORY = new CallFactory("<empty>") {
 
@@ -68,25 +68,25 @@ public abstract class FunctionCall extends AbstractCall {
         return null;
     }
 
-    @Override public Object execute(Frame callerFrame) { // FIXME: is this still needed?
-        RCallable callable = (RCallable) callableExpr.execute(callerFrame);
-        try {
-            if (callable instanceof RClosure) {
-                // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
-                RClosure closure = (RClosure) callable;
-                RFunction function = closure.function();
-                MaterializedFrame enclosingFrame = closure.enclosingFrame();
-                Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
-                RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
-                return function.callTarget().call(arguments);
-            } else {
-                throw new UnexpectedResultException(null);
-            }
-        } catch (UnexpectedResultException e) {
-            GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
-            return replace(callableExpr, callable, n, callerFrame);
-        }
-    }
+//    @Override public Object execute(Frame callerFrame) { // FIXME: is this still needed?
+//        RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+//        try {
+//            if (callable instanceof RClosure) {
+//                // FIXME: this type check could be avoided through caching and checking on a callable reference (like in GenericCall)
+//                RClosure closure = (RClosure) callable;
+//                RFunction function = closure.function();
+//                MaterializedFrame enclosingFrame = closure.enclosingFrame();
+//                Object[] argValues = matchParams(function, enclosingFrame, callerFrame);
+//                RFrameHeader arguments = new RFrameHeader(function, enclosingFrame, argValues);
+//                return function.callTarget().call(arguments);
+//            } else {
+//                throw new UnexpectedResultException(null);
+//            }
+//        } catch (UnexpectedResultException e) {
+//            GenericCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
+//            return replace(callableExpr, callable, n, callerFrame);
+//        }
+//    }
 
     public static final class UninitializedCall extends FunctionCall {
 
@@ -186,10 +186,10 @@ public abstract class FunctionCall extends AbstractCall {
         // for functions
         RClosure lastClosure; // null when last callable wasn't a function (closure)
         RFunction closureFunction;
-        RSymbol[] functionArgNames; // FIXME: is this faster than remembering just the function?
         int[] functionArgPositions;
         CallTarget functionCallTarget;
         MaterializedFrame closureEnclosingFrame;
+        final DotsInfo functionDotsInfo = new DotsInfo();
 
         // for builtins
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin
@@ -203,7 +203,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             }
@@ -213,14 +213,13 @@ public abstract class FunctionCall extends AbstractCall {
                 RFunction function = closure.function();
                 if (function != closureFunction) {
                     closureFunction = function;
-                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                    functionArgPositions = computePositions(closureFunction, functionArgNames);
+                    functionArgPositions = computePositions(closureFunction, functionDotsInfo);
                     functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             } else {
@@ -241,7 +240,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
             }
@@ -251,14 +250,13 @@ public abstract class FunctionCall extends AbstractCall {
                 RFunction function = closure.function();
                 if (function != closureFunction) {
                     closureFunction = function;
-                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                    functionArgPositions = computePositions(closureFunction, functionArgNames);
+                    functionArgPositions = computePositions(closureFunction, functionDotsInfo);
                     functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
             } else {
@@ -279,7 +277,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
             }
@@ -289,14 +287,13 @@ public abstract class FunctionCall extends AbstractCall {
                 RFunction function = closure.function();
                 if (function != closureFunction) {
                     closureFunction = function;
-                    functionArgNames = new RSymbol[argExprs.length]; // FIXME: escaping allocation - can we keep it statically?
-                    functionArgPositions = computePositions(closureFunction, functionArgNames);
+                    functionArgPositions = computePositions(closureFunction, functionDotsInfo);
                     functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionArgNames, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
             } else {
@@ -314,26 +311,26 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) { // FIXME: is this still needed?
-        return null;
-    }
-
-    // providedArgNames is an output parameter, it should be an array of argExprs.length nulls before the call
-    // FIXME: what do we need the parameter for?
-
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int nparams) { // FIXME: is this still needed?
-        Object[] argValues = new Object[nparams];
-        int i = 0;
-
-        for (; i < argExprs.length; i++) {
-            if (i < nparams) {
-                // TODO: create a promise here, instead
-                argValues[i] = argExprs[i].execute(callerFrame);
-            } else {
-                // TODO support ``...''
-                throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
-            }
-        }
-        return argValues;
-    }
+//    protected Object[] matchParams(RFunction func, Frame parentFrame, Frame callerFrame) { // FIXME: is this still needed?
+//        return null;
+//    }
+//
+//    // providedArgNames is an output parameter, it should be an array of argExprs.length nulls before the call
+//    // FIXME: what do we need the parameter for?
+//
+//    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int nparams) { // FIXME: is this still needed?
+//        Object[] argValues = new Object[nparams];
+//        int i = 0;
+//
+//        for (; i < argExprs.length; i++) {
+//            if (i < nparams) {
+//                // TODO: create a promise here, instead
+//                argValues[i] = argExprs[i].execute(callerFrame);
+//            } else {
+//                // TODO support ``...''
+//                throw RError.getUnusedArgument(ast, argNames[i], argExprs[i]);
+//            }
+//        }
+//        return argValues;
+//    }
 }

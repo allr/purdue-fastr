@@ -34,7 +34,13 @@ public abstract class ReadVariable extends BaseR {
         }
     }
 
-    public static ReadVariable getUninitialized(ASTNode orig, RSymbol sym) {
+    public static RNode getUninitialized(ASTNode orig, RSymbol sym) {
+
+        int ddIndex = sym.dotDotValue();
+        if (ddIndex != -1) {
+            return new ReadDotDotVariable(orig, ddIndex - 1);
+        }
+
         return new ReadVariable(orig, sym) {
 
             @Override
@@ -71,7 +77,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+    private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
@@ -89,7 +95,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+    private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
@@ -104,7 +110,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
+    private static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
         // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 
@@ -120,7 +126,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadTopLevel(ASTNode orig, RSymbol sym) {
+    private static ReadVariable getReadTopLevel(ASTNode orig, RSymbol sym) {
         return new ReadVariable(orig, sym) {
 
             int version;
@@ -152,7 +158,7 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    public static ReadVariable getReadOnlyFromTopLevel(ASTNode orig, RSymbol sym) {
+    private static ReadVariable getReadOnlyFromTopLevel(ASTNode orig, RSymbol sym) {
         return new ReadVariable(orig, sym) {
 
             @Override
@@ -165,5 +171,30 @@ public abstract class ReadVariable extends BaseR {
                 return val;
             }
         };
+    }
+
+    private static class ReadDotDotVariable extends BaseR {
+        final int index; // index in ..., 0-based
+        @Child RNode readDots;
+
+        public ReadDotDotVariable(ASTNode ast, int index) {
+            super(ast);
+            assert Utils.check(index >= 0);
+
+            this.index = index;
+            readDots = adoptChild(ReadVariable.getUninitialized(ast, RSymbol.THREE_DOTS_SYMBOL));
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RDots dotsValue = (RDots) readDots.execute(frame);
+            Object[] values = dotsValue.values();
+            int len = values.length;
+
+            if (index < len) {
+                return RPromise.force(values[index]);
+            }
+            throw RError.getDotsBounds(ast, index + 1);
+        }
     }
 }

@@ -111,4 +111,17 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEvalError("{ f <- function(hello, hi) { hello + hi } ; f(hello = 1, bye = 3) }", "unused argument(s) (bye = 3.0)");
         assertEvalError("{ f <- function(a) { a } ; f(1,2) }", "unused argument(s) (2.0)");
     }
+
+    @Test
+    public void testDots() throws RecognitionException {
+        assertEval("{ f <- function(...) { ..1 } ;  f(10) }", "10.0");
+        assertEval("{ f <- function(...) { x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+        assertEval("{ f <- function(...) { ..1 ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "1.0");
+        assertEval("{ f <- function(...) { ..1 ; x <<- 10 ; ..2 } ; x <- 1 ; f(100,x) }", "10.0");
+        assertEval("{ f <- function(...) { ..2 ; x <<- 10 ; ..1 } ; x <- 1 ; f(x,100) }", "10.0");
+        assertEval("{ g <- function(...) { 0 } ; f <- function(...) { g(...) ; x <<- 10 ; ..1 } ; x <- 1 ; f(x) }", "10.0");
+        assertEval("{ f <- function(...) { substitute(..1) } ;  f(x+y) }", "..1");
+        assertEval("{ f <- function(...) { g <- function() { ..1 } ; g() } ; f(a=2) }", "2.0");
+        assertEval("{ f <- function(...) { ..1 <- 2 ; ..1 } ; f(z = 1) }", "1.0");
+    }
 }

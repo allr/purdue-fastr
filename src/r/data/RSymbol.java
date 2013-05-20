@@ -183,6 +183,28 @@ public final class RSymbol extends BaseObject implements RAny {
         return false;
     }
 
+    // handling symbols like ..1
+    public int dotDotValue() {
+        int len = name.length();
+        if (len < 3 || name.charAt(0) != '.' || name.charAt(1) != '.') {
+            return -1;
+        }
+        char c = name.charAt(2);
+        if (c < '1' || c > '9') {
+            return -1;
+        }
+        int ivalue = c - '0';
+        for (int i = 3; i < len; i++) {
+            c = name.charAt(i);
+            if (c < '0' || c >'9') {
+                return -1;
+            }
+            ivalue *= 10;
+            ivalue += c - '0';
+        }
+        return ivalue;
+    }
+
     @Override public void ref() {}
 
     @Override public RSymbol stripAttributes() {

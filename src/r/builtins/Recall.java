@@ -49,7 +49,7 @@ final class Recall extends CallFactory {
     // FIXME: could probably make this faster by subclassing AbstractCall directly
     public static class Fixed extends Builtin {
         final RFunction function;
-        final RSymbol[] usedArgNames;
+        final DotsInfo functionDotsInfo = new DotsInfo();
         final int[] argPositions;
         final CallTarget callTarget;
         final int nparams;
@@ -57,14 +57,13 @@ final class Recall extends CallFactory {
         public Fixed(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
             super(orig, argNames, argExprs);
             this.function = function;
-            usedArgNames = new RSymbol[argExprs.length];
-            argPositions = computePositions(function, usedArgNames);
+            argPositions = computePositions(function, functionDotsInfo);
             callTarget = function.callTarget();
             nparams = function.nparams();
         }
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
-            Object[] argValues = placeArgs(frame, argPositions, usedArgNames, nparams);
+            Object[] argValues = placeArgs(frame, argPositions, functionDotsInfo, nparams);
             RFrameHeader arguments = new RFrameHeader(function, (MaterializedFrame) RFrameHeader.enclosingFrame(frame), argValues);
             return (RAny) callTarget.call(arguments);
         }

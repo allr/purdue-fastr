@@ -168,12 +168,12 @@ function returns [ASTNode v]
 par_decl [ArgumentList l]
 	: i=ID { $l.add($i.text, null); } 
 	| i=ID n_ ASSIGN n_ e=expr { $l.add($i.text, e); }
-	| v=VARIATIC { $l.add($v.text, null); } // FIXME This is not quite good, since `...` is a special token
+	| v=VARIADIC { $l.add($v.text, null); } // FIXME This is not quite good, since `...` is a special token
 	                                 // For this reason let's call RSymbol.xxxx(...)
 	// This 3 cases were not handled ... and everything was working fine
 	// I add them for completeness, however note that the function create
 	// with such a signature will always fail if they try to access them !
- 	| VARIATIC n_ ASSIGN n_ expr
+ 	| VARIADIC n_ ASSIGN n_ expr
  	| DD
  	| DD n_ ASSIGN n_ expr
 	;
@@ -242,7 +242,7 @@ expr_subset [ASTNode i] returns [ASTNode v]
 simple_expr returns [ASTNode v]
 	: i=id { $v = AccessVariable.create(i.getText()); }
 	| b=bool { $v = b; }
-	| DD
+	| d=DD { $v = AccessVariable.create(d.getText()); }
 	| NULL { $v = Constant.getNull(); }
 	| num=number { $v = num; }
 	| cstr=conststring { $v = cstr; }
@@ -262,7 +262,7 @@ conststring returns [ASTNode n]
     ;
 id	returns [Token t]
     : i=ID { $t = $i; }
-    | v=VARIATIC { $t = $v; }
+    | v=VARIADIC { $t = $v; }
     ;
 bool returns [ASTNode v]
     : TRUE {$v = Constant.createBoolConstant(1); }
@@ -322,7 +322,7 @@ RIGHT_ARROW
 SUPER_RIGHT_ARROW 
 	:	'->>'
 	;
-VARIATIC 
+VARIADIC 
 	: '..' '.'+
 	; // FIXME
 EQ	: '==';

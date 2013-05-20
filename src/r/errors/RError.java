@@ -171,6 +171,7 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_MATCHES_MULTIPLE = "argument %d matches multiple formal arguments";
     public static final String ARGUMENT_EMPTY = "argument %d is empty";
     public static final String REPEATED_FORMAL = "repeated formal argument '%s'"; // not exactly GNU-R message
+    public static final String DOTS_BOUNDS = "The ... list does not contain %s elements";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1455,5 +1456,9 @@ public abstract class RError extends RuntimeException {
 
     public static RError getRepeatedFormal(ASTNode ast, String paramName) {
         return getGenericError(ast, String.format(RError.REPEATED_FORMAL, paramName));
+    }
+
+    public static RError getDotsBounds(ASTNode ast, int index) {
+        return getGenericError(ast, String.format(RError.DOTS_BOUNDS, index));
     }
 }

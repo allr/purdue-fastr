@@ -194,7 +194,13 @@ public class Function extends ASTNode {
 
         @Override
         public void visit(SimpleAccessVariable readVariable) {
-            read.add(readVariable.getSymbol());
+            RSymbol symbol = readVariable.getSymbol();
+            int ddval = symbol.dotDotValue();
+            if (ddval == -1) {
+                read.add(readVariable.getSymbol());
+            } else {
+                read.add(RSymbol.THREE_DOTS_SYMBOL);
+            }
         }
 
         @Override
