@@ -266,8 +266,6 @@ public abstract class Selector {
         partialToFullOffsetsNoNA(offsets, i + 1);
     }
 
-    private static final boolean DEBUG_M = false;
-
     public void setIndex(RAny index) {}
 
     public RAny getIndex() {

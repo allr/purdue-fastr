@@ -3,12 +3,9 @@ package r.simple;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-import r.*;
-
 public class TestSimpleArithmetic extends SimpleTestBase {
 
-    @Test
-    public void testScalars() throws RecognitionException {
+    @Test public void testScalars() throws RecognitionException {
         assertEval("{ 1L+1 }", "2.0");
         assertEval("{ 1L+1L }", "2L");
         assertEval("{ ( 1+1)*(3+2) }", "10.0");
@@ -71,12 +68,12 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ ((0-1i)/0) * ((1-1i)/0) }", "-Infinity-Infinityi");
         assertEval("{ ((0-1i)/0) * ((-1-1i)/0) }", "-Infinity+Infinityi");
 
-        assertEval("{ (1+2i) / ((0-1i)/(0+0i)) }", "-0.0+0.0i");  // NOTE: GNU-R prints negative zero as zero
+        assertEval("{ (1+2i) / ((0-1i)/(0+0i)) }", "-0.0+0.0i"); // NOTE: GNU-R prints negative zero as zero
         assertEval("{ 1/((1+0i)/(0+0i)) }", "0.0+0.0i");
         assertEval("{ (1+2i) / ((0-0i)/(0+0i)) }", "NaN+NaNi");
 
-//TODO:        assertEval("{ ((1+0i)/(0+0i)) ^ (-3) }", "0.0+0.0i");
-//TODO:        assertEval("{ round( ((1+1i)/(0+1i)) ^ (-3.54), digits=5) }", "-0.27428+0.10364i");
+        //TODO:        assertEval("{ ((1+0i)/(0+0i)) ^ (-3) }", "0.0+0.0i");
+        //TODO:        assertEval("{ round( ((1+1i)/(0+1i)) ^ (-3.54), digits=5) }", "-0.27428+0.10364i");
 
         assertEval("{ 1^(1/0) }", "1.0"); // FDLIBM (Math.pow) fails on this
         assertEval("{ (-2)^(1/0) }", "NaN");
@@ -96,8 +93,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
     }
 
-    @Test
-    public void testVectors() throws RecognitionException {
+    @Test public void testVectors() throws RecognitionException {
         assertEval("{ x<-c(1,2,3);x }", "1.0, 2.0, 3.0");
         assertEval("{ x<-c(1,2,3);x*2 }", "2.0, 4.0, 6.0");
         assertEval("{ x<-c(1,2,3);x+2 }", "3.0, 4.0, 5.0");
@@ -140,8 +136,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
     }
 
-    @Test
-    public void testUnary() throws RecognitionException {
+    @Test public void testUnary() throws RecognitionException {
         assertEval("{ !TRUE }", "FALSE");
         assertEval("{ !FALSE }", "TRUE");
         assertEval("{ !c(TRUE,TRUE,FALSE,NA) }", "FALSE, FALSE, TRUE, NA");
@@ -157,10 +152,9 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
     }
 
-    @Test
-    public void testMatrices() throws RecognitionException {
+    @Test public void testMatrices() throws RecognitionException {
         assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m+1L }", "     [,1] [,2] [,3]\n[1,]   2L   3L   4L\n[2,]   5L   6L   7L");
-        assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m-1 }",  "     [,1] [,2] [,3]\n[1,]  0.0  1.0  2.0\n[2,]  3.0  4.0  5.0");
+        assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m-1 }", "     [,1] [,2] [,3]\n[1,]  0.0  1.0  2.0\n[2,]  3.0  4.0  5.0");
         assertEval("{ m <- matrix(1:6, nrow=2, ncol=3, byrow=TRUE) ; m+m }", "     [,1] [,2] [,3]\n[1,]   2L   4L   6L\n[2,]   8L  10L  12L");
         assertEval("{ z<-matrix(12)+1 ; z }", "     [,1]\n[1,] 13.0");
 
@@ -180,8 +174,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");
     }
 
-    @Test
-    public void testNonvectorizedLogical() throws RecognitionException {
+    @Test public void testNonvectorizedLogical() throws RecognitionException {
         assertEval("{ 1.1 || 3.15 }", "TRUE");
         assertEval("{ 0 || 0 }", "FALSE");
         assertEval("{ 1 || 0 }", "TRUE");
@@ -204,8 +197,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } ", "1.0");
     }
 
-    @Test
-    public void testVectorizedLogical() throws RecognitionException {
+    @Test public void testVectorizedLogical() throws RecognitionException {
         assertEval("{ 1.1 | 3.15 }", "TRUE");
         assertEval("{ 0 | 0 }", "FALSE");
         assertEval("{ 1 | 0 }", "TRUE");
@@ -234,8 +226,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ a <- as.raw(201) ; b <- as.raw(1) ; a & b }", "01");
     }
 
-    @Test
-    public void testIntegerOverflow() throws RecognitionException {
+    @Test public void testIntegerOverflow() throws RecognitionException {
         assertEvalWarning("{ x <- 2147483647L ; x + 1L }", "NA", "NAs produced by integer overflow");
         assertEvalWarning("{ x <- 2147483647L ; x * x }", "NA", "NAs produced by integer overflow");
         assertEvalWarning("{ x <- -2147483647L ; x - 2L }", "NA", "NAs produced by integer overflow");
@@ -247,8 +238,7 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
     }
 
-    @Test
-    public void testArithmeticUpdate() throws RecognitionException {
+    @Test public void testArithmeticUpdate() throws RecognitionException {
         assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- x + 1L ; x } ; f(FALSE) }", "4.0");
         assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- 1L + x ; x } ; f(FALSE) }", "4.0");
         assertEval("{ x <- 3 ; f <- function(z) { if (z) { x <- 1 } ; x <- x - 1L ; x } ; f(FALSE) }", "2.0");

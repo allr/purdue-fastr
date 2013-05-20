@@ -1,19 +1,15 @@
 package r.builtins;
 
-import org.netlib.lapack.*;
-import org.netlib.util.*;
-
 import r.Truffle.*;
 
 import r.*;
 import r.data.*;
 import r.data.RDouble.*;
-import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
 // FIXME: add S3 support
-final class Det extends CallFactory {
+@SuppressWarnings("unused") final class Det extends CallFactory {
 
     static final CallFactory _ = new Det("det", new String[]{"x", "..."}, new String[]{"x"});
 

@@ -2,9 +2,6 @@ package r.builtins;
 
 import java.util.*;
 
-import org.netlib.lapack.*;
-import org.netlib.util.*;
-
 import r.*;
 import r.data.*;
 import r.errors.*;

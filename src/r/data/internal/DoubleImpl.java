@@ -8,11 +8,21 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
 
-    @Override
-    public double[] getContent() {
+    @Override public double[] getContent() {
         return content;
     }
 
+    /**
+     * Create a vector of doubles.
+     * 
+     * @param values
+     *            data
+     * @param dimensions
+     *            if not null then we are creating a matrix
+     * @param names
+     * @param attributes
+     * @param doCopy
+     */
     public DoubleImpl(double[] values, int[] dimensions, Names names, Attributes attributes, boolean doCopy) {
         if (doCopy) {
             content = new double[values.length];
@@ -37,17 +47,17 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         content = new double[size];
     }
 
-//    private static double[] toArray(RDouble d) {
-//        int dsize = d.size();
-//        double[] res = new double[dsize];
-//        for (int i = 0; i < dsize; i++) {
-//            res[i] = d.getDouble(i);
-//        }
-//        return res;
-//    }
+    //    private static double[] toArray(RDouble d) {
+    //        int dsize = d.size();
+    //        double[] res = new double[dsize];
+    //        for (int i = 0; i < dsize; i++) {
+    //            res[i] = d.getDouble(i);
+    //        }
+    //        return res;
+    //    }
 
     public DoubleImpl(RDouble d, boolean valuesOnly) {
-//        content = toArray(d);
+        //        content = toArray(d);
         content = new double[d.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = d.getDouble(i);
@@ -59,52 +69,43 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         }
     }
 
-    @Override
-    public int size() {
+    @Override public int size() {
         return content.length;
     }
 
-    @Override
-    public Object get(int i) {
+    @Override public Object get(int i) {
         return content[i];
     }
 
-    @Override
-    public RAny boxedGet(int i) {
+    @Override public RAny boxedGet(int i) {
         return RDoubleFactory.getScalar(getDouble(i));
     }
 
-    @Override
-    public boolean isNAorNaN(int i) {
+    @Override public boolean isNAorNaN(int i) {
         return RDouble.RDoubleUtils.isNAorNaN(content[i]);
     }
 
-    @Override
-    public RArray set(int i, Object val) {
+    @Override public RArray set(int i, Object val) {
         return set(i, ((Double) val).doubleValue()); // FIXME better conversion
     }
 
-    @Override
-    public RDouble set(int i, double val) {
+    @Override public RDouble set(int i, double val) {
         content[i] = val;
         return this;
     }
 
-    @Override
-    public double getDouble(int i) {
+    @Override public double getDouble(int i) {
         return content[i];
     }
 
-    @Override
-    public DoubleImpl materialize() {
+    @Override public DoubleImpl materialize() {
         return this;
     }
 
     private static final String EMPTY_STRING = "numeric(0)"; // NOTE: this is not RDouble.TYPE_STRING (R is inconsistent on this)
     private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
 
-    @Override
-    public String pretty() {
+    @Override public String pretty() {
         StringBuilder str = new StringBuilder();
         if (dimensions != null) {
             str.append(arrayPretty());
@@ -123,78 +124,63 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         return str.toString();
     }
 
-    @Override
-    public RRaw asRaw() {
+    @Override public RRaw asRaw() {
         return new RDouble.RRawView(this);
     }
 
-    @Override
-    public RRaw asRaw(ConversionStatus warn) {
+    @Override public RRaw asRaw(ConversionStatus warn) {
         return RDouble.RDoubleUtils.doubleToRaw(this, warn);
     }
 
-    @Override
-    public RLogical asLogical() {
+    @Override public RLogical asLogical() {
         return new RDouble.RLogicalView(this);
     }
 
-    @Override
-    public RLogical asLogical(ConversionStatus warn) {
+    @Override public RLogical asLogical(ConversionStatus warn) {
         return asLogical();
     }
 
-    @Override
-    public RInt asInt() {
+    @Override public RInt asInt() {
         return new RDouble.RIntView(this);
     }
 
-    @Override
-    public RInt asInt(ConversionStatus warn) {
+    @Override public RInt asInt(ConversionStatus warn) {
         return RDouble.RDoubleUtils.double2int(this, warn);
     }
 
-    @Override
-    public RDouble asDouble() {
+    @Override public RDouble asDouble() {
         return this;
     }
 
-    @Override
-    public RDouble asDouble(ConversionStatus warn) {
+    @Override public RDouble asDouble(ConversionStatus warn) {
         return this;
     }
 
-    @Override
-    public RComplex asComplex() {
+    @Override public RComplex asComplex() {
         return new RDouble.RComplexView(this);
     }
 
-    @Override
-    public RComplex asComplex(ConversionStatus warn) {
+    @Override public RComplex asComplex(ConversionStatus warn) {
         return asComplex();
     }
 
-    @Override
-    public RString asString() {
+    @Override public RString asString() {
         return new RDouble.RStringView(this);
     }
 
-    @Override
-    public RString asString(ConversionStatus warn) {
+    @Override public RString asString(ConversionStatus warn) {
         return asString();
     }
 
-    @Override
-    public RArray subset(RInt index) {
+    @Override public RArray subset(RInt index) {
         return RDouble.RDoubleFactory.subset(this, index);
     }
 
-    @Override
-    public String typeOf() {
+    @Override public String typeOf() {
         return RDouble.TYPE_STRING;
     }
 
-    @Override
-    public DoubleImpl doStrip() {
+    @Override public DoubleImpl doStrip() {
         return new DoubleImpl(content, null, null, null, false);
     }
 }
