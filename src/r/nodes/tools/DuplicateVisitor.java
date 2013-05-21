@@ -14,7 +14,7 @@ public class DuplicateVisitor extends BasicVisitor implements Visitor {
         return result;
     }
 
-    private ASTNode d(ASTNode n) {
+    protected ASTNode d(ASTNode n) {
         if (n == null) {
             return null;
         }

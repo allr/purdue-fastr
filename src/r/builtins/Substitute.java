@@ -8,7 +8,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
-import r.nodes.truffle.FunctionCall;
 
 public class Substitute extends CallFactory {
 
@@ -144,21 +143,63 @@ public class Substitute extends CallFactory {
             return result;
         }
 
+        protected ASTNode substituteBinding(Object binding) {
+            if (binding == null) {
+                return null;
+            } else if (binding instanceof RPromise) { // TODO: add handling of recursive promises when/if they're added to fastr
+                RPromise p = (RPromise) binding;
+                return independentDuplicator.duplicate(p.expression().getAST());
+            } else if (binding instanceof RLanguage) {
+                RLanguage l = (RLanguage) binding;
+                return independentDuplicator.duplicate(l.get());
+            } else {
+                return new r.nodes.Constant((RAny) binding);
+            }
+        }
+
         @Override
         public void visit(SimpleAccessVariable n) {
             RSymbol symbol = n.getSymbol();
             Object binding = env.find(symbol);
+            ASTNode newAST = substituteBinding(binding);
             if (binding == null) {
                 super.visit(n); // just duplicate
-            } else if (binding instanceof RPromise) { // TODO: add handling of recursive promises when/if they're added to fastr
-                RPromise p = (RPromise) binding;
-                result = independentDuplicator.duplicate(p.expression().getAST());
-            } else if (binding instanceof RLanguage) {
-                RLanguage l = (RLanguage) binding;
-                result = independentDuplicator.duplicate(l.get());
             } else {
-                result = new r.nodes.Constant((RAny) binding);
+                result = newAST;
             }
+        }
+
+        @Override
+        protected ArgumentList d(ArgumentList l) {
+            ArgumentList newList = new ArgumentList.Default();
+            for(ArgumentList.Entry e : l) {
+                ASTNode n = e.getValue();
+                if (n instanceof SimpleAccessVariable && ((SimpleAccessVariable) n).getSymbol() == RSymbol.THREE_DOTS_SYMBOL) {
+                    Object binding = env.find(RSymbol.THREE_DOTS_SYMBOL);
+                    if (binding != null && binding instanceof RDots) {
+                        RDots dots = (RDots) binding;
+                        RSymbol[] dnames = dots.names();
+                        Object[] dvalues = dots.values();
+                        int len = dnames.length;
+                        for (int i = 0; i < len; i++) {
+                            ASTNode dast = substituteBinding(dvalues[i]);
+                            RSymbol name = dnames[i];
+                            if (dast != null) {
+                                newList.add(name, dast);
+                            } else {
+                                if (name != null) {
+                                    newList.add(name, new r.nodes.SimpleAccessVariable(name));
+                                } else {
+                                    newList.add(name, null);
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                }
+                newList.add(e.getName(), d(e.getValue()));
+            }
+            return newList;
         }
 
         @Override

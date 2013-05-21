@@ -1040,6 +1040,10 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEval("{ f <- function() { substitute(x(1:10), list(x=quote(sum))) } ; f() }", "sum(1.0 : 10.0)"); // specific to fastr output format
             assertEval("{ env <- new.env() ; z <- 0 ; delayedAssign(\"var\", z+2, assign.env=env) ; substitute(var, env=env) }", "z + 2.0");
             assertEval("{ env <- new.env() ; z <- 0 ; delayedAssign(\"var\", z+2, assign.env=env) ; z <- 10 ; substitute(var, env=env) }", "z + 2.0");
+            assertEval("{ f <- function() { substitute(list(a=1,b=2,...,3,...)) } ; f() }", "list(a=1.0, b=2.0, ..., 3.0, ...)");
+            assertEval("{ f <- function(...) { substitute(list(a=1,b=2,...,3,...)) } ; f() }", "list(a=1.0, b=2.0, 3.0)");
+            assertEval("{ f <- function(...) { substitute(list(a=1,b=2,...,3,...)) } ; f(x + z, a * b) }", "list(a=1.0, b=2.0, x + z, a * b, 3.0, x + z, a * b)");
+            assertEval("{ f <- function(...) { substitute(list(...)) } ; f(x + z, a * b) }", "list(x + z, a * b)");
         }
     }
 
