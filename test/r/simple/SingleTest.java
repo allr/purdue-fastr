@@ -6,14 +6,18 @@ import org.junit.Test;
 public class SingleTest extends SimpleTestBase {
     @Test
     public void testScalars() throws RecognitionException {
-        assertEval("f = function(a,b) {\n" +
-                "  for (i in 1:10) {\n" +
+        testEval("f = function(a,b) {\n" +
+                "  x = _timerStart()\n" +
+                "  for (i in 1:100000000) {\n" +
                 "    a = a + b\n" +
                 "  }\n" +
+                "  x\n" +
                 "}\n" +
                 "a = as.vector(array(0,c(10)))\n" +
-                "b = c(1,2,3,4,5,6,7,8,9,10)\n" +
-                "f(a,b)\n","NULL");
+                "b = as.vector(array(2,c(10)))\n" +
+                "f(a,b)\n" +
+                "_timerEnd(f(a,b),\"tmr\")\n" +
+                " ");
     }
 
 
