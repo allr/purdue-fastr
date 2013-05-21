@@ -53,6 +53,7 @@ final class Recall extends CallFactory {
         final int[] argPositions;
         final CallTarget callTarget;
         final int nparams;
+        final int dotsIndex;
 
         public Fixed(ASTNode orig, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
             super(orig, argNames, argExprs);
@@ -60,10 +61,11 @@ final class Recall extends CallFactory {
             argPositions = computePositions(function, functionDotsInfo);
             callTarget = function.callTarget();
             nparams = function.nparams();
+            dotsIndex = function.dotsIndex();
         }
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
-            Object[] argValues = placeArgs(frame, argPositions, functionDotsInfo, nparams);
+            Object[] argValues = placeArgs(frame, argPositions, functionDotsInfo, dotsIndex, nparams);
             RFrameHeader arguments = new RFrameHeader(function, (MaterializedFrame) RFrameHeader.enclosingFrame(frame), argValues);
             return (RAny) callTarget.call(arguments);
         }

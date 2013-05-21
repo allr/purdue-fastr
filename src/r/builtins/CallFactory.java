@@ -8,8 +8,12 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
+import r.nodes.truffle.Loop;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
+
+import com.oracle.truffle.api.frame.*;
+import com.oracle.truffle.api.nodes.Node.*;
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
@@ -386,6 +390,50 @@ public abstract class CallFactory {
             return (v == RLogical.TRUE);
         }
         throw RError.getUnexpectedNA(ast);
+    }
+
+    // invoke the builtin for given arguments, which may change between subsequent calls
+    // used for dynamic invocations (calls that include dots, do.call, etc)
+
+    public Object invokeDynamic(Frame frame, RSymbol[] names, RAny[] values, ASTNode ast) {
+        // dummy base implementation - builtins should override
+        int len = values.length;
+        RNode[] exprs = new RNode[len];
+        for (int i = 0; i < len; i++) {
+            RAny value = values[i];
+            ASTNode dummyAST = new r.nodes.Constant(value);
+            exprs[i] = new r.nodes.truffle.Constant(dummyAST, value);
+        }
+        final RNode builtinNode = create(ast, names, exprs);
+
+        // the root node is needed because the builtin may overwrite itself using replace
+        RNode rootNode = new BaseR(ast) {
+
+            @Child RNode node = adoptChild(builtinNode);
+
+            @Override
+            public final Object execute(Frame builtinFrame) {
+                return node.execute(builtinFrame);
+            }
+        };
+        return rootNode.execute(frame);
+    }
+
+    public Object invokeDynamic(Frame frame, RSymbol[] names, RNode[] exprs, ASTNode ast) {
+        // dummy base implementation - builtins should override
+        final RNode builtinNode = create(ast, names, exprs);
+
+        // the root node is needed because the builtin may overwrite itself using replace
+        RNode rootNode = new BaseR(ast) {
+
+            @Child RNode node = adoptChild(builtinNode);
+
+            @Override
+            public final Object execute(Frame builtinFrame) {
+                return node.execute(builtinFrame);
+            }
+        };
+        return rootNode.execute(frame);
     }
 
 }

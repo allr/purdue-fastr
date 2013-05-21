@@ -114,6 +114,11 @@ public interface REnvironment extends RAny {
         public EnclosingSlot enclosingSlot(RSymbol sym) {
             return null;
         }
+
+        @Override
+        public int dotsIndex() {
+            return -1;
+        }
     }
 
 }

@@ -251,6 +251,13 @@ public class PrettyPrinter extends BasicVisitor {
         print(n.getSymbol().pretty());
     }
 
+    @Override
+    public void visit(FieldAccess n) {
+        print(n.lhs());
+        print("$");
+        print(n.fieldName());
+    }
+
     private void print(ArgumentList alist, boolean isCall) {
         boolean f = true;
         for (ArgumentList.Entry arg : alist) {

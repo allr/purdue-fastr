@@ -3,7 +3,7 @@ package r.nodes;
 
 public class FieldAccess extends ASTNode {
     ASTNode lhs;
-    String fieldName;
+    String fieldName; // TODO: this should be symbol
 
     public FieldAccess(ASTNode value, String fieldName) {
         lhs = updateParent(value);

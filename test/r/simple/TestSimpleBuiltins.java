@@ -1003,6 +1003,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEval("{ g <- function(a, b, c) { b } ; f <- function(a,b,c) { g(a,b=2,c) } ; f(1,,2) }", "2.0"); // not really the builtin, but somewhat related
             assertEval("{ f <- function(x) { missing(x) } ; f(a) }", "FALSE");
             assertEval("{ f <- function(a) { g <- function(b) { before <- missing(b) ; a <<- 2 ; after <- missing(b) ; c(before, after) } ; g(a) } ; f() }", "TRUE, FALSE");
+            assertEval("{ f <- function(...) { g(...) } ;  g <- function(b=2) { missing(b) } ; f() }", "TRUE");
         }
     }
 
@@ -1055,5 +1056,16 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         assertEvalError("{ max(1,2,) }", "argument 3 is empty");
         assertEval("{ matrix(da=1:3,1) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L");
+
+        assertEval("{ f <- function(...) { g <- function() { list(...)$a } ; g() } ; f(a=1) }", "1.0");
+        assertEval("{ f <- function(...) { l <- list(...) ; l[[1]] <- 10; ..1 } ; f(11,12,13) }", "11.0");
+        assertEval("{ g <- function(...) { length(list(...)) } ; f <- function(...) { g(..., ...) } ; f(z = 1, g = 31) }", "4L");
+        assertEval("{ g <- function(...) { max(...) } ; g(1,2) }", "2.0");
+        assertEval("{ g <- function(...) { `-`(...) } ; g(1,2) }", "-1.0");
+        assertEval("{ f <- function(...) { list(a=1,...) } ; f(b=2,3) }", "$a\n1.0\n\n$b\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ f <- function(...) { substitute(...) } ; f(x + z) } ", "x + z");
+        assertEval("{ f <- function(a, ...) { list(...) } ; f(1) }", "list()");
+        assertEval("{ f <- function(...) { args <- list(...) ; args$name } ; f(name = 42) }", "42.0");
+        assertEval("{ p <- function(prefix, ...) { cat(prefix, ..., \"\n\") } ; p(\"INFO\", \"msg:\", \"Hello\", 42) }", "INFO msg: Hello 42.0 \n", "NULL");
     }
 }

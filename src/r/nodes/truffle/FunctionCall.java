@@ -57,7 +57,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-    public static CallFactory FACTORY = new CallFactory("<empty>") {
+    public static CallFactory FACTORY = new CallFactory("<empty>") { // only used with static lookup of builtins
 
         @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
@@ -67,7 +67,13 @@ public abstract class FunctionCall extends AbstractCall {
         }
     };
 
-    public static RNode createBuiltinCall(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    public static RNode createBuiltinCall(ASTNode call, RSymbol[] argNames, RNode[] argExprs) {
+
+        int[] dotsArgs = findDotsArgs(argExprs);
+        if (dotsArgs != null) {
+            return null; // can't use a fixed builtin node when calling using ...
+        }
+
         r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
         RSymbol fname = fcall.getName();
 
@@ -76,13 +82,13 @@ public abstract class FunctionCall extends AbstractCall {
             // probably calling a builtin, but maybe not
             RNode builtinNode;
             try {
-                builtinNode = builtin.callFactory().create(call, names, exprs);
+                builtinNode = builtin.callFactory().create(call, argNames, argExprs);
             } catch (RError e) {
                 // not a builtin
                 // TODO: what if the attempt to create a builtin has produced warnings???
                 return null;
             }
-            return new SimpleBuiltinCall(fcall, fname, names, exprs, builtinNode);
+            return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
         }
         return null;
     }
@@ -201,7 +207,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             }
@@ -217,7 +223,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return functionCallTarget.call(arguments);
             } else {
@@ -238,7 +244,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
             }
@@ -254,7 +260,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
             } else {
@@ -275,7 +281,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
             }
@@ -291,7 +297,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.nparams());
+                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
                 return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
             } else {
@@ -326,8 +332,59 @@ public abstract class FunctionCall extends AbstractCall {
                 RFrameHeader arguments = new RFrameHeader(function, closure.enclosingFrame(), argValues);
                 return function.callTarget().call(arguments);
             } else {
-                Utils.nyi();
-                return null;
+                // FIXME: these calls to builtin seem pretty expensive
+
+                assert Utils.check(callable instanceof RBuiltIn);
+                RBuiltIn builtIn = Utils.cast(callable);
+
+                int nextDots = dotsArgs[0];
+                RDots dotsArg = (RDots) argExprs[nextDots].execute(callerFrame);
+                RSymbol[] dotsArgNames = dotsArg.names();
+                Object[] dotsArgValues = dotsArg.values();
+                int dotsArgLen = dotsArgNames.length;
+                int ndots = dotsArgs.length;
+                int nArgs =  argExprs.length + ndots * (dotsArgLen - 1);
+
+                RSymbol[] actualArgNames = new RSymbol[nArgs];
+                RNode[] actualArgExprs = new RNode[nArgs];
+                int dotsIndex = 0;
+
+                for (int i = 0, j = 0; j < nArgs; i++) {
+                    if (i == nextDots) {
+                        for (int k = 0; k < dotsArgLen; k++, j++) {
+                            actualArgNames[j] = dotsArgNames[k];
+                            Object value = dotsArgValues[k];
+
+                            if (FunctionCall.PROMISES && value instanceof RPromise) {
+                                final RPromise promise = (RPromise) value;
+                                actualArgExprs[j] = new BaseR(promise.expression().getAST()) {
+
+                                    @Override public Object execute(Frame frame) {
+                                        return promise.forceOrGet();
+                                    }
+
+                                };
+                            } else {
+                                // NOTE: in GNU-R, dots arguments are re-promised on a call, so this would be unreachable
+                                assert Utils.check(value instanceof RAny);
+                                RAny rvalue = Utils.cast(value);
+
+                                ASTNode dummyAST = new r.nodes.Constant(rvalue);
+                                actualArgExprs[j] = new r.nodes.truffle.Constant(dummyAST, rvalue);
+                            }
+
+                        }
+                        dotsIndex++;
+                        if (dotsIndex < ndots) {
+                            nextDots = dotsIndex;
+                        }
+                    } else {
+                        actualArgNames[j] = argNames[i];
+                        actualArgExprs[j] = argExprs[i];
+                        j++;
+                    }
+                }
+                return builtIn.callFactory().invokeDynamic(callerFrame, actualArgNames, actualArgExprs, ast);
             }
         }
     }

@@ -182,6 +182,7 @@ public class Substitute extends CallFactory {
                 newTarget = binding;
             }
 
+            // TODO: support e.g. substitute(list(...))
             if (newTarget instanceof SimpleAccessVariable) {
                 result = new r.nodes.FunctionCall(((SimpleAccessVariable) newTarget).getSymbol(), d(n.getArgs()));
             } else if (newTarget instanceof RSymbol) {

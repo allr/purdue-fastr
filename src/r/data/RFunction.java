@@ -21,7 +21,7 @@ public interface RFunction {
 
     int nlocals();
     int nparams();
-    // FIXME: will also need methods to modify a function
+    int dotsIndex();
 
     public static final class EnclosingSlot {
 

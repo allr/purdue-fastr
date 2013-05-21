@@ -141,6 +141,7 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEval("{ g <- function(a,b,aa,bb) { a ; x <<- 10 ; aa ; c(a, aa) } ; f <- function(...) {  g(..., ...) } ; x <- 1; y <- 2; f(x, y) }", "1.0, 1.0");
         assertEval("{ f <- function(a, b) { a - b } ; g <- function(...) { f(1, ...) } ; g(b = 2) }", "-1.0");
         assertEval("{ f <- function(a, b) { a - b } ; g <- function(...) { f(1, ...) } ; g(a = 2) }", "1.0");
+        assertEval("{ f <- function(...) { g(...) } ;  g <- function(b=2) { b } ; f() }", "2.0");
 
     }
 }

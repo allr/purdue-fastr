@@ -22,6 +22,7 @@ public class FunctionImpl extends RootNode implements RFunction {
     final RSymbol[] paramNames;
     @Children final RNode[] paramValues;
     final RNode body;
+    final int dotsIndex;
 
     final FrameDescriptor frameDescriptor;
     final FrameSlot[] paramSlots;
@@ -73,6 +74,15 @@ public class FunctionImpl extends RootNode implements RFunction {
         }
 
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
+
+        int tmpDotsIndex = -1;
+        for (int i = 0; i < nparams; i++) {
+            if (paramNames[i] == RSymbol.THREE_DOTS_SYMBOL) {
+                tmpDotsIndex = i;
+                break;
+            }
+        }
+        dotsIndex = tmpDotsIndex;
     }
 
     @Override public Object execute(VirtualFrame frame) {
@@ -154,14 +164,22 @@ public class FunctionImpl extends RootNode implements RFunction {
         return str.toString();
     }
 
+    @Override
     public int nlocals() {
         return writeSet.length;
     }
 
+    @Override
     public int nparams() {
         return paramNames.length;
     }
 
+    @Override
+    public int dotsIndex() {
+        return dotsIndex;
+    }
+
+    @Override
     public int positionInLocalWriteSet(RSymbol sym) {
         if (isIn(sym.hash(), writeSetBloom)) {
             RSymbol[] ws = writeSet;
@@ -174,6 +192,7 @@ public class FunctionImpl extends RootNode implements RFunction {
     }
 
     // a version without allocation
+    @Override
     public int positionInLocalReadSet(RSymbol sym) {
         if (isIn(sym.hash(), readSetBloom)) {
             EnclosingSlot[] rs = readSet;
@@ -185,6 +204,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         return -1;
     }
 
+    @Override
     public EnclosingSlot getLocalReadSetEntry(RSymbol sym) {
         int i = positionInLocalReadSet(sym);
         return (i == -1) ? null : readSet[i];

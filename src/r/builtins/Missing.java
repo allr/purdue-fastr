@@ -65,6 +65,7 @@ final class Missing extends CallFactory {
 
     @Override
     public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        // TODO: add support for missing(...)
         check(call, names, exprs);
 
         final RSymbol symbol = getAccessedSymbol(exprs[0].getAST());

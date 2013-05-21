@@ -43,11 +43,10 @@ public abstract class AbstractCall extends BaseR {
 
     public static class DotsInfo {
         RSymbol[] names; // names of arguments to be passed into ... parameter
-        int paramIndex;
     }
 
     // argument positions are 1-based (!)
-    protected final int[] computePositions(RSymbol[] paramNames, DotsInfo dotsInfo) {
+    protected final int[] computePositions(RSymbol[] paramNames, DotsInfo dotsInfo, int dotsIndex) {
 
         int nArgs = argExprs.length;
         int nParams = paramNames.length;
@@ -150,7 +149,6 @@ public abstract class AbstractCall extends BaseR {
 
             RSymbol paramName = paramNames[j];
             if (paramName == RSymbol.THREE_DOTS_SYMBOL) { // handle three dots in parameters
-                dotsInfo.paramIndex = j;
                 firstDotsArg = i;
                 argPositions[i] = -1; // part of three dots
                 i++;
@@ -183,7 +181,7 @@ public abstract class AbstractCall extends BaseR {
             }
         }
 
-        if (firstDotsArg >= 0) {
+        if (dotsIndex >= 0) {  // need to create an empty "RDots" in case no arguments matched ...
             RSymbol[] dnames = new RSymbol[nDotsArgs];
             int di = 0;
             for (i = 0; i < nArgs; i++) {
@@ -424,7 +422,7 @@ public abstract class AbstractCall extends BaseR {
 
 
     protected final int[] computePositions(final RFunction func, DotsInfo dotsInfo) {
-        return computePositions(func.paramNames(), dotsInfo);
+        return computePositions(func.paramNames(), dotsInfo, func.dotsIndex());
     }
 
     protected final Object promiseForArgument(Frame callerFrame, int argIndex) {
@@ -454,12 +452,12 @@ public abstract class AbstractCall extends BaseR {
     // dots
     //   dots.names == null when there are no ... in parameters
     //   otherwise, names of symbols that will appear in ...
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int nParams) {
+    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
 
         Object[] argValues = new Object[nParams];
         int i;
         RSymbol[] dnames = dotsInfo.names;
-        if (dnames == null) {  // FIXME: turn into node-rewriting ?
+        if (dotsIndex == -1) {  // FIXME: turn into node-rewriting ?
             // no dots symbol in target
             for (i = 0; i < argExprs.length; i++) {
                 int p = argPositions[i] - 1;
@@ -477,7 +475,7 @@ public abstract class AbstractCall extends BaseR {
                     dargs[di++] =  promiseForArgument(callerFrame, i);
                 }
             }
-            argValues[dotsInfo.paramIndex] = new RDots(dnames, dargs);
+            argValues[dotsIndex] = new RDots(dnames, dargs);
 
         }
         return argValues;
