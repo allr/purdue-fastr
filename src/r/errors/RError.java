@@ -116,6 +116,7 @@ public abstract class RError extends RuntimeException {
     public static final String PROMISE_CYCLE = "promise already under evaluation: recursive default argument reference?"; // not exactly GNU-R message
     public static final String MISSING_ARGUMENTS = "'missing' can only be used for arguments";
     public static final String INVALID_ENVIRONMENT = "invalid environment specified";
+    public static final String ENVIR_NOT_LENGTH_ONE = "numeric 'envir' arg not of length one";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1217,6 +1218,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.INVALID_ENVIRONMENT;
+            }
+        };
+    }
+
+    public static RError getEnvirNotLengthOne(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.ENVIR_NOT_LENGTH_ONE;
             }
         };
     }

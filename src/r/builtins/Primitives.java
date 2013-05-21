@@ -91,6 +91,7 @@ public class Primitives {
         add(Gsub._);
         add(Eigen._);
         add(Emptyenv._);
+        add(Eval._);
         add(Exists._);
         add(Exp._);
         add(Fft._);

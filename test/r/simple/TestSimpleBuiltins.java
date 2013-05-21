@@ -1074,4 +1074,12 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ f <- function(...) { args <- list(...) ; args$name } ; f(name = 42) }", "42.0");
         assertEval("{ p <- function(prefix, ...) { cat(prefix, ..., \"\n\") } ; p(\"INFO\", \"msg:\", \"Hello\", 42) }", "INFO msg: Hello 42.0 \n", "NULL");
     }
+
+    @Test
+    public void testEval() throws RecognitionException {
+        assertEval("{ eval(quote(x+x), list(x=1)) }", "2.0");
+        assertEval("{ y <- 2; eval(quote(x+y), list(x=1)) }", "3.0");
+        assertEval("{ y <- 2; x <- 4; eval(x + y, list(x=1)) }", "6.0");
+        assertEval("{ y <- 2; x <- 2 ; eval(quote(x+y), -1) }", "4.0");
+    }
 }

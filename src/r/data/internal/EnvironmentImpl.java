@@ -194,6 +194,8 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             assert Utils.check(frame != null);
         }
 
+        // NOTE: rootEnvironment only needs to be set when parentFrame is null
+        // NOTE: rootEnvironment == null means the global environment
         public static Custom create(MaterializedFrame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
 
             RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
@@ -205,6 +207,26 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
             }
             RFrameHeader.setRootEnvironment(newFrame, rootEnvironment);
             return new Custom(newFrame);
+        }
+
+        public static MaterializedFrame createForList(MaterializedFrame parentFrame, RList list) {
+
+            RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
+            MaterializedFrame newFrame = Truffle.getRuntime().createMaterializedFrame(header);
+            int size = list.size();
+            RFrameHeader.installHashedExtension(newFrame, size);
+            RArray.Names names = list.names();
+            if (names != null) {
+                RSymbol[] symbols = names.sequence();
+                for (int i = 0; i < size; i++) {
+                    RSymbol s = symbols[i];
+                    if (s != RSymbol.NA_SYMBOL && s != RSymbol.EMPTY_SYMBOL) {
+                        RFrameHeader.localWrite(newFrame, s, list.getRAnyRef(i));
+                    }
+                }
+            }
+
+            return newFrame;
         }
 
         @Override

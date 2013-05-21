@@ -3,6 +3,7 @@ package r;
 import java.util.*;
 
 import com.oracle.truffle.api.*;
+import com.oracle.truffle.api.frame.*;
 
 import r.data.*;
 import r.data.internal.*;
@@ -61,6 +62,18 @@ public class RContext {
 
     public static RNode createNode(ASTNode expr) {
         return truffleize.createTree(expr);
+    }
+
+    public static RNode createRootNode(ASTNode expr) {
+        return new BaseR(expr) {
+            @Child RNode node = adoptChild(truffleize.createTree(ast));
+
+            @Override
+            public Object execute(Frame frame) {
+                return node.execute(frame);
+            }
+
+        };
     }
 
     public static void warning(ASTNode expr, String msg) {

@@ -594,9 +594,9 @@ public class RFrameHeader extends Arguments {
         if (val != null) {
             return val;
         }
-        Frame parent = enclosingFrame(frame);
-        if (parent != null) {
-            return read(parent, symbol);
+        Frame enclosing = enclosingFrame(frame);
+        if (enclosing != null) {
+            return read(enclosing, symbol);
         } else {
             val = readFromRootLevel(frame, symbol);
         }

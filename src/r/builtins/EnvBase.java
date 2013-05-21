@@ -75,7 +75,7 @@ final class EnvBase {
             }
             if (idx == 1) { return REnvironment.GLOBAL; }
         }
-        if (size > 1) { throw Utils.nyi("create a list..."); }
+        if (size > 1) { throw Utils.nyi("create a list..."); } // ??? why?
         // FIXME: add other environments when supported
         throw RError.getInvalidArgument(ast, "pos");
     }
