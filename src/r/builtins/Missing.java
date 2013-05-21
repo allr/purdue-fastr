@@ -42,12 +42,28 @@ final class Missing extends CallFactory {
             }
         }
         // non top-level
-        FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
 
-        if (slot == null) {
-            throw RError.getMissingArguments(ast);
+        Object value;
+        int ddval = symbol.dotDotValue() - 1;
+        if (ddval >= 0) {
+            FrameSlot slot = RFrameHeader.findVariable(frame, RSymbol.THREE_DOTS_SYMBOL);
+            if (slot == null) {
+                throw RError.getMissingArguments(ast);
+            }
+            RDots dots = (RDots) frame.getObject(slot);
+            Object[] dvalues = dots.values();
+            if (ddval < dvalues.length) {
+                value = dvalues[ddval];
+            } else {
+                return RLogical.BOXED_TRUE;
+            }
+        } else {
+            FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
+            if (slot == null) {
+                throw RError.getMissingArguments(ast);
+            }
+            value = frame.getObject(slot);
         }
-        Object value = frame.getObject(slot);
         if (value == null) {
             throw RError.getMissingArguments(ast);
         }
@@ -64,8 +80,7 @@ final class Missing extends CallFactory {
     }
 
     @Override
-    public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        // TODO: add support for missing(...)
+    public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) { // TODO: add support for missing(...)
         check(call, names, exprs);
 
         final RSymbol symbol = getAccessedSymbol(exprs[0].getAST());
@@ -118,6 +133,9 @@ final class Missing extends CallFactory {
                 return true; // cycle means missing
             }
             RSymbol symbol = getAccessedSymbol(p.expression().getAST());
+            if (symbol == null) {
+                return false; // by definition, when the expression of a promise is not accessing a symbol, missing returns false
+            }
             RPromise next = getPromiseNoForce(p.frame(), symbol);
             if (next != null) {
                 return isMissing(next);
