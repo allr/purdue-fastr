@@ -3,6 +3,7 @@ package r.nodes.truffle;
 
 import java.util.*;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
@@ -81,12 +82,82 @@ public class Arithmetic extends BaseR {
                 if (DEBUG_AR) Utils.debug("Installed " + sc.dbg + " for expressions " + lexpr + "(" + ((RAny) lexpr).pretty() + ") and " + rexpr + "(" + ((RAny) rexpr).pretty() + ")");
                 return sc.execute(lexpr, rexpr);
             } else {
+
+                if ((lexpr instanceof DoubleImpl) && (rexpr instanceof DoubleImpl) && (arit instanceof Add)) {
+                    // GRAAL -- replace addition of double vectors with special node.
+                    DoubleImpl lhs = (DoubleImpl) lexpr;
+                    DoubleImpl rhs = (DoubleImpl) rexpr;
+                    if ((lhs.size() == rhs.size())
+                            && (lhs.dimensions() == null)
+                            && (rhs.dimensions() == null)
+                            && (lhs.names() == null)
+                            && (rhs.names() == null)
+                            && (lhs.attributes() == null)
+                            && (rhs.attributes() == null))
+                        // TODO passing NULL as frame is a dirty trick
+                        return replace(new DoubleAddDoubleVectorSameSize(ast, left, right)).compute(lhs, rhs, null);
+                }
                 Specialized sn = Specialized.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
                 replace(sn, "install Specialized from Uninitialized");
                 if (DEBUG_AR) Utils.debug("Installed " + sn.dbg);
                 return sn.execute(lexpr, rexpr);
             }
         }
+    }
+
+    static class DoubleAddDoubleVectorSameSize extends BaseR {
+
+        @Child final RNode left;
+        @Child final RNode right;
+
+        public DoubleAddDoubleVectorSameSize(ASTNode orig, RNode left, RNode right) {
+            super(orig);
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            Object lexpr = left.execute(frame);
+            Object rexpr = right.execute(frame);
+            if ((lexpr instanceof DoubleImpl) && (rexpr instanceof DoubleImpl)) {
+                DoubleImpl lhs = (DoubleImpl) lexpr;
+                DoubleImpl rhs = (DoubleImpl) rexpr;
+                if ((lhs.size() == rhs.size())
+                        && (lhs.dimensions() == null)
+                        && (rhs.dimensions() == null)
+                        && (lhs.names() == null)
+                        && (rhs.names() == null)
+                        && (lhs.attributes() == null)
+                        && (rhs.attributes() == null))
+                    return compute(lhs, rhs, frame);
+            }
+            CompilerDirectives.transferToInterpreter();
+            Specialized sn = Specialized.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, new Add());
+            replace(sn);
+            return sn.execute(lexpr, rexpr);
+        }
+
+
+        public final Object compute(DoubleImpl lhs, DoubleImpl rhs, Frame frame) {
+            final double[] l = lhs.getContent();
+            final double[] r = rhs.getContent();
+            final double[] res = new double[l.length];
+            for (int i = 0; i < l.length; ++i) {
+                double a = l[i];
+                double b = r[i];
+                double c = a + b;
+                if (RDouble.RDoubleUtils.isNA(c)) {
+                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
+                        res[i] = RDouble.NA;
+                    }
+                } else {
+                    res[i] = c;
+                }
+            }
+            return RDouble.RDoubleFactory.getFor(res, null, null, null);
+        }
+
     }
 
     public enum FailedSpecialization {
