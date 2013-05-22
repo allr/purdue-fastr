@@ -81,6 +81,7 @@ public class Primitives {
         add(Crossprod._);
         add(Cumsum._);
         add(DelayedAssign._);
+        add(Deparse._);
         add(Det._);
         add(DiagAssign._);
         add(Dim._);
@@ -173,6 +174,7 @@ public class Primitives {
         add(Substring._);
         add(Sum._);
         add(Sqrt._);
+        add(Stop._);
         add(T._);
         add("t.default", T._);
         add(Tolower._);

@@ -57,6 +57,9 @@ abstract class AsBase extends CallFactory {
     // string
     static String deparse(RAny v, boolean quote) {
         if (v instanceof RNull) { return "NULL"; }
+        if (v instanceof RLanguage) {
+            return v.pretty();
+        }
         if (!(v instanceof RArray)) { throw Utils.nyi("unsupported type"); }
         RArray a = (RArray) v;
         int size = a.size();

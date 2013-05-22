@@ -1082,4 +1082,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ y <- 2; x <- 4; eval(x + y, list(x=1)) }", "6.0");
         assertEval("{ y <- 2; x <- 2 ; eval(quote(x+y), -1) }", "4.0");
     }
+
+    @Test
+    public void testDeparse() throws RecognitionException {
+        assertEval("{ f <- function(x) { deparse(substitute(x)) } ; f(a + b * (c - d)) }", "\"a + b * (c - d)\"");
+    }
+
+    @Test
+    public void testDiagnostics() throws RecognitionException {
+        assertEvalError("{ f <- function() { stop(\"hello\",\"world\") } ; f() }", "helloworld");
+    }
 }

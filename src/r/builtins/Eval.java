@@ -9,7 +9,6 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// TODO: much more work is needed to make non-trivial examples run with eval (e.g. frame access, etc)
 public class Eval extends CallFactory {
 
     static final CallFactory _ = new Eval("eval", new String[]{"expr", "envir", "enclos"}, new String[] {"expr"});
