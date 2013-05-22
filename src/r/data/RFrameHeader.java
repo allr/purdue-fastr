@@ -229,8 +229,8 @@ public class RFrameHeader extends Arguments {
     }
 
     private static Object readViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, Frame firstFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
         assert Utils.check(frame != null);
+        assert Utils.check(frame instanceof MaterializedFrame);
 
         Frame f = frame;
         int hops = frameHops;
@@ -655,73 +655,125 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean exists(Frame frame, RSymbol symbol) {
+        assert Utils.check(frame != null);
         assert Utils.check(frame instanceof MaterializedFrame);
 
         FrameSlot slot = findVariable(frame, symbol);
-        if (slot != null) {
-            if (frame.getObject(slot) != null) {
-                return true;
-            }
-        }
-        EnclosingSlot rse = readSetEntry(frame, symbol);
-        if (rse != null) {
-            return existsViaReadSet(frame, rse.hops - 1, rse.slot, symbol);
-        }
-        RFrameExtension ext = extension(frame);
-        if (ext != null) {
-            if (ext.exists(symbol)) {
-                return true;
-            }
-        }
-        Frame enclosing = enclosingFrame(frame);
-        if (enclosing != null) {
-            return exists(enclosing, symbol); // NOTE: recursion
-        } else {
-            return readFromRootLevel(frame, symbol) != null;
-        }
-    }
-
-    public static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol) {
-        assert Utils.check(hops != 0);
-        assert Utils.check(frame instanceof MaterializedFrame);
-
-        Frame enclosing = enclosingFrame(frame);
-        if (existsViaReadSet(enclosing, hops - 1, slot, symbol, frame)) {
+        if (slot != null && frame.getObject(slot) != null) {
             return true;
-        } else {
-            return existsFromRootLevel(enclosing, symbol);
+        }
+        EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
+        if (eslot != null) {
+            return existsViaEnclosingSlot(enclosingFrame(frame), eslot.hops - 1, eslot.slot, symbol, frame);
+        }
+        return existsFromExtensionsAndRootLevelInclusive(frame, symbol);
+    }
+
+    // this method checks the extension of frame
+    public static boolean existsFromExtensionsAndRootLevelInclusive(Frame frame, RSymbol symbol) {
+        assert Utils.check(frame != null);
+        assert Utils.check(frame instanceof MaterializedFrame);
+
+        Frame f = frame;
+        for (;;) {
+            RFrameExtension ext = extension(f);
+            if (ext != null && ext.exists(symbol)) {
+                return true;
+            }
+
+            Frame enclosing = enclosingFrame(f);
+            if (enclosing == null) {
+                return existsFromRootLevel(f, symbol);
+            }
+            f = enclosing;
         }
     }
 
-    private static boolean existsViaReadSet(Frame frame, int hops, FrameSlot slot, RSymbol symbol, Frame first) {
-        assert Utils.check(frame instanceof MaterializedFrame);
+    // this method does NOT check the extension of childFrame
+    public static boolean existsFromExtensionsAndRootLevel(Frame childFrame, RSymbol symbol) {
+        assert Utils.check(childFrame != null);
+        assert Utils.check(childFrame instanceof MaterializedFrame);
 
-        if (hops == 0) {
-            if (frame.getObject(slot) != null) {
+        Frame f = childFrame;
+        for (;;) {
+            Frame enclosing = enclosingFrame(f);
+            if (enclosing == null) {
+                return existsFromRootLevel(f, symbol);
+            }
+            f = enclosing;
+            RFrameExtension ext = extension(f);
+            if (ext != null && ext.exists(symbol)) {
                 return true;
             }
-            if (isDirty(frame)) {
-                if (existsInExtension(first, symbol, frame)) {
-                    return true;
+        }
+    }
+
+    private static boolean existsViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, Frame firstFrame) {
+        assert Utils.check(frame != null);
+        assert Utils.check(frame instanceof MaterializedFrame);
+
+        Frame f = frame;
+        int hops = frameHops;
+        FrameSlot slot = frameSlot;
+        Frame first = firstFrame;
+
+        for (;;) {
+            for (int i = 0; i < hops; i++) {
+                f = enclosingFrame(frame);
+            }
+            if (isDirty(f)) {
+                Object res = existsFromExtensionEntry(first, symbol, f);
+                if (res != null) {
+                    return Utils.cast(res);
                 }
             }
-            Frame enclosing = enclosingFrame(frame);
-            if (enclosing == null) {
-                return false;
+            // no inserted extension slot
+            if (f.getObject(slot) != null) {
+                return true;
             }
-            EnclosingSlot rse = readSetEntry(frame, symbol);
-            if (rse == null) {
-                // TODO: is this wrong? what if there is a slot, but simply isn't read non-reflectively
-                return existsInExtension(frame, symbol, null);
+            // variable not present in the enclosing slot
+            EnclosingSlot eslot = findEnclosingVariable(f, symbol);
+            if (eslot == null) {
+                return existsFromExtensionsAndRootLevel(f, symbol);
             }
-            return existsViaReadSet(enclosing, rse.hops - 1, rse.slot, symbol, enclosing);
-        } else {
-            return existsViaReadSet(enclosingFrame(frame), hops - 1, slot, symbol, first);
+            // try the next enclosing slot
+            f = enclosingFrame(f);
+            first = f;
+            hops = eslot.hops - 1;
+            slot = eslot.slot;
         }
+    }
+
+    public static boolean existsFromExtensionEntry(Frame frame, RSymbol symbol, Frame stopFrame) {
+        // note: frame can be a VirtualFrame
+        // note: stopFrame can be == frame (so VirtualFrame), otherwise it is not a Virtual Frame
+        assert Utils.check(frame == stopFrame || stopFrame == null || stopFrame instanceof MaterializedFrame);
+
+        if (frame == stopFrame) {
+            return false;
+        }
+        RFrameExtension ext = extension(frame);
+        if (ext != null && ext.exists(symbol)) {
+            return true;
+        }
+        return existsFromExtension(enclosingFrame(frame), symbol, stopFrame);
+    }
+
+    private static boolean existsFromExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
+        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
+        assert Utils.check(stopFrame == null || stopFrame instanceof MaterializedFrame);
+
+        for (Frame f = frame; f != stopFrame; f = enclosingFrame(f)) {
+            RFrameExtension ext = extension(f);
+            if (ext != null && ext.exists(symbol)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean existsInExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
-        assert Utils.check(frame instanceof MaterializedFrame);
+        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
 
         if (frame == stopFrame) {
             return false;

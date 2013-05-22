@@ -579,6 +579,15 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 3 ; h <- function() { g <- function() { x } ; f <- function() { assign(\"x\", 2, inherits=TRUE) } ; f() ; g() }  ; h() }", "2.0");
         assertEval("{ x <- 3 ; h <- function(s) { if (s == 2) { assign(\"x\", 2) } ; x }  ; h(1) ; h(2) }", "2.0");
         assertEval("{ x <- 3 ; h <- function(s) { y <- x ; if (s == 2) { assign(\"x\", 2) } ; c(y,x) }  ; c(h(1),h(2)) }", "3.0, 3.0, 3.0, 2.0");
+        assertEval("{ g <- function() { x <- 2 ; f <- function() { x ; exists(\"x\") }  ; f() } ; g() }", "TRUE");
+        assertEval("{ g <- function() { f <- function() { if (FALSE) { x } ; exists(\"x\") }  ; f() } ; g() }", "FALSE");
+        assertEval("{ g <- function() { f <- function() { if (FALSE) { x } ; assign(\"x\", 1) ; exists(\"x\") }  ; f() } ; g() }", "TRUE");
+        assertEval("{ g <- function() { if (FALSE) { x <- 2 } ; f <- function() { if (FALSE) { x } ; exists(\"x\") }  ; f() } ; g() }", "FALSE");
+        assertEval("{ g <- function() { if (FALSE) { x <- 2 } ; f <- function() { if (FALSE) { x } ; assign(\"x\", 2) ; exists(\"x\") }  ; f() } ; g() }", "TRUE");
+        assertEval("{ h <- function() { g <- function() { if (FALSE) { x <- 2 } ; f <- function() { if (FALSE) { x } ; exists(\"x\") }  ; f() } ; g() } ; h() }", "FALSE");
+        assertEval("{ h <- function() { x <- 3 ; g <- function() { if (FALSE) { x <- 2 } ; f <- function() { if (FALSE) { x } ; exists(\"x\") }  ; f() } ; g() } ; h() }", "TRUE");
+        assertEval("{ f <- function(z) { exists(\"z\") } ; f() }", "TRUE");
+        assertEval("{ f <- function(z) { exists(\"z\") } ; f(a) }", "TRUE");
 
         assertEval("{ f <- function()  { as.environment(-1) } ; f() }", "<environment: R_GlobalEnv>");
         assertEval("{ emptyenv() }", "<environment: R_EmptyEnv>");
