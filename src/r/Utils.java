@@ -20,8 +20,8 @@ public final class Utils {
     }
 
     /**
-     * From a type point of view, this works ... however all call to this
-     * function will perform the cast AFTER which sucks
+     * From a type point of view, this works ... however all call to this function will perform the cast AFTER which
+     * sucks
      */
     public static <T> T cast(Object obj, Class<T> clazz) {
         return clazz.cast(obj);
@@ -215,6 +215,7 @@ public final class Utils {
         return null;
     }
 
+    /** Returns a deep copy of the argument. Currently defined only for arrays. */
     public static RAny copyAny(RAny arg) {
         if (arg instanceof RArray) { return copyArray((RArray) arg); }
         Utils.nyi("unsupported type for copy");

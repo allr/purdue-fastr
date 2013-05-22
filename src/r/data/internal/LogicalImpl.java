@@ -10,7 +10,6 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     final int[] content;
 
-
     public int[] getContent() {
         return content;
     }
@@ -51,112 +50,95 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         }
     }
 
-    @Override
-    public int size() {
+    @Override public int size() {
         return content.length;
     }
 
-    @Override
-    public Object get(int i) {
+    @Override public Object get(int i) {
         return content[i];
     }
 
-    @Override
-    public int getLogical(int i) {
+    @Override public int getLogical(int i) {
         return content[i];
     }
 
-    @Override
-    public RAny boxedGet(int i) {
+    public boolean getBoolean(int i) {
+        return content[i] == RLogical.TRUE;
+    }
+
+    @Override public RAny boxedGet(int i) {
         return RLogicalFactory.getScalar(getLogical(i));
     }
 
-    @Override
-    public boolean isNAorNaN(int i) {
+    @Override public boolean isNAorNaN(int i) {
         return content[i] == RLogical.NA;
     }
 
-    @Override
-    public RArray set(int i, Object val) {
+    @Override public RArray set(int i, Object val) {
         return set(i, ((Integer) val).intValue()); // FIXME better conversion
     }
 
-    @Override
-    public RLogical set(int i, int val) {
+    @Override public RLogical set(int i, int val) {
         content[i] = val;
         return this;
     }
 
-    @Override
-    public RRaw asRaw() {
+    @Override public RRaw asRaw() {
         return new RLogical.RRawView(this);
     }
 
-    @Override
-    public RRaw asRaw(ConversionStatus warn) {
+    @Override public RRaw asRaw(ConversionStatus warn) {
         return RLogical.RLogicalUtils.logicalToRaw(this, warn);
     }
 
-    @Override
-    public RLogical asLogical() {
+    @Override public RLogical asLogical() {
         return this;
     }
 
-    @Override
-    public RLogical asLogical(ConversionStatus warn) {
+    @Override public RLogical asLogical(ConversionStatus warn) {
         return this;
     }
 
-    @Override
-    public RInt asInt() {
+    @Override public RInt asInt() {
         return RInt.RIntFactory.getFor(content, dimensions(), names());
     }
 
-    @Override
-    public RInt asInt(ConversionStatus warn) {
+    @Override public RInt asInt(ConversionStatus warn) {
         return asInt();
     }
 
-    @Override
-    public RDouble asDouble() {
+    @Override public RDouble asDouble() {
         return new RLogical.RDoubleView(this);
     }
 
-    @Override
-    public RDouble asDouble(ConversionStatus warn) {
+    @Override public RDouble asDouble(ConversionStatus warn) {
         return asDouble();
     }
 
-    @Override
-    public RComplex asComplex() {
+    @Override public RComplex asComplex() {
         return new RLogical.RComplexView(this);
     }
 
-    @Override
-    public RComplex asComplex(ConversionStatus warn) {
+    @Override public RComplex asComplex(ConversionStatus warn) {
         return asComplex();
     }
 
-    @Override
-    public RString asString() {
+    @Override public RString asString() {
         return new RLogical.RStringView(this);
     }
 
-    @Override
-    public RString asString(ConversionStatus warn) {
+    @Override public RString asString(ConversionStatus warn) {
         return asString();
     }
 
-    @Override
-    public LogicalImpl materialize() {
+    @Override public LogicalImpl materialize() {
         return this;
     }
 
     private static final String EMPTY_STRING = RLogical.TYPE_STRING + "(0)";
     private static final String NAMED_EMPTY_STRING = "named " + EMPTY_STRING;
 
-    @Override
-    public String pretty() {
+    @Override public String pretty() {
         StringBuilder str = new StringBuilder();
         if (dimensions != null) {
             str.append(arrayPretty());
@@ -175,23 +157,19 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         return str.toString();
     }
 
-    @Override
-    public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
+    @Override public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         return factory.fromLogical();
     }
 
-    @Override
-    public RArray subset(RInt index) {
+    @Override public RArray subset(RInt index) {
         return RLogical.RLogicalFactory.subset(this, index);
     }
 
-    @Override
-    public String typeOf() {
+    @Override public String typeOf() {
         return RLogical.TYPE_STRING;
     }
 
-    @Override
-    public LogicalImpl doStrip() {
+    @Override public LogicalImpl doStrip() {
         return new LogicalImpl(content, null, null, null, false);
     }
 }

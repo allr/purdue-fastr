@@ -113,6 +113,7 @@ public class Primitives {
         add(Length._);
         add(LengthAssign._);
         add(List._);
+        add(ListFiles._);
         add(Log._);
         add(Log10._);
         add(Log2._);

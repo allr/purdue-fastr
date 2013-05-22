@@ -75,6 +75,7 @@ public class Interop {
     /** Takes an R object representing a vector of strings and returns an array of String. */
     public static String[] asStringArray(RAny r) {
         if (r instanceof StringImpl) return ((StringImpl) r).getContent();
+        else if (r instanceof ScalarStringImpl) return new String[]{((ScalarStringImpl) r).getString()};
         else return null;
     }
 
