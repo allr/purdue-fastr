@@ -307,6 +307,10 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1,c(-1,-10)) ; m <- f(-1,2) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0 10.0  6.0");
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(2,1:3) ; m <- f(1,-2) ; m }", "     [,1] [,2] [,3]\n[1,] 10.0  3.0 10.0\n[2,] 10.0 10.0 10.0");
         assertEval("{ x <- array(c(1,2,3), dim=c(3,1)) ; x[1:2,1] <- 2:1 ; x }", "     [,1]\n[1,]  2.0\n[2,]  1.0\n[3,]  3.0");
+    }
 
+    @Test
+    public void testDynamic() throws RecognitionException {
+        assertEval("{ l <- quote(x[1,1] <- 10) ; f <- function() { eval(l) } ; x <- matrix(1:4,nrow=2) ; f() ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L");
     }
 }

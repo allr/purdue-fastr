@@ -54,7 +54,6 @@ public abstract class ReadVariable extends BaseR {
                     EnclosingSlot rse;
                     String reason;
 
-                    // FIXME: revisit this with eval and language objects in mind
                     if (frame == null) {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";

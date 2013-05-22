@@ -37,8 +37,11 @@ public abstract class UpdateArrayAssignment extends BaseR {
                 return new TopLevel(ast, varName, rhs, assignment);
             }
         } else {
-            assert Utils.check(varSlot != null);
-            return new LocalInitial(ast, varName, varSlot, rhs, assignment);
+            if (varSlot != null) {
+                return new LocalInitial(ast, varName, varSlot, rhs, assignment);
+            } else {
+                return new Dynamic(ast, varName, rhs, assignment);
+            }
         }
     }
 
@@ -237,6 +240,29 @@ public abstract class UpdateArrayAssignment extends BaseR {
             return rhsVal;
         }
 
+    }
+
+    protected static final class Dynamic extends UpdateArrayAssignment {
+
+        protected Dynamic(ASTNode orig, RSymbol varName, RNode rhs, AssignmentNode assignment) {
+            super(orig, varName, rhs, assignment);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            // TODO: this is super-inefficient
+            RAny rhsValue = (RAny) rhs.execute(frame);
+            MaterializedFrame mframe = frame.materialize();
+            RAny lhsValue = Utils.cast(RFrameHeader.read(mframe, varName));
+            if (lhsValue == null) {
+                throw RError.getUnknownVariable(ast, varName);
+            }
+            lhsValue.ref(); // TODO: this may ref unnecessarily, will copy every time invoked
+            RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
+            assert Utils.check(lhsValue != newLhs);
+            RFrameHeader.writeToExtension(mframe, varName, newLhs);
+            return rhsValue;
+        }
     }
 
 }

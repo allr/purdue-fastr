@@ -9,6 +9,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
+// TODO: much more work is needed to make non-trivial examples run with eval (e.g. frame access, etc)
 public class Eval extends CallFactory {
 
     static final CallFactory _ = new Eval("eval", new String[]{"expr", "envir", "enclos"}, new String[] {"expr"});
@@ -16,7 +17,6 @@ public class Eval extends CallFactory {
     private Eval(String name, String[] params, String[] required) {
         super(name, params, required);
     }
-
 
     @Override
     public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -29,7 +29,7 @@ public class Eval extends CallFactory {
 
             @Override
             public RAny doBuiltIn(Frame frame, RAny[] args) {
-                Frame targetFrame = null; // parent environment by default
+                Frame targetFrame = frame; // parent environment by default
                 if (posEnvir != -1) {
                     RAny envirArg = args[posEnvir];
                     if (envirArg instanceof RList) {
@@ -83,7 +83,8 @@ public class Eval extends CallFactory {
                 RAny exprArg = args[posExpr];
                 if (exprArg instanceof RLanguage) {
                     ASTNode exprAST = ((RLanguage) exprArg).get();
-                    return (RAny) RContext.createRootNode(exprAST).execute(targetFrame);
+                    RFunction rootEnclosingFunction = targetFrame == null ? null : RFrameHeader.function(targetFrame);
+                    return (RAny) RContext.createRootNode(exprAST, rootEnclosingFunction).execute(targetFrame);
                 } else {
                     return exprArg;
                 }

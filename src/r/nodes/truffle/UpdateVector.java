@@ -6,7 +6,6 @@ import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.*;
-import r.nodes.truffle.ReadVector.*;
 
 import java.util.*;
 
@@ -36,7 +35,7 @@ public abstract class UpdateVector extends BaseR {
     RAny newVector;
     final boolean isSuper;
 
-    FrameSlot frameSlot = null;
+    FrameSlot frameSlot = null;  // FIXME: a lot of cached data, should split into nodes if possible
     boolean slotInitialized = false;
 
     private static final boolean DEBUG_UP = false;
@@ -92,7 +91,7 @@ public abstract class UpdateVector extends BaseR {
         } else {
             throw RError.getUnknownVariable(ast, var);
         }
-
+        // NOTE: we don't ref here
         newVector = execute(base, index, value);
         assign.execute(frame); // FIXME: may ref unnecessarily
         return value;
@@ -109,23 +108,35 @@ public abstract class UpdateVector extends BaseR {
                 slotInitialized = true;
             }
             // variable has a local slot
-            // note: this always has to be the case because the variable is in the write set
-            // FIXME: this won't work for reflections
-            assert Utils.check(frameSlot != null);
-            RAny base = (RAny) RFrameHeader.getObjectForcingPromises(frame, frameSlot);
-            if (base != null) {
-                RAny newBase = execute(base, index, value);
-                if (newBase != base) {
+            // note: except for dynamic invocation, this always has to be the case because the variable is in the write set
+            if (frameSlot != null) {
+                RAny base = Utils.cast(RFrameHeader.getObjectForcingPromises(frame, frameSlot));
+                if (base != null) {
+                    RAny newBase = execute(base, index, value);
+                    if (newBase != base) {
+                        RFrameHeader.writeAtRef(frame, frameSlot, newBase);
+                    }
+                } else { // this should be uncommon
+                    base = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, var));
+                    if (base == null) { throw RError.getUnknownObject(getAST()); }
+                    base.ref(); // reading from parent, hence need to copy on update
+                    // ref once will make it shared unless it is stateless (like int sequence)
+                    RAny newBase = execute(base, index, value);
+                    assert Utils.check(base != newBase);
                     RFrameHeader.writeAtRef(frame, frameSlot, newBase);
                 }
-            } else { // this should be uncommon
-                base = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, var));
-                if (base == null) { throw RError.getUnknownObject(getAST()); }
-                base.ref(); // reading from parent, hence need to copy on update
-                // ref once will make it shared unless it is stateless (like int sequence)
+            } else {
+                // dynamic invocation
+                // TODO: this is super-inefficient
+                MaterializedFrame mframe = frame.materialize();
+                RAny base = Utils.cast(RFrameHeader.read(mframe, var));
+                if (base == null) {
+                    throw RError.getUnknownObject(getAST());
+                }
+                base.ref(); // TODO: this may ref unnecessarily, will copy every time invoked
                 RAny newBase = execute(base, index, value);
-                Utils.check(base != newBase);
-                RFrameHeader.writeAtRef(frame, frameSlot, newBase);
+                assert Utils.check(base != newBase);
+                RFrameHeader.writeToExtension(mframe, var, newBase);
             }
         } else {
             // variable is top-level

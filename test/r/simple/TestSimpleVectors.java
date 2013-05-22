@@ -465,4 +465,10 @@ public class TestSimpleVectors extends SimpleTestBase {
         // make sure that coercion returns warning
         assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
     }
+
+    @Test
+    public void testDynamic() throws RecognitionException {
+        assertEval("{ l <- quote(x[1] <- 1) ; f <- function() { eval(l) } ; x <- 10 ; f() ; x }", "10.0");
+        assertEval("{ l <- quote(x[1] <- 1) ; f <- function() { eval(l) ; x <<- 10 ; get(\"x\") } ; x <- 20 ; f() }", "1.0");
+    }
 }

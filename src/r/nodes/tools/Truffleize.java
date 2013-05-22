@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.*;
 
 public class Truffleize implements Visitor {
 
+    RFunction rootEnclosingFunction;
     RNode result;
     public static final boolean DEBUG_SPECIAL_NODES = false;
 
@@ -46,6 +47,16 @@ public class Truffleize implements Visitor {
     public RNode createTree(ASTNode ast) {
         ast.accept(this);
         return result;
+    }
+
+    public RNode createTree(ASTNode ast, RFunction enclosingFunction) {
+        try {
+            this.rootEnclosingFunction = enclosingFunction;
+            ast.accept(this);
+            return result;
+        } finally {
+            this.rootEnclosingFunction = null;
+        }
     }
 
     @SuppressWarnings("static-method")
@@ -313,18 +324,18 @@ public class Truffleize implements Visitor {
         result = functionNode;
     }
 
-    private static RFunction getEnclosingFunction(ASTNode node) {
+    private RFunction getEnclosingFunction(ASTNode node) {
         // find lexically enclosing function if exists
         Function enfunc = findParent(node, Function.class);
         if (enfunc == null) {
-            return null;
+            return rootEnclosingFunction;
         }
         RFunction rfunc = enfunc.getRFunction();
         Utils.check(rfunc != null, "RFunction is not yet ready - note lazy build is necessary for functions");
         return rfunc;
     }
 
-    private static FrameSlot getFrameSlot(ASTNode ast, RSymbol symbol) {
+    private FrameSlot getFrameSlot(ASTNode ast, RSymbol symbol) {
         RFunction encFunction =  getEnclosingFunction(ast);
         if (encFunction != null) {
             return encFunction.localSlot(symbol);

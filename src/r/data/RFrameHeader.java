@@ -1046,7 +1046,7 @@ public class RFrameHeader extends Arguments {
         private int bloom; // This bloom filter comes from Alex B. (renjin)
         // Does it make any sense ? for this dynamic structures
 
-        // TODO Merge this two arrays, and use unsafe casts
+        // TODO Merge these two arrays, and use unsafe casts
         private RSymbol[] names = new RSymbol[capacity];
         private Object[] values = new Object[capacity];
 

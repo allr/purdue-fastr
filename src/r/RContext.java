@@ -64,9 +64,9 @@ public class RContext {
         return truffleize.createTree(expr);
     }
 
-    public static RNode createRootNode(ASTNode expr) {
+    public static RNode createRootNode(ASTNode expr, final RFunction rootEnclosingFunction) {
         return new BaseR(expr) {
-            @Child RNode node = adoptChild(truffleize.createTree(ast));
+            @Child RNode node = adoptChild(truffleize.createTree(ast, rootEnclosingFunction));
 
             @Override
             public Object execute(Frame frame) {

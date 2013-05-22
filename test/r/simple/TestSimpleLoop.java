@@ -21,4 +21,9 @@ public class TestSimpleLoop extends SimpleTestBase {
         assertEval("{ f<-function(r) { x<-0 ; for(i in r) { x<-x+i } ; x } ; f(1:10) ; f(c(1,2,3,4,5)) }", "15.0");
         assertEval("{ f<-function(r) { x<-0 ; for(i in r) { x<-x+i } ; x } ; f(c(1,2,3,4,5)) ; f(1:10) }", "55.0");
     }
+
+    @Test
+    public void testDynamic() throws RecognitionException {
+        assertEval("{ l <- quote({x <- 0 ; for(i in 1:10) { x <- x + i } ; x}) ; f <- function() { eval(l) } ; x <<- 10 ; f() }", "55.0");
+    }
 }

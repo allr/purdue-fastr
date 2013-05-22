@@ -3,10 +3,8 @@ package r.nodes.truffle;
 import r.*;
 import r.data.*;
 import r.data.internal.*;
-import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
 import r.nodes.*;
-import r.nodes.tools.*;
 
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
@@ -219,8 +217,15 @@ public abstract class Loop extends BaseR {
                         sn = createToplevel(ast, cvar, range, body);
                         dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
                     } else {
-                        sn = createSimple(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
-                        dbg = "install IntSequenceRange.Simple from IntSequenceRange (uninitialized)";
+                        FrameSlot slot = RFrameHeader.findVariable(frame, cvar);
+                        if (slot != null) {
+                            sn = createSimple(ast, cvar, range, body, slot);
+                            dbg = "install IntSequenceRange.Simple from IntSequenceRange (uninitialized)";
+                        } else {
+                            // dynamic invocation
+                            sn = createDynamic(ast, cvar, range, body);
+                            dbg = "install IntSequenceRange.Dynamic from IntSequenceRange (uninitialized)";
+                        }
                     }
                     replace(sn, dbg);
                     return sn.execute(frame);
@@ -247,7 +252,13 @@ public abstract class Loop extends BaseR {
                         if (frame == null) {
                             gn = Generic.createToplevel(ast, cvar, range, body);
                         } else {
-                            gn = Generic.create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
+                            FrameSlot slot = RFrameHeader.findVariable(frame, cvar);
+                            if (slot != null) {
+                                gn = Generic.create(ast, cvar, range, body, slot);
+                            } else {
+                                // dynamic invocation
+                                gn = Generic.createDynamic(ast, cvar, range, body);
+                            }
                         }
                         replace(gn, "install Generic from IntSequenceRange");
                         return gn.execute(frame, rval);
@@ -351,6 +362,32 @@ public abstract class Loop extends BaseR {
                     }
                 };
             }
+
+            public static Specialized createDynamic(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Specialized(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
+                        final int from = sval.from();
+                        final int to = sval.to();
+                        final int step = sval.step();
+                        MaterializedFrame mframe = frame.materialize();
+                        try {
+                            for (int i = from;; i += step) {
+                                // no ref needed because scalars do not have reference counts
+                                // TODO: this is super-inefficient
+                                RFrameHeader.writeToExtension(mframe, cvar, RInt.RIntFactory.getScalar(i));
+                                try {
+                                    body.execute(frame);
+                                } catch (ContinueException ce) { }
+                                if (i == to) {
+                                    break;
+                                }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
         }
 
         // works for any type of loop range
@@ -429,6 +466,31 @@ public abstract class Loop extends BaseR {
                     }
                 };
             }
+
+            public static Generic createDynamic(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Generic(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame, RAny rval) {
+                        if (!(rval instanceof RArray)) {
+                            throw RError.getInvalidForSequence(ast);
+                        }
+                        RArray arange = (RArray) rval;
+                        int size = arange.size();
+                        MaterializedFrame mframe = frame.materialize();
+                        try {
+                            for (int i = 0; i < size; i++) {
+                                RAny vvalue = arange.boxedGet(i);
+                                RFrameHeader.writeToExtension(mframe, cvar, vvalue); // TODO: this is inefficient
+                                try {
+                                    body.execute(frame);
+                                } catch (ContinueException ce) { }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
         }
+
     }
 }
