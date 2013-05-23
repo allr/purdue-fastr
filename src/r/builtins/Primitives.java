@@ -167,14 +167,15 @@ public class Primitives {
         add("seq.default", Seq._);
         add(Sort._);
         add("sort.int", Sort._);
+        add(Sprintf._);
+        add(Sqrt._);
+        add(Stop._);
         add(Strsplit._);
         add(Sub._);
         add(Substitute._);
         add(Substr._);
         add(Substring._);
         add(Sum._);
-        add(Sqrt._);
-        add(Stop._);
         add(T._);
         add("t.default", T._);
         add(Tolower._);

@@ -1101,4 +1101,17 @@ public class TestSimpleBuiltins extends SimpleTestBase {
     public void testDiagnostics() throws RecognitionException {
         assertEvalError("{ f <- function() { stop(\"hello\",\"world\") } ; f() }", "helloworld");
     }
+
+    @Test
+    public void testSprintf() throws RecognitionException {
+        assertEval("{ sprintf(\"%d\", 10) }", "\"10\"");
+        assertEval("{ sprintf(\"%7.3f\", 10.1) }", "\" 10.100\"");
+        assertEval("{ sprintf(\"%03d\", 1:3) }", "\"001\", \"002\", \"003\"");
+        assertEval("{ sprintf(\"%3d\", 1:3) }", "\"  1\", \"  2\", \"  3\"");
+        assertEval("{ sprintf(\"Hello %*d\", 3, 2) }", "\"Hello   2\"");
+        assertEval("{ sprintf(\"Hello %*2$d\", 3, 2) }", "\"Hello  3\"");
+        assertEval("{ sprintf(\"Hello %2$*2$d\", 3, 2) }", "\"Hello  2\"");
+        assertEval("{ sprintf(\"%4X\", 26) }", "\"  1A\"");
+        assertEval("{ sprintf(\"%04X\", 26) }", "\"001A\"");
+    }
 }

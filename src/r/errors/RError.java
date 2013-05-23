@@ -117,6 +117,11 @@ public abstract class RError extends RuntimeException {
     public static final String MISSING_ARGUMENTS = "'missing' can only be used for arguments";
     public static final String INVALID_ENVIRONMENT = "invalid environment specified";
     public static final String ENVIR_NOT_LENGTH_ONE = "numeric 'envir' arg not of length one";
+    public static final String FMT_NOT_CHARACTER = "'fmt' is not a character vector";
+    public static final String UNSUPPORTED_TYPE = "unsupported type";
+    public static final String AT_MOST_ONE_ASTERISK = "at most one asterisk '*' is supported in each conversion specification";
+    public static final String TOO_FEW_ARGUMENTS = "too few arguments";
+    public static final String ARGUMENT_STAR_NUMBER = "argument for '*' conversion specification must be a number";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -173,6 +178,12 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_EMPTY = "argument %d is empty";
     public static final String REPEATED_FORMAL = "repeated formal argument '%s'"; // not exactly GNU-R message
     public static final String DOTS_BOUNDS = "The ... list does not contain %s elements";
+    public static final String REFERENCE_NONEXISTENT = "reference to non-existent argument %d";
+    public static final String UNRECOGNIZED_FORMAT = "unrecognized format specification '%s'";
+    public static final String INVALID_FORMAT_LOGICAL = "invalid format '%s'; use format %%d or %%i for logical objects";
+    public static final String INVALID_FORMAT_INTEGER = "invalid format '%s'; use format %%d, %%i, %%o, %%x or %%X for integer objects";
+    public static final String INVALID_FORMAT_DOUBLE = "invalid format '%s'; use format %%f, %%e, %%g or %%a for numeric objects"; // the list is incomplete (but like GNU-R)
+    public static final String INVALID_FORMAT_STRING = "invalid format '%s'; use format %%s for character objects";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1233,6 +1244,61 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getFmtNotCharacter(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.FMT_NOT_CHARACTER;
+            }
+        };
+    }
+
+    public static RError getUnsupportedType(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.UNSUPPORTED_TYPE;
+            }
+        };
+    }
+
+    public static RError getAtMostOneAsterisk(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.AT_MOST_ONE_ASTERISK;
+            }
+        };
+    }
+
+    public static RError getTooFewArguments(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.TOO_FEW_ARGUMENTS;
+            }
+        };
+    }
+
+    public static RError getArgumentStarNumber(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.ARGUMENT_STAR_NUMBER;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1472,5 +1538,29 @@ public abstract class RError extends RuntimeException {
 
     public static RError getDotsBounds(ASTNode ast, int index) {
         return getGenericError(ast, String.format(RError.DOTS_BOUNDS, index));
+    }
+
+    public static RError getReferenceNonexistent(ASTNode ast, int argIndex) {
+        return getGenericError(ast, String.format(RError.REFERENCE_NONEXISTENT, argIndex));
+    }
+
+    public static RError getUnrecognizedFormat(ASTNode ast, String formatString) {
+        return getGenericError(ast, String.format(RError.UNRECOGNIZED_FORMAT, formatString));
+    }
+
+    public static RError getInvalidFormatLogical(ASTNode ast, String formatString) {
+        return getGenericError(ast, String.format(RError.INVALID_FORMAT_LOGICAL, formatString));
+    }
+
+    public static RError getInvalidFormatInteger(ASTNode ast, String formatString) {
+        return getGenericError(ast, String.format(RError.INVALID_FORMAT_INTEGER, formatString));
+    }
+
+    public static RError getInvalidFormatDouble(ASTNode ast, String formatString) {
+        return getGenericError(ast, String.format(RError.INVALID_FORMAT_DOUBLE, formatString));
+    }
+
+    public static RError getInvalidFormatString(ASTNode ast, String formatString) {
+        return getGenericError(ast, String.format(RError.INVALID_FORMAT_STRING, formatString));
     }
 }
