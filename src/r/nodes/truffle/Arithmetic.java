@@ -95,7 +95,7 @@ public class Arithmetic extends BaseR {
                             && (lhs.attributes() == null)
                             && (rhs.attributes() == null))
                         // TODO passing NULL as frame is a dirty trick
-                        return replace(new DoubleAddDoubleVectorConstSize(ast, left, right, lhs.size())).compute(lhs, rhs, null);
+                        return replace(new DoubleAddDoubleVectorSameSize(ast, left, right)).compute(lhs, rhs, null);
                 }
                 Specialized sn = Specialized.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
                 replace(sn, "install Specialized from Uninitialized");
@@ -105,73 +105,6 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    static class DoubleAddDoubleVectorConstSize extends BaseR {
-
-        @Child final RNode left;
-        @Child final RNode right;
-        final int size;
-
-        public DoubleAddDoubleVectorConstSize(ASTNode orig, RNode left, RNode right, int size) {
-            super(orig);
-            this.left = left;
-            this.right = right;
-            this.size = size;
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            Object lexpr = left.execute(frame);
-            Object rexpr = right.execute(frame);
-            if ((lexpr instanceof DoubleImpl) && (rexpr instanceof DoubleImpl)) {
-                DoubleImpl lhs = (DoubleImpl) lexpr;
-                DoubleImpl rhs = (DoubleImpl) rexpr;
-                if ((lhs.size() == rhs.size())
-                        && (lhs.dimensions() == null)
-                        && (rhs.dimensions() == null)
-                        && (lhs.names() == null)
-                        && (rhs.names() == null)
-                        && (lhs.attributes() == null)
-                        && (rhs.attributes() == null)) {
-                    if (lhs.size() == size) {
-                        return compute(lhs, rhs, frame);
-                    } else {
-                        CompilerDirectives.transferToInterpreter();
-                        DoubleAddDoubleVectorSameSize sn = new DoubleAddDoubleVectorSameSize(ast, left, right);
-                        replace(sn);
-                        return sn.compute(lhs, rhs, frame);
-                    }
-                }
-            }
-            CompilerDirectives.transferToInterpreter();
-            Specialized sn = Specialized.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, new Add());
-            replace(sn);
-            return sn.execute(lexpr, rexpr);
-        }
-
-
-        //@ExplodeLoop
-        public final Object compute(DoubleImpl lhs, DoubleImpl rhs, Frame frame) {
-            final double[] l = lhs.getContent();
-            final double[] r = rhs.getContent();
-            final double[] res = new double[l.length];
-            for (int i = 0; i < l.length; ++i) {
-                double a = l[i];
-                double b = r[i];
-                double c = a + b;
-                if (RDouble.RDoubleUtils.isNA(c)) {
-                    if (RDouble.RDoubleUtils.isNA(a) || RDouble.RDoubleUtils.isNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
-                } else {
-                    res[i] = c;
-                }
-                res[i] = c;
-            }
-            return RDouble.RDoubleFactory.getFor(res, null, null, null);
-        }
-
-
-    }
 
     static class DoubleAddDoubleVectorSameSize extends BaseR {
 
