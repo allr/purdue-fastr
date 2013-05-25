@@ -58,6 +58,16 @@ public abstract class RNode extends Node {
         new PushbackNode(childNode, childNode.getAST(), childNode, value);
     }
 
+    public <T extends RNode> T replace(T childNode) {
+        //System.out.println(" Replacing "+getClass().getName()+" with "+childNode.getClass().getName());
+        return super.replace(childNode);
+    }
+
+    public <T extends RNode> T replace(T childNode, String reason) {
+        //System.out.println(" Replacing "+getClass().getName()+" with "+childNode.getClass().getName()+", reason: "+reason);
+        return super.replace(childNode, reason);
+    }
+
     public <T extends RNode> Object replace(T childNode, Object childValue, RNode newNode, Frame frame) {
         pushBack(childNode, childValue);
         return replace(newNode).execute(frame);

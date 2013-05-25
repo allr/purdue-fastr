@@ -1,7 +1,11 @@
 package r;
 
-import r.data.RDouble;
+import org.antlr.runtime.*;
+import r.builtins.internal.Random;
+import r.data.*;
 import r.data.internal.DoubleImpl;
+import r.nodes.ASTNode;
+import r.parser.*;
 
 public class sandbox {
 
@@ -39,12 +43,59 @@ public class sandbox {
 
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10; ++i) {
+        try {
+            RLexer lexer = new RLexer();
+            RParser parser = new RParser(null);
+            parser.reset();
+            lexer.resetIncomplete();
+            lexer.setCharStream(new ANTLRStringStream("f3 <- function() {\n" +
+                    "    x = 3\n" +
+                    "}\n" +
+                    "\n" +
+                    "f3()\n" +
+                    "f3()\n" +
+                    "f3()\n"));
+            parser.setTokenStream(new CommonTokenStream(lexer));
+            ASTNode astNode = parser.interactive();
+            Random.resetSeed(); // RESETS RANDOM SEED
+            System.out.println(RContext.eval(astNode, true));
+        } catch (RecognitionException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+    /*    for (int i = 0; i < 10; ++i) {
             long t = System.currentTimeMillis();
             f();
             t = System.currentTimeMillis() - t;
             System.out.println("Iteration "+i+" took "+(t/1000.0)+" [s]");
-        }
+        } */
     }
 
 }
+
+/*
+s = as.vector(array(1,c(10)))
+inc = as.vector(array(1,c(10)))
+
+f2 = function(b) {
+    b = b + s
+    s <<- s + inc
+    b
+}
+
+f = function(a) {
+    x = _timerStart();
+    for (i in 1:10) {
+        a = a + f2(a)
+    }
+    s <<- a
+    x
+}
+
+a = as.vector(array(0,c(10)))
+f(a)
+a = as.vector(array(0,c(10)))
+s = as.vector(array(1,c(10)))
+_timerEnd(f(a),"tmr")
+
+*/

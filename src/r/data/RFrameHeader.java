@@ -789,7 +789,7 @@ public class RFrameHeader extends Arguments {
         RAny oldValue = sym.getValue();
         if (oldValue != value) {
             sym.setValue(value);
-            value.ref();
+            //value.ref();
         }
     }
 

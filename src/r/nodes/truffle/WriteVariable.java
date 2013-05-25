@@ -73,7 +73,17 @@ public abstract class WriteVariable extends BaseR {
 
             @Override public final Object execute(Frame frame) {
                 RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeAtCondRef(frame, slot, val);
+//                RFrameHeader.writeAtCondRef(frame, slot, val);
+                try {
+                    Object oldContent = frame.getObject(slot);
+                    if (val != oldContent) {
+                        frame.setObject(slot, val);
+                        val.ref();
+                    }
+                } catch (Exception e) {
+                    System.out.println("AAAAAA\n\n\n\n\nAAAAAAA\n\n\n\n\n");
+                    //assert (false);
+                }
                 if (DEBUG_W) {
                     Utils.debug("write - " + symbol.pretty() + " local-ws, wrote " + val + " (" + val.pretty() + ") to slot " + slot);
                 }
