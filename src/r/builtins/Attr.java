@@ -2,7 +2,6 @@ package r.builtins;
 
 import java.util.*;
 
-import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -36,24 +35,25 @@ final class Attr extends CallFactory {
         super(name, parameters, required);
     }
 
-    /**
-     * Given a RString, return a non-null, non-NA boolean.
-     */
-    static RSymbol getNonEmptySymbol(RAny arg, ASTNode ast, String argName) {
-        if (!(arg instanceof RString)) { throw Utils.nyi(); }
+    static RSymbol parseWhich(RAny arg, ASTNode ast) {
+        if (!(arg instanceof RString)) {
+            throw RError.getMustBeCharacter(ast, "which");
+        }
         RString astr = (RString) arg;
-        if (astr.size() == 0) { throw RError.getMustBeNonNullString(ast, argName); }
-        if (astr.getString(0) != RString.NA) { return RSymbol.getSymbol(astr.getString(0)); }
-        throw Utils.nyi();
+        if (astr.size() != 1) {
+            throw RError.getExactlyOneWhich(ast);
+        }
+        return RSymbol.getSymbol(astr.getString(0));
     }
 
-    /**
-     * FIXME: Check that these are the R semantics with valuation of additional values.
-     */
-    private static boolean getBoolean(RAny arg) {
+    private static boolean parseExact(RAny arg) {
         RLogical l = arg.asLogical();
-        if (l.size() == 0) { return false; }
-        return l.getLogical(0) == RLogical.TRUE;
+        if (l.size() >= 1) {
+            if (l.getLogical(0) == RLogical.TRUE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
@@ -66,26 +66,44 @@ final class Attr extends CallFactory {
         // FIXME: should specialize based on exact value
         return new Builtin(call, names, exprs) {
 
-            @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
+            @Override
+            public RAny doBuiltIn(Frame frame, RAny[] args) {
                 RAny x = args[posX];
-                RSymbol which = Attr.getNonEmptySymbol(args[posWhich], ast, "which");
-                if (which == RSymbol.NA_SYMBOL) { return convertNullToRNull(null); }
+                RSymbol which = parseWhich(args[posWhich], ast);
+
+                // exact matching
                 RAny res = getExactMatchOrNull(x, which);
-                if (res != null) { return res; }
-                boolean exactRequested = posExact != -1 ? getBoolean(args[posExact]) : false;
-                if (exactRequested) { return convertNullToRNull(null); }
+                if (res != null) {
+                    return res;
+
+                }
+                boolean exactRequested = posExact != -1 ? parseExact(args[posExact]) : false;
+                if (exactRequested) {
+                    return RNull.getNull();
+                }
+
                 // unique partial matching
-                res = RSymbol.DIM_SYMBOL.startsWith(which) ? DimensionsBase.getDim(x) : null;
-                res = res == null && RSymbol.NAMES_SYMBOL.startsWith(which) ? Names.getNames(x) : null;
-                // note - names do not have common prefix with dim // prefix
+                // note - names do not have common prefix with dim
+                if (RSymbol.DIM_SYMBOL.startsWith(which)) {
+                    res = DimensionsBase.getDim(x);
+                } else if (RSymbol.NAMES_SYMBOL.startsWith(which)) {
+                    res = Names.getNames(x);
+                }
+
                 RAny.Attributes attr = x.attributes();
-                if (attr == null) { return convertNullToRNull(res); }
+                if (attr == null) {
+                    return convertNullToRNull(res);
+                }
+                if (which == RSymbol.NA_SYMBOL) { // partial map cannot hold RSymbol.NA_SYMBOL
+                    return RNull.getNull();
+                }
+
                 if (attr.hasPartialMap()) {
                     RSymbol fullName = attr.partialFind(which);
                     // nothing found, return what we have
                     if (fullName == null) { return convertNullToRNull(res); }
                     // ambiguity, return null
-                    if (res != null) { return convertNullToRNull(null); }
+                    if (res != null) { return RNull.getNull(); }
                     // return attribute
                     return convertNullToRNull(attr.map().get(fullName));
                 } else {
@@ -93,11 +111,10 @@ final class Attr extends CallFactory {
                     if (map.size() > PARTIAL_MAP_THRESHOLD) {
                         attr.createPartialMap();
                     }
-                    // TODO: fix this, not really working yet
                     for (Map.Entry<RSymbol, RAny> entry : map.entrySet()) {
                         String sentry = entry.getKey().name();
                         if (sentry.startsWith(which.name())) {
-                            if (res != null) { return convertNullToRNull(null); }
+                            if (res != null) { return RNull.getNull(); } // ambiquity
                             res = entry.getValue();
                         }
                     }
@@ -110,15 +127,16 @@ final class Attr extends CallFactory {
             }
 
             private RAny getExactMatchOrNull(RAny x, RSymbol which) {
-                RAny.Attributes attr = x.attributes();
-                if (attr != null) {
-                    Map<RSymbol, RAny> map = attr.map();
-                    RAny res = map.get(which);
-                    if (res != null) { return res; }
-                }
                 if (which == RSymbol.DIM_SYMBOL) { return DimensionsBase.getDim(x); }
                 if (which == RSymbol.NAMES_SYMBOL) { return Names.getNames(x); }
-                return null;
+
+                RAny.Attributes attr = x.attributes();
+                if (attr == null) {
+                    return null;
+                } else {
+                    Map<RSymbol, RAny> map = attr.map();
+                    return map.get(which);
+                }
             }
         };
     }

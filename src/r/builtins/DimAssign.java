@@ -46,8 +46,13 @@ final class DimAssign extends CallFactory {
             throw RError.getInvalidFirstArgument(ast);
         }
         RArray a = (RArray) x;
-        RInt ndims = Convert.coerceToIntWarning(value, ast);
-        int[] dims = buildDimensions(a.size(), ndims, ast);
+        int[] dims;
+        if (value instanceof RNull) {
+            dims = null;
+        } else {
+            RInt ndims = Convert.coerceToIntWarning(value, ast);
+            dims = buildDimensions(a.size(), ndims, ast);
+        }
 
         if (!a.isShared()) {
             return a.setDimensions(dims);

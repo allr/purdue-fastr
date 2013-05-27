@@ -64,14 +64,14 @@ public interface RAny {
 
     public static class Attributes {
         private boolean shared;
-        private LinkedHashMap<RSymbol, RAny> map;
-        private PartialEntry pmap;
+        private LinkedHashMap<RSymbol, RAny> map; // this field is never null
+        private PartialEntry pmap; // this field can be null
 
         public static final boolean PROPAGATE_PARTIAL_MAP = true;
 
         public static class PartialEntry {
             TreeMap<Character, PartialEntry> children;
-            RSymbol fullName;   // null means not present (RSymbol.NA_SYMBOL is not a valid attribute name)
+            RSymbol fullName;   // null means not present, RSymbol.NA_SYMBOL is not a valid attribute name
 
             public PartialEntry(RSymbol fullName) {
                 children = new TreeMap<Character, PartialEntry>();
@@ -115,6 +115,16 @@ public interface RAny {
             }
         }
 
+        public void remove(RSymbol key) {
+            if (pmap == null) {
+                map.remove(key);
+            } else {
+                if (map.remove(key) != null) {
+                    partialRemove(key);
+                }
+            }
+        }
+
         private void partialAdd(RSymbol symbol) {
             char[] key = symbol.name().toCharArray();
             PartialEntry root = pmap;
@@ -136,6 +146,22 @@ public interface RAny {
                 assert Utils.check(root.fullName == null);  // attributes have unique names
                 root.fullName = symbol;
             }
+        }
+
+        private void partialRemove(RSymbol symbol) {
+            char[] key = symbol.name().toCharArray();
+            PartialEntry root = pmap;
+            for (int i = 0; i < key.length - 1; i++) {
+                char k = key[i];
+                TreeMap<Character, PartialEntry> cmap = root.children;
+                root = cmap.get(k);
+                assert Utils.check(root != null); // deleting an element which is present
+            }
+            char k = key[key.length - 1];
+            TreeMap<Character, PartialEntry> cmap = root.children;
+            root = cmap.get(k);
+            assert Utils.check(root != null); // deleting an element which is present
+            cmap.remove(k);
         }
 
         public boolean hasPartialMap() {

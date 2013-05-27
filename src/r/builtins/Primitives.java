@@ -99,6 +99,7 @@ public class Primitives {
         add(File._);
         add(Floor._);
         add(Flush._);
+        add(Identical._);
         add(Integer._);
         add(Im._);
         add(IsCharacter._);

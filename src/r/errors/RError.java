@@ -122,6 +122,8 @@ public abstract class RError extends RuntimeException {
     public static final String AT_MOST_ONE_ASTERISK = "at most one asterisk '*' is supported in each conversion specification";
     public static final String TOO_FEW_ARGUMENTS = "too few arguments";
     public static final String ARGUMENT_STAR_NUMBER = "argument for '*' conversion specification must be a number";
+    public static final String EXACTLY_ONE_WHICH = "exactly one attribute 'which' must be given";
+    public static final String ATTRIBUTES_NAMED = "attributes must be named";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -184,6 +186,8 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_FORMAT_INTEGER = "invalid format '%s'; use format %%d, %%i, %%o, %%x or %%X for integer objects";
     public static final String INVALID_FORMAT_DOUBLE = "invalid format '%s'; use format %%f, %%e, %%g or %%a for numeric objects"; // the list is incomplete (but like GNU-R)
     public static final String INVALID_FORMAT_STRING = "invalid format '%s'; use format %%s for character objects";
+    public static final String MUST_BE_CHARACTER = "'%s' must be of mode character";
+    public static final String ALL_ATTRIBUTES_NAMES = "all attributes must have names [%d does not]";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1299,6 +1303,28 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getExactlyOneWhich(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.EXACTLY_ONE_WHICH;
+            }
+        };
+    }
+
+    public static RError getAttributesNamed(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.ATTRIBUTES_NAMED;
+            }
+        };
+    }
+
     public static RError getGenericError(ASTNode source, final String msg) {
         return new RErrorInExpr(source) {
 
@@ -1562,5 +1588,13 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidFormatString(ASTNode ast, String formatString) {
         return getGenericError(ast, String.format(RError.INVALID_FORMAT_STRING, formatString));
+    }
+
+    public static RError getMustBeCharacter(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.MUST_BE_CHARACTER, argName));
+    }
+
+    public static RError getAllAttributesNames(ASTNode ast, int attrIndex) {
+        return getGenericError(ast, String.format(RError.ALL_ATTRIBUTES_NAMES, attrIndex));
     }
 }

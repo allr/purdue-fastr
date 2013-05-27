@@ -1,5 +1,6 @@
 package r.builtins;
 
+import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -35,27 +36,40 @@ class AttributesAssign extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         check(call, names, exprs);
         return new Builtin.Builtin2(call, names, exprs) {
-            @Override public RAny doBuiltIn(Frame frame, RAny obj, RAny value) {
-                RAny.Attributes attr = new RAny.Attributes();
-                obj = obj.setAttributes(attr);
-                if (value == RNull.getNull()) { return obj; }
-                if (!(value instanceof RList)) { throw RError.getAttributesListOrNull(ast); }
-                RList val = (RList) value;
-                if (val.names() == null) { throw new Error("no names"); }
-                RSymbol[] vnames = val.names().sequence();
-                for (int i = 0; i < val.size(); i++) {
-                    RAny v = val.getRAny(i);
-                    RSymbol s = vnames[i];
-                    if (s == RSymbol.NAMES_SYMBOL) {
-                        NamesAssign.replaceNames(obj, v, ast);
-                    } else if (s == RSymbol.DIM_SYMBOL) {
-                        DimAssign.replaceDims(obj, v, ast);
-                    } else {
-                        v.ref();
-                        attr.put(s, v);
+            @Override
+            public RAny doBuiltIn(Frame frame, RAny objArg, RAny valueArg) {
+                RAny obj = objArg;
+                if (valueArg instanceof RList) {
+                    RAny.Attributes attr = new RAny.Attributes();
+                    RList value = (RList) valueArg;
+                    if (value.names() == null) {
+                        throw RError.getAttributesNamed(ast);
                     }
+                    RSymbol[] vnames = value.names().sequence();
+
+                    for (int i = 0; i < value.size(); i++) {
+                        RAny v = value.getRAny(i);
+                        RSymbol s = vnames[i];
+                        if (s == RSymbol.EMPTY_SYMBOL) {
+                            throw RError.getAllAttributesNames(ast, i + 1);
+                        }
+                        if (s == RSymbol.NAMES_SYMBOL) {
+                            obj = NamesAssign.replaceNames(obj, v, ast);
+                        } else if (s == RSymbol.DIM_SYMBOL) {
+                            obj = DimAssign.replaceDims(obj, v, ast);
+                        } else {
+                            v.ref();
+                            AttrAssign.putOrRemove(attr, s, v);
+                        }
+                    }
+                    RAny res = obj.isShared() ? Utils.copyAny(obj) : obj;
+                    return res.setAttributes(attr);
+
+                } else if (valueArg instanceof RNull) {
+                    return objArg.stripAttributes();
+                } else {
+                    throw RError.getAttributesListOrNull(ast);
                 }
-                return obj;
             }
         };
     }

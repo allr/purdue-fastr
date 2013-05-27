@@ -341,6 +341,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ m <- matrix(1:6, nrow=3) ; ncol(m) }", "2L");
 
         assertEval("{ x <- 1:2 ; dim(x) <- c(1,2) ; x }", "     [,1] [,2]\n[1,]   1L   2L");
+        assertEval("{ z <- 1 ; dim(z) <- c(1,1) ; dim(z) <- NULL ; z }", "1.0");
         assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,3) ; x }", "dims [product 3] do not match the length of object[2]");
         assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,NA) ; x }", "the dims contain missing values");
         assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,-1) ; x }", "the dims contain negative values");
@@ -555,6 +556,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- c(1,2); names(x) <- c(\"A\", \"B\") ; x + 1 }", "  A   B\n2.0 3.0");
         assertEval("{ x <- 1:2; names(x) <- c(\"A\", \"B\") ; y <- c(1,2,3,4) ; names(y) <- c(\"X\", \"Y\", \"Z\") ; x + y }", "  X   Y   Z <NA>\n2.0 4.0 4.0  6.0");
         assertEval("{ x <- 1:2; names(x) <- c(\"A\", \"B\") ; abs(x) }", " A  B\n1L 2L");
+        assertEval("{ z <- c(a=1, b=2) ; names(z) <- NULL ; z }", "1.0, 2.0");
     }
 
     @Test
@@ -704,6 +706,15 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"na\") }", "\"a\", \"b\"");
         assertEval("{ x <- c(a=1, b=2) ; attr(x, \"mya\") <- 1; attr(x, \"b\") <- 2; attr(x, \"m\") }", "1.0");
         assertEval("{ x <- 1:2; attr(x, \"aa\") <- 1 ; attr(x, \"ab\") <- 2; attr(x, \"bb\") <- 3; attr(x, \"b\") }", "3.0");
+        assertEval("{ z <- 1; attr(z,\"a\") <- 1; attr(z,\"b\") <- 2; attr(z,\"c\") <- 3 ; attr(z,\"b\") <- NULL ; z }", "1.0\nattr(,\"a\")\n1.0\nattr(,\"c\")\n3.0");
+
+        assertEval("{ x <- 1 ; attributes(x) <- list(hi=3, hello=2) ; x }", "1.0\nattr(,\"hi\")\n3.0\nattr(,\"hello\")\n2.0");
+        assertEval("{ x <- 1 ; attributes(x) <- list(hi=3, names=\"name\") ; x }", "name\n 1.0\nattr(,\"hi\")\n3.0");
+        assertEval("{ x <- c(hello=1) ; attributes(x) <- list(names=NULL) ; x }", "1.0");
+        assertEvalError("{ x <- c(hello=1) ; attributes(x) <- list(hi=1, 2) ; x }", "all attributes must have names [2 does not]");
+        assertEval("{ x <- 1; attributes(x) <- list(my = 1) ; y <- x; attributes(y) <- list(his = 2) ; x }", "1.0\nattr(,\"my\")\n1.0");
+        assertEval("{ x <- c(hello=1) ; attributes(x) <- list(hi=1) ;  attributes(x) <- NULL ; x }", "1.0");
+        assertEval("{ x <- c(hello=1) ; attributes(x) <- list(hi=1, names=NULL, hello=3, hi=2, hello=NULL) ; x }", "1.0\nattr(,\"hi\")\n2.0");
     }
 
     @Test
@@ -1113,5 +1124,19 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sprintf(\"Hello %2$*2$d\", 3, 2) }", "\"Hello  2\"");
         assertEval("{ sprintf(\"%4X\", 26) }", "\"  1A\"");
         assertEval("{ sprintf(\"%04X\", 26) }", "\"001A\"");
+    }
+
+    @Test
+    public void testIdentical() throws RecognitionException {
+        assertEval("{ identical(1,1) }", "TRUE");
+        assertEval("{ identical(1L,1) }", "FALSE");
+        assertEval("{ identical(1:3, c(1L,2L,3L)) }", "TRUE");
+        assertEval("{ identical(0/0,1[2]) }", "FALSE");
+        assertEval("{ identical(list(1, list(2)), list(list(1), 1)) }", "FALSE");
+        assertEval("{ identical(list(1, list(2)), list(1, list(2))) }", "TRUE");
+        assertEval("{ x <- 1 ; attr(x, \"my\") <- 10; identical(x, 1) }", "FALSE");
+        assertEval("{ x <- 1 ; attr(x, \"my\") <- 10; y <- 1 ; attr(y, \"my\") <- 10 ; identical(x,y) }", "TRUE");
+        assertEval("{ x <- 1 ; attr(x, \"my\") <- 10; y <- 1 ; attr(y, \"my\") <- 11 ; identical(x,y) }", "FALSE");
+        assertEval("{ x <- 1 ; attr(x, \"hello\") <- 2 ; attr(x, \"my\") <- 10;  attr(x, \"hello\") <- NULL ; y <- 1 ; attr(y, \"my\") <- 10 ; identical(x,y) }", "TRUE");
     }
 }
