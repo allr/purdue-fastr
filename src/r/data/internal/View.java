@@ -37,17 +37,29 @@ public abstract class View extends ArrayImpl implements RArray {
 
     @Override
     public RArray setDimensions(int[] dimensions) {
-        return materialize().setDimensions(dimensions);
+        if (dimensions() != dimensions) {
+            return materialize().setDimensions(dimensions);
+        } else {
+            return this;
+        }
     }
 
     @Override
     public RArray setNames(Names names) {
-        return materialize().setNames(names);
+        if (names() != names) {
+            return materialize().setNames(names);
+        } else {
+            return this;
+        }
     }
 
     @Override
     public RArray setAttributes(Attributes attributes) {
-        return materialize().setAttributes(attributes);
+        if (attributes() != attributes) {
+            return materialize().setAttributes(attributes);
+        } else {
+            return this;
+        }
     }
 
     @Override

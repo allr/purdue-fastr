@@ -1,6 +1,6 @@
 package r.data;
 
-import r.data.internal.View;
+import r.data.internal.View.RListProxy;
 
 import java.util.HashMap;
 
@@ -213,32 +213,15 @@ public interface RArray extends RAny {
         }
     }
 
-    public static class RListView extends View.RListView implements RList {
+    public static class RListView extends RListProxy<RArray> implements RList {
 
-        final RArray arr;
-
-        public RListView(RArray arr) {
-            this.arr = arr;
+        public RListView(RArray orig) {
+            super(orig);
         }
 
-        @Override public int size() {
-            return arr.size();
-        }
-
-        @Override public RAny getRAny(int i) {
-            return arr.boxedGet(i);
-        }
-
-        @Override public boolean isSharedReal() {
-            return arr.isShared();
-        }
-
-        @Override public void ref() {
-            arr.ref();
-        }
-
-        @Override public Names names() {
-            return arr.names();
+        @Override
+        public RAny getRAny(int i) {
+            return orig.boxedGet(i);
         }
     }
 }

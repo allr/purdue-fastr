@@ -177,6 +177,10 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ as.complex(\"1e-2+3i\") }", "0.01+3.0i");
         assertEval("{ as.complex(\"+.1e+2-3i\") }", "10.0-3.0i");
 
+        assertEval("{ l <- list(1) ; attr(l, \"my\") <- 1; as.list(l) }", "[[1]]\n1.0\nattr(,\"my\")\n1.0");
+        assertEval("{ l <- 1 ; attr(l, \"my\") <- 1; as.list(l) }", "[[1]]\n1.0");
+        assertEval("{ l <- c(x=1) ; as.list(l) }", "$x\n1.0");
+
         // shortcuts in views (only some combinations)
         assertEval("{ as.complex(as.character(c(1+1i,1+1i))) }", "1.0+1.0i, 1.0+1.0i");
         assertEval("{ as.complex(as.double(c(1+1i,1+1i))) }", "1.0+0.0i, 1.0+0.0i");

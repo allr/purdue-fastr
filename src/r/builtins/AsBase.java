@@ -43,7 +43,15 @@ abstract class AsBase extends CallFactory {
 
     // list
     static RAny genericAsList(ASTNode ast, RAny arg) {
-        throw Utils.nyi();
+        if (arg instanceof RList) {
+            return arg;
+        }
+        RArray res = arg.asList().stripAttributes();
+        if (arg instanceof RArray) { // FIXME: always the case?
+            return res.setNames(((RArray) arg).names());
+        } else {
+            return res;
+        }
     }
 
     static boolean isRecursive(RList list) {
@@ -175,7 +183,9 @@ abstract class AsBase extends CallFactory {
                     content[2 * i + 1] = ca.getImag(0);
                 }
             } else {
-                if (a.size() > 1) { throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "complex")); }
+                if (a.size() > 1) {
+                    throw RError.getListCoercion(ast, "complex");
+                }
                 content[i] = RDouble.NA;
             }
         }
@@ -199,7 +209,9 @@ abstract class AsBase extends CallFactory {
             if (a.size() == 1) {
                 content[i] = a instanceof RList ? RDouble.NA : a.asDouble(warn).getDouble(0); // FIXME error handling - NA + warning
             } else {
-                if (a.size() > 1) { throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "numeric")); }
+                if (a.size() > 1) {
+                    throw RError.getListCoercion(ast, "numeric");
+                }
                 content[i] = RDouble.NA;
             }
         }
@@ -223,7 +235,9 @@ abstract class AsBase extends CallFactory {
             if (a.size() == 1) {
                 content[i] = a instanceof RList ? RInt.NA : a.asInt(warn).getInt(0);
             } else {
-                if (a.size() > 1) { throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "integer")); }
+                if (a.size() > 1) {
+                    throw RError.getListCoercion(ast, "integer");
+                }
                 content[i] = RInt.NA;
             }
         }
@@ -246,7 +260,9 @@ abstract class AsBase extends CallFactory {
             if (a.size() == 1) {
                 content[i] = a instanceof RList ? RInt.NA : a.asLogical().getLogical(0);
             } else {
-                if (a.size() > 1) { throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "logical")); }
+                if (a.size() > 1) {
+                    throw RError.getListCoercion(ast, "logical");
+                }
                 content[i] = RLogical.NA;
             }
         }
@@ -270,7 +286,9 @@ abstract class AsBase extends CallFactory {
                     content[i] = a.asRaw(warn).getRaw(0); // FIXME error handling - NA + warning
                 }
             } else {
-                if (a.size() > 1) { throw RError.getGenericError(ast, String.format(RError.LIST_COERCION, "raw")); }
+                if (a.size() > 1) {
+                    throw RError.getListCoercion(ast, "raw");
+                }
                 content[i] = RRaw.ZERO;
                 warn.outOfRange = true;
             }

@@ -60,6 +60,7 @@ public class Primitives {
         add(AsDouble._);
         add(AsEnvironment._);
         add(AsInteger._);
+        add(AsList._);
         add(AsLogical._);
         add(AsMatrix._);
         add(AsRaw._);

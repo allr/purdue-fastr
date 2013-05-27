@@ -50,20 +50,6 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     }
 
     @Override
-    public ListImpl stripAttributes() {
-        if (dimensions == null) {
-            return this;
-        }
-        if (!isShared()) {
-            dimensions = null;
-            return this;
-        }
-        ListImpl v = new ListImpl(content, null, null, null, false); // note: re-uses current values
-        v.refcount = refcount; // mark the new integer shared
-        return v;
-    }
-
-    @Override
     public int size() {
         return content.length;
     }

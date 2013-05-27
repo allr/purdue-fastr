@@ -1597,4 +1597,9 @@ public abstract class RError extends RuntimeException {
     public static RError getAllAttributesNames(ASTNode ast, int attrIndex) {
         return getGenericError(ast, String.format(RError.ALL_ATTRIBUTES_NAMES, attrIndex));
     }
+
+    public static RError getListCoercion(ASTNode ast, String typeName) {
+        return getGenericError(ast, String.format(RError.LIST_COERCION, typeName));
+    }
+
 }
