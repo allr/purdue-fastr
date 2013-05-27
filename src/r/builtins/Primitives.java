@@ -86,6 +86,7 @@ public class Primitives {
         add(DimAssign._);
         add(Double._);
         add(Get._);
+        add(Getwd._);
         add(Gregexpr._);
         add(Gsub._);
         add(Eigen._);
@@ -161,6 +162,7 @@ public class Primitives {
         add(Scan._);
         add(Seq._); // in fact seq.default (and only part of it)
         add("seq.default", Seq._);
+        add(Setwd._);
         add(Sort._);
         add("sort.int", Sort._);
         add(Strsplit._);

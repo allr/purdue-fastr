@@ -1,17 +1,16 @@
 package r.builtins;
 
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
+import r.*;
 import r.Truffle.Frame;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-/**
- * Argument ignoreCase is currently ignored. TODO fix
- */
 final class ListFiles extends CallFactory {
 
     static final CallFactory _ = new ListFiles("list.files", new String[]{"path", "pattern", "all.files", "full.names", "recursive", "ignore.case", "include.dirs"}, new String[]{});
@@ -31,7 +30,7 @@ final class ListFiles extends CallFactory {
         final int includeDirsPos = ai.position("include.dirs");
         return new Builtin(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-                String path = get(params, pathPos, ".");
+                String path = get(params, pathPos, System.getProperty("user.dir"));
                 String pattern = get(params, patternPos, null);
                 boolean allFiles = get(params, allFilesPos, false);
                 boolean fullNames = get(params, fullNamesPos, false);
@@ -44,36 +43,42 @@ final class ListFiles extends CallFactory {
         };
     }
 
-    static String get(RAny[] args, int position, String defaultValue) {
-        if (position == -1) return defaultValue;
-        RAny val = args[position];
-        if (val instanceof ScalarStringImpl) return ((ScalarStringImpl) val).getString();
-        if (val instanceof StringImpl) return ((StringImpl) val).getString(0);
-        return defaultValue; //TODO Should convert stuff to strings?
-    }
-
-    static boolean get(RAny[] args, int position, boolean defaultValue) {
-        if (position == -1) return defaultValue;
-        RAny val = args[position];
-        if (val instanceof ScalarLogicalImpl) return ((ScalarLogicalImpl) val).getBoolean();
-        if (val instanceof LogicalImpl) return ((LogicalImpl) val).getBoolean(0);
-        return defaultValue; //TODO Should convert stuff to strings?
-    }
-
     static String[] perform(String path, String pattern, boolean allFiles, boolean fullNames, boolean recursive, boolean ignoreCase, boolean includeDirs) {
         java.io.File p = new java.io.File(path);
         java.io.File[] fs = p.listFiles();
         Vector<String> res = new Vector<String>();
+        if (fs == null) {
+            RContext.warning(null, p + " does not appear to be a valid path.");
+            return res.toArray(EMPTY);
+        }
+        String pathName = null;
+        if (fullNames) try {
+            pathName = p.getCanonicalPath();
+        } catch (IOException e) {
+            RContext.warning(null, "Error while accessing " + p);
+            return res.toArray(EMPTY);
+        }
+        Pattern pat = null;
+        if (pattern != null) try {
+            pat = Pattern.compile(pattern, ignoreCase ? Pattern.CASE_INSENSITIVE : 0); // FIXME: can add UNICODE_CASE
+        } catch (PatternSyntaxException e) {
+            RContext.warning(null, "Java pattern match failed with " + e);
+            return res.toArray(EMPTY);
+        }
         for (java.io.File f : fs) {
             String name = f.getName();
             if (f.isHidden() && !allFiles) continue;
-            if (pattern != null && !pattern.equals("") && !Pattern.matches(pattern, name)) continue;
+            if (pat != null) {
+                Matcher m = pat.matcher(name);
+                if (!m.matches()) continue;
+            }
             if (f.isDirectory() && recursive) {
                 String[] rec = perform(path + "/" + f.getName(), pattern, allFiles, fullNames, recursive, ignoreCase, includeDirs);
                 for (String s : rec)
                     res.add(s);
             }
             if (f.isDirectory() && !includeDirs) continue;
+            if (fullNames) name = pathName + "/" + name;
             res.add(name);
         }
         return res.toArray(EMPTY);

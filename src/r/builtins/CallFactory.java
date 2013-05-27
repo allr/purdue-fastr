@@ -339,4 +339,20 @@ public abstract class CallFactory {
         throw RError.getUnexpectedNA(ast);
     }
 
+    static String get(RAny[] args, int position, String defaultValue) {
+        if (position == -1) return defaultValue;
+        RAny val = args[position];
+        if (val instanceof ScalarStringImpl) return ((ScalarStringImpl) val).getString();
+        if (val instanceof StringImpl) return ((StringImpl) val).getString(0);
+        return defaultValue; //TODO Should convert stuff to strings?
+    }
+
+    static boolean get(RAny[] args, int position, boolean defaultValue) {
+        if (position == -1) return defaultValue;
+        RAny val = args[position];
+        if (val instanceof ScalarLogicalImpl) return ((ScalarLogicalImpl) val).getBoolean();
+        if (val instanceof LogicalImpl) return ((LogicalImpl) val).getBoolean(0);
+        return defaultValue; //TODO Should convert stuff to boolean?
+    }
+
 }
