@@ -33,10 +33,6 @@ final class ListFiles extends CallFactory {
         return new Builtin(call, names, exprs) {
             @Override
             public RAny doBuiltIn(Frame frame, RAny[] args) {
-                RAny pathArg = args[pathPos];
-                if (!(pathArg instanceof RString)) {
-                    throw RError.getInvalidArgument(ast, "path");
-                }
                 RString path = pathPos == -1 ? RString.BOXED_DOT : parsePath(args[pathPos], ast);
                 String pattern = patternPos == -1 ? null : parsePattern(args[patternPos], ast);
                 boolean allFiles = allFilesPos == -1 ? false : parseLogical(args[allFilesPos], ast, "all.files");
