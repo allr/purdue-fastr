@@ -7,6 +7,7 @@ import org.antlr.runtime.*;
 
 import r.data.*;
 import r.errors.*;
+import r.ifc.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.parser.*;
@@ -231,6 +232,13 @@ public class Console {
     }
 
     static void printResult(ASTNode expr, RAny result) {
+        if (Interop.getAttributeAsString(result, "h2okind") != null) {
+            String res = result.asString().getString(0);
+            if (res.length() > 20) {
+                res = " ..." + res.substring(res.length() - 20, res.length());
+            }
+            println("[H20:" + res + "]");
+        } else
         // TODO to be a bit more compatible, we need to keep '()' as an ASTNode, but Truffelize must SKIP it.
         if (forceVisible || !(expr instanceof AssignVariable || expr instanceof Loop)) {
             println(result.pretty());
