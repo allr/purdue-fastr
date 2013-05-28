@@ -3,6 +3,9 @@ package r;
 import java.io.*;
 import java.util.Scanner;
 
+import jline.*;
+import jline.console.*;
+
 import org.antlr.runtime.*;
 import org.netlib.blas.*;
 import org.netlib.lapack.*;
@@ -119,7 +122,24 @@ public class Console {
                 System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
                 System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
                 System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
-                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
+                if (inputFile == null) {
+                    // NOTE the JLine2 console does not work from within Eclipse
+                    // Add -Djline.terminal=jline.UnsupportedTerminal to your eclipse run configuration
+                    try {
+                        ConsoleReader console = new ConsoleReader();
+                        console.setPrompt("> "); // FIXME: it seems that JLine2 does not support a continuation prompt
+                        interactive(createReader(console));
+                    } finally {
+                        try {
+                            TerminalFactory.get().restore();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    interactive(createReader(new BufferedReader(new FileReader(inputFile))));
+                }
+//                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 processFile(openANTLRStream(inputFile));
             }
@@ -129,7 +149,43 @@ public class Console {
         System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
-    static void interactive(BufferedReader in) throws IOException {
+    static interface RLineReader {
+        public String readLine() throws IOException;
+        public void prompt(String s);
+    }
+
+    private static RLineReader createReader(final BufferedReader buf) {
+        return new RLineReader() {
+
+            @Override
+            public String readLine() throws IOException {
+                return buf.readLine();
+            }
+
+            @Override
+            public void prompt(String s) {
+                System.out.print(s);
+            }
+        };
+    }
+
+    private static RLineReader createReader(final ConsoleReader console) {
+        return new RLineReader() {
+
+            @Override
+            public String readLine() throws IOException {
+                return console.readLine();
+            }
+
+            @Override
+            public void prompt(String s) {
+                console.setPrompt(s);
+            }
+
+        };
+    }
+
+    static void interactive(RLineReader in) throws IOException {
         RLexer lexer = new RLexer();
         RParser parser = new RParser(null);
         ASTNode tree;
@@ -137,9 +193,9 @@ public class Console {
 
         do {
             try {
-                System.out.print(incomplete.length() == 0 ? prompt : promptMore);
+                in.prompt(incomplete.length() == 0 ? prompt : promptMore);
                 System.out.flush();
-                tree = parseStatement(in, lexer, parser, incomplete);
+                tree = parseStatement(in.readLine(), lexer, parser, incomplete);
                 parser.reset();
                 if (tree != null) {
                     if (DEBUG) {
@@ -185,8 +241,7 @@ public class Console {
         }
     }
 
-    static ASTNode parseStatement(BufferedReader in, RLexer lexer, RParser parser, StringBuilder incomplete) throws IOException, RecognitionException {
-        String line = in.readLine();
+    static ASTNode parseStatement(String line, RLexer lexer, RParser parser, StringBuilder incomplete) throws IOException, RecognitionException {
         if (line == null) { throw new EOFException(); }
         incomplete.append(line);
         lexer.resetIncomplete(); // Since it's a brand new parsing, reset the lexer
