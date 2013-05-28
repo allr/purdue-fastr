@@ -124,6 +124,9 @@ public abstract class RError extends RuntimeException {
     public static final String ARGUMENT_STAR_NUMBER = "argument for '*' conversion specification must be a number";
     public static final String EXACTLY_ONE_WHICH = "exactly one attribute 'which' must be given";
     public static final String ATTRIBUTES_NAMED = "attributes must be named";
+    public static final String MISSING_INVALID = "missing value is invalid";
+    public static final String CHARACTER_EXPECTED = "character argument expected";
+    public static final String CANNOT_CHANGE_DIRECTORY = "cannot change working directory";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -188,6 +191,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_FORMAT_STRING = "invalid format '%s'; use format %%s for character objects";
     public static final String MUST_BE_CHARACTER = "'%s' must be of mode character";
     public static final String ALL_ATTRIBUTES_NAMES = "all attributes must have names [%d does not]";
+    public static final String INVALID_REGEXP = "invalid '%s' regular expression";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1226,6 +1230,28 @@ public abstract class RError extends RuntimeException {
         };
     }
 
+    public static RError getCharacterExpected(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.CHARACTER_EXPECTED;
+            }
+        };
+    }
+
+    public static RError getCannotChangeDirectory(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.CANNOT_CHANGE_DIRECTORY;
+            }
+        };
+    }
+
     public static RError getInvalidEnvironment(ASTNode expr) {
         return new RErrorInExpr(expr) {
 
@@ -1321,6 +1347,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.ATTRIBUTES_NAMED;
+            }
+        };
+    }
+
+    public static RError getMissingInvalid(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.MISSING_INVALID;
             }
         };
     }
@@ -1600,6 +1637,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getListCoercion(ASTNode ast, String typeName) {
         return getGenericError(ast, String.format(RError.LIST_COERCION, typeName));
+    }
+
+    public static RError getInvalidRegexp(ASTNode ast, String argName) {
+        return getGenericError(ast, String.format(RError.INVALID_REGEXP, argName));
     }
 
 }

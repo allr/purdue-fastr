@@ -1143,4 +1143,21 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1 ; attr(x, \"my\") <- 10; y <- 1 ; attr(y, \"my\") <- 11 ; identical(x,y) }", "FALSE");
         assertEval("{ x <- 1 ; attr(x, \"hello\") <- 2 ; attr(x, \"my\") <- 10;  attr(x, \"hello\") <- NULL ; y <- 1 ; attr(y, \"my\") <- 10 ; identical(x,y) }", "TRUE");
     }
+
+    @Test
+    public void testWorkingDirectory() throws RecognitionException {
+        assertEval("{ cur <- getwd(); cur1 <- setwd(getwd()) ; cur2 <- getwd() ; cur == cur1 && cur == cur2 }", "TRUE");
+        assertEvalError("{ setwd(1) }", "character argument expected");
+        assertEvalError("{ setwd(character()) }", "character argument expected");
+        assertEval("{ cur <- getwd(); cur1 <- setwd(c(cur, \"dummy\")) ; cur2 <- getwd() ; cur == cur1  }", "TRUE");
+    }
+
+    @Test
+    public void testFileListing() throws RecognitionException {
+        assertEval("{ list.files(\"test/r/simple/data/tree1\") }", "\"bar.txt\", \"dummy.txt\", \"subdir\"");
+        assertEval("{ list.files(\"test/r/simple/data/tree1\", recursive=TRUE) }", "\"bar.txt\", \"dummy.txt\", \"subdir/subbar.txt\", \"subdir/subdummy.txt\"");
+        assertEval("{ list.files(\"test/r/simple/data/tree1\", recursive=TRUE, pattern=\".*dummy.*\") }", "\"dummy.txt\", \"subdir/subdummy.txt\"");
+        assertEval("{ list.files(\"test/r/simple/data/tree1\", recursive=TRUE, pattern=\"dummy\") }", "\"dummy.txt\", \"subdir/subdummy.txt\"");
+        assertEval("{ list.files(\"test/r/simple/data/tree1\", pattern=\"*.tx\") }", "\"bar.txt\", \"dummy.txt\"");
+    }
 }

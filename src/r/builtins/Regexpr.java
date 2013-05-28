@@ -12,13 +12,13 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "regexpr"
- * 
+ *
  * <pre>
- * pattern -- character string containing a regular expression (or character string for fixed = TRUE) to 
+ * pattern -- character string containing a regular expression (or character string for fixed = TRUE) to
  *           be matched in the given character vector. Coerced by as.character to a character string if possible.
- *           If a character vector of length 2 or more is supplied, the first element is used with a warning. 
+ *           If a character vector of length 2 or more is supplied, the first element is used with a warning.
  *           Missing values are allowed except for regexpr and gregexpr.
- * x, text -- a character vector where matches are sought, or an object which can be coerced by as.character to a 
+ * x, text -- a character vector where matches are sought, or an object which can be coerced by as.character to a
  *           character vector.
  * ignore.case -- if FALSE, the pattern matching is case sensitive and if TRUE, case is ignored during matching.
  * perl -- logical. Should perl-compatible regexps be used?
@@ -28,6 +28,7 @@ import com.oracle.truffle.api.frame.*;
  */
 // FIXME: does not fill in attributes yet (TODO this when custom attributes are supported)
 // FIXME: like SubStr and Sub, ignores "perl" and "useBytes", regexps are not quite like in R
+// TODO: does not accept all regular expressions of GNU-R, e.g. does not accept patterns like *.java
 class Regexpr extends CallFactory {
     static final CallFactory _ = new Regexpr("regexpr", new String[]{"pattern", "text", "ignore.case", "perl", "fixed", "useBytes"}, new String[]{"pattern", "text"}, false);
 

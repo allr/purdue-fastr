@@ -12,6 +12,7 @@ public interface RString extends RArray {
     StringImpl EMPTY = (StringImpl) RArrayUtils.markShared(RStringFactory.getUninitializedArray(0));
     String NA = null;
     ScalarStringImpl BOXED_NA = (ScalarStringImpl) RArrayUtils.markShared(RStringFactory.getScalar(NA));
+    ScalarStringImpl BOXED_DOT = (ScalarStringImpl) RArrayUtils.markShared(RStringFactory.getScalar("."));
     StringImpl EMPTY_NAMED_NA = (StringImpl) RArrayUtils.markShared(RStringFactory.getFor(new String[] {}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
     StringImpl NA_NAMED_NA = (StringImpl) RArrayUtils.markShared(RStringFactory.getFor(new String[] {NA}, null, Names.create(new RSymbol[] {RSymbol.NA_SYMBOL})));
 

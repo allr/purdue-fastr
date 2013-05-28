@@ -100,6 +100,7 @@ public class Primitives {
         add(File._);
         add(Floor._);
         add(Flush._);
+        add(Getwd._);
         add(Identical._);
         add(Integer._);
         add(Im._);
@@ -118,6 +119,7 @@ public class Primitives {
         add(Length._);
         add(LengthAssign._);
         add(List._);
+        add(ListFiles._);
         add(Log._);
         add(Log10._);
         add(Log2._);
@@ -167,6 +169,7 @@ public class Primitives {
         add(Scan._);
         add(Seq._); // in fact seq.default (and only part of it)
         add("seq.default", Seq._);
+        add(Setwd._);
         add(Sort._);
         add("sort.int", Sort._);
         add(Sprintf._);
