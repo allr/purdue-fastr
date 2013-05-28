@@ -38,11 +38,6 @@ package r.parser;
         throw re; // Stop at first error
     }
 }
-@lexer::rulecatch {
-    catch(RecognitionException re){
-        throw re; // Stop at first error ??? Doesn't work at all ??? why ??
-    }
-}
 @members {
     public void display_next_tokens(){
         System.err.print("Expected tokens: ");
@@ -68,8 +63,9 @@ package r.parser;
     
     @Override
     public void reportError(RecognitionException e) {
-        throw new RuntimeException(e);
+        throw new IllegalArgumentException(e);
     }
+
 }
 @lexer::init{
     incomplete_depth = 0;

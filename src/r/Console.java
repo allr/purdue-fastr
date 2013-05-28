@@ -205,13 +205,24 @@ public class Console {
                 }
             } catch (RecognitionException e) {
                 if (e.getUnexpectedType() != -1) {
-                    // if we reached EOF, the sentence is obviously finished ...
-                    // and contains a parse error.
+                    // if we reached EOF, the sentence is obviously finished ... and contains a parse error.
                     parseError(parser, e);
                     incomplete.setLength(0); // thus we reset the buffer
                 } else { // otherwise there is no parser error and we continue to parse
                     incomplete.append('\n'); // (I'm not really sure we need this ... maybe just for pretty print)
                 }
+            } catch (IllegalArgumentException e) {
+                // this is in fact a RecognitionException from the lexer
+                // indeed, this is a hack, but there does not seem to be a cleaner way to stop the lexer on the first error and get here
+                RecognitionException re = (RecognitionException) e.getCause();
+                if (re.getUnexpectedType() != -1) {
+                    // if we reached EOF, the sentence is obviously finished ... and contains a parse error.
+                    lexerError(lexer, re);
+                    incomplete.setLength(0); // thus we reset the buffer
+                } else { // otherwise there is no parser error and we continue to parse
+                    incomplete.append('\n'); // (I'm not really sure we need this ... maybe just for pretty print)
+                }
+
             } catch (IOException e) {
                 throw e;
             } catch (RError e) {
@@ -273,8 +284,13 @@ public class Console {
         Token token = e.token;
         String[] tokenNames = parser.getTokenNames();
         System.err
-                .print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1) + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "). " : ". "));
-        System.err.println(parser.getErrorMessage(e, null));
+                .print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1) + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "): " : ": "));
+        System.err.println(parser.getErrorMessage(e, tokenNames) + ".");
+    }
+
+    static void lexerError(RLexer lexer, RecognitionException e) {
+        String[] tokenNames = lexer.getTokenNames();
+        System.err.println("Parse error (lexer): " + lexer.getErrorMessage(e, tokenNames) + ".");
     }
 
     static void printResult(ASTNode expr, RAny result) {
