@@ -143,12 +143,17 @@ public abstract class CallFactory {
 
         public long get(RAny[] args, String name, long defaultValue) {
             int pos = position(name);
-            return pos >= 0 ? (long) ((ScalarDoubleImpl) (args[pos])).getDouble() : defaultValue;
+            return pos >= 0 ? (long) args[pos].asDouble().getDouble(0) : defaultValue;
+        }
+
+        public boolean get(RAny[] args, String name, boolean defaultValue) {
+            int pos = position(name);
+            return pos >= 0 ? args[pos].asLogical().getLogical(0) != 0 : defaultValue;
         }
 
         public String get(RAny[] args, String name, String defaultValue) {
             int pos = position(name);
-            return pos >= 0 ? Interop.asString(args[pos]) : defaultValue;
+            return pos >= 0 ? args[pos].asString().getString(0) : defaultValue;
         }
 
         public RAny getAny(RAny[] args, String name) {

@@ -68,14 +68,14 @@ final class ListFiles extends CallFactory {
         for (java.io.File f : fs) {
             String name = f.getName();
             if (f.isHidden() && !allFiles) continue;
-            if (pat != null) {
-                Matcher m = pat.matcher(name);
-                if (!m.matches()) continue;
-            }
             if (f.isDirectory() && recursive) {
                 String[] rec = perform(path + "/" + f.getName(), pattern, allFiles, fullNames, recursive, ignoreCase, includeDirs);
                 for (String s : rec)
                     res.add(s);
+            }
+            if (pat != null) {
+                Matcher m = pat.matcher(name);
+                if (!m.matches()) continue;
             }
             if (f.isDirectory() && !includeDirs) continue;
             if (fullNames) name = pathName + "/" + name;

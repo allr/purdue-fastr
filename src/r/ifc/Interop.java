@@ -1,5 +1,6 @@
 package r.ifc;
 
+import r.*;
 import r.Truffle.Frame;
 import r.builtins.*;
 import r.builtins.CallFactory.ArgumentInfo;
@@ -72,6 +73,18 @@ public class Interop {
         } else return null;
     }
 
+    /** Takes an R object representing a number and returns an integer. */
+    public static int asInteger(RAny r) {
+        RInt ri = r.asInt();
+        return ri.getInt(0);
+    }
+
+    /** Takes an R object representing a number and returns a double. */
+    public static double asDouble(RAny r) {
+        RDouble rd = r.asDouble();
+        return rd.getDouble(0);
+    }
+
     /** Takes an R object representing a vector of strings and returns an array of String. */
     public static String[] asStringArray(RAny r) {
         if (r instanceof StringImpl) return ((StringImpl) r).getContent();
@@ -86,9 +99,9 @@ public class Interop {
 
     /** Takes an R int vector and returns the corresponding int array or null. */
     public static int[] asIntArray(RAny r) {
-        if (r instanceof IntImpl) {
-            return ((IntImpl) r).getContent();
-        } else return null;
+        if (r == null) return null;
+        else if (r instanceof IntImpl) return ((IntImpl) r).getContent();
+        else return null;
     }
 
     /** Takes a double array and returns a R Double vector. */
@@ -98,9 +111,8 @@ public class Interop {
 
     /** Takes an R double vector and returns the corresponding double array or null. */
     public static double[] asDoubleArray(RAny r) {
-        if (r instanceof DoubleImpl) {
-            return ((DoubleImpl) r).getContent();
-        } else return null;
+        if (r instanceof DoubleImpl) return ((DoubleImpl) r).getContent();
+        else return null;
     }
 
     public static RAny makeDoubleVector(double[] res, int[] dim, String[] names) {
@@ -110,6 +122,33 @@ public class Interop {
         return new DoubleImpl(res, dim, Names.create(namesSym));
     }
 
+    // Note :  should we copy the attribute?
+    public static RAny setAttribute(RAny x, String which, String value) {
+        RAny.Attributes attr = x.attributes();
+        RSymbol which_ = RSymbol.getSymbol(which);
+        RAny value_ = new ScalarStringImpl(value);
+        if (attr != null) {
+            attr.put(which_, value_);
+            return x;
+        } else {
+            attr = new RAny.Attributes();
+            attr.put(which_, value_);
+            return x.setAttributes(attr);
+        }
+    }
+
+    /**
+     * Given an object and an attribute name returns a string object that denotes the attribute's value or null if not
+     * found.
+     */
+    public static String getAttributeAsString(RAny x, String which) {
+        RSymbol which_ = RSymbol.getSymbol(which);
+        RAny.Attributes attr = x.attributes();
+        if (attr == null) return null;
+        RAny r = attr.map().get(which_);
+        RString rs = r.asString();
+        return rs.getString(0);
+    }
 }
 
 /** Internal implementation: adapter for calling Java code from R. **/
@@ -130,4 +169,5 @@ class ExternalJavaBuiltin extends CallFactory {
             }
         };
     }
+
 }
