@@ -236,7 +236,7 @@ public class Primitives {
         add(RSymbol.getSymbol(name), body);
     }
 
-    private static void add(CallFactory body) {
+    public static void add(CallFactory body) {
         add(body.name(), body);
     }
 

@@ -8,12 +8,10 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
-import r.nodes.truffle.Loop;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
 
 import com.oracle.truffle.api.frame.*;
-import com.oracle.truffle.api.nodes.Node.*;
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.
@@ -47,7 +45,7 @@ public abstract class CallFactory {
      * @param required
      *            array of argument names that are required. If null, same as parameters
      */
-    CallFactory(String name, String[] parameters, String[] required) {
+    protected CallFactory(String name, String[] parameters, String[] required) {
         this.name = RSymbol.getSymbol(name);
         this.parameters = RSymbol.getSymbols(parameters);
         this.required = required == null ? this.parameters : RSymbol.getSymbols(required);
@@ -107,7 +105,7 @@ public abstract class CallFactory {
     }
 
     /** Description of the arguments passed at a call site. */
-    static class ArgumentInfo {
+    public static class ArgumentInfo {
         /** Parameter names in order. */
         RSymbol[] parameters;
         /**
@@ -146,7 +144,7 @@ public abstract class CallFactory {
         }
 
         /** Returns the position in the actuals of the formal name or -1. */
-        int position(String name) {
+        public int position(String name) {
             return paramPositions[ix(name)];
         }
 
@@ -285,7 +283,7 @@ public abstract class CallFactory {
         return name;
     }
 
-    ArgumentInfo check(ASTNode call, RSymbol[] names, RNode[] exprs) {
+    protected ArgumentInfo check(ASTNode call, RSymbol[] names, RNode[] exprs) {
         assert Utils.check(detectRepeatedParameters(call));
         ArgumentInfo ai = resolveArguments(names, exprs, call);
         int provided = 0;
