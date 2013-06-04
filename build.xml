@@ -12,6 +12,7 @@
         <pathelement location="lib/junit-4.8.jar"/>
         <pathelement location="lib/netlib-java-0.9.3.jar"/>
         <pathelement location="lib/truffle-api-03-16-2013.jar"/>
+        <pathelement location="lib/jline-2.12.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
