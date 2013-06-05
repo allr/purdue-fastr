@@ -1168,5 +1168,11 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ all(TRUE, TRUE, NA,  na.rm=TRUE) }", "TRUE");
         assertEval("{ all(TRUE, TRUE, NA,  na.rm=FALSE) }", "NA");
         assertEval("{ all() }", "TRUE");
+
+        assertEval("{ any() }", "FALSE");
+        assertEval("{ any(TRUE, TRUE, NA,  na.rm=TRUE) }", "TRUE");
+        assertEval("{ any(TRUE, FALSE, NA,  na.rm=TRUE) }", "TRUE");
+        assertEval("{ any(FALSE, NA,  na.rm=TRUE) }", "FALSE");
+        assertEval("{ any(FALSE, NA,  na.rm=FALSE) }", "NA");
     }
 }

@@ -8,25 +8,13 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
-// TODO: add S4
-public class All extends CallFactory {
+// FIXME: could re-factor as this shares a lot of code with All
+// FIXME: add S4
+public class Any extends CallFactory {
+    static final CallFactory _ = new Any("any", new String[]{"...", "na.rm"}, new String[]{});
 
-    static final CallFactory _ = new All("all", new String[]{"...", "na.rm"}, new String[]{});
-
-    private All(String name, String[] params, String[] required) {
+    private Any(String name, String[] params, String[] required) {
         super(name, params, required);
-    }
-
-    static boolean parseNarm(RAny arg) {
-
-        RLogical l = arg.asLogical();
-        if (l.size() >= 1) {
-            int v = l.getLogical(0);
-            if (v == RLogical.FALSE)  {
-                return false;
-            }
-        }
-        return true;
     }
 
     // FIXME: this could be optimized for speed if needed (avoid coercion for some types, assert that naRM is last when checking, etc)
@@ -40,7 +28,7 @@ public class All extends CallFactory {
             @Override
             public RAny doBuiltIn(Frame frame, RAny[] args) {
 
-                boolean naRM = posNarm == -1 ? false : parseNarm(args[posNarm]);
+                boolean naRM = posNarm == -1 ? false : All.parseNarm(args[posNarm]);
                 boolean didWarn = false;
                 boolean hasNA = false;
                 for (int i = 0; i < args.length; i++) {
@@ -64,8 +52,8 @@ public class All extends CallFactory {
                     for (int j = 0; j < size; j++) {
                         int ll = l.getLogical(j);
                         switch(ll) {
-                            case RLogical.TRUE: break;
-                            case RLogical.FALSE: return RLogical.BOXED_FALSE;
+                            case RLogical.TRUE: return RLogical.BOXED_TRUE;
+                            case RLogical.FALSE: break;
                             case RLogical.NA: hasNA = true; break;
                         }
                     }
@@ -74,7 +62,7 @@ public class All extends CallFactory {
                 if (!naRM && hasNA) {
                     return RLogical.BOXED_NA;
                 }
-                return RLogical.BOXED_TRUE;
+                return RLogical.BOXED_FALSE;
             }
         };
     }

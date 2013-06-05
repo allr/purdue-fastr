@@ -53,6 +53,7 @@ public class Primitives {
         add("!", OpNot._);
         add(Abs._);
         add(All._);
+        add(Any._);
         add(Aperm._);
         add(Array._);
         add(Assign._);
