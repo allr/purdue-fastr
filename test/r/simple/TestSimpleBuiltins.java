@@ -1160,4 +1160,13 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ list.files(\"test/r/simple/data/tree1\", recursive=TRUE, pattern=\"dummy\") }", "\"dummy.txt\", \"subdir/subdummy.txt\"");
         assertEval("{ list.files(\"test/r/simple/data/tree1\", pattern=\"*.tx\") }", "\"bar.txt\", \"dummy.txt\"");
     }
+
+    @Test
+    public void testLogical() throws RecognitionException {
+        assertEval("{ all(TRUE, FALSE, NA,  na.rm=FALSE) }", "FALSE");
+        assertEval("{ all(TRUE, FALSE, NA,  na.rm=TRUE) }", "FALSE");
+        assertEval("{ all(TRUE, TRUE, NA,  na.rm=TRUE) }", "TRUE");
+        assertEval("{ all(TRUE, TRUE, NA,  na.rm=FALSE) }", "NA");
+        assertEval("{ all() }", "TRUE");
+    }
 }

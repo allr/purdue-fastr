@@ -76,6 +76,10 @@ public class RContext {
         };
     }
 
+    public static void warning(ASTNode expr, String msg, Object... args) {
+        errorManager.warning(expr, String.format(msg, args));
+    }
+
     public static void warning(ASTNode expr, String msg) {
         errorManager.warning(expr, msg);
     }

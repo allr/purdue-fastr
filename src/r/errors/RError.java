@@ -192,6 +192,7 @@ public abstract class RError extends RuntimeException {
     public static final String MUST_BE_CHARACTER = "'%s' must be of mode character";
     public static final String ALL_ATTRIBUTES_NAMES = "all attributes must have names [%d does not]";
     public static final String INVALID_REGEXP = "invalid '%s' regular expression";
+    public static final String COERCING_ARGUMENT = "coercing argument of type '%s' to %s";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
