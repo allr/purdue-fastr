@@ -103,6 +103,7 @@ public class Primitives {
         add(Floor._);
         add(Flush._);
         add(Getwd._);
+        add(Globalenv._);
         add(Identical._);
         add(Integer._);
         add(Im._);

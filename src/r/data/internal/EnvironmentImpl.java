@@ -1,5 +1,7 @@
 package r.data.internal;
 
+import java.util.*;
+
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
 
@@ -176,9 +178,25 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return RFrameHeader.match(frame, name);
     }
 
+    public static RSymbol[] removeHidden(RSymbol[] symbols) { // FIXME: unnecessary copying
+        ArrayList<RSymbol> nonHidden = new ArrayList<RSymbol>(symbols.length);
+
+        for (RSymbol s : symbols) {
+            if (!s.isHidden()) {
+                nonHidden.add(s);
+            }
+        }
+        return nonHidden.toArray(new RSymbol[nonHidden.size()]);
+    }
+
     @Override
-    public RSymbol[] ls() {
-        return RFrameHeader.listSymbols(frame);
+    public RSymbol[] ls(boolean includingHidden) { // FIXME: maybe could speed-up by propagating the filtering further
+        RSymbol[] symbols =  RFrameHeader.listSymbols(frame);
+        if (!includingHidden) {
+            return removeHidden(symbols);
+        } else {
+            return symbols;
+        }
     }
 
     public static Object readFromTopLevel(RSymbol symbol) {
@@ -333,8 +351,8 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
-        public RSymbol[] ls() {
-            return RSymbol.listSymbols();
+        public RSymbol[] ls(boolean includingHidden) {
+            return RSymbol.listUsedSymbols(includingHidden);
         }
 
         @Override
@@ -380,7 +398,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         }
 
         @Override
-        public RSymbol[] ls() {
+        public RSymbol[] ls(boolean includingHidden) {
             return RSymbol.EMPTY_SYMBOL_ARRAY;
         }
 

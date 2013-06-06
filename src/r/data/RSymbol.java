@@ -48,8 +48,12 @@ public final class RSymbol extends BaseObject implements RAny {
         return symbolTable.get(name);
     }
 
-    public static RSymbol[] listSymbols() {
+    public static RSymbol[] listSymbols() { // NOTE: this uses null values for symbols currently unused
         return symbolTable.list();
+    }
+
+    public static RSymbol[] listUsedSymbols(boolean includingHidden) {
+        return symbolTable.listUsed(includingHidden);
     }
 
     public static RSymbol[] getSymbols(String[] names) {
@@ -99,10 +103,31 @@ public final class RSymbol extends BaseObject implements RAny {
             return sym;
         }
 
-        private RSymbol[] list() {
+        private RSymbol[] list() { // NOTE: this includes "null" values for symbols currently unused
             RSymbol[] res = new RSymbol[table.size()];
             return table.values().toArray(res);
         }
+
+        private RSymbol[] listUsed(boolean includingHidden) { // FIXME: unnecessary copying
+            Collection<RSymbol> values = table.values();
+            ArrayList<RSymbol> used = new ArrayList<RSymbol>(values.size());
+
+            for(RSymbol s : values) {
+                if (s.getValue() != null) {
+                    if (!includingHidden && s.isHidden()) {
+                        continue;
+                    }
+                    used.add(s);
+                }
+            }
+            return used.toArray(new RSymbol[used.size()]);
+        }
+    }
+
+    static {
+        RSymbol.getSymbol(".GlobalEnv").setValue(REnvironment.GLOBAL);
+        // TODO: .GlobalEnv should be set in some other environment
+        // TODO: fix this when adding packages, namespaces
     }
 
     public static void resetTable() {
@@ -110,6 +135,9 @@ public final class RSymbol extends BaseObject implements RAny {
             s.value = null;
             s.version = 0;
         }
+        RSymbol.getSymbol(".GlobalEnv").setValue(REnvironment.GLOBAL);
+        // TODO: .GlobalEnv should be set in some other environment
+        // TODO: fix this when adding packages, namespaces
     }
 
     public static Set<String> symbols() {
@@ -266,5 +294,9 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public boolean startsWith(RSymbol other) {
         return name.startsWith(other.name);
+    }
+
+    public boolean isHidden() { // FIXME: could add a bit instead
+        return name != null && name.length() > 0 && name.charAt(0) == '.';
     }
 }

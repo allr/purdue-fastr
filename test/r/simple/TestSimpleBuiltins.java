@@ -633,6 +633,12 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ exists(\"sum\") }", "TRUE");
         assertEval("{ exists(\"sum\", inherits = FALSE) }", "FALSE");
         assertEval("{ x <- 1; exists(\"x\", inherits = FALSE) }", "TRUE");
+
+        // globalenv
+        assertEval("{ ls() }", "character(0)");
+        assertEval("{ x <- 1 ; ls(globalenv()) }", "\"x\"");
+        assertEval("{ ls(.GlobalEnv) }", "character(0)");
+        assertEval("{ x <- 1 ; ls(.GlobalEnv) }", "\"x\"");
     }
 
     @Test

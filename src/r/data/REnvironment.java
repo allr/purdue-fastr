@@ -14,6 +14,7 @@ public interface REnvironment extends RAny {
     REnvironment EMPTY = new EnvironmentImpl.Empty();
     REnvironment GLOBAL = new EnvironmentImpl.Global();
 
+
     DummyFunction DUMMY_FUNCTION = new DummyFunction(); // a placeholder for no local variables, for Frames that do not belong to a real function
 
     MaterializedFrame frame();
@@ -23,7 +24,7 @@ public interface REnvironment extends RAny {
     Object localGetNotForcing(RSymbol name);
     boolean exists(RSymbol name, boolean inherits);
     RCallable match(RSymbol name);
-    RSymbol[] ls();
+    RSymbol[] ls(boolean includingHidden);
 
     public static class DummyFunction implements RFunction {
 
