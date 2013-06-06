@@ -9,7 +9,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "paste"
- * 
+ *
  * <pre>
  * ... -- one or more R objects, to be converted to character vectors.
  * sep -- a character string to separate the terms. Not NA_character_.
@@ -31,8 +31,8 @@ final class Paste extends CallFactory {
             }
         }; }
         ArgumentInfo ia = check(call, names, exprs);
-        final int sepPosition = ia.provided("sep") ? ia.position("sep") : -1;
-        final int collapsePosition = ia.provided("collapse") ? ia.position("collapse") : -1;
+        final int sepPosition = ia.position("sep");
+        final int collapsePosition = ia.position("collapse");
         int args = exprs.length;
         if (sepPosition != -1) {
             args--;

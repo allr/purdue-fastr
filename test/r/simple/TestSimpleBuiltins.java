@@ -434,6 +434,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ paste() }", "character(0)");
         assertEval("{ paste(sep=\"\") }", "character(0)");
         assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; paste(a, b) }", "\"c8 ff\"");
+
+        assertEval("{ file.path(\"a\", \"b\", c(\"d\",\"e\",\"f\")) }", "\"a/b/d\", \"a/b/e\", \"a/b/f\"");
+        assertEval("{ file.path() }", "character(0)");
     }
 
     @Test

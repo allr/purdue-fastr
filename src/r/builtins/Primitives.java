@@ -100,6 +100,7 @@ public class Primitives {
         add(Exp._);
         add(Fft._);
         add(File._);
+        add(FilePath._);
         add(Floor._);
         add(Flush._);
         add(Getwd._);
