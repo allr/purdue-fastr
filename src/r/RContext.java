@@ -2,6 +2,8 @@ package r;
 
 import java.util.*;
 
+import org.antlr.runtime.*;
+
 import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.frame.*;
 
@@ -11,6 +13,7 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
+import r.parser.*;
 
 public class RContext {
 
@@ -129,6 +132,20 @@ public class RContext {
             }
         }
         return hasGNUR == 1;
+    }
+
+    public static ASTNode parseFile(ANTLRStringStream inputStream) {
+        CommonTokenStream tokens = new CommonTokenStream();
+        RLexer lexer = new RLexer(inputStream);
+        tokens.setTokenSource(lexer);
+        RParser parser = new RParser(tokens);
+
+        try {
+            return parser.script();
+        } catch (RecognitionException e) {
+            Console.parseError(parser, e);
+            return null;
+        }
     }
 
 }

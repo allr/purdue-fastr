@@ -237,18 +237,9 @@ public class Console {
     }
 
     static void processFile(ANTLRStringStream inputStream) {
-        CommonTokenStream tokens = new CommonTokenStream();
-        RLexer lexer = new RLexer(inputStream);
-        tokens.setTokenSource(lexer);
-        RParser parser = new RParser(tokens);
-
-        try {
-            ASTNode tree = parser.script();
-            if (tree != null) {
-                printResult(tree, RContext.eval(tree)); // use non-debugging format
-            }
-        } catch (RecognitionException e) {
-            parseError(parser, e);
+        ASTNode tree = RContext.parseFile(inputStream);
+        if (tree != null) {
+            printResult(tree, RContext.eval(tree)); // use non-debugging format
         }
     }
 

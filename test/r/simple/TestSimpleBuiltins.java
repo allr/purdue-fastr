@@ -1184,4 +1184,14 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ any(FALSE, NA,  na.rm=TRUE) }", "FALSE");
         assertEval("{ any(FALSE, NA,  na.rm=FALSE) }", "NA");
     }
+
+    @Test
+    public void testSource() throws RecognitionException {
+        assertEval("{ source(\"test/r/simple/data/tree2/setx.r\") ; x }", "10.0");
+        assertEval("{ source(\"test/r/simple/data/tree2/setx.r\", local=TRUE) ; x }", "10.0");
+        assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/setx.r\", local=TRUE) ; x } ; c(f(), x) }", "10.0, 1.0");
+        assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/setx.r\", local=FALSE) ; x } ; c(f(), x) }", "10.0, 10.0");
+        assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/incx.r\", local=FALSE) ; x } ; c(f(), x) }", "2.0, 2.0");
+        assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/incx.r\", local=TRUE) ; x } ; c(f(), x) }", "2.0, 1.0");
+    }
 }

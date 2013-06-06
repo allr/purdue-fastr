@@ -176,6 +176,7 @@ public class Primitives {
         add(Setwd._);
         add(Sort._);
         add("sort.int", Sort._);
+        add(Source._);
         add(Sprintf._);
         add(Sqrt._);
         add(Stop._);
