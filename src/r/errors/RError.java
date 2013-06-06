@@ -127,6 +127,8 @@ public abstract class RError extends RuntimeException {
     public static final String MISSING_INVALID = "missing value is invalid";
     public static final String CHARACTER_EXPECTED = "character argument expected";
     public static final String CANNOT_CHANGE_DIRECTORY = "cannot change working directory";
+    public static final String FIRST_ARG_MUST_BE_STRING = "first argument must be a character string";
+    public static final String ZERO_LENGTH_VARIABLE = "attempt to use zero-length variable name";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1250,6 +1252,28 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.CANNOT_CHANGE_DIRECTORY;
+            }
+        };
+    }
+
+    public static RError getFirstArgMustBeString(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.FIRST_ARG_MUST_BE_STRING;
+            }
+        };
+    }
+
+    public static RError getZeroLengthVariable(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.ZERO_LENGTH_VARIABLE;
             }
         };
     }

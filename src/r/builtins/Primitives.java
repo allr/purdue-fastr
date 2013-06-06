@@ -72,6 +72,7 @@ public class Primitives {
         add(Attributes._);
         add(AttributesAssign._);
         add(C._);
+        add(Call._);
         add(Cat._);
         add(Cbind._);
         add(Ceiling._);

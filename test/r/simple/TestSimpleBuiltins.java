@@ -1194,4 +1194,10 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/incx.r\", local=FALSE) ; x } ; c(f(), x) }", "2.0, 2.0");
         assertEval("{ x <- 1; f <- function() { source(\"test/r/simple/data/tree2/incx.r\", local=TRUE) ; x } ; c(f(), x) }", "2.0, 1.0");
     }
+
+    @Test
+    public void testCall() throws RecognitionException {
+        assertEval("{ f <- function(a, b) { a + b } ; l <- call(\"f\", 2, 3) ; eval(l) }", "5.0");
+        assertEval("{ f <- function(a, b) { a + b } ; x <- 1 ; y <- 2 ; l <- call(\"f\", x, y) ; x <- 10 ; eval(l) }", "3.0");
+    }
 }
