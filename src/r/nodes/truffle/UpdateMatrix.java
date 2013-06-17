@@ -123,13 +123,17 @@ public class UpdateMatrix extends BaseR {
                 if (failedSelector == selectorI) {
                     if (DEBUG_M) Utils.debug("Selector I failed in UpdateMatrix.execute, replacing.");
                     RAny index = selectorI.getIndex();
-                    replaceChild(selIExpr, ReadMatrix.createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
+                    // TRUFFLE : replaceChild method no longer exists
+                    // replaceChild(selIExpr, ReadMatrix.createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
+                    selIExpr.replace(ReadMatrix.createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
                     selectorI = selIExpr.executeSelector(index);
                 } else {
                     // failedSelector == selectorJ
                     if (DEBUG_M) Utils.debug("Selector J failed in UpdateMatrix.execute, replacing.");
                     RAny index = selectorJ.getIndex();
-                    replaceChild(selJExpr, ReadMatrix.createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
+                    // TRUFFLE : replaceChild method no longer exists
+                    // replaceChild(selJExpr, ReadMatrix.createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
+                    selJExpr.replace(ReadMatrix.createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
                     selectorJ = selJExpr.executeSelector(index);
                 }
             }

@@ -36,8 +36,16 @@ public abstract class RNode extends Node {
         @Child RNode realChildNode;
         final Object nextValue;
 
+        // TRUFFLE : PushBackNode semantic changed to disallow having parent of a node the node itself, the pushback
+        // node constructor also replaces the old node before setting it as its child.
+        //public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
+        //    super(ast);
+        //    this.realChildNode = adoptChild(realChildNode);
+        //    this.nextValue = nextValue;
+        //}
         public PushbackNode(ASTNode ast, RNode realChildNode, Object nextValue) {
             super(ast);
+            realChildNode.replace(this);
             this.realChildNode = adoptChild(realChildNode);
             this.nextValue = nextValue;
         }
@@ -54,7 +62,10 @@ public abstract class RNode extends Node {
     }
 
     public <T extends RNode> void pushBack(T childNode, Object value) {
-        replaceChild(childNode, new PushbackNode(childNode.getAST(), childNode, value));
+        // TRUFFLE : replaceChild method no longer exists
+        // replaceChild(childNode, new PushbackNode(childNode.getAST(), childNode, value));
+        // childNode.replace(new PushbackNode(childNode.getAST(), childNode, value));
+        new PushbackNode(childNode.getAST(), childNode, value);
     }
 
     public <T extends RNode> Object replace(T childNode, Object childValue, RNode newNode, Frame frame) {
