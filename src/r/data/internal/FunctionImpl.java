@@ -91,18 +91,24 @@ public class FunctionImpl extends RootNode implements RFunction {
         for (int i = 0; i < paramSlots.length; i++) {
             Object value = args[i]; // FIXME: use RAny array instead?
             if (value != null) {
-                frame.setObject(paramSlots[i], value);
+                // TRUFFLE : frame slot access throws exceptions
+                //frame.setObject(paramSlots[i], value);
+                Utils.frameSetObject(frame, paramSlots[i], value);
                 // note: ref done by caller
             } else {
                 RNode n = paramValues[i];
                 if (n != null) {
                     if (FunctionCall.PROMISES) {
-                        frame.setObject(paramSlots[i], RPromise.createDefault(n, frame));
+                        // TRUFFLE : frame slot access throws exceptions
+                        //frame.setObject(paramSlots[i], RPromise.createDefault(n, frame));
+                        Utils.frameSetObject(frame, paramSlots[i], RPromise.createDefault(n, frame));
                     } else {
                         RAny rvalue = (RAny) n.execute(frame);
 
                         if (rvalue != null) {
-                            frame.setObject(paramSlots[i], rvalue);
+                            // TRUFFLE : frame slot access throws exceptions
+                            //frame.setObject(paramSlots[i], rvalue);
+                            Utils.frameSetObject(frame, paramSlots[i], rvalue);
                             rvalue.ref();
                         }
                         // NOTE: value can be null when a parameter is missing
@@ -110,7 +116,9 @@ public class FunctionImpl extends RootNode implements RFunction {
                     }
                 } else {
                     if (FunctionCall.PROMISES) {
-                        frame.setObject(paramSlots[i], RPromise.createMissing(paramNames[i], frame));
+                        // TRUFFLE : frame slot access throws exceptions
+                        //frame.setObject(paramSlots[i], RPromise.createMissing(paramNames[i], frame));
+                        Utils.frameSetObject(frame, paramSlots[i], RPromise.createMissing(paramNames[i], frame));
                     }
                 }
 

@@ -232,7 +232,16 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    // TRUFFLE : replaceChild method no longer exists
+                    // Also, if builtin node is null at the beginning, we must not call replace on it. This should have
+                    // no performance impact in graal since children nodes are inlined and the replace would trigger
+                    // deopt anyways
+                    // replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    if (builtInNode == null) {
+                        builtInNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
+                    } else {
+                        builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    }
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -269,7 +278,9 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    // TRUFFLE : replaceChild method no longer exists
+                    // replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -306,7 +317,9 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    // TRUFFLE : replaceChild method no longer exists
+                    // replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;

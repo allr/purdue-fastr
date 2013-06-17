@@ -106,7 +106,9 @@ public class Abs extends CallFactory {
                     int i = ((ScalarIntImpl) val).getInt();
                     return (i < 0) ? RInt.RIntFactory.getScalar(-i) : val; // NOTE: this also works with NA, NA will remain NA
                 } catch(UnexpectedResultException e) {
-                    replaceChild(exprs[0], expr); // keep the new child
+                    // TRUFFLE : replaceChild method no longer exists
+                    // replaceChild(exprs[0], expr); // keep the new child
+                    exprs[0].replace(expr); // keep the new child
                     replace(createGeneric(call, names, exprs));
                     return generic((RAny) val);
                 }
