@@ -10,7 +10,6 @@ public interface RFunction {
     RFunction enclosingFunction();
 
     RSymbol[] paramNames();
-    RNode[] paramValues();
     RNode body();
     RClosure createClosure(MaterializedFrame frame);
     RSymbol[] localWriteSet();

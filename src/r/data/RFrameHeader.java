@@ -862,6 +862,10 @@ public class RFrameHeader extends Arguments {
         Utils.frameSetObject(f, slot, value);
     }
 
+    public static void writeDouble(Frame f, FrameSlot slot, double value) {
+        Utils.frameSetDouble(f, slot, value);
+    }
+
     public static void writeAtRef(Frame f, FrameSlot slot, Object value) {
         // TRUFFLE : frame slot access throws exceptions
         // f.setObject(slot, value);

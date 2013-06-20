@@ -61,12 +61,6 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public RNode[] paramValues() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
         public RNode body() {
             // TODO Auto-generated method stub
             return null;

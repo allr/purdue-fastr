@@ -5,8 +5,18 @@ import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
 import r.errors.*;
+import r.nodes.truffle.RNode;
 
 public final class Utils {
+
+    public static abstract class RNodeNoExec extends RNode {
+
+        @Override public final Object execute(Frame frame) {
+            assert false : "execute(Frame) is not applicable to RNodeNoExec class";
+            return null;
+        }
+    }
+
 
     public static Error nyi() {
         throw RError.getNYI(null);
@@ -270,6 +280,14 @@ public final class Utils {
         } catch (FrameSlotTypeException e) {
             assert(false);
             return null;
+        }
+    }
+
+    public static void frameSetDouble(Frame frame, FrameSlot slot, double value) {
+        try {
+            frame.setDouble(slot, value);
+        } catch (FrameSlotTypeException e) {
+            assert(false);
         }
     }
 }
