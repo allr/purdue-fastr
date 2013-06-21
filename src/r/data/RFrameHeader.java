@@ -1280,4 +1280,5 @@ public class RFrameHeader extends Arguments {
         // return RPromise.force(frame.getObject(slot));
         return RPromise.force(Utils.frameGetObject(frame, slot));
     }
+
 }

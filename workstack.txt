@@ -1,0 +1,26 @@
+
+
+
+
+
+
+
+
+
+
+ALREADY DONE: ----------------------------------------------------------------------------------------------------------
+
+
+
+MON 17: finish the poster if needed
+        get latest fastr and make it build with latest truffle
+
+TUE 18: graal is wrong, rebuild
+        look at graal failures in code (missing child, etc)
+
+WED 19: implement param writers
+        read about promises, reads and writes, arithmetic
+
+THU 20: read about promises, reads and writes
+        implement local variable write to a slot
+

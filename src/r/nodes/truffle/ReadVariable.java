@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
@@ -7,6 +8,7 @@ import r.*;
 import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.EnclosingSlot;
+import r.data.internal.ScalarDoubleImpl;
 import r.errors.*;
 import r.nodes.*;
 
@@ -76,23 +78,82 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
+    // TRUFFLE : optimization for typed frameslots of local variables on read.
+    // Classes follow the method. We do not assume promises exist for the type read.
+    // TODO at the moment, double result is converted to ScalarDoubleImpl. Should probably return Double in the future.
     private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
-        return new ReadVariable(orig, sym) {
-
-            @Override
-            public final Object execute(Frame frame) {
-                try {
-                    Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
-                    if (value == null) {
-                        throw new UnexpectedResultException(null);
-                    }
-                    return value;
-                } catch (UnexpectedResultException e) {
-                    return replace(getReadLocal(ast, symbol, slot)).execute(frame);
-                }
-            }
-        };
+        return new ReadVariableLocal(orig, sym, slot);
     }
+
+    static class ReadVariableLocal extends ReadVariable {
+
+        final FrameSlot slot;
+
+        public ReadVariableLocal(ASTNode orig, RSymbol sym, FrameSlot slot) {
+            super(orig, sym);
+            this.slot = slot;
+        }
+
+        public ReadVariableLocal(ReadVariableLocal other) {
+            super(other.ast, other.symbol);
+            this.slot = other.slot;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            CompilerDirectives.transferToInterpreter();
+            switch (slot.getKind()) {
+                case Double:
+                    return replace(new ReadVariableLocalDouble(this)).execute(frame);
+                case Object:
+                default:
+                    return replace(new ReadVariableLocalObject(this)).execute(frame);
+
+            }
+        }
+    }
+
+    static class ReadVariableLocalObject extends ReadVariableLocal {
+
+        public ReadVariableLocalObject(ReadVariableLocal other) {
+            super(other);
+            // no need to set the type of the slot, we only create the special class if we are sure of the slot type
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
+            if (value == null) {
+                // TODO there is no specialization for the non-simple read local atm
+                CompilerDirectives.transferToInterpreter();
+                return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+            } else {
+                return value;
+            }
+        }
+    }
+
+    static class ReadVariableLocalDouble extends ReadVariableLocal {
+
+        public ReadVariableLocalDouble(ReadVariableLocal other) {
+            super(other);
+            // no need to set the type of the slot, we only create the special class if we are sure of the slot type
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                double value = frame.getDouble(slot);
+                // TODO Just create a scalar implementation out of it and return
+                return new ScalarDoubleImpl(value);
+            } catch (FrameSlotTypeException e) {
+                CompilerDirectives.transferToInterpreter();
+                return replace(new ReadVariableLocalObject(this)).execute(frame);
+            }
+        }
+    }
+
+
 
     private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
