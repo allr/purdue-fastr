@@ -192,6 +192,10 @@ public class FunctionImpl extends RootNode implements RFunction {
         } else {
             argWriters = null;
         }
+        for (int i = nparams; i < writeSet.length; i++) {
+            frameDescriptor.addFrameSlot(writeSet[i]);
+        }
+
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
 
         int tmpDotsIndex = -1;
