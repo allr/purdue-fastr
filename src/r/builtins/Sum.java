@@ -1,5 +1,6 @@
 package r.builtins;
 
+import r.FJ;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
@@ -7,6 +8,7 @@ import r.nodes.truffle.*;
 
 import com.oracle.truffle.api.frame.*;
 import java.lang.Integer;
+import java.util.concurrent.*;
 
 /**
  * "sum"
@@ -48,19 +50,66 @@ final class Sum extends CallFactory {
         res[1] = rimag;
     }
 
-    public static double sum(RDouble v, boolean narm) {
-        int size = v.size();
-        double res = 0;
-        for (int i = 0; i < size; i++) {
-            double d = v.getDouble(i);
-            if (narm) {
-                if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                    continue;
-                }
-            }
-            res += d;
+    static class DoubleSum extends RecursiveAction {
+
+        final RDouble array;
+        final boolean narm;
+        final int start;
+        final int end;
+        double result;
+
+        public DoubleSum(RDouble array, boolean narm) {
+            this.array = array;
+            this.narm = narm;
+            this.start = 0;
+            this.end = array.size();
         }
-        return res;
+
+        protected DoubleSum(DoubleSum other, int start, int end) {
+            this.array = other.array;
+            this.narm = other.narm;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        protected void compute() {
+            result = 0;
+            int size = end - start;
+            if (size < FJ.THRESHOLD) {
+                for (int i = start; i < end; ++i) {
+                    double d = array.getDouble(i);
+                    if (narm && RDouble.RDoubleUtils.isNAorNaN(d))
+                        continue;
+                    result += d;
+                }
+            } else {
+                size = size / 2;
+                DoubleSum l = new DoubleSum(this, start, start+size);
+                DoubleSum r = new DoubleSum(this, start+size, end);
+                invokeAll(l,r);
+                result = l.result + r.result;
+            }
+        }
+    }
+
+    public static double sum(RDouble v, boolean narm) {
+        if (FJ.ENABLED) {
+            return FJ.invoke(new DoubleSum(v, narm)).result;
+        } else {
+            int size = v.size();
+            double res = 0;
+            for (int i = 0; i < size; i++) {
+                double d = v.getDouble(i);
+                if (narm) {
+                    if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                        continue;
+                    }
+                }
+                res += d;
+            }
+            return res;
+        }
     }
 
     public static double sum(RInt v, boolean narm) {

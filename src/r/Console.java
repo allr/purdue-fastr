@@ -2,6 +2,7 @@ package r;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.concurrent.ForkJoinPool;
 
 import jline.*;
 import jline.console.*;
@@ -73,6 +74,13 @@ public class Console {
                     if (opts[0].equalsIgnoreCase("gui")) {
                         DEBUG_GUI = true;
                     }
+                }
+            }, //
+            new Option("--fj","enables the fork-join parallelization of larger vectors",0) {
+
+                @Override protected void processOption(String name, String[] opts) {
+                    System.err.println("Using Fork/Join");
+
                 }
             }, //
             new Option.Help() {
