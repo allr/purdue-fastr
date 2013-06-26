@@ -4,6 +4,8 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
 
+import java.util.concurrent.RecursiveAction;
+
 public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     final double[] content;
@@ -46,11 +48,50 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 //        return res;
 //    }
 
+    /** FJ task for copying the RDouble (usually a double view of a sort) to the newly created DoubleImpl.
+     */
+    static class DoubleCopyTask extends RecursiveAction {
+
+        final RDouble src;
+        final double[] dest;
+        final int start;
+        final int end;
+
+        public DoubleCopyTask(RDouble src, double[] dest) {
+            this.src = src;
+            this.dest = dest;
+            this.start = 0;
+            this.end = dest.length;
+        }
+
+        public DoubleCopyTask(DoubleCopyTask other, int start, int end) {
+            this.src = other.src;
+            this.dest = other.dest;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        protected void compute() {
+            int size = end - start;
+            if (size < FJ.THRESHOLD) {
+                for (int i = start; i < end; ++i)
+                    dest[i] = src.getDouble(i);
+            } else {
+                size = size / 2;
+                invokeAll(new DoubleCopyTask(this, start, start+size), new DoubleCopyTask(this, start+size, end));
+            }
+        }
+    }
+
     public DoubleImpl(RDouble d, boolean valuesOnly) {
 //        content = toArray(d);
         content = new double[d.size()];
-        for (int i = 0; i < content.length; i++) {
-            content[i] = d.getDouble(i);
+        if (FJ.ENABLED) {
+            FJ.invoke(new DoubleCopyTask(d,content));
+        } else {
+            for (int i = 0; i < content.length; i++)
+                content[i] = d.getDouble(i);
         }
         if (!valuesOnly) {
             dimensions = d.dimensions();

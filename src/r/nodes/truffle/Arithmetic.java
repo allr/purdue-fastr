@@ -2,6 +2,7 @@ package r.nodes.truffle;
 
 
 import java.util.*;
+import java.util.concurrent.RecursiveAction;
 
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
@@ -1078,33 +1079,162 @@ public class Arithmetic extends BaseR {
         public abstract void op(ASTNode ast, double[] x, double[] y, double[] res, int size);
         public abstract void op(ASTNode ast, double[] x, double y, double[] res, int size);
 
+
+        /** FJ task for binary operations on two double vectors.
+         */
+        public static class FJTask extends RecursiveAction {
+            final ASTNode ast;
+            final ValueArithmetic arit;
+            final double[] op1;
+            final double[] op2;
+            final double[] result;
+            final int start;
+            final int end;
+
+            public FJTask(ASTNode ast, ValueArithmetic arit, double[] op1, double[] op2, double[] result) {
+                this.ast = ast;
+                this.arit = arit;
+                this.op1 = op1;
+                this.op2 = op2;
+                this.result = result;
+                this.start = 0;
+                this.end = result.length;
+            }
+
+            protected FJTask(FJTask other, int start, int end) {
+                this.ast = other.ast;
+                this.arit = other.arit;
+                this.op1 = other.op1;
+                this.op2 = other.op2;
+                this.result = other.result;
+                this.start = start;
+                this.end = end;
+            }
+
+            @Override
+            protected void compute() {
+                int size = end - start;
+                if (size < FJ.THRESHOLD) {
+                    for (int i = start; i < end; ++i) {
+                        double d = arit.op(ast, op1[i], op2[i]);
+                        if (RDouble.RDoubleUtils.arithIsNA(d)) {
+                            if (RDouble.RDoubleUtils.arithIsNA(op1[i]) || RDouble.RDoubleUtils.arithIsNA(op2[i])) {
+                                result[i] = RDouble.NA;
+                            }
+                        } else {
+                            result[i] = d;
+                        }
+                    }
+                } else {
+                    size /= 2;
+                    invokeAll(new FJTask(this, start, start+size), new FJTask(this, start+size, end));
+                }
+            }
+        }
+
+
+        public final void opOrInvoke(ASTNode ast, double[] op1, double[] op2, double[] res, int size) {
+            assert (size == op1.length);
+            assert (size == op2.length);
+            assert (size == res.length);
+            if (FJ.ENABLED)
+                FJ.invoke(new FJTask(ast, this, op1, op2, res));
+            else
+                op(ast, op1, op2, res, size);
+        }
+
+
         public RDouble op(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
             double[] y = ydbl.getContent();
             if (IN_PLACE && xdbl.isTemporary()) {
-                op(ast, x, y, x, size);
+                opOrInvoke(ast, x, y, x, size);
                 xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xdbl;
             } else if (IN_PLACE && ydbl.isTemporary()) {
-                op(ast, x, y, y, size);
+                opOrInvoke(ast, x, y, y, size);
                 ydbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return ydbl;
             } else {
                 double[] res = new double[size];
-                op(ast, x, y, res, size);
+                opOrInvoke(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
 
+        /** FJTask for a binary operation on a vector + scalar.
+         */
+        public static class FJTaskScalar extends RecursiveAction {
+            final ASTNode ast;
+            final ValueArithmetic arit;
+            final double[] op1;
+            final double op2;
+            final double[] result;
+            final int start;
+            final int end;
+
+            public FJTaskScalar(ASTNode ast, ValueArithmetic arit, double[] op1, double op2, double[] result) {
+                this.ast = ast;
+                this.arit = arit;
+                this.op1 = op1;
+                this.op2 = op2;
+                this.result = result;
+                this.start = 0;
+                this.end = result.length;
+            }
+
+            protected FJTaskScalar(FJTaskScalar other, int start, int end) {
+                this.ast = other.ast;
+                this.arit = other.arit;
+                this.op1 = other.op1;
+                this.op2 = other.op2;
+                this.result = other.result;
+                this.start = start;
+                this.end = end;
+            }
+
+            @Override
+            protected void compute() {
+                int size = end - start;
+                if (size < FJ.THRESHOLD) {
+                    if (RDouble.RDoubleUtils.arithIsNA(op2)) {
+                        for (int i = start; i < end; ++i) {
+                            result[i] = op2;
+                        }
+                    } else {
+                        for (int i = start; i < end; ++i) {
+                            if (RDouble.RDoubleUtils.arithIsNA(op1[i]))
+                                result[i] = RDouble.NA;
+                            else
+                                result[i] = arit.op(ast, op1[i], op2);
+                        }
+                    }
+                } else {
+                    size /= 2;
+                    invokeAll(new FJTaskScalar(this, start, start+size), new FJTaskScalar(this, start+size, end));
+                }
+            }
+        }
+
+        public final void opOrInvoke(ASTNode ast, double[] op1, double op2, double[] res, int size) {
+            assert size == op1.length;
+            assert size == res.length;
+            if (FJ.ENABLED)
+                FJ.invoke(new FJTaskScalar(ast, this, op1, op2, res));
+            else
+                op(ast, op1, op2, res, size);
+        }
+
+
         public RDouble op(ASTNode ast, DoubleImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
             if (IN_PLACE && xdbl.isTemporary()) {
-                op(ast, x, y, x, size);
+                opOrInvoke(ast, x, y, x, size);
                 xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xdbl;
             } else {
                 double[] res = new double[size];
-                op(ast, x, y, res, size);
+                opOrInvoke(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
@@ -2720,7 +2850,7 @@ public class Arithmetic extends BaseR {
             @Override
             public RDouble materialize() {
                 double[] res = new double[n];
-                arit.op(ast, a.getContent(), b.getContent(), res, n);
+                arit.opOrInvoke(ast, a.getContent(), b.getContent(), res, n);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }

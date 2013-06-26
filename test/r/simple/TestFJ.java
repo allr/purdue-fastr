@@ -69,7 +69,7 @@ public class TestFJ extends SimpleTestBase {
         long tt = 0;
         for (int i = 0; i < 40; ++i) {
             long t = System.currentTimeMillis();
-            assertEval("f <- function(a,b) { a + b }; a = rep(1,100000000); b = rep(2,100000000); sum(f(a,b)); ","3.0E8");
+            assertEval("f <- function(a,b) { a + b + a + b + a + a }; a = rep(1,100000000); b = rep(2,100000000); sum(f(a,b)); ","8.0E8");
             //assertEval("sum(rep(1.0,100000000))", "1.0E8");
             //FJ.pool.invoke(new SimpleTask(new double[100000000], 78));
             t = System.currentTimeMillis() - t;

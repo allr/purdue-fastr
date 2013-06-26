@@ -8,9 +8,9 @@ import java.util.concurrent.*;
  */
 public class FJ {
 
-    public static final boolean ENABLED = true;
+    public static final boolean ENABLED = false;
 
-    public static final int THRESHOLD = 100000;
+    public static final int THRESHOLD = 100;
 
     public static ForkJoinPool pool;
 
