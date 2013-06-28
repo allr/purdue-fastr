@@ -36,10 +36,6 @@ public abstract class LogicalOperation extends BaseR {
             try {
                 return curNode.executeScalarLogical(frame);
             } catch (UnexpectedResultException e) {
-                // TRUFFLE : replaceChild method no longer exists, cast node also replaces itself.
-                // CastNode newNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
-                // replaceChild(curNode, newNode);
-                // curNode.replace(newNode);
                 curNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
                 continue;
             }
@@ -91,8 +87,6 @@ public abstract class LogicalOperation extends BaseR {
         int iteration;
 
 
-        // TRUFFLE : to node not being replaced by its parent, the CastNode constructor replaces its failed node before
-        // adopting its child.
         public CastNode(ASTNode ast, RNode child, int iteration, RNode failedNode) {
             super(ast);
             failedNode.replace(this);

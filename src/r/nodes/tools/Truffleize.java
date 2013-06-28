@@ -395,8 +395,6 @@ public class Truffleize implements Visitor {
         RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
         RNode parentOfValueExpr = (RNode) valueExpr.getParent();
         RememberLast remValueExpr = new RememberLast(valueExpr.getAST(), valueExpr);
-        // TRUFFLE : replaceChild method no longer exists
-        // parentOfValueExpr.replaceChild(valueExpr, remValueExpr);
         valueExpr.replace(remValueExpr);
         a.convertedExpressions[a.convertedExpressions.length - 1] = remValueExpr;
 

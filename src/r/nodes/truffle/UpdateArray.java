@@ -156,8 +156,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (selectorVals[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
                             SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
-                            // TRUFFLE : replaceChild method no longer available
-                            //replaceChild(selectorExprs[i], newSelector);
                             selectorExprs[i] = adoptChild(newSelector);
                             assert (selectorExprs[i] == newSelector);
                             selectorVals[i] = newSelector.executeSelector(index);
@@ -998,8 +996,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     } catch (UnexpectedResultException e) {
                         RAny index = columnSel.getIndex();
                         SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[lastSel], true, columnSel.getTransition());
-                        // TRUFFLE : replaceChild method no longer available
-                        // replaceChild(selectorExprs[lastSel], newSelector);
                         selectorExprs[lastSel].replace(newSelector);
                         columnSel = newSelector.executeSelector(index);
                         if (DEBUG_UP) Utils.debug("Column selector changed...");

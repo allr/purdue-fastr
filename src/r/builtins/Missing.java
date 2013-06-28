@@ -50,8 +50,6 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 throw RError.getMissingArguments(ast);
             }
-            // TRUFFLE : frame slot access throws exceptions
-            // RDots dots = (RDots) frame.getObject(slot);
             RDots dots = (RDots) Utils.frameGetObject(frame, slot);
             Object[] dvalues = dots.values();
             if (ddval < dvalues.length) {
@@ -64,8 +62,6 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 throw RError.getMissingArguments(ast);
             }
-            // TRUFFLE : frame slot access throws exceptions
-            // value = frame.getObject(slot);
             value = Utils.frameGetObject(frame, slot);
         }
         if (value == null) {
@@ -160,8 +156,6 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 return null;
             }
-            // TRUFFLE : frame slot access throws exceptions
-            // value = frame.getObject(slot);
             value = Utils.frameGetObject(frame, slot);
         } else {
             value = symbol.getValueNoForce();

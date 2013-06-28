@@ -165,8 +165,6 @@ public abstract class ReadArray extends BaseR {
                         if (selectorVals[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
                             SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
-                            // TRUFFLE : replaceChild method no longer exists
-                            // replaceChild(selectorExprs[i], newSelector);
                             selectorExprs[i] = adoptChild(newSelector);
                             selectorVals[i] = newSelector.executeSelector(index);
                         }
@@ -347,15 +345,11 @@ public abstract class ReadArray extends BaseR {
                     Selector failedSelector = (Selector) e.getResult();
                     if (failedSelector == selI) {
                         RAny index = selI.getIndex();
-                        // TRUFFLE : replaceChild method no longer exists
-                        // replaceChild(selectorIExpr, Selector.createSelectorNode(ast, subset, index, selectorIExpr.child, false, selectorI.getTransition()));
                         selectorIExpr.replace(Selector.createSelectorNode(ast, subset, index, selectorIExpr.child, false, selectorI.getTransition()));
                         selI = selectorIExpr.executeSelector(index);
                     } else {
                         // failedSelector == selectorJ
                         RAny index = selJ.getIndex();
-                        // TRUFFLE : replaceChild method no longer exists
-                        // replaceChild(selectorJExpr, Selector.createSelectorNode(ast, subset, index, selectorJExpr.child, false, selectorJ.getTransition()));
                         selectorJExpr.replace(Selector.createSelectorNode(ast, subset, index, selectorJExpr.child, false, selectorJ.getTransition()));
                         selJ = selectorJExpr.executeSelector(index);
                     }

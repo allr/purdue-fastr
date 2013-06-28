@@ -70,16 +70,12 @@ public class ReadMatrix extends BaseR {
                 if (failedSelector == selectorI) {
                     if (DEBUG_M) Utils.debug("Selector I failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorI.getIndex();
-                    // TRUFFLE : replaceChild method no longer exists
-                    // replaceChild(selIExpr, createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
                     selIExpr.replace(createSelectorNode(ast, subset, index, selIExpr.child, false, selectorI.getTransition()));
                     selectorI = selIExpr.executeSelector(index);
                 } else {
                     // failedSelector == selectorJ
                     if (DEBUG_M) Utils.debug("Selector J failed in ReadMatrix.execute, replacing.");
                     RAny index = selectorJ.getIndex();
-                    // TRUFFLE : replaceChild method no longer exists
-                    // replaceChild(selJExpr, createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
                     selJExpr.replace(createSelectorNode(ast, subset, index, selJExpr.child, false, selectorJ.getTransition()));
                     selectorJ = selJExpr.executeSelector(index);
                 }
