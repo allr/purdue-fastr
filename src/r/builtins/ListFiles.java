@@ -92,12 +92,14 @@ final class ListFiles extends CallFactory {
         }
         for (File f : files) {
             String name = f.getName();
-            if (f.isHidden() && !allFiles) {
+            // In accordance to GNU-R, files starting with a dot (linux hidden) are treated as hidden files in Windows too
+            if ((f.isHidden() || name.startsWith(".")) && !allFiles) {
                 continue;
             }
             if (recursive && f.isDirectory()) {
                 if (depth < maxDepth) {
-                    list(path + File.separatorChar + f.getName(), res, pattern, depth + 1, allFiles, prefix + name + File.separatorChar, recursive, ignoreCase, includeDirs);
+                    // instead of separator char, R always uses / as the file separator
+                    list(path + File.separatorChar + f.getName(), res, pattern, depth + 1, allFiles, prefix + name + '/', recursive, ignoreCase, includeDirs);
                 }
             }
             if (pattern != null) {
