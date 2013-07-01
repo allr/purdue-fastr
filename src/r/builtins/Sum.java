@@ -58,14 +58,11 @@ final class Sum extends CallFactory {
         final int end;
         double result;
 
-        static int tasks = 0;
-
         public DoubleSum(RDouble array, boolean narm) {
             this.array = array;
             this.narm = narm;
             this.start = 0;
             this.end = array.size();
-            tasks++;
         }
 
         protected DoubleSum(DoubleSum other, int start, int end) {
@@ -73,7 +70,6 @@ final class Sum extends CallFactory {
             this.narm = other.narm;
             this.start = start;
             this.end = end;
-            tasks++;
         }
 
         @Override
@@ -99,9 +95,7 @@ final class Sum extends CallFactory {
 
     public static double sum(RDouble v, boolean narm) {
         if (FJ.ENABLED) {
-            DoubleSum.tasks = 0;
             double d = FJ.invoke(new DoubleSum(v, narm)).result;
-            System.out.println(DoubleSum.tasks);
             return d;
         } else {
             int size = v.size();

@@ -1143,7 +1143,6 @@ public class Arithmetic extends BaseR {
                 op(ast, op1, op2, res, size);
         }
 
-
         public RDouble op(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
             double[] y = ydbl.getContent();

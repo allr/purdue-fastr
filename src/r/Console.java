@@ -76,13 +76,6 @@ public class Console {
                     }
                 }
             }, //
-            new Option("--fj","enables the fork-join parallelization of larger vectors",0) {
-
-                @Override protected void processOption(String name, String[] opts) {
-                    System.err.println("Using Fork/Join");
-
-                }
-            }, //
             new Option.Help() {
 
                 @Override protected void processOption(String name, String[] opts) {
