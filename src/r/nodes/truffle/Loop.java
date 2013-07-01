@@ -99,7 +99,7 @@ public abstract class Loop extends BaseR {
                         } catch (UnexpectedResultException e) {
                             RAny result = (RAny) e.getResult();
                             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-                            replaceChild(cond, castNode);
+                            cond = adoptChild(castNode);
                             condVal = castNode.executeScalarLogical(result);
                         }
                         if (condVal == RLogical.FALSE) {

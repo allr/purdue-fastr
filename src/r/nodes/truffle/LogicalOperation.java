@@ -36,9 +36,7 @@ public abstract class LogicalOperation extends BaseR {
             try {
                 return curNode.executeScalarLogical(frame);
             } catch (UnexpectedResultException e) {
-                RNode newNode = createCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
-                replaceChild(curNode, newNode);
-                curNode = newNode;
+                curNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
                 continue;
             }
         }
@@ -88,8 +86,10 @@ public abstract class LogicalOperation extends BaseR {
         @Child RNode child;
         int iteration;
 
-        public CastNode(ASTNode ast, RNode child, int iteration) {
+
+        public CastNode(ASTNode ast, RNode child, int iteration, RNode failedNode) {
             super(ast);
+            failedNode.replace(this);
             this.child = adoptChild(child);
             this.iteration = iteration;
         }
@@ -109,7 +109,7 @@ public abstract class LogicalOperation extends BaseR {
         abstract int extract(RAny value) throws UnexpectedResultException;
     }
 
-    public static CastNode createCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {
+    public static CastNode createAndInsertCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {
 
         int iteration = -1;
         RNode child;
@@ -121,7 +121,7 @@ public abstract class LogicalOperation extends BaseR {
         }
         if (iteration < 0) {
             if (template instanceof ScalarDoubleImpl) {
-                return new CastNode(ast, child, iteration + 1) {
+                return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
                     int extract(RAny value) throws UnexpectedResultException {
                         if (value instanceof ScalarDoubleImpl) {
@@ -132,7 +132,7 @@ public abstract class LogicalOperation extends BaseR {
                 };
             }
             if (template instanceof ScalarIntImpl) {
-                return new CastNode(ast, child, iteration + 1) {
+                return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
                     int extract(RAny value) throws UnexpectedResultException {
                         if (value instanceof ScalarIntImpl) {
@@ -145,7 +145,7 @@ public abstract class LogicalOperation extends BaseR {
         }
         if (iteration < 1) {
             if (template instanceof RLogical) {
-                return new CastNode(ast, child, iteration + 1) {
+                return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
                     int extract(RAny value) throws UnexpectedResultException {
                         if (value instanceof RLogical) {
@@ -161,7 +161,7 @@ public abstract class LogicalOperation extends BaseR {
                 };
             }
             if (template instanceof RDouble) {
-                return new CastNode(ast, child, iteration + 1) {
+                return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
                     int extract(RAny value) throws UnexpectedResultException {
                         if (value instanceof RDouble) {
@@ -177,7 +177,7 @@ public abstract class LogicalOperation extends BaseR {
                 };
             }
             if (template instanceof RInt) {
-                return new CastNode(ast, child, iteration + 1) {
+                return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
                     int extract(RAny value) throws UnexpectedResultException {
                         if (value instanceof RInt) {
@@ -193,7 +193,7 @@ public abstract class LogicalOperation extends BaseR {
                 };
             }
         }
-        return new CastNode(ast, child, iteration + 1) {
+        return new CastNode(ast, child, iteration + 1, failedNode) {
             @Override
             int extract(RAny value) {
                 if (value instanceof RLogical || value instanceof RInt || value instanceof RDouble) {

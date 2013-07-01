@@ -50,7 +50,7 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 throw RError.getMissingArguments(ast);
             }
-            RDots dots = (RDots) frame.getObject(slot);
+            RDots dots = (RDots) Utils.frameGetObject(frame, slot);
             Object[] dvalues = dots.values();
             if (ddval < dvalues.length) {
                 value = dvalues[ddval];
@@ -62,7 +62,7 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 throw RError.getMissingArguments(ast);
             }
-            value = frame.getObject(slot);
+            value = Utils.frameGetObject(frame, slot);
         }
         if (value == null) {
             throw RError.getMissingArguments(ast);
@@ -156,7 +156,7 @@ final class Missing extends CallFactory {
             if (slot == null) {
                 return null;
             }
-            value = frame.getObject(slot);
+            value = Utils.frameGetObject(frame, slot);
         } else {
             value = symbol.getValueNoForce();
         }

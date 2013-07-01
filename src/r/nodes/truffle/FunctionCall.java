@@ -232,7 +232,11 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    if (builtInNode == null) {
+                        builtInNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
+                    } else {
+                        builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    }
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -269,7 +273,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -306,7 +310,7 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    replaceChild(builtInNode, builtIn.callFactory().create(ast, argNames, argExprs));
+                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;

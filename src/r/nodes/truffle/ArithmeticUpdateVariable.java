@@ -1,5 +1,6 @@
 package r.nodes.truffle;
 
+import r.Utils;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
@@ -67,7 +68,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     int newi = i + 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        frame.setObject(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        Utils.frameSetObject(frame, slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }
@@ -119,7 +120,7 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                     int newi = i - 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        frame.setObject(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        Utils.frameSetObject(frame, slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }

@@ -40,7 +40,7 @@ public class If extends BaseR {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-            replaceChild(cond, castNode);
+            cond.replace(castNode);
             ifVal = castNode.executeScalarLogical(result);
         }
 
