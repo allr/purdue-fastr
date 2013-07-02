@@ -10,7 +10,7 @@ public class FJ {
     // TODO - maybe change the initialization to option, but we would loose the final
     public static final boolean ENABLED = true;
 
-    public static final int THRESHOLD = 100;
+    public static final int THRESHOLD = 125;
 
     public static ForkJoinPool pool = ENABLED ? new ForkJoinPool() : null;
 
