@@ -109,6 +109,8 @@ public class Console {
     public static void main(String[] args) {
         storeCommandLineArguments(args);
 
+
+
         try {
             Option.processCommandLine(args, options); // TODO store this in a more appropriate place
             // (needed for commandArgs())

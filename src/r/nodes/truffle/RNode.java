@@ -9,6 +9,13 @@ import r.nodes.*;
 
 public abstract class RNode extends Node {
 
+
+    protected RNode(RNode other) {
+    }
+
+    public RNode() {
+    }
+
     public ASTNode getAST() {
         return ((RNode) getParent()).getAST();
     }
