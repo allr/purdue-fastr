@@ -14,6 +14,65 @@ public abstract class FunctionCall extends AbstractCall {
 
     public final static boolean PROMISES = true;
 
+    /** Injected class that counts the number of calls to the function and upon reaching certain threshold triggers
+     * the analysis. If the FunctionCall node is not stable during the time Counter is active, it is aborted and
+     * removed, as such function is not a likely candidate for the optimization.
+     */
+    public static class Counter extends RNode {
+
+        public static final int OPTIMIZATION_THRESHOLD = 2;
+
+        @Child FunctionCall call;
+
+        int count;
+
+        public Counter(FunctionCall call) {
+            this.call = adoptChild(call);
+            this.count = 0;
+        }
+
+
+        /** Executes the actual call and increases the count if the call node is stable. Otherwise removes itself from
+         * the execution tree.
+         */
+        @Override
+        public Object execute(Frame frame) {
+            FunctionCall last = call;
+            Object result = call.execute(frame);
+            if (last != call) {
+                CompilerDirectives.transferToInterpreter();
+                System.out.println("Counter for function "+last.ast.toString()+" discarded due to unstable execution tree.");
+                this.replace(call);
+            }
+            ++count;
+            if (count == OPTIMIZATION_THRESHOLD) {
+                CompilerDirectives.transferToInterpreter();
+                System.out.println("Counter for function "+last.ast.toString()+" reached the threshold");
+                this.replace(call);
+            }
+            return result;
+        }
+
+        // TODO maybe this should also be guarded by the counter
+        @Override
+        public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
+            CompilerDirectives.transferToInterpreter();
+            this.replace(call);
+            return call.executeScalarLogical(callerFrame);
+        }
+
+        // TODO maybe this should also be guarded by the counter
+        @Override
+        public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
+            CompilerDirectives.transferToInterpreter();
+            this.replace(call);
+            return call.executeScalarNonNALogical(callerFrame);
+        }
+
+    }
+
+
+
     final RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, int[] dotsArgs) {
@@ -104,15 +163,17 @@ public abstract class FunctionCall extends AbstractCall {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                RNode n;
                 if (callable instanceof RBuiltIn) {
+                    RNode n;
                     RBuiltIn builtIn = (RBuiltIn) callable;
                     RNode builtInNode = builtIn.callFactory().create(ast, argNames, argExprs);
                     n = new StableBuiltinCall(ast, callableExpr, argNames, argExprs, builtIn, builtInNode);
+                    return replace(callableExpr, callable, n, callerFrame);
                 } else {
-                    n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                    // for a stabilized generic call inject the counter before the generic call node
+                    FunctionCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                    return replace(callableExpr, callable, new Counter(n), callerFrame);
                 }
-                return replace(callableExpr, callable, n, callerFrame);
             }
         }
     }
@@ -185,8 +246,6 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static final class GenericCall extends FunctionCall {
 
-        Object lastCallable; // RCallable, but using Object to avoid cast
-
         // for functions
         RClosure lastClosure; // null when last callable wasn't a function (closure)
         RFunction closureFunction;
@@ -203,6 +262,7 @@ public abstract class FunctionCall extends AbstractCall {
         GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
             super(ast, callableExpr, argNames, argExprs, null);
         }
+
 
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);

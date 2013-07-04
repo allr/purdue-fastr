@@ -5,6 +5,11 @@ import javassist.Modifier;
 
 import java.lang.reflect.*;
 
+/** fastR main class.
+ *
+ * Injects the special loader that adds deep copy capabilities to the node hierarchies and then runs the r.Console. This
+ * is the main class to be used with the analysis enabled.
+ */
 public class fastr {
 
     public static final boolean DEBUG = true;
