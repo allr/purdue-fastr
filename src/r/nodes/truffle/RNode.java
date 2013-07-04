@@ -7,7 +7,7 @@ import r.*;
 import r.data.*;
 import r.nodes.*;
 
-public abstract class RNode extends Node {
+public abstract class RNode extends Node implements DeepCopyable {
 
 
     protected RNode(RNode other) {
