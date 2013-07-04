@@ -53,6 +53,7 @@ public class RContext {
 
     public static RAny eval(ASTNode expr) {
         try {
+            // TODO get rid of the deep copying test when we do not need it
             RNode root = truffleize.createLazyRootTree(expr);
             RAny result = (RAny) root.execute(null);
             RNode r2 = (RNode) root.deepCopy();
