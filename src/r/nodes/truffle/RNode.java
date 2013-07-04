@@ -16,6 +16,11 @@ public abstract class RNode extends Node {
     public RNode() {
     }
 
+    public RNode deepCopy() {
+        assert false : "This code should never be reached if the fastr class patcher is active. Make sure to run r.fastr instead of r.Console!";
+        return null;
+    }
+
     public ASTNode getAST() {
         return ((RNode) getParent()).getAST();
     }

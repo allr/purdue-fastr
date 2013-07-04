@@ -53,7 +53,11 @@ public class RContext {
 
     public static RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createLazyRootTree(expr).execute(null); // null means top-level
+            RNode root = truffleize.createLazyRootTree(expr);
+            RAny result = (RAny) root.execute(null);
+            //RNode r2 = (RNode) root.deepCopy();
+            return result;
+            //return (RAny) .execute(null); // null means top-level
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
