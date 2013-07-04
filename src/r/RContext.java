@@ -55,7 +55,7 @@ public class RContext {
         try {
             RNode root = truffleize.createLazyRootTree(expr);
             RAny result = (RAny) root.execute(null);
-            //RNode r2 = (RNode) root.deepCopy();
+            RNode r2 = (RNode) root.deepCopy();
             return result;
             //return (RAny) .execute(null); // null means top-level
         } catch (RError e) {

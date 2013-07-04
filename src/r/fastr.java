@@ -118,7 +118,10 @@ public class fastr {
                         CtClass compType = ftype.getComponentType();
                         if (compType.isPrimitive()) {
                             // if the arrays are primitive, just copy them using the array's clone method
-                            code = "FNAME = (FTYPENAME) $1.clone();\n";
+                            code = "if ($1.FNAME == null)\n" +
+                                    "    FNAME = null;\n" +
+                                    "else\n" +
+                                    "    FNAME = (FTYPENAME) $1.FNAME.clone();\n";
                         } else {
                             // if the array holds nodes, create a new array, fill it in and adopt all the children by
                             // the new node
@@ -133,7 +136,10 @@ public class fastr {
                                         "}";
                                 code = code.replace("COMPTYPENAME",compType.getName());
                             } else {
-                                code = "FNAME = (FTYPENAME) $1.clone();\n";
+                                code = "if ($1.FNAME == null)\n" +
+                                        "    FNAME = null;\n" +
+                                        "else\n" +
+                                        "    FNAME = (FTYPENAME) $1.FNAME.clone();\n";
                             }
                         }
 
@@ -142,7 +148,10 @@ public class fastr {
                         // at the moment nodes are deep copied and adopted, everything else is just ref copied
                         cl.loadClass(ftypeName);
                         if (isNode(ftype))
-                            code = "FNAME = $1.FNAME == null ? null : (FTYPENAME) adoptChild($1.FNAME.copy());\n";
+                            code = "if ($1.FNAME == null)\n" +
+                                    "    FNAME = null;\n" +
+                                    "else\n" +
+                                    "    FNAME = (FTYPENAME) adoptChild($1.FNAME.copy());\n";
                         else
                             code = "FNAME = $1.FNAME;\n";
                     }
