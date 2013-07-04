@@ -132,7 +132,7 @@ public class fastr {
                                         "} else {\n" +
                                         "    FNAME = new COMPTYPENAME[$1.FNAME.length];\n" +
                                         "    for (int i = 0; i < FNAME.length; ++i)\n" +
-                                        "        FNAME[i] = $1.FNAME[i] == null ? null : (COMPTYPENAME) adoptChild($1.FNAME[i].copy());\n" +
+                                        "        FNAME[i] = $1.FNAME[i] == null ? null : (COMPTYPENAME) adoptChild($1.FNAME[i].deepCopy());\n" +
                                         "}";
                                 code = code.replace("COMPTYPENAME",compType.getName());
                             } else {
@@ -151,7 +151,7 @@ public class fastr {
                             code = "if ($1.FNAME == null)\n" +
                                     "    FNAME = null;\n" +
                                     "else\n" +
-                                    "    FNAME = (FTYPENAME) adoptChild($1.FNAME.copy());\n";
+                                    "    FNAME = (FTYPENAME) adoptChild($1.FNAME.deepCopy());\n";
                         else
                             code = "FNAME = $1.FNAME;\n";
                     }
