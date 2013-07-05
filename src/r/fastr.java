@@ -74,15 +74,14 @@ public class fastr {
             CtClass cls = pool.get(classname);
             if (isNode(cls)) {
                 println("loading node "+cls.getName());
-                if (! hasCopyMethod(cls)) {
-                    if (! hasCopyConstructor(cls))
-                        injectCopyConstructor(cls);
-                    CtMethod m = CtNewMethod.make("public "+NODE_BASE+" deepCopy() { return new "+cls.getName()+"(this); }",cls);
-                    m.setModifiers(Modifier.PUBLIC);
-                    cls.addMethod(m);
-                } else {
+                if (! hasCopyConstructor(cls))
+                    injectCopyConstructor(cls);
+                else
+                    println("    already contains copy constructor.");
+                if (! hasDeepCopyMethod(cls))
+                    injectDeepCopyMethod(cls);
+                else
                     println("    already contains deepCopy() method");
-                }
                 if (! hasLinearVisitMethod(cls))
                     injectLinearVisitMethod(cls);
                 else
@@ -99,7 +98,7 @@ public class fastr {
 
         /** Returns true, if the deepCopy method is present in the given class.
          */
-        protected final boolean hasCopyMethod(CtClass cls) {
+        protected final boolean hasDeepCopyMethod(CtClass cls) {
             try {
                 cls.getDeclaredMethod("deepCopy");
                 return true;
@@ -243,6 +242,14 @@ public class fastr {
                 // TODO meaningful error here - user code error
                 e.printStackTrace();
             }
+        }
+
+        /** Injects the deep copy method. The method simply calls the copy constructor of the actuall class.
+         */
+        protected void injectDeepCopyMethod(CtClass cls) throws CannotCompileException {
+            CtMethod m = CtNewMethod.make("public "+NODE_BASE+" deepCopy() { return new "+cls.getName()+"(this); }",cls);
+            m.setModifiers(Modifier.PUBLIC);
+            cls.addMethod(m);
         }
 
         /** Injects the linearVisit() method to the given class. It is assumed the class is a subclass of RNode.
