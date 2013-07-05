@@ -4,6 +4,7 @@ import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
+import r.analysis.*;
 import r.data.*;
 import r.nodes.*;
 
@@ -16,9 +17,19 @@ public abstract class RNode extends Node implements DeepCopyable {
     public RNode() {
     }
 
+    /** Returns the deep copy of the node. This method should never be called as it should be overridden either manually
+     * or automatically using fastr loader in subclasses.
+     */
     public RNode deepCopy() {
         assert false : "This code should never be reached if the fastr class patcher is active. Make sure to run r.fastr instead of r.Console!";
         return null;
+    }
+
+    /** Linear visitor method. These methods must either be specified manually, or will be generated automatically by
+     * the fastr loader for all RNode fields.
+     */
+    public void linearVisit(r.analysis.NodeVisitor visitor) {
+        visitor.visit(this);
     }
 
     public ASTNode getAST() {

@@ -73,7 +73,7 @@ public abstract class FunctionCall extends AbstractCall {
 
 
 
-    final RNode callableExpr;
+    public final RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, int[] dotsArgs) {
         super(ast, argNames, argExprs, dotsArgs);
@@ -247,7 +247,7 @@ public abstract class FunctionCall extends AbstractCall {
     public static final class GenericCall extends FunctionCall {
 
         // for functions
-        RClosure lastClosure; // null when last callable wasn't a function (closure)
+        public RClosure lastClosure; // null when last callable wasn't a function (closure)
         RFunction closureFunction;
         int[] functionArgPositions;
         CallTarget functionCallTarget;
@@ -266,6 +266,13 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
+            return execute(callerFrame, callable);
+        }
+
+        /** Calls the given function knowing the evaluated callable. This is important for reversing the inlining whose
+         * validity is determined by evaluating the callableExpr.
+         */
+        public Object execute(Frame callerFrame, Object callable) {
             if (callable == lastClosure) {
                 Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);

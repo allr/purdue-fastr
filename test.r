@@ -1,4 +1,4 @@
-f <- function(a,b) {
+f <- function() {
   a + b
 }
 

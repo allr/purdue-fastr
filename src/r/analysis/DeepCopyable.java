@@ -1,4 +1,4 @@
-package r;
+package r.analysis;
 
 public interface DeepCopyable {
 

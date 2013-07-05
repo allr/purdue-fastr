@@ -2,8 +2,10 @@ package r;
 
 import javassist.*;
 import javassist.Modifier;
+import r.analysis.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 /** fastR main class.
  *
@@ -48,7 +50,7 @@ public class fastr {
      */
     static class ClassPatcher implements Translator {
 
-        private static final String DEEP_COPYABLE = "r.DeepCopyable";
+        private static final String DEEP_COPYABLE = "r.analysis.DeepCopyable";
         private static final String NODE_BASE = "r.nodes.truffle.RNode";
         //private static final String NODE_BASE = "r.Node";
 
@@ -81,6 +83,10 @@ public class fastr {
                 } else {
                     println("    already contains deepCopy() method");
                 }
+                if (! hasLinearVisitMethod(cls))
+                    injectLinearVisitMethod(cls);
+                else
+                    println("    already containes linearVisit() method");
             }
         }
 
@@ -91,11 +97,22 @@ public class fastr {
             return cls.subclassOf(nodeBase);
         }
 
-        /** Returns true, if the deepCopy method is present in the given class. \
+        /** Returns true, if the deepCopy method is present in the given class.
          */
-        protected boolean hasCopyMethod(CtClass cls) {
+        protected final boolean hasCopyMethod(CtClass cls) {
             try {
                 cls.getDeclaredMethod("deepCopy");
+                return true;
+            } catch (NotFoundException e) {
+                return false;
+            }
+        }
+
+        /** Returns true if the linearVisit method is present in the given class.
+         */
+        protected final boolean hasLinearVisitMethod(CtClass cls) {
+            try {
+                cls.getDeclaredMethod("linearVisit");
                 return true;
             } catch (NotFoundException e) {
                 return false;
@@ -144,8 +161,8 @@ public class fastr {
                     String ftypeName = ftype.getName();
                     // now based on different types, build the copy constructor
                     String code;
-                    if (ftype.isPrimitive()) {
-                        // primitives are simple, just copy them
+                    if (ftype.isPrimitive() || field.hasAnnotation(Shared.class)) {
+                        // primitives are simple, just copy them, do so for the shared fields
                         code = "FNAME = $1.FNAME;\n";
                     } else if (ftype.isArray()) {
                         // for arrays check if they hold nodes or deep copyable objects and use the appropriate method
@@ -192,7 +209,6 @@ public class fastr {
                                         "    FNAME = (FTYPENAME) $1.FNAME.clone();\n";
                             }
                         }
-
                     } else {
                         // it is a single object, first load its type
                         cl.loadClass(ftypeName);
@@ -226,6 +242,68 @@ public class fastr {
             } catch (ClassNotFoundException e) {
                 // TODO meaningful error here - user code error
                 e.printStackTrace();
+            }
+        }
+
+        /** Injects the linearVisit() method to the given class. It is assumed the class is a subclass of RNode.
+         */
+        protected void injectLinearVisitMethod(CtClass cls) throws NotFoundException {
+            // create the priority queue with the comparator on the linear order indices of the fields
+            PriorityQueue<CtField> fields = new PriorityQueue<>(10, new Comparator<CtField>() {
+                @Override
+                public int compare(CtField o1, CtField o2) {
+                    try {
+                        int i1 = o1.hasAnnotation(LinearOrder.class) ? ((LinearOrder) o1.getAnnotation(LinearOrder.class)).index() : 0;
+                        int i2 = o2.hasAnnotation(LinearOrder.class) ? ((LinearOrder) o2.getAnnotation(LinearOrder.class)).index() : 0;
+                        return i1 - i2;
+                    } catch (ClassNotFoundException e) {
+                        assert false : "this should never happen";
+                    }
+                    return 0;
+                }
+            });
+            // first order the CtFields based on their declared linear order
+            for (CtField field : cls.getDeclaredFields()) {
+                // check if the field is an RNode descendant
+                if (isNode(field.getType()) || (field.getType().isArray() && isNode(field.getType().getComponentType()))) {
+                    // it is a field we want to visit
+                    if (field.hasAnnotation(DoNotVisit.class))
+                        continue;
+                    fields.add(field);
+                }
+            }
+            // create the linearVisit method from the fields in the queue
+            StringBuilder sb = new StringBuilder("public void linearVisit(r.analysis.NodeVisitor visitor) {\n");
+            sb.append("super.linearVisit(visitor);\n");
+            while (true) {
+                CtField field = fields.poll();
+                if (field == null)
+                    break;
+                String code;
+                if (field.getType().isArray()) {
+                    code = "if (FNAME != null)\n" +
+                            "    for (int i = 0; i < FNAME.length; ++i)\n" +
+                            "        if (FNAME[i] != null)\n" +
+                            "            FNAME[i].linearVisit(visitor);\n";
+                    code = code.replace("CTYPE",field.getType().getComponentType().getName());
+                } else {
+                    code = "if (FNAME != null)\n" +
+                            "    FNAME.linearVisit(visitor);\n";
+                }
+                code = code.replace("FNAME",field.getName());
+                sb.append(code);
+            }
+            sb.append("}");
+            // done writing the code, create the method
+            try {
+                CtMethod m = CtNewMethod.make(sb.toString(), cls);
+                m.setModifiers(Modifier.PUBLIC);
+                cls.addMethod(m);
+            } catch (CannotCompileException e) {
+                // TODO meaningful error here - automatic generation does not compile
+                println(sb.toString());
+                e.printStackTrace();
+                System.exit(0);
             }
         }
     }
