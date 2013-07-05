@@ -11,7 +11,13 @@ import r.nodes.*;
 public abstract class RNode extends Node implements DeepCopyable {
 
 
-    protected RNode(RNode other) {
+    /** Copy or move constructor. Because some of the nodes have their own copy constructors which do not use the
+     * deepCopy feature, this new constructor has been created. If move is true, all children are just adopted, if
+     * move is false, the child nodes are deepcopied.
+     *
+     * This constructor can still be overriden by descendants, but the above described semantics must be followed.
+     */
+    protected RNode(RNode other, boolean move) {
     }
 
     public RNode() {
