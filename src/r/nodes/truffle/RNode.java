@@ -27,9 +27,18 @@ public abstract class RNode extends Node implements DeepCopyable {
 
     /** Linear visitor method. These methods must either be specified manually, or will be generated automatically by
      * the fastr loader for all RNode fields.
+     *
+     * The return value of this method should largely be ignored by the user, but internally it is used to signify that
+     * children of the node should not be visited. The pattern for each child is to call first the parent's linearVisit
+     * and return false if its result is false.
+     *
+     * Otherwise the children of the node should be visited in desired order and true returned.
+     *
+     * When overriding completely, calling visitor in self must be the first statement and no children should be visited
+     * if this result is false.
      */
-    public void linearVisit(r.analysis.NodeVisitor visitor) {
-        visitor.visit(this);
+    public boolean linearVisit(r.analysis.NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public ASTNode getAST() {

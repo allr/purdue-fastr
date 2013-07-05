@@ -280,8 +280,9 @@ public class fastr {
                 }
             }
             // create the linearVisit method from the fields in the queue
-            StringBuilder sb = new StringBuilder("public void linearVisit(r.analysis.NodeVisitor visitor) {\n");
-            sb.append("super.linearVisit(visitor);\n");
+            StringBuilder sb = new StringBuilder("public boolean linearVisit(r.analysis.NodeVisitor visitor) {\n");
+            sb.append("if (! super.linearVisit(visitor))\n" +
+                    "    return false;\n");
             while (true) {
                 CtField field = fields.poll();
                 if (field == null)
@@ -300,6 +301,7 @@ public class fastr {
                 code = code.replace("FNAME",field.getName());
                 sb.append(code);
             }
+            sb.append("return true;\n");
             sb.append("}");
             // done writing the code, create the method
             try {
@@ -314,5 +316,4 @@ public class fastr {
             }
         }
     }
-
 }
