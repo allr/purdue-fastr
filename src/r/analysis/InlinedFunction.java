@@ -3,6 +3,7 @@ package r.analysis;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
+import r.analysis.visitors.WriteSet;
 import r.fastr;
 import r.nodes.truffle.*;
 
@@ -14,9 +15,13 @@ public class InlinedFunction {
     /** Determines whether the given function should be inlined and if so, returns the new root. Otherwise returns the
      * original FunctionCall object.
      */
-    static RNode inline(FunctionCall.GenericCall call) {
-
-
+   public  static RNode analyze(FunctionCall.GenericCall call) {
+        RNode body = call.lastClosure.function().body();
+        WriteSet a = WriteSet.analyze(body);
+        if (a.isEmpty()) {
+            fastr.println("Inlining the nodes because the writeset is empty");
+            return body.deepCopy();
+        }
         return call;
     }
 
@@ -24,7 +29,7 @@ public class InlinedFunction {
 
     static class InlinedFunctionNoArgs extends RNode {
 
-        @Child final FunctionCall.GenericCall call;
+        @DoNotVisit @Child final FunctionCall.GenericCall call;
         @Child RNode inlinedBody;
 
         protected InlinedFunctionNoArgs(FunctionCall.GenericCall call, RNode inlinedBody) {

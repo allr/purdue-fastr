@@ -5,6 +5,7 @@ import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
+import r.analysis.InlinedFunction;
 import r.builtins.*;
 import r.data.*;
 import r.errors.*;
@@ -43,12 +44,13 @@ public abstract class FunctionCall extends AbstractCall {
                 CompilerDirectives.transferToInterpreter();
                 System.out.println("Counter for function "+last.ast.toString()+" discarded due to unstable execution tree.");
                 this.replace(call);
-            }
-            ++count;
-            if (count == OPTIMIZATION_THRESHOLD) {
-                CompilerDirectives.transferToInterpreter();
-                System.out.println("Counter for function "+last.ast.toString()+" reached the threshold");
-                this.replace(call);
+            } else {
+                ++count;
+                if (count == OPTIMIZATION_THRESHOLD) {
+                    CompilerDirectives.transferToInterpreter();
+                    System.out.println("Counter for function " + last.ast.toString() + " reached the threshold");
+                    this.replace(InlinedFunction.analyze((GenericCall)call));
+                }
             }
             return result;
         }

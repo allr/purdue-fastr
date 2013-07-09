@@ -13,10 +13,11 @@ import com.oracle.truffle.api.frame.*;
 public abstract class WriteVariable extends BaseR {
 
     // TODO: All BaseRNode are useless EXCEPT for the uninitialized version (since Truffle keeps track of the original)
-    final RSymbol symbol;
+    public final RSymbol symbol;
     @Child RNode expr;
 
     private static final boolean DEBUG_W = false;
+
 
     private WriteVariable(ASTNode orig, RSymbol symbol, RNode expr) {
         super(orig);
@@ -66,42 +67,63 @@ public abstract class WriteVariable extends BaseR {
         };
     }
 
-    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final FrameSlot slot, RNode rhs) {
-        return new WriteVariable(orig, sym, rhs) {
+    public static class Local extends WriteVariable {
+        public final FrameSlot slot;
 
-            @Override public final Object execute(Frame frame) {
-                RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeAtCondRef(frame, slot, val);
-                if (DEBUG_W) {
-                    Utils.debug("write - " + symbol.pretty() + " local-ws, wrote " + val + " (" + val.pretty() + ") to slot " + slot);
-                }
-                return val;
+        public Local(ASTNode orig, RSymbol symbol, RNode rhs, FrameSlot slot) {
+            super(orig, symbol, rhs);
+            this.slot = slot;
+        }
+
+        @Override public final Object execute(Frame frame) {
+            RAny val = Utils.cast(expr.execute(frame));
+            RFrameHeader.writeAtCondRef(frame, slot, val);
+            if (DEBUG_W) {
+                Utils.debug("write - " + symbol.pretty() + " local-ws, wrote " + val + " (" + val.pretty() + ") to slot " + slot);
             }
-        };
+            return val;
+        }
+    }
+
+    public static class TopLevel extends WriteVariable {
+
+        private TopLevel(ASTNode orig, RSymbol symbol, RNode expr) {
+            super(orig, symbol, expr);
+        }
+
+        @Override public final Object execute(Frame frame) {
+            RAny val = Utils.cast(expr.execute(frame));
+            RFrameHeader.writeToTopLevelCondRef(symbol, val);
+            if (DEBUG_W) {
+                Utils.debug("write - " + symbol.pretty() + " toplevel, wrote " + val + " (" + val.pretty() + ")");
+            }
+            return val;
+        }
+    }
+
+    public static class Extension extends WriteVariable {
+
+        private Extension(ASTNode orig, RSymbol symbol, RNode expr) {
+            super(orig, symbol, expr);
+        }
+
+        @Override public final Object execute(Frame frame) {
+            RAny val = Utils.cast(expr.execute(frame));
+            RFrameHeader.writeToExtension(frame, symbol, val);
+            return val;
+        }
+    }
+
+
+    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final FrameSlot slot, RNode rhs) {
+        return new Local(orig, sym, rhs, slot);
     }
 
     public static WriteVariable getWriteTopLevel(ASTNode orig, RSymbol sym, RNode rhs) {
-        return new WriteVariable(orig, sym, rhs) {
-
-            @Override public final Object execute(Frame frame) {
-                RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeToTopLevelCondRef(symbol, val);
-                if (DEBUG_W) {
-                    Utils.debug("write - " + symbol.pretty() + " toplevel, wrote " + val + " (" + val.pretty() + ")");
-                }
-                return val;
-            }
-        };
+        return new TopLevel(orig, sym, rhs);
     }
 
     public static WriteVariable getWriteExtension(ASTNode orig, RSymbol sym, RNode rhs) {
-        return new WriteVariable(orig, sym, rhs) {
-
-            @Override public final Object execute(Frame frame) {
-                RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeToExtension(frame, symbol, val);
-                return val;
-            }
-        };
+        return new Extension(orig, sym, rhs);
     }
 }

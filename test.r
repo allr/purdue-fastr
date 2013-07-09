@@ -1,7 +1,7 @@
 f <- function() {
-  a + b
+  1 + 2
 }
 
 for (i in 1:10) {
-  cat(f(i,i+1),"\n")
+  cat(f(),"\n")
 }

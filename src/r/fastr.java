@@ -179,10 +179,11 @@ public class fastr {
                             cl.loadClass(compType.getName());
                             if (isNode(compType)) {
                                 // if it is array of nodes, deep copy each one and adopt it as a child
-                                code = "if ($1.FNAME == null) {\n" +
+                                code = "if ($2) {\n" +
+                                        "    FNAME = $1.FNAME; " +
+                                        "    adoptChildren($1.FNAME);\n" + // TODO this fails, if on single line, don't know why
+                                        "} else if ($1.FNAME == null) {\n" +
                                         "    FNAME = null;\n" +
-                                        "} else if ($2) {\n" +
-                                        "    FNAME = adoptChildren($1.FNAME);\n" +
                                         "} else {\n" +
                                         "    FNAME = new COMPTYPENAME[$1.FNAME.length];\n" +
                                         "    for (int i = 0; i < FNAME.length; ++i)\n" +

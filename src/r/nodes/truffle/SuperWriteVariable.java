@@ -9,8 +9,9 @@ import r.nodes.*;
 
 public abstract class SuperWriteVariable extends BaseR {
 
-    final RSymbol symbol;
+    public final RSymbol symbol;
     @Child RNode expr;
+
 
     private SuperWriteVariable(ASTNode ast, RSymbol symbol, RNode expr) {
         super(ast);
