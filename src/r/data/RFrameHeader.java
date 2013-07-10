@@ -819,6 +819,16 @@ public class RFrameHeader extends Arguments {
         }
     }
 
+    /** Writes the given value to a known extension. This method is unsafe unless the extension is guaranteed to exist.
+     *
+     * Its main purpose is for inlined functions where we know precisely which extension the argument has been written
+     * to.
+     */
+    public static void writeToKnownExtension(Frame frame, RAny value, int position) {
+        RFrameExtension ext = extension(frame);
+        ext.writeAtRef(position,value);
+    }
+
     public static void writeToExtensionNoRef(Frame frame, RSymbol sym, Object value) {
         RFrameExtension ext = extension(frame);
         if (ext == null) {

@@ -250,11 +250,11 @@ public abstract class FunctionCall extends AbstractCall {
 
         // for functions
         public RClosure lastClosure; // null when last callable wasn't a function (closure)
-        RFunction closureFunction;
-        int[] functionArgPositions;
+        public RFunction closureFunction;
+        public int[] functionArgPositions;
         CallTarget functionCallTarget;
         MaterializedFrame closureEnclosingFrame;
-        final DotsInfo functionDotsInfo = new DotsInfo();
+        public final DotsInfo functionDotsInfo = new DotsInfo();
 
         // for builtins
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin

@@ -14,7 +14,7 @@ import r.nodes.*;
 // TODO: needs to be updated with eval in mind (e.g. correct handling of top-level vs. empty environment)
 public abstract class ReadVariable extends BaseR {
 
-    final RSymbol symbol;
+    public final RSymbol symbol;
 
     private static final boolean DEBUG_R = false;
 
@@ -76,22 +76,31 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
-        return new ReadVariable(orig, sym) {
+    public static class SimpleLocal extends ReadVariable {
 
-            @Override
-            public final Object execute(Frame frame) {
-                try {
-                    Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
-                    if (value == null) {
-                        throw new UnexpectedResultException(null);
-                    }
-                    return value;
-                } catch (UnexpectedResultException e) {
-                    return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+        public final FrameSlot slot;
+
+        public SimpleLocal(ASTNode orig, RSymbol sym, FrameSlot slot) {
+            super(orig, sym);
+            this.slot = slot;
+        }
+
+        @Override
+        public final Object execute(Frame frame) {
+            try {
+                Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
+                if (value == null) {
+                    throw new UnexpectedResultException(null);
                 }
+                return value;
+            } catch (UnexpectedResultException e) {
+                return replace(getReadLocal(ast, symbol, slot)).execute(frame);
             }
-        };
+        }
+    }
+
+    private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+        return new SimpleLocal(orig, sym, slot);
     }
 
     private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {

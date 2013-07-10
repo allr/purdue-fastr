@@ -452,7 +452,8 @@ public abstract class AbstractCall extends BaseR {
     // dots
     //   dots.names == null when there are no ... in parameters
     //   otherwise, names of symbols that will appear in ...
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
+    @ExplodeLoop
+    public final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
 
         Object[] argValues = new Object[nParams];
         int i;

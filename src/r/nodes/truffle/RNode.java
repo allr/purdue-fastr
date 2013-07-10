@@ -6,6 +6,7 @@ import com.oracle.truffle.api.nodes.*;
 import r.*;
 import r.analysis.*;
 import r.data.*;
+import r.data.internal.FunctionImpl;
 import r.nodes.*;
 
 public abstract class RNode extends Node implements DeepCopyable {
@@ -99,6 +100,20 @@ public abstract class RNode extends Node implements DeepCopyable {
     public <T extends RNode> Object replace(T childNode, Object childValue, RNode newNode, Frame frame) {
         pushBack(childNode, childValue);
         return replace(newNode).execute(frame);
+    }
+
+    /** Returns the frame descriptor valid for the current node. That means searches parent nodes hierarchy till the
+     * first FunctionImpl node and then returns its descriptor. If no FunctionImpl node is found in the hierarchy, then
+     * the node is top-level and null is returned.
+     */
+    public FrameDescriptor getFrameDescriptor() {
+        Node parent = this.getParent();
+        while (parent != null) {
+            if (parent instanceof FunctionImpl)
+                return ((FunctionImpl) parent).frameDescriptor;
+            parent = parent.getParent();
+        }
+        return null;
     }
 
 }

@@ -13,7 +13,8 @@ import r.builtins.Return.ReturnException;
 // FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
 // FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
-
+// TODO this does not implement DeepCopyable or has a visit method because we should in fact never deep copy or visit
+// the function impl node -- we only visit inlines, or function calls for this.
 public class FunctionImpl extends RootNode implements RFunction {
 
     final RFunction enclosingFunction;
@@ -24,7 +25,7 @@ public class FunctionImpl extends RootNode implements RFunction {
     final RNode body;
     final int dotsIndex;
 
-    final FrameDescriptor frameDescriptor;
+    public final FrameDescriptor frameDescriptor;
     final FrameSlot[] paramSlots;
     final CallTarget callTarget;
 
@@ -39,7 +40,8 @@ public class FunctionImpl extends RootNode implements RFunction {
         this.source = source;
         this.paramNames = paramNames;
         this.paramValues = paramValues;
-        this.body = body;
+        // TODO why there was no adopt child in the first place?
+        this.body = adoptChild(body);
         this.enclosingFunction = enclosingFunction;
         this.writeSet = writeSet;
         this.readSet = readSet;
@@ -51,7 +53,6 @@ public class FunctionImpl extends RootNode implements RFunction {
             wsBloom |= sym.hash();
         }
         for (EnclosingSlot rse : readSet) {
-            rsBloom |= rse.symbol.hash();
         }
         this.readSetBloom = rsBloom;
         this.writeSetBloom = wsBloom;
@@ -177,6 +178,12 @@ public class FunctionImpl extends RootNode implements RFunction {
     @Override
     public int dotsIndex() {
         return dotsIndex;
+    }
+
+    /** Returns the names of the arguments supplied, used for writeset analysis of function inlining.
+     */
+    public RSymbol[] getParamNames() {
+        return paramNames;
     }
 
     @Override

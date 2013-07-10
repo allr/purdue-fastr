@@ -1,7 +1,9 @@
 package r.analysis.visitors;
 
+import com.oracle.truffle.api.nodes.Node;
 import r.analysis.NodeVisitor;
 import r.data.RSymbol;
+import r.data.internal.FunctionImpl;
 import r.fastr;
 import r.nodes.truffle.*;
 
@@ -10,8 +12,8 @@ import java.util.*;
 
 public class WriteSet implements NodeVisitor {
 
-    public static WriteSet analyze(RNode node) {
-        WriteSet res = new WriteSet();
+    public static WriteSet analyze(RNode node, FunctionImpl fimpl) {
+        WriteSet res = new WriteSet(fimpl);
         node.linearVisit(res);
         return res;
     }
@@ -22,6 +24,13 @@ public class WriteSet implements NodeVisitor {
     HashSet<RSymbol> topLevel = new HashSet<>();
     HashSet<RSymbol> extension = new HashSet<>();
     HashSet<RSymbol> sassign = new HashSet<>();
+
+    final FunctionImpl fimpl;
+
+    WriteSet(FunctionImpl fimpl) {
+        this.fimpl = fimpl;
+    }
+
 
     @Override
     public boolean visit(RNode node) {
@@ -63,8 +72,15 @@ public class WriteSet implements NodeVisitor {
         return valid &&  locals.isEmpty() && topLevel.isEmpty() && extension.isEmpty() && sassign.isEmpty();
     }
 
-    public boolean isArgumentsOnly() {
 
+    /** Returns true if the only variables being written to are the arguments of the function itself. */
+    public boolean isArgumentsOnly() {
+        if (isValid() && topLevel.isEmpty() && extension.isEmpty() && sassign.isEmpty()) {
+            HashSet<RSymbol> params = new HashSet<>();
+            Collections.addAll(params, fimpl.getParamNames());
+            return  (params.containsAll(locals));
+        }
+        return false;
     }
 
 }

@@ -114,6 +114,28 @@ public abstract class WriteVariable extends BaseR {
         }
     }
 
+    // TODO This is likely not graal friendly, creating a new frameslot and "renaming" the variable is likely the
+    // better way to do.
+
+    /** Reads the variable from the frame extension when its slot index is known. This is used for inlined functions to
+     * access their arguments.
+      */
+    public static class KnownExtension extends WriteVariable {
+        private final int extensionIndex;
+
+        public KnownExtension(ASTNode orig, RSymbol symbol, RNode expr, int extensionIndex) {
+            super(orig, symbol, expr);
+            this.extensionIndex = extensionIndex;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny val = Utils.cast(expr.execute(frame));
+            RFrameHeader.writeToKnownExtension(frame, val, extensionIndex);
+            return val;
+        }
+    }
+
 
     public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final FrameSlot slot, RNode rhs) {
         return new Local(orig, sym, rhs, slot);

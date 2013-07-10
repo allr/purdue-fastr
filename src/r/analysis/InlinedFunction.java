@@ -2,9 +2,10 @@ package r.analysis;
 
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.Frame;
-import r.analysis.visitors.WriteSet;
-import r.fastr;
+import com.oracle.truffle.api.frame.*;
+import r.*;
+import r.analysis.visitors.*;
+import r.data.internal.FunctionImpl;
 import r.nodes.truffle.*;
 
 /** Function inlining.
@@ -16,41 +17,80 @@ public class InlinedFunction {
      * original FunctionCall object.
      */
    public  static RNode analyze(FunctionCall.GenericCall call) {
-        RNode body = call.lastClosure.function().body();
-        WriteSet a = WriteSet.analyze(body);
-        if (a.isEmpty()) {
-            fastr.println("Inlining the nodes because the writeset is empty");
-            return new NoArgs(call, body);
+       FunctionImpl fimpl =  (FunctionImpl) call.lastClosure.function();
+        WriteSet a = WriteSet.analyze(fimpl.body(), fimpl);
+        if (a.isEmpty() && fimpl.nparams() == 0) {
+            fastr.println("Inlining the nodes because the writeset is empty and no arguments are present");
+            return new NoArgs(call, fimpl);
         } else if (a.isArgumentsOnly()) {
-
+            // we must make sure that we are not top level - that is we support local variables ourselves
+            FrameDescriptor fd = call.getFrameDescriptor();
+            if (fd != null) {
+                return new ArgsOnly(call, fimpl, fd);
+            } else {
+                System.out.println("Arguments only function in top level, cannot inline yet");
+            }
         }
         return call;
     }
 
 
 
-    static class NoArgs extends RNode {
+   static class NoArgs extends RNode {
 
-        @DoNotVisit @Child final FunctionCall.GenericCall call;
-        @Child RNode inlinedBody;
+       @DoNotVisit @Child final FunctionCall.GenericCall call;
+       @Child RNode inlinedBody;
 
-        protected NoArgs(FunctionCall.GenericCall call, RNode body) {
-            this.call = call;
-            this.inlinedBody = body.deepCopy(); // no  magic since the writeset of the function is empty
-        }
+       protected NoArgs(FunctionCall.GenericCall call, FunctionImpl fimpl) {
+           this.call = call;
+           this.inlinedBody = fimpl.body().deepCopy(); // no  magic since the writeset of the function is empty
+       }
 
-        @Override
-        public Object execute(Frame frame) {
-            // first make sure that we still evaluate to the inlined version
-            Object callable = call.callableExpr.execute(frame);
-            if (callable != call.lastClosure) {
-                CompilerDirectives.transferToInterpreter();
-                fastr.println("Function " + call.callableExpr.getAST().toString()+" reevaluated, reverting to non-inlined version");
-                this.replace(call);
-                return call.execute(frame, callable);
-            }
-            // everything looks fine, proceed to the inlined version of the function
-            return inlinedBody.execute(frame);
-        }
-    }
+       @Override
+       public Object execute(Frame frame) {
+           // first make sure that we still evaluate to the inlined version
+           Object callable = call.callableExpr.execute(frame);
+           if (callable != call.lastClosure) {
+               CompilerDirectives.transferToInterpreter();
+               fastr.println("Function " + call.callableExpr.getAST().toString()+" reevaluated, reverting to non-inlined version");
+               this.replace(call);
+               return call.execute(frame, callable);
+           }
+           // everything looks fine, proceed to the inlined version of the function
+           return inlinedBody.execute(frame);
+       }
+   }
+
+   static class ArgsOnly extends RNode {
+
+       @DoNotVisit @Child final FunctionCall.GenericCall call;
+       @Child RNode inlinedBody;
+
+       final FrameSlot[] argSlots;
+
+       protected ArgsOnly(FunctionCall.GenericCall call, FunctionImpl fimpl, FrameDescriptor fd) {
+           this.call = call;
+           this.inlinedBody = fimpl.body().deepCopy();
+           argSlots = LocalReadWriteReplacer.execute(fd, fimpl.paramNames(), inlinedBody);
+       }
+
+       @Override
+       public Object execute(Frame frame) {
+           // first make sure that we still evaluate to the inlined version
+           Object callable = call.callableExpr.execute(frame);
+           if (callable != call.lastClosure) {
+               CompilerDirectives.transferToInterpreter();
+               fastr.println("Function " + call.callableExpr.getAST().toString()+" reevaluated, reverting to non-inlined version");
+               this.replace(call);
+               return call.execute(frame, callable);
+           }
+           // now make sure that the extension slots are empty, that is that their values
+           // TODO this can be done better, but for the time being this should do just fine
+           Object[] argValues = call.placeArgs(frame, call.functionArgPositions, call.functionDotsInfo, call.closureFunction.dotsIndex(), call.closureFunction.nparams());
+           for (int i = 0; i < argSlots.length; ++i)
+               Utils.frameSetObject(frame, argSlots[i], argValues[i]);
+           // when the arguments are placed, call the inlined body itself.
+           return inlinedBody.execute(frame);
+       }
+   }
 }
