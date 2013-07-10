@@ -53,6 +53,7 @@ public class Primitives {
         add("!", OpNot._);
         add(_timerStart._);
         add(_timerEnd._);
+        add(_bkpt._);
         add(Abs._);
         add(All._);
         add(Any._);

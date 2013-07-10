@@ -5,7 +5,9 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
+eval_A <- function(i, j) {
+   1 / ((i + j) * (i + j + 1) / 2 + i + 1)
+}
 
 eval_A_times_u <- function(u) {
     ret <- rep(0, n)
@@ -37,7 +39,7 @@ spectralnorm_naive <- function(args) {
         u <- eval_AtA_times_u(v)
     }
 
-    cat(sqrt(sum(u * v) / sum(v * v)), "\n")
+    sqrt(sum(u * v) / sum(v * v))
 }
 
 spectralnorm_naive(200L)
