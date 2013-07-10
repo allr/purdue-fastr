@@ -55,10 +55,7 @@ public class RContext {
         try {
             // TODO get rid of the deep copying test when we do not need it
             RNode root = truffleize.createLazyRootTree(expr);
-            RAny result = (RAny) root.execute(null);
-            RNode r2 = (RNode) root.deepCopy();
-            return result;
-            //return (RAny) .execute(null); // null means top-level
+            return (RAny) root.execute(null); // null means top-level
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();

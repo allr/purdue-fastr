@@ -42,14 +42,14 @@ public abstract class FunctionCall extends AbstractCall {
             Object result = call.execute(frame);
             if (last != call) {
                 CompilerDirectives.transferToInterpreter();
-                System.out.println("Counter for function "+last.ast.toString()+" discarded due to unstable execution tree.");
+                fastr.println("Counter for function "+last.ast.toString()+" discarded due to unstable execution tree.");
                 this.replace(call);
             } else {
                 ++count;
                 if (count == OPTIMIZATION_THRESHOLD) {
                     CompilerDirectives.transferToInterpreter();
-                    System.out.println("Counter for function " + last.ast.toString() + " reached the threshold");
-                    this.replace(InlinedFunction.analyze((GenericCall)call));
+                    fastr.println("Counter for function " + last.ast.toString() + " reached the threshold");
+                    this.replace(InlinedFunction.analyze((GenericCall)call, frame));
                 }
             }
             return result;
@@ -174,6 +174,7 @@ public abstract class FunctionCall extends AbstractCall {
                 } else {
                     // for a stabilized generic call inject the counter before the generic call node
                     FunctionCall n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                    //return replace(callableExpr, callable, n, callerFrame);
                     return replace(callableExpr, callable, new Counter(n), callerFrame);
                 }
             }

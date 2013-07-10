@@ -16,7 +16,7 @@ public class InlinedFunction {
     /** Determines whether the given function should be inlined and if so, returns the new root. Otherwise returns the
      * original FunctionCall object.
      */
-   public  static RNode analyze(FunctionCall.GenericCall call) {
+   public  static RNode analyze(FunctionCall.GenericCall call, Frame frame) {
        FunctionImpl fimpl =  (FunctionImpl) call.lastClosure.function();
         WriteSet a = WriteSet.analyze(fimpl.body(), fimpl);
         if (a.isEmpty() && fimpl.nparams() == 0) {
@@ -24,11 +24,11 @@ public class InlinedFunction {
             return new NoArgs(call, fimpl);
         } else if (a.isArgumentsOnly()) {
             // we must make sure that we are not top level - that is we support local variables ourselves
-            FrameDescriptor fd = call.getFrameDescriptor();
-            if (fd != null) {
-                return new ArgsOnly(call, fimpl, fd);
+            if (frame != null) {
+                fastr.println("inlining function with args only read");
+                return new ArgsOnly(call, fimpl, frame.getFrameDescriptor());
             } else {
-                System.out.println("Arguments only function in top level, cannot inline yet");
+                fastr.println("Arguments only function in top level, cannot inline yet");
             }
         }
         return call;

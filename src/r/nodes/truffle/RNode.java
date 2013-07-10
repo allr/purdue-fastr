@@ -102,18 +102,4 @@ public abstract class RNode extends Node implements DeepCopyable {
         return replace(newNode).execute(frame);
     }
 
-    /** Returns the frame descriptor valid for the current node. That means searches parent nodes hierarchy till the
-     * first FunctionImpl node and then returns its descriptor. If no FunctionImpl node is found in the hierarchy, then
-     * the node is top-level and null is returned.
-     */
-    public FrameDescriptor getFrameDescriptor() {
-        Node parent = this.getParent();
-        while (parent != null) {
-            if (parent instanceof FunctionImpl)
-                return ((FunctionImpl) parent).frameDescriptor;
-            parent = parent.getParent();
-        }
-        return null;
-    }
-
 }
