@@ -20,21 +20,23 @@ public class InlinedFunction {
         WriteSet a = WriteSet.analyze(body);
         if (a.isEmpty()) {
             fastr.println("Inlining the nodes because the writeset is empty");
-            return body.deepCopy();
+            return new NoArgs(call, body);
+        } else if (a.isArgumentsOnly()) {
+
         }
         return call;
     }
 
 
 
-    static class InlinedFunctionNoArgs extends RNode {
+    static class NoArgs extends RNode {
 
         @DoNotVisit @Child final FunctionCall.GenericCall call;
         @Child RNode inlinedBody;
 
-        protected InlinedFunctionNoArgs(FunctionCall.GenericCall call, RNode inlinedBody) {
+        protected NoArgs(FunctionCall.GenericCall call, RNode body) {
             this.call = call;
-            this.inlinedBody = inlinedBody;
+            this.inlinedBody = body.deepCopy(); // no  magic since the writeset of the function is empty
         }
 
         @Override

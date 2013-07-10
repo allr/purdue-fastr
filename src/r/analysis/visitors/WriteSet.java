@@ -5,7 +5,7 @@ import r.data.RSymbol;
 import r.fastr;
 import r.nodes.truffle.*;
 
-import java.util.LinkedList;
+import java.util.*;
 
 
 public class WriteSet implements NodeVisitor {
@@ -18,10 +18,10 @@ public class WriteSet implements NodeVisitor {
 
     private boolean valid = true;
 
-    LinkedList<RSymbol> locals = new LinkedList<>();
-    LinkedList<RSymbol> topLevel = new LinkedList<>();
-    LinkedList<RSymbol> extension = new LinkedList<>();
-    LinkedList<RSymbol> sassign = new LinkedList<>();
+    HashSet<RSymbol> locals = new HashSet<>();
+    HashSet<RSymbol> topLevel = new HashSet<>();
+    HashSet<RSymbol> extension = new HashSet<>();
+    HashSet<RSymbol> sassign = new HashSet<>();
 
     @Override
     public boolean visit(RNode node) {
@@ -61,6 +61,10 @@ public class WriteSet implements NodeVisitor {
 
     public boolean isEmpty() {
         return valid &&  locals.isEmpty() && topLevel.isEmpty() && extension.isEmpty() && sassign.isEmpty();
+    }
+
+    public boolean isArgumentsOnly() {
+
     }
 
 }
