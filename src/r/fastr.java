@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class fastr {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     public static final String MAIN_CLASS = "r.Console";
     //public static final String MAIN_CLASS = "r.FastrHelper";

@@ -40,6 +40,12 @@ spectralnorm_naive <- function(args) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-if (!exists("i_am_wrapper"))
-    spectralnorm_naive(commandArgs(trailingOnly=TRUE))
+spectralnorm_naive(200L)
+spectralnorm_naive(200L)
+spectralnorm_naive(200L)
+spectralnorm_naive(200L)
+spectralnorm_naive(200L)
+t = _timerStart()
+spectralnorm_naive(200L)
+_timerEnd(t, "tmr")
 

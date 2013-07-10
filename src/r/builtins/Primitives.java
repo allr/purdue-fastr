@@ -51,6 +51,8 @@ public class Primitives {
         add("||", OpOr._);
         add("&&", OpAnd._);
         add("!", OpNot._);
+        add(_timerStart._);
+        add(_timerEnd._);
         add(Abs._);
         add(All._);
         add(Any._);
