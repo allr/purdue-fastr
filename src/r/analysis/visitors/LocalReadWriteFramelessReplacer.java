@@ -9,6 +9,11 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.HashMap;
 
+
+// TODO not graal friendly
+/** Bypasses the frame and stores the local variables in a RAny array. On Hotspot this is faster, but is generally not
+ * graal friendly and will fail for recursive functions. However recursive functions are not supported yet.
+ */
 public class LocalReadWriteFramelessReplacer implements NodeVisitor {
 
     final HashMap<RSymbol, Integer> args;
@@ -30,6 +35,8 @@ public class LocalReadWriteFramelessReplacer implements NodeVisitor {
         node.linearVisit(this);
     }
 
+    /** Replaces local writes and reads with frameless reads and writes.
+     */
     @Override
     public boolean visit(RNode node) {
         if (node instanceof WriteVariable.Local) {
