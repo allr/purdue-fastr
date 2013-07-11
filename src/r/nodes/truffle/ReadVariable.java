@@ -107,12 +107,12 @@ public abstract class ReadVariable extends BaseR {
      * always written before being read (e.g. when arguments are stored). If this condition is not met, an NPE will
      * likely occur.
      */
-    public static class InlinedLocal extends ReadVariable {
+    public static class Frameless extends ReadVariable {
 
         final RAny[] locals;
         final int index;
 
-        public InlinedLocal(ASTNode orig, RSymbol symbol, RAny[] locals, int index) {
+        public Frameless(ASTNode orig, RSymbol symbol, RAny[] locals, int index) {
             super(orig, symbol);
             this.locals = locals;
             this.index = index;

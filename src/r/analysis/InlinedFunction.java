@@ -7,6 +7,8 @@ import r.*;
 import r.analysis.visitors.*;
 import r.data.RAny;
 import r.data.internal.FunctionImpl;
+import r.errors.RError;
+import r.nodes.tools.Truffleize;
 import r.nodes.truffle.*;
 
 /** Function inlining. */
@@ -49,7 +51,7 @@ public class InlinedFunction {
 
         protected NoArgs(FunctionCall.GenericCall call, FunctionImpl fimpl) {
             this.call = call;
-            this.inlinedBody = fimpl.body().deepCopy(); // no  magic since the writeset of the function is empty
+            this.inlinedBody = Truffleize.LazyRootTree.removeFrom(fimpl.body()).deepCopy(); // no  magic since the writeset of the function is empty
         }
 
         @Override
@@ -79,7 +81,7 @@ public class InlinedFunction {
 
         protected ArgsOnly(FunctionCall.GenericCall call, FunctionImpl fimpl, FrameDescriptor fd) {
             this.call = call;
-            this.inlinedBody = fimpl.body().deepCopy();
+            this.inlinedBody = Truffleize.LazyRootTree.removeFrom(fimpl.body()).deepCopy();
             argSlots = LocalReadWriteReplacer.execute(fd, fimpl.paramNames(), inlinedBody);
         }
 
@@ -97,7 +99,11 @@ public class InlinedFunction {
             for (int i = 0; i < argSlots.length; ++i)
                 Utils.frameSetObject(frame, argSlots[i], call.argExprs[i].execute(frame));
             // when the arguments are placed, call the inlined body itself.
-            return inlinedBody.execute(frame);
+            try {
+                return inlinedBody.execute(frame);
+            } catch (Loop.ContinueException | Loop.BreakException ce) {
+                throw RError.getNoLoopForBreakNext(call.getAST());
+            }
         }
     }
 
@@ -113,7 +119,7 @@ public class InlinedFunction {
 
         protected FramelessArgsOnly(FunctionCall.GenericCall call, FunctionImpl fimpl, FrameDescriptor fd) {
             this.call = call;
-            this.inlinedBody = fimpl.body().deepCopy();
+            this.inlinedBody = Truffleize.LazyRootTree.removeFrom(fimpl.body()).deepCopy();
             locals = LocalReadWriteFramelessReplacer.execute(fd, fimpl.paramNames(), inlinedBody);
         }
 
@@ -130,7 +136,11 @@ public class InlinedFunction {
             for (int i = 0; i < locals.length; ++i)
                 locals[i] = Utils.cast(call.argExprs[i].execute(frame));
             // when the arguments are placed, call the inlined body itself.
-            return inlinedBody.execute(frame);
+            try {
+                return inlinedBody.execute(frame);
+            } catch (Loop.ContinueException | Loop.BreakException ce) {
+                throw RError.getNoLoopForBreakNext(call.getAST());
+            }
         }
     }
 }

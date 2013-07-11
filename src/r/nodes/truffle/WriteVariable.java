@@ -114,6 +114,25 @@ public abstract class WriteVariable extends BaseR {
         }
     }
 
+    public static class Frameless extends WriteVariable {
+
+        final RAny[] locals;
+        final int index;
+
+        public Frameless(ASTNode orig, RSymbol symbol, RNode expr, RAny[] locals, int index) {
+            super(orig, symbol, expr);
+            this.locals = locals;
+            this.index = index;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            RAny val = Utils.cast(expr.execute(frame));
+            locals[index] = val;
+            return val;
+        }
+    }
+
     // TODO This is likely not graal friendly, creating a new frameslot and "renaming" the variable is likely the
     // better way to do.
 

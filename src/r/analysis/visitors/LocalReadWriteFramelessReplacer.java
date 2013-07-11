@@ -5,6 +5,7 @@ import r.analysis.NodeVisitor;
 import r.data.*;
 import r.fastr;
 import r.nodes.truffle.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.HashMap;
 
@@ -32,11 +33,15 @@ public class LocalReadWriteFramelessReplacer implements NodeVisitor {
     @Override
     public boolean visit(RNode node) {
         if (node instanceof WriteVariable.Local) {
-
+            WriteVariable.Local n = (WriteVariable.Local) node;
+            node.replace(new WriteVariable.Frameless(n.getAST(), n.symbol, n.getExpr(),  locals, args.get(n.symbol)));
+            fastr.println("  replacing WriteVariable.Frameless for variable " + n.symbol.name());
         } else if (node instanceof ReadVariable.SimpleLocal) {
             ReadVariable.SimpleLocal n = (ReadVariable.SimpleLocal) node;
-            node.replace(new ReadVariable.InlinedLocal(n.getAST(), n.symbol, locals, args.get(n.symbol)));
-            fastr.println("  replacing ReadVariable.InlinedLocal for variable " + n.symbol.name());
+            node.replace(new ReadVariable.Frameless(n.getAST(), n.symbol, locals, args.get(n.symbol)));
+            fastr.println("  replacing ReadVariable.Frameless for variable " + n.symbol.name());
+        } else if (node instanceof ReadVariable) {
+            throw new NotImplementedException(); // other than simple local reads not yet implemented, inlining will fail
         }
         return true;
     }

@@ -6,6 +6,7 @@ import r.data.RSymbol;
 import r.data.internal.FunctionImpl;
 import r.fastr;
 import r.nodes.truffle.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.HashMap;
 
@@ -36,11 +37,14 @@ public class LocalReadWriteReplacer implements NodeVisitor {
     @Override
     public boolean visit(RNode node) {
         if (node instanceof WriteVariable.Local) {
-
+            WriteVariable.Local n = (WriteVariable.Local) node;
+            node.replace(new WriteVariable.Local(n.getAST(), n.symbol, n.getExpr(), args.get(n.symbol)));
         } else if (node instanceof ReadVariable.SimpleLocal) {
             ReadVariable.SimpleLocal n = (ReadVariable.SimpleLocal) node;
             node.replace(new ReadVariable.SimpleLocal(n.getAST(), n.symbol, args.get(n.symbol)));
             fastr.println("  replacing ReadVariable.SimpleLocal for variable "+n.symbol.name());
+        } else if (node instanceof ReadVariable) {
+            throw new NotImplementedException(); // other than simple local reads not yet implemented, inlining will fail
         }
         return true;
     }

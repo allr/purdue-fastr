@@ -1,6 +1,6 @@
 package r.nodes.tools;
 
-import r.Utils;
+import r.*;
 import r.builtins.Primitives;
 import r.data.*;
 import r.data.internal.*;
@@ -22,26 +22,46 @@ import com.oracle.truffle.api.frame.*;
 
 public class Truffleize implements Visitor {
 
+    /** LazyRootTree refactored to proper class so that it can be recognized and removed if necessary.
+     *
+     */
+    public static class LazyRootTree extends BaseR {
+
+        @Child RNode node;
+
+        public LazyRootTree(ASTNode orig, RNode child) {
+            super(orig);
+            node = adoptChild(child);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                return node.execute(frame);
+            } catch (Loop.ContinueException | Loop.BreakException ce) {
+                throw RError.getNoLoopForBreakNext(ast);
+            }
+        }
+
+        /** If the tree starts with LazyRootTree, returns its child bypassing the lazy root tree, otherwise returns the
+         * the tree itself.
+         */
+        public static RNode removeFrom(RNode tree) {
+            if (tree instanceof LazyRootTree) {
+                fastr.println("removing lazy root tree");
+                return ((LazyRootTree) tree).node;
+            } else {
+                return tree;
+            }
+        }
+    }
+
     RFunction rootEnclosingFunction;
     RNode result;
     public static final boolean DEBUG_SPECIAL_NODES = false;
 
     public RNode createLazyRootTree(final ASTNode ast) {
-        return new BaseR(ast) {
-
-            @Child RNode node = adoptChild(createLazyTree(ast));
-
-            @Override
-            public final Object execute(Frame frame) {
-                try {
-                    return node.execute(frame);
-                } catch (Loop.ContinueException ce) {
-                    throw RError.getNoLoopForBreakNext(ast);
-                } catch (Loop.BreakException be) {
-                    throw RError.getNoLoopForBreakNext(ast);
-                }
-            }
-        };
+        return new LazyRootTree(ast, createLazyTree(ast));
     }
 
     public RNode createTree(ASTNode ast) {
