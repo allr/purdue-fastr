@@ -39,7 +39,8 @@ spectralnorm_naive <- function(args) {
         u <- eval_AtA_times_u(v)
     }
 
-    sqrt(sum(u * v) / sum(v * v))
+    cat(sqrt(sum(u * v) / sum(v * v)), "\n")
+#   sqrt(sum(u * v) / sum(v * v)
 }
 
 spectralnorm_naive(200L)

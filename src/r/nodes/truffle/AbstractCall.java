@@ -10,12 +10,15 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 
+import java.util.HashMap;
+
 public abstract class AbstractCall extends BaseR {
 
     private static final boolean MATERIALIZE_ON_FUNCTION_CALL = true;
 
     protected final RSymbol[] argNames;
-    @Children protected final RNode[] argExprs;
+    @Children
+    public final RNode[] argExprs;
     protected final int[] dotsArgs; // FIXME: move to FunctionCall?
 
 

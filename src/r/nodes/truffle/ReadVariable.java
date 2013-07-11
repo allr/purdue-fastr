@@ -103,6 +103,27 @@ public abstract class ReadVariable extends BaseR {
         return new SimpleLocal(orig, sym, slot);
     }
 
+    /** Fast and simple read from inlined frame. This class is very specialized and it assumes that the variable is
+     * always written before being read (e.g. when arguments are stored). If this condition is not met, an NPE will
+     * likely occur.
+     */
+    public static class InlinedLocal extends ReadVariable {
+
+        final RAny[] locals;
+        final int index;
+
+        public InlinedLocal(ASTNode orig, RSymbol symbol, RAny[] locals, int index) {
+            super(orig, symbol);
+            this.locals = locals;
+            this.index = index;
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            return locals[index];
+        }
+    }
+
     private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
         return new ReadVariable(orig, sym) {
 
