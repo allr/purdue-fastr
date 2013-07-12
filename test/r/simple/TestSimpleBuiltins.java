@@ -121,6 +121,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:2 ; names(x) <- c(\"A\",NA) ; c(x,test=x) }", " A <NA> test.A test.NA\n1L   2L     1L      2L");
         assertEval("{ c(a=1,b=2:3,list(x=FALSE))  }", "$a\n1.0\n\n$b1\n2L\n\n$b2\n3L\n\n$x\nFALSE");
         assertEval("{ c(1,z=list(1,b=22,3)) }", "[[1]]\n1.0\n\n$z1\n1.0\n\n$z.b\n22.0\n\n$z3\n3.0");
+
+        assertEval("{ c(1i,0/0) }", "0.0+1.0i, NaN+0.0i"); // yes, this is done by GNU-R, note inconsistency with as.complex(0/0)
     }
 
     @Test
@@ -176,6 +178,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ as.complex(\"-.1e10+5i\") }", "-1.0E9+5.0i");
         assertEval("{ as.complex(\"1e-2+3i\") }", "0.01+3.0i");
         assertEval("{ as.complex(\"+.1e+2-3i\") }", "10.0-3.0i");
+        assertEval("{ as.complex(0/0) }", "NA");
+        assertEval("{ as.complex(c(0/0, 0/0)) }", "NA, NA");
 
         assertEval("{ l <- list(1) ; attr(l, \"my\") <- 1; as.list(l) }", "[[1]]\n1.0\nattr(,\"my\")\n1.0");
         assertEval("{ l <- 1 ; attr(l, \"my\") <- 1; as.list(l) }", "[[1]]\n1.0");
@@ -366,6 +370,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ cumsum(as.logical(-2:2)) }", "1L, 2L, 2L, 3L, 4L");
         assertEval("{ cumsum((1:6)*(1+1i)) }", "1.0+1.0i, 3.0+3.0i, 6.0+6.0i, 10.0+10.0i, 15.0+15.0i, 21.0+21.0i");
         assertEval("{ cumsum(as.raw(1:6)) }", "1.0, 3.0, 6.0, 10.0, 15.0, 21.0");
+
         assertEval("{ cumsum(c(1,2,3,0/0,5)) }", "1.0, 3.0, 6.0, NA, NA");
         assertEval("{ cumsum(c(1,0/0,5+1i)) }", "1.0+0.0i, NaN+0.0i, NaN+1.0i");
     }
@@ -492,6 +497,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ abs(NA+0.1) }", "NA");
         assertEval("{ abs(0/0) }", "NaN");
         assertEval("{ abs((1:2)[3] }", "NA");
+        assertEval("{ abs(c(0/0,1i)) }", "NaN, 1.0");
+        assertEval("{ abs((0+0i)/0) }", "NaN");
         assertEval("{ exp(-abs((0+1i)/(0+0i))) }", "0.0");
         assertEval("{ floor(c(0.2,-3.4)) }", "0.0, -4.0");
         assertEval("{ ceiling(c(0.2,-3.4,NA,0/0,1/0)) }", "1.0, -3.0, NA, NaN, Infinity");

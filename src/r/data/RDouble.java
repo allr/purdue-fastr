@@ -322,12 +322,22 @@ public interface RDouble extends RNumber {
 
         @Override
         public double getReal(int i) {
-            return orig.getDouble(i);
+            double d = orig.getDouble(i);
+            if (RDoubleUtils.isNAorNaN(d)) {
+                return RDouble.NA;
+            } else {
+                return d;
+            }
         }
 
         @Override
         public double getImag(int i) {
-            return 0;
+            double d = orig.getDouble(i);
+            if (RDoubleUtils.isNAorNaN(d)) {
+                return RDouble.NA;
+            } else {
+                return 0;
+            }
         }
     }
 

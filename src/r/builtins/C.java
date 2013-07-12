@@ -48,6 +48,14 @@ final class C extends CallFactory {
         return offset + len;
     }
 
+    private static int fillDoubleInComplex(RComplex result, RDouble input, int offset) {
+        int len = input.size();
+        for (int i = 0; i < len; i++) {
+            result.set(offset + i, input.getDouble(i), 0);
+        }
+        return offset + len;
+    }
+
     public static RAny genericCombine(RSymbol[] paramNames, RAny[] params) {
         return genericCombine(paramNames, params, false);
     }
@@ -191,7 +199,11 @@ final class C extends CallFactory {
                 if (v instanceof RNull) {
                     continue;
                 }
-                offset = fillIn(res, v instanceof RComplex ? (RComplex) v : v.asComplex(), offset);
+                if (v instanceof RDouble) { // NOTE: cannot use as.Complex(), before the semantics is different for NaN values
+                    offset = fillDoubleInComplex(res, (RDouble) v, offset);
+                } else {
+                    offset = fillIn(res, v instanceof RComplex ? (RComplex) v : v.asComplex(), offset);
+                }
             }
             return res.setNames(newNames);
         }

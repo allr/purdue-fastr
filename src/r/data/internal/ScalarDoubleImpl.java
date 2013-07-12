@@ -129,7 +129,11 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RComplex asComplex() {
-        return RComplex.RComplexFactory.getScalar(value, 0);
+        if (RDoubleUtils.isNAorNaN(value)) {
+            return RComplex.BOXED_NA;
+        } else {
+            return RComplex.RComplexFactory.getScalar(value, 0);
+        }
     }
 
     @Override

@@ -416,67 +416,67 @@ public class Arithmetic extends BaseR {
         }
     }
 
-    // just an experiment for now
-    static class ScalarIntSpecialized extends BaseR {
-        @Child RNode left;
-        @Child RNode right;
-        final ValueArithmetic arit;
-
-        public ScalarIntSpecialized(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
-            super(ast);
-            this.left = adoptChild(left);
-            this.right = adoptChild(right);
-            this.arit = arit;
-            assert Utils.check(!arit.returnsDouble());
-        }
-
-        private Object recover(Object lobj, Object robj) {
-            RAny lexpr = (RAny) lobj;
-            RAny rexpr = (RAny) robj;
-
-            Arithmetic an = new Arithmetic(ast, left, right, arit);
-            replace(an);
-            return an.execute(lexpr, rexpr);
-
-//            Specialized sn = Specialized.createSpecializedMultiType(lexpr, rexpr, ast, left, right, arit);
-//            if (sn != null) {
-//                replace(sn, "install SpecializedMultiType from ScalarIntSpecialized");
-//                return sn.execute(lexpr, rexpr);
+//    // just an experiment for now
+//    static class ScalarIntSpecialized extends BaseR {
+//        @Child RNode left;
+//        @Child RNode right;
+//        final ValueArithmetic arit;
+//
+//        public ScalarIntSpecialized(ASTNode ast, RNode left, RNode right, ValueArithmetic arit) {
+//            super(ast);
+//            this.left = adoptChild(left);
+//            this.right = adoptChild(right);
+//            this.arit = arit;
+//            assert Utils.check(!arit.returnsDouble());
+//        }
+//
+//        private Object recover(Object lobj, Object robj) {
+//            RAny lexpr = (RAny) lobj;
+//            RAny rexpr = (RAny) robj;
+//
+//            Arithmetic an = new Arithmetic(ast, left, right, arit);
+//            replace(an);
+//            return an.execute(lexpr, rexpr);
+//
+////            Specialized sn = Specialized.createSpecializedMultiType(lexpr, rexpr, ast, left, right, arit);
+////            if (sn != null) {
+////                replace(sn, "install SpecializedMultiType from ScalarIntSpecialized");
+////                return sn.execute(lexpr, rexpr);
+////            }
+////            Specialized gn = Specialized.createGeneric(ast, left, right, arit);
+////            replace(gn, "install Specialized<Generic, Generic> from ScalarIntSpecialized");
+////            return gn.execute(lexpr, rexpr);
+//        }
+//
+//        @Override
+//        public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+//            int lint;
+//            try {
+//                lint = left.executeScalarInteger(frame);
+//            } catch (UnexpectedResultException e) {
+//                throw new UnexpectedResultException(recover(e.getResult(), right.execute(frame)));
 //            }
-//            Specialized gn = Specialized.createGeneric(ast, left, right, arit);
-//            replace(gn, "install Specialized<Generic, Generic> from ScalarIntSpecialized");
-//            return gn.execute(lexpr, rexpr);
-        }
-
-        @Override
-        public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
-            int lint;
-            try {
-                lint = left.executeScalarInteger(frame);
-            } catch (UnexpectedResultException e) {
-                throw new UnexpectedResultException(recover(e.getResult(), right.execute(frame)));
-            }
-            int rint;
-            try {
-                rint = right.executeScalarInteger(frame);
-            } catch (UnexpectedResultException e) {
-                throw new UnexpectedResultException(recover(left.execute(frame), e.getResult()));
-            }
-            if (lint == RInt.NA || rint == RInt.NA) {
-                return RInt.NA;
-            }
-            return arit.opWarnOverflow(ast, lint, rint);
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            try {
-                return RInt.RIntFactory.getScalar(executeScalarInteger(frame)); // does the rewriting
-            } catch (UnexpectedResultException e) {
-                return e.getResult();
-            }
-        }
-    }
+//            int rint;
+//            try {
+//                rint = right.executeScalarInteger(frame);
+//            } catch (UnexpectedResultException e) {
+//                throw new UnexpectedResultException(recover(left.execute(frame), e.getResult()));
+//            }
+//            if (lint == RInt.NA || rint == RInt.NA) {
+//                return RInt.NA;
+//            }
+//            return arit.opWarnOverflow(ast, lint, rint);
+//        }
+//
+//        @Override
+//        public Object execute(Frame frame) {
+//            try {
+//                return RInt.RIntFactory.getScalar(executeScalarInteger(frame)); // does the rewriting
+//            } catch (UnexpectedResultException e) {
+//                return e.getResult();
+//            }
+//        }
+//    }
 
 
     static class SpecializedConst extends Arithmetic {
@@ -556,7 +556,7 @@ public class Arithmetic extends BaseR {
                              throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                          }
                          double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
-                         if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rreal)) {
+                         if (isLeftNA || RDouble.RDoubleUtils.isNAorNaN(rreal)) { // NOTE: not arithIsNA !
                              return RComplex.BOXED_NA;
                          }
                          return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, limag, rreal, 0), arit.opImag(ast, lreal, limag, rreal, 0));
@@ -576,7 +576,7 @@ public class Arithmetic extends BaseR {
                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
                         }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
-                        if (isRightNA || RDouble.RDoubleUtils.arithIsNA(lreal)) {
+                        if (isRightNA || RDouble.RDoubleUtils.isNAorNaN(lreal)) { // NOTE: not arithIsNA !
                             return RComplex.BOXED_NA;
                         }
                         return RComplex.RComplexFactory.getScalar(arit.opReal(ast, lreal, 0, rreal, rimag), arit.opImag(ast, lreal, 0, rreal, rimag));
@@ -739,13 +739,12 @@ public class Arithmetic extends BaseR {
 
             boolean leftConst = left instanceof Constant;
             boolean rightConst = right instanceof Constant;
-            if (!leftConst && !rightConst) {
-                return null;
-            }
+            assert Utils.check(leftConst || rightConst);
+
             final boolean alwaysDouble = returnsDouble(arit);
 
-            if (!(leftTemplate instanceof ScalarIntImpl) && !(leftTemplate instanceof ScalarDoubleImpl) &&
-               !(rightTemplate instanceof ScalarIntImpl) && !(rightTemplate instanceof ScalarDoubleImpl)) {
+            if ((!(leftTemplate instanceof ScalarIntImpl) && !(leftTemplate instanceof ScalarDoubleImpl)) ||
+               (!(rightTemplate instanceof ScalarIntImpl) && !(rightTemplate instanceof ScalarDoubleImpl))) {
                 return null;
             }
 
@@ -816,8 +815,8 @@ public class Arithmetic extends BaseR {
                     };
                     return createLeftConst(ast, left, right, arit, c, "<ConstScalarInt, ScalarInt|Double>");
                 }
-            }
-            if (rightConst) {
+            } else {
+                // rightConst
                 double trdbl;
                 int trint;
                 boolean tisRightNA;
@@ -885,7 +884,6 @@ public class Arithmetic extends BaseR {
                     return createRightConst(ast, left, right, arit, c, "<ScalarInt|Double, ConstScalarInt>");
                 }
             }
-            return null;
         }
 
         public static SpecializedConst createGeneric(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
@@ -984,10 +982,7 @@ public class Arithmetic extends BaseR {
                     }
                 };
             }
-            if (c == null) {
-                Utils.nyi("unreachable");
-                return null;
-            }
+            assert Utils.check(c != null);
             if (rightConst) {
                 return createRightConst(ast, left, right, arit, c, "<Generic, ConstGeneric>");
             } else {
@@ -1112,6 +1107,8 @@ public class Arithmetic extends BaseR {
         public abstract void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size);
 
         public RInt op(ASTNode ast, IntImpl xint, IntImpl.RIntSequence y, int size, int[] dimensions, Names names, Attributes attributes) {
+            // FIXME: needed?
+
             int[] x = xint.getContent();
 
             if (IN_PLACE && xint.isTemporary()) {
@@ -1260,7 +1257,8 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void op(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
-            // TODO: why is this not faster than the view???
+            // TODO: why is this not faster than the view ???
+            // FIXME: needed ?
             int y = yfrom;
             boolean overflown = false;
             for (int i = 0; i < size; i++) {

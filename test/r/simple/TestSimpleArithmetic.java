@@ -3,8 +3,6 @@ package r.simple;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-import r.*;
-
 public class TestSimpleArithmetic extends SimpleTestBase {
 
     @Test
@@ -95,6 +93,77 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ (1/0)^(-4) }", "0.0");
         assertEval("{(-1/0)^(-4) }", "0.0");
 
+        assertEval("{ 0/0 - 4i }", "NA");
+        assertEval("{ 4i + 0/0  }", "NA");
+        assertEval("{ a <- 1 + 2i; b <- 0/0 - 4i; a + b }", "NA");
+
+        assertEval("{ f <- function(a, b) { a + b } ; f(1+2i, 3+4i) ; f(1, 2) }", "3.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(2, 3+4i) ; f(1, 2) }", "3.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1+2i, 3) ; f(1, 2) }", "3.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(2, 3+4i) ; f(1, 2) }", "3.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1+2i, 3) ; f(1, 2) }", "3.0");
+        assertEval("{ 1L / 2L }", "0.5");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1L, 2L) ; f(1, 2) }", "0.5");
+        assertEval("{ (1:2)[3] / 2L }", "NA");
+        assertEval("{ 2L / (1:2)[3] }", "NA");
+        assertEval("{ a <- (1:2)[3] ; b <- 2L ; a / b }", "NA");
+        assertEval("{ a <- 2L ; b <- (1:2)[3] ; a / b }", "NA");
+        assertEval("{ (1:2)[3] + 2L }", "NA");
+        assertEval("{ 2L + (1:2)[3] }", "NA");
+        assertEval("{ a <- (1:2)[3] ; b <- 2L ; a + b }", "NA");
+        assertEval("{ a <- 2L ; b <- (1:2)[3] ; a + b }", "NA");
+        assertEval("{ a <- (1:2)[3] ; b <- 2 ; a + b }", "NA");
+        assertEval("{ a <- 2 ; b <- (1:2)[3] ; a + b }", "NA");
+
+        assertEval("{ f <- function(a, b) { a + b } ; f(c(1,2), c(3,4)) ; f(c(1,2), 3:4) }", "4.0, 6.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1:2, c(3,4)) ; f(c(1,2), 3:4) }", "4.0, 6.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1:2, 3:4) ; f(c(1,2), 3:4) }", "4.0, 6.0");
+
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f(2L,4) }", "0.5");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f(2L,4L) }", "0.5");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f(2L,(1:2)[3]) }", "NA");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f((1:2)[3], 2L) }", "NA");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1,1) ; f(1,1L) ; f(2L,4) }", "6.0");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1,1) ; f(1,1L) ; f(2L,4L) }", "6L");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1,1) ; f(1,1L) ; f(2L,(1:2)[3]) }", "NA");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1,1) ; f(1,1L) ; f((1:2)[3], 2L) }", "NA");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f(2,(1:2)[3]) }", "NA");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f((1:2)[3],2) }", "NA");
+        assertEval("{ f <- function(a, b) { a / b } ; f(1,1) ; f(1,1L) ; f(2+1i,(1:2)[3]) }", "NA");
+        assertEval("{ f <- function(a, b) { a + b } ; f(1,1) ; f(1,1+2i) ; f(TRUE, 2)  }", "3.0");
+
+        assertEval("{ f <- function(b) { 1 / b } ; f(1) ; f(1L) ; f(4) }", "0.25");
+        assertEval("{ f <- function(b) { 1 / b } ; f(1+1i) ; f(1L)  }", "1.0");
+        assertEval("{ f <- function(b) { 1 / b } ; f(1) ; f(1L) }", "1.0");
+        assertEval("{ f <- function(b) { 1 / b } ; f(1L) ; f(1) }", "1.0");
+        assertEval("{ f <- function(b) { 1 / b } ; f(TRUE) ; f(1L) }", "1.0");
+        assertEval("{ f <- function(b) { 1i / b } ; f(1) ; f(1L) ; f(4) }", "0.0+0.25i");
+        assertEval("{ f <- function(b) { 1i / b } ; f(1+1i) ; f(1L) }", "0.0+1.0i");
+        assertEval("{ f <- function(b) { 1i / b } ; f(1) ; f(1L) }", "0.0+1.0i");
+        assertEval("{ f <- function(b) { 1i / b } ; f(TRUE) ; f(1L) }", "0.0+1.0i");
+        assertEval("{ f <- function(b) { b / 1 } ; f(1) ; f(1L) ; f(4) }", "4.0");
+        assertEval("{ f <- function(b) { b / 2 } ; f(1+1i) ; f(1L)  }", "0.5");
+        assertEval("{ f <- function(b) { b / 2 } ; f(1) ; f(1L) }", "0.5");
+        assertEval("{ f <- function(b) { b / 4 } ; f(1L) ; f(1) }", "0.25");
+        assertEval("{ f <- function(b) { b / 4i } ; f(1) ; f(1L) }", "0.0-0.25i");
+        assertEval("{ f <- function(b) { 4L / b } ; f(1L) ; f(2) }", "2.0");
+        assertEval("{ f <- function(b) { 4L + b } ; f(1L) ; f(2) }", "6.0");
+        assertEval("{ f <- function(b) { b / 2L } ; f(1L) ; f(2) }", "1.0");
+        assertEval("{ f <- function(b) { 4L / b } ; f(1L) ; f(2) ; f(TRUE) }", "4.0");
+        assertEval("{ f <- function(b) { 4L + b } ; f(1L) ; f(2) ; f(TRUE) }", "5L");
+        assertEval("{ f <- function(b) { 4L + b } ; f(1L) ; f(2) ; f((1:2)[3]) }", "NA");
+        assertEval("{ f <- function(b) { 4L / b } ; f(1L) ; f(2) ; f((1:2)[3]) }", "NA");
+        assertEval("{ f <- function(b) { (1:2)[3] + b } ; f(1L) ; f(2) }", "NA");
+        assertEval("{ f <- function(b) { (1:2)[3] + b } ; f(1) ; f(2L) }", "NA");
+        assertEval("{ f <- function(b) { b + 4L } ; f(1L) ; f(2) ; f(TRUE) }", "5L");
+        assertEval("{ f <- function(b) { b + 4L } ; f(1L) ; f(2) ; f((1:2)[3]) }", "NA");
+        assertEval("{ f <- function(b) { b / 4L } ; f(1L) ; f(2) ; f(TRUE) }", "0.25");
+        assertEval("{ f <- function(b) { b / 4L } ; f(1L) ; f(2) ; f((1:2)[3]) }", "NA");
+        assertEval("{ f <- function(b) { 1 + b } ; f(1L) ; f(TRUE) }", "2.0");
+        assertEval("{ f <- function(b) { FALSE + b } ; f(1L) ; f(2) }", "2.0");
+        assertEval("{ f <- function(b) { b + 1 } ; f(1L) ; f(TRUE) }", "2.0");
+        assertEval("{ f <- function(b) { b + FALSE } ; f(1L) ; f(2) }", "2.0");
+        assertEval("{ (0+2i)^0 }", "1.0+2.0i");
     }
 
     @Test
@@ -139,6 +208,16 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ c(1L,2L) + c(1,2,3,4) }", "2.0, 4.0, 4.0, 6.0");
         assertEval("{ 1L + c(1,2) }", "2.0, 3.0");
 
+        assertEval("{ a <- c(1,3) ; b <- c(2,4) ; a ^ b }", "1.0, 81.0");
+        assertEval("{ a <- c(1,3) ; a ^ 3 }", "1.0, 27.0");
+        assertEval("{ a <- c(1+1i,3+2i) ; a - (4+3i) }", "-3.0-2.0i, -1.0-1.0i");
+        assertEval("{ c(1,3) - 4 }", "-3.0, -1.0");
+        assertEval("{ c(1+1i,3+2i) * c(1,2) }", "1.0+1.0i, 6.0+4.0i");
+        assertEval("{ z <- c(1+1i,3+2i) ; z * c(1,2) }", "1.0+1.0i, 6.0+4.0i");
+        assertEval("{ round(c(1+1i,2+3i)^c(1+1i,3+4i), digits = 5) }", "0.27396+0.5837i, -0.20455+0.89662i");
+        assertEval("{ c(1+1i,3+2i) / 2 }", "0.5+0.5i, 1.5+1.0i");
+        assertEval("{ c(1,3) / c(2,4) }", "0.5, 0.75");
+        assertEval("{ c(1,3) %/% c(2,4) }", "0.0, 0.0");
     }
 
     @Test
