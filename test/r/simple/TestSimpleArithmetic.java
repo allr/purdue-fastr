@@ -218,6 +218,46 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ c(1+1i,3+2i) / 2 }", "0.5+0.5i, 1.5+1.0i");
         assertEval("{ c(1,3) / c(2,4) }", "0.5, 0.75");
         assertEval("{ c(1,3) %/% c(2,4) }", "0.0, 0.0");
+
+        assertEval("{ integer()+1 }", "numeric(0)");
+        assertEval("{ 1+integer() }", "numeric(0)");
+        assertEvalWarning("{ 1:2+1:3 }", "2L, 4L, 4L", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ 1:3*1:2 }", "1L, 4L, 3L", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ 1:3+c(1,2+2i) }", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(1,2+2i)+1:3 }", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i", "longer object length is not a multiple of shorter object length");
+
+        assertEvalError("{ x <- 1:2 ; dim(x) <- 1:2 ; y <- 2:3 ; dim(y) <- 2:1 ; x + y }", "non-conformable arrays");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- 1:2 ; y <- 2:3 ; dim(y) <- c(1,1,2) ; x + y }", "non-conformable arrays");
+
+        assertEval("{ NA+1:3 }", "NA, NA, NA");
+        assertEval("{ 1:3+NA }", "NA, NA, NA");
+        assertEval("{ NA+c(1L, 2L, 3L) }", "NA, NA, NA");
+        assertEval("{ c(1L, 2L, 3L)+NA }", "NA, NA, NA");
+        assertEval("{ c(NA,NA,NA)+1:3 }", "NA, NA, NA");
+        assertEval("{ 1:3+c(NA, NA, NA) }", "NA, NA, NA");
+        assertEval("{ c(NA,NA,NA)+c(1L,2L,3L) }", "NA, NA, NA");
+        assertEval("{ c(1L,2L,3L)+c(NA, NA, NA) }", "NA, NA, NA");
+        assertEval("{ c(NA,NA)+1:4 }", "NA, NA, NA, NA");
+        assertEval("{ 1:4+c(NA, NA) }", "NA, NA, NA, NA");
+        assertEval("{ c(NA,NA,NA,NA)+1:2 }", "NA, NA, NA, NA");
+        assertEval("{ 1:2+c(NA,NA,NA,NA) }", "NA, NA, NA, NA");
+        assertEval("{ c(NA,NA)+c(1L,2L,3L,4L) }", "NA, NA, NA, NA");
+        assertEval("{ c(1L,2L,3L,4L)+c(NA, NA) }", "NA, NA, NA, NA");
+        assertEval("{ c(NA,NA,NA,NA)+c(1L,2L) }", "NA, NA, NA, NA");
+        assertEval("{ c(1L,2L)+c(NA,NA,NA,NA) }", "NA, NA, NA, NA");
+        assertEval("{ c(1L,NA)+1 }", "2.0, NA");
+        assertEval("{ c(1L,NA) + c(2,3) }", "3.0, NA");
+        assertEval("{ c(2,3) + c(1L,NA)}", "3.0, NA");
+        assertEval("{ 1:4+c(1,2) }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ c(1,2)+1:4 }", "2.0, 4.0, 4.0, 6.0");
+        assertEval("{ 1:4+c(1,2+2i) }", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i");
+        assertEval("{ c(1,2+2i)+1:4 }", "2.0+0.0i, 4.0+2.0i, 4.0+0.0i, 6.0+2.0i");
+
+        assertEval("{ c(3,4) %% 2 }", "1.0, 0.0");
+        assertEval("{ c(3,4) %% c(2,5) }", "1.0, 4.0");
+        assertEval("{ c(3,4) %/% 2 }", "1.0, 2.0");
+        assertEval("{ 3L %/% 2L }", "1L");
+        assertEval("{ 3L %/% 0L }", "NA");
     }
 
     @Test
@@ -258,6 +298,8 @@ public class TestSimpleArithmetic extends SimpleTestBase {
 
         // precedence
         assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");
+
+        assertEval("{ x <- 1:2 ; dim(x) <- c(1,1,2) ; y <- 2:3 ; dim(y) <- c(1,1,2) ; x + y }", ", , 1\n\n     [,1]\n[1,]   3L\n\n, , 2\n\n     [,1]\n[1,]   5L");
     }
 
     @Test
@@ -324,6 +366,18 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEvalNoWarnings("{ 3L %% 0L }", "NA");
         assertEvalNoWarnings("{ c(3L,3L) %/% 0L }", "NA, NA");
         assertEvalNoWarnings("{ c(3L,3L) %% 0L }", "NA, NA");
+        assertEvalWarning("{ 2147483647L + 1:3 }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ 2147483647L + c(1L,2L,3L) }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ 1:3 + 2147483647L }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(1L,2L,3L) + 2147483647L }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ 1:3 + c(2147483647L,2147483647L,2147483647L) }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(2147483647L,2147483647L,2147483647L) + 1:3 }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(1L,2L,3L) + c(2147483647L,2147483647L,2147483647L) }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(2147483647L,2147483647L,2147483647L) + c(1L,2L,3L) }", "NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ 1:4 + c(2147483647L,2147483647L) }", "NA, NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(2147483647L,2147483647L) + 1:4 }", "NA, NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(1L,2L,3L,4L) + c(2147483647L,2147483647L) }", "NA, NA, NA, NA", "NAs produced by integer overflow");
+        assertEvalWarning("{ c(2147483647L,2147483647L) + c(1L,2L,3L,4L) }", "NA, NA, NA, NA", "NAs produced by integer overflow");
 
     }
 

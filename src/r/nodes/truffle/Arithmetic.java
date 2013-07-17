@@ -3722,9 +3722,6 @@ public class Arithmetic extends BaseR {
         if (na == null) {
             return nb;
         }
-        if (na == nb) {
-            return na;
-        }
         int asize = a.size();
         int bsize = b.size();
 
