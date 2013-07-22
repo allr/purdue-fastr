@@ -161,7 +161,7 @@ public abstract class RError extends RuntimeException {
     public static final String IS_OF_WRONG_LENGTH = "'%s' is of wrong length";
     public static final String IS_OF_WRONG_ARITY = "'%d' argument passed to '%s' which requires '%d'";
     public static final String OBJECT_NOT_SUBSETTABLE = "object of type '%s' is not subsettable";
-    public static final String DIMS_DONT_MATCH_LENGTH = "dims [product %d] do not match the length of object[%d]";
+    public static final String DIMS_DONT_MATCH_LENGTH = "dims [product %d] do not match the length of object [%d]";
     public static final String MUST_BE_ATOMIC = "'%s' must be atomic";
     public static final String MUST_BE_NULL_OR_STRING = "'%s' must be NULL or a character vector";
     public static final String MUST_BE_SCALAR = "'%s' must be of length 1";

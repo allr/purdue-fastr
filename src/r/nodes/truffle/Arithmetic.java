@@ -3686,18 +3686,29 @@ public class Arithmetic extends BaseR {
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
         int[] dima = a.dimensions();
         int[] dimb = b.dimensions();
-        if (dimb == null) {
-            return dima;
-        }
         if (dima == null) {
+            if (dimb != null) {
+                int asize = a.size();
+                int bsize = b.size();
+                if (asize > bsize) {
+                    throw RError.getDimsDontMatchLength(ast, bsize, asize);
+                }
+            }
             return dimb;
         }
-        if (dima == dimb) {
+        if (dimb == null) {
+            if (dima != null) {
+                int asize = a.size();
+                int bsize = b.size();
+                if (bsize > asize) {
+                    throw RError.getDimsDontMatchLength(ast, asize, bsize);
+                }
+            }
             return dima;
         }
+
         int alen = dima.length;
         int blen = dimb.length;
-
         if (alen == 2 && blen == 2 && dima[0] == dimb[0] && dima[1] == dimb[1]) {
             return dima;
         }

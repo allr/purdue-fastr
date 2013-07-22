@@ -258,6 +258,8 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ c(3,4) %/% 2 }", "1.0, 2.0");
         assertEval("{ 3L %/% 2L }", "1L");
         assertEval("{ 3L %/% 0L }", "NA");
+
+        assertEvalError("{ m <- matrix(nrow=2, ncol=2, 1:4) ; m + 1:16 }", "dims [product 4] do not match the length of object [16]");
     }
 
     @Test

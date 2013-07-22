@@ -350,7 +350,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         assertEval("{ x <- 1:2 ; dim(x) <- c(1,2) ; x }", "     [,1] [,2]\n[1,]   1L   2L");
         assertEval("{ z <- 1 ; dim(z) <- c(1,1) ; dim(z) <- NULL ; z }", "1.0");
-        assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,3) ; x }", "dims [product 3] do not match the length of object[2]");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,3) ; x }", "dims [product 3] do not match the length of object [2]");
         assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,NA) ; x }", "the dims contain missing values");
         assertEvalError("{ x <- 1:2 ; dim(x) <- c(1,-1) ; x }", "the dims contain negative values");
         assertEvalError("{ x <- 1:2 ; dim(x) <- integer() ; x }", "length-0 dimension vector is invalid");

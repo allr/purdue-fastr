@@ -68,6 +68,51 @@ public class TestSimpleComparison extends SimpleTestBase {
         assertEval("{ a <- as.raw(1) ; b <- as.raw(2) ; a == b }", "FALSE");
         assertEval("{ a <- as.raw(1) ; b <- as.raw(200) ; a < b }", "TRUE");
         assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; a < b }", "TRUE");
+
+        assertEval("{ a <- 1 ; b <- a[2] ; a == b }", "NA");
+        assertEval("{ a <- 1 ; b <- a[2] ; b > a }", "NA");
+        assertEval("{ a <- 1L ; b <- a[2] ; a == b }", "NA");
+        assertEval("{ a <- 1L ; b <- a[2] ; b > a }", "NA");
+        assertEval("{ a <- 1L ; b <- 1[2] ; a == b }", "NA");
+        assertEval("{ a <- 1L[2] ; b <- 1 ; a == b }", "NA");
+        assertEval("{ a <- 1L[2] ; b <- 1 ; b > a }", "NA");
+        assertEval("{ a <- 1 ; b <- 1L[2] ; a == b }", "NA");
+        assertEval("{ a <- 1[2] ; b <- 1L ; b > a }", "NA");
+        assertEval("{ a <- 1L ; b <- TRUE[2] ; a == b }", "NA");
+        assertEval("{ a <- 1L[2] ; b <- TRUE ; a != b }", "NA");
+        assertEval("{ a <- TRUE ; b <- 1L[2] ; a > b }", "NA");
+        assertEval("{ a <- TRUE[2] ; b <- 1L ; a == b }", "NA");
+
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1,2L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1L,2L) ; f(1,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1L,2L) ; f(1L,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1L,2) ; f(1,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1L,2) ; f(1L,2L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2L) ; f(1,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2L) ; f(1L,2L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(TRUE,FALSE) ; f(TRUE,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(TRUE,FALSE) ; f(1L,2L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(0L,TRUE) ; f(FALSE,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(0L,TRUE) ; f(0L,2L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(0L,TRUE) ; f(2L,TRUE) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(TRUE,2L) ; f(FALSE,2) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a > b } ; f(TRUE,2L) ; f(0L,2L) }", "FALSE");
+
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(\"hello\", \"hi\"[2]) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(\"hello\"[2], \"hi\") }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2, 1L[2]) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2[2], 1L) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2, 1[2]) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2[2], 1) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2L, 1[2]) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2L[2], 1) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2L, 1L[2]) }", "NA");
+        assertEval("{ f <- function(a,b) { a > b } ; f(1,2) ; f(1L,2) ; f(2L[2], 1L) }", "NA");
+
+        assertEval("{ z <- TRUE; dim(z) <- c(1) ; dim(z == TRUE) }", "1L");
+        assertEvalError("{ z <- TRUE; dim(z) <- c(1) ; u <- 1:3 ; dim(u) <- 3 ; u == z }", "non-conformable arrays");
+
     }
 
     @Test
@@ -81,11 +126,17 @@ public class TestSimpleComparison extends SimpleTestBase {
         assertEval("{ c(1:3,4,5)==1:5 }", "TRUE, TRUE, TRUE, TRUE, TRUE");
         assertEval("{ 0/0 == c(1,2,3,4) }", "NA, NA, NA, NA");
         assertEval("{ 3 != 1:2 }", "TRUE, TRUE");
+        assertEval("{ b <- 1:3 ; z <- FALSE ; b[2==2] }", "1L, 2L, 3L");
+
+        assertEval("{ 1:3 == TRUE }", "TRUE, FALSE, FALSE");
+        assertEval("{ TRUE == 1:3 }", "TRUE, FALSE, FALSE");
 
         assertEvalError("{ 1+1i > 2+2i }", "invalid comparison with complex values");
         assertEvalError("{ 1+1i < 2+2i }", "invalid comparison with complex values");
         assertEvalError("{ 1+1i >= 2+2i }", "invalid comparison with complex values");
         assertEvalError("{ 1+1i <= 2+2i }", "invalid comparison with complex values");
+
+        assertEvalError("{ m <- matrix(nrow=2, ncol=2, 1:4) ; m == 1:16 }", "dims [product 4] do not match the length of object [16]");
     }
 
     @Test

@@ -291,7 +291,8 @@ public class Comparison extends BaseR {
             return execute(lexpr, rexpr);
         }
 
-        public Object execute(RAny lexpr, RAny rexpr) { // FIXME: some of these checks should be rewritten as we now enforce scalar representation
+        public Object execute(RAny lexpr, RAny rexpr) {
+            // FIXME: some of these checks should be rewritten as we now enforce scalar representation
             try {  // FIXME: perhaps should create different nodes for the cases below
                 if (DEBUG_CMP) Utils.debug("comparison - assuming numeric (int,double) vector and scalar");
                 // we assume that double vector against double scalar is the most common case
@@ -362,7 +363,7 @@ public class Comparison extends BaseR {
                 }
                 if (lexpr instanceof RInt || rexpr instanceof RInt) {
                     RInt lint = lexpr.asInt();
-                    RInt rint = lexpr.asInt();
+                    RInt rint = rexpr.asInt();
                     if (rint.size() == 1 && rint.dimensions() == null) {
                         return Comparison.this.cmp.cmp(lint,  rint.getInt(0));
                     } else if (lint.size() == 1 && lint.dimensions() == null) {
