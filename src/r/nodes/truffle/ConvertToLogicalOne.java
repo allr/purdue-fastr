@@ -111,14 +111,21 @@ public abstract class ConvertToLogicalOne extends RNode {
             public int cast(RAny value) {
                 if (DEBUG_C) Utils.debug("casting generic to one logical");
                 RLogical logicalArray = value.asLogical();
-                if (logicalArray.size() == 1) {
-                    return logicalArray.getLogical(0);
-                }
-                if (logicalArray.size() > 1) {
+                int asize = logicalArray.size();
+                int logicalValue;
+                if (asize == 1) {
+                    logicalValue = logicalArray.getLogical(0);
+                } else if (asize > 1) {
+                    logicalValue = logicalArray.getLogical(0);
                     RContext.warning(getAST(), RError.LENGTH_GT_1);
-                    return logicalArray.getLogical(0);
+                } else {
+                    assert Utils.check(asize == 0);
+                    throw RError.getLengthZero(input.getAST());
                 }
-                throw RError.getLengthZero(null);
+                if (logicalValue == RLogical.NA && !(value instanceof RLogical)) {
+                    throw RError.getArgumentNotInterpretableLogical(input.getAST());
+                }
+                return logicalValue;
             }
 
             @Override

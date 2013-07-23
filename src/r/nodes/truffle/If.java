@@ -40,7 +40,9 @@ public class If extends BaseR {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-            cond.replace(castNode);
+            // FIXME: Truffle won't let us use replace, "The parent of a node can never be the node itself"
+            //  cond.replace(castNode);
+            cond = adoptChild(castNode);
             ifVal = castNode.executeScalarLogical(result);
         }
 
@@ -177,7 +179,9 @@ public class If extends BaseR {
                 this.cmp = cmp;
             }
 
-            public static Specialized create(ASTNode ast, RNode cond, RNode expr, RNode trueBranch, RNode falseBranch, RAny constant, RAny valueTemplate) {
+            public static Specialized create(final ASTNode ast, RNode cond, RNode expr, RNode trueBranch, RNode falseBranch, RAny constant, RAny valueTemplate) {
+                // FIXME: the comparison functions could treat the NAs directly
+
                 if (valueTemplate instanceof ScalarDoubleImpl) {
                     if (!(constant instanceof ScalarDoubleImpl || constant instanceof ScalarIntImpl || constant instanceof ScalarLogicalImpl)) {
                         return null;
@@ -195,7 +199,7 @@ public class If extends BaseR {
                             if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                 return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                             } else {
-                                return RLogical.NA;
+                                throw RError.getUnexpectedNA(ast);
                             }
                         }
                     };
@@ -216,7 +220,7 @@ public class If extends BaseR {
                                 if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
                                     return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                                 } else {
-                                    return RLogical.NA;
+                                    throw RError.getUnexpectedNA(ast);
                                 }
                             }
                         };
@@ -234,7 +238,7 @@ public class If extends BaseR {
                                 if (!cIsNA && v != RInt.NA) {
                                     return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                                 } else {
-                                    return RLogical.NA;
+                                    throw RError.getUnexpectedNA(ast);
                                 }
                             }
                         };
@@ -259,7 +263,7 @@ public class If extends BaseR {
                             if (!cIsNA && v != RLogical.NA) {
                                 return (v == c) ? RLogical.TRUE : RLogical.FALSE;
                             } else {
-                                return RLogical.NA;
+                                throw RError.getUnexpectedNA(ast);
                             }
                         }
                     };
@@ -275,10 +279,10 @@ public class If extends BaseR {
                     int ifVal = cmp.cmp(value);
                     if (ifVal == RLogical.TRUE) {
                         return trueBranch.execute(frame);
-                    } else if (ifVal == RLogical.FALSE) {
+                    } else {
+                        assert Utils.check(ifVal == RLogical.FALSE);
                         return falseBranch.execute(frame);
                     }
-                    throw RError.getUnexpectedNA(getAST());
                  } catch (UnexpectedResultException e) {
                      If in = new If(ast, cond, trueBranch, falseBranch);
                      replace(in, "install If from IfConst.Specialized");

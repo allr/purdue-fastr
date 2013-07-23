@@ -28,10 +28,6 @@ public abstract class WriteVariable extends BaseR {
         this.expr = adoptChild(expr);
     }
 
-    public RNode getExpr() {
-        return expr;
-    }
-
     public static WriteVariable getUninitialized(ASTNode orig, RSymbol sym, RNode rhs) {
         return new WriteVariable(orig, sym, rhs) {
 
