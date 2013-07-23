@@ -3,7 +3,6 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -141,7 +140,7 @@ public abstract class UnaryMinus extends BaseR {
                     if (value instanceof RLogical) {
                         return forInt(value.asInt());
                     }
-                    throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                    throw RError.getInvalidArgTypeUnary(ast);
                 }
             };
             return new Specialized(ast, lhs, minus, "NumericScalar<Generic>");
@@ -200,10 +199,6 @@ public abstract class UnaryMinus extends BaseR {
 
             if (value instanceof RComplex) {
                 final RComplex cvalue = (RComplex) value;
-                final int vsize = cvalue.size();
-                if (vsize == 0) {
-                    throw RError.getInvalidArgTypeUnary(ast);
-                }
                 return new View.RComplexProxy<RComplex>(cvalue) {
 
                     @Override
@@ -229,10 +224,6 @@ public abstract class UnaryMinus extends BaseR {
             }
             if (value instanceof RDouble) {
                 final RDouble dvalue = (RDouble) value;
-                final int vsize = dvalue.size();
-                if (vsize == 0) {
-                    throw RError.getInvalidArgTypeUnary(ast);
-                }
                 return new View.RDoubleProxy<RDouble>(dvalue) {
 
                     @Override
@@ -248,10 +239,6 @@ public abstract class UnaryMinus extends BaseR {
             }
             if (value instanceof RInt || value instanceof RLogical) {
                 final RInt ivalue = value.asInt();
-                final int vsize = ivalue.size();
-                if (vsize == 0) {
-                    throw RError.getInvalidArgTypeUnary(ast);
-                }
                 return new View.RIntProxy<RInt>(ivalue) {
 
                     @Override
@@ -261,8 +248,7 @@ public abstract class UnaryMinus extends BaseR {
                     }
                 };
             }
-            Utils.nyi("unsupported type");
-            return null;
+            throw RError.getInvalidArgTypeUnary(ast);
         }
     }
 }

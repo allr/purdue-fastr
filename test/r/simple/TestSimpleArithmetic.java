@@ -276,7 +276,29 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ -(0/0) }", "NaN");
         assertEval("{ -(1/0) }", "-Infinity");
         assertEval("{ -(1[2]) }", "NA");
+        assertEval("{ -(2+1i)  }", "-2.0-1.0i");
+        assertEval("{ -((0+1i)/0)  }", "NaN-Infinityi"); // not the same formatting as GNU-R
+        assertEval("{ -((1+0i)/0)  }", "-Infinity+NaNi");
+        assertEval("{ -c((1+0i)/0,2) }", "-Infinity+NaNi, -2.0+-0.0i"); // not the same formatting as GNU-R, which would print negative zero as zero
 
+        assertEval("{ f <- function(z) { -z } ; f(1+1i) ; f(1L) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(TRUE) ; f(1L) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(1L) ; f(1) }", "-1.0");
+        assertEval("{ f <- function(z) { -z } ; f(1) ; f(1L) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(1L) ; f(1+1i) }", "-1.0-1.0i");
+        assertEval("{ f <- function(z) { -z } ; f(1L) ; f(TRUE) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(1:3) ; f(1L) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(1:3) ; f(TRUE) }", "-1L");
+        assertEval("{ f <- function(z) { -z } ; f(1:3) ; f(c((0+0i)/0,1+1i)) }", "NaN+NaNi, -1.0-1.0i");
+
+//        assertEval("{ z <- logical() ; -z }", "integer(0)");
+//        assertEval("{ z <- integer() ; -z }", "integer(0)");
+//        assertEval("{ z <- double() ; -z }", "numeric(0)");
+//        assertEval("{ z <- (1+1i)[0] ; -z }", "complex(0)");
+
+        assertEvalError("{ z <- \"hello\" ; -z }", "invalid argument to unary operator");
+        assertEvalError("{ z <- c(\"hello\",\"hi\") ; -z }", "invalid argument to unary operator");
+        assertEvalError("{ f <- function(z) { -z } ; f(1:3) ; f(\"hello\") }", "invalid argument to unary operator");
     }
 
     @Test
