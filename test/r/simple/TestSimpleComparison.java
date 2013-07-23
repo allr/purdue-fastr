@@ -137,6 +137,53 @@ public class TestSimpleComparison extends SimpleTestBase {
         assertEvalError("{ 1+1i <= 2+2i }", "invalid comparison with complex values");
 
         assertEvalError("{ m <- matrix(nrow=2, ncol=2, 1:4) ; m == 1:16 }", "dims [product 4] do not match the length of object [16]");
+
+        assertEvalWarning("{ c(1,2) < c(2,1,4) }", "TRUE, FALSE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(2,1,4) < c(1,2) }", "FALSE, TRUE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(1L,2L) < c(2L,1L,4L) }", "TRUE, FALSE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(2L,1L,4L) < c(1L,2L) }", "FALSE, TRUE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(TRUE,FALSE,FALSE) < c(TRUE,TRUE) }", "FALSE, TRUE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(TRUE,TRUE) == c(TRUE,FALSE,FALSE) }", "TRUE, FALSE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ as.raw(c(1,2)) < as.raw(c(2,1,4)) }", "TRUE, FALSE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ as.raw(c(2,1,4)) < as.raw(c(1,2)) }", "FALSE, TRUE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(\"hi\",\"hello\",\"bye\") > c(\"cau\", \"ahoj\") }", "TRUE, TRUE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(\"cau\", \"ahoj\") != c(\"hi\",\"hello\",\"bye\") }", "TRUE, TRUE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(1+1i,2+2i) == c(2+1i,1+2i,1+1i) }", "FALSE, FALSE, TRUE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(2+1i,1+2i,1+1i) == c(1+1i, 2+2i) }", "FALSE, FALSE, TRUE", "longer object length is not a multiple of shorter object length");
+
+        assertEval("{ as.raw(c(2,1,4)) < raw() }", "logical(0)");
+        assertEval("{ raw() < as.raw(c(2,1,4)) }", "logical(0)");
+        assertEval("{ 1:3 < integer() }", "logical(0)");
+        assertEval("{ integer() < 1:3 }", "logical(0)");
+        assertEval("{ c(1,2,3) < double() }", "logical(0)");
+        assertEval("{ double() == c(1,2,3) }", "logical(0)");
+        assertEval("{ c(TRUE,FALSE) < logical() }", "logical(0)");
+        assertEval("{ logical() == c(FALSE, FALSE) }", "logical(0)");
+        assertEval("{ c(1+2i, 3+4i) == (1+2i)[0] }", "logical(0)");
+        assertEval("{ (1+2i)[0] == c(2+3i, 4+1i) }", "logical(0)");
+        assertEval("{ c(\"hello\", \"hi\") == character() }", "logical(0)");
+        assertEval("{ character() > c(\"hello\", \"hi\") }", "logical(0)");
+
+        assertEval("{ c(1,2,3,4) != c(1,NA) }", "FALSE, NA, TRUE, NA");
+        assertEval("{ c(1,2,NA,4) != 2 }", "TRUE, FALSE, NA, TRUE");
+        assertEval("{ 2 != c(1,2,NA,4) }", "TRUE, FALSE, NA, TRUE");
+        assertEval("{ c(1,2,NA,4) == 2 }", "FALSE, TRUE, NA, FALSE");
+        assertEval("{ 2 == c(1,2,NA,4) }", "FALSE, TRUE, NA, FALSE");
+        assertEval("{ c(\"hello\", NA) < c(\"hi\", NA) }", "TRUE, NA");
+        assertEval("{ c(\"hello\", NA) >= \"hi\" }", "FALSE, NA");
+        assertEval("{ \"hi\" > c(\"hello\", NA)  }", "TRUE, NA");
+        assertEval("{ c(\"hello\", NA) > c(NA, \"hi\") }", "NA, NA");
+        assertEval("{ c(1L, NA) > c(NA, 2L) }", "NA, NA");
+        assertEval("{ c(TRUE, NA) > c(NA, FALSE) }", "NA, NA");
+        assertEval("{ \"hi\" > c(\"hello\", \"hi\")  }", "TRUE, FALSE");
+        assertEval("{ NA > c(\"hello\", \"hi\") }", "NA, NA");
+        assertEval("{ c(\"hello\", \"hi\") < NA }", "NA, NA");
+        assertEval("{ 1:3 < NA }", "NA, NA, NA");
+        assertEval("{ NA > 1:3 }", "NA, NA, NA");
+        assertEval("{ 2L > c(1L,NA,2L) }", "TRUE, NA, FALSE");
+        assertEval("{ c(1L,NA,2L) < 2L }", "TRUE, NA, FALSE");
+        assertEval("{ c(0/0+1i,2+1i) == c(1+1i,2+1i) }", "NA, TRUE");
+        assertEval("{ c(1+1i,2+1i) == c(0/0+1i,2+1i) }", "NA, TRUE");
     }
 
     @Test
