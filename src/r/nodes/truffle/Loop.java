@@ -391,7 +391,7 @@ public abstract class Loop extends BaseR {
         }
 
         // works for any type of loop range
-        public static class Generic extends For {
+        public abstract static class Generic extends For {
 
             public Generic(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 super(ast, cvar, range, body);
@@ -403,23 +403,7 @@ public abstract class Loop extends BaseR {
                 return execute(frame, rval);
             }
 
-            public RAny execute(Frame frame, RAny rval) {
-                try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
-                    Generic gn;
-                    String dbg;
-                    if (frame == null) {
-                        gn = createToplevel(ast, cvar, range, body);
-                        dbg = "install Generic.TopLevel from Generic (uninitialized)";
-                    } else {
-                        gn = create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
-                        dbg = "install Generic from Generic (uninitialized)";
-                    }
-                    replace(gn, dbg);
-                    return gn.execute(frame, rval);
-                }
-            }
+            public abstract RAny execute(Frame frame, RAny rval);
 
             public static Generic createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
                 return new Generic(ast, cvar, range, body) {

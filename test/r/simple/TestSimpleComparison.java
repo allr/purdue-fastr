@@ -184,6 +184,8 @@ public class TestSimpleComparison extends SimpleTestBase {
         assertEval("{ c(1L,NA,2L) < 2L }", "TRUE, NA, FALSE");
         assertEval("{ c(0/0+1i,2+1i) == c(1+1i,2+1i) }", "NA, TRUE");
         assertEval("{ c(1+1i,2+1i) == c(0/0+1i,2+1i) }", "NA, TRUE");
+
+        assertEval("{ integer() == 2L }", "logical(0)");
     }
 
     @Test
