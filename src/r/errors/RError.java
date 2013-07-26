@@ -197,6 +197,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_REGEXP = "invalid '%s' regular expression";
     public static final String COERCING_ARGUMENT = "coercing argument of type '%s' to %s";
     public static final String MUST_BE_TRUE_FALSE_ENVIRONMENT = "'%s' must be TRUE, FALSE or an environment";
+    public static final String UNKNOWN_OBJECT_MODE = "object '%s' of mode '%s' was not found";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1683,6 +1684,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getMustBeTrueFalseEnvironment(ASTNode ast, String argName) {
         return getGenericError(ast, String.format(RError.MUST_BE_TRUE_FALSE_ENVIRONMENT, argName));
+    }
+
+    public static RError getUnknownObjectMode(ASTNode ast, RSymbol symbol, String typeName) {
+        return getGenericError(ast, String.format(RError.UNKNOWN_OBJECT_MODE, symbol.pretty(), typeName));
     }
 
 }

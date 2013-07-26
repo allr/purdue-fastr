@@ -143,5 +143,13 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEval("{ f <- function(a, b) { a - b } ; g <- function(...) { f(1, ...) } ; g(a = 2) }", "1.0");
         assertEval("{ f <- function(...) { g(...) } ;  g <- function(b=2) { b } ; f() }", "2.0");
 
+        assertEvalError("{ f <- function(...) { ..3 } ; f(1,2) }", "The ... list does not contain 3 elements");
+        assertEvalError("{ f <- function() { dummy() } ; f() }", "could not find function 'dummy'"); // note: GNU-R has slightly different error code formatting
+        assertEvalError("{ f <- function() { if (FALSE) { dummy <- 2 } ; dummy() } ; f() }", "could not find function 'dummy'");
+        assertEvalError("{ f <- function() { if (FALSE) { dummy <- 2 } ; g <- function() { dummy() } ; g() } ; f() }", "could not find function 'dummy'");
+        assertEvalError("{ f <- function() { dummy <- 2 ; g <- function() { dummy() } ; g() } ; f() }", "could not find function 'dummy'");
+        assertEvalError("{ f <- function() { dummy() } ; dummy <- 2 ; f() }", "could not find function 'dummy'");
+        assertEvalError("{ dummy <- 2 ; dummy() }", "could not find function 'dummy'");
+        assertEvalError("{ lapply(1:3, \"dummy\") }", "object 'dummy' of mode 'function' was not found");
     }
 }

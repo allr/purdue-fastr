@@ -33,12 +33,13 @@ public abstract class MatchCallable extends BaseR {
         }
     }
 
+    // called from lapply
     public static RCallable matchGeneric(ASTNode ast, Frame frame, RSymbol symbol) {
         RCallable res = RFrameHeader.match(frame, symbol);
         if (res != null) {
             return res;
         }
-        throw RError.getUnknownFunction(ast, symbol);
+        throw RError.getUnknownObjectMode(ast, symbol, "function");
     }
 
 

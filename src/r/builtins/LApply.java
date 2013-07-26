@@ -99,7 +99,7 @@ final class LApply extends CallFactory {
                 RString svalue = (RString) arg;
                 if (svalue.size() != 1) { throw RError.getNotFunction(ast); }
                 RSymbol symbol = RSymbol.getSymbol(svalue.getString(0));
-                value = MatchCallable.matchGeneric(ast, frame, symbol); // will produce different error message from GNU-R
+                value = MatchCallable.matchGeneric(ast, frame, symbol);
                 return;
             }
             if (callsiteSymbol != null) {

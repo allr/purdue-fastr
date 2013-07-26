@@ -46,6 +46,7 @@ public class ManageError {
         if (cause != null) {
             str.append(" in ").append(PrettyPrinter.prettyPrint(cause));
         }
+        // FIXME: in order to mimic GNU-R more closely, we would have to traverse up to a function in the AST tree
         str.append(": ");
         str.append(msg);
         System.err.println(str);

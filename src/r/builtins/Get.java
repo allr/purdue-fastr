@@ -47,7 +47,7 @@ final class Get extends CallFactory {
                 if (!inherits || res != null) { // FIXME: fix this for get on toplevel with inherits == false
                     return res;
                 } else {
-                    return ReadVariable.readNonVariable(ast, nm);
+                    return ReadVariable.readNonVariablePerhapsBuiltin(ast, nm);
                 }
             }
         };

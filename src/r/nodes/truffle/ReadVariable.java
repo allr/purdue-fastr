@@ -23,8 +23,8 @@ public abstract class ReadVariable extends BaseR {
         symbol = sym;
     }
 
-    // FIXME: merge this with REnvironment.GLOBAL
-    public static RAny readNonVariable(ASTNode ast, RSymbol symbol) {
+    // FIXME: merge this with REnvironment.GLOBAL, re-visit when adding support for search path
+    public static RAny readNonVariablePerhapsBuiltin(ASTNode ast, RSymbol symbol) {
         // builtins
         RBuiltIn builtIn = Primitives.getBuiltIn(symbol, null);
         if (builtIn != null) {
@@ -101,7 +101,8 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(Frame frame) {
                 Object val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
                 if (val == null) {
-                    return readNonVariable(ast, symbol);
+                    // NOTE: builtins handled in readViaWriteSet
+                    throw RError.getUnknownVariable(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" local-ws, returns "+val+" ("+((RAny)val).pretty()+") from slot "+slot); }
                 return val;
@@ -117,7 +118,8 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(Frame frame) {
                 Object val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
                 if (val == null) {
-                    return readNonVariable(ast, symbol);
+                    // NOTE: builtins handled in readViaReadSet
+                    throw RError.getUnknownVariable(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" read-set, returns "+val+" ("+((RAny)val).pretty()+") from slot "+slot+" hops "+hops); }
                 return val;
@@ -149,7 +151,7 @@ public abstract class ReadVariable extends BaseR {
                     val = symbol.getValue();
                 }
                 if (val == null) {
-                    return readNonVariable(ast, symbol);
+                    return readNonVariablePerhapsBuiltin(ast, symbol);
                 }
                 if (DEBUG_R) { Utils.debug("read - "+symbol.pretty()+" top-level, returns "+val+" ("+((RAny) val).pretty()+")" ); }
                 return val;
@@ -165,7 +167,7 @@ public abstract class ReadVariable extends BaseR {
                 assert Utils.check(frame == null);
                 Object val = symbol.getValue();
                 if (val == null) {  // TODO: another node
-                    return readNonVariable(ast, symbol);
+                    return readNonVariablePerhapsBuiltin(ast, symbol);
                 }
                 return val;
             }
