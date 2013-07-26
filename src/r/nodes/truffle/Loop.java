@@ -9,8 +9,9 @@ import r.nodes.*;
 import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
-// FIXME: re-visit with eval in mind
-// FIXME: local slot for functions can be looked up statically
+// FIXME: local slot for functions can be looked up statically, so the code can be simplified accordingly
+// but wait, if we start doing anything smarter about executing language objects, then the non-static look-up may again end-up useful, yet
+// will have to be extended
 
 public abstract class Loop extends BaseR {
 
@@ -112,7 +113,6 @@ public abstract class Loop extends BaseR {
                     } catch (ContinueException ce) {
                         if (DEBUG_LO) Utils.debug("loop - while loop received continue exception");
                     }
-
                 }
             } catch (BreakException be) {
                 if (DEBUG_LO) Utils.debug("loop - while loop received break exception");
@@ -222,7 +222,6 @@ public abstract class Loop extends BaseR {
                             sn = createSimple(ast, cvar, range, body, slot);
                             dbg = "install IntSequenceRange.Simple from IntSequenceRange (uninitialized)";
                         } else {
-                            // dynamic invocation
                             sn = createDynamic(ast, cvar, range, body);
                             dbg = "install IntSequenceRange.Dynamic from IntSequenceRange (uninitialized)";
                         }
@@ -256,7 +255,6 @@ public abstract class Loop extends BaseR {
                             if (slot != null) {
                                 gn = Generic.create(ast, cvar, range, body, slot);
                             } else {
-                                // dynamic invocation
                                 gn = Generic.createDynamic(ast, cvar, range, body);
                             }
                         }
@@ -325,12 +323,7 @@ public abstract class Loop extends BaseR {
                                 replace(sn, "install Specialized from IntSequenceRange.Simple");
                                 return sn.execute(frame, (IntImpl.RIntSequence) rval, ((IntImpl.RIntSequence) rval).size());
                             } else {
-                                Generic gn;
-                                if (frame == null) {
-                                    gn = Generic.createToplevel(ast, cvar, range, body);
-                                } else {
-                                    gn = Generic.create(ast, cvar, range, body, RFrameHeader.findVariable(frame, cvar));
-                                }
+                                Generic gn = Generic.create(ast, cvar, range, body, slot);
                                 replace(gn, "install Generic from IntSequenceRange.Simple");
                                 return gn.execute(frame, rval);
                             }
