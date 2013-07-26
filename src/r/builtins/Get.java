@@ -2,6 +2,7 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 
@@ -9,10 +10,10 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "get"
- * 
+ *
  * <pre>
  * x -- a variable name (given as a character string).
- * pos -- where to look for the object; if omitted, the function will search as if the name of the object appeared 
+ * pos -- where to look for the object; if omitted, the function will search as if the name of the object appeared
  *         unquoted in an expression.
  * envir -- an alternative way to specify an environment to look in
  * mode -- the mode or type of object sought
@@ -44,11 +45,10 @@ final class Get extends CallFactory {
                 REnvironment envir = EnvBase.extractEnvironment(envirArg, posArg, frame, ast);
                 boolean inherits = posInherits != -1 ? EnvBase.parseInherits(args[posInherits], ast) : DEFAULT_INHERITS;
                 RAny res = envir.get(nm, inherits);
-                if (!inherits || res != null) { // FIXME: fix this for get on toplevel with inherits == false
-                    return res;
-                } else {
-                    return ReadVariable.readNonVariablePerhapsBuiltin(ast, nm);
+                if (res == null) { // FIXME: re-visit when implementing more complete search-path support
+                    throw RError.getUnknownVariable(ast, nm);
                 }
+                return res;
             }
         };
     }

@@ -38,6 +38,7 @@ public class TestSimpleAssignment extends SimpleTestBase {
         assertEval("{ f <- function(i) { if (i==1) { c <- 1 } ; c } ; f(1) ; typeof(f(2)) }", "\"builtin\"");
         assertEvalError("{ f <- function(i) { if (i==1) { x <- 1 } ; x } ; f(1) ; f(1) ; f(2) }", "object 'x' not found");
         assertEval("{ f <- function(i) { if (i==1) { c <- 1 ; x <- 1 } ; if (i!=2) { x } else { c }} ; f(1) ; f(1) ; typeof(f(2)) }", "\"builtin\"");
+        assertEval("{ x <- 3 ; f <- function() { assign(\"x\", 4) ; g <- function() { assign(\"y\", 3) ; hh <- function() { assign(\"z\", 6) ; h <- function(s=1) { if (s==2) { x <- 5 } ; x } ; h() } ; hh() } ; g()  } ; f() }", "4.0");
         assertEvalError("{ f <- function() { if (FALSE) { x <- 1 } ; g <- function() { x } ; g() } ; f() }", "object 'x' not found");
         assertEval("{ f <- function() { if (FALSE) { c <- 1 } ; g <- function() { c } ; g() } ; typeof(f()) }", "\"builtin\"");
     }
