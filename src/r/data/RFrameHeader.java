@@ -238,7 +238,7 @@ public class RFrameHeader extends Arguments {
 
         for (;;) {
             for (int i = 0; i < hops; i++) {
-                f = enclosingFrame(frame);
+                f = enclosingFrame(f);
             }
             if (isDirty(f)) {
                 Object res = readFromExtensionEntry(first, symbol, f);
@@ -455,7 +455,7 @@ public class RFrameHeader extends Arguments {
 
         for (;;) {
             for (int i = 0; i < hops; i++) {
-                f = enclosingFrame(frame);
+                f = enclosingFrame(f);
             }
             if (isDirty(f)) {
                 RCallable res = matchFromExtensionEntry(first, symbol, f);
@@ -718,7 +718,7 @@ public class RFrameHeader extends Arguments {
 
         for (;;) {
             for (int i = 0; i < hops; i++) {
-                f = enclosingFrame(frame);
+                f = enclosingFrame(f);
             }
             if (isDirty(f)) {
                 if (existsFromExtensionEntry(first, symbol, f)) {
@@ -971,7 +971,7 @@ public class RFrameHeader extends Arguments {
 
         for (;;) {
             for (int i = 0; i < hops; i++) {
-                f = enclosingFrame(frame);
+                f = enclosingFrame(f);
             }
             Object val;
             if (isDirty(f)) {
