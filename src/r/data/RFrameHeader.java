@@ -658,7 +658,7 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(frame instanceof MaterializedFrame);
 
         FrameSlot slot = findVariable(frame, symbol);
-         if (slot != null && Utils.frameGetObject(frame, slot) != null) {
+        if (slot != null && Utils.frameGetObject(frame, slot) != null) {
             return true;
         }
         EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
@@ -721,9 +721,8 @@ public class RFrameHeader extends Arguments {
                 f = enclosingFrame(frame);
             }
             if (isDirty(f)) {
-                Object res = existsFromExtensionEntry(first, symbol, f);
-                if (res != null) {
-                    return Utils.cast(res);
+                if (existsFromExtensionEntry(first, symbol, f)) {
+                    return true;
                 }
             }
             // no inserted extension slot
