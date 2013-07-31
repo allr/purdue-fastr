@@ -770,22 +770,6 @@ public class RFrameHeader extends Arguments {
         return false;
     }
 
-    public static boolean existsInExtension(Frame frame, RSymbol symbol, Frame stopFrame) {
-        assert Utils.check(frame == null || frame instanceof MaterializedFrame);
-
-        if (frame == stopFrame) {
-            return false;
-        }
-        RFrameExtension ext = extension(frame);
-        if (ext != null) {
-            if (ext.exists(symbol)) {
-                return true;
-            }
-        }
-        return existsInExtension(enclosingFrame(frame), symbol, stopFrame); // NOTE: recursion
-    }
-
-
     public static void writeToTopLevelCondRef(RSymbol sym, RAny value) {
         Object oldValue = sym.getValueNoForce();
         if (oldValue != value) {
@@ -874,14 +858,12 @@ public class RFrameHeader extends Arguments {
 
         EnclosingSlot eslot = findEnclosingVariable(frame, symbol);
         Frame enclosing = enclosingFrame(frame);
-        if (eslot == null) {
+
+        if (eslot != null) {
+            return superWriteViaEnclosingSlot(enclosing, eslot.hops - 1, eslot.slot, symbol, value, enclosing);
+        } else {
             return superWriteToExtensionsAndTopLevel(enclosing, symbol, value);
         }
-
-        if (superWriteViaEnclosingSlot(enclosing, eslot.hops - 1, eslot.slot, symbol, value, enclosing)) {
-            return true;
-        }
-        return superWriteToTopLevel(symbol, value);
     }
 
     public static boolean superWriteToExtensionsAndTopLevel(Frame frame, RSymbol symbol, RAny value) {

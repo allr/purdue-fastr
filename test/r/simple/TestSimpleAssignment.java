@@ -22,6 +22,8 @@ public class TestSimpleAssignment extends SimpleTestBase {
         assertEval("{ x <- 10 ; g <- function() { f <- function() { x <- x ; x <<- 2 ; x } ; c(f(), f()) } ; g() }", "10.0, 2.0");
         assertEval("{ x <- 10 ; g <- function() { x ; f <- function() { x <- x ; x <<- 2 ; x } ; c(f(), f()) } ; g() }", "10.0, 2.0");
         assertEval("{ x <- 10 ; g <- function() { x <- 100 ; f <- function() { x <- x ; x <<- 2 ; x } ; c(f(), f()) } ; g() }", "100.0, 2.0");
+        assertEval("{ h <- function() { x <- 10 ; g <- function() { if (FALSE) { x <- 2 } ; f <- function() { x <<- 3 ; x } ; f() } ; g() } ; h() }", "3.0");
+        assertEval("{ x <- 3 ; f <- function() { assign(\"x\", 4) ; h <- function() { assign(\"z\", 5) ; g <- function() { x <<- 10 ; x } ; g() } ; h() } ; f() ; x }", "3.0");
     }
 
     @Test

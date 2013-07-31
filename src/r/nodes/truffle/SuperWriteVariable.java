@@ -82,23 +82,28 @@ public abstract class SuperWriteVariable extends BaseR {
     public static SuperWriteVariable getWriteToTopLevel(ASTNode ast, RSymbol symbol, RNode expr) {
         return new SuperWriteVariable(ast, symbol, expr) {
 
-            int version;
+            // NOTE: we could do more here, and original the plan was to do so
+
+            // we could remember the last frame and version, and update the version whenever we make sure that no variable has been
+            // inserted in that frame -- however, I can't see how that could be faster in the common case (an extra branch on the fast path),
+            // and I am not sure we care about the slow path
+
+            // NOTE: we would have to remember the frame, as there can be more than one frame active with the node, and some may have an
+            // inserted symbol while another may not
+
+            // (same as ReadVariable)
 
             @Override
             public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
-                Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
 
-                // TODO check if 'version' is enough, I think the good test has to be:
-                // if (frame != oldFrame || version != symbol.getVersion()) {
-                // (same as ReadVariable)
-
-                if (version != symbol.getVersion()) {
-                    if (!RFrameHeader.superWriteToExtensionEntry(enclosingFrame, symbol, value)) {
-                        version = symbol.getVersion();
-                        // oldFrame = frame;
+                if (symbol.getVersion() != 0) {
+                    Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
+                    if (RFrameHeader.superWriteToExtensionEntry(enclosingFrame, symbol, value)) {
+                        return value;
                     }
                 }
+
                 RFrameHeader.superWriteToTopLevel(symbol, value);
                 return value;
             }
