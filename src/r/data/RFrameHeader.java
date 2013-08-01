@@ -867,7 +867,6 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean superWriteToExtensionsAndTopLevel(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame instanceof MaterializedFrame);
 
         if (superWriteToExtensionEntry(frame, symbol, value)) {
             return true;
@@ -881,9 +880,11 @@ public class RFrameHeader extends Arguments {
     }
 
     public static boolean superWriteToExtensionEntry(Frame frame, RSymbol symbol, RAny value) {
-        assert Utils.check(frame != null);
         // note: frame can be a VirtualFrame
 
+        if (frame == null) {
+            return false;
+        }
         RFrameExtension ext = extension(frame);
         if (ext != null) {
             int epos = ext.getPosition(symbol);
@@ -935,11 +936,7 @@ public class RFrameHeader extends Arguments {
         assert Utils.check(hops != 0);
         assert Utils.check(frame instanceof MaterializedFrame);
 
-        if (superWriteViaEnclosingSlot(enclosingFrame(frame), hops - 1, slot, symbol, value, frame)) {
-            return true;
-        } else {
-            return superWriteToTopLevel(symbol, value);
-        }
+        return superWriteViaEnclosingSlot(enclosingFrame(frame), hops - 1, slot, symbol, value, frame);
     }
 
     private static boolean superWriteViaEnclosingSlot(Frame frame, int frameHops, FrameSlot frameSlot, RSymbol symbol, RAny value, Frame firstFrame) {
