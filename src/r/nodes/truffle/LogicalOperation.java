@@ -30,7 +30,7 @@ public abstract class LogicalOperation extends BaseR {
     @Override
     public abstract int executeScalarLogical(Frame frame);
 
-    public final int extractValue(Frame frame, RNode node) {
+    public static final int extractValue(Frame frame, RNode node) {
         RNode curNode = node;
         for (;;) {
             try {
@@ -196,7 +196,7 @@ public abstract class LogicalOperation extends BaseR {
         return new CastNode(ast, child, iteration + 1, failedNode) {
             @Override
             int extract(RAny value) {
-                if (value instanceof RLogical || value instanceof RInt || value instanceof RDouble) {
+                if (value instanceof RLogical || value instanceof RInt || value instanceof RDouble || value instanceof RComplex) {
                     RLogical l = value.asLogical();
                     if (l.size() > 0) {
                         return l.getLogical(0);

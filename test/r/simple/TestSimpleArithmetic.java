@@ -348,6 +348,19 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ NA && NA }", "NA");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; NA && f(NA) ; x } ", "2.0");
         assertEval("{ x <- 1 ; f <- function(r) { x <<- 2; r } ; FALSE && f(FALSE) ; x } ", "1.0");
+
+        assertEval("{ f <- function(a,b) { a || b } ; f(1,2) ; f(1,2) ; f(1L,2L) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a || b } ; f(1L,2L) ; f(1L,2L) ; f(0,FALSE) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), TRUE) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) }", "NA");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(1,2) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(double(),2) }", "NA");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(integer(),2) }", "NA");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(2+3i,1/0) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(2+3i,logical()) }", "NA");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(1,2) ; f(logical(),4) }", "NA");
+        assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(TRUE, c(TRUE,TRUE,FALSE)) ; f(1,2) }", "TRUE");
+
     }
 
     @Test
