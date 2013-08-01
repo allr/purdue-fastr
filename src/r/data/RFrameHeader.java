@@ -313,6 +313,8 @@ public class RFrameHeader extends Arguments {
     }
 
     public static RAny readFromRootLevel(Frame frame, RSymbol sym) {
+        assert Utils.check(frame != null);
+
         return getRootEnvironment(frame).get(sym, true);
     }
 
@@ -523,9 +525,8 @@ public class RFrameHeader extends Arguments {
     }
 
     public static REnvironment getRootEnvironment(Frame frame) {
-        if (frame == null) { // FIXME: get rid of this branch
-            return REnvironment.GLOBAL;
-        }
+        assert Utils.check(frame != null);
+
         REnvironment env = rootEnvironment(frame);
         if (env == null) {  // FIXME: get rid of this branch
             return REnvironment.GLOBAL;
@@ -1133,7 +1134,7 @@ public class RFrameHeader extends Arguments {
 
         private void writeAtRef(int pos, RAny value) { // TODO or not TODO assert that the good name is still here
             assert Utils.check(pos < used);
-            if (values[pos] != value) {
+            if (values[pos] != value) { // FIXME: note that as we have immutable scalars, and hence so many boxes, the ref will nearly always execute
                 values[pos] = value;
                 value.ref();
             }
@@ -1141,9 +1142,7 @@ public class RFrameHeader extends Arguments {
 
         private void writeAtNoRef(int pos, Object value) { // TODO or not TODO assert that the good name is still here
             assert Utils.check(pos < used);
-            if (values[pos] != value) {
-                values[pos] = value;
-            }
+            values[pos] = value; // NOTE: could be conditional once re-writing the same value is made common (see writeAtRef)
         }
 
         protected void expand(int newCap) {
@@ -1205,8 +1204,38 @@ public class RFrameHeader extends Arguments {
         }
     }
 
-    public static RSymbol[] listSymbols(Frame frame) {
+    public static RSymbol[] validWriteSet(Frame frame) { // TODO: this is probably very slow
         RSymbol[] ws = function(frame).localWriteSet();
+        if (ws.length == 0) {
+            return ws;
+        }
+
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int nnull = 0;
+        List<? extends FrameSlot> frameSlots = frameDescriptor.getSlots();
+        for (FrameSlot slot : frameSlots) {
+            if (Utils.frameGetObject(frame, slot) == null) {
+                nnull++;
+            }
+        }
+        if (nnull == 0) {
+            return ws;
+        }
+
+        int size = ws.length - nnull;
+        RSymbol[] res = new RSymbol[size];
+        int i = 0;
+        for (RSymbol symbol : ws) {
+            FrameSlot slot = frameDescriptor.findFrameSlot(symbol);
+            if (Utils.frameGetObject(frame, slot) != null) {
+                res[i++] = symbol;
+            }
+        }
+        return res;
+    }
+
+    public static RSymbol[] listSymbols(Frame frame) { // FIXME: this is probably very slow, but perhaps not on fastpath?
+        RSymbol[] ws = validWriteSet(frame);
         RFrameExtension ext = extension(frame);
         if (ext != null) {
             RSymbol[] es = ext.validNames();

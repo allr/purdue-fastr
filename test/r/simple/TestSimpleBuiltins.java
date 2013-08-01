@@ -621,6 +621,11 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\") } ; f() }", "TRUE");
         assertEval("{ x <- 3 ; f <- function() { exists(\"x\", inherits=FALSE) } ; f() }", "FALSE");
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; assign(\"y\", 2, h) ; ls(h) }", "\"x\", \"y\"");
+        assertEval("{ f <- function() { assign(\"x\", 1) ; y <- 2 ; ls() } ; f() }", "\"x\", \"y\"");
+        assertEval("{ f <- function() { x <- 1 ; y <- 2 ; ls() } ; f() }", "\"x\", \"y\"");
+        assertEval("{ f <- function() { assign(\"x\", 1) ; y <- 2 ; if (FALSE) { z <- 3 } ; ls() } ; f() }", "\"x\", \"y\"");
+        assertEval("{ f <- function() { if (FALSE) { x <- 1 } ; y <- 2 ; ls() } ; f() }", "\"y\"");
+        assertEval("{ f <- function() { for (i in rev(1:10)) { assign(as.character(i), i) } ; ls() } ; length(f()) }", "11L"); // the actual elements are formatted differently from GNU-R, also in different order
 
         // lookup
         assertEval("{ f <- function() { x <- 2 ; get(\"x\") } ; f() }", "2.0");
@@ -658,6 +663,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 3 ; f <- function(i) { if (i == 1) { assign(\"x\", 4) } ; function() { x } } ; f1 <- f(1) ; f2 <- f(2) ; f1() }", "4.0");
         assertEval("{ x <- 3 ; f <- function(i) { if (i == 1) { assign(\"x\", 4) } ; function() { x } } ; f1 <- f(1) ; f2 <- f(2) ; f2() ; f1() }", "4.0");
         assertEval("{ f <- function() { x <- 2 ; g <- function() { if (FALSE) { x <- 2 } ; assign(\"x\", 1, inherits=TRUE) } ; g() ; x } ; f() }", "1.0");
+        assertEval("{ h <- function() { if (FALSE) { x <- 2 ; z <- 3 } ; g <- function() { assign(\"z\", 3) ; if (FALSE) { x <- 4 } ;  f <- function() { exists(\"x\") } ; f() } ; g() } ; h() }", "FALSE");
 
         // lookup with function matching
         assertEval("{ x <- function(){3} ; f <- function() { assign(\"x\", function(){4}) ; h <- function(s=1) { if (s==2) { x <- 5 } ; x() } ; h() } ; f() }", "4.0");
@@ -704,6 +710,15 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"xx\", h) }", "FALSE");
         assertEval("{ hh <- new.env() ; assign(\"z\", 3, hh) ; h <- new.env(parent=hh) ; assign(\"y\", 2, h) ; exists(\"z\", h) }", "TRUE");
+        assertEvalError("{ ph <- new.env(parent=emptyenv()) ; h <- new.env(parent=ph) ; assign(\"x\", 10, h, inherits=TRUE) ; get(\"x\", ph)}", "object 'x' not found");
+        assertEval("{ ph <- new.env() ; h <- new.env(parent=ph) ; assign(\"x\", 2, ph) ; assign(\"x\", 10, h, inherits=TRUE) ; get(\"x\", ph)}", "10.0");
+        assertEvalError("{ ph <- new.env() ; h <- new.env(parent=ph) ; assign(\"x\", 2, h) ; assign(\"x\", 10, h, inherits=TRUE) ; get(\"x\", ph)}", "object 'x' not found");
+        assertEval("{ ph <- new.env() ; h <- new.env(parent=ph) ; assign(\"x\", 10, h, inherits=TRUE) ; x }", "10.0");
+        assertEval("{ assign(\"z\", 10, inherits=TRUE) ; z }", "10.0");
+        assertEval("{ h <- new.env(parent=globalenv()) ; assign(\"x\", 10, h, inherits=TRUE) ; x }", "10.0");
+        assertEval("{ h <- new.env() ; assign(\"x\", 1, h) ; assign(\"x\", 1, h) ; get(\"x\", h) }", "1.0");
+        assertEval("{ h <- new.env() ; assign(\"x\", 1, h) ; assign(\"x\", 2, h) ; get(\"x\", h) }", "2.0");
+        assertEval("{ h <- new.env() ; u <- 1 ; assign(\"x\", u, h) ; assign(\"x\", u, h) ; get(\"x\", h) }", "1.0");
 
         // top-level lookups
         assertEval("{ exists(\"sum\") }", "TRUE");
@@ -1134,6 +1149,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
             assertEval("{ substitute(x + y, list(x=1)) }", "1.0 + y");
             assertEval("{ f <- function(expr) { substitute(expr) } ; f(a * b) }", "a * b");
             assertEval("{ f <- function() { delayedAssign(\"expr\", a * b) ; substitute(expr) } ; f() }", "a * b");
+            assertEval("{ f <- function() { delayedAssign(\"expr\", a * b) ; substitute(dummy) } ; f() }", "dummy");
             assertEval("{ delayedAssign(\"expr\", a * b) ; substitute(expr) }", "expr");
             assertEval("{ f <- function(expr) { expr ; substitute(expr) } ; a <- 10; b <- 2; f(a * b) }", "a * b");
             assertEval("{ f <- function(expra, exprb) { substitute(expra + exprb) } ; f(a * b, a + b) }", "a * b + a + b");
