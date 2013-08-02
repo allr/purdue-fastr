@@ -366,6 +366,15 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ TRUE || \"hello\" }", "TRUE");
         assertEvalError("{ FALSE || \"hello\" }", "invalid 'y' type in 'x || y'");
         assertEvalError("{ as.raw(10) && \"hi\" }", "invalid 'x' type in 'x && y'");
+        assertEval("{ c(TRUE,FALSE) | logical() }", "logical(0)");
+        assertEval("{ logical() | c(TRUE,FALSE) }", "logical(0)");
+        assertEval("{ as.raw(c(1,4)) | raw() }", "raw(0)");
+        assertEval("{ raw() | as.raw(c(1,4)}", "raw(0)");
+        assertEvalWarning("{ as.raw(c(1,4)) | as.raw(c(1,5,4)) }", "01, 05, 05", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ as.raw(c(1,5,4)) | as.raw(c(1,4)) }", "01, 05, 05", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(TRUE, FALSE, FALSE) & c(TRUE,TRUE) }", "TRUE, FALSE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(TRUE, TRUE) & c(TRUE, FALSE, FALSE) }", "TRUE, FALSE, FALSE", "longer object length is not a multiple of shorter object length");
+        assertEvalWarning("{ c(a=TRUE, TRUE) | c(TRUE, b=FALSE, FALSE) }", "        b     \nTRUE TRUE TRUE", "longer object length is not a multiple of shorter object length");
     }
 
     @Test
@@ -396,6 +405,28 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ a <- as.raw(200) ; b <- as.raw(255) ; a | b }", "ff");
         assertEval("{ a <- as.raw(200) ; b <- as.raw(1) ; a | b }", "c9");
         assertEval("{ a <- as.raw(201) ; b <- as.raw(1) ; a & b }", "01");
+
+        assertEval("{ 1+2i | 0 }", "TRUE");
+        assertEval("{ 1+2i & 0 }", "FALSE");
+        assertEvalError("{ TRUE | \"hello\" }", "operations are possible only for numeric, logical or complex types");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(FALSE, FALSE) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(as.raw(10), as.raw(11)) }", "0a");
+        assertEvalError("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(as.raw(10), 12) }", "operations are possible only for numeric, logical or complex types");
+        assertEvalError("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(FALSE, as.raw(10)) }", "operations are possible only for numeric, logical or complex types");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(1L, 0L) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(1L, 0) }", "FALSE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(1L, TRUE) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, 1L) ; f(1L, 3+4i) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, FALSE) ; f(1L, 3+4i) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a & b } ; f(TRUE, FALSE) ; f(TRUE, 3+4i) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a | b } ; f(c(TRUE, FALSE), FALSE) ; f(1L, 3+4i) }", "TRUE");
+        assertEval("{ f <- function(a,b) { a | b } ; f(c(TRUE, FALSE), FALSE) ; f(c(FALSE,FALSE), 3+4i) }", "TRUE, TRUE");
+        assertEval("{ f <- function(a,b) { a | b } ; f(as.raw(c(1,4)), as.raw(3)) ; f(4, FALSE) }", "TRUE");
+        assertEvalError("{ f <- function(a,b) { a | b } ; f(as.raw(c(1,4)), as.raw(3)) ; f(as.raw(4), FALSE) }", "operations are possible only for numeric, logical or complex types");
+        assertEvalError("{ f <- function(a,b) { a | b } ; f(as.raw(c(1,4)), as.raw(3)) ; f(FALSE, as.raw(4)) }", "operations are possible only for numeric, logical or complex types");
+        assertEvalError("{ f <- function(a,b) { a | b } ; f(as.raw(c(1,4)), 3) }", "operations are possible only for numeric, logical or complex types");
+        assertEvalError("{ f <- function(a,b) { a | b } ; f(3, as.raw(c(1,4))) }", "operations are possible only for numeric, logical or complex types");
+
     }
 
     @Test

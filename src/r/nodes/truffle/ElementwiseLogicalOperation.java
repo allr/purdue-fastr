@@ -57,15 +57,14 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
                 if (leftValue instanceof RLogical && rightValue instanceof RLogical) {
                     return op.op((RLogical) leftValue, (RLogical) rightValue, ast);
                 }
-                if ((leftValue instanceof RInt || leftValue instanceof RDouble || leftValue instanceof RLogical) &&
-                               (rightValue instanceof RInt || rightValue instanceof RDouble || rightValue instanceof RLogical)) {
+                if ((leftValue instanceof RInt || leftValue instanceof RDouble || leftValue instanceof RLogical || leftValue instanceof RComplex) &&
+                               (rightValue instanceof RInt || rightValue instanceof RDouble || rightValue instanceof RLogical || rightValue instanceof RComplex)) {
                     return op.op(leftValue.asLogical(), rightValue.asLogical(), ast);
                 }
                 if (leftValue instanceof RRaw && rightValue instanceof RRaw) {
                     return op.op(leftValue.asRaw(), rightValue.asRaw(), ast);
                 }
-                Utils.nyi("unsupported types");
-                return null;
+                throw RError.getOperationsNumericLogicalComplex(ast);
             }
 
         };
