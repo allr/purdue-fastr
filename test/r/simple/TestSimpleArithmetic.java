@@ -361,6 +361,11 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(1:3,4:10) ; f(1,2) ; f(logical(),4) }", "NA");
         assertEval("{ f <- function(a,b) { a && b } ;  f(c(TRUE, FALSE), logical()) ; f(TRUE, c(TRUE,TRUE,FALSE)) ; f(1,2) }", "TRUE");
 
+        assertEvalError("{ \"hello\" || TRUE }", "invalid 'x' type in 'x || y'");
+        assertEval("{ FALSE && \"hello\" }", "FALSE");
+        assertEval("{ TRUE || \"hello\" }", "TRUE");
+        assertEvalError("{ FALSE || \"hello\" }", "invalid 'y' type in 'x || y'");
+        assertEvalError("{ as.raw(10) && \"hi\" }", "invalid 'x' type in 'x && y'");
     }
 
     @Test

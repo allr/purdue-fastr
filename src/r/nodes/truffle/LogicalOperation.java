@@ -6,9 +6,10 @@ import com.oracle.truffle.api.nodes.*;
 import r.*;
 import r.data.*;
 import r.data.internal.*;
+import r.errors.*;
 import r.nodes.*;
 
-// FIXME: probably could get some performance improvement by specializing for pairs of types,
+// FIXME: we probably could get some performance improvement by specializing for pairs of types,
 // thus avoiding the cast nodes
 
 public abstract class LogicalOperation extends BaseR {
@@ -204,8 +205,15 @@ public abstract class LogicalOperation extends BaseR {
                         return RLogical.NA;
                     }
                 }
-                Utils.nyi("unsupported logical operation argument");
-                return -1;
+
+                BinaryOperation parent = (BinaryOperation) ast.getParent();
+                String operator;
+                if (parent.getLHS() == ast) {
+                    operator = "x";
+                } else {
+                    operator = "y";
+                }
+                throw RError.getInvalidTypeIn(parent, operator, parent.getPrettyOperator());
             }
         };
     }
