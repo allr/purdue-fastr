@@ -555,6 +555,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ x <- 1:2 ; length(x) <- 4 ; x }", "1L, 2L, NA, NA");
         assertEval("{ x <- 1:2 ; z <- (length(x) <- 4) ; z }", "4.0");
         assertEval("{ length(c(z=1:4)) }", "4L");
+        assertEval("{ x <- 1 ; f <- function() { length(x) <<- 2 } ; f() ; x }", "1.0, NA");
     }
 
     @Test
@@ -705,6 +706,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ g <- function() { if (FALSE) { x <- 2 ; z <- 3 } ; h <- function() { assign(\"z\", 10) ; f <- function() { x <<- 3 } ; f() } ; h() } ; g() ; x }", "3.0");
         assertEval("{ g <- function() { x <- 2 ; z <- 3 ; hh <- function() { assign(\"z\", 2) ; h <- function() { f <- function() { x <<- 3 } ; f() } ; h() } ; hh() } ; x <- 10 ; g() ; x }", "10.0");
         assertEval("{ g <- function() { x <- 2 ; z <- 3 ; hh <- function() { assign(\"z\", 2) ; h <- function() { assign(\"x\", 1); f <- function() { x <<- 3 } ; f() } ; h() } ; hh() ; x } ; x <- 10 ; g() }", "2.0");
+        assertEval("{ x <- 3 ; f <- function(i) { if (i == 1) { assign(\"x\", 4) } ; function(v) { x <<- v} } ; f1 <- f(1) ; f2 <- f(2) ; f1(10) ; f2(11) ; x }", "11.0");
+        assertEval("{ x <- 3 ; f <- function(i) { if (i == 1) { assign(\"x\", 4) } ; function(v) { x <<- v} } ; f1 <- f(1) ; f2 <- f(2) ; f2(10) ; f1(11) ; x }", "10.0");
 
         // hashmaps
         assertEval("{ h <- new.env(parent=emptyenv()) ; assign(\"x\", 1, h) ; exists(\"x\", h) }", "TRUE");

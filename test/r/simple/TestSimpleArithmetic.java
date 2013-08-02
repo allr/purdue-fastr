@@ -316,9 +316,25 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEval("{ m<-matrix(1:3, ncol=1) ; m %*% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
         assertEval("{ a<-matrix(1:6, ncol=2) ; b<-matrix(11:16, nrow=2) ; a %*% b }", "      [,1]  [,2]  [,3]\n[1,]  59.0  69.0  79.0\n[2,]  82.0  96.0 110.0\n[3,] 105.0 123.0 141.0");
         assertEval("{ a <- array(1:9, dim=c(3,1,3)) ;  a %*% 1:9 }", "      [,1]\n[1,] 285.0");
+        assertEvalError("{ matrix(2,nrow=2,ncol=3) %*% matrix(4,nrow=1,ncol=5) }", "non-conformable arguments");
+        assertEvalError("{ 1:3 %*% matrix(4,nrow=2,ncol=5) }", "non-conformable arguments");
+        assertEvalError("{ matrix(4,nrow=2,ncol=5) %*% 1:4 }", "non-conformable arguments");
+        assertEval("{ double() %*% double() }", "     [,1]\n[1,]  0.0");
+        assertEval("{ m <- double() ; dim(m) <- c(0,4) ; m %*% t(m) }", "<0 x 0 matrix>");
+        assertEval("{ m <- double() ; dim(m) <- c(0,4) ; t(m) %*% m }", "     [,1] [,2] [,3] [,4]\n[1,]  0.0  0.0  0.0  0.0\n[2,]  0.0  0.0  0.0  0.0\n[3,]  0.0  0.0  0.0  0.0\n[4,]  0.0  0.0  0.0  0.0");
+        assertEval("{ m <- matrix(c(1,2,3,0/0), nrow=4) ; m %*% 1:4 }", "     [,1] [,2] [,3] [,4]\n[1,]  1.0  2.0  3.0  4.0\n[2,]  2.0  4.0  6.0  8.0\n[3,]  3.0  6.0  9.0 12.0\n[4,]  NaN  NaN  NaN  NaN");
+        assertEval("{ m <- matrix(c(NA,1,0/0,2), nrow=2) ; 1:2 %*% m }", "     [,1] [,2]\n[1,]   NA  NaN");
+        assertEval("{ m <- double() ; dim(m) <- c(0,0) ; m %*% m }", "<0 x 0 matrix>");
+        assertEval("{ m <- matrix(c(NA,1,4,2), nrow=2) ; t(m) %*% m }", "     [,1] [,2]\n[1,]   NA   NA\n[2,]   NA 20.0");
+        assertEval("{ matrix(c(3,1,0/0,2), nrow=2) %*% matrix(1:6,nrow=2) }", "     [,1] [,2] [,3]\n[1,]  NaN  NaN  NaN\n[2,]  5.0 11.0 17.0");
+        assertEvalError("{ as.raw(1:3) %*% 1:3 }", "requires numeric/complex matrix/vector arguments");
 
         // outer product
         assertEval("{ 1:3 %o% 1:2 }", "     [,1] [,2]\n[1,]  1.0  2.0\n[2,]  2.0  4.0\n[3,]  3.0  6.0");
+        assertEvalError("{ 1:4 %*% 1:3 }", "non-conformable arguments");
+        assertEvalError("{ 1:3 %*% as.raw(c(1,2,3)) }", "requires numeric/complex matrix/vector arguments");
+        assertEval("{ 1:3 %*% c(TRUE,FALSE,TRUE) }", "     [,1]\n[1,]  4.0");
+        assertEvalError("{ as.raw(1:3) %o% 1:3 }", "requires numeric/complex matrix/vector arguments");
 
         // precedence
         assertEval("{ 10 / 1:3 %*% 3:1 }", "     [,1]\n[1,]  1.0");

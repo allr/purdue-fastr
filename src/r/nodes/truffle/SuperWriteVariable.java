@@ -3,6 +3,7 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.frame.*;
 
+import r.*;
 import r.data.*;
 import r.data.RFunction.*;
 import r.nodes.*;
@@ -60,7 +61,7 @@ public abstract class SuperWriteVariable extends BaseR {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaWriteSet(enclosing, slot, symbol, value);
-                assert done;
+                assert Utils.check(done);
                 return value;
             }
         };
@@ -73,7 +74,7 @@ public abstract class SuperWriteVariable extends BaseR {
                 RAny value = (RAny) expr.execute(frame);
                 Frame enclosing = RFrameHeader.enclosingFrame(frame);
                 boolean done = RFrameHeader.superWriteViaEnclosingSlotAndTopLevel(enclosing, hops, slot, symbol, value);
-                assert done;
+                assert Utils.check(done);
                 return value;
             }
         };

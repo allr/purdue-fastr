@@ -135,7 +135,7 @@ public abstract class MatrixOperation extends BaseR {
                 }
                 return RDouble.RDoubleFactory.getFor(content, new int[] {m, s}, null);
             } else {
-                throw RError.getNonConformableArrays(ast);
+                throw RError.getNonConformableArgs(ast);
             }
         }
 
