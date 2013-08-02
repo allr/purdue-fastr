@@ -36,7 +36,15 @@ public abstract class AssignVariable extends ASTNode {
             return writeField(isSuper, (FieldAccess) lhs, rhs);
         } else if (lhs instanceof FunctionCall) {
             return writeFunction(isSuper, (FunctionCall) lhs, rhs);
-        } else if (lhs instanceof Constant) {
+        } else if (lhs instanceof Constant) { // TODO: move this to the parser?
+            RAny value = ((Constant) lhs).getValue();
+            if (value instanceof RString) {
+                RString svalue = (RString) value;
+                if (svalue.size() == 1) {
+                    String name = svalue.getString(0);
+                    return writeVariable(isSuper, RSymbol.getSymbol(name), rhs);
+                }
+            }
             throw RError.getUnknownObject(rhs); // TODO it's own exception
         }
         Utils.nyi();
