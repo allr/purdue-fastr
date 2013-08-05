@@ -10,6 +10,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
+// TODO: fix (extend?) the propagation of scalar values and values with guards, currently it is very restricted
 public abstract class FunctionCall extends AbstractCall {
 
     public final static boolean PROMISES = true;
@@ -245,6 +246,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
         // FIXME: essentially copy paste of execute
+        // TODO: it would be far more important to have these in simple and stable builtin call than here
         @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
@@ -273,7 +275,11 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    if (builtInNode == null) {
+                        builtInNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
+                    } else {
+                        builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    }
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -282,6 +288,7 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
         // FIXME: essentially copy paste of execute
+        // TODO: it would be far more important to have these in simple and stable builtin call than here
         @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
             RCallable callable = (RCallable) callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
@@ -310,7 +317,11 @@ public abstract class FunctionCall extends AbstractCall {
                 RSymbol name = builtIn.name();
                 if (name != builtInName) {
                     builtInName = name;
-                    builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    if (builtInNode == null) {
+                        builtInNode = adoptChild(builtIn.callFactory().create(ast, argNames, argExprs));
+                    } else {
+                        builtInNode.replace(builtIn.callFactory().create(ast, argNames, argExprs));
+                    }
                 }
                 lastBuiltIn = builtIn;
                 lastClosure = null;
@@ -329,12 +340,14 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
+
             if (callable instanceof RClosure) {
                 RClosure closure = (RClosure) callable;
                 RFunction function = closure.function();
                 Object[] argValues = placeDotsArgs(callerFrame, function.paramNames());
                 RFrameHeader arguments = new RFrameHeader(function, closure.enclosingFrame(), argValues);
                 return function.callTarget().call(arguments);
+
             } else {
                 // FIXME: these calls to builtin seem pretty expensive
 
@@ -347,7 +360,7 @@ public abstract class FunctionCall extends AbstractCall {
                 Object[] dotsArgValues = dotsArg.values();
                 int dotsArgLen = dotsArgNames.length;
                 int ndots = dotsArgs.length;
-                int nArgs =  argExprs.length + ndots * (dotsArgLen - 1);
+                int nArgs = argExprs.length + ndots * (dotsArgLen - 1);
 
                 RSymbol[] actualArgNames = new RSymbol[nArgs];
                 RNode[] actualArgExprs = new RNode[nArgs];

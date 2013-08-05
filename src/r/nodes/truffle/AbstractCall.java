@@ -118,7 +118,6 @@ public abstract class AbstractCall extends BaseR {
         int i = 0; // positional matching
         int j = 0;
         boolean hasUnusedArgsWithNames = false;
-        int firstDotsArg = -1;
         int nDotsArgs = 0;
 
         outer: for(;;) {
@@ -149,7 +148,6 @@ public abstract class AbstractCall extends BaseR {
 
             RSymbol paramName = paramNames[j];
             if (paramName == RSymbol.THREE_DOTS_SYMBOL) { // handle three dots in parameters
-                firstDotsArg = i;
                 argPositions[i] = -1; // part of three dots
                 i++;
                 nDotsArgs++;
@@ -262,7 +260,7 @@ public abstract class AbstractCall extends BaseR {
         }
 
         if (hasUnmatchedNamedArgs) { // partial matching
-            boolean[] argMatchedViaPatternMatching = new boolean[nArgs];
+            boolean[] argMatchedViaPartialMatching = new boolean[nArgs];
             for (int j = 0; j < nParams; j++) {
                 if (paramValues[j] != null) {
                     continue;
@@ -279,7 +277,7 @@ public abstract class AbstractCall extends BaseR {
                     if (argName == null) {
                         continue;
                     }
-                    if (argMatchedViaPatternMatching[i]) {
+                    if (argMatchedViaPartialMatching[i]) {
                         if (paramName.startsWith(argName)) {
                             throw RError.getArgumentMatchesMultiple(ast, i + 1);
                         }
@@ -289,7 +287,7 @@ public abstract class AbstractCall extends BaseR {
                         }
                         paramValues[j] = actualArgValues[i];
                         usedArgs[i] = true;
-                        argMatchedViaPatternMatching[i] = true;
+                        argMatchedViaPartialMatching[i] = true;
                     }
                 }
             }

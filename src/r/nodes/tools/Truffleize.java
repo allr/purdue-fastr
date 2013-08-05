@@ -343,6 +343,18 @@ public class Truffleize implements Visitor {
         return null;
     }
 
+    private boolean hasLocalOrEnclosingFrameSlot(ASTNode ast, RSymbol symbol) {
+        RFunction encFunction =  getEnclosingFunction(ast);
+        if (encFunction == null) {
+            return false;
+        }
+        FrameSlot slot = encFunction.localSlot(symbol);
+        if (slot != null) {
+            return true;
+        }
+        return encFunction.enclosingSlot(symbol) != null;
+    }
+
     public static ASTNode skipTrivialSequences(ASTNode astArg) {
         ASTNode ast = astArg;
         for(;;) {
@@ -377,8 +389,7 @@ public class Truffleize implements Visitor {
             }
             rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
         } else {
-            FrameSlot slot = getFrameSlot(functionCall, sym);
-            if (slot == null) {
+            if (!hasLocalOrEnclosingFrameSlot(functionCall, sym)) {
                 rCall = r.nodes.truffle.FunctionCall.createBuiltinCall(functionCall, a.convertedNames, a.convertedExpressions);
             }
             if (rCall == null) {

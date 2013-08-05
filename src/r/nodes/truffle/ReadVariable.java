@@ -139,6 +139,8 @@ public abstract class ReadVariable extends BaseR {
             // NOTE: we would have to remember the frame, as there can be more than one frame active with the node, and some may have an
             // inserted symbol while another may not
 
+            // WARNING: changing the behavior of version will also impact optimizations in function call (calling a builtin)
+
             // (same as SuperWriteVariable)
 
             @Override
