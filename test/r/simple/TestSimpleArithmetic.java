@@ -266,12 +266,19 @@ public class TestSimpleArithmetic extends SimpleTestBase {
     public void testUnary() throws RecognitionException {
         assertEval("{ !TRUE }", "FALSE");
         assertEval("{ !FALSE }", "TRUE");
+        assertEval("{ !NA }", "NA");
         assertEval("{ !c(TRUE,TRUE,FALSE,NA) }", "FALSE, FALSE, TRUE, NA");
         assertEval("{ !c(1,2,3,4,0,0,NA) }", "FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, NA");
         assertEval("{ !((0-3):3) }", "FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE");
-
+        assertEval("{ f <- function(arg) { !arg } ; f(as.raw(10)) ; f(as.raw(1:3)) }", "fe, fd, fc");
         assertEval("{ a <- as.raw(201) ; !a }", "36");
         assertEval("{ a <- as.raw(12) ; !a }", "f3");
+        assertEval("{ l <- list(); !l }", "logical(0)");
+        assertEvalError("{ l <- c(\"hello\", \"hi\") ; !l }", "invalid argument type");
+        assertEvalError("{ l <- function(){1} ; !l }", "invalid argument type");
+        assertEval("{ f <- function(arg) { !arg } ; f(as.raw(10)) ; f(as.raw(c(a=1,b=2))) }", "fe, fd");
+        assertEval("{ f <- function(arg) { !arg } ; f(as.raw(10)) ; f(matrix(as.raw(1:4),nrow=2 )) }", "     [,1] [,2]\n[1,]   fe   fc\n[2,]   fd   fb");
+        assertEval("{ f <- function(arg) { !arg } ; f(as.raw(10)) ; x <- as.raw(10:11) ; attr(x, \"my\") <- 1 ; f(x) }", "f5, f4");
 
         assertEval("{ -(0/0) }", "NaN");
         assertEval("{ -(1/0) }", "-Infinity");
