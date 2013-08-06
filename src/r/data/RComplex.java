@@ -201,6 +201,13 @@ public interface RComplex extends RArray {
             }
             return new ComplexImpl(v, true);
         }
+        public static RComplex stripKeepNames(RComplex v) {
+            Names names = v.names();
+            if (v.size() == 1 && names == null) {
+                return new ScalarComplexImpl(v.getReal(0), v.getImag(0));
+            }
+            return new ComplexImpl(v, null, names, null);
+        }
         public static RComplex getFor(double[] values) { // re-uses values!
             return getFor(values, null, null);
         }

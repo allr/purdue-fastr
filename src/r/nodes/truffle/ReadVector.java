@@ -88,10 +88,12 @@ public abstract class ReadVector extends BaseR {
 
     abstract RAny execute(RAny index, RAny vector);
 
+    // NOTE: currently not used
     private abstract static class Select {
         abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
     }
 
+    // NOTE: currently not used
     private static Select createScalarSelect(boolean subset, RAny vectorTemplate) {
         if (subset) {
             return new Select() {
@@ -234,8 +236,9 @@ public abstract class ReadVector extends BaseR {
                     if (!(index instanceof ScalarIntImpl)) { throw new UnexpectedResultException(null); }
                     int i = (((ScalarIntImpl) index).getInt()) - 1;
                     if (!(vector instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
-                    double[] base = ((DoubleImpl) vector).getContent();
-                    if (i < 0 || i >= base.length) { throw new UnexpectedResultException(null); }
+                    DoubleImpl dbase = (DoubleImpl) vector;
+                    double[] base = dbase.getContent();
+                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new UnexpectedResultException(null); }
                     return RDouble.RDoubleFactory.getScalar(base[i]);
 
                 } catch (UnexpectedResultException e) {
@@ -256,8 +259,9 @@ public abstract class ReadVector extends BaseR {
                     if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
                     int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
                     if (!(vector instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
-                    double[] base = ((DoubleImpl) vector).getContent();
-                    if (i < 0 || i >= base.length) { throw new UnexpectedResultException(null); }
+                    DoubleImpl dbase = (DoubleImpl) vector;
+                    double[] base = dbase.getContent();
+                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new UnexpectedResultException(null); }
                     return RDouble.RDoubleFactory.getScalar(base[i]);
 
                 } catch (UnexpectedResultException e) {
@@ -294,7 +298,9 @@ public abstract class ReadVector extends BaseR {
 
                 if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) vector;
-                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) { throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
+                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) {
+                    throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                    // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
                 }
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
@@ -351,7 +357,7 @@ public abstract class ReadVector extends BaseR {
                 if (names == null) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
                 RSymbol symbol = RSymbol.getSymbol(irstr.getString(0));
                 int i = names.map(symbol);
-                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                if (i == -1) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
                 return getWithName(vrarr, i, subset);
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -421,13 +427,15 @@ public abstract class ReadVector extends BaseR {
                 } else {
                     return Utils.getNamedNA(base);
                 }
+            } else {
+                throw RError.getInvalidSubscriptType(ast,index.typeOf());
             }
 
             if (i > 0) { // NOTE: RInt.NA < 0
                 if (i <= size) { return getWithName(base, i - 1, subset); }
             }
 
-            if (size == 0) { return RNull.getNull(); }
+            if (size == 0) { return Utils.createNA(base); }
             if (!subset) {
                 if (i == 0) { throw RError.getSelectLessThanOne(ast); }
                 if (i > 0 || i == RInt.NA) { // means also i > size
@@ -442,7 +450,7 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RDouble) { // FIXME: could reduce verbosity through refactoring the number factories?
                 if (i == RInt.NA) { return RDouble.RDoubleFactory.getNAArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RDouble.RDoubleFactory.exclude(-i - 1, (RDouble) base);
                 }
                 if (i == 0) { return RDouble.RDoubleFactory.getEmpty(base.names() != null); }
@@ -452,7 +460,7 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RInt) {
                 if (i == RInt.NA) { return RInt.RIntFactory.getNAArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RInt.RIntFactory.exclude(-i - 1, (RInt) base);
                 }
                 if (i == 0) { return RInt.RIntFactory.getEmpty(base.names() != null); }
@@ -462,7 +470,7 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RLogical) {
                 if (i == RInt.NA) { return RLogical.RLogicalFactory.getNAArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RLogical.RLogicalFactory.exclude(-i - 1, (RLogical) base);
                 }
                 if (i == 0) { return RLogical.RLogicalFactory.getEmpty(base.names() != null); }
@@ -472,7 +480,7 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RList) {
                 if (i == RInt.NA) { return RList.RListFactory.getNullArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RList.RListFactory.exclude(-i - 1, (RList) base);
                 }
                 if (i == 0) { return RList.RListFactory.getEmpty(base.names() != null); }
@@ -482,7 +490,7 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RString) {
                 if (i == RInt.NA) { return RString.RStringFactory.getNAArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RString.RStringFactory.exclude(-i - 1, (RString) base);
                 }
                 if (i == 0) { return RString.RStringFactory.getEmpty(base.names() != null); }
@@ -492,24 +500,21 @@ public abstract class ReadVector extends BaseR {
             if (base instanceof RComplex) {
                 if (i == RInt.NA) { return RComplex.RComplexFactory.getNAArray(size); }
                 if (i < 0) {
-                    if (-i > size) { return base; }
+                    if (-i > size) { return base.stripAttributesKeepNames(); }
                     return RComplex.RComplexFactory.exclude(-i - 1, (RComplex) base);
                 }
                 if (i == 0) { return RComplex.RComplexFactory.getEmpty(base.names() != null); }
                 // i > size
                 return RComplex.RComplexFactory.getNA(base.names() != null);
             }
-            if (base instanceof RRaw) {
-                if (i < 0) {
-                    if (-i > size) { return base; }
-                    return RRaw.RRawFactory.exclude(-i - 1, (RRaw) base);
-                }
-                if (i == 0) { return RRaw.RRawFactory.getEmpty(base.names() != null); }
-                // i > size
-                return RRaw.RRawFactory.getZero(base.names() != null);
+            assert Utils.check(base instanceof RRaw);
+            if (i < 0) {
+                if (-i > size) { return base.stripAttributesKeepNames(); }
+                return RRaw.RRawFactory.exclude(-i - 1, (RRaw) base);
             }
-            Utils.nyi("unsupported vector type for subscript");
-            return null;
+            if (i == 0) { return RRaw.RRawFactory.getEmpty(base.names() != null); }
+            // i > size
+            return RRaw.RRawFactory.getZero(base.names() != null);
         }
 
         @Override public RAny execute(RAny index, RAny vector) {
@@ -1400,7 +1405,7 @@ public abstract class ReadVector extends BaseR {
                     if (names == null) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
                     RSymbol s = RSymbol.getSymbol(index.getString(i));
                     int indexv = names.map(s);
-                    if (indexv == RInt.NA) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
+                    if (indexv == -1) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
                     b = l.getRAny(indexv);
                 }
             }
@@ -1463,11 +1468,11 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericSelection");
             if (!(base instanceof RArray)) {
-                Utils.nyi("unsupported base");
+                throw RError.getObjectNotSubsettable(ast, base.typeOf());
             }
             RArray abase = (RArray) base;
             if (!(index instanceof RArray) || index instanceof RList) {
-                Utils.nyi("unsupported index");
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
             RArray aindex = (RArray) index;
             int isize = aindex.size();

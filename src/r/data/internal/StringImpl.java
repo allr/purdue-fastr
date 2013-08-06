@@ -51,6 +51,16 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
         }
     }
 
+    public StringImpl(RString v, int[] dimensions, Names names, Attributes attributes) {
+        content = new String[v.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = v.getString(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return content.length;
@@ -209,5 +219,10 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     @Override
     public StringImpl doStrip() {
         return new StringImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public StringImpl doStripKeepNames() {
+        return new StringImpl(content, null, names, null, false);
     }
 }

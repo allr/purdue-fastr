@@ -180,6 +180,13 @@ public interface RDouble extends RNumber {
             }
             return new DoubleImpl(v, true);
         }
+        public static RDouble stripKeepNames(RDouble v) {
+            Names names = v.names();
+            if (v.size() == 1 && names == null) {
+                return new ScalarDoubleImpl(v.getDouble(0));
+            }
+            return new DoubleImpl(v, null, names, null);
+        }
         public static RDouble getFor(double[] values) { // re-uses values!
             return getFor(values, null, null);
         }

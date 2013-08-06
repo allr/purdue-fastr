@@ -137,6 +137,13 @@ public interface RString extends RArray {
             }
             return new StringImpl(v, true);
         }
+        public static RString stripKeepNames(RString v) {
+            Names names = v.names();
+            if (v.size() == 1 && names == null) {
+                return new ScalarStringImpl(v.getString(0));
+            }
+            return new StringImpl(v, null, names, null);
+        }
         public static RString getFor(String[] values) { // re-uses values!
             return getFor(values, null, null);
 

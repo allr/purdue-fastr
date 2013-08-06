@@ -6,6 +6,7 @@ import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
+import r.errors.*;
 import r.nodes.*;
 
 // FIXME: this is a very unoptimized version
@@ -35,6 +36,7 @@ public class InOperation extends BaseR {
         RArray typedTable;
 
         // note: R also converts raw to string, but using int seems functionally equivalent
+        // note: this requires list to string conversion
         if (left instanceof RString || right instanceof RString || left instanceof RList || right instanceof RList) {
             typedX = left.asString();
             typedTable = right.asString();
@@ -47,12 +49,11 @@ public class InOperation extends BaseR {
         } else if (left instanceof RInt || right instanceof RInt || left instanceof RRaw || right instanceof RRaw) {
             typedX = left.asInt();
             typedTable = right.asInt();
-        } else if (left instanceof RLogical || right instanceof RLogical) {
+        } else if (left instanceof RLogical && right instanceof RLogical) {
             typedX = left.asLogical();
             typedTable = right.asLogical();
         } else {
-            Utils.nyi("unsupported type");
-            return null;
+            throw RError.getMatchVectorArgs(ast);
         }
 
         int xsize = typedX.size();

@@ -48,6 +48,9 @@ public interface RList extends RArray {
         public static ListImpl strip(RList l) {
             return new ListImpl(l, true);
         }
+        public static ListImpl stripKeepNames(RList l) {
+            return new ListImpl(l, null, l.names(), null);
+        }
         public static ListImpl getFor(RAny[] values) {
             return getFor(values, null, null);
         }

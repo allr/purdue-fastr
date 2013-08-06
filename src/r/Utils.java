@@ -78,6 +78,18 @@ public final class Utils {
         return null;
     }
 
+    public static RArray createNA(RAny type) {
+        if (type instanceof RInt) { return RInt.BOXED_NA; }
+        if (type instanceof RDouble) { return RDouble.BOXED_NA; }
+        if (type instanceof RLogical) { return RLogical.BOXED_NA; }
+        if (type instanceof RList) { return RList.BOXED_NULL; }
+        if (type instanceof RString) { return RString.BOXED_NA; }
+        if (type instanceof RRaw) { return RRaw.BOXED_ZERO; }
+        if (type instanceof RComplex) { return RComplex.BOXED_NA; }
+        Utils.nyi("unsupported array type");
+        return null;
+    }
+
     public static RArray createArray(RAny type, int size, int[] dimensions, Names names, Attributes attributes) {
         if (type instanceof RInt) { return RInt.RIntFactory.getUninitializedArray(size, dimensions, names, attributes); }
         if (type instanceof RDouble) { return RDouble.RDoubleFactory.getUninitializedArray(size, dimensions, names, attributes); }

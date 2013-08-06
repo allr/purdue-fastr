@@ -77,6 +77,15 @@ public abstract class View extends ArrayImpl implements RArray {
     }
 
     @Override
+    public RArray stripAttributesKeepNames() {
+
+        if (dimensions() == null && attributes() == null) {
+            return this;
+        }
+        return materialize().stripAttributesKeepNames();
+    }
+
+    @Override
     public <T extends RNode> T callNodeFactory(OperationFactory<T> factory) {
         Utils.nyi(); // Do we have to bind on the view node or on the implementation
         return null;
@@ -201,6 +210,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RRaw doStrip() {
             return RRaw.RRawFactory.strip(this);
+        }
+
+        @Override
+        public RRaw doStripKeepNames() {
+            return RRaw.RRawFactory.stripKeepNames(this);
         }
     }
 
@@ -348,6 +362,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RLogical doStrip() {
             return RLogical.RLogicalFactory.strip(this);
         }
+
+        @Override
+        public RLogical doStripKeepNames() {
+            return RLogical.RLogicalFactory.stripKeepNames(this);
+        }
     }
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -494,6 +513,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RInt doStrip() {
             return RInt.RIntFactory.strip(this);
+        }
+
+        @Override
+        public RInt doStripKeepNames() {
+            return RInt.RIntFactory.stripKeepNames(this);
         }
     }
 
@@ -647,6 +671,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RDouble doStrip() {
             return RDouble.RDoubleFactory.strip(this);
         }
+
+        @Override
+        public RDouble doStripKeepNames() {
+            return RDouble.RDoubleFactory.stripKeepNames(this);
+        }
     }
 
  // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -798,6 +827,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RComplex doStrip() {
             return RComplex.RComplexFactory.strip(this);
+        }
+
+        @Override
+        public RComplex doStripKeepNames() {
+            return RComplex.RComplexFactory.stripKeepNames(this);
         }
     }
 
@@ -951,6 +985,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RString doStrip() {
             return RString.RStringFactory.strip(this);
         }
+
+        @Override
+        public RString doStripKeepNames() {
+            return RString.RStringFactory.stripKeepNames(this);
+        }
     }
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -1092,6 +1131,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RList doStrip() {
             return RList.RListFactory.strip(this);
+        }
+
+        @Override
+        public RList doStripKeepNames() {
+            return RList.RListFactory.stripKeepNames(this);
         }
     }
 

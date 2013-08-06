@@ -119,6 +119,13 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             }
             return new LogicalImpl(v, true);
         }
+        public static RLogical stripKeepNames(RLogical v) {
+            Names names = v.names();
+            if (v.size() == 1 && names == null) {
+                return new ScalarLogicalImpl(v.getLogical(0));
+            }
+            return new LogicalImpl(v, null, names, null);
+        }
         public static RLogical getFor(int[] values) {  // re-uses values!
             return getFor(values, null, null);
         }

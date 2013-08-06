@@ -2741,7 +2741,7 @@ public abstract class UpdateVector extends BaseR {
                     if (names == null) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
                     RSymbol s = RSymbol.getSymbol(index.getString(i));
                     int indexv = names.map(s);
-                    if (indexv == RInt.NA) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
+                    if (indexv == -1) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
                     int bsize = l.size();
                     RAny[] content = new RAny[bsize];
                     int k = 0;

@@ -49,6 +49,16 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         }
     }
 
+    public RawImpl(RRaw r, int[] dimensions, Names names, Attributes attributes) {
+        content = new byte[r.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = r.getRaw(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return content.length;
@@ -186,6 +196,11 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
     @Override
     public RawImpl doStrip() {
         return new RawImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public RawImpl doStripKeepNames() {
+        return new RawImpl(content, null, names, null, false);
     }
 
 }

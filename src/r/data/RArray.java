@@ -48,6 +48,8 @@ public interface RArray extends RAny {
 
     RArray stripAttributes();
 
+    RArray stripAttributesKeepNames();
+
     boolean isNAorNaN(int i);
 
     int index(int i, int j);

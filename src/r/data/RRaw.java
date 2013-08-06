@@ -51,6 +51,9 @@ public interface RRaw extends RArray {
         public static RawImpl strip(RRaw v) {
             return new RawImpl(v, true);
         }
+        public static RawImpl stripKeepNames(RRaw v) {
+            return new RawImpl(v, null, v.names(), null);
+        }
         public static RawImpl getFor(byte[] values) {  // re-uses values!
             return getFor(values, null, null);
         }

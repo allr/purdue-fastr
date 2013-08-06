@@ -115,6 +115,24 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return doStrip();
     }
 
+    protected RArray doStripKeepNames() {
+        Utils.nyi();
+        return null;
+    }
+
+    @Override
+    public RArray stripAttributesKeepNames() {
+        if (dimensions() == null && attributes() == null) {
+            return this;
+        }
+        if (!isShared()) {
+            setDimensions(null);
+            setAttributes(null);
+            return this;
+        }
+        return doStripKeepNames();
+    }
+
     @Override
     public Object getRef(int i) {
         return get(i);

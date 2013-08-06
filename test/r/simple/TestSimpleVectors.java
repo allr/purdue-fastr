@@ -49,7 +49,83 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- c(a=1,b=2,c=3,d=4) ; x[\"d\"] }", "  d\n4.0");
 
         assertEval("{ x <- 1 ; attr(x, \"hi\") <- 2; x[2] <- 2; attr(x, \"hi\") }", "2.0");
+
+        assertEvalError("{ x<-function() {1} ; y <- 2;  x[y] }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x<-function() {1} ; y <- 2;  y[x] }", "invalid subscript type 'closure'");
+        assertEval("{ x<-5:1 ; y <- -1L;  x[y] }", "4L, 3L, 2L, 1L");
+        assertEval("{ x<-5:1 ; y <- 6L;  x[y] }", "NA");
+        assertEval("{ x<-5:1 ; y <- 2L;  x[[y]] }", "4L");
+        assertEval("{ x<-as.list(5:1) ; y <- 2L;  x[[y]] }", "4L");
+        assertEvalError("{ x<-as.list(5:1) ; y <- 1:2;  x[[y]] }", "subscript out of bounds");
+        assertEvalError("{ x<-function() {1} ; x[2L] }", "object of type 'closure' is not subsettable");
+        assertEval("{ x <- c(1,4) ; y <- -1L ; x[y] }", "4.0");
+        assertEval("{ x <- c(1,4) ; y <- 10L ; x[y] }", "NA");
+        assertEval("{ x <- c(1,4) ; y <- -1 ; x[y] }", "4.0");
+        assertEval("{ x <- c(1,4) ; y <- 10 ; x[y] }", "NA");
+        assertEval("{ x <- c(a=1,b=2) ; y <- 2L ; x[y] }", "  b\n2.0");
+        assertEval("{ x <- 1:4 ; y <- -1 ; x[y] }", "2L, 3L, 4L");
+        assertEval("{ x <- 1:4 ; y <- 10 ; x[y] }", "NA");
+        assertEval("{ x <- c(a=1,b=2) ; y <- 2 ; x[y] }", "  b\n2.0");
+        assertEval("{ x <- list(1,2,3,4) ; y <- 3 ; x[y] }", "[[1]]\n3.0");
+        assertEval("{ x <- list(1,2,3,4) ; y <- 3 ; x[[y]] }", "3.0");
+        assertEvalError("{ x <- function(){3} ; y <- 3 ; x[[y]] }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(x,i) { x[[i]]} ; f(list(1,2,3,4), 3); f(f,2) }", "object of type 'closure' is not subsettable");
+        assertEval("{ x <- list(1,4) ; y <- -1 ; x[y] }", "[[1]]\n4.0");
+        assertEval("{ x <- list(1,4) ; y <- 4 ; x[y] }", "[[1]]\nNULL");
+        assertEval("{ x <- list(a=1,b=4) ; y <- 2 ; x[y] }", "$b\n4.0");
+        assertEval("{ f <- function(x,i) { x[i] } ; x <- c(a=1,b=2) ; f(x,\"a\") }", "  a\n1.0");
+        assertEval("{ f <- function(x,i) { x[i] } ; x <- c(a=1,b=2) ; f(x,\"a\") ; f(x,2) }", "  b\n2.0");
+        assertEvalError("{ f <- function(x,i) { x[i] } ; x <- c(a=1,b=2) ; f(x,\"a\") ; f(function(){3},\"b\") }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(1,2),FALSE) }", "attempt to select less than one element");
+        assertEval("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(1,2),TRUE) }", "1.0");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(1,2),1+0i) }", "invalid subscript type 'complex'");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(), NA) }", "[[1]]\nNULL");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(integer(), NA) }", "NA");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,4) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,NA) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,-1) }", "attempt to select more than one element");
+        assertEval("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,-1) }", "2L");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(2,-2) }", "attempt to select less than one element");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(2,-3) }", "attempt to select less than one element"); // like GNU-R, but is it a bug?
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:4,-3) }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,-3) }", "attempt to select more than one element");
+        assertEval("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,-2) }", "1L");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,NA) }", "NA, NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,-4) }", "1L, 2L");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(a=1L,b=2L),0) }", "named integer(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,0) }", "integer(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:2,-2) }", "1L");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(TRUE,FALSE),NA) }", "NA, NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(TRUE,FALSE),-4) }", "TRUE, FALSE");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(TRUE,FALSE),0) }", "logical(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(a=TRUE,b=FALSE),0) }", "named logical(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(TRUE,FALSE),-2) }", "TRUE");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(TRUE,FALSE),4) }", "NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(a=TRUE,b=FALSE),4) }", "<NA>\n  NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(1,2),-4) }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(1,2),4) }", "[[1]]\nNULL");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(list(a=1,b=2),4) }", "$<NA>\nNULL");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(\"a\",\"b\"),4) }", "NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(\"a\",\"b\"),NA) }", "NA, NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(\"a\",\"b\"),-4) }", "\"a\", \"b\"");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(\"a\",\"b\"),0) }", "character(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(a=\"a\",b=\"b\"),0) }", "named character(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(1+2i,3+4i),NA) }", "NA, NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(1+2i,3+4i),-4) }", "1.0+2.0i, 3.0+4.0i");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(1+2i,3+4i),4) }", "NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(c(a=1+2i,b=3+4i),4) }", "<NA>\n  NA");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(as.raw(c(10,11)),-4) }", "0a, 0b");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(as.raw(c(10,11)),0) }", "raw(0)");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(as.raw(c(10,11)),4) }", "00");
+
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(1+2i,3+4i) ; attr(z, \"my\") <- 1 ; f(z,-10) }", "1.0+2.0i, 3.0+4.0i");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(1,3) ; attr(z, \"my\") <- 1 ; f(z,-10) }", "1.0, 3.0");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(1L,3L) ; attr(z, \"my\") <- 1 ; f(z,-10) }", "1L, 3L");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(TRUE,FALSE) ; attr(z, \"my\") <- 1 ; f(z,-10) }", "TRUE, FALSE");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(a=\"a\",b=\"b\") ; attr(z, \"my\") <- 1 ; f(z,-10) }", "  a   b\n\"a\" \"b\"");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(a=as.raw(10),b=as.raw(11)) ; attr(z, \"my\") <- 1 ; f(z,-10) }", " a  b\n0a 0b");
     }
+
 
     @Test
     public void testVectorIndex() throws RecognitionException {
@@ -434,6 +510,9 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ 1:3 %in% 1:10 }", "TRUE, TRUE, TRUE");
         assertEval("{ 1 %in% 1:10 }", "TRUE");
         assertEval("{ c(\"1L\",\"hello\") %in% 1:10 }", "TRUE, FALSE");
+        assertEval("{ (1 + 2i) %in% c(1+10i, 1+4i, 2+2i, 1+2i) }", "TRUE");
+        assertEval("{ as.logical(-1:1) %in% TRUE }", "TRUE, FALSE, TRUE");
+        assertEvalError("{ x <- function(){1} ; x %in% TRUE }", "'match' requires vector arguments");
     }
 
     @Test

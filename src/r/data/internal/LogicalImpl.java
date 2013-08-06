@@ -51,6 +51,16 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
         }
     }
 
+    public LogicalImpl(RLogical l, int[] dimensions, Names names, Attributes attributes) {
+        content = new int[l.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = l.getLogical(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return content.length;
@@ -193,5 +203,10 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     @Override
     public LogicalImpl doStrip() {
         return new LogicalImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public LogicalImpl doStripKeepNames() {
+        return new LogicalImpl(content, null, names, null, false);
     }
 }

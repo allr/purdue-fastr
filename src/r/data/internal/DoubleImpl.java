@@ -37,17 +37,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         content = new double[size];
     }
 
-//    private static double[] toArray(RDouble d) {
-//        int dsize = d.size();
-//        double[] res = new double[dsize];
-//        for (int i = 0; i < dsize; i++) {
-//            res[i] = d.getDouble(i);
-//        }
-//        return res;
-//    }
-
     public DoubleImpl(RDouble d, boolean valuesOnly) {
-//        content = toArray(d);
         content = new double[d.size()];
         for (int i = 0; i < content.length; i++) {
             content[i] = d.getDouble(i);
@@ -57,6 +47,16 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
             names = d.names();
             attributes = d.attributes();
         }
+    }
+
+    public DoubleImpl(RDouble d, int[] dimensions, Names names, Attributes attributes) {
+        content = new double[d.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = d.getDouble(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
     }
 
     @Override
@@ -196,5 +196,10 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     @Override
     public DoubleImpl doStrip() {
         return new DoubleImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public DoubleImpl doStripKeepNames() {
+        return new DoubleImpl(content, null, names, null, false);
     }
 }

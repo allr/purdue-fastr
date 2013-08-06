@@ -66,6 +66,18 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         }
     }
 
+    public ComplexImpl(RComplex c, int[] dimensions, Names names, Attributes attributes) {
+        size = c.size();
+        content = new double[2 * size];
+        for (int i = 0; i < size; i++) {
+            content[2 * i] = c.getReal(i);
+            content[2 * i + 1] = c.getImag(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return size;
@@ -210,6 +222,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     @Override
     public ComplexImpl doStrip() {
         return new ComplexImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public ComplexImpl doStripKeepNames() {
+        return new ComplexImpl(content, null, names, null, false);
     }
 
  }

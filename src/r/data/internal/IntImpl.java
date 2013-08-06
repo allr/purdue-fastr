@@ -51,6 +51,16 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         }
     }
 
+    public IntImpl(RInt v, int[] dimensions, Names names, Attributes attributes) {
+        content = new int[v.size()];
+        for (int i = 0; i < content.length; i++) {
+            content[i] = v.getInt(i);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return content.length;
@@ -261,5 +271,10 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     @Override
     public IntImpl doStrip() {
         return new IntImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public IntImpl doStripKeepNames() {
+        return new IntImpl(content, null, names, null, false);
     }
 }

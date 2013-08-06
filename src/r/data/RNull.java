@@ -182,6 +182,11 @@ public final class RNull implements RArray {
     }
 
     @Override
+    public RNull stripAttributesKeepNames() {
+        return this;
+    }
+
+    @Override
     public Object getRef(int i) {
         return get(i);
     }

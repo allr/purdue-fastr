@@ -131,6 +131,7 @@ public abstract class RError extends RuntimeException {
     public static final String ZERO_LENGTH_VARIABLE = "attempt to use zero-length variable name";
     public static final String ARGUMENT_NOT_INTERPRETABLE_LOGICAL = "argument is not interpretable as logical";
     public static final String OPERATIONS_NUMERIC_LOGICAL_COMPLEX = "operations are possible only for numeric, logical or complex types";
+    public static final String MATCH_VECTOR_ARGS = "'match' requires vector arguments";
 
     public static final String ONLY_FIRST_USED = "numerical expression has %d elements: only the first used";
     public static final String NO_SUCH_INDEX = "no such index at level %d";
@@ -1411,6 +1412,17 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.MISSING_INVALID;
+            }
+        };
+    }
+
+    public static RError getMatchVectorArgs(ASTNode expr) {
+        return new RErrorInExpr(expr) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override public String getMessage() {
+                return RError.MATCH_VECTOR_ARGS;
             }
         };
     }

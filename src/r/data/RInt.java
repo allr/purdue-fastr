@@ -113,6 +113,13 @@ public interface RInt extends RNumber {
             }
             return new IntImpl(v, true);
         }
+        public static RInt stripKeepNames(RInt v) {
+            Names names = v.names();
+            if (v.size() == 1 && names == null) {
+                return new ScalarIntImpl(v.getInt(0));
+            }
+            return new IntImpl(v, null, names, null);
+        }
         public static RInt getFor(int[] values) { // re-uses values!
             return getFor(values, null, null);
         }

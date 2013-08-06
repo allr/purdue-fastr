@@ -49,6 +49,18 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         }
     }
 
+    public ListImpl(RList v, int[] dimensions, Names names, Attributes attributes) { // deep-copy
+        // TODO: why deep? do all callers need it deep?, should use reference counts instead
+        content = new RAny[v.size()];
+        for (int i = 0; i < content.length; i++) {
+            RAny e = v.getRAny(i);
+            content[i] = Utils.copy(e);
+        }
+        this.dimensions = dimensions;
+        this.names = names;
+        this.attributes = attributes;
+    }
+
     @Override
     public int size() {
         return content.length;
@@ -178,7 +190,7 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
                     nprefix.append("]]");
                 } else {
                     nprefix.append("$");
-                    nprefix.append(s.pretty());
+                    nprefix.append(Convert.prettyGTNALT(s.pretty()));
                 }
                 str.append(nprefix);
                 str.append("\n");
@@ -249,6 +261,11 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     @Override
     public ListImpl doStrip() {
         return new ListImpl(content, null, null, null, false);
+    }
+
+    @Override
+    public ListImpl doStripKeepNames() {
+        return new ListImpl(content, null, names, null, false);
     }
 
     @Override
