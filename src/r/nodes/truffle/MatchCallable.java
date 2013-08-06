@@ -109,21 +109,16 @@ public abstract class MatchCallable extends BaseR {
     public static MatchCallable getMatchTopLevel(ASTNode ast, RSymbol symbol) {
         return new MatchCallable(ast, symbol) {
 
-            int version;
 
             @Override
             public final Object execute(Frame frame) {
-                Object val; // TODO check if 'version' is enough, I think the good test has to be:
-                // if (frame != oldFrame || version != symbol.getVersion()) {
-                if (version != symbol.getVersion()) {
-                    val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
-                    if (val != null) {
-                        return val;
-                    }
-                    version = symbol.getVersion();
-                    // oldFrame = frame;
-                    val = symbol.getValue();
+                Object val;
 
+                if (symbol.getVersion() != 0) { // NOTE: this could be made more efficient, see comments in ReadVariable
+                    val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
+                    if (val == null) {
+                        val = symbol.getValue();
+                    }
                 } else {
                     val = symbol.getValue();
                 }
