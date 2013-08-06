@@ -8,13 +8,14 @@ import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
 
-public abstract class ConvertToLogicalOne extends RNode {
+public abstract class ConvertToLogicalOne extends BaseR {
 
     @Child RNode input;
 
     private static final boolean DEBUG_C = false;
 
     private ConvertToLogicalOne(RNode input) {
+        super(input.getAST());
         this.input = adoptChild(input);
     }
 
@@ -67,7 +68,7 @@ public abstract class ConvertToLogicalOne extends RNode {
                     return logicalArray.getLogical(0);
                 }
                 if (logicalArray.size() > 1) {
-                    RContext.warning(getAST(), RError.LENGTH_GT_1);
+                    RContext.warning(ast, RError.LENGTH_GT_1);
                     return logicalArray.getLogical(0);
                 }
                 throw RError.getLengthZero(null);
@@ -89,16 +90,16 @@ public abstract class ConvertToLogicalOne extends RNode {
                 if (intArray.size() == 1) {
                     intValue = intArray.getInt(0);
                 } else if (intArray.size() > 1) {
-                    RContext.warning(getAST(), RError.LENGTH_GT_1);
+                    RContext.warning(ast, RError.LENGTH_GT_1);
                     intValue = intArray.getInt(0);
                 } else {
                     throw RError.getLengthZero(null);
                 }
 
-                if (intValue == RLogical.FALSE || intValue == RLogical.NA) {
-                    return intValue;
-                } else {
-                    return RLogical.TRUE;
+                switch(intValue) {
+                    case RLogical.FALSE: return intValue;
+                    case RLogical.NA: throw RError.getArgumentNotInterpretableLogical(ast);
+                    default: return RLogical.TRUE;
                 }
             }
         };
@@ -120,10 +121,10 @@ public abstract class ConvertToLogicalOne extends RNode {
                     RContext.warning(getAST(), RError.LENGTH_GT_1);
                 } else {
                     assert Utils.check(asize == 0);
-                    throw RError.getLengthZero(input.getAST());
+                    throw RError.getLengthZero(ast);
                 }
                 if (logicalValue == RLogical.NA && !(value instanceof RLogical)) {
-                    throw RError.getArgumentNotInterpretableLogical(input.getAST());
+                    throw RError.getArgumentNotInterpretableLogical(ast);
                 }
                 return logicalValue;
             }
