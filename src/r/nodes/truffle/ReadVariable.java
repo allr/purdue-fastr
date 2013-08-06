@@ -198,7 +198,12 @@ public abstract class ReadVariable extends BaseR {
             int len = values.length;
 
             if (index < len) {
-                return RPromise.force(values[index]);
+                Object value = values[index];
+                if (value != null) {
+                    return RPromise.force(value);
+                } else {
+                    throw RError.getDotDotMissing(ast, index);
+                }
             }
             throw RError.getDotsBounds(ast, index + 1);
         }

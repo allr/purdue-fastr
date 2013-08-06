@@ -200,6 +200,7 @@ public abstract class RError extends RuntimeException {
     public static final String MUST_BE_TRUE_FALSE_ENVIRONMENT = "'%s' must be TRUE, FALSE or an environment";
     public static final String UNKNOWN_OBJECT_MODE = "object '%s' of mode '%s' was not found";
     public static final String INVALID_TYPE_IN = "invalid '%s' type in 'x %s y'";
+    public static final String DOT_DOT_MISSING = "'..%d' is missing";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1705,6 +1706,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidTypeIn(ASTNode ast, String operand, String operator) {
         return getGenericError(ast, String.format(RError.INVALID_TYPE_IN, operand, operator));
+    }
+
+    public static RError getDotDotMissing(ASTNode ast, int dotIndex) {
+        return getGenericError(ast, String.format(RError.DOT_DOT_MISSING, dotIndex + 1));
     }
 
 }

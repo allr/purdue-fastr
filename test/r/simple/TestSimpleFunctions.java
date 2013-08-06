@@ -191,5 +191,8 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEvalError("{ f <- function(a, barg, bextra, dummy) { a + barg } ; g <- function(...) { f(a=1, ...,,,) } ; g(1) }", "unused argument(s) ()");
         assertEval("{ f <- function(...,d) { ..1 + ..2 } ; f(1,d=4,2) }", "3.0");
         assertEval("{ f <- function(...,d) { ..1 + ..2 } ; f(1,2,d=4) }", "3.0");
+
+        assertEvalError("{ f <- function(...) { ..2 + ..2 } ; f(1,,2) }", "'..2' is missing");
+        assertEvalError("{ f <- function(...) { ..1 + ..2 } ; f(1,,3) }", "'..2' is missing");
     }
 }
