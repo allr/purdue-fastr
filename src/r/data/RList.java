@@ -146,6 +146,7 @@ public interface RList extends RArray {
         @Override
         public RAny getRAny(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RList.NULL;
             } else {

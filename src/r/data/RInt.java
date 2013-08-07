@@ -430,6 +430,7 @@ public interface RInt extends RNumber {
         @Override
         public int getInt(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RInt.NA;
             } else {

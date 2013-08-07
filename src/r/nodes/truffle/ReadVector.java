@@ -7,6 +7,7 @@ import r.*;
 import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
+import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
 import r.nodes.*;
 
@@ -583,9 +584,8 @@ public abstract class ReadVector extends BaseR {
                 if (abase instanceof RList) { return new RListView((RList) abase, sindex.from(), sindex.to(), sindex.step()); }
                 if (abase instanceof RString) { return new RStringView((RString) abase, sindex.from(), sindex.to(), sindex.step()); }
                 if (abase instanceof RRaw) { return new RRawView((RRaw) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RComplex) { return new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step()); }
-                Utils.nyi("unsupported base vector type");
-                return null;
+                assert Utils.check(abase instanceof RComplex);
+                return new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step());
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleIntSequenceSelection failed: " + f);
@@ -608,15 +608,6 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
-        public static int sequenceSize(int from, int to, int step) {
-            int absstep = (step > 0) ? step : -step;
-            if (from <= to) {
-                return (to - from + 1) / absstep;
-            } else {
-                return (from - to + 1) / absstep;
-            }
-        }
-
         static class RRawView extends View.RRawProxy<RRaw> implements RRaw {
             final int from;
             final int to;
@@ -628,7 +619,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -657,7 +648,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -686,7 +677,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -715,7 +706,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -744,7 +735,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -779,7 +770,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -808,7 +799,7 @@ public abstract class ReadVector extends BaseR {
                 this.from = from;
                 this.to = to;
                 this.step = step;
-                this.size = sequenceSize(from, to, step);
+                this.size = RIntSequence.sequenceSize(from, to, step);
             }
 
             @Override public int size() {
@@ -865,24 +856,23 @@ public abstract class ReadVector extends BaseR {
                     hasPositive = true;
                     continue;
                 }
-                if (v < 0) {
-                    if (!hasNegative) {
-                        hasNegative = true;
-                        omit = new boolean[bsize];
-                    }
-                    int vi = -v - 1;
-                    if (vi < omit.length) {
-                        if (!omit[vi]) {
-                            omit[vi] = true;
-                            nomit++;
-                        }
+                // v < 0
+                if (!hasNegative) {
+                    hasNegative = true;
+                    omit = new boolean[bsize];
+                }
+                int vi = -v - 1;
+                if (vi < omit.length) {
+                    if (!omit[vi]) {
+                        omit[vi] = true;
+                        nomit++;
                     }
                 }
             }
             boolean hasZero = nzeros > 0;
 
             if (!hasNegative) {
-                if (!hasZero && symbols == null) { return base.subset(index); }
+                if (!hasZero && symbols == null && !hasNA) { return base.subset(index); }
                 // positive and zero indexes (and perhaps NAs)
                 int nsize = isize - nzeros;
                 if (symbols != null) {
@@ -1133,6 +1123,7 @@ public abstract class ReadVector extends BaseR {
             int isize = index.size();
             int bsize = base.size();
             Names names = base.names();
+            if (isize == 0) { return Utils.createEmptyArray(base, names != null); }
             RSymbol[] symbols = (names == null) ? null : names.sequence();
             RSymbol[] newSymbols = null;
 

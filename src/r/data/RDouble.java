@@ -454,6 +454,7 @@ public interface RDouble extends RNumber {
         @Override
         public double getDouble(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RDouble.NA;
             } else {

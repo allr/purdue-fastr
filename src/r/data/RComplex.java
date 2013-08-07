@@ -366,6 +366,7 @@ public interface RComplex extends RArray {
         @Override
         public double getReal(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RDouble.NA;
             } else {
@@ -376,6 +377,7 @@ public interface RComplex extends RArray {
         @Override
         public double getImag(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RDouble.NA;
             } else {

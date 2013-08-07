@@ -437,6 +437,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public int getLogical(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RLogical.NA;
             } else {

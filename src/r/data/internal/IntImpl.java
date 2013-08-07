@@ -261,6 +261,15 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         public boolean dependsOn(RAny value) {
             return false;
         }
+
+        public static int sequenceSize(int from, int to, int step) {
+            int absstep = (step > 0) ? step : -step;
+            if (from <= to) {
+                return (to - from + 1) / absstep;
+            } else {
+                return (from - to + 1) / absstep;
+            }
+        }
     }
 
     @Override

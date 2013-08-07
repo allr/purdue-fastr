@@ -311,6 +311,7 @@ public interface RRaw extends RArray {
         @Override
         public byte getRaw(int i) {
             int j = index.getInt(i);
+            assert Utils.check(j > 0);
             if (j > vsize) {
                 return RRaw.ZERO;
             } else {

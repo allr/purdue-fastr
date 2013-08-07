@@ -124,6 +124,11 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(TRUE,FALSE) ; attr(z, \"my\") <- 1 ; f(z,-10) }", "TRUE, FALSE");
         assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(a=\"a\",b=\"b\") ; attr(z, \"my\") <- 1 ; f(z,-10) }", "  a   b\n\"a\" \"b\"");
         assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; z <- c(a=as.raw(10),b=as.raw(11)) ; attr(z, \"my\") <- 1 ; f(z,-10) }", " a  b\n0a 0b");
+
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(TRUE,FALSE)) }", "attempt to select more than one element");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(TRUE,FALSE)) }", "1L, 3L");
+        assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(1,2)) }", "1L, 2L");
+        assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(3,3)) }", "attempt to select more than one element");
     }
 
 
@@ -174,6 +179,53 @@ public class TestSimpleVectors extends SimpleTestBase {
         // logical equality selection
         assertEval("{ f<-function(x,l) { x[l == 3] } ; f(c(1,2,3), c(1,2,3)) ; f(c(1,2,3), 1:3) ; f(1:3, c(3,3,2)) }", "1L, 2L");
         assertEval("{ f<-function(x,l) { x[l == 3] <- 4 } ; f(c(1,2,3), c(1,2,3)) ; f(c(1,2,3), 1:3) ; f(1:3, c(3,3,2)) }", "4.0");
+
+        assertEvalError("{ x <- function(){3} ; x[3:2] }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x <- c(1,2,3) ; x[-1:2] }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ x <- c(TRUE,FALSE,TRUE) ; x[2:3] }", "FALSE, TRUE");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i) ; x[2:3] }", "3.0+4.0i, 5.0+6.0i");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i) ; x[c(2,3,NA)] }", "3.0+4.0i, 5.0+6.0i, NA");
+        assertEvalError("{ x <- c(1+2i,3+4i,5+6i) ; x[c(-2,3,NA)] }", "only 0's may be mixed with negative subscripts");
+        assertEvalError("{ x <- c(1+2i,3+4i,5+6i) ; x[c(-2,-3,NA)] }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i) ; x[c(-2,-3,-4,-5)] }", "1.0+2.0i");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i) ; x[c(-2,-3,-4,-5,-5)] }", "1.0+2.0i");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i) ; x[c(-2,-3,-4,-5,-2)] }", "1.0+2.0i");
+        assertEvalError("{ f <- function(b,i) { b[i] } ; x <- c(1+2i,3+4i,5+6i) ; f(x,c(1,2)) ; f(x,c(1+2i)) }", "invalid subscript type 'complex'");
+        assertEval("{ x <- c(TRUE,FALSE,TRUE) ; x[integer()] }", "logical(0)");
+        assertEvalError("{ f <- function(b) { b[integer()] } ; f(c(TRUE,FALSE,TRUE)) ; f(f) }", "object of type 'closure' is not subsettable");
+
+        assertEval("{ x <- c(1,2,3,2) ; x[x==2] }", "2.0, 2.0");
+        assertEval("{ x <- c(1,2,3,2) ; x[c(3,4,2)==2] }", "3.0");
+        assertEval("{ x <- c(a=1,x=2,b=3,y=2) ; x[c(3,4,2)==2] }", "  b\n3.0");
+        assertEval("{ x <- c(a=1,x=2,b=3,y=2) ; x[c(3,4,2,1)==2] }", "  b\n3.0");
+        assertEval("{ x <- c(as.double(1:2000)) ; x[c(1,3,3,3,1:1996)==3] }", "2.0, 3.0, 4.0, 7.0");
+        assertEval("{ x <- c(as.double(1:2000)) ; x[c(NA,3,3,NA,1:1996)==3] }", "NA, 2.0, 3.0, NA, 7.0");
+        assertEval("{ x <- c(as.double(1:2000)) ; sum(x[rep(3, 2000)==3]) }", "2001000.0");
+        assertEval("{ x <- c(1,2,3,2) ; x[c(3,4,2,NA)==2] }", "3.0, NA");
+
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE,TRUE)) ; f(1:3,3:1) }", "3L, 2L, 1L");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE,TRUE)) ; f(c(a=1,b=2,c=3),3:1) }", "  c   b   a\n3.0 2.0 1.0");
+        assertEvalError("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE,TRUE)) ; f(function(){2},3:1) }", "object of type 'closure' is not subsettable");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE,NA)) }", "1L, NA");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE,NA,NA,NA)) }", "1L, NA, NA, NA");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(c(a=1,b=2,c=3), c(TRUE,NA,FALSE,FALSE,TRUE)) }", "  a <NA> <NA>\n1.0   NA   NA");
+        assertEval(" { f <- function(b,i) { b[i] } ; f(c(a=1,b=2,c=3), c(TRUE,NA)) }", "  a <NA>   c\n1.0   NA 3.0");
+        assertEvalError("{ f <- function(b,i) { b[i] } ; f(1:3, c(TRUE,FALSE)) ; f(f, c(TRUE,NA)) }", "object of type 'closure' is not subsettable");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, logical()) }", "integer(0)");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(c(a=1L,b=2L,c=3L), logical()) }", "named integer(0)");
+
+        assertEval("{ f <- function(b,i) { b[i] } ; f(c(a=1,b=2,c=3), character()) }", "named numeric(0)");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), character()) }", "numeric(0)");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(c(1,2,3), c(\"hello\",\"hi\")) }", "NA, NA");
+        assertEvalError("{ f <- function(b,i) { b[i] } ; f(1:3, c(\"h\",\"hi\")) ; f(function(){3},\"hi\") }", "object of type 'closure' is not subsettable");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3, c(\"h\",\"hi\")) ; f(1:3,TRUE) }", "1L, 2L, 3L");
+
+        assertEval("{ x <- list(1,2,list(3)) ; x[[c(3,1)]] }", "3.0");
+        assertEvalError("{ x <- list(1,2,list(3)) ; x[[c(4,1)]] }", "no such index at level 1");
+        assertEval("{ x <- list(1,2,list(3)) ; x[[c(3,NA)]] }", "NULL");
+        assertEvalError("{ x <- list(1,2,list(3)) ; x[[c(NA,1)]] }", "no such index at level 1");
+        assertEval("{ x <- list(1,list(3)) ; x[[c(-1,1)]] }", "3.0");
+
     }
 
     @Test
