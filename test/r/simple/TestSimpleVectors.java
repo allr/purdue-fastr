@@ -288,7 +288,64 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- c(1,2,3) ; x[2] <- \"hi\"; x }", "\"1.0\", \"hi\", \"3.0\"");
         assertEval("{ x <- c(TRUE,FALSE,FALSE) ; x[2] <- \"hi\"; x }", "\"TRUE\", \"hi\", \"FALSE\"");
         assertEval("{ x <- c(2,3,4) ; x[1] <- 3+4i ; x  }", "3.0+4.0i, 3.0+0.0i, 4.0+0.0i");
+
+        assertEvalError("{ f <- function() { a[3] <- 4 } ; f() }", "object not found");
+        assertEvalError("{ l <- quote(a[3] <- 4) ; f <- function() { eval(l) } ; f() }", "object not found");
+        assertEvalError("{ l <- quote(a[3] <- 4) ; eval(l) ; f() }", "object not found");
+        assertEval("{ b <- c(1,2) ; x <- b ; b[2L] <- 3 ; b }", "1.0, 3.0");
+        assertEval("{ b <- c(1,2) ; b[0L] <- 3 ; b }", "1.0, 2.0");
+        assertEval("{ b <- c(1,2) ; b[0] <- 1+2i ; b }", "1.0+0.0i, 2.0+0.0i");
+        assertEvalError("{ x[3] <<- 10 }", "object 'x' not found");
+        assertEval("{ b <- c(1,2) ; b[5L] <- 3 ; b }", "1.0, 2.0, NA, NA, 3.0");
+        assertEvalWarning("{ b <- c(1,2) ; z <- c(10,11) ; attr(z,\"my\") <- 4 ; b[2] <- z ; b }", "1.0, 10.0", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1L,2L),10L) ; f(1,3) }", "1.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1L,2L),10L) ; f(1L,3) }", "1.0, 3.0");
+        assertEval("{ b <- c(1L,2L) ; b[3] <- 13L ; b }", "1L, 2L, 13L");
+        assertEval("{ b <- c(1L,2L) ; b[0] <- 13L ; b }", "1L, 2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; b <- c(10L,2L) ; b[0] <- TRUE ; b }", "10L, 2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; b <- c(10L,2L) ; b[3] <- TRUE ; b }", "10L, 2L, 1L");
+        assertEval("{ b <- c(1L,2L) ; b[2] <- FALSE ; b }", "1L, 0L");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1L,2L),TRUE) ; f(1L,3) }", "1.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1L,2L),TRUE) ; f(10,3) }", "10.0, 3.0");
+        assertEval("{ b <- c(1,2) ; x <- b ; f <- function(b,v) { b[2L] <- v ; b } ; f(b,10) ; f(b,13L) }", "1.0, 13.0");
+        assertEval(" { b <- c(1,2) ; x <- b ; f <- function(b,v) { b[2L] <- v ; b } ; f(b,10) ; f(1:3,13L) }", "1L, 13L, 3L");
+        assertEval("{ b <- c(1,2) ; x <- b ; f <- function(b,v) { b[2L] <- v ; b } ; f(b,10) ; f(c(1,2),10) }", "1.0, 10.0");
+        assertEval("{ b <- c(1,2) ; x <- b ; f <- function(b,v) { b[2L] <- v ; b } ; f(b,10L) ; f(1:3,13L) }", "1L, 13L, 3L");
+        assertEval("{ b <- c(1,2) ; x <- b ; f <- function(b,v) { b[2L] <- v ; b } ; f(b,10L) ; f(b,13) }", "1.0, 13.0");
+        assertEval("{ b <- c(1,2) ; z <- b ; b[3L] <- 3L ; b }", "1.0, 2.0, 3.0");
+        assertEval("{ b <- c(1,2) ; z <- b ; b[-2] <- 3L ; b }", "3.0, 2.0");
+        assertEval("{ b <- c(1,2) ; z <- b ; b[3L] <- FALSE ; b }", "1.0, 2.0, 0.0");
+        assertEval("{ b <- c(1,2) ; z <- b ; b[-10L] <- FALSE ; b }", "0.0, 0.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1,2),FALSE) ; f(10L,3) }", "10.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(1,2),FALSE) ; f(10,3) }", "10.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(TRUE,NA),FALSE) ; f(c(FALSE,TRUE),3) }", "0.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[2] <- v ; b } ; f(c(TRUE,NA),FALSE) ; f(3,3) }", "3.0, 3.0");
+        assertEval("{ b <- c(TRUE,NA) ; z <- b ; b[-10L] <- FALSE ; b }", "FALSE, FALSE");
+        assertEval("{ b <- c(TRUE,NA) ; z <- b ; b[4L] <- FALSE ; b }", "TRUE, NA, NA, FALSE");
+        assertEval("{ b <- list(TRUE,NA) ; z <- b ; b[[4L]] <- FALSE ; b }", "[[1]]\nTRUE\n\n[[2]]\nNA\n\n[[3]]\nNULL\n\n[[4]]\nFALSE");
+        assertEval("{ b <- list(TRUE,NA) ; z <- b ; b[[-1L]] <- FALSE ; b }", "[[1]]\nTRUE\n\n[[2]]\nFALSE");
+        assertEval("{ f <- function(b,v) { b[[2]] <- v ; b } ; f(list(TRUE,NA),FALSE) ; f(3,3) }", "3.0, 3.0");
+        assertEval("{ f <- function(b,v) { b[[2]] <- v ; b } ; f(list(TRUE,NA),FALSE) ; f(list(3),NULL) }", "[[1]]\n3.0");
+        assertEval("{ f <- function(b,v) { b[[2]] <- v ; b } ; f(list(TRUE,NA),FALSE) ; f(list(),NULL) }", "list()");
+        assertEval("{ f <- function(b,v) { b[[2]] <- v ; b } ; f(c(\"a\",\"b\"),\"d\") ; f(1:3,\"x\") }", "\"1L\", \"x\", \"3L\"");
+        assertEvalError("{ f <- function(b,v) { b[[2]] <- v ; b } ; f(c(\"a\",\"b\"),\"d\") ; f(c(\"a\",\"b\"),NULL) }", "more elements supplied than there are to replace");
+        assertEval("{ b <- c(\"a\",\"b\") ; z <- b ; b[[-1L]] <- \"xx\" ; b }", "\"a\", \"xx\"");
+        assertEval("{ b <- c(\"a\",\"b\") ; z <- b ; b[[3L]] <- \"xx\" ; b }", "\"a\", \"b\", \"xx\"");
+        assertEval("{ b <- c(1,2) ; b[3] <- 2+3i ; b }", "1.0+0.0i, 2.0+0.0i, 2.0+3.0i");
+        assertEval("{ b <- c(1+2i,3+4i) ; b[3] <- 2 ; b }", "1.0+2.0i, 3.0+4.0i, 2.0+0.0i");
+        assertEval("{ b <- c(TRUE,NA) ; b[3] <- FALSE ; b }", "TRUE, NA, FALSE");
+        assertEvalError("{ b <- as.raw(c(1,2)) ; b[3] <- 3 ; b }", "incompatible types (from double to raw) in subassignment type fix");
+        assertEvalError("{ b <- c(1,2) ; b[3] <- as.raw(13) ; b }", "incompatible types (from raw to double) in subassignment type fix");
+        assertEval("{ b <- as.raw(c(1,2)) ; b[3] <- as.raw(13) ; b }", "01, 02, 0d");
+        assertEval("{ b <- as.raw(c(1,2)) ; b[as.double(NA)] <- as.raw(13) ; b }", "01, 02");
+        assertEval("{ b <- as.raw(c(1,2)) ; b[[-2]] <- as.raw(13) ; b }", "0d, 02");
+        assertEval("{ b <- as.raw(c(1,2)) ; b[[-1]] <- as.raw(13) ; b }", "01, 0d");
+        assertEvalError("{ b <- as.raw(c(1,2)) ; b[[-3]] <- as.raw(13) ; b }", "attempt to select more than one element");
+        assertEvalError("{ b <- as.raw(1) ; b[[-3]] <- as.raw(13) ; b }", "attempt to select less than one element");
+        assertEvalError("{ b <- as.raw(c(1,2,3)) ; b[[-2]] <- as.raw(13) ; b }", "attempt to select more than one element");
+
     }
+
 
     @Test
     public void testVectorUpdate() throws RecognitionException {

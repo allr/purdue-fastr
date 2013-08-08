@@ -555,6 +555,15 @@ public abstract class UpdateVector extends BaseR {
                 typedBase = base;
                 rawValue = value;
                 value.ref();
+            } else if (base instanceof RRaw) {
+                if (value instanceof RRaw) {
+                    typedBase = base;
+                    rawValue = ((RRaw) value).get(0);
+                } else {
+                    throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                }
+            } else if (value instanceof RRaw) {
+                throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
             } else if (base instanceof RString || value instanceof RString) {
                 typedBase = base.asString();
                 rawValue = value.asString().get(0);
@@ -567,12 +576,11 @@ public abstract class UpdateVector extends BaseR {
             } else if (base instanceof RInt || value instanceof RInt) {
                 typedBase = base.asInt();
                 rawValue = value.asInt().get(0);
-            } else if (base instanceof RLogical || value instanceof RLogical) {
-                typedBase = base.asLogical();
-                rawValue = value.asLogical().get(0);
             } else {
-                Utils.nyi("unsupported vector types");
-                return null;
+                assert Utils.check(base instanceof RLogical);
+                assert Utils.check(value instanceof RLogical);
+                typedBase = base;
+                rawValue = ((RLogical) value).get(0);
             }
             int bsize = base.size();
             if (pos > 0) {
@@ -610,7 +618,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                     return res;
                 }
-            } else { // pos < 0
+            } else { // pos <= 0
                 if (pos == RInt.NA) { return base; }
                 if (!subset) {
                     if (bsize <= 1) { throw RError.getSelectLessThanOne(ast); }
@@ -618,10 +626,22 @@ public abstract class UpdateVector extends BaseR {
                     // bsize == 2
                     if (pos != -1 && pos != -2) { throw RError.getSelectMoreThanOne(ast); }
                 }
+                if (pos == 0) {
+                    return typedBase;
+                }
                 int keep = -pos - 1;
                 Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
                 RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
                 int i = 0;
+
+                if (keep >= bsize) {
+                    // update all elements of the vector
+                    for(; i < bsize; i++) {
+                        res.set(i, rawValue);
+                    }
+                    return res;
+                }
+
                 for (; i < keep; i++) {
                     res.set(i, rawValue);
                 }
@@ -873,7 +893,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         public static RAny deleteElement(RArray base, RArray index, ASTNode ast, boolean subset) {
-            if (!(base instanceof RList)) { throw RError.getReplacementZero(ast); }
+            if (!(base instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
             RList l = (RList) base;
             int i;
             if (index instanceof RInt) {

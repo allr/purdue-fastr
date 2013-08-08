@@ -203,6 +203,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_TYPE_IN = "invalid '%s' type in 'x %s y'";
     public static final String DOT_DOT_MISSING = "'..%d' is missing";
     public static final String INVALID_TYPE_LENGTH = "invalid type/length (%s/%d) in vector allocation";
+    public static final String SUBASSIGN_TYPE_FIX = "incompatible types (from %s to %s) in subassignment type fix";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1727,6 +1728,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getInvalidTypeLength(ASTNode ast, String typeName, int length) {
         return getGenericError(ast, String.format(RError.INVALID_TYPE_LENGTH, typeName, length));
+    }
+
+    public static RError getSubassignTypeFix(ASTNode ast, String fromType, String toType) {
+        return getGenericError(ast, String.format(RError.SUBASSIGN_TYPE_FIX, fromType, toType));
     }
 
 }
