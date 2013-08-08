@@ -202,6 +202,7 @@ public abstract class RError extends RuntimeException {
     public static final String UNKNOWN_OBJECT_MODE = "object '%s' of mode '%s' was not found";
     public static final String INVALID_TYPE_IN = "invalid '%s' type in 'x %s y'";
     public static final String DOT_DOT_MISSING = "'..%d' is missing";
+    public static final String INVALID_TYPE_LENGTH = "invalid type/length (%s/%d) in vector allocation";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1722,6 +1723,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getDotDotMissing(ASTNode ast, int dotIndex) {
         return getGenericError(ast, String.format(RError.DOT_DOT_MISSING, dotIndex + 1));
+    }
+
+    public static RError getInvalidTypeLength(ASTNode ast, String typeName, int length) {
+        return getGenericError(ast, String.format(RError.INVALID_TYPE_LENGTH, typeName, length));
     }
 
 }

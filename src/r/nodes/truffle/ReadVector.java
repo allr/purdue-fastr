@@ -1347,7 +1347,14 @@ public abstract class ReadVector extends BaseR {
             // selection at the last level
             int indexv = index.getInt(i);
             if (!(b instanceof RArray)) {
-                Utils.nyi("unuspported base type");
+                // TODO: support language objects
+                if (indexv == 1) {
+                   throw RError.getInvalidTypeLength(ast, b.typeOf(), 1); // FIXME: a very obscure error message but what GNU-R returns
+                }
+                if (indexv > 1) {
+                   throw RError.getSubscriptBounds(ast);
+                }
+                throw RError.getSelectLessThanOne(ast);
             }
             RArray a = (RArray) b;
             int bsize = a.size();
@@ -1402,7 +1409,8 @@ public abstract class ReadVector extends BaseR {
             }
             // selection at the last level
             if (!(b instanceof RArray)) {
-                Utils.nyi("unuspported base type");
+                throw RError.getSubscriptBounds(ast); // NOTE: this makes more sense than the error message with integer index
+                    // (both are to mimic GNU-R)
             }
             RArray a = (RArray) b;
             Names names = a.names();
@@ -1430,6 +1438,20 @@ public abstract class ReadVector extends BaseR {
         public static RAny executeSubscript(RAny index, RArray base, ASTNode ast) {
             if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { return executeSubscript(index.asInt(), base, ast); }
             if (index instanceof RString) { return executeSubscript((RString) index, base, ast); }
+            throw invalidSubscript(index, ast);
+        }
+
+        public static RError invalidSubscript(RAny index, ASTNode ast) {
+            if (index instanceof RList) {
+                int lsize = ((RList) index).size();
+                if (lsize == 1) {
+                    throw RError.getInvalidSubscriptType(ast, index.typeOf());
+                }
+                if (lsize == 0) {
+                    throw RError.getSelectLessThanOne(ast);
+                }
+                throw RError.getSelectMoreThanOne(ast);
+            }
             throw RError.getInvalidSubscriptType(ast, index.typeOf());
         }
 
@@ -1461,6 +1483,7 @@ public abstract class ReadVector extends BaseR {
             if (!(base instanceof RArray)) {
                 throw RError.getObjectNotSubsettable(ast, base.typeOf());
             }
+            assert Utils.check(subset);
             RArray abase = (RArray) base;
             if (!(index instanceof RArray) || index instanceof RList) {
                 throw RError.getInvalidSubscriptType(ast, index.typeOf());
@@ -1468,21 +1491,16 @@ public abstract class ReadVector extends BaseR {
             RArray aindex = (RArray) index;
             int isize = aindex.size();
             if (isize == 1) { return GenericScalarSelection.executeScalar(abase, aindex, subset, ast); }
-            if (subset) {
-                if (aindex instanceof RInt) {
-                    return IntSelection.executeIntVector((RInt) aindex, abase, ast);
-                } else if (aindex instanceof RDouble) {
-                    return IntSelection.executeIntVector(aindex.asInt(), abase, ast);
-                } else if (aindex instanceof RLogical) {
-                    return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
-                } else if (aindex instanceof RString) {
-                    return StringSelection.executeStringVector((RString) aindex, abase, ast);
-                } else if (aindex instanceof RNull) { return Utils.createEmptyArray(abase); }
-            } else {
-                return Subscript.executeSubscript(aindex, abase, ast);
-            }
-            Utils.nyi("vector in generic selection");
-            return null;
+            if (aindex instanceof RInt) {
+                return IntSelection.executeIntVector((RInt) aindex, abase, ast);
+            } else if (aindex instanceof RDouble) {
+                return IntSelection.executeIntVector(aindex.asInt(), abase, ast);
+            } else if (aindex instanceof RLogical) {
+                return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
+            } else if (aindex instanceof RString) {
+                return StringSelection.executeStringVector((RString) aindex, abase, ast);
+            } else if (aindex instanceof RNull) { return Utils.createEmptyArray(abase); }
+            throw RError.getInvalidSubscriptType(ast, aindex.typeOf());
         }
     }
 

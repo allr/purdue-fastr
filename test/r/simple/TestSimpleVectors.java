@@ -225,6 +225,46 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- list(1,2,list(3)) ; x[[c(3,NA)]] }", "NULL");
         assertEvalError("{ x <- list(1,2,list(3)) ; x[[c(NA,1)]] }", "no such index at level 1");
         assertEval("{ x <- list(1,list(3)) ; x[[c(-1,1)]] }", "3.0");
+        assertEvalError("{ l <- list(1,list(2)) ; l[[integer()]] }", "attempt to select less than one element");
+        assertEval("{ l <- list(1,list(2)) ; f <- function(i) { l[[i]] } ; f(c(2,1)) ; f(1) }", "1.0");
+        assertEval("{ l <- list(1,function(){3}) ; f <- function(i) { l[[i]] } ; f(c(2)) }", "function () { 3.0 }");
+        assertEvalError("{ l <- list(1,NULL) ; f <- function(i) { l[[i]] } ; f(c(2,1)) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, f) ; f(c(2,1)) }", "invalid type/length (closure/1) in vector allocation");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, 1:3) ; f(c(2,NA)) }", "subscript out of bounds");
+        assertEval("{ f <- function(i) { l[[i]] } ; l <- list(1, as.list(1:3)) ; f(c(2,NA)) }", "NULL");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, 1:3) ; f(c(2,-4)) }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, 2) ; f(c(2,-1)) }", "attempt to select less than one element");
+        assertEval("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,-1)) }", "3.0");
+        assertEval("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,-2)) }", "2.0");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,-4)) }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(i) { l[[i]] } ; l <- list(1, c(2,3)) ; f(c(2,0)) }", "attempt to select less than one element");
+        assertEvalError("{ x <- list(a=1,b=function(){3},d=list(x=3)) ; x[[c(2,10)]] }", "subscript out of bounds");
+        assertEvalError("{ x <- list(a=1,b=function(){3},d=list(x=3)) ; x[[c(2,-3)]] }", "attempt to select less than one element");
+
+        assertEval("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[c(\"d\",\"x\")]] }", "3.0");
+        assertEvalError("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[c(\"z\",\"x\")]] }", "no such index at level 1");
+        assertEvalError("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[c(\"z\",NA)]] }", "no such index at level 1");
+        assertEval("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[c(\"d\",NA)]] }", "NULL");
+        assertEvalError("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[c(NA,\"x\")]] }", "no such index at level 1");
+        assertEvalError("{ x <- list(a=1,b=2,d=list(x=3)) ; x[[character()]] }", "attempt to select less than one element");
+        assertEval("{ x <- list(a=1,b=2,d=list(x=3)) ; f <- function(i) { x[[i]] } ; f(c(\"d\",\"x\")) ; f(\"b\") }", "2.0");
+        assertEvalError("{ x <- list(a=1,b=function(){3},d=list(x=3)) ; f <- function(i) { x[[i]] } ; f(c(\"d\",\"x\")) ; f(c(\"b\",\"z\")) }", "subscript out of bounds");
+        assertEvalError("{ x <- c(a=1,b=2) ; x[[c(\"a\",\"a\")]] }", "attempt to select more than one element");
+        assertEvalError("{ x <- list(1,2) ; x[[c(\"a\",\"a\")]] }", "no such index at level 1");
+        assertEvalError("{ x <- list(a=1,b=1:3) ; x[[c(\"b\",\"a\")]] }", "subscript out of bounds");
+        assertEvalError("{ x <- list(a=1,b=1:3) ; x[[2+3i]] }", "invalid subscript type 'complex'");
+        assertEvalError("{ x <- list(a=1,b=1:3) ; f <- function(i) { x[[i]] } ; f(c(2,2)) ; f(2+3i) }", "invalid subscript type 'complex'");
+        assertEvalError("{ x <- list(a=1,b=1:3) ; f <- function(i) { x[[i]] } ; f(c(2,2)) ; x <- f ; f(2+3i) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x <- 1:3; x[list(2,3)] }", "invalid subscript type 'list'");
+        assertEvalError("{ x <- 1:3; x[function(){3}] }", "invalid subscript type 'closure'");
+        assertEvalError("{ x <- 1:2; x[[list()]] }", "attempt to select less than one element");
+        assertEvalError("{ x <- 1:2; x[[list(-0,-1)]] }", "attempt to select more than one element");
+        assertEvalError("{ x <- 1:2; x[[list(0)]] }", "invalid subscript type 'list'");
+        assertEvalError("{ f <- function(b,i) { b[[i]] } ; f(list(1,list(2)),c(2,1)) ; f(1:3,list(1)) }", "invalid subscript type 'list'");
+
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3,c(2,1)) ; f(1:3,c(TRUE,FALSE)) }", "1L, 3L");
+        assertEval("{ f <- function(b,i) { b[i] } ; f(1:3,c(2,1)) ; f(1:3,NULL) }", "integer(0)");
+        assertEvalError("{ f <- function(b,i) { b[i] } ; f(1:3,c(2,1)) ; f(1:3,as.raw(c(10,11))) }", "invalid subscript type 'raw'");
 
     }
 
@@ -582,6 +622,10 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ a <- list(a = 1, b = 2); a$b <- 67; a; }", "$a\n1.0\n\n$b\n67.0");
         assertEval("{ a <- list(a = 1, b = 2); a$c <- 67; a; }", "$a\n1.0\n\n$b\n2.0\n\n$c\n67.0");
         assertEval("{ v <- list(xb=1, b=2, aa=3, aa=4) ; v$aa }", "3.0");
+        assertEval("{ x <- list(1, 2) ; x$b }", "NULL");
+        assertEvalError("{ x <- list(a=1, b=2) ; f <- function(x) { x$b } ; f(x) ; f(1:3) }", "$ operator is invalid for atomic vectors");
+        assertEval("{ x <- list(a=1, b=2) ; f <- function(x) { x$b } ; f(x) ; f(x) }", "2.0");
+        assertEval("{ x <- list(a=1, b=2) ; f <- function(x) { x$b } ; f(x) ; x <- list(c=2,b=10) ; f(x) }", "10.0");
 
         // partial matching
         assertEval("{ v <- list(xb=1, b=2, aa=3, aa=4) ; v$x }", "1.0");
@@ -592,9 +636,9 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(v) { v$x } ; f(list(xa=1, xb=2, hello=3)) ; l <- list(y=2,x=3) ; f(l) ; l[[2]] <- 4 ; f(l) }", "4.0");
 
         // make sure that dollar only works for lists
-        assertEvalError("{ a <- c(a=1,b=2); a$a; }", RError.DOLLAR_ATOMIC_VECTORS);
+        assertEvalError("{ a <- c(a=1,b=2); a$a; }", "$ operator is invalid for atomic vectors");
         // make sure that coercion returns warning
-        assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", RError.COERCING_LHS_TO_LIST);
+        assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", "Coercing LHS to a list");
     }
 
     @Test

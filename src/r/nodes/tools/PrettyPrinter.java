@@ -258,6 +258,13 @@ public class PrettyPrinter extends BasicVisitor {
         print(n.fieldName());
     }
 
+    @Override
+    public void visit(UpdateField n) {
+        n.getVector().accept(this);
+        print(" <- ");
+        n.getRHS().accept(this);
+    }
+
     private void print(ArgumentList alist, boolean isCall) {
         boolean f = true;
         for (ArgumentList.Entry arg : alist) {
