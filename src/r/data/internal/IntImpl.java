@@ -214,6 +214,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             } else {
                 size = (from - to + absstep) / absstep;
             }
+            assert Utils.check(size > 0);
         }
 
         @Override

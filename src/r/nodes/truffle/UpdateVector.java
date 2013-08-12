@@ -1076,7 +1076,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         abstract class ValueCopy {
-            abstract RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException;
+            abstract RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException;
         }
 
         // specialized for type combinations (base vector, value written)
@@ -1086,7 +1086,7 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RList) {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                             if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
                             RList typedBase = (RList) base;
                             RList typedValue;
@@ -1124,12 +1124,19 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) { // shallow copy
-                                content[i] = typedValue.getRAnyRef(steps);
+                            int steps = 0;
+                            assert Utils.check(steps < isize);
+                            for(;;) {
+                                content[i] = typedValue.getRAnyRef(steps); // shallow copy
                                 i += delta;
-                                for (int j = 1; j < astep; j++) { // shallow copy
-                                    content[i] = typedBase.getRAny(i);
-                                    i += delta;
+                                steps++;
+                                if (steps < isize) {
+                                    for (int j = 1; j < astep; j++) {
+                                        content[i] = typedBase.getRAny(i); // shallow copy
+                                        i += delta;
+                                    }
+                                } else {
+                                    break;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) { // shallow copy
@@ -1145,7 +1152,7 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                             if (!(base instanceof RDouble)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
                             RDouble typedBase = (RDouble) base;
                             RDouble typedValue;
@@ -1181,12 +1188,19 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) {
+                            int steps = 0;
+                            assert Utils.check(steps < isize);
+                            for(;;) {
                                 content[i] = typedValue.getDouble(steps);
                                 i += delta;
-                                for (int j = 1; j < astep; j++) {
-                                    content[i] = typedBase.getDouble(i);
-                                    i += delta;
+                                steps++;
+                                if (steps < isize) {
+                                    for (int j = 1; j < astep; j++) {
+                                        content[i] = typedBase.getDouble(i);
+                                        i += delta;
+                                    }
+                                } else {
+                                    break;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) {
@@ -1202,7 +1216,7 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RInt) {
                 if (valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                             if (!(base instanceof RInt)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
                             RInt typedBase = (RInt) base;
                             RInt typedValue;
@@ -1238,12 +1252,19 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) {
+                            int steps = 0;
+                            assert Utils.check(steps < isize);
+                            for(;;) {
                                 content[i] = typedValue.getInt(steps);
                                 i += delta;
-                                for (int j = 1; j < astep; j++) {
-                                    content[i] = typedBase.getInt(i);
-                                    i += delta;
+                                steps++;
+                                if (steps < isize) {
+                                    for (int j = 1; j < astep; j++) {
+                                        content[i] = typedBase.getInt(i);
+                                        i += delta;
+                                    }
+                                } else {
+                                    break;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) {
@@ -1259,7 +1280,7 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RLogical) {
                 if (valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                             if (!(base instanceof RLogical && value instanceof RLogical)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
                             RLogical typedBase = (RLogical) base;
                             RLogical typedValue = (RLogical) value;
@@ -1288,12 +1309,19 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) {
+                            int steps = 0;
+                            assert Utils.check(steps < isize);
+                            for(;;) {
                                 content[i] = typedValue.getLogical(steps);
                                 i += delta;
-                                for (int j = 1; j < astep; j++) {
-                                    content[i] = typedBase.getLogical(i);
-                                    i += delta;
+                                steps++;
+                                if (steps < isize) {
+                                    for (int j = 1; j < astep; j++) {
+                                        content[i] = typedBase.getLogical(i);
+                                        i += delta;
+                                    }
+                                } else {
+                                    break;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) {
@@ -1309,7 +1337,7 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RString) {
                 if (valueTemplate instanceof RString) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                             if (!(base instanceof RString && value instanceof RString)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
                             RString typedBase = (RString) base;
                             RString typedValue = (RString) value;
@@ -1338,12 +1366,19 @@ public abstract class UpdateVector extends BaseR {
                                 astep = -step;
                                 delta = -1;
                             }
-                            for (int steps = 0; steps < isize; steps++) {
+                            int steps = 0;
+                            assert Utils.check(steps < isize);
+                            for(;;) {
                                 content[i] = typedValue.getString(steps);
                                 i += delta;
-                                for (int j = 1; j < astep; j++) {
-                                    content[i] = typedBase.getString(i);
-                                    i += delta;
+                                steps++;
+                                if (steps < isize) {
+                                    for (int j = 1; j < astep; j++) {
+                                        content[i] = typedBase.getString(i);
+                                        i += delta;
+                                    }
+                                } else {
+                                    break;
                                 }
                             }
                             for (i = imax + 1; i < bsize; i++) {
@@ -1362,17 +1397,18 @@ public abstract class UpdateVector extends BaseR {
         // handles type conversion of base
         public Specialized createExtended() {
             ValueCopy cpy = new ValueCopy() {
-                @Override RAny copy(RArray base, IntImpl.RIntSequence index, RAny value) throws UnexpectedResultException {
+                @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
                     RArray typedBase;
                     RArray typedValue;
                     RList listValue = null;
                     int[] dimensions;
+
                     if (value instanceof RList) {
                         typedValue = null;
                         listValue = (RList) value;
                         if (base instanceof RList) {
                             typedBase = base;
-                            dimensions = listValue.dimensions();
+                            dimensions = base.dimensions();
                         } else {
                             typedBase = base.asList();
                             dimensions = null;
@@ -1381,23 +1417,34 @@ public abstract class UpdateVector extends BaseR {
                         if (base instanceof RList) {
                             typedBase = base;
                             typedValue = value.asList();
+                        } else if (base instanceof RRaw) {
+                            if (value instanceof RRaw) {
+                                typedBase = base;
+                                typedValue = value.asRaw();
+                            } else {
+                                throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                            }
+                        } else if (value instanceof RRaw) {
+                            throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
                         } else if (base instanceof RString || value instanceof RString) {
                             typedBase = base.asString();
                             typedValue = value.asString();
+                        } else if (base instanceof RComplex || value instanceof RComplex) {
+                            typedBase = base.asComplex();
+                            typedValue = value.asComplex();
                         } else if (base instanceof RDouble || value instanceof RDouble) {
                             typedBase = base.asDouble();
                             typedValue = value.asDouble();
                         } else if (base instanceof RInt || value instanceof RInt) {
                             typedBase = base.asInt();
                             typedValue = value.asInt();
-                        } else if (base instanceof RLogical || value instanceof RLogical) {
-                            typedBase = base.asLogical();
-                            typedValue = value.asLogical();
                         } else {
-                            Utils.nyi("unsupported vector types");
-                            return null;
+                            assert Utils.check(base instanceof RLogical);
+                            assert Utils.check(value instanceof RLogical);
+                            typedBase = base;
+                            typedValue = value;
                         }
-                        dimensions = typedValue.dimensions();
+                        dimensions = typedBase.dimensions();
                     }
                     int bsize = base.size();
                     int imin = index.min();
@@ -1425,21 +1472,35 @@ public abstract class UpdateVector extends BaseR {
                         delta = -1;
                     }
                     if (typedValue != null) {
-                        for (int steps = 0; steps < isize; steps++) {
+                        int steps = 0;
+                        assert Utils.check(steps < isize);
+                        for(;;) {
                             res.set(i, typedValue.get(steps));
                             i += delta;
-                            for (int j = 1; j < astep; j++) {
-                                res.set(i, typedBase.get(i));
-                                i += delta;
+                            steps++;
+                            if (steps < isize) {
+                                for (int j = 1; j < astep; j++) {
+                                    res.set(i, typedBase.get(i));
+                                    i += delta;
+                                }
+                            } else {
+                                break;
                             }
                         }
-                    } else {
-                        for (int steps = 0; steps < isize; steps++) {
-                            res.set(i, listValue.getRAnyRef(steps));
+                    } else { // list value
+                        int steps = 0;
+                        assert Utils.check(steps < isize);
+                        for(;;) {
+                            res.set(i, listValue.getRAnyRef(steps));    // shallow copy
                             i += delta;
-                            for (int j = 1; j < astep; j++) {
-                                res.set(i, typedBase.get(i));
-                                i += delta;
+                            steps++;
+                            if (steps < isize) {
+                                for (int j = 1; j < astep; j++) {
+                                    res.set(i, typedBase.get(i));
+                                    i += delta;
+                                }
+                            } else {
+                                break;
                             }
                         }
                     }
