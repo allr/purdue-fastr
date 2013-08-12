@@ -129,6 +129,22 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(TRUE,FALSE)) }", "1L, 3L");
         assertEval("{ f <- function(x,i) { x[i] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(1,2)) }", "1L, 2L");
         assertEvalError("{ f <- function(x,i) { x[[i]] } ; f(1:4, 2L) ; f(c(a=1), \"a\") ; f(1:3,c(3,3)) }", "attempt to select more than one element");
+        assertEvalError(" { x <- 1:3 ; x[[NULL]] }", "attempt to select less than one element");
+        assertEval("{ x <- as.list(1:2) ; f <- function(i) { x[i] <- NULL ; x } ; f(1) ; f(NULL) }", "[[1]]\n1L\n\n[[2]]\n2L");
+        assertEvalError("{ x <- as.list(1:2) ; f <- function(i) { x[[i]] <- NULL ; x } ; f(1) ; f(as.raw(10)) }", "invalid subscript type 'raw'");
+
+        assertEvalError("{ x <- 1:3 ; x[2] <- integer() }", "replacement has length zero");
+        assertEvalError("{ x <- 1:3 ; x[[TRUE]] <- 1:2 }", "more elements supplied than there are to replace");
+        assertEval("{ x <- 1:3 ; x[TRUE] <- 10 ; x }", "10.0, 10.0, 10.0");
+        assertEval("{ x <- 1:3 ; x[[TRUE]] <- 10 ; x }", "10.0, 2.0, 3.0");
+        assertEvalError("{ x <- 1:3 ; x[[FALSE]] <- 10 ; x }", "attempt to select less than one element");
+        assertEvalError("{ x <- 1:3 ; x[[NA]] <- 10 ; x }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:3, 1L, 10) ; f(c(1,2), \"hello\", TRUE) ; f(1:2, list(1), 3) }", "invalid subscript type 'list'");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:3, 1L, 10) ; f(c(1,2), \"hello\", TRUE) ; f(1:2, list(), 3) }", "attempt to select less than one element");
+        assertEvalError("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(1:3, 1L, 10) ; f(c(1,2), \"hello\", TRUE) ; f(1:2, 1+2i, 3) }", "invalid subscript type 'complex'");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:3, 1L, 10) ; f(c(1,2), \"hello\", TRUE) ; f(1:2, 1, 3:4) }", "more elements supplied than there are to replace");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:3, 1L, 10) ; f(c(1,2), \"hello\", TRUE) ; f(1:2, as.integer(NA), 3:4) }", "more elements supplied than there are to replace");
+        assertEvalError("{ x <- 1:2 ; x[as.integer(NA)] <- 3:4 }", "NAs are not allowed in subscripted assignments");
     }
 
 
@@ -343,6 +359,46 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEvalError("{ b <- as.raw(c(1,2)) ; b[[-3]] <- as.raw(13) ; b }", "attempt to select more than one element");
         assertEvalError("{ b <- as.raw(1) ; b[[-3]] <- as.raw(13) ; b }", "attempt to select less than one element");
         assertEvalError("{ b <- as.raw(c(1,2,3)) ; b[[-2]] <- as.raw(13) ; b }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(b,i) { b[i] <- 1 } ; f(1:3,2) ; f(f, 3) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b,i) { b[i] <- 1 } ; f(1:3,2) ; f(1:2, f) }", "invalid subscript type 'closure'");
+        assertEvalError("{ f <- function(b,v) { b[2] <- v } ; f(1:3,2) ; f(1:2, f) }", "incompatible types (from closure to integer) in subassignment type fix");
+
+        assertEval("{ x <- c(a=1+2i, b=3+4i) ; x[\"a\"] <- 10 ; x }", "        a        b\n10.0+0.0i 3.0+4.0i");
+        assertEvalError(" { x <- c(a=1+2i, b=3+4i) ; x[\"a\"] <- as.raw(13) ; x }", "incompatible types (from raw to complex) in subassignment type fix");
+        assertEval("{ x <- as.raw(c(10,11)) ; x[\"a\"] <- as.raw(13) ; x }", "       a\n0a 0b 0d");
+        assertEvalError(" { x <- as.raw(c(10,11)) ; x[\"a\"] <- NA ; x }", "incompatible types (from logical to raw) in subassignment type fix");
+        assertEval("{ x <- 1:2 ; x[\"a\"] <- 10+3i ; x }", "                          a\n1.0+0.0i 2.0+0.0i 10.0+3.0i");
+        assertEval("{ x <- c(a=1+2i, b=3+4i) ; x[\"a\"] <- \"hi\" ; x }", "   a          b\n\"hi\" \"3.0+4.0i\"");
+        assertEval("{ x <- 1:2 ; x[\"a\"] <- 10 ; x }", "           a\n1.0 2.0 10.0");
+        assertEval("{ x <- c(a=1,a=2) ; x[\"a\"] <- 10L ; x }", "   a   a\n10.0 2.0");
+        assertEval("{ x <- 1:2 ; x[\"a\"] <- FALSE ; x }", "       a\n1L 2L 0L");
+        assertEval("{ x <- c(aa=TRUE,b=FALSE) ; x[\"a\"] <- 2L ; x }", "aa  b  a\n1L 0L 2L");
+        assertEval("{ x <- c(aa=TRUE) ; x[[\"a\"]] <- list(2L) ; x }", "$aa\nTRUE\n\n$a\n$a[[1]]\n2L");
+        assertEval("{ x <- c(aa=TRUE) ; x[\"a\"] <- list(2L) ; x }", "$aa\nTRUE\n\n$a\n2L");
+        assertEval("{ x <- c(b=2,a=3) ; z <- x ; x[\"a\"] <- 1 ; x }", "  b   a\n2.0 1.0");
+
+        assertEval("{ x <- list(1,2) ; dim(x) <- c(2,1) ; x[[3]] <- NULL ; x }", "     [,1]\n[1,]  1.0\n[2,]  2.0");
+        assertEval("{ x <- list(1,2) ; dim(x) <- c(2,1) ; x[3] <- NULL ; x }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ x <- list(1,2) ; dim(x) <- c(2,1) ; x[2] <- NULL ; x }", "[[1]]\n1.0");
+        assertEval("{ x <- list(1,2) ; dim(x) <- c(2,1) ; x[[2]] <- NULL ; x }", "[[1]]\n1.0");
+        assertEvalError("{ x <- list(1,2) ; x[[0]] <- NULL ; x }", "attempt to select less than one element");
+        assertEvalError("{ x <- list(1,2) ; x[[NA]] <- NULL ; x }", "attempt to select more than one element");
+        assertEval("{ x <- list(1,2) ; x[0] <- NULL ; x }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ x <- list(1,2) ; x[NA] <- NULL ; x }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ x <- list(1,2) ; x[as.integer(NA)] <- NULL ; x }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ x <- list(1,2) ; x[-1] <- NULL ; x }", "[[1]]\n1.0");
+        assertEvalError("{ x <- list(1,2,3) ; x[[-1]] <- NULL ; x }", "attempt to select more than one element");
+        assertEvalError("{ x <- list(1,2,3) ; x[[-5]] <- NULL ; x }", "attempt to select more than one element");
+        assertEvalError("{ x <- list(1) ; x[[-2]] <- NULL ; x }", "attempt to select less than one element");
+        assertEvalError("{ x <- list(1) ; x[[-1]] <- NULL ; x }", "attempt to select less than one element");
+        assertEval("{ x <- list(3,4) ; x[[-1]] <- NULL ; x }", "[[1]]\n3.0");
+        assertEval("{ x <- list(3,4) ; x[[-2]] <- NULL ; x }", "[[1]]\n4.0");
+        assertEvalError("{ x <- list(3,4) ; x[[-10]] <- NULL ; x }", "attempt to select more than one element");
+        assertEval("{ x <- list(a=3,b=4) ; x[[\"a\"]] <- NULL ; x }", "$b\n4.0");
+        assertEval("{ x <- list(a=3,b=4) ; x[\"z\"] <- NULL ; x }", "$a\n3.0\n\n$b\n4.0");
+        assertEvalError("{ x <- 4:10 ; x[[\"z\"]] <- NULL ; x }", "more elements supplied than there are to replace");
+        assertEval("{ x <- as.list(1:2) ; x[[\"z\"]] <- NULL ; x }", "[[1]]\n1L\n\n[[2]]\n2L");
+
 
     }
 

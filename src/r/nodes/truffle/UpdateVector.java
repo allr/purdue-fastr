@@ -122,7 +122,7 @@ public abstract class UpdateVector extends BaseR {
                     base.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                     RAny newBase = execute(base, index, value);
-                    assert Utils.check(base != newBase);
+                    // now typically base != newBase, but not always (an update may actually change nothing in the base vector)
                     RFrameHeader.writeAtRef(frame, frameSlot, newBase);
                 }
             } else {
@@ -541,7 +541,7 @@ public abstract class UpdateVector extends BaseR {
             int[] dimensions = base.dimensions();
             Names names = base.names();
 
-            if (value instanceof RList) {
+            if (value instanceof RList) { // FIXME: this code gets copied around a few times, could it be refactored without a performance penalty?
                 if (base instanceof RList) {
                     typedBase = base;
                 } else {
@@ -751,21 +751,32 @@ public abstract class UpdateVector extends BaseR {
                 typedBase = base;
                 rawValue = value;
                 value.ref();
+            } else if (base instanceof RRaw) {
+                if (value instanceof RRaw) {
+                    typedBase = base;
+                    rawValue = ((RRaw) value).get(0);
+                } else {
+                    throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                }
+            } else if (value instanceof RRaw) {
+                throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
             } else if (base instanceof RString || value instanceof RString) {
                 typedBase = base.asString();
                 rawValue = value.asString().get(0);
+            } else if (base instanceof RComplex || value instanceof RComplex) {
+                typedBase = base.asComplex();
+                rawValue = value.asComplex().get(0);
             } else if (base instanceof RDouble || value instanceof RDouble) {
                 typedBase = base.asDouble();
                 rawValue = value.asDouble().get(0);
             } else if (base instanceof RInt || value instanceof RInt) {
                 typedBase = base.asInt();
                 rawValue = value.asInt().get(0);
-            } else if (base instanceof RLogical || value instanceof RLogical) {
-                typedBase = base.asLogical();
-                rawValue = value.asLogical().get(0);
             } else {
-                Utils.nyi("unsupported vector types");
-                return null;
+                assert Utils.check(base instanceof RLogical);
+                assert Utils.check(value instanceof RLogical);
+                typedBase = base;
+                rawValue = ((RLogical) value).get(0);
             }
             int bsize = base.size();
             int pos = -1;
@@ -790,6 +801,7 @@ public abstract class UpdateVector extends BaseR {
                 }
                 return res;
             }
+            // pos == -1
             // appending, if names are empty, create them - this is for appending to empty lists and vectors
             if (names == null) {
                 names = RArray.Names.create(bsize);
@@ -842,7 +854,7 @@ public abstract class UpdateVector extends BaseR {
                 if (i <= size) {
                     // remove element i
                     return deleteElement(base, zi, size);
-                } else if (subset && i > size) {
+                } else if (subset) {
                     // note that we could have this branch just for "i > size + 1", however, not quite, because
                     // when i == size + 1, subset drops dimensions
                     int j = 0;
@@ -861,11 +873,16 @@ public abstract class UpdateVector extends BaseR {
                     return base;
                 }
             }
-            if (i == 0 || i == RInt.NA) {
-                if (subset) {
+
+            if (subset) {
+                if (i == 0 || i == RInt.NA) {
                     return base;
-                } else {
+                }
+            } else {
+                if (i == 0) {
                     throw RError.getSelectLessThanOne(ast);
+                } else if (i == RInt.NA) {
+                    throw RError.getSelectMoreThanOne(ast);
                 }
             }
             // i < 0
@@ -893,6 +910,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         public static RAny deleteElement(RArray base, RArray index, ASTNode ast, boolean subset) {
+            assert Utils.check(!(index instanceof RNull));
             if (!(base instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
             RList l = (RList) base;
             int i;
@@ -914,11 +932,8 @@ public abstract class UpdateVector extends BaseR {
                 return deleteElement(l, i, ast, subset);
             } else if (index instanceof RString) {
                 return deleteElement(l, ((RString) index).getString(0));
-            } else if (index instanceof RNull) {
-                return l;
             } else {
-                Utils.nyi("unsupported type");
-                return null;
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
         }
 
@@ -940,13 +955,16 @@ public abstract class UpdateVector extends BaseR {
             } else if (index instanceof RDouble) {
                 i = Convert.double2int(((RDouble) index).getDouble(0));
             } else {
-                Utils.nyi("unsupported index type in vector update");
-                return null;
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
             if (i >= 0 || i == RInt.NA || !subset) {
                 if (vsize > 1) {
                     if (subset) {
-                        RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                        if (i == RInt.NA) {
+                            throw RError.getNASubscripted(ast);
+                        } else {
+                            RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                        }
                     } else {
                         if (!(base instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
                     }
@@ -2814,7 +2832,7 @@ public abstract class UpdateVector extends BaseR {
         public static RAny executeSubscript(RAny index, RArray base, RArray value, ASTNode ast) {
             if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) { return executeSubscript(index.asInt(), base, value, ast); }
             if (index instanceof RString) { return executeSubscript((RString) index, base, value, ast); }
-            throw RError.getInvalidSubscriptType(ast, index.typeOf());
+            throw ReadVector.Subscript.invalidSubscript(index, ast);
         }
 
         @Override public RAny execute(RAny base, RAny index, RAny value) {
@@ -2892,7 +2910,12 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericSelection failed: " + f);
-                throw Utils.nyi("unsupported update");
+                switch(f) {
+                    case NOT_ARRAY_BASE: throw RError.getObjectNotSubsettable(ast, base.typeOf());
+                    case NOT_ARRAY_INDEX: throw RError.getInvalidSubscriptType(ast, index.typeOf());
+                    case NOT_ARRAY_VALUE: throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                    default: throw Utils.nyi("unsupported update");
+                }
             }
         }
     }

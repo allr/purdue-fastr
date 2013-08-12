@@ -1452,6 +1452,9 @@ public abstract class ReadVector extends BaseR {
                 }
                 throw RError.getSelectMoreThanOne(ast);
             }
+            if (index instanceof RNull) {
+                throw RError.getSelectLessThanOne(ast);
+            }
             throw RError.getInvalidSubscriptType(ast, index.typeOf());
         }
 
