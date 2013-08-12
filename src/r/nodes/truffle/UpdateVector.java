@@ -1052,7 +1052,7 @@ public abstract class UpdateVector extends BaseR {
 
         public IntSequenceSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, isSuper, var, lhs, indexes, rhs, subset);
-            Utils.check(subset);
+            assert Utils.check(subset);
         }
 
         @Override public RAny execute(RAny base, RAny index, RAny value) {
@@ -1559,11 +1559,11 @@ public abstract class UpdateVector extends BaseR {
 
         public NumericSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, isSuper, var, lhs, indexes, rhs, subset);
-            Utils.check(subset);
+            assert Utils.check(subset);
         }
 
         public static RArray deleteElements(RList base, RInt index, ASTNode ast, boolean subset) {
-            Utils.check(subset);
+            assert Utils.check(subset);
             boolean hasNegative = false;
             boolean hasPositive = false;
             boolean hasNA = false;
@@ -1673,7 +1673,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         public static RArray genericUpdate(RArray base, RInt index, RArray value, ASTNode ast, boolean subset) {
-            Utils.check(subset);
+            assert Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
             final boolean listBase = base instanceof RList;
@@ -1719,9 +1719,6 @@ public abstract class UpdateVector extends BaseR {
                 } else if (base instanceof RInt || value instanceof RInt) {
                     typedBase = base.asInt();
                     typedValue = value.asInt();
-                } else if (base instanceof RLogical || value instanceof RLogical) {
-                    typedBase = base.asLogical();
-                    typedValue = value.asLogical();
                 } else {
                     assert Utils.check(base instanceof RLogical);
                     assert Utils.check(value instanceof RLogical);
@@ -1766,6 +1763,9 @@ public abstract class UpdateVector extends BaseR {
             }
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
             if (!hasNegative) {
+                if (hasNA && vsize > 1) {
+                    throw RError.getNASubscripted(ast);
+                }
                 int nsize = maxIndex;
                 Names names = base.names();
                 boolean expanding = false;
@@ -1871,7 +1871,7 @@ public abstract class UpdateVector extends BaseR {
                 // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
                 // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
 
-            Utils.check(subset);
+            assert Utils.check(subset);
             this.c = c;
         }
 
@@ -1947,7 +1947,7 @@ public abstract class UpdateVector extends BaseR {
 
         public LogicalSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, isSuper, var, lhs, indexes, rhs, subset);
-            Utils.check(subset);
+            assert Utils.check(subset);
         }
 
         @Override public RAny execute(RAny base, RAny index, RAny value) {
@@ -2764,7 +2764,7 @@ public abstract class UpdateVector extends BaseR {
     public static class Subscript extends UpdateVector {
         public Subscript(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
             super(ast, isSuper, var, lhs, indexes, rhs, subset);
-            Utils.check(!subset);
+            assert Utils.check(!subset);
         }
 
         public static RAny executeSubscript(RInt index, RArray base, RArray value, ASTNode ast) {

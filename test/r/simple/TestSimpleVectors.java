@@ -583,6 +583,33 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); f(1:2,1:2,c(3,4)) ; f(1:8, seq(1L,7L,3L), c(10,100,1000)) }", "10.0, 2.0, 3.0, 100.0, 5.0, 6.0, 1000.0, 8.0");
         assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); f(1:2,1:2,c(3,4)) ; z <- f(1:8, seq(1L,7L,3L), list(10,100,1000)) ; sum(as.double(z)) }", "1134.0");
 
+        assertEval("{ b <- 1:3 ; b[c(3,2)] <- list(TRUE,10) ; b }", "[[1]]\n1L\n\n[[2]]\n10.0\n\n[[3]]\nTRUE");
+        assertEval("{ b <- as.raw(11:13) ; b[c(3,2)] <- list(2) ; b }", "[[1]]\n0b\n\n[[2]]\n2.0\n\n[[3]]\n2.0");
+        assertEval("{ b <- as.raw(11:13) ; b[c(3,2)] <- as.raw(2) ; b }", "0b, 02, 02");
+        assertEvalError("{ b <- as.raw(11:13) ; b[c(3,2)] <- 2 ; b }", "incompatible types (from double to raw) in subassignment type fix");
+        assertEval("{ b <- c(TRUE,NA,FALSE) ; b[c(3,2)] <- FALSE ; b }", "TRUE, FALSE, FALSE");
+        assertEval("{ b <- 1:4 ; b[c(3,2)] <- c(NA,NA) ; b }", "1L, NA, NA, 4L");
+        assertEval("{ b <- c(TRUE,FALSE) ; b[c(3,2)] <- 5:6 ; b }", "1L, 6L, 5L");
+        assertEval("{ b <- c(1+2i,3+4i) ; b[c(3,2)] <- 5:6 ; b }", "1.0+2.0i, 6.0+0.0i, 5.0+0.0i");
+        assertEval("{ b <- 3:4 ; b[c(3,2)] <- c(1+2i,3+4i) ; b }", "3.0+0.0i, 3.0+4.0i, 1.0+2.0i");
+        assertEval("{ b <- c(\"hello\",\"hi\") ; b[c(3,2)] <- c(2,3) ; b }", "\"hello\", \"3.0\", \"2.0\"");
+        assertEval("{ b <- 3:4 ; b[c(3,2)] <- c(\"X\",\"xx\") ; b }", "\"3L\", \"xx\", \"X\"");
+        assertEvalError("{ b <- 3:4 ; b[c(NA)] <- c(2,7) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ b <- 3:4 ; b[c(NA,1)] <- c(2,10) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ b <- 3:4 ; b[[c(NA,1)]] <- c(2,10) ; b }", "attempt to select more than one element");
+        assertEvalWarning("{ b <- 3:4 ; b[c(0,1)] <- c(2,10,11) ; b }", "2.0, 4.0", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(3:4, c(1,2), c(10,11)) ; f(4:5, as.integer(NA), 2) }", "4.0, 5.0");
+        assertEvalError("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(3:4, c(1,2), c(10,11)) ; f(4:5, c(1,-1), 2) }", "only 0's may be mixed with negative subscripts");
+        assertEvalError("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(3:4, c(1,2), c(10,11)) ; f(4:5, c(NA,-1), 2) }", "only 0's may be mixed with negative subscripts");
+
+        assertEval("{ b <- c(1,4,5) ; x <- c(2,8,2) ; b[x==2] <- c(10,11) ; b }", "10.0, 4.0, 11.0");
+        assertEval("{ b <- c(1,4,5) ; z <- b ; x <- c(2,8,2) ; b[x==2] <- c(10,11) ; b }", "10.0, 4.0, 11.0");
+        assertEvalWarning("{ b <- c(1,4,5) ;  x <- c(2,2) ; b[x==2] <- c(10,11) ; b }", "10.0, 11.0, 10.0", "number of items to replace is not a multiple of replacement length");
+        assertEvalError("{ b <- c(1,2,5) ;  x <- c(2,2,NA) ; b[x==2] <- c(10,11,3) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ b <- c(1,2,5) ;  x <- as.double(NA) ; attr(x,\"my\") <- 2 ; b[c(1,NA,2)==2] <- x ; b }", "1.0, 2.0, NA");
+        assertEvalWarning("{ b <- c(1,2,5) ;  x <- c(2,2,-1) ; b[x==2] <- c(10,11,5) ; b }", "10.0, 11.0, 5.0", "number of items to replace is not a multiple of replacement length");
+
+
     }
 
     @Test
