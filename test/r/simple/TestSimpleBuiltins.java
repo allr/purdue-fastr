@@ -45,6 +45,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ seq(from=-10.4,to=-5.8,by=2.1) }", "-10.4, -8.3, -6.2");
         assertEval("{ round(seq(from=3L,to=-2L,by=-4.2), digits=5) }", "3.0, -1.2");
         assertEval("{ seq(along=c(10,11,12)) }", "1L, 2L, 3L"); // test partial name match
+        assertEval("{ seq(1L,4L,2L) }", "1L, 3L");
+        assertEval("{ seq(1,-4,-2) }", "1.0, -1.0, -3.0");
     }
 
     @Test

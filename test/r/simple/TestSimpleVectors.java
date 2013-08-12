@@ -282,6 +282,8 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(b,i) { b[i] } ; f(1:3,c(2,1)) ; f(1:3,NULL) }", "integer(0)");
         assertEvalError("{ f <- function(b,i) { b[i] } ; f(1:3,c(2,1)) ; f(1:3,as.raw(c(10,11))) }", "invalid subscript type 'raw'");
 
+        assertEvalError("{ l <- list(1,2) ; l[[c(1,1,2,3,4,3)]] }", "recursive indexing failed at level 2");
+        assertEvalError("{ l <- list(list(1,2),2) ; l[[c(1,1,2,3,4,3)]] }", "recursive indexing failed at level 3");
     }
 
     @Test
@@ -398,8 +400,14 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- list(a=3,b=4) ; x[\"z\"] <- NULL ; x }", "$a\n3.0\n\n$b\n4.0");
         assertEvalError("{ x <- 4:10 ; x[[\"z\"]] <- NULL ; x }", "more elements supplied than there are to replace");
         assertEval("{ x <- as.list(1:2) ; x[[\"z\"]] <- NULL ; x }", "[[1]]\n1L\n\n[[2]]\n2L");
-
-
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,-2,10) }", "10.0, 2.0");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,2,10) ; f(1:2,as.integer(NA), 10) }", "1.0, 2.0");
+        assertEvalError("{ x <- 1:2; x[[as.integer(NA)]] <- 10 ; x }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; v } ; f(1:2,\"hi\",3L) ; f(1:2,c(2),10) ; f(1:2,as.integer(NA), 10) }", "attempt to select more than one element");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,c(2),10) ; f(1:2,2, 10) }", "1.0, 10.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,c(2),10) ; f(1:2,0, 10) }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,2,10) ; f(1:2,1:3, 10) }", "attempt to select more than one element");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,2,10) ; f(as.list(1:2),1:3, 10) }", "recursive indexing failed at level 2");
     }
 
 
@@ -500,6 +508,24 @@ public class TestSimpleVectors extends SimpleTestBase {
         // negative tests
         assertEvalWarning("{ x = c(1,2,3,4); x[x %% 2 == 0] <- c(1,2,3,4); }", "1.0, 2.0, 3.0, 4.0", RError.NOT_MULTIPLE_REPLACEMENT);
         assertEvalError("{ x <- 1:3 ; x[c(-2, 1)] <- 10 }", RError.ONLY_0_MIXED);
+
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, 10) ; f(1:2, 1:2, 11) }", "11.0, 11.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, TRUE) }", "[[1]]\nTRUE\n\n[[2]]\nTRUE");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, 11L) }", "[[1]]\n11L\n\n[[2]]\n11L");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, TRUE) ;  f(list(1,2), 1:2, as.raw(10))}", "[[1]]\n0a\n\n[[2]]\n0a");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(list(1,2), 1:2, c(1+2i,3+4i))}", "[[1]]\n1.0+2.0i\n\n[[2]]\n3.0+4.0i");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(1:2, 1:2, c(10,5))}", "10.0, 5.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(1:2, c(0,0), as.raw(c(11,23)))}", "incompatible types (from raw to integer) in subassignment type fix");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, TRUE) ;  f(list(1,2), -1:1, c(2,10,5)) }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(list(1,2), 1:3, c(2,10,5)) }", "[[1]]\n2.0\n\n[[2]]\n10.0\n\n[[3]]\n5.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(list(1,2), -10:10, 1:3) }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2,3,4,5), 4:3, c(TRUE,NA)) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\nNA\n\n[[4]]\nTRUE\n\n[[5]]\n5.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2,3,4), seq(1L,4L,2L), c(TRUE,NA)) }", "[[1]]\nTRUE\n\n[[2]]\n2.0\n\n[[3]]\nNA\n\n[[4]]\n4.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2),1:2,3:4) }", "[[1]]\n3L\n\n[[2]]\n4L");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2),1:2,c(4,3)) }", "[[1]]\n4.0\n\n[[2]]\n3.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2),1:2,c(1+2i,3+2i)) }", "[[1]]\n1.0+2.0i\n\n[[2]]\n3.0+2.0i");
+
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(list(1,2), 1:2, c(TRUE,NA)) ;  f(1:2, c(0,0), c(1+2i,3+4i))}", "1.0+0.0i, 2.0+0.0i");
     }
 
     @Test
@@ -647,6 +673,8 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\")]] <- 100L ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n100L");
         assertEval("{ l<-list(a=1L,b=2L,c=list(d=1L,e=2L,f=c(x=1L,y=2L,z=3L))) ; l[[c(\"c\",\"f\")]] <- list(haha=\"gaga\") ; l }", "$a\n1L\n\n$b\n2L\n\n$c\n$c$d\n1L\n\n$c$e\n2L\n\n$c$f\n$c$f$haha\n\"gaga\"");
 
+        assertEvalError("{ l <- list(list(1,2),2) ; l[[c(1,1,2,3,4,3)]] <- 10 ; l }", "recursive indexing failed at level 3");
+        assertEvalError("{ l <- list(1,2) ; l[[c(1,1,2,3,4,3)]] <- 10 ; l }", "recursive indexing failed at level 2");
 
         // copying
         assertEval("{ x<-c(1,2,3) ; y<-x ; x[2]<-100 ; y }", "1.0, 2.0, 3.0");

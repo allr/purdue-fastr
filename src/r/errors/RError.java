@@ -204,6 +204,7 @@ public abstract class RError extends RuntimeException {
     public static final String DOT_DOT_MISSING = "'..%d' is missing";
     public static final String INVALID_TYPE_LENGTH = "invalid type/length (%s/%d) in vector allocation";
     public static final String SUBASSIGN_TYPE_FIX = "incompatible types (from %s to %s) in subassignment type fix";
+    public static final String RECURSIVE_INDEXING_FAILED = "recursive indexing failed at level %d";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -1732,6 +1733,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getSubassignTypeFix(ASTNode ast, String fromType, String toType) {
         return getGenericError(ast, String.format(RError.SUBASSIGN_TYPE_FIX, fromType, toType));
+    }
+
+    public static RError getRecursiveIndexingFailed(ASTNode ast, int level) {
+        return getGenericError(ast, String.format(RError.RECURSIVE_INDEXING_FAILED, level));
     }
 
 }

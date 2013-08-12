@@ -1336,7 +1336,13 @@ public abstract class ReadVector extends BaseR {
                 // the upper levels of recursive indexes have to be treated differently from the lowest level (the error semantics is different)
                 // also, we know that the upper levels must be lists
                 for (; i < isize - 1; i++) {
-                    if (!(b instanceof RList)) { throw RError.getSelectMoreThanOne(ast); }
+                    if (!(b instanceof RList)) {
+                        if (base instanceof RList) {
+                            throw RError.getRecursiveIndexingFailed(ast, i + 1);
+                        } else {
+                            throw RError.getSelectMoreThanOne(ast);
+                        }
+                    }
                     RList l = (RList) b;
                     int indexv = index.getInt(i);
                     int bsize = l.size();

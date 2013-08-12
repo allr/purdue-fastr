@@ -619,7 +619,13 @@ public abstract class UpdateVector extends BaseR {
                     return res;
                 }
             } else { // pos <= 0
-                if (pos == RInt.NA) { return base; }
+                if (pos == RInt.NA) {
+                    if (subset) {
+                        return typedBase;
+                    } else {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
+                }
                 if (!subset) {
                     if (bsize <= 1) { throw RError.getSelectLessThanOne(ast); }
                     if (bsize > 2) { throw RError.getSelectMoreThanOne(ast); }
@@ -1074,6 +1080,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         // specialized for type combinations (base vector, value written)
+        // TODO: avoid copying when the base is non-shared and the index, rhs don't depend on it
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
             // FIXME: could reduce copying when value is not shared
             if (baseTemplate instanceof RList) {
@@ -1093,7 +1100,9 @@ public abstract class UpdateVector extends BaseR {
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) {
+                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
+                            }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
@@ -1628,9 +1637,21 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base;
                     listValue = value.asList();
                     typedValue = null;
+                }  else if (base instanceof RRaw) {
+                    if (value instanceof RRaw) {
+                        typedBase = base;
+                        typedValue = value.asRaw();
+                    } else {
+                        throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                    }
+                } else if (value instanceof RRaw) {
+                    throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
                 } else if (base instanceof RString || value instanceof RString) {
                     typedBase = base.asString();
                     typedValue = value.asString();
+                } else if (base instanceof RComplex || value instanceof RComplex) {
+                    typedBase = base.asComplex();
+                    typedValue = value.asComplex();
                 } else if (base instanceof RDouble || value instanceof RDouble) {
                     typedBase = base.asDouble();
                     typedValue = value.asDouble();
@@ -1641,8 +1662,10 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base.asLogical();
                     typedValue = value.asLogical();
                 } else {
-                    Utils.nyi("unsupported vector types");
-                    return null;
+                    assert Utils.check(base instanceof RLogical);
+                    assert Utils.check(value instanceof RLogical);
+                    typedBase = base;
+                    typedValue = value;
                 }
             }
 
@@ -2695,7 +2718,13 @@ public abstract class UpdateVector extends BaseR {
             boolean onSharedPath = false;
             if (isize > 1) {
                 for (; i < isize - 1; i++) { // shallow copy
-                    if (!(b instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
+                    if (!(b instanceof RList)) {
+                        if (base instanceof RList) {
+                            throw RError.getRecursiveIndexingFailed(ast, i + 1);
+                        } else {
+                            throw RError.getSelectMoreThanOne(ast);
+                        }
+                    }
                     RList l = (RList) b;
                     int indexv = index.getInt(i);
                     int bsize = l.size();

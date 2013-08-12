@@ -210,9 +210,9 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
             int absstep = (step > 0) ? step : -step;
             if (from <= to) {
-                size = (to - from + 1) / absstep;
+                size = (to - from + absstep) / absstep;
             } else {
-                size = (from - to + 1) / absstep;
+                size = (from - to + absstep) / absstep;
             }
         }
 
