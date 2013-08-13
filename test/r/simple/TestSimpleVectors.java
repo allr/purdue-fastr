@@ -582,6 +582,7 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); f(1:2,1:2,c(3,4)) ; f(c(3,4,8), 3:4, 10) }", "3.0, 4.0, 10.0, 10.0");
         assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); f(1:2,1:2,c(3,4)) ; f(1:8, seq(1L,7L,3L), c(10,100,1000)) }", "10.0, 2.0, 3.0, 100.0, 5.0, 6.0, 1000.0, 8.0");
         assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:2,1:2,3:4); f(1:2,1:2,c(3,4)) ; z <- f(1:8, seq(1L,7L,3L), list(10,100,1000)) ; sum(as.double(z)) }", "1134.0");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; x <- list(1,2) ; attr(x,\"my\") <- 10 ; f(x, 1:2, c(10,11)) }", "[[1]]\n10.0\n\n[[2]]\n11.0\nattr(,\"my\")\n10.0");
 
         assertEval("{ b <- 1:3 ; b[c(3,2)] <- list(TRUE,10) ; b }", "[[1]]\n1L\n\n[[2]]\n10.0\n\n[[3]]\nTRUE");
         assertEval("{ b <- as.raw(11:13) ; b[c(3,2)] <- list(2) ; b }", "[[1]]\n0b\n\n[[2]]\n2.0\n\n[[3]]\n2.0");
@@ -609,6 +610,99 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ b <- c(1,2,5) ;  x <- as.double(NA) ; attr(x,\"my\") <- 2 ; b[c(1,NA,2)==2] <- x ; b }", "1.0, 2.0, NA");
         assertEvalWarning("{ b <- c(1,2,5) ;  x <- c(2,2,-1) ; b[x==2] <- c(10,11,5) ; b }", "10.0, 11.0, 5.0", "number of items to replace is not a multiple of replacement length");
 
+        assertEval("{ b <- c(1,2,5) ; b[integer()] <- NULL ; b }", "1.0, 2.0, 5.0");
+        assertEvalError("{ b <- c(1,2,5) ; b[c(1)] <- NULL ; b }", "replacement has length zero");
+        assertEval("{ b <- c(1,2,5) ; attr(b,\"my\") <- 10 ; b[integer()] <- NULL ; b }", "1.0, 2.0, 5.0\nattr(,\"my\")\n10.0");
+        assertEval("{ b <- list(1,2,5) ; b[c(1,1,5)] <- NULL ; b }", "[[1]]\n2.0\n\n[[2]]\n5.0\n\n[[3]]\nNULL");
+        assertEval("{ b <- list(1,2,5) ; b[c(-1,-4,-5,-1,-5)] <- NULL ; b }", "[[1]]\n1.0");
+        assertEval("{ b <- list(1,2,5) ; b[c(1,1,0,NA,5,5,7)] <- NULL ; b }", "[[1]]\n2.0\n\n[[2]]\n5.0\n\n[[3]]\nNULL\n\n[[4]]\nNULL");
+        assertEval("{ b <- list(1,2,5) ; b[c(0,-1)] <- NULL ; b }", "[[1]]\n1.0");
+        assertEval("{ b <- list(1,2,5) ; b[c(1,NA)] <- NULL ; b }", "[[1]]\n2.0\n\n[[2]]\n5.0");
+        assertEvalError("{ b <- list(1,2,5) ; b[c(-1,NA)] <- NULL ; b }", "only 0's may be mixed with negative subscripts");
+        assertEvalError("{ b <- list(1,2,5) ; b[c(-1,1)] <- NULL ; b }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ b <- list(x=1,y=2,z=5) ; b[c(0,-1)] <- NULL ; b }", "$x\n1.0");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(0,-1)] <- NULL ; b }", "[[1]]\n1.0");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(0,0)] <- NULL ; b }", "     [,1] [,2] [,3]\n[1,]  1.0  2.0  5.0");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(-10,-20,0)] <- NULL ; b }", "list()");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(0,0,-1,-2,-3)] <- NULL ; b }", "     [,1] [,2] [,3]\n[1,]  1.0  2.0  5.0");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(0,3,5)] <- NULL ; b }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\nNULL");
+        assertEvalError("{ b <- c(1,2,5) ; b[c(0,3,5)] <- NULL ; b }", "replacement has length zero");
+
+        assertEvalError("{ b <- c(1,2,5) ; b[c(TRUE,FALSE,FALSE)] <- NULL ; b }", "replacement has length zero");
+        assertEval("{ b <- c(1,2,5) ; b[logical()] <- NULL ; b }", "1.0, 2.0, 5.0");
+        assertEvalError("{ b <- c(1,2,5) ; b[c(TRUE,NA,TRUE)] <- list(TRUE,1+2i) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ b <- c(1,2,5) ; b[c(TRUE,FALSE,TRUE)] <- list(TRUE,1+2i) ; b }", "[[1]]\nTRUE\n\n[[2]]\n2.0\n\n[[3]]\n1.0+2.0i");
+        assertEval("{ b <- list(1,2,5) ; dim(b) <- c(1,3) ; b[c(TRUE,FALSE,TRUE)] <- list(TRUE,1+2i) ; b }", "     [,1] [,2]     [,3]\n[1,] TRUE  2.0 1.0+2.0i");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; x <- list(1,2,5) ; dim(x) <- c(1,3) ; f(x, c(FALSE,TRUE,TRUE), list(TRUE,1+2i)) }", "     [,1] [,2]     [,3]\n[1,]  1.0 TRUE 1.0+2.0i");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; x <- as.raw(10:12) ; dim(x) <- c(1,3) ; f(x, c(FALSE,TRUE,TRUE), as.raw(21:22)) }", "     [,1] [,2] [,3]\n[1,]   0a   15   16");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; x <- as.raw(10:12) ; dim(x) <- c(1,3) ; f(x, c(FALSE,TRUE,TRUE), 21:22) }", "incompatible types (from integer to raw) in subassignment type fix");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; x <- 10:12 ; dim(x) <- c(1,3) ; f(x, c(FALSE,TRUE,TRUE), as.raw(21:22)) }", "incompatible types (from raw to integer) in subassignment type fix");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(\"a\",\"XX\",\"b\"), c(FALSE,TRUE,TRUE), 21:22) }", "\"a\", \"21L\", \"22L\"");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(10,12,3), c(FALSE,TRUE,TRUE), c(\"hi\",NA)) }", "\"10.0\", \"hi\", NA");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(10,12,3), c(FALSE,TRUE,TRUE), c(1+2i,10)) }", "10.0+0.0i, 1.0+2.0i, 10.0+0.0i");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(3+4i,5+6i), c(FALSE,TRUE,TRUE), c(\"hi\",NA)) }", "\"3.0+4.0i\", \"hi\", NA");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(3+4i,5+6i), c(FALSE,TRUE,TRUE), c(NA,1+10i)) }", "3.0+4.0i, NA, 1.0+10.0i");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(TRUE,FALSE), c(FALSE,TRUE,TRUE), c(NA,2L)) }", "1L, NA, 2L");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,TRUE,TRUE), c(NA,FALSE)) }", "3L, NA, 0L");
+        assertEvalWarning("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,TRUE,TRUE), 4:6) }", "3L, 4L, 5L", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3,c(TRUE,FALSE,TRUE),5:6) ; f(c(TRUE,TRUE,FALSE), c(FALSE,TRUE,TRUE), c(TRUE,NA)) }", "TRUE, TRUE, NA");
+        assertEval(" { f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,TRUE,TRUE), c(NA,FALSE)) }", "3L, NA, 0L");
+        assertEvalWarning("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,TRUE,TRUE), 4:6) }", "3L, 4L, 5L", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,NA), 4) }", "3.0, 4.0, 5.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,NA), 4:5) }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ f <- function(b, i, v) { b[[i]] <- v ; b } ; f(c(1,2,3),c(TRUE,FALSE,TRUE),5:6) ; f(3:5, c(FALSE,NA), 4:5) }", "attempt to select more than one element");
+        assertEval("{ b <- as.list(3:6) ; dim(b) <- c(4,1) ; b[c(TRUE,FALSE)] <- NULL ; b }", "[[1]]\n4L\n\n[[2]]\n6L");
+        assertEval("{ b <- as.list(3:6) ; names(b) <- c(\"X\",\"Y\",\"Z\",\"Q\") ; b[c(TRUE,FALSE)] <- NULL ; b }", "$Y\n4L\n\n$Q\n6L");
+        assertEval("{ b <- as.list(3:6) ; names(b) <- c(\"X\",\"Y\",\"Z\",\"Q\") ; b[c(FALSE,FALSE)] <- NULL ; b }", "$X\n3L\n\n$Y\n4L\n\n$Z\n5L\n\n$Q\n6L");
+        assertEval("{ b <- as.list(3:6) ; dim(b) <- c(1,4) ; b[c(FALSE,FALSE)] <- NULL ; b }", "     [,1] [,2] [,3] [,4]\n[1,]   3L   4L   5L   6L");
+        assertEval("{ b <- as.list(3:6) ; dim(b) <- c(1,4) ; b[c(FALSE,FALSE,TRUE)] <- NULL ; b }", "[[1]]\n3L\n\n[[2]]\n4L\n\n[[3]]\n6L");
+        assertEval("{ b <- as.list(3:5) ; dim(b) <- c(1,3) ; b[c(FALSE,FALSE,FALSE)] <- NULL ; b }", "     [,1] [,2] [,3]\n[1,]   3L   4L   5L");
+        assertEval("{ b <- as.list(3:5) ; dim(b) <- c(1,3) ; b[c(FALSE,TRUE,NA)] <- NULL ; b }", "[[1]]\n3L\n\n[[2]]\n5L");
+
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) }", "[[1]]\n1.0+2.0i\n\n[[2]]\n2.0");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(1:2, c(TRUE,FALSE), list(TRUE)) }", "[[1]]\nTRUE\n\n[[2]]\n2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(as.list(1:2), c(TRUE,FALSE), TRUE) }", "[[1]]\nTRUE\n\n[[2]]\n2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(as.list(1:2), c(TRUE,FALSE), 1+2i) }", "[[1]]\n1.0+2.0i\n\n[[2]]\n2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(as.list(1:2), c(TRUE,FALSE), 10) }", "[[1]]\n10.0\n\n[[2]]\n2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,FALSE), list(1+2i)) ; f(as.list(1:2), c(TRUE,FALSE), 10L) }", "[[1]]\n10L\n\n[[2]]\n2L");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,NA), list(1+2i)) }", "[[1]]\n1.0+2.0i\n\n[[2]]\n2.0");
+        assertEval("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,NA), 10) }", "[[1]]\n10.0\n\n[[2]]\n2.0");
+        assertEvalError("{ f <- function(b,i,v) { b[i] <- v ; b } ; f(list(1,2), c(TRUE,NA), c(10,11)) }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ f <- function(b,i,v) { b[i] <- v ; b } ; x <- list(1,2) ; z <- x ; f(x, c(TRUE,NA), c(10,11)) }", "NAs are not allowed in subscripted assignments");
+        assertEvalWarning("{ x <- list(1,2) ; attr(x,\"my\") <- 10; x[c(TRUE,TRUE)] <- c(10,11,12); x }", "[[1]]\n10.0\n\n[[2]]\n11.0\nattr(,\"my\")\n10.0", "number of items to replace is not a multiple of replacement length");
+        assertEvalWarning("{ x <- list(1,0) ; x[as.logical(x)] <- c(10,11); x }", "[[1]]\n10.0\n\n[[2]]\n0.0", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ x <- list(1,0) ; x[is.na(x)] <- c(10,11); x }", "[[1]]\n1.0\n\n[[2]]\n0.0");
+        assertEvalWarning("{ x <- list(1,0) ; x[c(TRUE,FALSE)] <- x[2:1] ; x }", "[[1]]\n0.0\n\n[[2]]\n0.0", "number of items to replace is not a multiple of replacement length");
+        assertEvalWarning("{ x <- list(1,0) ; attr(x,\"my\") <- 20 ; x[c(TRUE,FALSE)] <- c(11,12) ; x }", "[[1]]\n11.0\n\n[[2]]\n0.0\nattr(,\"my\")\n20.0", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ x <- list(1,0) ; x[is.na(x)] <- c(10L,11L); x }", "[[1]]\n1.0\n\n[[2]]\n0.0");
+        assertEval("{ x <- list(1,0) ; x[c(TRUE,TRUE)] <- c(TRUE,NA); x }", "[[1]]\nTRUE\n\n[[2]]\nNA");
+
+        assertEval("{ x <- c(1,0) ; x[c(TRUE,TRUE)] <- c(TRUE,NA); x }", "1.0, NA");
+        assertEval("{ x <- c(1,0) ; x[c(TRUE,TRUE)] <- 3:4; x }", "3.0, 4.0");
+        assertEval("{ x <- c(1,0) ; attr(x,\"my\") <- 1 ; x[c(TRUE,TRUE)] <- c(NA,TRUE); x }", "NA, 1.0\nattr(,\"my\")\n1.0");
+        assertEvalError("{ x <- c(1,0) ; x[c(NA,TRUE)] <- c(NA,TRUE); x }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ x <- c(1,0) ; z <- x ; x[c(NA,TRUE)] <- c(NA,TRUE); x }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ x <- c(1,0) ; z <- x ; x[c(NA,TRUE)] <- TRUE; x }", "1.0, 1.0");
+        assertEval("{ x <- c(1,0)  ; x[is.na(x)] <- TRUE; x }", "1.0, 0.0");
+        assertEval("{ x <- c(1,0)  ; x[c(TRUE,TRUE)] <- rev(x) ; x }", "0.0, 1.0");
+        assertEval("{ x <- c(1,0) ; f <- function(v) { x[c(TRUE,TRUE)] <- v ; x } ; f(1:2) ; f(c(1,2)) }", "1.0, 2.0");
+        assertEval("{ x <- c(1,0) ; f <- function(v) { x[c(TRUE,TRUE)] <- v ; x } ; f(1:2) ; f(1+2i) }", "1.0+2.0i, 1.0+2.0i");
+
+        assertEval("{ b <- list(1,2,3) ; attr(b,\"my\") <- 12; b[2] <- NULL ; b }", "[[1]]\n1.0\n\n[[2]]\n3.0\nattr(,\"my\")\n12.0");
+        assertEval("{ b <- list(1,2,3) ; attr(b,\"my\") <- 12; b[2:3] <- NULL ; b }", "[[1]]\n1.0\nattr(,\"my\")\n12.0");
+
+        assertEval("{ x <- 1:2 ; x[c(TRUE,FALSE,FALSE,TRUE)] <- 3:4 ; x }", "3L, 2L, NA, 4L");
+        assertEvalError("{ x <- 1:2 ; x[c(TRUE,FALSE,FALSE,NA)] <- 3:4 ; x }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ x <- 1:2 ; x[c(TRUE,FALSE,FALSE,NA)] <- 3L ; x }", "3L, 2L, NA, NA");
+        assertEval("{ x <- 1:2 ; x[c(TRUE,NA)] <- 3L ; x }", "3L, 2L");
+        assertEvalError("{ x <- 1:2 ; x[c(TRUE,NA)] <- 2:3 ; x }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ x <- c(1L,2L) ; x[c(TRUE,FALSE)] <- 3L ; x }", "3L, 2L");
+        assertEval("{ x <- c(1L,2L) ; x[c(TRUE,NA)] <- 3L ; x }", "3L, 2L");
+        assertEval("{ x <- c(1L,2L) ; x[TRUE] <- 3L ; x }", "3L, 3L");
+        assertEval("{ x <- c(1L,2L,3L,4L) ; x[c(TRUE,FALSE)] <- 5:6 ; x }", "5L, 2L, 6L, 4L");
+        assertEval("{ x <- c(1L,2L,3L,4L) ; attr(x,\"my\") <- 0 ;  x[c(TRUE,FALSE)] <- 5:6 ; x }", "5L, 2L, 6L, 4L\nattr(,\"my\")\n0.0");
+        assertEval("{ x <- c(1L,2L,3L,4L) ;  x[is.na(x)] <- 5:6 ; x }", "1L, 2L, 3L, 4L");
+        assertEvalWarning("{ x <- c(1L,2L,3L,4L) ; x[c(TRUE,FALSE)] <- rev(x) ; x }", "4L, 2L, 3L, 4L", "number of items to replace is not a multiple of replacement length");
 
     }
 
