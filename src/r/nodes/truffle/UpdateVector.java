@@ -577,9 +577,9 @@ public abstract class UpdateVector extends BaseR {
                 typedBase = base.asInt();
                 rawValue = value.asInt().get(0);
             } else {
-                assert Utils.check(base instanceof RLogical);
+                assert Utils.check(base instanceof RLogical || base instanceof RNull);
                 assert Utils.check(value instanceof RLogical);
-                typedBase = base;
+                typedBase = base.asLogical();
                 rawValue = ((RLogical) value).get(0);
             }
             int bsize = base.size();
@@ -627,7 +627,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 if (!subset) {
-                    if (bsize <= 1) { throw RError.getSelectLessThanOne(ast); }
+                    if (bsize <= 1 || pos == 0) { throw RError.getSelectLessThanOne(ast); }
                     if (bsize > 2) { throw RError.getSelectMoreThanOne(ast); }
                     // bsize == 2
                     if (pos != -1 && pos != -2) { throw RError.getSelectMoreThanOne(ast); }
@@ -779,9 +779,9 @@ public abstract class UpdateVector extends BaseR {
                 typedBase = base.asInt();
                 rawValue = value.asInt().get(0);
             } else {
-                assert Utils.check(base instanceof RLogical);
+                assert Utils.check(base instanceof RLogical || base instanceof RNull);
                 assert Utils.check(value instanceof RLogical);
-                typedBase = base;
+                typedBase = base.asLogical();
                 rawValue = ((RLogical) value).get(0);
             }
             int bsize = base.size();
@@ -1409,7 +1409,7 @@ public abstract class UpdateVector extends BaseR {
                     RList listValue = null;
                     int[] dimensions;
 
-                    if (value instanceof RList) {
+                    if (value instanceof RList) { // FIXME: fragment copied around
                         typedValue = null;
                         listValue = (RList) value;
                         if (base instanceof RList) {
@@ -1445,9 +1445,9 @@ public abstract class UpdateVector extends BaseR {
                             typedBase = base.asInt();
                             typedValue = value.asInt();
                         } else {
-                            assert Utils.check(base instanceof RLogical);
+                            assert Utils.check(base instanceof RLogical || base instanceof RNull);
                             assert Utils.check(value instanceof RLogical);
-                            typedBase = base;
+                            typedBase = base.asLogical();
                             typedValue = value;
                         }
                         dimensions = typedBase.dimensions();
@@ -1686,7 +1686,7 @@ public abstract class UpdateVector extends BaseR {
             RList listValue = null;
             int[] dimensions;
 
-            if (value instanceof RNull) {
+            if (value instanceof RNull) { // FIXME: fragment copied around
                 if (listBase) {
                     return deleteElements((RList) base, index, ast, subset);
                 } else {
@@ -1734,9 +1734,9 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base.asInt();
                     typedValue = value.asInt();
                 } else {
-                    assert Utils.check(base instanceof RLogical);
+                    assert Utils.check(base instanceof RLogical || base instanceof RNull);
                     assert Utils.check(value instanceof RLogical);
-                    typedBase = base;
+                    typedBase = base.asLogical();
                     typedValue = value;
                 }
             }
@@ -2010,6 +2010,9 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RList res;
+                            if (isize == 0) {
+                                return typedBase;
+                            }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2086,6 +2089,9 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RDouble res;
+                            if (isize == 0) {
+                                return typedBase;
+                            }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2162,6 +2168,9 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RInt res;
+                            if (isize == 0) {
+                                return typedBase;
+                            }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2237,6 +2246,9 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RLogical res;
+                            if (isize == 0) {
+                                return typedBase;
+                            }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2311,6 +2323,9 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RString res;
+                            if (isize == 0) {
+                                return typedBase;
+                            }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2454,7 +2469,7 @@ public abstract class UpdateVector extends BaseR {
             RList listValue = null;
             int[] dimensions;
 
-            if (value instanceof RNull) {
+            if (value instanceof RNull) { // FIXME: fragment copied around
                 if (base instanceof RList) {
                     return deleteElements((RList) base, index, ast);
                 } else {
@@ -2502,9 +2517,9 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base.asInt();
                     typedValue = value.asInt();
                 } else {
-                    assert Utils.check(base instanceof RLogical);
+                    assert Utils.check(base instanceof RLogical || base instanceof RNull);
                     assert Utils.check(value instanceof RLogical);
-                    typedBase = base;
+                    typedBase = base.asLogical();
                     typedValue = (RLogical) value;
                 }
             }
@@ -2664,8 +2679,16 @@ public abstract class UpdateVector extends BaseR {
             RArray typedValue;
             RList listValue = null;
 
-            if (base instanceof RList && value instanceof RNull) {
-                return deleteElements((RList) base, index, ast);
+            if (value instanceof RNull) { // FIXME: fragment copied around
+                if (base instanceof RList) {
+                    return deleteElements((RList) base, index, ast);
+                } else {
+                    if (index.size() == 0) {
+                        return base;
+                    } else {
+                        throw RError.getReplacementZero(ast);
+                    }
+                }
             } else if (value instanceof RList) {
                 listValue = (RList) value;
                 typedValue = null;
@@ -2679,21 +2702,32 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base;
                     listValue = value.asList();
                     typedValue = null;
+                } else if (base instanceof RRaw) {
+                    if (value instanceof RRaw) {
+                        typedBase = base;
+                        typedValue = value.asRaw();
+                    } else {
+                        throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                    }
+                } else if (value instanceof RRaw) {
+                    throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
                 } else if (base instanceof RString || value instanceof RString) {
                     typedBase = base.asString();
                     typedValue = value.asString();
+                } else if (base instanceof RComplex || value instanceof RComplex) {
+                    typedBase = base.asComplex();
+                    typedValue = value.asComplex();
                 } else if (base instanceof RDouble || value instanceof RDouble) {
                     typedBase = base.asDouble();
                     typedValue = value.asDouble();
                 } else if (base instanceof RInt || value instanceof RInt) {
                     typedBase = base.asInt();
                     typedValue = value.asInt();
-                } else if (base instanceof RLogical || value instanceof RLogical) {
-                    typedBase = base.asLogical();
-                    typedValue = value.asLogical();
                 } else {
-                    Utils.nyi("unsupported vector types");
-                    return null;
+                    assert Utils.check(base instanceof RLogical || base instanceof RNull);
+                    assert Utils.check(value instanceof RLogical);
+                    typedBase = base.asLogical();
+                    typedValue = (RLogical) value;
                 }
             }
             int bsize = base.size();
