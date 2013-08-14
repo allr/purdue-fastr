@@ -946,6 +946,8 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(f,TRUE,3) }", "object of type 'closure' is not subsettable");
         assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(c(a=1,b=2),\"b\",as.raw(12)) }", "incompatible types (from raw to double) in subassignment type fix");
         assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(c(a=1,b=2),c(1+2i,3+4i),as.raw(12)) }", "invalid subscript type 'complex'");
+        assertEval("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(2,2,3,2)]] <- 10 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$cd\n$cd$c\n3.0\n\n$cd$d\n4.0");
+        assertEval("{ l <- list(a=1,b=2,cd=list(c=3,d=4)) ; x <- list(l,xy=list(x=l,y=l)) ; x[[c(\"xy\",\"y\",\"cd\",\"d\")]] <- 10 ; l }", "$a\n1.0\n\n$b\n2.0\n\n$cd\n$cd$c\n3.0\n\n$cd$d\n4.0");
     }
 
 

@@ -2950,6 +2950,7 @@ public abstract class UpdateVector extends BaseR {
                     if (indexv == -1) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
                     int bsize = l.size();
                     RAny[] content = new RAny[bsize];
+                    // TODO: add optimization like in the case with integer index (above)
                     int k = 0;
                     int j = 0;
                     for (; j < indexv; j++) { // shallow copy
@@ -2968,7 +2969,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                     parent = newList;
                     parentIndex = indexv;
-                    b = l.getRAny(indexv); // shallow copy
+                    b = l.getRAnyRef(indexv); // shallow copy
                 }
             }
             // selection at the last level
@@ -2988,7 +2989,7 @@ public abstract class UpdateVector extends BaseR {
                     throw RError.getMoreElementsSupplied(ast);
                 } else {
                     b = ScalarStringSelection.genericUpdate(a, index.getString(i), value, false, ast);
-                    // FIXME: ScalarNumericSelection.genericUpdate is  unnecessarily heavy-weight for a valid positive index
+                    // FIXME: ScalarNumericSelection.genericUpdate is unnecessarily heavy-weight for a valid positive index
                 }
             }
             if (parent == null) {
