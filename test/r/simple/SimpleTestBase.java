@@ -2,9 +2,11 @@ package r.simple;
 
 import java.io.*;
 
+import javassist.*;
 import org.antlr.runtime.*;
 import org.junit.*;
 
+import org.junit.runner.RunWith;
 import r.*;
 import r.builtins.internal.*;
 import r.data.*;

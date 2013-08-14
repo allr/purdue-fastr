@@ -1,5 +1,6 @@
 package r;
 
+import javassist.*;
 import org.junit.*;
 
 public class TestBase {

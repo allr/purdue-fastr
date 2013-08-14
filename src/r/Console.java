@@ -258,7 +258,7 @@ public class Console {
         try {
             return fName.equals("-") ? new ANTLRInputStream(System.in) : new ANTLRFileStream(fName);
         } catch (IOException e) {
-            // System.err.println(e.getLocalizedMessage());
+            // System.err.DEBUG(e.getLocalizedMessage());
             throw e;
         }
     }
