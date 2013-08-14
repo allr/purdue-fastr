@@ -47,7 +47,7 @@ public abstract class RNode extends Node implements DeepCopyable {
      * @param other Object to be copied.
      * @param deep Should it be shallow or deep copy.
      */
-    private RNode(RNode other, boolean deep) {
+    protected RNode(RNode other, boolean deep) {
     }
 
     /** Deep copy method.

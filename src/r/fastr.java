@@ -15,7 +15,6 @@ public class fastr {
     public static final boolean DEBUG_FLAG = false;
 
     public static final String MAIN_CLASS = "r.Console";
-    //public static final String MAIN_CLASS = "r.FastrHelper";
 
     public static void DEBUG(String s) {
         if (DEBUG_FLAG)
