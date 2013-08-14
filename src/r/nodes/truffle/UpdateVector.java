@@ -2907,7 +2907,7 @@ public abstract class UpdateVector extends BaseR {
             // selection at the last level
             int indexv = index.getInt(i);
             if (!(b instanceof RArray)) {
-                Utils.nyi("unuspported base type");
+                throw RError.getObjectNotSubsettable(ast, b.typeOf());
             }
             RArray a = (RArray) b;
             if (value instanceof RNull) {
@@ -2941,7 +2941,7 @@ public abstract class UpdateVector extends BaseR {
             int parentIndex = -1;
             if (isize > 1) {
                 for (; i < isize - 1; i++) { // shallow copy
-                    if (!(b instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
+                    if (!(b instanceof RList)) { throw RError.getSelectMoreThanOne(ast); }
                     RList l = (RList) b;
                     Names names = l.names();
                     if (names == null) { throw RError.getNoSuchIndexAtLevel(ast, i + 1); }
@@ -2972,7 +2972,9 @@ public abstract class UpdateVector extends BaseR {
                 }
             }
             // selection at the last level
-            if (!(b instanceof RArray)) { throw Utils.nyi("unuspported base type"); }
+            if (!(b instanceof RArray)) {
+                throw RError.getObjectNotSubsettable(ast, b.typeOf());
+            }
             RArray a = (RArray) b;
             if (value instanceof RNull) {
                 if (a instanceof RList) {
@@ -3058,6 +3060,7 @@ public abstract class UpdateVector extends BaseR {
                         }
                     }
                 }
+                // TODO: allow storing non-array values into lists (e.g. closures)
                 if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
                 if (!subset && isize == 1) { return GenericScalarSelection.update(abase, aindex, avalue, ast, subset); }

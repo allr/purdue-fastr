@@ -917,7 +917,37 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function() { l[1:2] <- x ; x[1] <- 211L  ; l[1] } ; l <- 1:3 ; x <- 10L ; f() }", "10L");
 
         assertEvalError("{ l <- as.list(1:3) ; l[[0]] <- 2 }", "attempt to select less than one element");
+        assertEvalError("{ x <- as.list(1:3) ; x[[integer()]] <- 3 }", "attempt to select less than one element");
+        assertEval("{ x <- list(1,list(2,3),4) ; x[[c(2,3)]] <- 3 ; x }", "[[1]]\n1.0\n\n[[2]]\n[[2]][[1]]\n2.0\n\n[[2]][[2]]\n3.0\n\n[[2]][[3]]\n3.0\n\n[[3]]\n4.0");
+        assertEval("{ x <- list(1,list(2,3),4) ; z <- x[[2]] ; x[[c(2,3)]] <- 3 ; z }", "[[1]]\n2.0\n\n[[2]]\n3.0");
+        assertEval("{ x <- list(1,list(2,3),4) ; z <- list(x,x) ; u <- list(z,z) ; u[[c(2,2,3)]] <- 6 ; unlist(u) }", "1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 4.0, 1.0, 2.0, 3.0, 6.0");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(list(1,2,3), 2L, 3) }", "[[1]]\n1.0\n\n[[2]]\n3.0\n\n[[3]]\n3.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(list(f,f), c(1,1), 3) }","object of type 'closure' is not subsettable");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(list(1,2,3), 2L, NULL) }", "[[1]]\n1.0\n\n[[2]]\n3.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(c(1,2,3), 2L, NULL) }","more elements supplied than there are to replace");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(c(1,2,3), 2L, 1:2) }", "more elements supplied than there are to replace");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(c(1,2,3), f, 2) }", "invalid subscript type 'closure'");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,list(3)), c(3,1), 4) ; f(c(1,2,3), \"hello\", 2) }", "            hello\n1.0 2.0 3.0   2.0");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=list(x=3)),c(\"b\",\"x\"),10) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$b\n$b$x\n10.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=list(x=3)),character(),10) }", "attempt to select less than one element");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=c(x=3)),c(\"b\",\"x\"),10) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$b\n   x\n10.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(c(1,2,b=c(x=3)),c(\"b\",\"x\"),10) }", "attempt to select more than one element");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(c(1,2,b=c(x=3)),c(\"b\"),10) }", "        b.x    b\n1.0 2.0 3.0 10.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2, list(3)),c(\"b\",\"x\"),10) }", "no such index at level 1");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=list(3)),c(\"a\",\"x\"),10) }", "no such index at level 1");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(list(1,2,b=list(a=list(x=1,y=2),3),4),c(\"b\",\"a\",\"x\"),10) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$b\n$b$a\n$b$a$x\n10.0\n\n$b$a$y\n2.0\n\n$b[[2]]\n3.0\n\n[[4]]\n4.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=f),c(\"b\",\"x\"),3) }", "object of type 'closure' is not subsettable");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=2),\"b\",NULL) }", "$a\n1.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(c(a=1,b=2),\"b\",NULL) }", "more elements supplied than there are to replace");
+        assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=list(2)),\"b\",double()) }", "$a\n1.0\n\n$b\nnumeric(0)");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=c(a=2)),c(\"b\",\"a\"),1:3) }", "more elements supplied than there are to replace");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=c(a=2)),1+2i,1:3) }", "invalid subscript type 'complex'");
+        assertEval(" { f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(list(a=1,b=c(a=2)),c(TRUE,TRUE),3) }", "$a\n3.0\n\n$b\n  a\n2.0");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(f,TRUE,3) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(c(a=1,b=2),\"b\",as.raw(12)) }", "incompatible types (from raw to double) in subassignment type fix");
+        assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ;  f(list(1,2,b=list(a=1)),c(\"b\",\"a\"),10) ; f(c(a=1,b=2),c(1+2i,3+4i),as.raw(12)) }", "invalid subscript type 'complex'");
     }
+
 
     @Test
     public void testStringUpdate() throws RecognitionException {
