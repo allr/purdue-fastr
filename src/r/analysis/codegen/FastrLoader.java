@@ -36,17 +36,14 @@ public class FastrLoader extends Loader implements Translator {
     }
 
 
-    /** When a class is loaded, checks that the class is subclass of RNode and if so, makes sure that the deepCopy
-     * method is present. If not, autogenerates the copy constructor and the deepCopy method for the class.
-     */
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass cls = pool.get(classname);
         if (isDeepCopyable(cls)) {
             if (REPORT_DEEPCOPYABLE_CLASS)
                 DEBUG("loading deep copyable class " + cls.getName());
-            if (!hasCopyOrMoveConstructor(cls)) {
-                addCopyOrMoveConstructor(cls);
+            if (!hasDeepOrShallowConstructor(cls)) {
+                addDeepOrShallowConstructor(cls);
             } else {
                 if (REPORT_EXISTING_COPY_OR_MOVE_CONSTRUCTOR)
                     DEBUG("  copy or move constructor is already defined, skipping...");
@@ -68,7 +65,7 @@ public class FastrLoader extends Loader implements Translator {
         return cls.subclassOf(pool.get("com.oracle.truffle.api.nodes.Node"));
     }
 
-    private boolean hasCopyOrMoveConstructor(CtClass cls) {
+    private boolean hasDeepOrShallowConstructor(CtClass cls) {
         try {
             cls.getDeclaredConstructor(new CtClass[] { cls, pool.get("boolean") });
             return true;
@@ -98,7 +95,7 @@ public class FastrLoader extends Loader implements Translator {
     }
 
 
-    private void addCopyOrMoveConstructor(CtClass cls) throws NotFoundException {
+    private void addDeepOrShallowConstructor(CtClass cls) throws NotFoundException {
         try {
             loadSuperclasses(cls);
             CtField[] fields = cls.getDeclaredFields();
@@ -122,21 +119,21 @@ public class FastrLoader extends Loader implements Translator {
                         code = "if ($1.FNAME == null)\n" +
                                 "    FNAME = null;\n" +
                                 "else\n" +
-                                "    FNAME = $2 ? $1.FNAME : (FTYPENAME) $1.FNAME.clone();\n";
+                                "    FNAME = $2 ? (FTYPENAME) $1.FNAME.clone(): $1.FNAME;\n";
                     } else {
                         // it is an array of objects
                         loadClass(compType.getName());
                         if (isNode(compType)) {
                             // if it is array of nodes, deep copy each one and adopt it as a child
-                            code = "if ($2) {\n" +
-                                    "    FNAME = $1.FNAME; " +
-                                    "    adoptChildren($1.FNAME);\n" + // TODO this fails, if on single line, don't know why
-                                    "} else if ($1.FNAME == null) {\n" +
-                                    "    FNAME = null;\n" +
-                                    "} else {\n" +
+                            code = "if ($1.FNAME == null) {" +
+                                    "  FNAME = null;" +
+                                    "} else if ($2) {" +
                                     "    FNAME = new COMPTYPENAME[$1.FNAME.length];\n" +
                                     "    for (int i = 0; i < FNAME.length; ++i)\n" +
                                     "        FNAME[i] = $1.FNAME[i] == null ? null : (COMPTYPENAME) adoptChild($1.FNAME[i].deepCopy());\n" +
+                                    "} else {" +
+                                    "    FNAME = $1.FNAME; " +
+                                    "    adoptChildren($1.FNAME);\n" + // TODO this fails, if on single line, don't know why
                                     "}";
                             code = code.replace("COMPTYPENAME",compType.getName());
                         } else if (isDeepCopyable(compType)) {
@@ -145,14 +142,14 @@ public class FastrLoader extends Loader implements Translator {
                             code = "if ($1.FNAME == null) {\n" +
                                     "    FNAME = null;\n" +
                                     "} else if ($2) {\n" +
-                                    "    FNAME = $1.FNAME;\n" +
-                                    "} else {\n" +
                                     "    FNAME = new COMPTYPENAME[$1.FNAME.length];\n" +
                                     "    for (int i = 0; i < FNAME.length; ++i)\n" +
                                     "        if ($1.FNAME[i] == null)\n" +
                                     "            FNAME[i] = null;\n" +
                                     "        else\n" +
                                     "            FNAME[i] = (COMPTYPENAME) $1.FNAME[i].deepCopy();\n" +
+                                    "} else {\n" +
+                                    "    FNAME = $1.FNAME;\n" +
                                     "}";
                             code = code.replace("COMPTYPENAME",compType.getName());
                         } else {
@@ -160,7 +157,7 @@ public class FastrLoader extends Loader implements Translator {
                             code = "if ($1.FNAME == null)\n" +
                                     "    FNAME = null;\n" +
                                     "else\n" +
-                                    "    FNAME = $2 ? $1.FNAME : (FTYPENAME) $1.FNAME.clone();\n";
+                                    "    FNAME = $2 ? (FTYPENAME) $1.FNAME.clone() : $1.FNAME;\n";
                         }
                     }
                 } else {
@@ -171,13 +168,13 @@ public class FastrLoader extends Loader implements Translator {
                         code = "if ($1.FNAME == null)\n" +
                                 "    FNAME = null;\n" +
                                 "else\n" +
-                                "    FNAME = (FTYPENAME) adoptChild($2 ? $1.FNAME : $1.FNAME.deepCopy());\n";
+                                "    FNAME = (FTYPENAME) adoptChild($2 ?  $1.FNAME.deepCopy() : $1.FNAME);\n";
                     else if (isDeepCopyable(ftype))
                         // if it is not a node, but implements DeepCopyable, store a deep copy if not null.
                         code = "if ($1.FNAME == null)\n" +
                                 "    FNAME = null;\n" +
                                 "else\n" +
-                                "    FNAME = $2 ? $1.FNAME : (FTYPENAME) $1.FNAME.deepCopy();\n";
+                                "    FNAME = $2 ? (FTYPENAME) $1.FNAME.deepCopy() : $1.FNAME;\n";
                     else
                         // otherwise just get the same object as it can be shared
                         code = "FNAME = $1.FNAME;\n";
@@ -205,10 +202,6 @@ public class FastrLoader extends Loader implements Translator {
         m.setModifiers(Modifier.PUBLIC);
         cls.addMethod(m);
     }
-
-
-
-
 
 }
 

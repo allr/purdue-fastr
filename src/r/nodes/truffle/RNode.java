@@ -35,17 +35,19 @@ public abstract class RNode extends Node implements DeepCopyable {
 
     /** Default constructor.
      *
-     * Defined only so that the copy or move constructor does not hide it.
+     * Defined only so that the deep or shallow constructor does not hide it.
      */
     protected RNode() {
     }
 
-    /** Copy or move constructor.
+    /** Deep or shallow constructor
      *
      * Should return a shallow (move) or deep (copy) copy of the object. Unless this constructor is overriden it the subclasses, its tailored version will be created by the FastrLoader when the class is loaded.
      *
+     * The complex form of deep or shallow constructor is used to avoid clashes with potentially existing standard copy constructors that might have different semantics. An error is reported by the loader if only one of deep or shallow constructor, or the deepCopy method is missing.
+     *
      * @param other Object to be copied.
-     * @param deep Should it be shallow or deep copy.
+     * @param deep Should copy constructor create shallow or deep copy.
      */
     protected RNode(RNode other, boolean deep) {
     }
