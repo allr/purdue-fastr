@@ -911,7 +911,7 @@ public abstract class UpdateVector extends BaseR {
             if (deleteIndex != -1) {
                 return deleteElement(base, deleteIndex);
             } else {
-                return base;
+                return Utils.dropDimensions(base);
             }
         }
 
@@ -2635,7 +2635,9 @@ public abstract class UpdateVector extends BaseR {
 
         public static RAny deleteElements(RList base, RString index, ASTNode ast) {
             Names bnames = base.names();
-            if (bnames == null) { return base; }
+            if (bnames == null) {
+                return Utils.dropDimensions(base);
+            }
             int bsize = base.size();
             int isize = index.size();
             boolean[] remove = new boolean[bsize];
@@ -2679,17 +2681,8 @@ public abstract class UpdateVector extends BaseR {
             RArray typedValue;
             RList listValue = null;
 
-            if (value instanceof RNull) { // FIXME: fragment copied around
-                if (base instanceof RList) {
-                    return deleteElements((RList) base, index, ast);
-                } else {
-                    if (index.size() == 0) {
-                        return base;
-                    } else {
-                        throw RError.getReplacementZero(ast);
-                    }
-                }
-            } else if (value instanceof RList) {
+            assert Utils.check(!(value instanceof RNull));
+            if (value instanceof RList) { // FIXME: fragment copied around
                 listValue = (RList) value;
                 typedValue = null;
                 if (base instanceof RList) {
@@ -2733,9 +2726,8 @@ public abstract class UpdateVector extends BaseR {
             int bsize = base.size();
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
 
-            // note that the base can have duplicate names, but these cannot be
-            // created using update vector (like here),
-            // only e.g. using names<-
+            // note that the base can have duplicate names, even though these cannot be created using update vector (like here),
+            // they can be created e.g. using names<- or with the c() builtin
 
             Names bnames = base.names();
             RSymbol[] bsymbols;
@@ -2744,31 +2736,44 @@ public abstract class UpdateVector extends BaseR {
                 nmap = new HashMap<>(bsize);
                 bsymbols = null;
             } else {
-                nmap = bnames.getMap();
-                if (bnames.keepsMap()) {
-                    nmap = new HashMap<RSymbol, Integer>(nmap);
-                }
+                assert Utils.check(bnames.keepsMap()); // FIXME: re-visit this if we re-introduce names that don't carry hashmaps
+                                                       // (probably should build a new one in such a case)
+                nmap = new HashMap<RSymbol, Integer>(bnames.getMap());
                 bsymbols = bnames.sequence();
             }
 
             RSymbol[] addSymbols = new RSymbol[isize];
             int j = 0;
+                // NOTE: targetOffsets is here to avoid double lookup via the hashmap
+                // NOTE: firstOverwrite is here to make targetOffsets smaller in the quite common case that no (or little) new symbols are added
             int firstOverwrite = -1;
             int noverwrites = 0;
             int[] targetOffsets = null;
             for (int i = 0; i < isize; i++) {
                 RSymbol name = RSymbol.getSymbol(index.getString(i));
-                Integer prevOffset = nmap.get(name);
-                if (prevOffset == null) {
-                    nmap.put(name, i);
-                    addSymbols[j++] = name;
-                } else {
-                    if (firstOverwrite == -1) {
-                        firstOverwrite = i;
-                        targetOffsets = new int[isize - i];
+                if (name == RSymbol.EMPTY_SYMBOL || name == RSymbol.NA_SYMBOL) { // these should never go to the map
+                    addSymbols[j] = name;
+                    if (targetOffsets != null) {
+                        targetOffsets[i - firstOverwrite] = j + bsize;
                     }
-                    noverwrites++;
-                    targetOffsets[i - firstOverwrite] = prevOffset.intValue();
+                    j++;
+                } else {
+                    Integer prevOffset = nmap.get(name);
+                    if (prevOffset == null) {
+                        nmap.put(name, j + bsize);
+                        addSymbols[j] = name;
+                        if (targetOffsets != null) {
+                            targetOffsets[i - firstOverwrite] = j + bsize;
+                        }
+                        j++;
+                    } else {
+                        if (firstOverwrite == -1) {
+                            firstOverwrite = i;
+                            targetOffsets = new int[isize - firstOverwrite];
+                        }
+                        noverwrites++;
+                        targetOffsets[i - firstOverwrite] = prevOffset.intValue();
+                    }
                 }
             }
 
@@ -2776,17 +2781,19 @@ public abstract class UpdateVector extends BaseR {
             int nsize = bsize + addSize;
 
             Names nnames;
-            if (bsymbols == null) {
+            if (addSize == 0) {
+                nnames = bnames;
+            } else if (bsize == 0) {
                 nnames = Names.create(addSymbols, nmap);
             } else {
-                if (addSize == 0) {
-                    nnames = bnames;
-                } else {
-                    RSymbol[] nsymbols = new RSymbol[nsize];
+                RSymbol[] nsymbols = new RSymbol[nsize];
+                if (bsymbols != null) {
                     System.arraycopy(bsymbols, 0, nsymbols, 0, bsize);
-                    System.arraycopy(addSymbols, 0, nsymbols, bsize, addSize);
-                    nnames = Names.create(nsymbols, nmap);
+                } else {
+                    Arrays.fill(nsymbols, RSymbol.EMPTY_SYMBOL);
                 }
+                System.arraycopy(addSymbols, 0, nsymbols, bsize, addSize);
+                nnames = Names.create(nsymbols, nmap);
             }
             RArray res = Utils.createArray(typedBase, nsize, null, nnames, base.attributesRef());
             for (int bi = 0; bi < bsize; bi++) {
@@ -2821,6 +2828,9 @@ public abstract class UpdateVector extends BaseR {
                         vi = 0;
                     }
                 }
+            }
+            if (vi != 0) {
+                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
             }
             return res;
         }

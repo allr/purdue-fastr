@@ -207,9 +207,11 @@ public interface RArray extends RAny {
             return map;
         }
 
-        /**
-         * FIXME: What is this method doing?
-         */
+        // returns true if the Names implementation internally manages a hashmap
+        // now this is always the case, but initially it wasn't and it may not pay off to always be
+        //
+        // (this is used by optimized algorithms e.g. on vector update to know that a map should be built anyway,
+        // and hence building it to manage the update itself is for free)
         public boolean keepsMap() {
             return true;
         }

@@ -55,9 +55,9 @@ final class DimAssign extends CallFactory {
         }
 
         if (!a.isShared()) {
-            return a.setDimensions(dims);
+            return a.setNames(null).setDimensions(dims);
         } else {
-            return Utils.copyArray(a).setDimensions(dims);
+            return Utils.copyArray(a).setNames(null).setDimensions(dims);
         }
     }
 

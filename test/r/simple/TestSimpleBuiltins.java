@@ -358,6 +358,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEvalError("{ x <- 1:2 ; dim(x) <- integer() ; x }", "length-0 dimension vector is invalid");
 
         assertEval("{ x <- 1:2 ; attr(x, \"dim\") <- c(2,1) ; x }", "     [,1]\n[1,]   1L\n[2,]   2L");
+        assertEval("{ b <- c(a=1+2i,b=3+4i) ; attr(b,\"my\") <- 211 ; dim(b) <- c(2,1) ; names(b) }", "NULL");
     }
 
     @Test

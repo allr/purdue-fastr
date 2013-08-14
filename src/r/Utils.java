@@ -234,6 +234,17 @@ public final class Utils {
         return null;
     }
 
+    public static RArray dropDimensions(RArray a) {
+        if (a.dimensions() == null) {
+            return a;
+        }
+        if (a.isShared()) {
+            return copyArray(a).setDimensions(null);
+        } else {
+            return a.setDimensions(null);
+        }
+    }
+
     public static void ref(RAny[] values) {
         for (RAny v : values) {
             v.ref();
