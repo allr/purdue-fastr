@@ -39,7 +39,7 @@ public class FastrLoader extends Loader implements Translator {
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass cls = pool.get(classname);
-        if (isDeepCopyable(cls)) {
+        if (implementsDeepCopyable(cls)) {
             if (REPORT_DEEPCOPYABLE_CLASS)
                 DEBUG("loading deep copyable class " + cls.getName());
             if (!hasDeepOrShallowConstructor(cls)) {
@@ -57,8 +57,12 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+    private boolean implementsDeepCopyable(CtClass cls) throws NotFoundException {
+        return !cls.isInterface() && isDeepCopyable(cls);
+    }
+
     private boolean isDeepCopyable(CtClass cls) throws NotFoundException {
-        return !cls.isInterface() && cls.subtypeOf(pool.get("r.analysis.codegen.DeepCopyable"));
+        return cls.subtypeOf(pool.get("r.analysis.codegen.DeepCopyable"));
     }
 
     private boolean isNode(CtClass cls) throws NotFoundException {
@@ -93,7 +97,6 @@ public class FastrLoader extends Loader implements Translator {
             cls = cls.getSuperclass();
         }
     }
-
 
     private void addDeepOrShallowConstructor(CtClass cls) throws NotFoundException {
         try {
@@ -130,10 +133,10 @@ public class FastrLoader extends Loader implements Translator {
                                     "} else if ($2) {" +
                                     "    FNAME = new COMPTYPENAME[$1.FNAME.length];\n" +
                                     "    for (int i = 0; i < FNAME.length; ++i)\n" +
-                                    "        FNAME[i] = $1.FNAME[i] == null ? null : (COMPTYPENAME) adoptChild($1.FNAME[i].deepCopy());\n" +
+                                    "        FNAME[i] = $1.FNAME[i] == null ? null : (COMPTYPENAME) adoptChild((COMPTYPENAME)$1.FNAME[i].deepCopy());\n" +
                                     "} else {" +
-                                    "    FNAME = $1.FNAME; " +
-                                    "    adoptChildren($1.FNAME);\n" + // TODO this fails, if on single line, don't know why
+                                    "    FNAME = $1.FNAME;\n" +
+                                    "    adoptChildren($1.FNAME);\n" +
                                     "}";
                             code = code.replace("COMPTYPENAME",compType.getName());
                         } else if (isDeepCopyable(compType)) {
@@ -168,7 +171,7 @@ public class FastrLoader extends Loader implements Translator {
                         code = "if ($1.FNAME == null)\n" +
                                 "    FNAME = null;\n" +
                                 "else\n" +
-                                "    FNAME = (FTYPENAME) adoptChild($2 ?  $1.FNAME.deepCopy() : $1.FNAME);\n";
+                                "    FNAME = (FTYPENAME) adoptChild($2 ?  (FTYPENAME) $1.FNAME.deepCopy() : $1.FNAME);\n";
                     else if (isDeepCopyable(ftype))
                         // if it is not a node, but implements DeepCopyable, store a deep copy if not null.
                         code = "if ($1.FNAME == null)\n" +
@@ -198,7 +201,8 @@ public class FastrLoader extends Loader implements Translator {
     }
 
     private void addDeepCopyMethod(CtClass cls) throws CannotCompileException {
-        CtMethod m = CtNewMethod.make("public "+cls.getName()+" deepCopy() { return new "+cls.getName()+"(this, false); }",cls);
+        // Javassist is not happy with covariant return types so deepCopy is returning the interface
+        CtMethod m = CtNewMethod.make("public r.analysis.codegen.DeepCopyable deepCopy() { return new "+cls.getName()+"(this, true); }",cls);
         m.setModifiers(Modifier.PUBLIC);
         cls.addMethod(m);
     }

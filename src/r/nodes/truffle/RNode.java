@@ -59,7 +59,7 @@ public abstract class RNode extends Node implements DeepCopyable {
      * @return Deep copy of the object.
      */
     @Override
-    public RNode deepCopy() {
+    public DeepCopyable deepCopy() {
         assert false : "This function should never be called! You must use FastrLoader.";
         return null;
     }
