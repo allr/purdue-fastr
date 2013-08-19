@@ -1,6 +1,8 @@
 package r.analysis.codegen;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.junit.Test;
+import r.nodes.truffle.RNode;
 
 import static junit.framework.Assert.*;
 
@@ -60,6 +62,66 @@ class DCSharedDeepCopyableField extends DCBase {
     DCSharedDeepCopyableField(DeepCopyable i) {
         this.i = i;
     }
+}
+
+class DCNode extends RNode {
+
+    @Override
+    public Object execute(Frame frame) {
+        return null;  
+    }
+}
+
+class DCNodeField extends DCNode {
+
+    DCNode node;
+    DCNodeField(DCNode node) {
+        this.node = adoptChild(node);
+    }
+}
+
+class DCSimpleFieldNode extends DCNode {
+    int i;
+    public DCSimpleFieldNode(int i) {
+        this.i = i;
+    }
+}
+
+class DCNodeFieldNode extends DCNode {
+    DCSimpleFieldNode node;
+    DCNodeFieldNode(DCSimpleFieldNode node) {
+        this.node = adoptChild(node);
+    }
+}
+
+class DCNodeSharedNode extends DCNode {
+    @Shared
+    DCSimpleFieldNode node;
+    DCNodeSharedNode(DCSimpleFieldNode node) {
+        this.node = node;
+    }
+}
+
+class DCNodeArrayNode extends DCNode {
+    DCSimpleFieldNode[] nodes;
+    DCNodeArrayNode(int size) {
+        nodes = new DCSimpleFieldNode[size];
+        for (int i = 0; i < size; ++i) {
+            nodes[i] = adoptChild(new DCSimpleFieldNode(i));
+        }
+    }
+}
+
+class DCNodeSharedArrayNode extends DCNode {
+    @Shared
+    DCSimpleFieldNode[] nodes;
+    DCNodeSharedArrayNode(int size) {
+        nodes = new DCSimpleFieldNode[size];
+        for (int i = 0; i < size; ++i) {
+            nodes[i] = adoptChild(new DCSimpleFieldNode(i));
+        }
+    }
+
 }
 
 
@@ -145,6 +207,109 @@ public class FastrLoaderTest {
         DCSharedDeepCopyableField dci2 = (DCSharedDeepCopyableField) dci1.deepCopy();
         assertNull(dci2.i);
     }
+
+    @Test
+    public void nodeField() {
+        DCNodeField dn1 = new DCNodeField(new DCNode());
+        DCNodeField dn2 = (DCNodeField) dn1.deepCopy();
+        assertTrue(dn1 != dn2);
+        assertTrue(dn1.node != dn2.node);
+        assertTrue(dn1.node.getParent() == dn1);
+        assertTrue(dn2.node.getParent() == dn2);
+    }
+
+    @Test
+    public void nullNodeField() {
+        DCNodeField dn1 = new DCNodeField(null);
+        DCNodeField dn2 = (DCNodeField) dn1.deepCopy();
+        assertTrue(dn1 != dn2);
+        assertTrue(dn2.node == null);
+    }
+
+    @Test
+    public void nodeFieldContents() {
+        DCNodeFieldNode dn1 = new DCNodeFieldNode(new DCSimpleFieldNode(42));
+        DCNodeFieldNode dn2 = (DCNodeFieldNode) dn1.deepCopy();
+        assertTrue(dn1 != dn2);
+        assertTrue(dn1.node != dn2.node);
+        assertTrue(dn1.node.getParent() == dn1);
+        assertTrue(dn2.node.getParent() == dn2);
+        assertTrue(dn1.node.i == 42);
+        assertTrue(dn2.node.i == 42);
+    }
+
+    @Test
+    public void nodeSharedField() {
+        DCNodeSharedNode ds1 = new DCNodeSharedNode(new DCSimpleFieldNode(42));
+        DCNodeSharedNode ds2 = (DCNodeSharedNode) ds1.deepCopy();
+        assertTrue(ds1 != ds2);
+        assertTrue(ds1.node == ds2.node);
+        assertTrue(ds1.node.i == 42);
+    }
+
+    @Test
+    public void nodeArrayField() {
+        DCNodeArrayNode da1 = new DCNodeArrayNode(10);
+        DCNodeArrayNode da2 = (DCNodeArrayNode) da1.deepCopy();
+        assertTrue(da1 != da2);
+        assertTrue(da1.nodes != da2.nodes);
+        assertTrue(da1.nodes.length == da2.nodes.length);
+        for (int i = 0; i < 10; ++i) {
+            assertTrue(da1.nodes[i] != da2.nodes[i]);
+            assertTrue(da1.nodes[i].i == i);
+            assertTrue(da2.nodes[i].i == i);
+            assertTrue(da2.nodes[i].getParent() == da2);
+        }
+    }
+
+    @Test
+    public void nodeArrayFieldWithNulls() {
+        DCNodeArrayNode da1 = new DCNodeArrayNode(10);
+        da1.nodes[5] = null;
+        DCNodeArrayNode da2 = (DCNodeArrayNode) da1.deepCopy();
+        assertTrue(da1 != da2);
+        assertTrue(da1.nodes != da2.nodes);
+        assertTrue(da1.nodes.length == da2.nodes.length);
+        for (int i = 0; i < 10; ++i) {
+            if (i == 5) {
+                assertTrue(da1.nodes[i] == null);
+                assertTrue(da2.nodes[i] == null);
+            } else {
+                assertTrue(da1.nodes[i] != da2.nodes[i]);
+                assertTrue(da1.nodes[i].i == i);
+                assertTrue(da2.nodes[i].i == i);
+                assertTrue(da2.nodes[i].getParent() == da2);
+            }
+        }
+    }
+
+    @Test
+    public void nodeArrayFieldNull() {
+        DCNodeArrayNode da1 = new DCNodeArrayNode(10);
+        da1.nodes = null;
+        DCNodeArrayNode da2 = (DCNodeArrayNode) da1.deepCopy();
+        assertTrue(da1 != da2);
+        assertTrue(da1.nodes == null);
+        assertTrue(da2.nodes == null);
+    }
+
+    @Test
+    public void nodeArrayFieldSharedWithNulls() {
+        DCNodeSharedArrayNode da1 = new DCNodeSharedArrayNode(10);
+        da1.nodes[5] = null;
+        DCNodeSharedArrayNode da2 = (DCNodeSharedArrayNode) da1.deepCopy();
+        assertTrue(da1 != da2);
+        assertTrue(da1.nodes == da2.nodes);
+        for (int i = 0; i < 10; ++i) {
+            if (i == 5) {
+                assertTrue(da1.nodes[i] == null);
+            } else {
+                assertTrue(da2.nodes[i].i == i);
+                assertTrue(da2.nodes[i].getParent() == da1);
+            }
+        }
+    }
+
 
 
 }
