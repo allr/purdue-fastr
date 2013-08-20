@@ -125,7 +125,11 @@ class DCNodeSharedArrayNode extends DCNode {
 }
 
 
-public class FastrLoaderTest {
+// ---------------------------------------------------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------------------------------------------------
+
+public class FastrLoaderDeepCopyTest {
 
     @Test
     public void isLoaderPresent() {
