@@ -1,6 +1,9 @@
 package r.analysis.codegen;
 
 import javassist.*;
+import r.analysis.visitor.*;
+
+import java.util.*;
 
 import static r.fastr.DEBUG;
 
@@ -47,6 +50,8 @@ public class FastrLoader extends Loader implements Translator {
     /** If enabled, reports classes for which the deep copy code is not generated, i.e. they define both the deep or
      * shallow constructor and the deepCopy method. */
     private static final boolean REPORT_EXISTING_DEEPCOPY = true;
+    /** If enabled, RNodes with existing accept() methods will be reported. */
+    private static final boolean REPORT_EXISTING_ACCEPT = true;
 
     static ClassPool pool;
 
@@ -86,6 +91,7 @@ public class FastrLoader extends Loader implements Translator {
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass cls = pool.get(classname);
+        // deep copy
         if (implementsDeepCopyable(cls)) {
             if (REPORT_DEEPCOPYABLE_CLASS)
                 DEBUG("loading deep copyable class " + cls.getName());
@@ -101,6 +107,15 @@ public class FastrLoader extends Loader implements Translator {
                 addDeepCopyMethod(cls);
             }
         }
+        // node visitor
+        if (isRNode(cls)) {
+            if (!hasVisitorAcceptMethod(cls))
+                addVisitorAcceptMethod(cls);
+            else
+                if (REPORT_EXISTING_ACCEPT)
+                    DEBUG("  existing boolean accept(NodeVisitor) found, skipping...");
+        }
+
     }
 
     /** Returns true if the given class implements the DeepCopyable interface (false for the interface itself).
@@ -278,5 +293,88 @@ public class FastrLoader extends Loader implements Translator {
         cls.addMethod(m);
     }
 
-}
 
+    /** Returns true if the class inherits from (or is) the RNode.
+     */
+    private boolean isRNode(CtClass cls) throws NotFoundException {
+        return cls.subclassOf(pool.get("r.nodes.truffle.RNode"));
+    }
+
+
+    private boolean hasVisitorAcceptMethod(CtClass cls) {
+        try {
+            CtMethod m = cls.getDeclaredMethod("accept");
+            CtClass[] args = m.getParameterTypes();
+            if ((args.length == 1) && (args[0].getName().equals("r.analysis.visitor.NodeVisitor"))) {
+                if (m.getReturnType().getName().equals("boolean"))
+                    return true;
+                else
+                    throw new Error("accept() method for class "+cls.getName()+" does not have return type boolean");
+            } else {
+                throw new Error("accept() method for class "+cls.getName()+" does not have single NodeVisitor argument");
+            }
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
+    private void addVisitorAcceptMethod(CtClass cls) throws NotFoundException {
+        // create the priority queue with the comparator on the linear order indices of the fields
+        PriorityQueue<CtField> fields = new PriorityQueue<>(10, new Comparator<CtField>() {
+            @Override
+            public int compare(CtField o1, CtField o2) {
+                try {
+                    int i1 = o1.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o1.getAnnotation(VisitOrder.class)).index() : 0;
+                    int i2 = o2.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o2.getAnnotation(VisitOrder.class)).index() : 0;
+                    return i1 - i2;
+                } catch (ClassNotFoundException e) {
+                    assert false : "this should never happen";
+                }
+                return 0;
+            }
+        });
+        // first order the CtFields based on their declared linear order
+        for (CtField field : cls.getDeclaredFields()) {
+            // check if the field is an RNode descendant
+            if (isRNode(field.getType()) || (field.getType().isArray() && isRNode(field.getType().getComponentType()))) {
+                // it is a field we want to visit
+                if (field.hasAnnotation(DoNotVisit.class))
+                    continue;
+                fields.add(field);
+            }
+        }
+        // create the accept method from the fields in the queue
+        StringBuilder sb = new StringBuilder("public boolean accept(r.analysis.visitor.NodeVisitor visitor) {\n");
+        sb.append("if (! super.accept(visitor))\n" +
+                  "    return false;\n");
+        while (!fields.isEmpty()) {
+            CtField field = fields.poll();
+            String code;
+            if (field.getType().isArray()) {
+                code = "if (FNAME != null)\n" +
+                        "    for (int i = 0; i < FNAME.length; ++i)\n" +
+                        "        if (FNAME[i] != null)\n" +
+                        "            FNAME[i].accept(visitor);\n";
+                code = code.replace("CTYPE",field.getType().getComponentType().getName());
+            } else {
+                code = "if (FNAME != null)\n" +
+                        "    FNAME.accept(visitor);\n";
+            }
+            code = code.replace("FNAME",field.getName());
+            sb.append(code);
+        }
+        sb.append("return true;\n");
+        sb.append("}");
+        // done writing the code, create the method
+        try {
+            CtMethod m = CtNewMethod.make(sb.toString(), cls);
+            m.setModifiers(Modifier.PUBLIC);
+            cls.addMethod(m);
+        } catch (CannotCompileException e) {
+            // TODO meaningful error here - automatic generation does not compile
+            System.err.println("Unable to add the accept() method for node visitor:");
+            System.err.println(sb.toString());
+            e.printStackTrace();
+        }
+    }
+}
