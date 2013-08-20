@@ -4,17 +4,58 @@ import javassist.*;
 
 import static r.fastr.DEBUG;
 
-/** Code generating class loader that augments truffle nodes with analysis visitors and deep copying.
+/** Code generating class loader.
  *
+ * For the purposes of the analysis, this loader provides code generation facilities for relevant classes. The code is
+ * generated at runtime using javassist from source code, so the startup code will suffer. An optimization will be to
+ * use javassist bytecode facilities. Since the generated code is very simple and repetitive, this should be hard, but
+ * I am keeping the source code version for the time being as modifications are far easier.
+ *
+ * When executing fastr, using fastr as main class will always correctly initialize the loader. However, when executing
+ * the JUnit tests, it is important to specify the loader manually by specifying the VM argument:
+ *
+ * -Djava.system.class.loader=r.analysis.codegen.FastrLoader
+ *
+ * The following are the code augmentations provided:
+ *
+ * Node deep copying
+ * -----------------
+ *
+ * Each class implementing DeepCopyable interface is extended with its own implementation of deep or shallow constructor
+ * and a deepCopy() method returning a deeply copied object. Since RNode implements DeepCopyable itself, this applies
+ * notably to all truffle nodes.
+ *
+ * If the class contains the deep or shallow constructor and the deepCopy method, it will not be augmented.
+ *
+ * The deep or shallow constructor is a copying constructor with additional boolean argument determining whether the
+ * copy should be deep, or shallow. This might seem as overly complicated, but certain nodes already have copy
+ * constructors with possibly different semantics, so a rather unlikely constructor signature was selected. Furthermore
+ * if the class contains the deep or shallow copy constructor and does *not* contain the deepCopy() method, an error is
+ * produced to avoid mismanagement.
+ *
+ * The deep or shallow constructor works with primitive types, arrays of primitives, deep copyable types and their
+ * arrays and finally nodes and their arrays (for which it correctly uses the adoptChild truffle mechanism). If any
+ * field is marked with @Shared annotation, it will be copied as a shallow reference to the new object. The signature
+ * of the deep or shallow constructor is:
+ *
+ * public T(T other, boolean deep) where T is the type to be deep copied.
  */
 public class FastrLoader extends Loader implements Translator {
 
+    /** If enabled, reports each deepcopyable class it loads. */
     private static final boolean REPORT_DEEPCOPYABLE_CLASS = true;
+    /** If enabled, reports classes for which the deep copy code is not generated, i.e. they define both the deep or
+     * shallow constructor and the deepCopy method. */
     private static final boolean REPORT_EXISTING_DEEPCOPY = true;
-    private static final boolean REPORT_EXISTING_COPY_OR_MOVE_CONSTRUCTOR = true;
 
     static ClassPool pool;
 
+    /** Creates the loader with given base loader.
+     *
+     * This method is called when using the loader with tests, selecting it by the VM argument:
+     *
+     * -Djava.system.class.loader=r.analysis.codegen.FastrLoader
+     */
     public FastrLoader(ClassLoader loader) {
         super(loader, pool = ClassPool.getDefault());
         try {
@@ -26,6 +67,8 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+    /** Simple constructor assuming the parent loader to be the system class loader.
+     */
     public FastrLoader() {
         this(getSystemClassLoader());
     }
@@ -36,39 +79,54 @@ public class FastrLoader extends Loader implements Translator {
     }
 
 
+    /** Class load event as defined by javassist.
+     *
+     * Determines if any augmentation is necessary and performs the respective tasks if so.
+     */
     @Override
     public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
         CtClass cls = pool.get(classname);
         if (implementsDeepCopyable(cls)) {
             if (REPORT_DEEPCOPYABLE_CLASS)
                 DEBUG("loading deep copyable class " + cls.getName());
-            if (!hasDeepOrShallowConstructor(cls)) {
-                addDeepOrShallowConstructor(cls);
-            } else {
-                if (REPORT_EXISTING_COPY_OR_MOVE_CONSTRUCTOR)
-                    DEBUG("  copy or move constructor is already defined, skipping...");
-            }
-            if (!hasDeepCopyMethod(cls)) {
-                addDeepCopyMethod(cls);
-            } else {
+            if (hasDeepOrShallowConstructor(cls)) {
+                if (!hasDeepCopyMethod(cls))
+                    throw new Error("Class "+cls.getName()+" has a deep or shallow constructor, but not the deepCopy method. Both or neither must be present.");
                 if (REPORT_EXISTING_DEEPCOPY)
-                    DEBUG("  deepCopy() method is already defined, skipping...");
+                    DEBUG("  deep or shallow constructor and deepCopy method is present. Skipping...");
+            } else {
+                if (hasDeepCopyMethod(cls))
+                    throw new Error("Class "+cls.getName()+" has a deepCopy method, but not the deep or shallow constructor. Both or neither must be present.");
+                addDeepOrShallowConstructor(cls);
+                addDeepCopyMethod(cls);
             }
         }
     }
 
+    /** Returns true if the given class implements the DeepCopyable interface (false for the interface itself).
+     */
     private boolean implementsDeepCopyable(CtClass cls) throws NotFoundException {
         return !cls.isInterface() && isDeepCopyable(cls);
     }
 
+    /** Returns true if the given class iherits from DeepCopyable (that is if it implements it, or is the interface
+     * itself).
+     */
     private boolean isDeepCopyable(CtClass cls) throws NotFoundException {
         return cls.subtypeOf(pool.get("r.analysis.codegen.DeepCopyable"));
     }
 
+    /** Returns true if the class inherits from (or is) the truffle node.
+     */
     private boolean isNode(CtClass cls) throws NotFoundException {
         return cls.subclassOf(pool.get("com.oracle.truffle.api.nodes.Node"));
     }
 
+    /** Checks if the given class implements deep or shallow constructor.
+     *
+     * Such constructor is a copy constructor with additional boolean argument specifying whether the copy should be
+     * deep or shallow.
+     */
     private boolean hasDeepOrShallowConstructor(CtClass cls) {
         try {
             cls.getDeclaredConstructor(new CtClass[] { cls, pool.get("boolean") });
@@ -78,9 +136,15 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+    /** Checks if the given class implements the deepCopy method directly.
+     *
+     * Checks for such method. Throws an error if such method has any arguments.
+     */
     private boolean hasDeepCopyMethod(CtClass cls) {
         try {
-            cls.getDeclaredMethod("deepCopy");
+            CtMethod m = cls.getDeclaredMethod("deepCopy");
+            if (m.getParameterTypes().length != 0)
+                throw new Error("deepCopy() method for class "+cls.getName()+" does not have empty argument list.");
             return true;
         } catch (NotFoundException e) {
             return false;
@@ -98,6 +162,11 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+    /** Adds the deep or shallow constructor to the given class.
+     *
+     * The constructor specializes on deep or shallow copying, on primitive types, arrays of primitive types,
+     * DeepCopyable fields and their arrays, Node fields and their arrays and shared DeepCopyable and node fields.
+     */
     private void addDeepOrShallowConstructor(CtClass cls) throws NotFoundException {
         try {
             loadSuperclasses(cls);
@@ -189,17 +258,19 @@ public class FastrLoader extends Loader implements Translator {
                 CtConstructor c = CtNewConstructor.make(new CtClass[] { cls, pool.get("boolean") }, null, sb.toString(), cls);
                 cls.addConstructor(c);
             } catch (CannotCompileException e) {
-                // TODO meaningful error here - automatic generation does not compile
                 System.err.println("Error during code generation for class "+cls.getName());
                 System.err.println(sb.toString());
                 e.printStackTrace();
             }
         } catch (ClassNotFoundException e) {
-            // TODO meaningful error here - user code error
+            System.err.println("Error during code generation for class "+cls.getName()+" -- class not found reported:");
+            System.err.println("*** this should never happen, likely a loader problem ***");
             e.printStackTrace();
         }
     }
 
+    /** Augments the class with the deepCopy method.
+     */
     private void addDeepCopyMethod(CtClass cls) throws CannotCompileException {
         // Javassist is not happy with covariant return types so deepCopy is returning the interface
         CtMethod m = CtNewMethod.make("public r.analysis.codegen.DeepCopyable deepCopy() { return new "+cls.getName()+"(this, true); }",cls);
