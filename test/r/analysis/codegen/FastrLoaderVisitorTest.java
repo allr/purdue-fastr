@@ -2,8 +2,11 @@ package r.analysis.codegen;
 
 import com.oracle.truffle.api.frame.Frame;
 import org.junit.Test;
+import r.analysis.codegen.annotations.*;
 import r.analysis.visitor.*;
 import r.nodes.truffle.RNode;
+
+import java.lang.reflect.Field;
 
 import static junit.framework.Assert.*;
 
@@ -51,6 +54,29 @@ class ArrayNestedNode extends Node {
     }
 }
 
+class SpecificOrderNode extends Node {
+    @VisitOrder(index = 3)
+    Node child1;
+    @VisitOrder(index = 1)
+    Node child2;
+    @DoNotVisit
+    Node unvisitedChild;
+    @VisitOrder(index = 10)
+    Node child3;
+    @VisitOrder(index = 7)
+    Node child4;
+
+    public SpecificOrderNode() {
+        child1 = adoptChild(new Node());
+        child2 = adoptChild(new Node());
+        child3 = adoptChild(new Node());
+        child4 = adoptChild(new Node());
+        unvisitedChild = adoptChild(new Node());
+    }
+
+
+}
+
 
 
 
@@ -87,6 +113,8 @@ public class FastrLoaderVisitorTest {
                     case 1:
                         assertTrue(node == n);
                         break;
+                    default:
+                        assertTrue(false);
                 }
                 ++i;
                 return true;
@@ -129,7 +157,6 @@ public class FastrLoaderVisitorTest {
                 return true;
             }
         });
-
     }
 
     abstract static class CountingNodeVisitor implements NodeVisitor {
@@ -220,6 +247,39 @@ public class FastrLoaderVisitorTest {
             }
         });
     }
+
+    @Test
+    public void specificOrderCanBeEnforced() {
+        final SpecificOrderNode n = new SpecificOrderNode();
+        n.accept(new NodeVisitor() {
+            int i = 0;
+            @Override
+            public boolean visit(RNode node) {
+                switch (i) {
+                    case 0:
+                        assertTrue(node == n);
+                        break;
+                    case 1:
+                        assertTrue(node == n.child2);
+                        break;
+                    case 2:
+                        assertTrue(node == n.child1);
+                        break;
+                    case 3:
+                        assertTrue(node == n.child4);
+                        break;
+                    case 4:
+                        assertTrue(node == n.child3);
+                        break;
+                    default:
+                        assertTrue(false);
+                }
+                ++i;
+                return true;
+            }
+        });
+    }
+
 }
 
 

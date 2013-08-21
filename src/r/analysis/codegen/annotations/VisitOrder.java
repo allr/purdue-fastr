@@ -1,4 +1,4 @@
-package r.analysis.visitor;
+package r.analysis.codegen.annotations;
 
 import java.lang.annotation.*;
 
@@ -10,6 +10,7 @@ import java.lang.annotation.*;
  * in the actual type are visited in their defined order.
  */
 @Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface VisitOrder {
     int index();
 }

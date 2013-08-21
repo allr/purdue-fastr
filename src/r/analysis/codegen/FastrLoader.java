@@ -1,7 +1,7 @@
 package r.analysis.codegen;
 
 import javassist.*;
-import r.analysis.visitor.*;
+import r.analysis.codegen.annotations.*;
 
 import java.util.*;
 
@@ -70,6 +70,9 @@ public class FastrLoader extends Loader implements Translator {
             System.err.println("Unable to instantiate the loader. Exitting.");
             System.exit(-1);
         }
+        doDelegation = true;
+        // TODO possibly more classes should be added here
+        delegateLoadingOf("r.analysis.codegen.annotations.");
     }
 
     /** Simple constructor assuming the parent loader to be the system class loader.
@@ -115,7 +118,6 @@ public class FastrLoader extends Loader implements Translator {
                 if (REPORT_EXISTING_ACCEPT)
                     DEBUG("  existing boolean accept(NodeVisitor) found, skipping...");
         }
-
     }
 
     /** Returns true if the given class implements the DeepCopyable interface (false for the interface itself).
@@ -318,19 +320,28 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+
+    private static int getVisitOrder(CtField field) {
+        try {
+            if (field.hasAnnotation(VisitOrder.class))
+                return ((VisitOrder) field.getAnnotation(VisitOrder.class)).index();
+            else
+                return 0;
+        } catch (ClassNotFoundException e) {
+            assert false;
+            return 0;
+        }
+    }
+
     private void addVisitorAcceptMethod(CtClass cls) throws NotFoundException {
+
         // create the priority queue with the comparator on the linear order indices of the fields
         PriorityQueue<CtField> fields = new PriorityQueue<>(10, new Comparator<CtField>() {
             @Override
             public int compare(CtField o1, CtField o2) {
-                try {
-                    int i1 = o1.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o1.getAnnotation(VisitOrder.class)).index() : 0;
-                    int i2 = o2.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o2.getAnnotation(VisitOrder.class)).index() : 0;
-                    return i1 - i2;
-                } catch (ClassNotFoundException e) {
-                    assert false : "this should never happen";
-                }
-                return 0;
+                int i1 = getVisitOrder(o1); //o1.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o1.getAnnotation(VisitOrder.class)).index() : 0;
+                int i2 = getVisitOrder(o2); //o2.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o2.getAnnotation(VisitOrder.class)).index() : 0;
+                return i1 - i2;
             }
         });
         // first order the CtFields based on their declared linear order

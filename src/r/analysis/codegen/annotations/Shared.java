@@ -1,4 +1,4 @@
-package r.analysis.codegen;
+package r.analysis.codegen.annotations;
 
 import java.lang.annotation.*;
 

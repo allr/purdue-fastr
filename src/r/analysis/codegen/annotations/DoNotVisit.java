@@ -1,4 +1,4 @@
-package r.analysis.visitor;
+package r.analysis.codegen.annotations;
 
 import java.lang.annotation.*;
 

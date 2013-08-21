@@ -2,6 +2,7 @@ package r.analysis.codegen;
 
 import com.oracle.truffle.api.frame.Frame;
 import org.junit.Test;
+import r.analysis.codegen.annotations.Shared;
 import r.nodes.truffle.RNode;
 
 import static junit.framework.Assert.*;
