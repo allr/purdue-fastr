@@ -42,6 +42,20 @@ import static r.fastr.DEBUG;
  * of the deep or shallow constructor is:
  *
  * public T(T other, boolean deep) where T is the type to be deep copied.
+ *
+ * Node visitor
+ * ============
+ *
+ * Any subclass of RNode inherits the accept() method defined by the RNode class. Calling this calls the visit() method
+ * of the visitor for the node itself and if the visit() call does not return false, calls the accept() method for all
+ * its fields subclassing RNode.
+ *
+ * The fields can be marked with DoNotVisit annotation if they should not be visited (that is, if they are not part of
+ * the actual executable tree). The VisitOrder annotation can be used to determine the order in which the fields will
+ * be visited within a single class. This annotation is added because the Java standard does not specify any given order
+ * of the fields in the class. Unannotated fields have the visit order equivalent to 0.
+ *
+ * (Note that there are no guarantees on the position of more fields with the same visit order).
  */
 public class FastrLoader extends Loader implements Translator {
 
@@ -302,7 +316,11 @@ public class FastrLoader extends Loader implements Translator {
         return cls.subclassOf(pool.get("r.nodes.truffle.RNode"));
     }
 
-
+    /** Determines if the given class has the accept() method.
+     *
+     * The method should have a return type of boolean and a singe argument of type r.analysis.visitors.NodeVisitor. If
+     * these conditions are not met, an error is thrown.
+     */
     private boolean hasVisitorAcceptMethod(CtClass cls) {
         try {
             CtMethod m = cls.getDeclaredMethod("accept");
@@ -321,6 +339,10 @@ public class FastrLoader extends Loader implements Translator {
     }
 
 
+    /** For a given field, returns its visit order.
+     *
+     * This is the value of the index of the VisitOrder annotation if present, or 0.
+     */
     private static int getVisitOrder(CtField field) {
         try {
             if (field.hasAnnotation(VisitOrder.class))
@@ -333,8 +355,12 @@ public class FastrLoader extends Loader implements Translator {
         }
     }
 
+    /** Augments the given class with its accept() method.
+     *
+     * The accept method always calls the superclass' accept method and only if this returns true, calls accept on its
+     * RNode fields.
+     */
     private void addVisitorAcceptMethod(CtClass cls) throws NotFoundException {
-
         // create the priority queue with the comparator on the linear order indices of the fields
         PriorityQueue<CtField> fields = new PriorityQueue<>(10, new Comparator<CtField>() {
             @Override
