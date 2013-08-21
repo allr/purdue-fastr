@@ -365,8 +365,8 @@ public class FastrLoader extends Loader implements Translator {
         PriorityQueue<CtField> fields = new PriorityQueue<>(10, new Comparator<CtField>() {
             @Override
             public int compare(CtField o1, CtField o2) {
-                int i1 = getVisitOrder(o1); //o1.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o1.getAnnotation(VisitOrder.class)).index() : 0;
-                int i2 = getVisitOrder(o2); //o2.hasAnnotation(VisitOrder.class) ? ((VisitOrder) o2.getAnnotation(VisitOrder.class)).index() : 0;
+                int i1 = getVisitOrder(o1);
+                int i2 = getVisitOrder(o2);
                 return i1 - i2;
             }
         });
@@ -408,7 +408,6 @@ public class FastrLoader extends Loader implements Translator {
             m.setModifiers(Modifier.PUBLIC);
             cls.addMethod(m);
         } catch (CannotCompileException e) {
-            // TODO meaningful error here - automatic generation does not compile
             System.err.println("Unable to add the accept() method for node visitor:");
             System.err.println(sb.toString());
             e.printStackTrace();
