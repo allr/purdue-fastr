@@ -685,7 +685,7 @@ public class Truffleize implements Visitor {
         FieldAccess fa = u.getVector();
         ASTNode varAccess = fa.lhs();
         if (!(varAccess instanceof SimpleAccessVariable)) {
-            Utils.nyi("expecting vector name for vector update");
+            Utils.nyi("expecting vector name for vector update"); // TODO: support expressions like x$a$b <- 10
         }
         RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
         result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), RSymbol.getSymbol(fa.fieldName()), createTree(u.getRHS()));

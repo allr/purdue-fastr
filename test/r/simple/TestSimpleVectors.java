@@ -1101,6 +1101,10 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEvalWarning("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(c(a=1,z=2),10) }", "$a\n1.0\n\n$z\n10.0", "Coercing LHS to a list");
         assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(l <- list(a=1,z=2),10) }", "$a\n1.0\n\n$z\n10.0");
         assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(l <- list(a=1,z=2),10) ; l }", "$a\n1.0\n\n$z\n2.0");
+        assertEval("{ x <- list(a=1,b=2,c=3) ; x$z <- NULL ; x }", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
+        assertEval("{ x <- list(a=1,b=2,c=3) ; x$a <- NULL ; x }", "$b\n2.0\n\n$c\n3.0");
+        assertEval("{ x <- list(a=1,b=2,c=3) ; attr(x, \"my\") <- 10 ; x$a <- NULL ; x }", "$b\n2.0\n\n$c\n3.0\nattr(,\"my\")\n10.0");
+        assertEval("{ f <- function(x, v) { x$a <- v ; x } ; x <- list(a=1,b=2,c=3) ; z <- x ; f(x, 10) ; f(x,NULL) }", "$b\n2.0\n\n$c\n3.0");
     }
 
     @Test

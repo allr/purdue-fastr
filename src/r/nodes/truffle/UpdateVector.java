@@ -3099,6 +3099,8 @@ public abstract class UpdateVector extends BaseR {
      * method and only acts as a common codebase for its descendants, where the
      * DollarListUpdate is the root of the hierarchy.
      */
+
+    // TODO: support recursive indexing
     public abstract static class DollarUpdateBase extends UpdateVector {
 
         RSymbol index;
@@ -3165,7 +3167,7 @@ public abstract class UpdateVector extends BaseR {
             for (int i = pos + 1; i < size; ++i) {
                 res.set(i, base.get(i));
             }
-            return updateListInPlace(res, value, pos);
+            return res.set(pos, value);
         }
 
         /**
@@ -3205,6 +3207,9 @@ public abstract class UpdateVector extends BaseR {
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
+                if (value instanceof RNull) {
+                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
+                }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int pos = elementPos(names, index);
@@ -3261,6 +3266,9 @@ public abstract class UpdateVector extends BaseR {
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
+                if (value instanceof RNull) {
+                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
+                }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int size = list.size();
@@ -3308,7 +3316,7 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
-                if (!(base instanceof RList)) { throw new UnexpectedResultException(null); }
+                if (!(base instanceof RList) || value instanceof RNull) { throw new UnexpectedResultException(null); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int size = list.size();
@@ -3344,6 +3352,13 @@ public abstract class UpdateVector extends BaseR {
             RArray.Names names = list.names();
             int size = list.size();
             int pos = elementPos(names, index);
+            if (value instanceof RNull) {
+                if (pos != -1) {
+                    return GenericScalarSelection.deleteElement((RList) list, pos, list.size());
+                } else {
+                    return base;
+                }
+            }
             if (pos == -1) {
                 return appendToList(list, names, size, value, index);
             } else {
