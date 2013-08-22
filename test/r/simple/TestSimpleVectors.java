@@ -753,6 +753,23 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,c(2),10) ; f(1:2, -1, 10) }", "1.0, 10.0");
         assertEval("{ x <- c(); f <- function(i, v) { x[i] <- v ; x } ; f(1:2,3:4); f(c(1,2),c(TRUE,FALSE)) }", "TRUE, FALSE");
         assertEval("{ x <- c(); f <- function(i, v) { x[i] <- v ; x } ; f(1:2,3:4); f(c(\"a\",\"b\"),c(TRUE,FALSE)) }", "   a     b\nTRUE FALSE");
+
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), 2, NULL) }", "[[1]]\n1.0\n\n[[2]]\n3.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(c(1,2,3), 2, NULL) }", "replacement has length zero");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(c(1,2,3), 2:3, NULL) }", "replacement has length zero");
+        assertEvalError("{ f <- function(b, i, v) { b[[i]] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(c(1,2,3), 2:3, NULL) }", "attempt to select more than one element");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), 3L, NULL) }", "[[1]]\n1.0\n\n[[2]]\n2.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), 3:2, NULL) }", "[[1]]\n1.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), c(2,3), NULL) }", "[[1]]\n1.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), NULL, NULL) }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n[[3]]\n3.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), c(TRUE,TRUE,FALSE), NULL) }", "[[1]]\n3.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; l <- list(1,2,3) ; dim(l) <- c(1,3) ; z <- f(l, c(TRUE,TRUE,FALSE), NULL) ; z }", "[[1]]\n3.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; l <- list(1,2,3) ; dim(l) <- c(1,3) ; z <- f(l, NULL, NULL) ; z }", "     [,1] [,2] [,3]\n[1,]  1.0  2.0  3.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; l <- list(1,2,3) ; dim(l) <- c(1,3) ; z <- f(l, c, NULL) ; z }", "invalid subscript type 'builtin'");
+        assertEvalError(" { f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; l <- list(1,2,3) ; dim(l) <- c(1,3) ; z <- f(l, c(1+2i,3+4i), NULL) ; z }", "invalid subscript type 'complex'");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), 3:1, 10) }", "[[1]]\n10.0\n\n[[2]]\n10.0\n\n[[3]]\n10.0");
+        assertEval("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), c(3,3,2), 10) }", "[[1]]\n1.0\n\n[[2]]\n10.0\n\n[[3]]\n10.0");
+        assertEvalError("{ f <- function(b, i, v) { b[i] <- v ; b } ; f(1:3, 1, TRUE) ; f(c(a=1,b=2,c=3), c(\"b\",\"c\",\"a\"), 14:16) ; f(list(1,2,3), list(1,3,3), 10) }", "invalid subscript type 'list'");
     }
 
 
@@ -1075,6 +1092,15 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEvalError("{ a <- c(a=1,b=2); a$a; }", "$ operator is invalid for atomic vectors");
         // make sure that coercion returns warning
         assertEvalWarning("{ a <- c(1,2); a$a = 3; a; }", "[[1]]\n1.0\n\n[[2]]\n2.0\n\n$a\n3.0", "Coercing LHS to a list");
+
+        assertEval("{ l <- list(a=1,b=2,c=3) ; z <- l ; l$b <- 10 ; z }", "$a\n1.0\n\n$b\n2.0\n\n$c\n3.0");
+        assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1),11) }", "$a\n1.0\n\n$z\n11.0");
+        assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2,z=3),10) }", "$a\n1.0\n\n$b\n2.0\n\n$z\n10.0");
+        assertEvalWarning("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(c(a=1,b=2,z=3),10) }", "$a\n1.0\n\n$b\n2.0\n\n$z\n10.0", "Coercing LHS to a list");
+        assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(list(a=1,z=2),10) }", "$a\n1.0\n\n$z\n10.0");
+        assertEvalWarning("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(c(a=1,z=2),10) }", "$a\n1.0\n\n$z\n10.0", "Coercing LHS to a list");
+        assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(l <- list(a=1,z=2),10) }", "$a\n1.0\n\n$z\n10.0");
+        assertEval("{ f <- function(b,v) { b$z <- v ; b } ; f(l<-list(a=1,b=2,z=3),10) ; f(list(a=1,b=2),10) ; f(l <- list(a=1,z=2),10) ; l }", "$a\n1.0\n\n$z\n2.0");
     }
 
     @Test

@@ -688,8 +688,7 @@ public class Truffleize implements Visitor {
             Utils.nyi("expecting vector name for vector update");
         }
         RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
-        RNode index =  createTree(Constant.createStringConstant(fa.fieldName()));
-        result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), index, createTree(u.getRHS()));
+        result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), RSymbol.getSymbol(fa.fieldName()), createTree(u.getRHS()));
     }
 
     @SuppressWarnings("unchecked")

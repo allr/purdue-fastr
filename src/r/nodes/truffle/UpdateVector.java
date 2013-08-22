@@ -3040,6 +3040,7 @@ public abstract class UpdateVector extends BaseR {
                 if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
                 if (!(index instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX); }
+                assert Utils.check(subset);
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
                 if (value instanceof RNull) {
@@ -3057,27 +3058,22 @@ public abstract class UpdateVector extends BaseR {
                         } else if (aindex instanceof RNull) {
                             return lbase;
                         } else {
-                            throw Utils.nyi("unsupported update");
+                            throw RError.getInvalidSubscriptType(ast, aindex.typeOf());
                         }
                     }
                 }
                 // TODO: allow storing non-array values into lists (e.g. closures)
                 if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
-                if (!subset && isize == 1) { return GenericScalarSelection.update(abase, aindex, avalue, ast, subset); }
 
-                if (subset) {
-                    if (aindex instanceof RDouble || aindex instanceof RInt) {
-                        return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, ast, true);
-                    } else if (aindex instanceof RLogical) {
-                        return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, ast);
-                    } else if (aindex instanceof RString) {
-                        return StringSelection.genericUpdate(abase, (RString) index, avalue, ast);
-                    } else {
-                        throw Utils.nyi("unsupported update");
-                    }
+                if (aindex instanceof RDouble || aindex instanceof RInt) {
+                    return NumericSelection.genericUpdate(abase, aindex.asInt(), avalue, ast, true);
+                } else if (aindex instanceof RLogical) {
+                    return LogicalSelection.genericUpdate(abase, index.asLogical(), avalue, ast);
+                } else if (aindex instanceof RString) {
+                    return StringSelection.genericUpdate(abase, (RString) index, avalue, ast);
                 } else {
-                    return Subscript.executeSubscript(aindex, abase, avalue, ast);
+                    throw RError.getInvalidSubscriptType(ast, aindex.typeOf());
                 }
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
@@ -3085,8 +3081,9 @@ public abstract class UpdateVector extends BaseR {
                 switch(f) {
                     case NOT_ARRAY_BASE: throw RError.getObjectNotSubsettable(ast, base.typeOf());
                     case NOT_ARRAY_INDEX: throw RError.getInvalidSubscriptType(ast, index.typeOf());
-                    case NOT_ARRAY_VALUE: throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
-                    default: throw Utils.nyi("unsupported update");
+                    default:
+                        assert Utils.check(f == Failure.NOT_ARRAY_VALUE);
+                        throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
                 }
             }
         }
@@ -3104,12 +3101,22 @@ public abstract class UpdateVector extends BaseR {
      */
     public abstract static class DollarUpdateBase extends UpdateVector {
 
-        DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
-            super(ast, isSuper, var, lhs, new RNode[] { index }, rhs, false);
+        RSymbol index;
+
+        DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
+            super(ast, isSuper, var, lhs, new RNode[] { new BaseR(null) {
+
+                @Override public Object execute(Frame frame) {
+                    return null; // never used, but must be here as the base of update vector always evaluates the index
+                }
+
+            }}, rhs, false);
+            this.index = index;
         }
 
         DollarUpdateBase(DollarUpdateBase from) {
             super(from);
+            this.index = from.index;
         }
 
         /**
@@ -3158,7 +3165,7 @@ public abstract class UpdateVector extends BaseR {
             for (int i = pos + 1; i < size; ++i) {
                 res.set(i, base.get(i));
             }
-            return updateListInPlace(base, value, pos);
+            return updateListInPlace(res, value, pos);
         }
 
         /**
@@ -3166,8 +3173,7 @@ public abstract class UpdateVector extends BaseR {
          * to the supplied value and the same list is returned.
          */
         protected static RAny updateListInPlace(RArray base, RAny value, int pos) {
-            base.set(pos, value);
-            return base;
+            return base.set(pos, value);
         }
     }
 
@@ -3184,7 +3190,7 @@ public abstract class UpdateVector extends BaseR {
             NOT_A_LIST, SHARED_UPDATE, NOT_AN_UPDATE,
         }
 
-        public DollarListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+        public DollarListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
             super(ast, isSuper, var, lhs, index, rhs);
         }
 
@@ -3196,14 +3202,12 @@ public abstract class UpdateVector extends BaseR {
          * Performs in place update of a list, or rewrites itself to the
          * appropriate nodes.
          */
-        @Override RAny execute(RAny base, RAny index, RAny value) {
-            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
+        @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
-                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
-                int pos = elementPos(names, idx);
+                int pos = elementPos(names, index);
                 if (pos == -1) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
                 if (list.isShared()) { throw new UnexpectedResultException(Failure.SHARED_UPDATE); }
                 return updateListInPlace(list, value, pos);
@@ -3224,7 +3228,7 @@ public abstract class UpdateVector extends BaseR {
                     return x.execute(base, index, value);
                 }
             }
-            assert (false);
+            assert Utils.check(false);
             return null;
         }
     }
@@ -3234,13 +3238,15 @@ public abstract class UpdateVector extends BaseR {
      * without rewriting itself, rewrites to append instead of update, or to
      * perform the general operation with coercion to list.
      */
+
+    // TODO: extract the constant (symbol) used for the selection statically!
     public static class DollarSharedListUpdate extends DollarUpdateBase {
 
         static enum Failure {
             NOT_A_LIST, NOT_AN_UPDATE,
         }
 
-        public DollarSharedListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+        public DollarSharedListUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
             super(ast, isSuper, var, lhs, index, rhs);
         }
 
@@ -3252,15 +3258,13 @@ public abstract class UpdateVector extends BaseR {
          * Updates shared list while first copying it, or non-shared list in
          * place. Rewrites to general case or to append instead of update.
          */
-        @Override RAny execute(RAny base, RAny index, RAny value) {
-            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
+        @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
-                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
                 int size = list.size();
-                int pos = elementPos(names, idx);
+                int pos = elementPos(names, index);
                 if (pos == -1) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
                 if (list.isShared()) {
                     return updateList(list, names, size, value, pos);
@@ -3291,7 +3295,7 @@ public abstract class UpdateVector extends BaseR {
      */
     public static class DollarListAppend extends DollarUpdateBase {
 
-        public DollarListAppend(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+        public DollarListAppend(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
             super(ast, isSuper, var, lhs, index, rhs);
         }
 
@@ -3302,17 +3306,15 @@ public abstract class UpdateVector extends BaseR {
         /**
          * Performs the update or overwrites itself to the general case.
          */
-        @Override RAny execute(RAny base, RAny index, RAny value) {
-            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
+        @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(null); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
-                RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
                 int size = list.size();
-                int pos = elementPos(names, idx);
+                int pos = elementPos(names, index);
                 if (pos != -1) { throw new UnexpectedResultException(null); }
-                return appendToList(list, names, size, value, idx);
+                return appendToList(list, names, size, value, index);
             } catch (UnexpectedResultException e) {
                 DollarUpdateBase x = new DollarUpdate(this);
                 replace(x, "not a list or not append in assignment");
@@ -3327,7 +3329,7 @@ public abstract class UpdateVector extends BaseR {
      */
     public static class DollarUpdate extends DollarUpdateBase {
 
-        public DollarUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode index, RNode rhs) {
+        public DollarUpdate(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
             super(ast, isSuper, var, lhs, index, rhs);
         }
 
@@ -3337,15 +3339,13 @@ public abstract class UpdateVector extends BaseR {
 
         // / TODO Are the specializations for the fast stuff worth it? This code
         // looks smaller than the code with many rewrite possibilities
-        @Override RAny execute(RAny base, RAny index, RAny value) {
-            assert (index instanceof ScalarStringImpl) : "this assumes we always have a constant";
+        @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             RArray list = (base instanceof RList) ? (RList) base : convertToList(base);
             RArray.Names names = list.names();
-            RSymbol idx = RSymbol.getSymbol(((RString) index).getString(0));
             int size = list.size();
-            int pos = elementPos(names, idx);
+            int pos = elementPos(names, index);
             if (pos == -1) {
-                return appendToList(list, names, size, value, idx);
+                return appendToList(list, names, size, value, index);
             } else {
                 if (base.isShared()) {
                     return updateList(list, names, size, value, pos);
