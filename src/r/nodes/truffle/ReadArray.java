@@ -695,8 +695,8 @@ public abstract class ReadArray extends BaseR {
                 } else {
                     int i = 0;
                     // NOTE: here we know that colFrom != colTo and rowFrom != rowTo
-                    for (int col = colFrom; col != colTo; col += colStep) {
-                        for (int row = rowFrom; row != rowTo; row += rowStep) {
+                    for (int col = colFrom; col != colTo + colStep; col += colStep) {
+                        for (int row = rowFrom; row != rowTo + rowStep; row += rowStep) {
                             res.set(i++, array.getRef(col * m + row));
                         }
                     }

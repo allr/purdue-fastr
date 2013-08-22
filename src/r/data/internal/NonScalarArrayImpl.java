@@ -188,11 +188,17 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
                 }
             }
 
-            Utils.strAppend(sb, "", rowNamesWidth);
+            if (rowNamesWidth == -1) {
+                sb.append("    "); // to mimick GNU-R
+            } else {
+                Utils.strAppend(sb, "", rowNamesWidth);
+            }
             for (int j = 0; j < n; j++) {
                 Utils.strAppend(sb, colNames[j], colWidth[j]);
             }
-            sb.append("\n");
+            if (m > 0) {
+                sb.append("\n");
+            }
             for (int i = 0; i < m; i++) {
                 Utils.strAppend(sb, rowNames[i], rowNamesWidth);
                 for (int j = 0; j < n; j++) {

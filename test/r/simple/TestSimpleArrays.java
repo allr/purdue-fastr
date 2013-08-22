@@ -252,6 +252,42 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ m <- matrix(c(1,2,3,4,5,6), nrow=3) \nm[0] }", "numeric(0)");
         assertEval("{ m <- matrix(list(1,2,3,4,5,6), nrow=3) \nm[0] }", "list()");
         assertEval("{ m <- matrix(1:6, nrow=2) \nm[upper.tri(m)] }", "3L, 5L, 6L");
+        assertEvalError("{ a <- 1:3; a[1,2,3] <- 10 }", "incorrect number of subscripts");
+        assertEvalError("{ f <- function() {3} ; f[1,1,2] }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x <- list(a=1,b=2,c=3) ; x[1,1,2] }", "incorrect number of dimensions");
+        assertEvalError("{ x <- 1:3 ; x[1,1,2] }", "incorrect number of dimensions");
+        assertEvalError("{ x <- 1:3 ; dim(x) <- c(3,1) ; x[1,1,2] }", "incorrect number of dimensions");
+
+        // matrix
+        assertEvalError("{ f <- function(b) { b[,2] } ; f(matrix(1:4,nrow=2)) ; f(f) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b) { b[,2] } ; f(matrix(1:4,nrow=2)) ; f(1:3) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b) { b[,2] } ; f(matrix(1:4,nrow=2)) ; z <- 1:3; dim(z) <- c(3,1,1,1) ; f(z) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b) { b[,4] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEval("{ f <- function(b) { b[,0] } ; f(matrix(1:4,nrow=2)) }", "    \n[1,]\n[2,]");
+        assertEval("{ m <- matrix(1:4,nrow=2) ; m[2,2,drop=TRUE] }", "4L");
+        assertEval("{ m <- matrix(1:4,nrow=2) ; m[2,2,drop=FALSE] }", "     [,1]\n[1,]   4L");
+        assertEval("{ m <- matrix(1:4,nrow=2) ; m[,2,drop=FALSE] }", "     [,1]\n[1,]   3L\n[2,]   4L");
+        assertEval("{ m <- matrix(1:4,nrow=2) ; m[,2,drop=TRUE] }", "3L, 4L");
+        assertEvalError("{ f <- function(b) { b[2,] } ; f(matrix(1:4,nrow=2)) ; f(f) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b) { b[2,] } ; f(matrix(1:4,nrow=2)) ; f(1:3) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b) { b[2,] } ; f(matrix(1:4,nrow=2)) ; z <- 1:3; dim(z) <- c(3,1,1,1) ; f(z) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b) { b[4,] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEval("{ f <- function(b) { b[0,] } ; f(matrix(1:4,nrow=2)) }", "     [,1] [,2]");
+        assertEvalError("{ f <- function(b) { b[1+0i,] } ; f(matrix(1:4,nrow=2)) }", "invalid subscript type 'complex'");
+        assertEvalError("{ f <- function(b,x,y) { b[1:2,2:1] } ; f(matrix(1:4,nrow=2)) ; f(f) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b,x,y) { b[1:2,2:1] } ; f(1:4) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b,x,y) { b[1:2,2:1] } ; m <- matrix(1:4,nrow=2) ; dim(m) <- c(2,2,1,1) ; f(m) }", "incorrect number of dimensions");
+        assertEval("{ f <- function(b,x,y) { b[2:1,2:1] } ; f(matrix(1:4,nrow=2)) }", "     [,1] [,2]\n[1,]   4L   2L\n[2,]   3L   1L");
+        assertEval("{ f <- function(b,x,y) { b[2:1,1:2] } ; f(matrix(1:4,nrow=2)) }", "     [,1] [,2]\n[1,]   2L   4L\n[2,]   1L   3L");
+        assertEval("{ f <- function(b,x,y) { b[1:2,2:1] } ; f(matrix(1:4,nrow=2)) }", "     [,1] [,2]\n[1,]   3L   1L\n[2,]   4L   2L");
+        assertEvalError("{ f <- function(b,x,y) { b[-1:1,2:1] } ; f(matrix(1:4,nrow=2)) }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ f <- function(b,x,y) { b[0:2,2:1] } ; f(matrix(1:4,nrow=2)) }", "     [,1] [,2]\n[1,]   3L   1L\n[2,]   4L   2L");
+        assertEval("{ f <- function(b,x,y) { b[1:2,2:2,drop=TRUE] } ; f(matrix(1:4,nrow=2)) }", "3L, 4L");
+        assertEval("{ f <- function(b,x,y) { b[1:1,2:1,drop=TRUE] } ; f(matrix(1:4,nrow=2)) }", "3L, 1L");
+        assertEval("{ f <- function(b,x,y) { b[1:1,2:2,drop=FALSE] } ; f(matrix(1:4,nrow=2)) }", "     [,1]\n[1,]   3L");
+        assertEval("{ f <- function(b,x,y) { b[-1:-2,2:2,drop=FALSE] } ; f(matrix(1:4,nrow=2)) }", "     [,1]");
+        assertEvalWarning("{ f <- function(b,x,y) { b[1e100:1e100,2:2] } ; f(matrix(1:4,nrow=2)) }", "NA", "NAs introduced by coercion");
+
     }
 
     @Test

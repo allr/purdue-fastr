@@ -2,7 +2,8 @@ package r.nodes.truffle;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import r.Utils;
+
+import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.RError;
@@ -976,7 +977,7 @@ public abstract class Selector {
             public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
-                        selector.setIndex(index.asInt());
+                        selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
                     throw new UnexpectedResultException(null);
@@ -1027,7 +1028,7 @@ public abstract class Selector {
             public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical) {
-                        selector.setIndex(index.asInt());
+                        selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
                     throw new UnexpectedResultException(null);
@@ -1049,7 +1050,7 @@ public abstract class Selector {
             public Selector executeSelector(RAny index) {
                 try {
                     if (index instanceof RInt || index instanceof RDouble) { // FIXME: can get rid of this through type-specialization
-                        selector.setIndex(index.asInt());
+                        selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
                     throw new UnexpectedResultException(null);
@@ -1072,15 +1073,14 @@ public abstract class Selector {
             @Override
             public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RNull) {
-                    numericSelector.setIndex(index.asInt());
+                    numericSelector.setIndex(Convert.coerceToIntWarning(index, ast));
                     return numericSelector;
                 }
                 if (index instanceof RLogical) {
                     logicalSelector.setIndex(index);
                     return logicalSelector;
                 }
-                Utils.nyi("unsupported index type" + index.typeOf());
-                return null;
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
         };
     }
@@ -1093,7 +1093,7 @@ public abstract class Selector {
             @Override
             public Selector executeSelector(RAny index) {
                 if (index instanceof RInt || index instanceof RDouble || index instanceof RLogical || index instanceof RNull) {
-                    selector.setIndex(index.asInt());
+                    selector.setIndex(Convert.coerceToIntWarning(index, ast));
                     return selector;
                 }
                 Utils.nyi("unsupported index type");
