@@ -287,7 +287,33 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ f <- function(b,x,y) { b[1:1,2:2,drop=FALSE] } ; f(matrix(1:4,nrow=2)) }", "     [,1]\n[1,]   3L");
         assertEval("{ f <- function(b,x,y) { b[-1:-2,2:2,drop=FALSE] } ; f(matrix(1:4,nrow=2)) }", "     [,1]");
         assertEvalWarning("{ f <- function(b,x,y) { b[1e100:1e100,2:2] } ; f(matrix(1:4,nrow=2)) }", "NA", "NAs introduced by coercion");
+        assertEval("{ f <- function(b,x,y) { b[-2L:-2L,2:2] } ; f(matrix(1:4,nrow=2)) }", "3L");
+        assertEval("{ f <- function(b,x,y) { b[TRUE:FALSE,2:2] } ; f(matrix(1:4,nrow=2)) }", "3L");
+        assertEvalError("{ f <- function(b,x,y) { b[1:2,2:4] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(b,x,y) { b[1:4,2:1] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(b,x,y) { b[4:1,2:1] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEvalError("{ f <- function(b,x,y) { b[1:2,4:2] } ; f(matrix(1:4,nrow=2)) }", "subscript out of bounds");
+        assertEval("{ f <- function(b,x,y) { b[[2,1]] } ; f(matrix(1:4,nrow=2)) }", "2L");
+        assertEval("{ f <- function(b,x,y) { b[[2,1]] } ; f(matrix(as.list(1:4),nrow=2)) }", "2L");
+        assertEvalError("{ f <- function(b,x,y) { b[c(2,3),1] } ; f(f) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b,x,y) { b[c(2,3),1] } ; f(1:4) }", "incorrect number of dimensions");
+        assertEvalError("{ f <- function(b,x,y) { b[c(2,3),1] } ; b <- 1:4 ; dim(b) <- c(4,1,1); f(b) }", "incorrect number of dimensions");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,4); x <- b[drop=FALSE,,1:1] ; x }", "     [,1]\n[1,]   1L");
+        assertEval("{ f <- function(d) { b <- matrix(1:4,nrow=2,ncol=2) ; b[,drop=d,2] } ; f(0) ; f(1L) }", "3L, 4L");
+        assertEval("{ z <- 1 ; f <- function(d) { b <- matrix(1:4,nrow=2,ncol=2) ; b[{z<<-z+1;1},drop=z<<-z*10,{z<<-z*2;2}] } ; f(0) ; f(1L) ; z }", "820.0");
 
+        // arrays
+        assertEvalError("{ b <- 1:4 ; dim(b) <- c(1,0,4,1); x <- b[,,,1] ; dim(x) }", "dims [product 0] do not match the length of object [4]");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,4,1); x <- b[,,,1] ; x }", "1L, 2L, 3L, 4L");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[,,,1,drop=FALSE] ; x }", ", , 1, 1\n\n     [,1]\n[1,]   1L");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[,,,1,drop=FALSE] ; x }", ", , 1, 1\n\n     [,1]\n[1,]   1L");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[,,drop=FALSE,,1] ; x }", ", , 1, 1\n\n     [,1]\n[1,]   1L");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[drop=FALSE,,,,1] ; x }", ", , 1, 1\n\n     [,1]\n[1,]   1L");
+        assertEval("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[drop=FALSE,,,,-1] ; x }", ", , 1, 1\n\n     [,1]\n[1,]   2L\n\n, , 1, 2\n\n     [,1]\n[1,]   3L\n\n, , 1, 3\n\n     [,1]\n[1,]   4L");
+        assertEvalError("{ b <- 1:4 ; dim(b) <- c(1,1,1,4); x <- b[drop=TRUE,,,,10] ; x }", "subscript out of bounds");
+        assertEvalError("{ b <- 1:4 ; x <- b[drop=TRUE,,,,10] ; x }", "incorrect number of dimensions");
+        assertEvalError("{ b <- 1:4 ; dim(b) <- c(4,1) ; b[drop=TRUE,,,,10]  }", "incorrect number of dimensions");
+        assertEvalError("{ b <- function(){3}  ; b[drop=TRUE,,,,10]  }", "object of type 'closure' is not subsettable");
     }
 
     @Test

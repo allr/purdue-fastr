@@ -21,6 +21,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ (0-1.5):(0-12) }", "-1.5, -2.5, -3.5, -4.5, -5.5, -6.5, -7.5, -8.5, -9.5, -10.5, -11.5");
         assertEval("{ 10:1 }", "10L, 9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L");
         assertEval("{ (0-5):(0-9) }", "-5L, -6L, -7L, -8L, -9L");
+        assertEvalError("1:as.integer(NA)", "NA/NaN argument");
 
         assertEval("{ seq(1,10) }", "1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L");
         assertEval("{ seq(10,1) }", "10L, 9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L");

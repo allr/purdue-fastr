@@ -98,6 +98,7 @@ final class Colon extends CallFactory {
         if (i == RInt.NA) { throw RError.getNAorNaN(ast); }
     }
 
+    // FIXME: rewrite this... at least use scalar impl types (but be careful about semantics wrt to type of output)
     @SuppressWarnings("cast") public static RAny generic(ASTNode ast, RAny arg0, RAny arg1) {
         if (arg0 instanceof RInt) {
             RInt a0rint = (RInt) arg0;
@@ -121,6 +122,13 @@ final class Colon extends CallFactory {
                 } else {
                     return create(a0, a1);
                 }
+            }
+            if (arg1 instanceof RLogical) {
+                RLogical a1rlog = (RLogical) arg1;
+                checkScalar(a1rlog, ast);
+                int a1 = a1rlog.getLogical(0);
+                checkNA(a1, ast);
+                return create(a0, a1);
             }
             throw Utils.nyi("unsupported argument type for colon operator");
         }
@@ -152,6 +160,13 @@ final class Colon extends CallFactory {
                         return create(a0, a1);
                     }
                 }
+                if (arg1 instanceof RLogical) {
+                    RLogical a1rlog = (RLogical) arg1;
+                    checkScalar(a1rlog, ast);
+                    int a1 = a1rlog.getLogical(0);
+                    checkNA(a1, ast);
+                    return create(ia0, a1);
+                }
                 Utils.nyi("unsupported argument type for colon operator");
 
             } else {
@@ -165,6 +180,9 @@ final class Colon extends CallFactory {
                     throw Utils.nyi("unsupported argument type for colon operator");
                 }
             }
+        }
+        if (arg0 instanceof RLogical) {
+            return generic(ast, arg0.asInt(), arg1); // FIXME: do something smarter
         }
         throw Utils.nyi("unsupported argument types for colon operator");
     }

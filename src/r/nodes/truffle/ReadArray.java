@@ -93,7 +93,7 @@ public abstract class ReadArray extends BaseR {
 
         @Override
         public Object execute(Frame frame) {
-            Utils.check(false, "unreachable");
+            assert Utils.check(false, "unreachable");
             return null;
         }
 
@@ -237,6 +237,8 @@ public abstract class ReadArray extends BaseR {
             boolean dropVal = dropExpr.executeLogical(frame) != RLogical.FALSE;  // FIXME: what is the correct execution order of these args?
             int exactVal = exactExpr.executeLogical(frame);
 
+            // TODO: GNU-R has different behavior when selecting from arrays that have some dimension zero
+
             if (!(lhsVal instanceof RArray)) {
                 throw RError.getObjectNotSubsettable(ast, lhsVal.typeOf());
             }
@@ -261,17 +263,39 @@ public abstract class ReadArray extends BaseR {
                 }
 
                 int[] ndim;
+                int m;  // size of the result
+
                 if (dropVal) {
-                    ndim = new int[nSelectors - 1];
+                    boolean hasNonTrivialDimension = false;
+                    boolean resultIsVector = true;
+                    m = 1;
+                    for (int i = 0; i < nSelectors - 1; i++) {
+                        int d = dim[i];
+                        if (d != 1) {
+                            if (hasNonTrivialDimension) {
+                                resultIsVector = false;
+                            } else {
+                                hasNonTrivialDimension = true;
+                            }
+                        }
+                        m *= d;
+                    }
+                    if (resultIsVector) {
+                        ndim = null;
+                    } else {
+                        ndim = new int[nSelectors - 1];
+                        System.arraycopy(dim, 0, ndim, 0, ndim.length);
+                    }
                 } else {
                     ndim = new int[nSelectors];
                     ndim[nSelectors - 1] = 1;
-                }
-                int m = 1;  // size of the result
-                for (int i = 0; i < ndim.length; i++) {
-                    int d = dim[i];
-                    ndim[i] = d;
-                    m *= d;
+
+                    m = 1;
+                    for (int i = 0; i < ndim.length - 1; i++) {
+                        int d = dim[i];
+                        ndim[i] = d;
+                        m *= d;
+                    }
                 }
 
                 // note: also could be lazy here
@@ -310,10 +334,6 @@ public abstract class ReadArray extends BaseR {
             super(ast, subset, lhs, dropExpr, exactExpr);
             this.selectorIExpr = adoptChild(selectorIExpr);
             this.selectorJExpr = adoptChild(selectorJExpr);
-        }
-
-        public MatrixRead(ReadArray other) {
-            super(other);
         }
 
         @Override
@@ -358,6 +378,7 @@ public abstract class ReadArray extends BaseR {
         }
 
         public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
+            assert Utils.check(subset);
             int[] ndim = source.dimensions();
             int m = ndim[0];
             int n = ndim[1];
@@ -367,10 +388,7 @@ public abstract class ReadArray extends BaseR {
             int nn = selectorJ.size();
             boolean mayHaveNA = selectorI.mayHaveNA() || selectorJ.mayHaveNA();
             int nsize = nm * nn;
-            if (!subset && (nsize > 1)) {
-                throw RError.getSelectMoreThanOne(getAST());
-            }
-            if ((nm != 1 && nn != 1) || (subset && !drop)) {
+            if ((nm != 1 && nn != 1) || !drop) {
                 ndim = new int[]{nm, nn};
             } else {
                 ndim = null;

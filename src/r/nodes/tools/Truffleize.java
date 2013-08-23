@@ -414,16 +414,16 @@ public class Truffleize implements Visitor {
     }
 
 
-    public static boolean isArrayColumnSubset(boolean subset, RNode[] selectors) {
+    public static boolean isArrayColumnSubset(boolean subset, RNode[] selectors, int dims) {
         if (!subset) {
             return false;
         }
-        for (int i = 0; i < selectors.length - 1; i++) {
+        for (int i = 0; i < dims - 1; i++) {
             if (selectors[i] != null) {
                 return false;
             }
         }
-        if (selectors[selectors.length - 1] == null) {
+        if (selectors[dims - 1] == null) {
             return false;
         }
         return true;
@@ -555,10 +555,10 @@ public class Truffleize implements Visitor {
                 return;
             }
             // otherwise use array read
-            if (isArrayColumnSubset(a.isSubset(), selectors)) {
+            if (isArrayColumnSubset(a.isSubset(), selectors, dims)) {
                 result = new ReadArray.ArrayColumnSubset(a, createTree(a.getVector()),
-                        selectors.length,
-                        selectors[selectors.length - 1],
+                        dims,
+                        selectors[dims - 1],
                         ReadArray.createDropOptionNode(a, drop),
                         ReadArray.createExactOptionNode(a, exact));
                 return;
@@ -656,7 +656,7 @@ public class Truffleize implements Visitor {
                 selNodes[i] = Selector.createSelectorNode(a, a.isSubset(), selectors[i]);
             }
             // Create the assignment, or super assignment nodes
-            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors);
+            boolean isColumn = isArrayColumnSubset(a.isSubset(), selectors, dims);
 
             ASTNode varAccess = a.getVector();
             RSymbol varName = ((SimpleAccessVariable) varAccess).getSymbol();
