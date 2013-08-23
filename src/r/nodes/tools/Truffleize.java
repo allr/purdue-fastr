@@ -436,6 +436,7 @@ public class Truffleize implements Visitor {
 
         if (sa.convertedExpressions.length == 1) { // vector
 
+            // TODO: should support "exact" and "drop"
             if (a.isSubset()) {
                 // expressions like b[x == c]
                 // FIXME: add more variations of this
@@ -490,14 +491,10 @@ public class Truffleize implements Visitor {
 
             for (int i = 0; i < nodes.length; i++) {
                 if (names[i] == RSymbol.DROP_SYMBOL) {
-                    if (drop != null) {
-                        throw RError.getIncorrectSubscripts(a);
-                    }
+                    assert Utils.check(drop == null); // GNU-R allows multiple occurrences
                     drop = nodes[i];
                 } else if (names[i] == RSymbol.EXACT_SYMBOL) {
-                    if (exact != null) {
-                        throw RError.getIncorrectSubscripts(a);
-                    }
+                    assert Utils.check(exact == null); // GNU-R allows multiple occurrences
                     exact = nodes[i];
                 } else {
                     selectors[dims] = nodes[i];
@@ -505,21 +502,21 @@ public class Truffleize implements Visitor {
                     ++dims;
                 }
             }
-            if (dims == 0) {
-                Utils.nyi("unsupported indexing style");
-            }
+
+            assert Utils.check(dims != 0); // FIXME: GNU-R supports this
+
             if (dims == 2) { // if matrix read, use the specialized matrix form
                 if (a.isSubset() && selectors[0] == null && selectors[1] != null) { // matrix column
                     result = new ReadArray.MatrixColumnSubset(a,  createTree(a.getVector()),
-                            selectors[1], ReadArray.createDropOptionNode(a, drop),
-                            ReadArray.createExactOptionNode(a, exact));
+                            selectors[1], Selector.createDropOptionNode(a, drop),
+                            Selector.createExactOptionNode(a, exact));
                     return;
 
                 }
                 if (a.isSubset() && selectors[0] != null && selectors[1] == null) {
                     result = new ReadArray.MatrixRowSubset(a,  createTree(a.getVector()),
-                            selectors[0], ReadArray.createDropOptionNode(a, drop),
-                            ReadArray.createExactOptionNode(a, exact));
+                            selectors[0], Selector.createDropOptionNode(a, drop),
+                            Selector.createExactOptionNode(a, exact));
                     return;
                 }
 
@@ -532,8 +529,8 @@ public class Truffleize implements Visitor {
                     Colon cols = (Colon) node1;
                     result = new ReadArray.MatrixSequenceSubset(a, createTree(a.getVector()),
                             createTree(rows.getLHS()), createTree(rows.getRHS()), createTree(cols.getLHS()), createTree(cols.getRHS()),
-                            ReadArray.createDropOptionNode(a, drop),
-                            ReadArray.createExactOptionNode(a, exact));
+                            Selector.createDropOptionNode(a, drop),
+                            Selector.createExactOptionNode(a, exact));
                     return;
 
                 }
@@ -544,13 +541,13 @@ public class Truffleize implements Visitor {
                 if (!a.isSubset()) {
                     result = new ReadArray.MatrixSubscript(a, createTree(a.getVector()),
                             selectorIExpr, selectorJExpr,
-                            ReadArray.createDropOptionNode(a, drop),
-                            ReadArray.createExactOptionNode(a, exact));
+                            Selector.createDropOptionNode(a, drop),
+                            Selector.createExactOptionNode(a, exact));
                 } else {
                     result = new ReadArray.MatrixRead(a, a.isSubset(), createTree(a.getVector()),
                                   selectorIExpr, selectorJExpr,
-                                  ReadArray.createDropOptionNode(a, drop),
-                                  ReadArray.createExactOptionNode(a, exact));
+                                  Selector.createDropOptionNode(a, drop),
+                                  Selector.createExactOptionNode(a, exact));
                 }
                 return;
             }
@@ -559,8 +556,8 @@ public class Truffleize implements Visitor {
                 result = new ReadArray.ArrayColumnSubset(a, createTree(a.getVector()),
                         dims,
                         selectors[dims - 1],
-                        ReadArray.createDropOptionNode(a, drop),
-                        ReadArray.createExactOptionNode(a, exact));
+                        Selector.createDropOptionNode(a, drop),
+                        Selector.createExactOptionNode(a, exact));
                 return;
             }
 
@@ -572,8 +569,8 @@ public class Truffleize implements Visitor {
 
             result = new ReadArray.GenericRead(a, a.isSubset(), createTree(a.getVector()),
                           selNodes,
-                          ReadArray.createDropOptionNode(a, drop),
-                          ReadArray.createExactOptionNode(a, exact));
+                          Selector.createDropOptionNode(a, drop),
+                          Selector.createExactOptionNode(a, exact));
             return;
         }
         Utils.nyi("unsupported indexing style");

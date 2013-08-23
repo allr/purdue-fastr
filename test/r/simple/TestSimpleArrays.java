@@ -314,6 +314,17 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEvalError("{ b <- 1:4 ; x <- b[drop=TRUE,,,,10] ; x }", "incorrect number of dimensions");
         assertEvalError("{ b <- 1:4 ; dim(b) <- c(4,1) ; b[drop=TRUE,,,,10]  }", "incorrect number of dimensions");
         assertEvalError("{ b <- function(){3}  ; b[drop=TRUE,,,,10]  }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x <- 1:2 ; dim(x) <- c(2,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,1) ; f(x,f) }", "invalid subscript type 'closure'");
+        assertEvalError("{ x <- list(1,2) ; dim(x) <- c(2,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,-2) }", "attempt to select more than one element");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,integer()) }", "attempt to select less than one element");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,4) }", "subscript out of bounds");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,FALSE) }", "attempt to select less than one element");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,NA) }", "subscript out of bounds");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,-4) }", "attempt to select more than one element");
+        assertEvalError("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,NULL) }", "attempt to select less than one element");
+        assertEval("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,1L) ; f(x,2) } ", "[[1]]\n2.0");
+        assertEval("{ x <- c(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,TRUE) }", "1.0");
+        assertEvalError("{ x <- c(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,TRUE) ; f(x,4) }", "subscript out of bounds");
     }
 
     @Test

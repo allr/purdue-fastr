@@ -6,6 +6,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.nodes.truffle.Selector.OptionNode;
 import r.nodes.truffle.Selector.SelectorNode;
 
 import com.oracle.truffle.api.frame.*;
@@ -41,64 +42,6 @@ public abstract class ReadArray extends BaseR {
         this(other.ast, other.subset, other.lhs, other.dropExpr, other.exactExpr);
     }
 
-
-    // =================================================================================================================
-    // OptionNode
-    // =================================================================================================================
-
-    public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
-        return new OptionNode(ast) {
-
-            @Override
-            public int executeLogical(Frame frame) {
-                return value;
-            }
-        };
-    }
-
-    public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
-        if (node == null) {
-            return createConstantOptionNode(ast, defaultValue);
-        }
-        if (node.getAST() instanceof r.nodes.Constant) {
-            RAny value = (RAny) node.execute(null);
-            return createConstantOptionNode(ast, value.asLogical().getLogical(0));
-        }
-        return new OptionNode(ast) {
-
-            @Child RNode child = adoptChild(node);
-
-            @Override
-            public int executeLogical(Frame frame) {
-                RAny value = (RAny) child.execute(frame);
-                return value.asLogical().getLogical(0);
-            }
-
-        };
-    }
-
-    public static OptionNode createDropOptionNode(ASTNode ast, RNode node) {
-        return createOptionNode(ast, node, RLogical.TRUE);
-    }
-
-    public static OptionNode createExactOptionNode(ASTNode ast, RNode node) {
-        return createOptionNode(ast, node, RLogical.NA);
-    }
-
-    public abstract static class OptionNode extends BaseR {
-
-        public OptionNode(ASTNode ast) {
-            super(ast);
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            assert Utils.check(false, "unreachable");
-            return null;
-        }
-
-        public abstract int executeLogical(Frame frame);
-    }
 
     // =================================================================================================================
     // Specialized forms
@@ -226,7 +169,7 @@ public abstract class ReadArray extends BaseR {
             super(ast, true, lhs, null, null, dropExpr, exactExpr);
             this.columnExpr = adoptChild(columnExpr);
             this.nSelectors = nSelectors;
-            assert Utils.check(nSelectors > 2);  // we could support 2 as well, but there is MatrixColumnSubset for that
+            //assert Utils.check(nSelectors > 2);  // we could support 2 as well, but there is MatrixColumnSubset for that
         }
 
         @Override

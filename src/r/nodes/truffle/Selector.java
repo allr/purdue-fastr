@@ -11,6 +11,7 @@ import r.nodes.ASTNode;
 
 import java.util.Arrays;
 
+// TODO: real support for "exact"
 public abstract class Selector {
 
     /** Initializes the selectors to their respective values using given source array.
@@ -294,6 +295,60 @@ public abstract class Selector {
     public abstract boolean isExhausted(); // the next call to nextIndex would go above selector size (always for selectors of size 1)
     public abstract boolean mayHaveNA();
 
+    public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
+        return new OptionNode(ast) {
+
+            @Override
+            public int executeLogical(Frame frame) {
+                return value;
+            }
+        };
+    }
+
+    public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
+        if (node == null) {
+            return Selector.createConstantOptionNode(ast, defaultValue);
+        }
+        if (node.getAST() instanceof r.nodes.Constant) {
+            RAny value = (RAny) node.execute(null);
+            return Selector.createConstantOptionNode(ast, value.asLogical().getLogical(0));
+        }
+        return new OptionNode(ast) {
+
+            @Child RNode child = adoptChild(node);
+
+            @Override
+            public int executeLogical(Frame frame) {
+                RAny value = (RAny) child.execute(frame);
+                return value.asLogical().getLogical(0);
+            }
+
+        };
+    }
+
+    public static OptionNode createDropOptionNode(ASTNode ast, RNode node) {
+        return createOptionNode(ast, node, RLogical.TRUE);
+    }
+
+    public static OptionNode createExactOptionNode(ASTNode ast, RNode node) {
+        return createOptionNode(ast, node, RLogical.NA);
+    }
+
+    public abstract static class OptionNode extends BaseR {
+
+        public OptionNode(ASTNode ast) {
+            super(ast);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            assert Utils.check(false, "unreachable");
+            return null;
+        }
+
+        public abstract int executeLogical(Frame frame);
+    }
+
     // non-failing
     public static final class MissingSelector extends Selector {
         private int size = -1;
@@ -552,7 +607,13 @@ public abstract class Selector {
                         throw RError.getSubscriptBounds(ast);
                     }
                 } else {
-                    throw RError.getSelectLessThanOne(ast);
+                    if (i == 0) {
+                        throw RError.getSelectLessThanOne(ast);
+                    } else if (i == RInt.NA) {
+                        throw RError.getSubscriptBounds(ast);
+                    } else {
+                        throw RError.getSelectMoreThanOne(ast);
+                    }
                 }
             } else {
                 if (isize > 1) {
@@ -1096,69 +1157,11 @@ public abstract class Selector {
                     selector.setIndex(Convert.coerceToIntWarning(index, ast));
                     return selector;
                 }
-                Utils.nyi("unsupported index type");
-                return null;
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
         };
     }
 
-    public static OptionNode createConstantOptionNode(final ASTNode ast, final int value) {
-        return new OptionNode(ast) {
-
-            @Override
-            public int executeLogical(Frame frame) {
-                return value;
-            }
-        };
-    }
-
-    public static OptionNode createOptionNode(final ASTNode ast, final RNode node, int defaultValue) {
-        if (node == null) {
-            return createConstantOptionNode(ast, defaultValue);
-        }
-        if (node.getAST() instanceof r.nodes.Constant) {
-            RAny value = (RAny) node.execute(null);
-            return createConstantOptionNode(ast, value.asLogical().getLogical(0));
-        }
-        return new OptionNode(ast) {
-
-            @Child RNode child = adoptChild(node);
-
-            @Override
-            public int executeLogical(Frame frame) {
-                RAny value = (RAny) child.execute(frame);
-                return value.asLogical().getLogical(0);
-            }
-
-        };
-    }
-
-    public static OptionNode createDropOptionNode(ASTNode ast, RNode node) {
-        return createOptionNode(ast, node, RLogical.TRUE);
-    }
-
-    public static OptionNode createExactOptionNode(ASTNode ast, RNode node) {
-        return createOptionNode(ast, node, RLogical.NA);
-    }
-
-    public abstract static class OptionNode extends BaseR {
-
-        public OptionNode(ASTNode ast) {
-            super(ast);
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            Utils.check(false, "unreachable");
-            return null;
-        }
-
-        public abstract int executeLogical(Frame frame);
-    }
-
-    // =================================================================================================================
-    // Selector node
-    // =================================================================================================================
     public abstract static class SelectorNode extends BaseR {
 
         @Child RNode child;
@@ -1170,7 +1173,7 @@ public abstract class Selector {
 
         @Override
         public Object execute(Frame frame) {
-            Utils.check(false, "unreachable");
+            assert Utils.check(false, "unreachable");
             return null;
         }
 
