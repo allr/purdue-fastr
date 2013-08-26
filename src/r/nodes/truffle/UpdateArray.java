@@ -1240,7 +1240,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if ((!(rhs instanceof ScalarLogicalImpl)) || (!(lhs instanceof LogicalImpl))) {
                         throw new UnexpectedResultException(null);
                     }
-                    return executeAndUpdateSelectors(frame, (RArray) lhs, null);
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }

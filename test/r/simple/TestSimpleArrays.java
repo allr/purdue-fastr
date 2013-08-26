@@ -325,6 +325,19 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ x <- list(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,1L) ; f(x,2) } ", "[[1]]\n2.0");
         assertEval("{ x <- c(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,TRUE) }", "1.0");
         assertEvalError("{ x <- c(1,2,3) ; dim(x) <- c(3,1,1) ; f <- function(b,i) { b[[i,1,1]] } ; f(x,TRUE) ; f(x,4) }", "subscript out of bounds");
+        assertEvalError("{ x <- c(1,2,3) ; dim(x) <- c(1,3,1) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,1:3,1:5) }", "subscript out of bounds");
+        assertEval("{ x <- c(1,2,3) ; dim(x) <- c(1,3,1) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(-1,-4,-4,-6), 1) }", "2.0, 3.0");
+        assertEval("{ x <- c(1,2,3) ; dim(x) <- c(1,3,1) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(-1,-4,-4,-6), 1) ; f(x,c(-2,-4,-4,-6), 1) }", "1.0, 3.0");
+        assertEval("{ x <- c(1,2,3) ; dim(x) <- c(1,3,1) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(-1,-4,-4,-6), 1) ; y <- 1:8 ; dim(y) <- c(1,8,1) ; f(y,c(-2,-4,-4,-6,-8), 1) }", "1L, 3L, 5L, 7L");
+        assertEvalError("{ x <- c(1,2,3) ; dim(x) <- c(1,3,1) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(-1,-4,-4, NA), 1) }", "only 0's may be mixed with negative subscripts");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(1,1),c(2,1)) }", "     [,1] [,2]\n[1,]  3.0  1.0\n[2,]  3.0  1.0");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(-1,-1),c(-3,-3,-3,-4)) }", "2.0, 4.0");
+        assertEvalError("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(TRUE,TRUE,FALSE,NA),c(TRUE,TRUE)) }", "(subscript) logical subscript too long");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,TRUE,1) ; f(x,c(TRUE,FALSE),c(NA)) }", "NA, NA");
+        assertEvalError("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[[1,i,j]] } ; f(x,TRUE,1) ; f(x,2,TRUE) ; f(x,TRUE,NULL) }", "attempt to select less than one element");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,c(1,1,1,1),c(2,1)) }", "     [,1] [,2]\n[1,]  3.0  1.0\n[2,]  3.0  1.0\n[3,]  3.0  1.0\n[4,]  3.0  1.0");
+        assertEvalWarning("{ x <- c(1,2,3,4) ; dim(x) <- c(1,2,2) ; f <- function(b,i,j) { b[1,i,j] } ; f(x,c(1,1e100,2,2e100),c(2,1)) }", "     [,1] [,2]\n[1,]  3.0  1.0\n[2,]   NA   NA\n[3,]  4.0  2.0\n[4,]   NA   NA", "NAs introduced by coercion");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(2,1,2) ; f <- function(b,i,j) { b[j,1,i] } ; f(x,c(2,1,2,2),c(NA,2)) }", "     [,1] [,2] [,3] [,4]\n[1,]   NA   NA   NA   NA\n[2,]  4.0  2.0  4.0  4.0");
     }
 
     @Test
@@ -380,7 +393,15 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(1,c(-1,-10)) ; m <- f(-1,2) ; m }", "     [,1] [,2] [,3]\n[1,]  1.0 10.0 10.0\n[2,]  2.0 10.0  6.0");
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(2,1:3) ; m <- f(1,-2) ; m }", "     [,1] [,2] [,3]\n[1,] 10.0  3.0 10.0\n[2,] 10.0 10.0 10.0");
         assertEval("{ x <- array(c(1,2,3), dim=c(3,1)) ; x[1:2,1] <- 2:1 ; x }", "     [,1]\n[1,]  2.0\n[2,]  1.0\n[3,]  3.0");
+
+        assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,2] <- TRUE; x }", ", , 1\n\n         [,1]\n[1,] 1.0+2.0i\n[2,] 2.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 1.0+0.0i");
+        assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 1:2; x }", ", , 1\n\n         [,1]\n[1,] 1.0+2.0i\n[2,] 1.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 2.0+0.0i");
+        assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 10+2i; x }", ", , 1\n\n          [,1]\n[1,]  1.0+2.0i\n[2,] 10.0+2.0i\n\n, , 2\n\n          [,1]\n[1,]  3.0+0.0i\n[2,] 10.0+2.0i");
+        assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(12,10); x }", ", , 1\n\n          [,1]\n[1,]  1.0+2.0i\n[2,] 12.0+0.0i\n\n, , 2\n\n          [,1]\n[1,]  3.0+0.0i\n[2,] 10.0+0.0i");
+        assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- \"hello\"; x }", ", , 1\n\n           [,1]\n[1,] \"1.0+2.0i\"\n[2,]    \"hello\"\n\n, , 2\n\n           [,1]\n[1,] \"3.0+0.0i\"\n[2,]    \"hello\"");
+        assertEval("{ x <- c(TRUE,FALSE,NA,FALSE) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- FALSE; x }", ", , 1\n\n      [,1]\n[1,]  TRUE\n[2,] FALSE\n\n, , 2\n\n      [,1]\n[1,]    NA\n[2,] FALSE");
     }
+
 
     @Test
     public void testDynamic() throws RecognitionException {

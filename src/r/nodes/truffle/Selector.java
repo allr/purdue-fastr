@@ -14,17 +14,21 @@ import java.util.Arrays;
 // TODO: real support for "exact"
 public abstract class Selector {
 
-    /** Initializes the selectors to their respective values using given source array.
-     *
-     * Returns the selector sizes array.
-     */
-    public static void initializeSelectors(RArray source, Selector[] selectors, ASTNode ast, int[] selSizes) throws UnexpectedResultException {
-        int[] sourceDim = source.dimensions();
-        for (int i = 0; i < selectors.length; ++i) {
-            selectors[i].start(sourceDim[i], ast);
-            selSizes[i] = selectors[i].size();
-        }
-    }
+
+// only used in naive implementation (perhaps remove)
+//
+//    /** Initializes the selectors to their respective values using given source array.
+//     *
+//     * Returns the selector sizes array.
+//     */
+//    public static void initializeSelectors(RArray source, Selector[] selectors, ASTNode ast, int[] selSizes) throws UnexpectedResultException {
+//        int[] sourceDim = source.dimensions();
+//        for (int i = 0; i < selectors.length; ++i) {
+//            selectors[i].start(sourceDim[i], ast);
+//            selSizes[i] = selectors[i].size();
+//        }
+//    }
+//
 
     /** Calculates the result dimensions given the selector sizes. If the drop argument is true any dimension of size
      * 1 is dropped and if the final result has only one dimension even that one is dropped (a vector will be returned
@@ -68,47 +72,48 @@ public abstract class Selector {
         return result;
     }
 
-
-    /** Given the index vector, selector indices, sizes and the selectors themselves, increments the index vector by one
-     * returning true on overflow.
-     *
-     * Increments in different order starting from left to right so that the destination offset does not have to be
-     * recalculated each time.
-     *
-     * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
-     *            the source array as specified by the current selector.
-     * @param selSizes Size of the selector.
-     * @param selectors Selectors to be used in the increment.
-     */
-    public static boolean increment(int[] idx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
-        for (int i = 0; i < idx.length; ++i) {
-            if (selectors[i].isExhausted()) {
-                selectors[i].restart();
-                idx[i] = selectors[i].nextIndex(ast);
-            } else {
-                idx[i] = selectors[i].nextIndex(ast);
-                return false; // no overflow
-            }
-        }
-        return true; // overflow
-    }
-
-    /** Calculates the source index from given index vector. If any of the index values is NA, then the result is NA
-     * itself.
-     */
-    public static int calculateSourceOffset(RArray source, int[] idx) {
-        int result = 0;
-        int m = 1;
-        int[] dims = source.dimensions();
-        for (int i = 0; i < idx.length; ++i) {
-            if (idx[i] == RInt.NA) {
-                return RInt.NA;
-            }
-            result += idx[i] * m;
-            m *= dims[i];
-        }
-        return result;
-    }
+// a naive implementation (perhaps remove)
+//
+//    /** Given the index vector, selector indices, sizes and the selectors themselves, increments the index vector by one
+//     * returning true on overflow.
+//     *
+//     * Increments in different order starting from left to right so that the destination offset does not have to be
+//     * recalculated each time.
+//     *
+//     * @param idx The index vector. Contains as many elements as the selectors and each element is the 0based index to
+//     *            the source array as specified by the current selector.
+//     * @param selSizes Size of the selector.
+//     * @param selectors Selectors to be used in the increment.
+//     */
+//    public static boolean increment(int[] idx, int[] selSizes, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+//        for (int i = 0; i < idx.length; ++i) {
+//            if (selectors[i].isExhausted()) {
+//                selectors[i].restart();
+//                idx[i] = selectors[i].nextIndex(ast);
+//            } else {
+//                idx[i] = selectors[i].nextIndex(ast);
+//                return false; // no overflow
+//            }
+//        }
+//        return true; // overflow
+//    }
+//
+//    /** Calculates the source index from given index vector. If any of the index values is NA, then the result is NA
+//     * itself.
+//     */
+//    public static int calculateSourceOffset(RArray source, int[] idx) {
+//        int result = 0;
+//        int m = 1;
+//        int[] dims = source.dimensions();
+//        for (int i = 0; i < idx.length; ++i) {
+//            if (idx[i] == RInt.NA) {
+//                return RInt.NA;
+//            }
+//            result += idx[i] * m;
+//            m *= dims[i];
+//        }
+//        return result;
+//    }
 
     public static void partialToFullOffsets(int[] offsets, int from) {
         int add = 0;
