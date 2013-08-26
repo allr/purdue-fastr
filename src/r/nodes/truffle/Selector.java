@@ -846,6 +846,10 @@ public abstract class Selector {
                 throw RError.getLogicalSubscriptLong(ast);
             }
             reuse = true;
+            if (isize == 0) {
+                size = 0;
+                return;
+            }
             int times = dataSize / isize;
             int extra = dataSize - times * isize;
 

@@ -394,12 +394,33 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ m <- matrix(1:6, nrow=2) ; f <- function(i,j) { m[i,j] <- 10 ; m } ; m <- f(2,1:3) ; m <- f(1,-2) ; m }", "     [,1] [,2] [,3]\n[1,] 10.0  3.0 10.0\n[2,] 10.0 10.0 10.0");
         assertEval("{ x <- array(c(1,2,3), dim=c(3,1)) ; x[1:2,1] <- 2:1 ; x }", "     [,1]\n[1,]  2.0\n[2,]  1.0\n[3,]  3.0");
 
+        // more tests
         assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,2] <- TRUE; x }", ", , 1\n\n         [,1]\n[1,] 1.0+2.0i\n[2,] 2.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 1.0+0.0i");
         assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 1:2; x }", ", , 1\n\n         [,1]\n[1,] 1.0+2.0i\n[2,] 1.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 2.0+0.0i");
         assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 10+2i; x }", ", , 1\n\n          [,1]\n[1,]  1.0+2.0i\n[2,] 10.0+2.0i\n\n, , 2\n\n          [,1]\n[1,]  3.0+0.0i\n[2,] 10.0+2.0i");
         assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(12,10); x }", ", , 1\n\n          [,1]\n[1,]  1.0+2.0i\n[2,] 12.0+0.0i\n\n, , 2\n\n          [,1]\n[1,]  3.0+0.0i\n[2,] 10.0+0.0i");
         assertEval("{ x <- c(1+2i,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- \"hello\"; x }", ", , 1\n\n           [,1]\n[1,] \"1.0+2.0i\"\n[2,]    \"hello\"\n\n, , 2\n\n           [,1]\n[1,] \"3.0+0.0i\"\n[2,]    \"hello\"");
         assertEval("{ x <- c(TRUE,FALSE,NA,FALSE) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- FALSE; x }", ", , 1\n\n      [,1]\n[1,]  TRUE\n[2,] FALSE\n\n, , 2\n\n      [,1]\n[1,]    NA\n[2,] FALSE");
+        assertEval("{ x <- c(1L,3L,5L,4L) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(10L,11L) ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]  10L\n\n, , 2\n\n     [,1]\n[1,]   5L\n[2,]  11L");
+        assertEval("{ x <- c(1+2i,3+4i,5+6i,4+5i) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(10+11i,12+13i) ; x }", ", , 1\n\n           [,1]\n[1,]   1.0+2.0i\n[2,] 10.0+11.0i\n\n, , 2\n\n           [,1]\n[1,]   5.0+6.0i\n[2,] 12.0+13.0i");
+        assertEvalError("{ x <- c(1+2i,3+4i,5+6i,4+5i) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- as.raw(1:2) ; x }", "incompatible types (from raw to complex) in subassignment type fix");
+        assertEvalError("{ x <- function(){3} ; x[2,1,2] <- x }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ x <- c(1+2i,3+4i,5+6i,4+5i) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- sum ; x }", "number of items to replace is not a multiple of replacement length");
+        assertEvalError("{ x <- as.raw(1:4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 3:4 ; x }", "incompatible types (from integer to raw) in subassignment type fix");
+        assertEval("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- as.raw(13:14) ; x }", ", , 1\n\n     [,1]\n[1,]   0b\n[2,]   0d\n\n, , 2\n\n     [,1]\n[1,]   0d\n[2,]   0e");
+        assertEval("{ x <- list(1+2i,3+4i,5+6i,4+5i) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- as.raw(c(1,2)) ; unlist(x) }", "1.0+2.0i, 1.0+0.0i, 5.0+6.0i, 2.0+0.0i");
+        assertEval("{ for (i in 1:3) { x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; if (i==2) { z <- x } ; x[2,1,1:2] <- as.raw(13) ; r <- x } ; z }", ", , 1\n\n     [,1]\n[1,]   0b\n[2,]   0c\n\n, , 2\n\n     [,1]\n[1,]   0d\n[2,]   0e");
+        assertEvalError("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; x[2,1,c(NA,2)] <- as.raw(13:14) ; x }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; x[2,1,c(1,NA)] <- as.raw(13:14) ; x }", "NAs are not allowed in subscripted assignments");
+        assertEvalError("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; ina <- c(1,2) ; inb <- c(1,NA) ; x[ina, 1, inb] <- as.raw(13:14) ; x }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; ina <- c(TRUE,FALSE) ; inb <- c(FALSE,TRUE) ; x[ina, 1, inb] <- as.raw(13) ; x }", ", , 1\n\n     [,1]\n[1,]   0b\n[2,]   0c\n\n, , 2\n\n     [,1]\n[1,]   0d\n[2,]   0e");
+        assertEval("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; ina <- c(TRUE,FALSE) ; inb <- logical() ; x[ina, 1, inb] <- as.raw(13) ; x }", ", , 1\n\n     [,1]\n[1,]   0b\n[2,]   0c\n\n, , 2\n\n     [,1]\n[1,]   0d\n[2,]   0e");
+        assertEvalError("{ f <- function(b, v) { b[2,1,1:2] <- v ; b } ; x <- 1:4 ; dim(x) <- c(2,1,2) ; f(x, c(10L,11L)) ; f(x, c(TRUE,FALSE)) ; f(f,f) }", "object of type 'closure' is not subsettable");
+        assertEvalError("{ f <- function(b, v) { b[2,1,1:2] <- v ; b } ; x <- 1:4 ; dim(x) <- c(2,1,2) ; f(x, c(10L,11L)) ; f(x, c(TRUE,FALSE)) ; f(x,f) }", "number of items to replace is not a multiple of replacement length");
+        assertEvalError("{ f <- function(b, v) { b[2,1,1:2] <- v ; b } ; x <- 1:4 ; dim(x) <- c(2,1,2) ; f(x, c(10L,11L)) ; f(x, c(TRUE,FALSE)) ; f(1:10,f) }", "incorrect number of subscripts");
+        assertEval("{ x <- NULL ; x[2,1] <- NULL ; x }", "NULL");
+        assertEvalError("{ x <- matrix(2,nrow=2,ncol=2) ; x[2,1] <- NULL ; x }", "number of items to replace is not a multiple of replacement length");
+        assertEvalError("{ x <- matrix(2,nrow=2,ncol=2) ; x[[2,1]] <- NULL ; x }", "more elements supplied than there are to replace");
     }
 
 

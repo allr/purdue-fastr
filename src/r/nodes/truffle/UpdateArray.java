@@ -5,6 +5,7 @@ import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
+import r.data.RAny.*;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
@@ -138,10 +139,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      * type.
      */
     protected final RAny executeAndUpdateSelectors(Frame frame, RArray lhs, RArray rhs) {
-        // this is safe even for the non-shared variant, because here we already have the copy,
-        // which is never shared
         try {
             if (lhs.isShared()) {
+                // yes, this can happen, even though many call sites unnecessarily do another check
                 throw new UnexpectedResultException(null);
             }
             for (int i = 0; i < selectorVals.length; ++i) {
@@ -157,7 +157,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                             RAny index = failedSelector.getIndex();
                             SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
                             selectorExprs[i] = adoptChild(newSelector);
-                            assert (selectorExprs[i] == newSelector);
+                            assert Utils.check(selectorExprs[i] == newSelector);
                             selectorVals[i] = newSelector.executeSelector(index);
                             if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
                         }
@@ -206,6 +206,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     int lhsOffset = offsets[0];
                     if (lhsOffset != RInt.NA) {
                         lhs.set(lhsOffset, rhs.getRef(rhsOffset));
+                    } else {
+                        throw RError.getNASubscripted(ast);
                     }
                     rhsOffset++;
                     if (rhsOffset == replacementSize) {
@@ -250,7 +252,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
-                                (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)) {
+                                (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)
+                                || (lhs instanceof RList && rhs instanceof RList)) {
+                    // note: this intentionally does not include RNull, non-array types
                     if (DEBUG_UP) Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
                     return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs);
                 }
@@ -293,7 +297,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (MatrixScalarIndex.isMatrixScalar(selectorExprs, frame)) {
                     return replace(MatrixScalarIndex.create(this,  lhs,  rhs)).execute(frame, lhs, rhs);
                 }
-                if (rhs instanceof RArray && ((RArray) rhs).size() == 1) {
+                assert Utils.check(rhs instanceof RArray);
+                if (((RArray) rhs).size() == 1) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Scalar");
                     return replace(new Scalar(this)).execute(frame, lhs, rhs);
                 }
@@ -500,7 +505,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             RAny rhs = rhsParam;
 
             // 1. copy the rhs
-            ValueCopy.Impl rhsImpl = CopyRhs.determineCopyImplementation(lhs, rhs); // can be null if no copy is needed
+            ValueCopy.Impl rhsImpl = CopyRhs.determineCopyImplementation(lhs, rhs, selectorExprs. length, ast); // can be null if no copy is needed
             if (rhsImpl != null) {
                 try {
                     rhs = rhsImpl.copy(rhs);
@@ -510,7 +515,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
 
             // now the type of lhs <= type of rhs
-            ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs); // will not be null, will be an upcast or a duplicate
+            ValueCopy.Impl lhsImpl = CopyLhs.determineCopyImplementation(lhs, rhs, selectorExprs.length, !subset, ast); // will not be null, will be an upcast or a duplicate
             if (!(lhsImpl instanceof ValueCopy.Duplicate) || lhs.isShared() || rhs.dependsOn(lhs)) {
                 try {
                     lhs = lhsImpl.copy(lhs);
@@ -522,9 +527,24 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             // TODO However because not everything is implemented as of now, I am keeping the checks.
             assert Utils.check((lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
-                            (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RRaw && rhs instanceof RRaw),
+                            (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RRaw && rhs instanceof RRaw) ||
+                            (lhs instanceof RList && rhs instanceof RList) || (lhs instanceof RNull && rhs instanceof RNull),
                             "Unable to perform the update of the array - unimplemented copy");
+
+            if (lhs instanceof RNull && rhs instanceof RNull) {
+                return lhs;
+            }
             return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+        }
+    }
+
+    private static void checkCopyImplementation(RAny lhs, RAny rhs, int nSelectors, ASTNode ast) {
+        if (!(lhs instanceof RArray)) {
+            throw RError.getObjectNotSubsettable(ast, lhs.typeOf());
+        }
+        if (!(rhs instanceof RArray)) {
+            checkDimensions(((RArray)lhs).dimensions(), nSelectors, ast);
+            throw RError.getNotMultipleReplacement(ast);
         }
     }
 
@@ -576,10 +596,21 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * <p/>
          * TODO: what to do with Raw values?
          */
-        protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs) {
+        protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs, int nSelectors, boolean subset, ASTNode ast) {
+
+            checkCopyImplementation(lhs, rhs, nSelectors, ast);
             RAny.Mode rhsMode = ValueCopy.valueMode(rhs);
             RAny.Mode lhsMode = ValueCopy.valueMode(lhs);
             switch (rhsMode) {
+                case RAW:
+                    switch(lhsMode) {
+                        case RAW:
+                            return ValueCopy.RAW_TO_RAW;
+                        case LIST:
+                            return ValueCopy.NONLIST_TO_LIST;
+                        default:
+                            throw RError.getSubassignTypeFix(ast, rhs.typeOf(), lhs.typeOf());
+                    }
                 case LOGICAL: // logical rhs will always fit
                     break;
                 case INT: // integer won't fit to logical
@@ -617,8 +648,25 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                             return ValueCopy.COMPLEX_TO_STRING;
                     }
                     break;
+                case LIST:
+                    switch (lhsMode) {
+                        case LIST:
+                            break;
+                        default:
+                            return ValueCopy.NONLIST_TO_LIST;
+                    }
+                    break;
+                case NULL:
+                    if (lhsMode == Mode.NULL) {
+                        break;
+                    }
+                    if (subset) {
+                        throw RError.getMoreElementsSupplied(ast);
+                    } else {
+                        throw RError.getNotMultipleReplacement(ast);
+                    }
                 default:
-                    Utils.nyi("unable to determine which copy to use for LHS");
+                    throw RError.getSubassignTypeFix(ast, rhs.typeOf(), lhs.typeOf());
             }
             // if we are here that means rhs fits to lhs ok, but we still must make a copy, therefore make a
             // non-typecasting copy of the lhs
@@ -626,15 +674,19 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 case LOGICAL:
                     return ValueCopy.LOGICAL_TO_LOGICAL;
                 case INT:
-                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof IntImpl) ? ValueCopy.INT_TO_INT_DIRECT : ValueCopy.INT_TO_INT;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS && lhs instanceof IntImpl) ? ValueCopy.INT_TO_INT_DIRECT : ValueCopy.INT_TO_INT;
                 case DOUBLE:
-                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_DOUBLE_DIRECT : ValueCopy.DOUBLE_TO_DOUBLE;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS && lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_DOUBLE_DIRECT : ValueCopy.DOUBLE_TO_DOUBLE;
                 case COMPLEX:
-                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof ComplexImpl) ? ValueCopy.COMPLEX_TO_COMPLEX_DIRECT : ValueCopy.COMPLEX_TO_COMPLEX;
+                    return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS && lhs instanceof ComplexImpl) ? ValueCopy.COMPLEX_TO_COMPLEX_DIRECT : ValueCopy.COMPLEX_TO_COMPLEX;
                 case STRING:
                     return ValueCopy.STRING_TO_STRING;
+                case LIST:
+                    return ValueCopy.LIST_TO_LIST;
+                case NULL:
+                    return ValueCopy.NULL_TO_NULL;
                 default:
-                    return ValueCopy.RAW_TO_RAW;
+                    throw RError.getSubassignTypeFix(ast, rhs.typeOf(), lhs.typeOf());
             }
         }
 
@@ -647,7 +699,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                ValueCopy.Impl copy =  determineCopyImplementation(lhs, rhs);
+                ValueCopy.Impl copy =  determineCopyImplementation(lhs, rhs, selectorExprs.length, !subset, ast);
                 if (copy instanceof ValueCopy.Duplicate) {
                     return replace(new SpecializedDuplicate(this, (ValueCopy.Duplicate) copy)).execute(frame, lhs, rhs);
                 } else {
@@ -674,7 +726,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             /**
              * Copies the lhs and then executes the child of the copy lhs node (the assignment
-             * itself). Upon failure of the copy code reqrites the whole tree to the general case.
+             * itself). Upon failure of the copy code rewrites the whole tree to the general case.
              */
             @Override
             public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
@@ -753,7 +805,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * If no such implicit conversion exists, returns null - which should be an exceptional case
          * of runtime type change.
          */
-        protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs) {
+        protected static ValueCopy.Impl determineCopyImplementation(RAny lhs, RAny rhs, int nSelectors, ASTNode ast) {
+
+            checkCopyImplementation(lhs, rhs, nSelectors, ast);
             RAny.Mode lhsMode = ValueCopy.valueMode(lhs);
             RAny.Mode rhsMode = ValueCopy.valueMode(rhs);
             switch (lhsMode) {
@@ -792,20 +846,28 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                             return ValueCopy.COMPLEX_TO_STRING;
                     }
                     break;
+                case LIST:
+                    switch (rhsMode) {
+                        case LIST:
+                            break;
+                        default:
+                            return ValueCopy.NONLIST_TO_LIST;
+                    }
+                    break;
             }
             return null;
         }
 
         /**
-         * Reqrites itself to the specialized copy rhs node which knows the typecast to run. If no
-         * such typecast can be found, reqrites itself to the generalized case.
+         * Rewrites itself to the specialized copy rhs node which knows the typecast to run. If no
+         * such typecast can be found, rewrites itself to the generalized case.
          */
         @Override
         public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs);
+                ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs, selectorExprs.length, ast);
                 if (impl == null) {
                     if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
                     return UpdateArray.GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
@@ -1273,6 +1335,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1333,6 +1397,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1393,6 +1459,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1456,6 +1524,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset * 2] = re;
                             lhsVal[lhsOffset * 2 + 1] = im;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1516,6 +1586,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1574,6 +1646,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if ((lhs instanceof RString) && (rhs instanceof RString)) {
                     if (DEBUG_UP) Utils.debug("NonScalar -> String");
                     return replace(new String(this)).execute(frame, lhs, rhs);
+                }
+                if ((lhs instanceof RRaw) && (rhs instanceof RRaw)) {
+                    if (DEBUG_UP) Utils.debug("NonScalar -> Raw");
+                    return replace(new Raw(this)).execute(frame, lhs, rhs);
                 }
                 Utils.nyi();
                 return null;
@@ -1827,6 +1903,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -1923,6 +2001,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -2020,6 +2100,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal[rhsOffset];
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -2116,6 +2198,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (lhsOffset != RInt.NA) {
                             lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
                             lhsVal[2 * lhsOffset + 1] = 0;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -2214,6 +2298,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (lhsOffset != RInt.NA) {
                             lhsVal[2 * lhsOffset] = rhsVal[rhsOffset];
                             lhsVal[2 * lhsOffset + 1] = 0;
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -2312,6 +2398,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (lhsOffset != RInt.NA) {
                             lhsVal[2 * lhsOffset] = rhsVal[2 * rhsOffset];
                             lhsVal[2 * lhsOffset + 1] = rhsVal[2 * rhsOffset + 1];
+                        } else {
+                            throw RError.getNASubscripted(ast);
                         }
                         rhsOffset++;
                         if (rhsOffset == replacementSize) {
@@ -2368,7 +2456,12 @@ class ValueCopy {
             return RAny.Mode.COMPLEX;
         } else if (value instanceof RString) {
             return RAny.Mode.STRING;
+        } else if (value instanceof RList) {
+            return RAny.Mode.LIST;
+        } else if (value instanceof RNull) {
+            return RAny.Mode.NULL;
         } else {
+            assert Utils.check(value instanceof RRaw);
             return RAny.Mode.RAW;
         }
     }
@@ -2720,7 +2813,38 @@ class ValueCopy {
         }
     };
 
-    // TODO what to do with raw ??
+    public static final Upcast NONLIST_TO_LIST = new Upcast() {
+
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof RArray) || what instanceof RList) {
+                throw new UnexpectedResultException(null);
+            }
+            RArray from = (RArray) what;
+            RAny[] result = new RAny[from.size()];
+            for (int i = 0; i < result.length; ++i) {
+                result[i] = from.boxedGet(i);
+            }
+            return RList.RListFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
+    public static final Duplicate LIST_TO_LIST = new Duplicate() {
+
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof RList)) {
+                throw new UnexpectedResultException(null);
+            }
+            RList from = (RList) what;
+            RAny[] result = new RAny[from.size()];
+            for (int i = 0; i < result.length; ++i) { // shallow copy
+                result[i] = from.getRAny(i);
+            }
+            return RList.RListFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
+        }
+    };
+
     public static final Duplicate RAW_TO_RAW = new Duplicate() {
 
         @Override
@@ -2737,4 +2861,14 @@ class ValueCopy {
         }
     };
 
+    public static final Duplicate NULL_TO_NULL = new Duplicate() {
+
+        @Override
+        public final RAny copy(RAny what) throws UnexpectedResultException {
+            if (!(what instanceof RNull)) {
+                throw new UnexpectedResultException(null);
+            }
+            return what;
+        }
+    };
 }

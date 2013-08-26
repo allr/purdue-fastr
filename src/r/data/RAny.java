@@ -17,12 +17,14 @@ import r.nodes.truffle.*;
 public interface RAny {
 
     public static enum Mode {
+        RAW,
         LOGICAL,
         INT,
         DOUBLE,
         COMPLEX,
         STRING,
-        RAW
+        LIST,
+        NULL
     }
 
     String TYPE_STRING = "any";

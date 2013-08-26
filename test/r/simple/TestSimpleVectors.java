@@ -413,6 +413,8 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEvalError("{ f <- function(b,i,v) { b[[i]] <- v ; b } ; f(1:2,\"hi\",3L) ; f(1:2,2,10) ; f(as.list(1:2),1:3, 10) }", "recursive indexing failed at level 2");
 
         assertEval("{ b <- list(1+2i,3+4i) ; dim(b) <- c(2,1) ; b[3] <- NULL ; b }", "[[1]]\n1.0+2.0i\n\n[[2]]\n3.0+4.0i");
+
+        assertEval("{ l <- list(1,2) ; l[[2]] <- as.raw(13) ; l }", "[[1]]\n1.0\n\n[[2]]\n0d");
     }
 
 
