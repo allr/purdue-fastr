@@ -245,6 +245,7 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ m <- matrix() \nm }", "     [,1]\n[1,]   NA");
         assertEval("{ matrix( (1:6) * (1+3i), nrow=2 ) }", "         [,1]      [,2]      [,3]\n[1,] 1.0+3.0i  3.0+9.0i 5.0+15.0i\n[2,] 2.0+6.0i 4.0+12.0i 6.0+18.0i");
         assertEval("{ matrix( as.raw(101:106), nrow=2 ) }", "     [,1] [,2] [,3]\n[1,]   65   67   69\n[2,]   66   68   6a");
+        assertEval("{ x <- list(\"a\",1,TRUE,NULL) ; dim(x) <- c(2,1,2) ; x }", ", , 1\n\n     [,1]\n[1,]  \"a\"\n[2,]  1.0\n\n, , 2\n\n     [,1]\n[1,] TRUE\n[2,] NULL");
     }
 
     @Test
@@ -421,8 +422,42 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ x <- NULL ; x[2,1] <- NULL ; x }", "NULL");
         assertEvalError("{ x <- matrix(2,nrow=2,ncol=2) ; x[2,1] <- NULL ; x }", "number of items to replace is not a multiple of replacement length");
         assertEvalError("{ x <- matrix(2,nrow=2,ncol=2) ; x[[2,1]] <- NULL ; x }", "more elements supplied than there are to replace");
-    }
 
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- 11:12 ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]  11L\n\n, , 2\n\n     [,1]\n[1,]   3L\n[2,]  12L");
+        assertEval("{ x <- c(1,2,3,4) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(11,12) ; x }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] 11.0\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,] 12.0");
+        assertEval("{ x <- c(1+1i,2+2i,3+3i,4+4i) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(11+1i,12+2i) ; x }", ", , 1\n\n          [,1]\n[1,]  1.0+1.0i\n[2,] 11.0+1.0i\n\n, , 2\n\n          [,1]\n[1,]  3.0+3.0i\n[2,] 12.0+2.0i");
+        assertEval("{ x <- c(TRUE,FALSE,NA,TRUE) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(FALSE,NA) ; x }", ", , 1\n\n      [,1]\n[1,]  TRUE\n[2,] FALSE\n\n, , 2\n\n     [,1]\n[1,]   NA\n[2,]   NA");
+        assertEval("{ x <- c(\"a\",\"A\",\"XX\",\"Y\") ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(\"b\",\"BB\") ; x }", ", , 1\n\n     [,1]\n[1,]  \"a\"\n[2,]  \"b\"\n\n, , 2\n\n     [,1]\n[1,] \"XX\"\n[2,] \"BB\"");
+        assertEval("{ x <- list(\"a\",1,TRUE,NULL) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- list(FALSE,NULL) ; x }", ", , 1\n\n      [,1]\n[1,]   \"a\"\n[2,] FALSE\n\n, , 2\n\n     [,1]\n[1,] TRUE\n[2,] NULL");
+        assertEval("{ x <- list(\"a\",1,TRUE,NULL) ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(FALSE,TRUE) ; x }", ", , 1\n\n      [,1]\n[1,]   \"a\"\n[2,] FALSE\n\n, , 2\n\n     [,1]\n[1,] TRUE\n[2,] TRUE");
+        assertEval("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2) ; x[2,1,2] <- as.raw(21)[1:1] ; x }", ", , 1\n\n     [,1]\n[1,]   0b\n[2,]   0c\n\n, , 2\n\n     [,1]\n[1,]   0d\n[2,]   15");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(FALSE,TRUE) ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]   0L\n\n, , 2\n\n     [,1]\n[1,]   3L\n[2,]   1L");
+
+        assertEval("{ for (i in 1:3 ) { x <- 1:4 ; if (i>=2) { x <- c(10,1,3,4) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(14*i,12+i)  } ; x }", ", , 1\n\n     [,1]\n[1,] 10.0\n[2,] 42.0\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,] 15.0");
+        assertEval("{ for (i in 1:3 ) { x <- c(10,11,13,14) ; if (i>=2) { x <- c(1L,2L,10L,100L) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(14L*i,12L+i)  } ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]  42L\n\n, , 2\n\n     [,1]\n[1,]  10L\n[2,]  15L");
+        assertEval("{ for (i in 1:3 ) { x <- c(11:14) ; if (i>=2) { x <- c(1,2,10,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(14L*i,12L+i)  } ; x }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] 42.0\n\n, , 2\n\n     [,1]\n[1,] 10.0\n[2,] 15.0");
+        assertEval("{ for (i in 1:3 ) { x <- c(11:14) ; if (i>=2) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(14L*i,12L+i)  } ; x }", ", , 1\n\n          [,1]\n[1,]  1.0+0.0i\n[2,] 42.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 10.0+1.0i\n[2,] 15.0+0.0i");
+        assertEval("{ for (i in 1:3 ) { x <- c(11:14) ; if (i>=2) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(15*i,-12+i)  } ; x }", ", , 1\n\n          [,1]\n[1,]  1.0+0.0i\n[2,] 45.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 10.0+1.0i\n[2,] -9.0+0.0i");
+        assertEval("{ for (i in 1:3 ) { x <- c(11:14) ; if (i>=2) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(TRUE,NA)  } ; x }", ", , 1\n\n         [,1]\n[1,] 1.0+0.0i\n[2,] 1.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 10.0+1.0i\n[2,]        NA");
+        assertEval("{ r <- 0 ; for (i in 1:5 ) { x <- c(11:14) ; if (i==2 || i==3) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(15L*i,-12L+i) ; r <- r + sum(x) } ; r }", "274.0+2.0i");
+        assertEval("{ r <- 0 ; for (i in 1:5 ) { x <- c(11:14) ; if (i==2 || i==3) { x <- c(1,2,10+1i,100) } ; dim(x) <- c(2,1,2) ; x[2,1,1:2] <- c(15L*i,NA) } ; x }", ", , 1\n\n     [,1]\n[1,]  11L\n[2,]  75L\n\n, , 2\n\n     [,1]\n[1,]  13L\n[2,]   NA");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- x ; x }", ", , 1\n\n     [,1]\n[1,]   4L\n[2,]   3L\n\n, , 2\n\n     [,1]\n[1,]   2L\n[2,]   1L");
+        assertEval("{ y <- as.double(1:4) ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- c(1,2,3,4) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n     [,1]\n[1,]  4.0\n[2,]  3.0\n\n, , 2\n\n     [,1]\n[1,]  2.0\n[2,]  1.0");
+        assertEval("{ y <- as.double(1:4) ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- c(1+2i,2,3,4) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n         [,1]\n[1,] 4.0+0.0i\n[2,] 3.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 2.0+0.0i\n[2,] 1.0+2.0i");
+        assertEval("{ y <- 1:4 ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- c(1+2i,2,3,4) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n         [,1]\n[1,] 4.0+0.0i\n[2,] 3.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 2.0+0.0i\n[2,] 1.0+2.0i");
+        assertEval("{ y <- 1:4 ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- c(1,2,3,4) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n     [,1]\n[1,]  4.0\n[2,]  3.0\n\n, , 2\n\n     [,1]\n[1,]  2.0\n[2,]  1.0");
+        assertEval("{ y <- 1:4 ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- as.double(1:4) ; if (i>=2) { x <- 11:14 } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n     [,1]\n[1,]  14L\n[2,]  13L\n\n, , 2\n\n     [,1]\n[1,]  12L\n[2,]  11L");
+        assertEval("{ y <- 1:4+1+2i ; dim(y) <- c(2,1,2) ; for(i in 1:6) { x <- as.double(1:4) ; if (i>=2) { x <- c(1+2i,3+4i,5,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { x } else { y }  } ; x }", ", , 1\n\n         [,1]\n[1,]       NA\n[2,] 5.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+4.0i\n[2,] 1.0+2.0i");
+        assertEval("{ for(i in 1:6) { x <- as.double(1:4) ; if (i>=2) { x <- 1:4 } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { 11:14+1+2i } else { c(1L,10L,NA,3L) }  } ; x }", ", , 1\n\n          [,1]\n[1,] 15.0+2.0i\n[2,] 14.0+2.0i\n\n, , 2\n\n          [,1]\n[1,] 13.0+2.0i\n[2,] 12.0+2.0i");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- as.double(1:4) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { 11:14+1+2i } else { c(1L,10L,NA,3L) }  } ; x }", ", , 1\n\n          [,1]\n[1,] 15.0+2.0i\n[2,] 14.0+2.0i\n\n, , 2\n\n          [,1]\n[1,] 13.0+2.0i\n[2,] 12.0+2.0i");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- (1:4)+1+2i } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { 11:14 } else { c(1L,10L,NA,3L)+2+3i }  } ; x }", ", , 1\n\n          [,1]\n[1,] 14.0+0.0i\n[2,] 13.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 12.0+0.0i\n[2,] 11.0+0.0i");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- (1:4)+1+2i } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { 11:14 } else { c(1,10,NA,3) }  } ; x }", ", , 1\n\n          [,1]\n[1,] 14.0+0.0i\n[2,] 13.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 12.0+0.0i\n[2,] 11.0+0.0i");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- (1:4)+1 } ; dim(x) <- c(2,1,2) ; x[2:1,1,2:1] <- if (i >= 4) { 11:14 } else { c(1,10,NA,3) }  } ; x }", ", , 1\n\n     [,1]\n[1,] 14.0\n[2,] 13.0\n\n, , 2\n\n     [,1]\n[1,] 12.0\n[2,] 11.0");
+        assertEval("{ for(i in 1:6) { x <- 1:4+1 ; if (i>=2) { x <- 1:4 } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11L,12L)  } ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]   0L\n\n, , 2\n\n     [,1]\n[1,]  12L\n[2,]  11L");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1 } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11L,12L)  } ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]   0L\n\n, , 2\n\n     [,1]\n[1,]  12L\n[2,]  11L");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1+1i } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11,12)  } ; x }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,]  0.0\n\n, , 2\n\n     [,1]\n[1,] 12.0\n[2,] 11.0");
+        assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1+1i } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11+1i,12+2i)  } ; x }", ", , 1\n\n         [,1]\n[1,] 1.0+0.0i\n[2,] 0.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 12.0+2.0i\n[2,] 11.0+1.0i");
+    }
 
     @Test
     public void testDynamic() throws RecognitionException {

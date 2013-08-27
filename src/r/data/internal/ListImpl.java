@@ -153,9 +153,11 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
         } else if (a instanceof RString) {
             base = "Character";
         } else if (a instanceof RRaw) {
-           base = "Raw";
+            base = "Raw";
         } else if (a instanceof RComplex) {
-           base = "Complex";
+            base = "Complex";
+        } else if (a instanceof RNull) {
+            return "NULL";
         } else {
             Utils.nyi("unsupported type");
             base = null;

@@ -11,6 +11,9 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Selector.SelectorNode;
 
+// FIXME: during rewrites, the rhs (value) may be up-casted multiple times, through an inter-mediate type
+// FIXME: add more specializations
+
 /** Array update AST and its specializations. */
 public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
@@ -76,6 +79,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return true;
         }
         if ((to instanceof RLogical) && (from instanceof RLogical)) {
+            return true;
+        }
+        if ((to instanceof RRaw) && (from instanceof RRaw)) {
+            return true;
+        }
+        if (to instanceof RList) {
             return true;
         }
         return false;
@@ -251,9 +260,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
-                if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical) ||
-                                (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)
-                                || (lhs instanceof RList && rhs instanceof RList)) {
+                if ((lhs instanceof RDouble && rhs instanceof RDouble)
+                        || (lhs instanceof RInt && rhs instanceof RInt)
+                        || (lhs instanceof RLogical && rhs instanceof RLogical)
+                        || (lhs instanceof RString && rhs instanceof RString)
+                        || (lhs instanceof RComplex && rhs instanceof RComplex)
+                        || (lhs instanceof RRaw && rhs instanceof RRaw)
+                        || (lhs instanceof RList && rhs instanceof RList)) {
                     // note: this intentionally does not include RNull, non-array types
                     if (DEBUG_UP) Utils.debug("RHSCompatible -> IdenticalTypes (no need of rhs copy)");
                     return replace(new IdenticalTypes(this)).execute(frame, lhs, rhs);
@@ -363,32 +376,44 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     // confirm and proceed
                     switch (updateType) {
                         case INT_TO_INT_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof IntImpl && rhs instanceof IntImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof IntImpl
+                                    && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
                         case INT_TO_DOUBLE_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof IntImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof DoubleImpl
+                                    && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
                         case DOUBLE_TO_DOUBLE_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof DoubleImpl && rhs instanceof DoubleImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof DoubleImpl
+                                    && rhs instanceof DoubleImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
                         case INT_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof IntImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof ComplexImpl
+                                    && rhs instanceof IntImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
                         case DOUBLE_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof DoubleImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof ComplexImpl
+                                    && rhs instanceof DoubleImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
                         case COMPLEX_TO_COMPLEX_DIRECT:
-                            if ((lhs != rhs) && lhs instanceof ComplexImpl && rhs instanceof ComplexImpl) {
+                            if ((lhs != rhs)
+                                    && lhs instanceof ComplexImpl
+                                    && rhs instanceof ComplexImpl) {
                                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                             }
                             break;
@@ -1651,6 +1676,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (DEBUG_UP) Utils.debug("NonScalar -> Raw");
                     return replace(new Raw(this)).execute(frame, lhs, rhs);
                 }
+                if ((lhs instanceof RList) && (rhs instanceof RList)) {
+                    if (DEBUG_UP) Utils.debug("NonScalar -> List");
+                    return replace(new List(this)).execute(frame, lhs, rhs);
+                }
                 Utils.nyi();
                 return null;
             }
@@ -1795,6 +1824,26 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Raw -> Generalized");
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                }
+            }
+        }
+
+        protected static final class List extends NonScalar {
+
+            public List(UpdateArray other) {
+                super(other);
+            }
+
+            @Override
+            public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+                try {
+                    if (!(lhs instanceof RList) || (!(rhs instanceof RList))) {
+                        throw new UnexpectedResultException(null);
+                    }
+                    return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
+                } catch (UnexpectedResultException e) {
+                    if (DEBUG_UP) Utils.debug("NonScalar.List -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
@@ -2582,7 +2631,7 @@ class ValueCopy {
             int[] from = ((IntImpl) what).getContent();
             double[] result = new double[from.length];
             for (int i = 0; i < result.length; ++i) {
-                result[i] = from[i];
+                result[i] = Convert.int2double(from[i]);
             }
             return RDouble.RDoubleFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
@@ -2626,10 +2675,16 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RLogical from = (RLogical) what;
-            double[] result = new double[from.size() * 2];
-            for (int i = 0; i < result.length >> 1; ++i) {
-                result[i << 1] = from.getLogical(i);
-                // img[i] is 0
+            int lsize = from.size();
+            double[] result = new double[lsize * 2];
+            for (int i = 0; i < lsize; ++i) {
+                int val = from.getLogical(i);
+                if (val == RLogical.NA) {
+                    result[2 * i] = RDouble.NA;
+                    result[2 * i + 1] = RDouble.NA;
+                } else {
+                    result[2 * i] = val;
+                }
             }
             return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
@@ -2643,10 +2698,16 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RInt from = (RInt) what;
-            double[] result = new double[from.size() * 2];
-            for (int i = 0; i < result.length >> 1; ++i) {
-                result[i << 1] = from.getInt(i);
-                // img[i] is 0
+            int isize = from.size();
+            double[] result = new double[isize * 2];
+            for (int i = 0; i < isize; ++i) {
+                int val = from.getInt(i);
+                if (val == RInt.NA) {
+                    result[2 * i] = RDouble.NA;
+                    result[2 * i + 1] = RDouble.NA;
+                } else {
+                    result[2 * i] = val;
+                }
             }
             return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
@@ -2662,7 +2723,13 @@ class ValueCopy {
             int[] from = ((IntImpl) what).getContent();
             double[] result = new double[from.length * 2];
             for (int i = 0; i < from.length; ++i) {
-                result[i << 1] = from[i];
+                int val = from[i];
+                if (val == RInt.NA) {
+                    result[2 * i] = RDouble.NA;
+                    result[2 * i + 1] = RDouble.NA;
+                } else {
+                    result[2 * i] = val;
+                }
             }
             return RComplex.RComplexFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
@@ -2677,10 +2744,17 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RDouble from = (RDouble) what;
-            double[] result = new double[from.size() * 2];
-            for (int i = 0; i < result.length >> 1; ++i) {
-                result[i << 1] = from.getDouble(i);
-                // img[i] is 0
+            int dsize = from.size();
+            double[] result = new double[dsize * 2];
+            for (int i = 0; i < dsize; ++i) {
+                double val = from.getDouble(i);
+                if (RDouble.RDoubleUtils.isNAorNaN(val)) {
+                    result[2 * i] = RDouble.NA;
+                    result[2 * i + 1] = RDouble.NA;
+                } else {
+                    result[2 * i] = val;
+                }
+
             }
             return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
@@ -2696,7 +2770,13 @@ class ValueCopy {
             double[] from = ((DoubleImpl) what).getContent();
             double[] result = new double[from.length * 2];
             for (int i = 0; i < from.length; ++i) {
-                result[i << 1] = from[i];
+                double val = from[i];
+                if (RDouble.RDoubleUtils.isNAorNaN(val)) {
+                    result[2 * i] = RDouble.NA;
+                    result[2 * i + 1] = RDouble.NA;
+                } else {
+                    result[2 * i] = val;
+                }
             }
             return RComplex.RComplexFactory.getFor(result, old.dimensions(), old.names(), old.attributesRef());
         }
@@ -2719,7 +2799,7 @@ class ValueCopy {
         }
     };
 
-    public static final Impl COMPLEX_TO_COMPLEX_DIRECT = new Duplicate() {
+    public static final Duplicate COMPLEX_TO_COMPLEX_DIRECT = new Duplicate() {
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
             if (!(what instanceof ComplexImpl)) {
