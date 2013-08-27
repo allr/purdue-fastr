@@ -207,6 +207,8 @@ public class FastrLoader extends Loader implements Translator {
             for (CtField field : fields) {
                 CtClass ftype = field.getType();
                 String fname = field.getName();
+                if (ftype.hasAnnotation(Uncopyable.class))
+                    throw new Error("Field " + fname + " of class " + cls.getName() + " is marked uncopyable and cannot be copied automatically.");
                 String ftypeName = ftype.getName();
                 // now based on different types, build the copy constructor
                 String code;
