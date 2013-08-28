@@ -457,6 +457,32 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1 } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11L,12L)  } ; x }", ", , 1\n\n     [,1]\n[1,]   1L\n[2,]   0L\n\n, , 2\n\n     [,1]\n[1,]  12L\n[2,]  11L");
         assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1+1i } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11,12)  } ; x }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,]  0.0\n\n, , 2\n\n     [,1]\n[1,] 12.0\n[2,] 11.0");
         assertEval("{ for(i in 1:6) { x <- 1:4 ; if (i>=2) { x <- 1:4+1+1i } ; if (i>=4) { x <- c(TRUE,FALSE,FALSE,NA) } ; dim(x) <- c(2,1,2) ; x[2:1,1,2] <- c(11+1i,12+2i)  } ; x }", ", , 1\n\n         [,1]\n[1,] 1.0+0.0i\n[2,] 0.0+0.0i\n\n, , 2\n\n          [,1]\n[1,] 12.0+2.0i\n[2,] 11.0+1.0i");
+        assertEval("{ x <- list(1,2,3,4); dim(x) <- c(2,1,2); x[2,1,1] <- TRUE;  x }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] TRUE\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,]  4.0");
+        assertEval("{ x <- as.raw(c(1,2,3,4)); dim(x) <- c(2,1,2); x[2,1,1] <- as.raw(TRUE);  x }", ", , 1\n\n     [,1]\n[1,]   01\n[2,]   01\n\n, , 2\n\n     [,1]\n[1,]   03\n[2,]   04");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2); x[[2,1,1]] <- 10+1i; x }", ", , 1\n\n          [,1]\n[1,]  1.0+0.0i\n[2,] 10.0+1.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 4.0+0.0i");
+        assertEval("{ x <- c(1L,3L,4L,NA) ; dim(x) <- c(2,1,2); x[[2,1,1]] <- 10+1i;  x }", ", , 1\n\n          [,1]\n[1,]  1.0+0.0i\n[2,] 10.0+1.0i\n\n, , 2\n\n         [,1]\n[1,] 4.0+0.0i\n[2,]       NA");
+        assertEval("{ x <- c(1L,3L,4L,NA) ; dim(x) <- c(2,1,2); x[[2,1,1]] <- list(10+1i); x[2] }", "[[1]]\n[[1]][[1]]\n10.0+1.0i");
+
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2); z <- x ; f <- function(b) { b[2,1,1] <- 10L; b } ; f(x) ; y <- as.double(x); dim(y) <- c(2,1,2) ; f(y) }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] 10.0\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,]  4.0");
+        assertEval("{ x <- c(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); x[2,1,1] <- 2; x }", ", , 1\n\n      [,1]\n[1,]   \"a\"\n[2,] \"2.0\"\n\n, , 2\n\n     [,1]\n[1,]  \"c\"\n[2,]  \"d\"");
+        assertEval("{ x <- c(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); x[2,1,1] <- list(1); dim(x) <- NULL; x }", "[[1]]\n\"a\"\n\n[[2]]\n1.0\n\n[[3]]\n\"c\"\n\n[[4]]\n\"d\"");
+        assertEval("{ x <- c(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); f <- function(v) { x[2,1,1] <- v ; x } ; f(1+2i) ; f(\"XX\") }", ", , 1\n\n     [,1]\n[1,]  \"a\"\n[2,] \"XX\"\n\n, , 2\n\n     [,1]\n[1,]  \"c\"\n[2,]  \"d\"");
+        assertEval("{ x <- list(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); f <- function(v) { x[2,1,1] <- v ; x } ; f(1+2i) ; f(list(\"XX\")) }", ", , 1\n\n     [,1]\n[1,]  \"a\"\n[2,] \"XX\"\n\n, , 2\n\n     [,1]\n[1,]  \"c\"\n[2,]  \"d\"");
+
+        assertEval("{ x <- c(\"a\",\"b\",\"c\",\"d\") ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(\"AA\"); f(10) }", ", , 1\n\n       [,1]\n[1,]    \"a\"\n[2,] \"10.0\"\n\n, , 2\n\n     [,1]\n[1,]  \"c\"\n[2,]  \"d\"");
+        assertEval("{ x <- c(1+1i,2+2i,3+3i,4+4i) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(1+12i) ; f(10) }", ", , 1\n\n          [,1]\n[1,]  1.0+1.0i\n[2,] 10.0+0.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+3.0i\n[2,] 4.0+4.0i");
+        assertEval("{ x <- c(1,10,0/0,1/0) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(12) ; f(10L) }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] 10.0\n\n, , 2\n\n         [,1]\n[1,]      NaN\n[2,] Infinity");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(12L) ; f(10/0) }", ", , 1\n\n         [,1]\n[1,]      1.0\n[2,] Infinity\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,]  4.0");
+        assertEval("{ x <- c(TRUE,FALSE,NA,FALSE) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(FALSE) ; f(10/0) }", ", , 1\n\n         [,1]\n[1,]      1.0\n[2,] Infinity\n\n, , 2\n\n     [,1]\n[1,]   NA\n[2,]  0.0");
+        assertEvalError("{ x <- as.raw(11:14) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(as.raw(10)) ; f(10/0) }", "incompatible types (from double to raw) in subassignment type fix");
+        assertEval("{ x <- list(1,10,-1/0,0/0) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(list(TRUE)) ; z <- f(NA) ; unlist(z) }", "1.0, NA, -Infinity, NaN");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- c(\"a\",\"b\",\"c\",\"d\") } else { b <- 1:4 };  dim(b) <- c(2,1,2); b[[2,1,1]] <- \"AA\" } ; b }", ", , 1\n\n     [,1]\n[1,] \"1L\"\n[2,] \"AA\"\n\n, , 2\n\n     [,1]\n[1,] \"3L\"\n[2,] \"4L\"");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- c(1+2i/0,-3/0,0/0,4) } else { b <- 1:4 };  dim(b) <- c(2,1,2); b[[2,1,1]] <- 1+5i } ; b }", ", , 1\n\n         [,1]\n[1,] 1.0+0.0i\n[2,] 1.0+5.0i\n\n, , 2\n\n         [,1]\n[1,] 3.0+0.0i\n[2,] 4.0+0.0i");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- c(1/0,-3/0,0/0,4) } else { b <- 1:4 };  dim(b) <- c(2,1,2); b[[2,1,1]] <- 10 } ; b }", ", , 1\n\n     [,1]\n[1,]  1.0\n[2,] 10.0\n\n, , 2\n\n     [,1]\n[1,]  3.0\n[2,]  4.0");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- 1:4 } else { b <- c(1/0,-3/0,0/0,4) };  dim(b) <- c(2,1,2); b[[2,1,1]] <- 10L } ; b }", ", , 1\n\n         [,1]\n[1,] Infinity\n[2,]     10.0\n\n, , 2\n\n     [,1]\n[1,]  NaN\n[2,]  4.0");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- c(TRUE,FALSE,FALSE,NA) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- TRUE } ; b }", ", , 1\n\n         [,1]\n[1,] Infinity\n[2,]      1.0\n\n, , 2\n\n     [,1]\n[1,]  NaN\n[2,]  4.0");
+        assertEvalError("{ for(i in 1:2) { if (i==1) { b <- as.raw(11:14) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- as.raw(111) } ; b }", "incompatible types (from raw to double) in subassignment type fix");
+        assertEval("{ for(i in 1:2) { if (i==1) { b <- as.list(11:14) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- list(111) } ; dim(b) <- NULL ; b }", "[[1]]\nInfinity\n\n[[2]]\n[[2]][[1]]\n111.0\n\n[[3]]\nNaN\n\n[[4]]\n4.0");
     }
 
     @Test

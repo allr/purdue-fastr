@@ -14,6 +14,16 @@ import r.nodes.truffle.Selector.SelectorNode;
 // FIXME: during rewrites, the rhs (value) may be up-casted multiple times, through an inter-mediate type
 // FIXME: add more specializations
 
+// TODO !!!: In GNU-R, updating a non-list array using a list should drop dimensions
+// in the present architecture, this is not just about adding an LHS copier that would drop it, because later the update functions
+// would fail on checking the number of subscripts (and actually doing the assignment)
+
+// TODO !!!: { x <- list(1,10,-1/0,0/0) ; dim(x) <- c(2,1,2); f <- function(v) { x[[2,1,1]] <- v ; x } ; f(list(TRUE)) ; f(NA) }
+// this cannot be run correctly with the current architecture and a fix won't be easy
+// the problem is that the updating code needs to know what the value of the left-hand-side used to be
+// (if upcasting to a list, a scalar list value should be boxed, but otherwise it should not)
+// see vector update which does this correctly
+
 /** Array update AST and its specializations. */
 public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
@@ -75,7 +85,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         if ((to instanceof RComplex) && (from instanceof RInt || from instanceof RDouble || from instanceof RComplex || from instanceof RLogical)) {
             return true;
         }
-        if (to instanceof RString) { // everything is convertible to a string
+        if (to instanceof RString && !(from instanceof RList)) {
             return true;
         }
         if ((to instanceof RLogical) && (from instanceof RLogical)) {
@@ -311,7 +321,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return replace(MatrixScalarIndex.create(this,  lhs,  rhs)).execute(frame, lhs, rhs);
                 }
                 assert Utils.check(rhs instanceof RArray);
-                if (((RArray) rhs).size() == 1) {
+                if (((RArray) rhs).size() == 1 && !(rhs instanceof RList || rhs instanceof RRaw)) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Scalar");
                     return replace(new Scalar(this)).execute(frame, lhs, rhs);
                 }
@@ -656,9 +666,11 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         case LOGICAL:
                             return ValueCopy.LOGICAL_TO_COMPLEX;
                         case INT:
-                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof IntImpl) ? ValueCopy.INT_TO_COMPLEX_DIRECT : ValueCopy.INT_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS
+                                    && lhs instanceof IntImpl) ? ValueCopy.INT_TO_COMPLEX_DIRECT : ValueCopy.INT_TO_COMPLEX;
                         case DOUBLE:
-                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS &&  lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_COMPLEX_DIRECT : ValueCopy.DOUBLE_TO_COMPLEX;
+                            return (Configuration.ARRAY_UPDATE_LHS_VALUECOPY_DIRECT_ACCESS
+                                    && lhs instanceof DoubleImpl) ? ValueCopy.DOUBLE_TO_COMPLEX_DIRECT : ValueCopy.DOUBLE_TO_COMPLEX;
                     }
                     break;
                 case STRING: // string only fits into a string
@@ -691,7 +703,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         throw RError.getNotMultipleReplacement(ast);
                     }
                 default:
-                    throw RError.getSubassignTypeFix(ast, rhs.typeOf(), lhs.typeOf());
+                    assert Utils.check(false, "unreachable");
             }
             // if we are here that means rhs fits to lhs ok, but we still must make a copy, therefore make a
             // non-typecasting copy of the lhs
@@ -979,7 +991,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                 };
             }
-            if (leftTemplate instanceof RLogical && rightTemplate instanceof RInt) {
+            if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) {
                 return new TypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
@@ -999,7 +1011,17 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                 };
             }
-            Utils.nyi("left " + leftTemplate + " right " + rightTemplate);
+            if (leftTemplate instanceof RList && rightTemplate instanceof RList) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
+                        if (!(lhs instanceof RList && rhs instanceof RList)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            assert Utils.check(false, "unreachable");
             return null;
         }
     }
@@ -1044,7 +1066,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 offset += k * mult;
                 mult *= dim[i];
             }
-            return lhs.set(offset, rhs.get(0));
+            return lhs.set(offset, rhs instanceof RList ? rhs : rhs.get(0));
         }
 
         @Override
@@ -1257,7 +1279,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 selectorExprs[0].pushBack(selectorExprs[0].child, ival);
                 selectorExprs[1].pushBack(selectorExprs[1].child, jval);
 
-                if (rhs.size() == 1) {
+                if (rhs.size() == 1 && !(rhs instanceof RList || rhs instanceof RRaw)) {
                     return replace(new Scalar(this)).execute(frame, lhs, rhs);
                 } else {
                     return replace(new NonScalar(this)).execute(frame, lhs, rhs);
@@ -1303,10 +1325,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     return replace(new Complex(this)).execute(frame, lhs, rhs);
                 } else if (rhs instanceof RLogical) {
                     return replace(new Logical(this)).execute(frame, lhs, rhs);
-                } else if (rhs instanceof RString) {
-                    return replace(new String(this)).execute(frame, lhs, rhs);
                 } else {
-                    return replace(new NonScalar.Raw(this)).execute(frame, lhs, rhs);
+                    assert Utils.check(rhs instanceof RString);
+                    return replace(new String(this)).execute(frame, lhs, rhs);
                 }
             }
         }
