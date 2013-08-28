@@ -1151,6 +1151,17 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ typeof(quote(x + y)) }", "\"language\"");
         assertEval("{ quote(x <- x + 1) }", "x <- x + 1.0"); // specific to fastr output format
         assertEval("{ typeof(quote(x)) }", "\"symbol\"");
+
+        assertEval("{ quote(`a` <- 1) }", "a <- 1.0");
+        assertEval("{ quote(`a.` <- 1) }", "a. <- 1.0");
+        assertEval("{ quote(`.a` <- 1) }", ".a <- 1.0");
+        assertEval("{ quote(`a+` <- 1) }", "`a+` <- 1.0");
+        assertEval("{ quote(`_a` <- 1) }", "`_a` <- 1.0");
+        assertEval("{ quote(`a_` <- 1) }", "a_ <- 1.0");
+        assertEval("{ quote(f(g(x)) <- 2) }", "f(g(x)) <- 2.0");
+        assertEval("{ quote(f(x) <- 2) }", "f(x) <- 2.0");
+        assertEval("{ quote(f(x,1,2,z+1) <- 2) }", "f(x, 1.0, 2.0, z + 1.0) <- 2.0");
+        assertEval("{ g <- function() { f(x,1,2,z+1) <- 2 } ; g }", "function () { f(x, 1.0, 2.0, z + 1.0) <- 2.0 }");
     }
 
     @Test

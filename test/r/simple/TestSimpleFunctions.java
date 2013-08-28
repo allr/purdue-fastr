@@ -54,6 +54,7 @@ public class TestSimpleFunctions extends SimpleTestBase {
 
         // replacement function
         assertEval("{ 'my<-' <- function(x, value) { attr(x, \"myattr\") <- value ; x } ; z <- 1; my(z) <- \"hello\" ; z }", "1.0\nattr(,\"myattr\")\n\"hello\"");
+        assertEval("{ cnt <- 1 ; delayedAssign(\"z\", evalat <<- cnt ) ; cnt <- 2 ; 'f<-' <- function(x, arg, value) { cnt <<- 4 ; arg * value } ; cnt <- 3; f(z, 12) <- 2 ; evalat }", "3.0");
     }
 
     @Test

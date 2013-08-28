@@ -74,8 +74,11 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     @Override public String pretty() {
-        // TODO put `` when needed
-        return name;
+        if (name == RString.NA || name.length() == 0 || name.matches("^[a-zA-Z.]+[a-zA-Z0-9_.]*$")) {
+            return name;
+        } else {
+            return "`" + name + "`";
+        }
     }
 
     public String name() {

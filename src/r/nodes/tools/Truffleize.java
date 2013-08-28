@@ -688,6 +688,11 @@ public class Truffleize implements Visitor {
         result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), RSymbol.getSymbol(fa.fieldName()), createTree(u.getRHS()));
     }
 
+    @Override
+    public void visit(UpdateExpression u) {
+        Utils.nyi("generic update expressions not implemented");
+    }
+
     @SuppressWarnings("unchecked")
     private static <T extends ASTNode> T findParent(ASTNode node, Class<T> clazz) {
         ASTNode n = node.getParent();

@@ -232,10 +232,41 @@ public class PrettyPrinter extends BasicVisitor {
     }
 
     @Override
+    public void visit(UpdateExpression n) {
+        print(n.getLHS());
+        print(" <- ");
+        print(n.getRHS());
+    }
+
+    @Override
     public void visit(FunctionCall n) {
-        print(n.getName().pretty() + "(");
-        print(n.getArgs(), true);
-        print(")");
+        if (n.isAssignment()) {
+            String str = n.getName().name();
+            assert Utils.check(str.endsWith("<-"));
+            print(str.substring(0, str.length() - 2));
+            print("(");
+
+            int nargs = n.getArgs().size();
+            assert Utils.check(nargs > 0);
+            ArgumentList.Entry[] args = n.getArgs().toArray(new ArgumentList.Entry[nargs]);
+
+            for (int i = 0; i < nargs - 1 ; i++) {
+                if (i > 0) {
+                    print(", ");
+                }
+                print(args[i], true);
+            }
+
+            print(")");
+            print(" <- ");
+
+            print(args[nargs - 1].getValue());
+
+        } else {
+            print(n.getName().pretty() + "(");
+            print(n.getArgs(), true);
+            print(")");
+        }
     }
 
     @Override

@@ -208,6 +208,11 @@ public class BasicVisitor implements Visitor {
         visit((ASTNode) u);
     }
 
+    @Override
+    public void visit(UpdateExpression u) {
+        visit((ASTNode) u);
+    }
+
     public void visit(Call n) {
         visit((ASTNode) n);
     }

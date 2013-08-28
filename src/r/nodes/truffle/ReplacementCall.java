@@ -10,9 +10,14 @@ import com.oracle.truffle.api.frame.*;
 
 // FIXME: could get some performance for local variable updates (non-super assignment), e.g. like in UpdateVector
 
+// Note that the semantics is not exactly as of GNU-R. In GNU-R, the variable is locally copied into a temporary variable *tmp*.
+// We don't do this. However, we have the forcePromiseNode to read the variable to force a promise to get closer to that behavior.
+// This indeed leads to double look-up on the variable, which is not great for performance.
+
 // the call passed must have SimpleAccessVariable of "var" as its first argument
 // and RememberLast (the value) as its last argument
 public class ReplacementCall extends BaseR {
+    @Child RNode forcePromiseNode;
     @Child RNode callNode;
     @Child RememberLast valueNode;
     @Child RNode assign;
@@ -38,10 +43,13 @@ public class ReplacementCall extends BaseR {
         } else {
             this.assign = adoptChild(WriteVariable.getUninitialized(ast, var, node));
         }
+
+        this.forcePromiseNode = adoptChild(ReadVariable.getUninitialized(ast, var));
     }
 
     @Override
     public Object execute(Frame frame) {
+        forcePromiseNode.execute(frame);
         newContent = callNode.execute(frame);
         assign.execute(frame);
         return valueNode.lastValue();

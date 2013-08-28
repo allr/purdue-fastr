@@ -42,6 +42,7 @@ public interface Visitor {
     void visit(SimpleAssignVariable assign);
     void visit(UpdateVector update);
     void visit(UpdateField update);
+    void visit(UpdateExpression update);
 
     void visit(Function function);
     void visit(FunctionCall functionCall);

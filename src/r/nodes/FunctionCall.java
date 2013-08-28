@@ -4,8 +4,8 @@ import r.data.*;
 
 public class FunctionCall extends Call {
 
-    RSymbol name; // FIXME: LHS of a call does not need to be a symbol, it can be a lambda expression
-    boolean isAssignment;
+    RSymbol name; // this node is only for calls that have a symbol on the LHS
+    boolean isAssignment; // this node only supports non-reflective replacement calls
     boolean isSuper;
 
     public FunctionCall(RSymbol funName, ArgumentList args) {

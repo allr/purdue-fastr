@@ -64,16 +64,15 @@ public abstract class AssignVariable extends ASTNode {
     }
 
     public static ASTNode writeFunction(boolean isSuper, FunctionCall lhs, ASTNode rhs) {
-        // FIXME Probably we need a special node, for now all assign function should return value
-        lhs.name = RSymbol.getSymbol(lhs.name.pretty() + "<-");
         if (lhs.args.size() > 0) {
             ASTNode first = lhs.args.first().getValue();
             if (!(first instanceof SimpleAccessVariable)) {
-                Utils.nyi(); // TODO here we need to flatten complex assignments
+                return new UpdateExpression(isSuper, lhs, rhs);
             } else {
                 lhs.args.add("value", rhs);
             }
         }
+        lhs.name = RSymbol.getSymbol(lhs.name.pretty() + "<-");
         lhs.isAssignment(true);
         lhs.isSuper(isSuper);
         return lhs;
