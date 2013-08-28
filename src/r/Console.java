@@ -27,6 +27,8 @@ public class Console {
     public static String[] trailingArgs; // For commandArgs(trailing=T)
     public static String[] commandArgs; // For commandArgs(trailing=F)
 
+    public static long startTime; // for proc.time
+
     static String inputFile;
     static boolean interactive;
     static boolean forceVisible;
@@ -108,6 +110,7 @@ public class Console {
 
     public static void main(String[] args) {
         storeCommandLineArguments(args);
+        startTime = System.nanoTime();
 
         try {
             Option.processCommandLine(args, options); // TODO store this in a more appropriate place

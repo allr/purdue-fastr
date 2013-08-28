@@ -1313,4 +1313,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ f <- function(a, b) { a + b } ; l <- call(\"f\", 2, 3) ; eval(l) }", "5.0");
         assertEval("{ f <- function(a, b) { a + b } ; x <- 1 ; y <- 2 ; l <- call(\"f\", x, y) ; x <- 10 ; eval(l) }", "3.0");
     }
+
+    @Test
+    public void testTime() throws RecognitionException {
+        assertEval("{ s <- proc.time()[3] ; e <- proc.time()[3] ; e >= s }", "elapsed\n   TRUE");
+    }
 }

@@ -146,6 +146,7 @@ public class Primitives {
         add(Outer._);
         add(Paste._);
         add(Pipe._);
+        add(ProcTime._);
         add(Qr._);
         add(QrCoef._);
         add(QrSolve._);
