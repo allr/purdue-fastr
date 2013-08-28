@@ -19,8 +19,6 @@ public class GuardedNode extends RNode {
     @DoNotVisit
     RNode fallbackNode;
 
-
-
     protected GuardedNode(Guard guard, RNode node, RNode fallback) {
         this.guard = guard;
         this.guardedNode = adoptChild(node);
