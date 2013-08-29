@@ -666,6 +666,7 @@ public abstract class Selector {
         int size; // the result size, valid after a call to restart ; before restart, either the size already or number of zeros (negativeSelection)
         int dataSize; // only needed with negative selection
         boolean positiveSelection;  // positive indexes and NA and zeros
+        int indexSize; // cached index size, only needed with positive selection
 
         int offset;
         boolean[] omit;
@@ -726,6 +727,7 @@ public abstract class Selector {
                 if (!hasNegative) {
                     size = isize - nzero;
                     positiveSelection = true;
+                    indexSize = isize;
                 } else {
                     throw RError.getOnlyZeroMixed(ast);
                 }
@@ -741,6 +743,7 @@ public abstract class Selector {
                     }
                 } else {
                     positiveSelection = true;
+                    indexSize = isize;
                     if (hasNA) {
                         size = isize - nzero;
                     } else {
@@ -786,7 +789,7 @@ public abstract class Selector {
         @Override
         public boolean isExhausted() {
             if (positiveSelection) {
-                return offset == size;
+                return offset == indexSize;
             } else {
                 // negative selection, advancing the "offset" over elements to omit is benign
                 for(;;) {

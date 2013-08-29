@@ -2007,17 +2007,20 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
+            RAny lhs;
             try {
-                if (!(lhs instanceof IntImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                if (!(lhsParam instanceof IntImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
-                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
-                    lhs = ValueCopy.INT_TO_INT_DIRECT.copy(lhs);
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
+                    lhs = ValueCopy.INT_TO_INT_DIRECT.copy(lhsParam);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -2056,7 +2059,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         }
                         Selector.advanceNoNA(offsets, lhsDim, selectorVals, ast);
                     }
-
                 } else {
                     for (;;) {
                         int lhsOffset = offsets[0];
@@ -2075,9 +2077,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         }
                         Selector.advance(offsets, lhsDim, selectorVals, ast);
                     }
-
                 }
-
             }
             return lhs;
         }
@@ -2107,12 +2107,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override
         public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
-                RAny lhs = lhsParam;
-                if (!(lhs instanceof DoubleImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                RAny lhs;
+                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhs);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
@@ -2205,12 +2207,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override
         public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
-                RAny lhs = lhsParam;
-                if (!(lhs instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
+                RAny lhs;
+                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
-                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
-                    lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhs);
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
+                    lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhsParam);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
@@ -2301,17 +2305,20 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         }
 
         @Override
-        public RAny execute(Frame frame, RAny lhs, RAny rhs) {
+        public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
-                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof IntImpl) || (lhs.isShared())) {
+                RAny lhs;
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof IntImpl) || (lhsParam.isShared())) {
                     throw new UnexpectedResultException(null);
                 }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
-                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
 
@@ -2401,12 +2408,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override
         public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
-                RAny lhs = lhsParam;
-                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || (lhs.isShared())) {
+                RAny lhs;
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
@@ -2502,12 +2511,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override
         public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
-                RAny lhs = lhsParam;
-                if (!(lhs instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || (lhs.isShared())) {
+                RAny lhs;
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
-                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhs == rhs)) {
-                    lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
+                if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
+                    lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhsParam);
+                } else {
+                    lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
             } catch (UnexpectedResultException e) {
