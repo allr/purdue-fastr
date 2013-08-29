@@ -24,6 +24,8 @@ import r.nodes.truffle.Selector.SelectorNode;
 // (if upcasting to a list, a scalar list value should be boxed, but otherwise it should not)
 // see vector update which does this correctly
 
+// TODO: avoid duplication of the LHS more aggressively (e.g. when RHS does not depend on LHS)
+
 /** Array update AST and its specializations. */
 public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
@@ -174,8 +176,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     for (int i = 0; i < selectorVals.length; ++i) {
                         if (selectorVals[i] == failedSelector) {
                             RAny index = failedSelector.getIndex();
-                            SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i], false, failedSelector.getTransition());
-                            selectorExprs[i] = adoptChild(newSelector);
+                            SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[i].child, false, failedSelector.getTransition());
+                            selectorExprs[i].replace(newSelector);
                             assert Utils.check(selectorExprs[i] == newSelector);
                             selectorVals[i] = newSelector.executeSelector(index);
                             if (DEBUG_UP) Utils.debug("Selector " + i + " changed...");
@@ -811,6 +813,95 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         }
     }
 
+    public abstract static class TypeGuard {
+        abstract void check(RAny value) throws UnexpectedResultException;
+
+        public static TypeGuard create(RAny valueTemplate) {
+            if (valueTemplate instanceof RList) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RList)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RString) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RString)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RComplex) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RComplex)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RDouble) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RDouble)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RInt) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RInt)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RLogical) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RLogical)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RRaw) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RRaw)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            if (valueTemplate instanceof RNull) {
+                return new TypeGuard() {
+                    @Override
+                    void check(RAny value) throws UnexpectedResultException {
+                        if (!(value instanceof RNull)) {
+                            throw new UnexpectedResultException(null);
+                        }
+                    }
+                };
+            }
+            assert Utils.check(false, "unreachable");
+            return null;
+        }
+    }
+
     // =================================================================================================================
     // CopyRhs
     // =================================================================================================================
@@ -909,7 +1000,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
                     return UpdateArray.GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
-                return replace(new Specialized(this, impl)).execute(frame, lhs, rhs);
+                return replace(new Specialized(this, impl, TypeGuard.create(lhs))).execute(frame, lhs, rhs);
             }
         }
 
@@ -918,10 +1009,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             /** Typecast for the rhs. */
             final ValueCopy.Impl impl;
+            final TypeGuard lhsTypeGuard;
 
-            public Specialized(CopyRhs other, ValueCopy.Impl impl) {
+            public Specialized(CopyRhs other, ValueCopy.Impl impl, TypeGuard lhsTypeGuard) {
                 super(other);
                 this.impl = impl;
+                this.lhsTypeGuard = lhsTypeGuard;
             }
 
             /**
@@ -930,12 +1023,16 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
              */
             @Override
             public RAny execute(Frame frame, RAny lhs, RAny rhsParam) {
-                RAny rhs = rhsParam;
+                RAny rhs;
                 try {
-                    rhs = impl.copy(rhs);
+                        // we need to check the LHS type to make sure that we still need to copy the RHS
+                        // otherwise we may up-cast it to a wrong type (note the original rhs would be lost)
+                    lhsTypeGuard.check(lhs);
+
+                    rhs = impl.copy(rhsParam);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyRhs.Specialized -> Generalized");
-                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
+                    return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhsParam);
                 }
                 return child.execute(frame, lhs, rhs);
             }
@@ -947,12 +1044,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     // Subscript
     // =================================================================================================================
 
-    public abstract static class TypeGuard {
+    public abstract static class BinaryTypeGuard {
         abstract void check(RAny lhs, RAny rhs) throws UnexpectedResultException;
 
-        public static TypeGuard create(RAny leftTemplate, RAny rightTemplate) {
+        public static BinaryTypeGuard create(RAny leftTemplate, RAny rightTemplate) {
             if (leftTemplate instanceof RString && rightTemplate instanceof RString) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RString && rhs instanceof RString)) {
@@ -962,7 +1059,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RComplex && rightTemplate instanceof RComplex) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RComplex && rhs instanceof RComplex)) {
@@ -972,7 +1069,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RDouble && rhs instanceof RDouble)) {
@@ -982,7 +1079,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RInt && rhs instanceof RInt)) {
@@ -992,7 +1089,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RLogical && rhs instanceof RLogical)) {
@@ -1002,7 +1099,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RRaw && rhs instanceof RRaw)) {
@@ -1012,7 +1109,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 };
             }
             if (leftTemplate instanceof RList && rightTemplate instanceof RList) {
-                return new TypeGuard() {
+                return new BinaryTypeGuard() {
                     @Override
                     void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
                         if (!(lhs instanceof RList && rhs instanceof RList)) {
@@ -1028,16 +1125,16 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     protected static final class Subscript extends UpdateArray {
 
-        final TypeGuard guard;
+        final BinaryTypeGuard guard;
 
-        public Subscript(UpdateArray other, TypeGuard guard) {
+        public Subscript(UpdateArray other, BinaryTypeGuard guard) {
             super(other);
             assert Utils.check(!other.subset);
             this.guard = guard;
         }
 
         public static Subscript create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
-            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            BinaryTypeGuard g = BinaryTypeGuard.create(leftTemplate, rightTemplate);
             return new Subscript(other, g);
         }
 
@@ -1077,16 +1174,16 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     protected static final class Column extends UpdateArray {
 
-        final TypeGuard guard;
+        final BinaryTypeGuard guard;
 
-        public Column(UpdateArray other, TypeGuard guard) {
+        public Column(UpdateArray other, BinaryTypeGuard guard) {
             super(other);
             assert Utils.check(other.subset);
             this.guard = guard;
         }
 
         public static Column create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
-            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            BinaryTypeGuard g = BinaryTypeGuard.create(leftTemplate, rightTemplate);
             return new Column(other, g);
         }
 
@@ -1104,8 +1201,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         return update((RArray) lhs, (RArray) rhs, columnSel);
                     } catch (UnexpectedResultException e) {
                         RAny index = columnSel.getIndex();
-                        SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[lastSel], true, columnSel.getTransition());
+                        SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[lastSel].child, false, columnSel.getTransition());
                         selectorExprs[lastSel].replace(newSelector);
+                        assert Utils.check(selectorExprs[lastSel] == newSelector);
                         columnSel = newSelector.executeSelector(index);
                         if (DEBUG_UP) Utils.debug("Column selector changed...");
                     }
@@ -1161,15 +1259,15 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     // when each selector is a scalar positive finite value, and the value is a scalar, and the types agree
     protected static final class MatrixScalarIndex extends UpdateArray {
 
-        final TypeGuard guard;
+        final BinaryTypeGuard guard;
 
-        public MatrixScalarIndex(UpdateArray other, TypeGuard guard) {
+        public MatrixScalarIndex(UpdateArray other, BinaryTypeGuard guard) {
             super(other);
             this.guard = guard;
         }
 
         public static MatrixScalarIndex create(UpdateArray other, RAny leftTemplate, RAny rightTemplate) {
-            TypeGuard g = TypeGuard.create(leftTemplate, rightTemplate);
+            BinaryTypeGuard g = BinaryTypeGuard.create(leftTemplate, rightTemplate);
             return new MatrixScalarIndex(other, g);
         }
 
@@ -1220,7 +1318,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return result;
         }
 
-        public static int extractIndex(Object val) throws UnexpectedResultException {
+        public static int extractIndex(Object val) throws UnexpectedResultException { // zero-based
             if (val instanceof ScalarIntImpl) {
                 int i = ((ScalarIntImpl) val).getInt();
                 if (i > 0) {
@@ -1233,11 +1331,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
             }
             throw new UnexpectedResultException(null);
-        }
-
-        public static int extractIndex(RNode n, Frame frame) throws UnexpectedResultException { // zero based
-            Object val = n.execute(frame);
-            return extractIndex(val);
         }
 
         @Override
@@ -1270,7 +1363,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 }
                 int m = dim[0];
                 int n = dim[1];
-                if (i > m || j > n) {
+                if (!(i < m && j < n)) {
                     throw new UnexpectedResultException(null);
                 }
                 return lhs.set(j * m + i, rhs.get(0));
@@ -1381,8 +1474,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
-                        } else {
-                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1443,8 +1534,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
-                        } else {
-                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1505,8 +1594,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
-                        } else {
-                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1570,8 +1657,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset * 2] = re;
                             lhsVal[lhsOffset * 2 + 1] = im;
-                        } else {
-                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {
@@ -1632,8 +1717,6 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         int lhsOffset = offsets[0];
                         if (lhsOffset != RInt.NA) {
                             lhsVal[lhsOffset] = rhsVal;
-                        } else {
-                            throw RError.getNASubscripted(ast);
                         }
                         replacementSize--;
                         if (replacementSize == 0) {

@@ -406,7 +406,7 @@ public abstract class Selector {
 
         @Override
         public void start(int dataSize, ASTNode ast) {
-            if (index > dataSize) {
+            if (index >= dataSize) {
                 throw RError.getSubscriptBounds(ast);
             }
         }

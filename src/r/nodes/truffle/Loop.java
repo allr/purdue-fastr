@@ -409,7 +409,7 @@ public abstract class Loop extends BaseR {
                         int size = arange.size();
                         try {
                             for (int i = 0; i < size; i++) {
-                                RAny vvalue = arange.boxedGet(i);
+                                RAny vvalue = arange instanceof RList ? ((RList) arange).getRAny(i) : arange.boxedGet(i);
                                 RFrameHeader.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(frame);

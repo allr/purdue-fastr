@@ -483,7 +483,50 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ for(i in 1:2) { if (i==1) { b <- c(TRUE,FALSE,FALSE,NA) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- TRUE } ; b }", ", , 1\n\n         [,1]\n[1,] Infinity\n[2,]      1.0\n\n, , 2\n\n     [,1]\n[1,]  NaN\n[2,]  4.0");
         assertEvalError("{ for(i in 1:2) { if (i==1) { b <- as.raw(11:14) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- as.raw(111) } ; b }", "incompatible types (from raw to double) in subassignment type fix");
         assertEval("{ for(i in 1:2) { if (i==1) { b <- as.list(11:14) } else { b <- c(1/0,-3/0,0/0,4) }; dim(b) <- c(2,1,2); b[[2,1,1]] <- list(111) } ; dim(b) <- NULL ; b }", "[[1]]\nInfinity\n\n[[2]]\n[[2]][[1]]\n111.0\n\n[[3]]\nNaN\n\n[[4]]\n4.0");
+
+        // column selection
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,1,2); x[,,1] <- 11:12 ; x }", ", , 1\n\n     [,1]\n[1,]  11L\n[2,]  12L\n\n, , 2\n\n     [,1]\n[1,]   3L\n[2,]   4L");
+        assertEval("{ for(i in 1:2) { x <- 1:4 ; dim(x) <- c(1,1,4); if (i==2) { z <- x } ; x[,,1] <- 12L } ; as.integer(z) }", "1L, 2L, 3L, 4L");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(1,1,4); x[,,NA] <- 12L ; as.integer(x) }", "1L, 2L, 3L, 4L");
+        assertEval("{ for (i in 1:3) { if (i==1) { z <- 1 } ; if (i==2) { z <- c(-1,-1) } ; x <- 1:4 ; dim(x) <- c(1,1,4)  ; x[,,z] <- 12L } ; as.integer(x) }", "1L, 12L, 12L, 12L");
+
+        // matrix
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[,] <- 12L ; x }", "     [,1] [,2]\n[1,]  12L  12L\n[2,]  12L  12L");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]  12L  12L");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,1] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]  12L   4L");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,NA] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L");
+        assertEvalError("{ x <- 1:4 ; dim(x) <- c(2,2,1); x[2,NA,1] <- 12:13 ; x }", "NAs are not allowed in subscripted assignments");
+        assertEvalWarning("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,1e100] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L", "NAs introduced by coercion");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,-1L] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L  12L");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2); x[2,-1] <- 12L ; x }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L  12L");
+        assertEval("{ for(i in 1:2) { x <- 1:4 ; dim(x) <- c(2,2) ; if (i==2) { z <- x } ; x[1,2] <- 12L } ; z }", "     [,1] [,2]\n[1,]   1L   3L\n[2,]   2L   4L");
+        assertEvalError("{ for(i in 1:2) { x <- 1:4 ; dim(x) <- c(2,2) ; if (i==2) { dim(x) <- NULL } ; x[1,2] <- 12L } ; z }", "incorrect number of subscripts on a matrix");
+        assertEvalError("{ for(i in 1:2) { x <- 1:4 ; dim(x) <- c(2,2) ; if (i==2) { dim(x) <- c(2,1,1,2) } ; x[1,2] <- 12L } ; z }", "incorrect number of subscripts on a matrix");
+        assertEvalError("{ x <- 1:4 ; dim(x) <- c(2,2) ; x[3,2] <- 12L ; x }", "subscript out of bounds");
+        assertEvalError("{ x <- 1:4 ; dim(x) <- c(2,2) ; x[2,3] <- 12L ; x }", "subscript out of bounds");
+        assertEvalError("{ x <- 1:4 ; dim(x) <- c(2,2) ; x[2,2] <- 12:13 ; x }", "number of items to replace is not a multiple of replacement length");
+        assertEval("{ for (i in c(1,-1)) { x <- as.raw(1:4) ; dim(x) <- c(2,2) ; x[i,2] <- as.raw(12) } ; x }", "     [,1] [,2]\n[1,]   01   03\n[2,]   02   0c");
+        assertEval("{ for (i in c(1,-1)) { x <- 1:4 ; dim(x) <- c(2,2) ; x[i,2] <- list(12) } ; unlist(x) }", "1.0, 2.0, 3.0, 12.0");
+
+        // scalar values
+        assertEval("{ x <- c(TRUE,FALSE,NA,TRUE) ; dim(x) <- c(2,2,1) ; x[2,1,1] <- NA ; x }", ", , 1\n\n     [,1] [,2]\n[1,] TRUE   NA\n[2,]   NA TRUE");
+        assertEval("{ x <- c(TRUE,FALSE,NA,TRUE) ; dim(x) <- c(2,2,1) ; x[2,1,1] <- 1 ; x }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0   NA\n[2,]  1.0  1.0");
+        assertEval("{ for(v in list(NA,1)) { x <- c(TRUE,FALSE,NA,TRUE) ; dim(x) <- c(2,2,1) ; x[2,1,1] <- v } ; x }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0   NA\n[2,]  1.0  1.0");
+        assertEval("{ for(v in list(2L,1)) { x <- 1:4 ; dim(x) <- c(2,2,1) ; x[2,1,1] <- v } ; x }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  3.0\n[2,]  1.0  4.0");
+        assertEval("{ for(v in list(2,NA)) { x <- as.double(1:4) ; dim(x) <- c(2,2,1) ; x[2,1,1] <- v } ; x }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  3.0\n[2,]   NA  4.0");
+        assertEval("{ for(v in list(2+1i,NA)) { x <- c(1+2i,3+4i,5+6i,7+8i) ; dim(x) <- c(2,2,1) ; x[2,1,1] <- v } ; x }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+2.0i 5.0+6.0i\n[2,]       NA 7.0+8.0i");
+        assertEval("{ for(v in list(\"z\",-3/0)) { x <- c(\"a\",\"aa\",\"b\",\"X\") ; dim(x) <- c(2,2,1) ; x[2,1,1] <- v } ; x }", ", , 1\n\n            [,1] [,2]\n[1,]         \"a\"  \"b\"\n[2,] \"-Infinity\"  \"X\"");
+
+        assertEval("{ for(b in list(1:4,as.double(1:4))) { dim(b) <- c(2,2,1) ; b[2,1,1] <- NA } ; b }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  3.0\n[2,]   NA  4.0");
+        assertEval("{ for(b in list(c(TRUE,FALSE,FALSE,NA),1:4)) { dim(b) <- c(2,2,1) ; b[2,1,1] <- NA } ; b }", ", , 1\n\n     [,1] [,2]\n[1,]   1L   3L\n[2,]   NA   4L");
+        assertEval("{ for(b in list(c(0/0,1/0,-1/0,1e100),1:4)) { dim(b) <- c(2,2,1) ; b[2,1,1] <- NA } ; b }", ", , 1\n\n     [,1] [,2]\n[1,]   1L   3L\n[2,]   NA   4L");
+        assertEval("{ for(b in list(c(1+2i,3+4i,5+6i,3),1:4)) { dim(b) <- c(2,2,1) ; b[2,1,1] <- 2+2i } ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+0.0i 3.0+0.0i\n[2,] 2.0+2.0i 4.0+0.0i");
+        assertEval("{ for(b in list(c(1,3,5,10),1:4)) { dim(b) <- c(2,2,1) ; b[2,1,1] <- 12 } ; b }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  3.0\n[2,] 12.0  4.0");
+        assertEval("{ for(b in list(1:4,c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2,1,1] <- 12L } ; b }", ", , 1\n\n     [,1] [,2]\n[1,]   1L   NA\n[2,]  12L   NA");
+        assertEval("{ for(b in list(c(\"a\",\"aa\",\"b\",\"X\"),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2,1,1] <- \"YYY\" } ; b }", ", , 1\n\n       [,1] [,2]\n[1,] \"TRUE\"   NA\n[2,]  \"YYY\"   NA");
     }
+
+
 
     @Test
     public void testDynamic() throws RecognitionException {
