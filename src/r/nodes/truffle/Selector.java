@@ -742,7 +742,7 @@ public abstract class Selector {
                 } else {
                     positiveSelection = true;
                     if (hasNA) {
-                        size = isize;
+                        size = isize - nzero;
                     } else {
                         // empty
                         size = 0;

@@ -742,7 +742,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (copy instanceof ValueCopy.Duplicate) {
                     return replace(new SpecializedDuplicate(this, (ValueCopy.Duplicate) copy)).execute(frame, lhs, rhs);
                 } else {
-                    return replace(new Specialized(this, copy)).execute(frame, lhs, rhs);
+                    return replace(new Specialized(this, copy, TypeGuard.create(rhs))).execute(frame, lhs, rhs);
                 }
             }
         }
@@ -756,11 +756,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             /** The copy/typecast method to be used. */
             final ValueCopy.Impl impl;
+            final TypeGuard rhsTypeGuard;
 
             /** Standard constructor. */
-            public Specialized(CopyLhs other, ValueCopy.Impl copy) {
+            public Specialized(CopyLhs other, ValueCopy.Impl copy, TypeGuard rhsTypeGuard) {
                 super(other);
                 this.impl = copy;
+                this.rhsTypeGuard = rhsTypeGuard;
             }
 
             /**
@@ -771,6 +773,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
                 RAny lhs = lhsParam;
                 try {
+                        // we need to check the LHS type to make sure that we still need to copy the RHS
+                        // otherwise we may up-cast it to a wrong type (note the original rhs would be lost)
+                    rhsTypeGuard.check(rhs);
+
                     lhs = impl.copy(lhs);
                 } catch (UnexpectedResultException e) {
                     if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");

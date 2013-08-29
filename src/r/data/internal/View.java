@@ -204,7 +204,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public String typeOf() {
-            return RLogical.TYPE_STRING;
+            return RRaw.TYPE_STRING;
         }
 
         @Override
