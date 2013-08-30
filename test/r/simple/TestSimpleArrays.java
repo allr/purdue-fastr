@@ -671,6 +671,9 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEvalError("{ f <- function() { quote({ x[1,1,2] <- 2 }) } ; eval(f()) }", "object 'x' not found");
         assertEvalError("{ f <- function() { quote({ x[1,2,1] <- 2 }) } ; g <- function() { eval(f()) } ; g() }", "object 'x' not found");
 
+        assertEvalError("{ x <- 1:4 ; dim(x) <- c(2,2,1); x[2,1,1] <<- 100 ; x }", "object 'x' not found");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2,1); f <- function() { x[2,1,1] <<- 100 } ; f() ; x }", ", , 1\n\n      [,1] [,2]\n[1,]   1.0  3.0\n[2,] 100.0  4.0");
+        assertEval("{ x <- 1:4 ; dim(x) <- c(2,2,1); f <- function() { x[2,1,1] <<- 100L ; x } ; f() }", ", , 1\n\n     [,1] [,2]\n[1,]   1L   3L\n[2,] 100L   4L");
     }
 
 
