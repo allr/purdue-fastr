@@ -525,7 +525,7 @@ public class Convert {
         int size = symbols.length;
         String[] res = new String[size];
         for (int i = 0; i < size; i++) {
-            res[i] = symbols[i].pretty();
+            res[i] = symbols[i].name();
         }
         return res;
     }

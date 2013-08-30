@@ -271,6 +271,26 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ f <- function() { sapply(c(\"a\",\"b\"), function(x) { c(a=x) })  } ; f() }", "a.a b.a\n\"a\" \"b\"");
         assertEval("{ f <- function() { sapply(c(X=\"a\",Y=\"b\"), function(x) { c(a=x) })  } ; f() }", "X.a Y.a\n\"a\" \"b\"");
         assertEval("{ sapply(c(\"a\",\"b\",\"c\"), function(x) { x }) }", "  a   b   c\n\"a\" \"b\" \"c\"");
+
+        assertEval("{ sapply(c(a=1,b=2,`c+`=3), function(x) { c(x=x*x) }) }", "a.x b.x c+.x\n1.0 4.0  9.0");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { c(x=x*x) }) }", "a.x   x   x c+.x\n1.0 4.0 9.0  9.0");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { c(x*x) }) }", "  a          c+\n1.0 4.0 9.0 9.0");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { rep(x,x) }) }", "$a\n1.0\n\n[[2]]\n2.0, 2.0\n\n[[3]]\n3.0, 3.0, 3.0\n\n$`c+`\n3.0, 3.0, 3.0");
+        assertEval("{ l <- (sapply(c(a=1,2,3,`c+`=4), function(i) { if (i==1) { c(x=5) } else if (i==2) {c(z=5) } else if (i==3) { c(1) } else { list(`c+`=3) } })) ; names(l) }", "\"a.x\", \"z\", \"\", \"c+.c+\"");
+        assertEval("{ l <- (sapply(c(a=1,2,3,`c+`=4), function(i) { if (i==1) { c(x=5) } else if (i==2) {c(z=5) } else if (i==3) { c(1) } else { list(`c+`=3,d=5) } })) ; l }", "$a\n  x\n5.0\n\n[[2]]\n  z\n5.0\n\n[[3]]\n1.0\n\n$`c+`\n$`c+`$`c+`\n3.0\n\n$`c+`$d\n5.0");
+        assertEval("{ l <- (sapply(c(a=1,2,3,`c+`=4), function(i) { if (i==1) { list(x=5) } else if (i==2) {list(z=5) } else if (i==3) { list(1) } else { list(`c+`=3) } })) ; l }", "$a.x\n5.0\n\n$z\n5.0\n\n[[3]]\n1.0\n\n$`c+.c+`\n3.0");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { as.raw(x) }) }", " a       c+\n01 02 03 03");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { list(z=NULL) }) }", "$a.z\nNULL\n\n$z\nNULL\n\n$z\nNULL\n\n$`c+.z`\nNULL");
+        assertEval("{ sapply(c(a=1,2,3,`c+`=3), function(x) { NULL }) }", "$a\nNULL\n\n[[2]]\nNULL\n\n[[3]]\nNULL\n\n$`c+`\nNULL");
+        assertEval("{ sapply(1:3, function(x) { c(as.character(x),if (x > 2) { x + 2i } else { x }) }) }", "     [,1] [,2]       [,3]\n[1,] \"1L\" \"2L\"       \"3L\"\n[2,] \"1L\" \"2L\" \"3.0+2.0i\"");
+        assertEval("{ sapply(1:3, function(x) { c(x,x) }) }", "     [,1] [,2] [,3]\n[1,]   1L   2L   3L\n[2,]   1L   2L   3L");
+        assertEval("{ sapply(c(TRUE,FALSE,NA), function(x) { c(x,x) }) }", "     [,1]  [,2] [,3]\n[1,] TRUE FALSE   NA\n[2,] TRUE FALSE   NA");
+        assertEval("{ sapply(as.raw(11:13), function(x) { c(x,x) }) }", "     [,1] [,2] [,3]\n[1,]   0b   0c   0d\n[2,]   0b   0c   0d");
+        assertEval("{ l <- list(as.raw(11), TRUE, 2L, 3, 4+1i, \"a\") ; sapply(1:6, function(i) { l[[i]] } ) }", "\"0b\", \"TRUE\", \"2L\", \"3.0\", \"4.0+1.0i\", \"a\"");
+        assertEval("{ l <- list(as.raw(11), TRUE, 2L, 3, 4+1i) ; sapply(1:5, function(i) { l[[i]] } ) }", "11.0+0.0i, 1.0+0.0i, 2.0+0.0i, 3.0+0.0i, 4.0+1.0i");
+        assertEval("{ l <- list(as.raw(11), TRUE, 2L, 4) ; sapply(1:4, function(i) { l[[i]] } ) }", "11.0, 1.0, 2.0, 4.0");
+        assertEval("{ l <- list(as.raw(11), TRUE, 2L) ; sapply(1:3, function(i) { l[[i]] } ) }", "11L, 1L, 2L");
+        assertEval("{ l <- list(as.raw(11), TRUE) ; sapply(1:2, function(i) { l[[i]] } ) }", "TRUE, TRUE");
     }
 
     @Test

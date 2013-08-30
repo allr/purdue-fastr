@@ -35,6 +35,12 @@ import com.oracle.truffle.api.nodes.*;
  *    Since this argument follows ... its name cannot be abbreviated.
  * </pre>
  */
+
+// TODO: dimension names, matrix
+
+// TODO: fix names when result is a list with scalar elements - there should be no names in those elements
+// { l <- (sapply(c(a=1,2,3,`c+`=4), function(i) { if (i==1) { c(x=5) } else if (i==2) {c(z=5) } else if (i==3) { c(1) } else { list(`c+`=3) } })) ; l }
+
 final class SApply extends CallFactory {
 
     static final CallFactory _ = new SApply("sapply", new String[]{"X", "FUN", "...", "simplify", "USE.NAMES"}, new String[]{"X", "FUN"});
@@ -113,7 +119,11 @@ final class SApply extends CallFactory {
                 RArray a = (RArray) results[i];
                 RArray.Names n = a.names();
                 if (n != null) {
-                    symbols[i] = RSymbol.getSymbol(astr + "." + n.sequence()[0].pretty());
+                    if (astr.length() == 0) {
+                        symbols[i] = RSymbol.getSymbol(n.sequence()[0].name());
+                    } else {
+                        symbols[i] = RSymbol.getSymbol(astr + "." + n.sequence()[0].name());
+                    }
                 } else {
                     symbols[i] = RSymbol.getSymbol(astr);
                 }
@@ -125,7 +135,11 @@ final class SApply extends CallFactory {
             RSymbol[] symbols = new RSymbol[size];
             for (int i = 0; i < size; i++) {
                 String astr = argNames.getString(i);
-                symbols[i] = RSymbol.getSymbol(astr + "." + rnames[i].pretty());
+                if (astr.length() == 0) {
+                    symbols[i] = RSymbol.getSymbol(rnames[i].name());
+                } else {
+                    symbols[i] = RSymbol.getSymbol(astr + "." + rnames[i].name());
+                }
             }
             return RArray.Names.create(symbols);
         }
@@ -199,7 +213,7 @@ final class SApply extends CallFactory {
                     notAllScalarLists = true;
                     vsize = 0;
                 } else {
-                    throw Utils.nyi("unsupported type");
+                    throw Utils.nyi("unsupported type"); // TODO: more things can be in a list
                 }
                 if (elementSize != -1) {
                     if (vsize != elementSize) {
@@ -292,10 +306,12 @@ final class SApply extends CallFactory {
                     }
                     return RRaw.RRawFactory.getFor(values, dimensions, null);
                 }
+                assert Utils.check(false, "unreachable");
 
             } else {
                 // result is a vector (or list) - not a matrix
-                if (hasMultipleSizes) { return RList.RListFactory.getFor(content, null, argIterator.names()); // result names not propagated
+                if (hasMultipleSizes) {
+                    return RList.RListFactory.getFor(content, null, argIterator.names()); // result names not propagated
                 }
                 if (hasList) {
                     if (!notAllScalarLists) { // all elements are scalar lists
@@ -340,7 +356,8 @@ final class SApply extends CallFactory {
                         } else if (v instanceof RComplex) {
                             RComplex cv = (RComplex) v;
                             values[i] = Convert.complex2string(cv.getReal(0), cv.getImag(0));
-                        } else if (v instanceof RRaw) {
+                        } else {
+                            assert Utils.check(v instanceof RRaw);
                             values[i] = Convert.raw2string(((RRaw) v).getRaw(0));
                         }
                     }
@@ -361,6 +378,7 @@ final class SApply extends CallFactory {
                             values[2 * i] = cv.getReal(0);
                             values[2 * i + 1] = cv.getImag(0);
                         } else {
+                            assert Utils.check(v instanceof RRaw);
                             values[2 * i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
@@ -377,6 +395,7 @@ final class SApply extends CallFactory {
                         } else if (v instanceof RLogical) {
                             values[i] = Convert.logical2double(((RLogical) v).getLogical(0));
                         } else {
+                            assert Utils.check(v instanceof RRaw);
                             values[i] = Convert.raw2double(((RRaw) v).getRaw(0));
                         }
                     }
@@ -391,6 +410,7 @@ final class SApply extends CallFactory {
                         } else if (v instanceof RLogical) {
                             values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
                         } else {
+                            assert Utils.check(v instanceof RRaw);
                             values[i] = Convert.raw2int(((RRaw) v).getRaw(0));
                         }
                     }
@@ -403,6 +423,7 @@ final class SApply extends CallFactory {
                         if (v instanceof RLogical) {
                             values[i] = Convert.logical2int(((RLogical) v).getLogical(0));
                         } else {
+                            assert Utils.check(v instanceof RRaw);
                             values[i] = Convert.raw2logical(((RRaw) v).getRaw(0));
                         }
                     }

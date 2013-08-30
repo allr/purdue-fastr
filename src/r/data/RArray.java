@@ -143,7 +143,8 @@ public interface RArray extends RAny {
         public String[] asStringArray() {
             String[] res = new String[names.length];
             for (int i = 0; i < names.length; i++) {
-                res[i] = names[i] != null ? names[i].pretty() : RString.NA;
+//                res[i] = names[i] != null ? names[i].pretty() : RString.NA;
+                res[i] = names[i] != null ? names[i].name() : RString.NA;
             }
             return res;
         }
