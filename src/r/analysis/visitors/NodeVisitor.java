@@ -1,10 +1,10 @@
-package r.analysis.visitor;
+package r.analysis.visitors;
 
 import r.nodes.truffle.RNode;
 
 /** Base class for analysis node visitors.
  *
- * The analysis node visitor is used to perform various analyses. The actual traversal is implemented in the nodes
+ * The analysis node visitors is used to perform various analyses. The actual traversal is implemented in the nodes
  * themselves by overriding the accept method. If such method is not defined, it is automatically created during the
  * class loading process - see FastrLoader for that.
  */

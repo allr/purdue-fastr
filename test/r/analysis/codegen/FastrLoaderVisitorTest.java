@@ -3,10 +3,8 @@ package r.analysis.codegen;
 import com.oracle.truffle.api.frame.Frame;
 import org.junit.Test;
 import r.analysis.codegen.annotations.*;
-import r.analysis.visitor.*;
+import r.analysis.visitors.*;
 import r.nodes.truffle.RNode;
-
-import java.lang.reflect.Field;
 
 import static junit.framework.Assert.*;
 

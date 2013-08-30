@@ -5,7 +5,7 @@ import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.analysis.codegen.DeepCopyable;
-import r.analysis.visitor.NodeVisitor;
+import r.analysis.visitors.NodeVisitor;
 import r.data.*;
 import r.nodes.*;
 

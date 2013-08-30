@@ -43,11 +43,11 @@ import static r.fastr.DEBUG;
  *
  * public T(T other, boolean deep) where T is the type to be deep copied.
  *
- * Node visitor
+ * Node visitors
  * ============
  *
  * Any subclass of RNode inherits the accept() method defined by the RNode class. Calling this calls the visit() method
- * of the visitor for the node itself and if the visit() call does not return false, calls the accept() method for all
+ * of the visitors for the node itself and if the visit() call does not return false, calls the accept() method for all
  * its fields subclassing RNode.
  *
  * The fields can be marked with DoNotVisit annotation if they should not be visited (that is, if they are not part of
@@ -124,7 +124,7 @@ public class FastrLoader extends Loader implements Translator {
                 addDeepCopyMethod(cls);
             }
         }
-        // node visitor
+        // node visitors
         if (isRNode(cls)) {
             if (!hasVisitorAcceptMethod(cls))
                 addVisitorAcceptMethod(cls);
@@ -327,7 +327,7 @@ public class FastrLoader extends Loader implements Translator {
         try {
             CtMethod m = cls.getDeclaredMethod("accept");
             CtClass[] args = m.getParameterTypes();
-            if ((args.length == 1) && (args[0].getName().equals("r.analysis.visitor.NodeVisitor"))) {
+            if ((args.length == 1) && (args[0].getName().equals("r.analysis.visitors.NodeVisitor"))) {
                 if (m.getReturnType().getName().equals("boolean"))
                     return true;
                 else
@@ -383,8 +383,8 @@ public class FastrLoader extends Loader implements Translator {
             }
         }
         // create the accept method from the fields in the queue
-        StringBuilder sb = new StringBuilder("public boolean accept(r.analysis.visitor.NodeVisitor visitor) {\n");
-        sb.append("if (! super.accept(visitor))\n" +
+        StringBuilder sb = new StringBuilder("public boolean accept(r.analysis.visitors.NodeVisitor visitors) {\n");
+        sb.append("if (! super.accept(visitors))\n" +
                   "    return false;\n");
         while (!fields.isEmpty()) {
             CtField field = fields.poll();
@@ -393,11 +393,11 @@ public class FastrLoader extends Loader implements Translator {
                 code = "if (FNAME != null)\n" +
                         "    for (int i = 0; i < FNAME.length; ++i)\n" +
                         "        if (FNAME[i] != null)\n" +
-                        "            FNAME[i].accept(visitor);\n";
+                        "            FNAME[i].accept(visitors);\n";
                 code = code.replace("CTYPE",field.getType().getComponentType().getName());
             } else {
                 code = "if (FNAME != null)\n" +
-                        "    FNAME.accept(visitor);\n";
+                        "    FNAME.accept(visitors);\n";
             }
             code = code.replace("FNAME",field.getName());
             sb.append(code);
@@ -410,7 +410,7 @@ public class FastrLoader extends Loader implements Translator {
             m.setModifiers(Modifier.PUBLIC);
             cls.addMethod(m);
         } catch (CannotCompileException e) {
-            System.err.println("Unable to add the accept() method for node visitor:");
+            System.err.println("Unable to add the accept() method for node visitors:");
             System.err.println(sb.toString());
             e.printStackTrace();
         }
