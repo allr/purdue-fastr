@@ -14,6 +14,7 @@ public class RLanguage extends BaseObject implements RAny {
 
     public RLanguage(ASTNode ast) {
         this.ast = ast;
+        ast.setParent(null); // FIXME: can we surely get away without copying?
     }
 
     public ASTNode get() {

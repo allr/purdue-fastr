@@ -124,9 +124,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
 
             try {
-                if (lhsValue != null) {
-                    throw new UnexpectedResultException(null);
-                }
+                throw new UnexpectedResultException(null);
             } catch (UnexpectedResultException e) {
                 replace(new LocalSimple(ast, varName, varSlot, rhs, assignment));
             }

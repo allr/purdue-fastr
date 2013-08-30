@@ -3,8 +3,6 @@ package r.simple;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
 
-import r.errors.RError;
-
 public class TestSimpleVectors extends SimpleTestBase {
 
     @Test
@@ -310,9 +308,9 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ x <- c(TRUE,FALSE,FALSE) ; x[2] <- \"hi\"; x }", "\"TRUE\", \"hi\", \"FALSE\"");
         assertEval("{ x <- c(2,3,4) ; x[1] <- 3+4i ; x  }", "3.0+4.0i, 3.0+0.0i, 4.0+0.0i");
 
-        assertEvalError("{ f <- function() { a[3] <- 4 } ; f() }", "object not found");
-        assertEvalError("{ l <- quote(a[3] <- 4) ; f <- function() { eval(l) } ; f() }", "object not found");
-        assertEvalError("{ l <- quote(a[3] <- 4) ; eval(l) ; f() }", "object not found");
+        assertEvalError("{ f <- function() { a[3] <- 4 } ; f() }", "object 'a' not found");
+        assertEvalError("{ l <- quote(a[3] <- 4) ; f <- function() { eval(l) } ; f() }", "object 'a' not found");
+        assertEvalError("{ l <- quote(a[3] <- 4) ; eval(l) ; f() }", "object 'a' not found");
         assertEval("{ b <- c(1,2) ; x <- b ; b[2L] <- 3 ; b }", "1.0, 3.0");
         assertEval("{ b <- c(1,2) ; b[0L] <- 3 ; b }", "1.0, 2.0");
         assertEval("{ b <- c(1,2) ; b[0] <- 1+2i ; b }", "1.0+0.0i, 2.0+0.0i");

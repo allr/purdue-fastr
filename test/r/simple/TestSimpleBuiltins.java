@@ -1227,6 +1227,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ y <- 2; eval(quote(x+y), list(x=1)) }", "3.0");
         assertEval("{ y <- 2; x <- 4; eval(x + y, list(x=1)) }", "6.0");
         assertEval("{ y <- 2; x <- 2 ; eval(quote(x+y), -1) }", "4.0");
+        assertEvalError("{ f <- function() { quote(x) } ; l <- f() ; eval(l) }", "object 'x' not found");
+        assertEvalError("{ f <- function() { quote(x) } ; eval(f()) }", "object 'x' not found");
+        assertEvalError("{ f <- function() { quote({ x[1] <- 2 }) } ; eval(f()) }", "object 'x' not found");
     }
 
     @Test

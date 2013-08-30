@@ -658,8 +658,20 @@ public class TestSimpleArrays extends SimpleTestBase {
 
     }
 
+    @Test
+    public void testAssignment() throws RecognitionException {
+        assertEvalError("{ f <- function() { x[1,1,2] <- 3 } ; f() }", "object 'x' not found");
+        assertEvalError("{ g <- function() { if (FALSE) { x <- 1 } ; f <- function() { x[1,1,2] <- 3 } ; f() } ; g() }", "object 'x' not found");
+        assertEvalError("{ f <- function(i) { if (i==1) { x <- 1:4 ; dim(x) <- c(1,2,2) } ; x[1,1,2] <- 13 } ; f(1) ; f(2) }", "object 'x' not found");
+        assertEval("{ g <- function() { x <- 11:14 ; dim(x) <- c(1,2,2) ; f <- function(i) { if (i==1) { x <- 1:4 ; dim(x) <- c(1,2,2) } ; x[1,1,2] <- 13 ; x } ; f(1) ; f(2) } ; g() }", ", , 1\n\n     [,1] [,2]\n[1,] 11.0 12.0\n\n, , 2\n\n     [,1] [,2]\n[1,] 13.0 14.0");
+        assertEval("{ g <- function() { x <- 11:14 ; dim(x) <- c(1,2,2) ; f <- function(i) { if (i==1) { x <- 1:4 ; dim(x) <- c(1,2,2) } ; x[1,1,2] <- 13 ; x } ; f(2) ; f(2) ; f(1) } ; g() }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  2.0\n\n, , 2\n\n     [,1] [,2]\n[1,] 13.0  4.0");
+        assertEval("{ g <- function() { x <- 11:14 ; dim(x) <- c(1,2,2) ; f <- function(i) { if (i==1) { x <- 1:4 ; dim(x) <- c(1,2,2) } ; x[1,1,2] <- 13L ; x } ; f(2) ; f(2) ; f(1) } ; g() }", ", , 1\n\n     [,1] [,2]\n[1,]   1L   2L\n\n, , 2\n\n     [,1] [,2]\n[1,]  13L   4L");
+        assertEvalError("{ x[1,1,2] <- 3 }", "object 'x' not found");
+        assertEvalError("{ z <- 1 ; x[1,1,2] <- z }", "object 'x' not found");
+        assertEvalError("{ f <- function() { quote({ x[1,1,2] <- 2 }) } ; eval(f()) }", "object 'x' not found");
+        assertEvalError("{ f <- function() { quote({ x[1,2,1] <- 2 }) } ; g <- function() { eval(f()) } ; g() }", "object 'x' not found");
 
-
+    }
 
 
     @Test
