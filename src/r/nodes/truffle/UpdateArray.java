@@ -2308,7 +2308,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof IntImpl) || (lhsParam.isShared())) {
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) {
                     throw new UnexpectedResultException(null);
                 }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
@@ -2911,10 +2911,11 @@ class ValueCopy {
                 throw new UnexpectedResultException(null);
             }
             RComplex from = (RComplex) what;
-            double[] result = new double[from.size() * 2];
-            for (int i = 0; i < result.length >> 1; ++i) {
-                result[i << 1 ] = from.getReal(i);
-                result[(i << 1) + 1] = from.getImag(i);
+            int fsize = from.size();
+            double[] result = new double[fsize * 2];
+            for (int i = 0; i < fsize; ++i) {
+                result[2 * i] = from.getReal(i);
+                result[2 * i + 1] = from.getImag(i);
             }
             return RComplex.RComplexFactory.getFor(result, from.dimensions(), from.names(), from.attributesRef());
         }
@@ -3066,10 +3067,8 @@ class ValueCopy {
 
         @Override
         public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RNull)) {
-                throw new UnexpectedResultException(null);
-            }
-            return what;
+            assert Utils.check(false, "unreachable");
+            return null;
         }
     };
 }

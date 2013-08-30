@@ -593,7 +593,71 @@ public class TestSimpleArrays extends SimpleTestBase {
         assertEval("{ b <- c(1,3,5,6) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(3,11) ; b }", ", , 1\n\n     [,1] [,2]\n[1,]  3.0 11.0\n[2,]  3.0  6.0");
         assertEval("{ b <- c(1,3,5,6) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(my=3) ; b }", ", , 1\n\n     [,1] [,2]\n[1,]  3.0  3.0\n[2,]  3.0  6.0");
         assertEval("{ b <- c(1,3,5,6) ; dim(b) <- c(2,2,1) ; b[logical(),1:2,1] <- c(my=3) ; b }", ", , 1\n\n     [,1] [,2]\n[1,]  1.0  5.0\n[2,]  3.0  6.0");
+
+        // int -> complex
+        assertEval("{ for(v in list(c(2L,NA),c(3,4))) { x <- c(1+1i,10+2i,100+3i,1000+4i) ; dim(x) <- c(2,2,1) ; x[2,1:2,1] <- v } ; x }", ", , 1\n\n         [,1]       [,2]\n[1,] 1.0+1.0i 100.0+3.0i\n[2,] 3.0+0.0i   4.0+0.0i");
+        assertEval("{ for(b in list(c(1+1i,3+2i,5,7),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2:1,1,1] <- c(10L,20L) };  b }", ", , 1\n\n     [,1] [,2]\n[1,]  20L   NA\n[2,]  10L   NA");
+        assertEval("{ for(i in 1:2) { b <- c(1+1i,3+2i,5+3i,7+4i); dim(b) <- c(2,2,1) ; if (i==2) { s <- b } ; b[2:1,1,1] <- c(10L,20L) }; s }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+1.0i 5.0+3.0i\n[2,] 3.0+2.0i 7.0+4.0i");
+        assertEvalError("{ b <- c(1+2i,3+3i,5+1i,6+2i) ; dim(b) <- c(2,2,1) ; b[c(NA,0,1),2,1] <- c(3L,10L) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ b <- c(1+1i,3+10i,5+2i,6) ; dim(b) <- c(2,2,1) ; b[c(0,1,2,0,1,2),2,1] <- c(3L,10L) ; b }", ", , 1\n\n          [,1]      [,2]\n[1,]  1.0+1.0i  3.0+0.0i\n[2,] 3.0+10.0i 10.0+0.0i");
+        assertEval("{ b <- c(1+2i,3+3i,5+4i,6+1i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(3L,10L) ; b }", ", , 1\n\n         [,1]      [,2]\n[1,] 3.0+0.0i 10.0+0.0i\n[2,] 3.0+3.0i  6.0+1.0i");
+        assertEval("{ b <- c(1+1i,3+5i,5+6i,6+7i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(my=3L) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+0.0i 3.0+0.0i\n[2,] 3.0+5.0i 6.0+7.0i");
+        assertEval("{ b <- c(1+5i,3+1i,5+2i,6+3i) ; dim(b) <- c(2,2,1) ; b[logical(),1:2,1] <- c(my=3L) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+5.0i 5.0+2.0i\n[2,] 3.0+1.0i 6.0+3.0i");
+
+        // double -> complex
+        assertEval("{ for(v in list(c(2,NA),c(3L,4L))) { x <- c(1+1i,10+2i,100+3i,1000+4i) ; dim(x) <- c(2,2,1) ; x[2,1:2,1] <- v } ; x }", ", , 1\n\n         [,1]       [,2]\n[1,] 1.0+1.0i 100.0+3.0i\n[2,] 3.0+0.0i   4.0+0.0i");
+        assertEval("{ for(i in 1:2) { b <- c(1+1i,3+2i,5+3i,7+4i); dim(b) <- c(2,2,1) ; if (i==2) { s <- b } ; b[2:1,1,1] <- c(10,20) }; s }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+1.0i 5.0+3.0i\n[2,] 3.0+2.0i 7.0+4.0i");
+        assertEvalError("{ b <- c(1+2i,3+3i,5+1i,6+2i) ; dim(b) <- c(2,2,1) ; b[c(NA,0,1),2,1] <- c(3,10) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ b <- c(1+1i,3+10i,5+2i,6) ; dim(b) <- c(2,2,1) ; b[c(0,1,2,0,1,2),2,1] <- c(3,10) ; b }", ", , 1\n\n          [,1]      [,2]\n[1,]  1.0+1.0i  3.0+0.0i\n[2,] 3.0+10.0i 10.0+0.0i");
+        assertEval("{ b <- c(1+2i,3+3i,5+4i,6+1i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(3,10) ; b }", ", , 1\n\n         [,1]      [,2]\n[1,] 3.0+0.0i 10.0+0.0i\n[2,] 3.0+3.0i  6.0+1.0i");
+        assertEval("{ b <- c(1+1i,3+5i,5+6i,6+7i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(my=3) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+0.0i 3.0+0.0i\n[2,] 3.0+5.0i 6.0+7.0i");
+        assertEval("{ b <- c(1+5i,3+1i,5+2i,6+3i) ; dim(b) <- c(2,2,1) ; b[logical(),1:2,1] <- c(my=3) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+5.0i 5.0+2.0i\n[2,] 3.0+1.0i 6.0+3.0i");
+        assertEval("{ for(b in list(c(1+1i,3+2i,5,7),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2:1,1,1] <- c(10,20) };  b }", ", , 1\n\n     [,1] [,2]\n[1,] 20.0   NA\n[2,] 10.0   NA");
+
+        // complex -> complex
+        assertEval("{ for(v in list(c(2+1i,NA),c(3L,4L))) { x <- c(1+1i,10+2i,100+3i,1000+4i) ; dim(x) <- c(2,2,1) ; x[2,1:2,1] <- v } ; x }", ", , 1\n\n         [,1]       [,2]\n[1,] 1.0+1.0i 100.0+3.0i\n[2,] 3.0+0.0i   4.0+0.0i");
+        assertEval("{ for(i in 1:2) { b <- c(1+1i,3+2i,5+3i,7+4i); dim(b) <- c(2,2,1) ; if (i==2) { s <- b } ; b[2:1,1,1] <- c(10+1i,20+2i) }; s }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+1.0i 5.0+3.0i\n[2,] 3.0+2.0i 7.0+4.0i");
+        assertEvalError("{ b <- c(1+2i,3+3i,5+1i,6+2i) ; dim(b) <- c(2,2,1) ; b[c(NA,0,1),2,1] <- c(3+1i,10+2i) ; b }", "NAs are not allowed in subscripted assignments");
+        assertEval("{ b <- c(1+1i,3+10i,5+2i,6) ; dim(b) <- c(2,2,1) ; b[c(0,1,2,0,1,2),2,1] <- c(3+1i,10+2i) ; b }", ", , 1\n\n          [,1]      [,2]\n[1,]  1.0+1.0i  3.0+1.0i\n[2,] 3.0+10.0i 10.0+2.0i");
+        assertEval("{ b <- c(1+2i,3+3i,5+4i,6+1i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(3+1i,10+5i) ; b }", ", , 1\n\n         [,1]      [,2]\n[1,] 3.0+1.0i 10.0+5.0i\n[2,] 3.0+3.0i  6.0+1.0i");
+        assertEval("{ b <- c(1+1i,3+5i,5+6i,6+7i) ; dim(b) <- c(2,2,1) ; b[c(TRUE,FALSE),1:2,1] <- c(my=3+5i) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+5.0i 3.0+5.0i\n[2,] 3.0+5.0i 6.0+7.0i");
+        assertEval("{ b <- c(1+5i,3+1i,5+2i,6+3i) ; dim(b) <- c(2,2,1) ; b[logical(),1:2,1] <- c(my=3+100i) ; b }", ", , 1\n\n         [,1]     [,2]\n[1,] 1.0+5.0i 5.0+2.0i\n[2,] 3.0+1.0i 6.0+3.0i");
+        assertEval("{ for(b in list(c(1+1i,3+2i,5,7),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2:1,1,1] <- c(10+5i,20+6i) };  b }", ", , 1\n\n          [,1] [,2]\n[1,] 20.0+6.0i   NA\n[2,] 10.0+5.0i   NA");
+        assertEval("{ b <- c(1+2i,3+5i,5,NA,4,10+1i,8,15) ; dim(b) <- c(2,2,2) ; b[2:1,2:1,1:2] <- b ; b }", ", , 1\n\n         [,1]     [,2]\n[1,]       NA 3.0+5.0i\n[2,] 5.0+0.0i 1.0+2.0i\n\n, , 2\n\n          [,1]      [,2]\n[1,] 15.0+0.0i 10.0+1.0i\n[2,]  8.0+0.0i  4.0+0.0i");
+
+        // guards
+        assertEval("{ for(b in list(c(1+1i,3+2i,5,7),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2:1,1,1] <- c(TRUE,FALSE) };  b }", ", , 1\n\n      [,1] [,2]\n[1,] FALSE   NA\n[2,]  TRUE   NA");
+        assertEval("{ for(b in list(list(1+1i,3+2i,5,7),c(TRUE,FALSE,NA,NA))) { dim(b) <- c(2,2,1) ; b[2:1,1,1] <- c(TRUE,FALSE) };  b }", ", , 1\n\n      [,1] [,2]\n[1,] FALSE   NA\n[2,]  TRUE   NA");
+
+        // copiers
+        assertEval("{ for(b in list(c(TRUE,FALSE,FALSE,NA),1:4)) { dim(b) <- c(2,2,1); s <- b; b[2:1,1,1] <- c(TRUE,FALSE) };  b }", ", , 1\n\n     [,1] [,2]\n[1,]   0L   3L\n[2,]   1L   4L");
+        assertEval("{ for(b in list(c(TRUE,FALSE,FALSE,NA),1:4)) { dim(b) <- c(2,2,1); s <- b; b[2:1,1,1] <- 2:3 };  b }", ", , 1\n\n     [,1] [,2]\n[1,]   3L   3L\n[2,]   2L   4L");
+        assertEval("{ b <- 11:14 ; dim(b) <- c(2,2,1) ; iv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- 2:3 };  b }", ", , 1\n\n     [,1] [,2]\n[1,]   3L   0L\n[2,]   2L   1L");
+        assertEval("{ b <- 11:14 ; dim(b) <- c(2,2,1) ; iv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2,3) };  b }", ", , 1\n\n     [,1] [,2]\n[1,]  3.0  0.0\n[2,]  2.0  1.0");
+        assertEval("{ b <- as.double(11:14) ; dim(b) <- c(2,2,1) ; dv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(dv,lv)) { s <- b; b[2:1,1,1] <- c(0/0,-1/0) };  b }", ", , 1\n\n          [,1] [,2]\n[1,] -Infinity  0.0\n[2,]       NaN  1.0");
+        assertEval("{ b <- as.double(11:14) ; dim(b) <- c(2,2,1) ; dv <- b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(dv,lv)) { s <- b; b[2:1,1,1] <- c(0/0,-1/0) };  b }", ", , 1\n\n          [,1] [,2]\n[1,] -Infinity  0.0\n[2,]       NaN  1.0");
+        assertEval("{ for(b in list(c(TRUE,FALSE,FALSE,NA),1:4)) { dim(b) <- c(2,2,1); b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 3.0+0.0i\n[2,] 2.0+3.0i 4.0+0.0i");
+        assertEval("{ b <- c(11L,NA,12L,4L) ; dim(b) <- c(2,2,1) ; iv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 0.0+0.0i\n[2,] 2.0+3.0i 1.0+0.0i");
+        assertEval("{ b <- c(11,NA,-12/0,4/0) ; dim(b) <- c(2,2,1) ; iv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 0.0+0.0i\n[2,] 2.0+3.0i 1.0+0.0i");
+        assertEval("{ b <- c(11,NA,-12/0,4/0) ; dim(b) <- c(2,2,1) ; iv <- b; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 0.0+0.0i\n[2,] 2.0+3.0i 1.0+0.0i");
+        assertEval("{ b <- c(11+1i,NA,-12/0,4/0) ; dim(b) <- c(2,2,1) ; iv <- b + b ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 0.0+0.0i\n[2,] 2.0+3.0i 1.0+0.0i");
+        assertEval("{ b <- c(11+1i,NA,-12/0,4/0) ; dim(b) <- c(2,2,1) ; iv <- b + c(1+2i,3+4i) ; lv <- c(TRUE,FALSE,FALSE,TRUE) ; dim(lv) <- c(2,2,1) ; for(b in list(iv,lv)) { s <- b; b[2:1,1,1] <- c(2+3i,3+4i) };  b }", ", , 1\n\n         [,1]     [,2]\n[1,] 3.0+4.0i 0.0+0.0i\n[2,] 2.0+3.0i 1.0+0.0i");
+        assertEval("{ for(b in list(c(TRUE,FALSE,FALSE,NA),1:4)) { dim(b) <- c(2,2,1); b[2:1,1,1] <- c(\"X\",\"Y\") };  b }", ", , 1\n\n     [,1] [,2]\n[1,]  \"Y\" \"3L\"\n[2,]  \"X\" \"4L\"");
+        assertEval("{ for(b in list(1:4, c(TRUE,FALSE,FALSE,NA))) { dim(b) <- c(2,2,1); b[2:1,1,1] <- c(\"X\",\"Y\") };  b }", ", , 1\n\n     [,1]    [,2]\n[1,]  \"Y\" \"FALSE\"\n[2,]  \"X\"      NA");
+        assertEval("{ for(b in list(c(1,2,3,8), c(TRUE,FALSE,FALSE,NA))) { dim(b) <- c(2,2,1); b[2:1,1,1] <- c(\"X\",\"Y\") };  b }", ", , 1\n\n     [,1]    [,2]\n[1,]  \"Y\" \"FALSE\"\n[2,]  \"X\"      NA");
+        assertEval("{ for(b in list(c(\"a\",\"b\",\"C\",\"DD\"), c(TRUE,FALSE,FALSE,NA))) { dim(b) <- c(2,2,1); s <- b ; b[2:1,1,1] <- c(\"X\",\"Y\") };  b }", ", , 1\n\n     [,1]    [,2]\n[1,]  \"Y\" \"FALSE\"\n[2,]  \"X\"      NA");
+        assertEval("{ typeof({ for(b in list(1:4, list(TRUE,1, 3+4i, 0/0))) { dim(b) <- c(2,2,1); b[2:1,1,1] <- list(1L,TRUE) };  b }) }", "\"list\"");
+        assertEval("{ for(b in list(1:4, list(TRUE,1, 3+4i, 0/0))) { dim(b) <- c(2,2,1); b[2:1,1,1] <- list(1L,TRUE) };  b }", ", , 1\n\n     [,1]     [,2]\n[1,] TRUE 3.0+4.0i\n[2,]   1L      NaN");
+        assertEvalError("{ for(b in list(1:4, function(){3})) { if (typeof(b)==\"integer\") { dim(b) <- c(2,2,1) }; b[2:1,1,1] <- list(1L,TRUE) };  b }", "object of type 'closure' is not subsettable");
+        assertEval("{ for(b in list(list(TRUE,1, 3+4i, 0/0), 1:4)) { dim(b) <- c(2,2,1); s <- b ; b[2:1,1,1] <- list(1L,TRUE) };  dim(b) <- NULL ; b }", "[[1]]\nTRUE\n\n[[2]]\n1L\n\n[[3]]\n3L\n\n[[4]]\n4L");
+        assertEvalError("{ for(b in list(as.raw(11:14), 1:4)) { dim(b) <- c(2,2,1); s <- b ; b[2:1,1,1] <- as.raw(111:112) }; b }", "incompatible types (from raw to integer) in subassignment type fix");
+
+        assertEval("{ x <- NULL; x[1,2,2] <- x ; x }", "NULL");
+        assertEval("{ x <- NULL; s <- x ; x[1,2,2] <- NULL ; x }", "NULL");
+        assertEval("{ x <- NULL; x[1,2,2] <- NULL ; x }", "NULL");
+
     }
+
 
 
 
