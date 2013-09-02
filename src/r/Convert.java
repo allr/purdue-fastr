@@ -67,6 +67,13 @@ public class Convert {
             try {
                 return Double.parseDouble(v);
             } catch (NumberFormatException e) {
+                // FIXME: slow
+                if (v.equals("Inf") || v.equals("+Inf")) {
+                    return Double.POSITIVE_INFINITY;
+                }
+                if (v.equals("-Inf")) {
+                    return Double.NEGATIVE_INFINITY;
+                }
                 if (v.startsWith("0x")) {
                     try {
                         return int2double(Integer.decode(v));

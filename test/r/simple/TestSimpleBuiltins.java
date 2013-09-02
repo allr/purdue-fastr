@@ -1412,4 +1412,18 @@ public class TestSimpleBuiltins extends SimpleTestBase {
     public void testTime() throws RecognitionException {
         assertEval("{ s <- proc.time()[3] ; e <- proc.time()[3] ; e >= s }", "elapsed\n   TRUE");
     }
+
+    @Test
+    public void testScan() throws RecognitionException {
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_comp.inp\", what=1+2i) }", "Read 3 items.\n", "1.0+2.0i, 3.141+0.0i, 1.0+0.0i");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_dbl.inp\", what=1) }", "Read 4 items.\n", "10.1, 11.0, 1.0E100, 1.0E-8");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_dbl_error.inp\", what=1) }", "scan() expected 'a real', got 'dummy'");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_comp_error.inp\", what=1+0i) }", "scan() expected 'a complex', got '1+3idummy'");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_int.inp\", what=1L) }", "Read 6 items.\n", "1L, 12L, -13L, 0L, NA, NA");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_int_error.inp\", what=1L) }", "scan() expected 'an integer', got '-1xx3'");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_dbl1.inp\", what=1) }", "Read 6 items.\n", "NaN, -Infinity, Infinity, NA, 0.0, -0.0");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_comp1.inp\", what=1+2i) }", "Read 5 items.\n", "1.0+2.0i, NA, 3.141+0.0i, NaN+0.0i, 1.0+0.0i");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_log.inp\", what=TRUE) }", "Read 6 items.\n", "TRUE, FALSE, NA, FALSE, FALSE, TRUE");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_log_error.inp\", what=TRUE) }", "scan() expected 'a logical', got 'Naa'");
+    }
 }

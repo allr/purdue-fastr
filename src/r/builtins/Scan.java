@@ -134,34 +134,42 @@ final class Scan extends CallFactory {
                     Reader reader = con.reader(ast);
                     ArrayList<String> buf = new ArrayList<String>();
                     int nread = 0;
-                    StringBuilder item = new StringBuilder();
+                    StringBuilder item = null;
                     int c;
                     c = skip_whites(reader);
                     if (c != -1) {
                         for (;;) {
                             if (is_white(c)) {
-                                buf.add(item.toString());
-                                nread++;
+                                if (item != null) {
+                                    buf.add(item.toString());
+                                    nread++;
+                                }
                                 if (nread == nmax) {
                                     break;
                                 }
                                 c = skip_whites(reader);
-                                item = new StringBuilder(); // TODO: get rid of allocation
+                                item = null; // TODO: get rid of allocation
                                 continue;
                             }
                             if (c == -1) {
-                                buf.add(item.toString());
-                                nread++;
+                                if (item != null) {
+                                    buf.add(item.toString());
+                                    nread++;
+                                }
                                 break;
+                            }
+                            if (item == null) {
+                                item = new StringBuilder();
                             }
                             item.append((char) c);
                             c = reader.read();
                         }
                     }
+                    RAny res = scan(buf, ast, what);
                     if (!quiet) {
                         Console.println(String.format("Read %d item%s.", nread, nread == 1 ? "" : "s"));
                     }
-                    return scan(buf, ast, what);
+                    return res;
                 } catch (IOException e) {
                     throw RError.getGenericError(ast, e.toString());
                 } finally {
@@ -199,8 +207,14 @@ final class Scan extends CallFactory {
         double[] content = new double[2 * size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            Complex c = Convert.string2complex(str);
-            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a complex", str); }
+            Complex c = Convert.string2complex(str, cs);
+            if (cs.naIntroduced) {
+                if (str.equals("NA")) {
+                    cs.naIntroduced = false;
+                } else {
+                    throw RError.getScanUnexpected(ast, "a complex", str);
+                }
+            }
             content[2 * i] = c.realValue();
             content[2 * i + 1] = c.imagValue();
         }
@@ -213,8 +227,13 @@ final class Scan extends CallFactory {
         double[] content = new double[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a double", str); }
             content[i] = Convert.string2double(str, cs);
+            if (cs.naIntroduced) {
+                if (str.equals("NA")) {
+                    cs.naIntroduced = false;
+                } else {
+                    throw RError.getScanUnexpected(ast, "a real", str); }
+                }
         }
         return RDouble.RDoubleFactory.getFor(content);
     }
@@ -225,8 +244,14 @@ final class Scan extends CallFactory {
         int[] content = new int[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "an integer", str); }
             content[i] = Convert.string2int(str, cs);
+            if (cs.naIntroduced) {
+                if (str.equals("NA")) {
+                    cs.naIntroduced = false;
+                } else {
+                    throw RError.getScanUnexpected(ast, "an integer", str);
+                }
+            }
         }
         return RInt.RIntFactory.getFor(content);
     }
@@ -237,8 +262,14 @@ final class Scan extends CallFactory {
         int[] content = new int[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced) { throw RError.getScanUnexpected(ast, "a logical", str); }
             content[i] = Convert.string2logical(str, cs);
+            if (cs.naIntroduced) {
+                if (str.equals("NA")) {
+                    cs.naIntroduced = false;
+                } else {
+                    throw RError.getScanUnexpected(ast, "a logical", str);
+                }
+            }
         }
         return RLogical.RLogicalFactory.getFor(content);
     }
@@ -250,8 +281,8 @@ final class Scan extends CallFactory {
         byte[] content = new byte[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            if (cs.naIntroduced || cs.outOfRange) { throw RError.getScanUnexpected(ast, "an raw", str); }
             content[i] = Convert.string2raw(str, cs);
+            if (cs.naIntroduced || cs.outOfRange) { throw RError.getScanUnexpected(ast, "an raw", str); }
         }
         return RRaw.RRawFactory.getFor(content);
     }
