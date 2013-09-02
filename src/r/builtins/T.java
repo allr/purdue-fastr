@@ -4,7 +4,6 @@ import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
-import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
@@ -106,19 +105,19 @@ final class T extends CallFactory {
 
     // note: not any faster than inPlaceRectangular
     // TODO: revisit - revalidate
-    public static void inPlaceSquare(DoubleImpl adbl, int m) {
-        double[] a = adbl.getContent();
-        for (int i = 0; i < m - 1; i++) {
-            for (int j = i + 1; j < m; j++) {
-                int first = i * m + j;
-                int second = j * m + i;
-
-                double tmp = a[first];
-                a[first] = a[second];
-                a[second] = tmp;
-            }
-        }
-    }
+//    public static void inPlaceSquare(DoubleImpl adbl, int m) {
+//        double[] a = adbl.getContent();
+//        for (int i = 0; i < m - 1; i++) {
+//            for (int j = i + 1; j < m; j++) {
+//                int first = i * m + j;
+//                int second = j * m + i;
+//
+//                double tmp = a[first];
+//                a[first] = a[second];
+//                a[second] = tmp;
+//            }
+//        }
+//    }
 
     public static void squareBlocked(RArray a, int n, RArray res) {
 
