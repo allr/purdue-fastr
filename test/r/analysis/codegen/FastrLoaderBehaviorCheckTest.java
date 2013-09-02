@@ -35,6 +35,7 @@ class Node3 extends RNode {
     private boolean checkMe() {
         return x;
     }
+
 }
 @TopLevelVariableWrite(check = "checkMe")
 class Node4 extends Node3 {

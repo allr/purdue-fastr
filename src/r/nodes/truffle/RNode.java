@@ -89,8 +89,16 @@ public abstract class RNode extends Node implements DeepCopyable {
      *
      * For simple behavior annotations, the check gets down to the node class being annotated with the given behavior.
      *
-     * @param behavior
+     * The behaviorCheck method is either generated automatically by the FastrLoader if annotations for conditional
+     * behaviors are present for a subclass, or can always be overriden by the user directly. In this case, it is
+     * important to call the parent implementation at the end of the overriden method instead of returning false.
+     *
+     * @param behavior Behavioral annotation to check for.
      * @return True if the behavior is supported by the node, false otherwise.
+     *
+     * TODO if fine grained behaviors are ever present they can be checked by creating a behaviorCheck method with
+     * additional Object value that will be casted, or by embedding this only to the guards themselves and when a
+     * behavior is detected, it will be checked by the guard for its validation on the fine level.
      */
     public boolean behaviorCheck(Class behavior) {
         return this.getClass().getAnnotation(behavior) != null;

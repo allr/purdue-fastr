@@ -62,7 +62,21 @@ import static r.fastr.DEBUG;
  * Node Behavior
  * =============
  *
+ * For each RNode descendant, all its annotations from the codegen.annotations.behavior package are inspected and the
+ * behaviorCheck() method is updated. The annotated behaviors work in the following way: The unconditional behaviors,
+ * that is behaviors that are always true for the particular node class are checked by the behaviorCheck() method
+ * implementation in RNode class itself as simple checks for the presence of the given annotation. Conditional
+ * behaviors can only be decided at runtime and they specify their checking function. The code generator then generated
+ * an overriden version of the behaviorCheck method for such classes where if the behavior checked is determined to be
+ * given conditional one, instead of checking for the annotation presence, the specified check method is called.
  *
+ * When the behaviorCheck method is present in the class, it is not generated from the annotations and the meaning
+ * specified by the user defined method is preserved. For more information see the RNode.behaviorCheck().
+ *
+ * This effectively decouples the annotations from the behavior perception each class can write its own behaviorCheck
+ * method that will be independent of the annotations of the class which are used as an aid to the automatic code
+ * generation. This allows easy addition of behaviors even to classes that cannot hold annotations, like the anonymous
+ * classes.
  */
 public class FastrLoader extends Loader implements Translator {
 
@@ -438,6 +452,11 @@ public class FastrLoader extends Loader implements Translator {
 
     // behavior --------------------------------------------------------------------------------------------------------
 
+    /** Returns true if the behaviorCheck method is present in the given class.
+     *
+     * The method should have return type boolean and accept a single argument of type java.lang.Class. If method named
+     * behaviorCheck is present, but with different signature, an error is generated.
+     */
     private boolean hasBehaviorCheckMethod(CtClass cls) {
         try {
             CtMethod m = cls.getDeclaredMethod("behaviorCheck");
@@ -457,6 +476,11 @@ public class FastrLoader extends Loader implements Translator {
 
     private static final String BEHAVIOR_ANNOTATION = "@r.analysis.codegen.annotations.behavior.";
 
+    /** Adds the generated behaviorCheck method to the class.
+     *
+     * The method is only added if the class is annotated with conditional behaviors. Unconditional behaviors will all
+     * be served by the base RNode.behaviorCheck implementation.
+     */
     private void addBehaviorCheckMethod(CtClass cls) {
         try {
             StringBuilder sb = new StringBuilder();
