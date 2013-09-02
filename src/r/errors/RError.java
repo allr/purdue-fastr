@@ -1,6 +1,6 @@
 package r.errors;
 
-import r.data.RSymbol;
+import r.data.*;
 import r.nodes.ASTNode;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
@@ -40,7 +40,6 @@ public abstract class RError extends RuntimeException {
     public static final String INCORRECT_SUBSCRIPTS_MATRIX = "incorrect number of subscripts on a matrix";
     public static final String INVALID_TYPE_LIST = "invalid 'type' (list) of argument";
     public static final String INVALID_SEP = "invalid 'sep' specification";
-    public static final String NOT_FUNCTION = "argument is not a function, character or symbol"; // GNU R gives also expression for the argument
     public static final String NON_NUMERIC_MATH = "non-numeric argument to mathematical function";
     public static final String NAN_PRODUCED = "NaNs produced";
     public static final String NUMERIC_COMPLEX_MATRIX_VECTOR = "requires numeric/complex matrix/vector arguments";
@@ -205,6 +204,7 @@ public abstract class RError extends RuntimeException {
     public static final String INVALID_TYPE_LENGTH = "invalid type/length (%s/%d) in vector allocation";
     public static final String SUBASSIGN_TYPE_FIX = "incompatible types (from %s to %s) in subassignment type fix";
     public static final String RECURSIVE_INDEXING_FAILED = "recursive indexing failed at level %d";
+    public static final String NOT_FUNCTION = "'%s' is not a function, character or symbol";
 
     public abstract static class RNYIError extends RError {
         private static final long serialVersionUID = -7296314309177604737L;
@@ -492,17 +492,6 @@ public abstract class RError extends RuntimeException {
 
             @Override public String getMessage() {
                 return RError.INVALID_SEP;
-            }
-        };
-    }
-
-    public static RError getNotFunction(ASTNode expr) {
-        return new RErrorInExpr(expr) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override public String getMessage() {
-                return RError.NOT_FUNCTION;
             }
         };
     }
@@ -1737,6 +1726,10 @@ public abstract class RError extends RuntimeException {
 
     public static RError getRecursiveIndexingFailed(ASTNode ast, int level) {
         return getGenericError(ast, String.format(RError.RECURSIVE_INDEXING_FAILED, level));
+    }
+
+    public static RError getNotFunction(ASTNode ast, RAny arg) { // FIXME: GNU-R will give an expression
+        return getGenericError(ast, String.format(RError.NOT_FUNCTION, arg.pretty()));
     }
 
 }

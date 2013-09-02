@@ -89,6 +89,7 @@ public abstract class FunctionCall extends AbstractCall {
                 // TODO: what if the attempt to create a builtin has produced warnings???
                 return null;
             }
+            assert Utils.check(builtinNode != null);
             return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
         }
         return null;

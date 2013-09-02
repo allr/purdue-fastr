@@ -442,7 +442,9 @@ final class SApply extends CallFactory {
         }
 
         public static RAny[] unpackPartial(Object partial) {
-            if (partial instanceof RAny[]) { return (RAny[]) partial; }
+            if (partial instanceof RAny[]) {
+                return (RAny[]) partial;
+            }
             PartialResult p = (PartialResult) partial;
             int size = p.content.size();
             RAny[] res = new RAny[size];
@@ -580,11 +582,10 @@ final class SApply extends CallFactory {
                                 if (v instanceof RList || v instanceof RNull) {
                                     returnsList = true;
                                 } else {
-                                    if (v instanceof RArray) {
-                                        int size = ((RArray) v).size();
-                                        if (size != 1) {
-                                            returnsList = true;
-                                        }
+                                    assert Utils.check(v instanceof RArray); // TODO: support for adding other types into a list
+                                    int size = ((RArray) v).size();
+                                    if (size != 1) {
+                                        returnsList = true;
                                     }
                                 }
                             }
@@ -632,7 +633,11 @@ final class SApply extends CallFactory {
                 }
                 RAny res = generic(frame, argIterator, this, null);
                 Specialized sn = createSpecialized(res, argIterator);
-                replace(sn, "install Specialized from Sapply");
+                if (sn != null) {
+                    replace(sn, "install Specialized from Sapply");
+                } else {
+                    replace(createGeneric(argIterator), "install Generic from Sapply");
+                }
                 return res;
             }
         }

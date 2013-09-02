@@ -97,7 +97,7 @@ final class LApply extends CallFactory {
             }
             if (arg instanceof RString) { // FIXME: could save some performance through node-rewriting and/or caching, argument will often be a constant
                 RString svalue = (RString) arg;
-                if (svalue.size() != 1) { throw RError.getNotFunction(ast); }
+                if (svalue.size() != 1) { throw RError.getNotFunction(ast, arg); } // FIXME: GNU-R will give ast for the function argument
                 RSymbol symbol = RSymbol.getSymbol(svalue.getString(0));
                 value = MatchCallable.matchGeneric(ast, frame, symbol);
                 return;
@@ -106,7 +106,7 @@ final class LApply extends CallFactory {
                 value = MatchCallable.matchGeneric(ast, frame, callsiteSymbol);
                 return;
             }
-            throw RError.getNotFunction(setAst);
+            throw RError.getNotFunction(ast, arg); // FIXME: GNU-R will give ast for the function argument
         }
     }
 
@@ -142,7 +142,7 @@ final class LApply extends CallFactory {
                 firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
                 content[i] = (RAny) callNode.execute(frame);
             }
-            return RList.RListFactory.getFor(content, null, l == null ? null : l.names());
+            return RList.RListFactory.getFor(content, null, isList ? l.names() : x.names());
         }
 
         public Specialized createSpecialized(RAny argxTemplate) {
