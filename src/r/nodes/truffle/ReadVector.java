@@ -49,7 +49,7 @@ import r.nodes.*;
 public abstract class ReadVector extends BaseR {
 
     @Child RNode lhs;
-    @Children RNode[] indexes;
+    @Children final RNode[] indexes;
     final boolean subset;
 
     private static final boolean DEBUG_SEL = false;

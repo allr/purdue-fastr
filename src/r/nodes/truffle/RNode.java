@@ -81,6 +81,21 @@ public abstract class RNode extends Node implements DeepCopyable {
         return visitor.visit(this);
     }
 
+    /** Behavior check method.
+     *
+     * Each node should override this method to perform checks on the behavior annotations. Unless the method is
+     * overwritten in the subclasses, it is automatically generated if an annotation with complex checking (defined
+     * check method argument) is present.
+     *
+     * For simple behavior annotations, the check gets down to the node class being annotated with the given behavior.
+     *
+     * @param behavior
+     * @return True if the behavior is supported by the node, false otherwise.
+     */
+    public boolean behaviorCheck(Class behavior) {
+        return this.getClass().getAnnotation(behavior) != null;
+    }
+
 
     public static class PushbackNode extends BaseR {
         @Child RNode realChildNode;

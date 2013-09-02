@@ -13,7 +13,7 @@ import r.nodes.truffle.RNode;
  *
  * TODO Maybe different thresholds.
  *
- * TODO Maybe discard counter node on exception from content execution, or content node change? 
+ * TODO Maybe discard counter node on exception from content execution, or content node change?
  */
 public abstract class CounterNode extends RNode {
 

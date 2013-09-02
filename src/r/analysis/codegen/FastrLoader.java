@@ -1,7 +1,9 @@
 package r.analysis.codegen;
 
 import javassist.*;
+import javassist.bytecode.annotation.*;
 import r.analysis.codegen.annotations.*;
+import r.analysis.codegen.annotations.behavior.LocalVariableWrite;
 
 import java.util.*;
 
@@ -44,7 +46,7 @@ import static r.fastr.DEBUG;
  * public T(T other, boolean deep) where T is the type to be deep copied.
  *
  * Node visitors
- * ============
+ * =============
  *
  * Any subclass of RNode inherits the accept() method defined by the RNode class. Calling this calls the visit() method
  * of the visitors for the node itself and if the visit() call does not return false, calls the accept() method for all
@@ -56,6 +58,11 @@ import static r.fastr.DEBUG;
  * of the fields in the class. Unannotated fields have the visit order equivalent to 0.
  *
  * (Note that there are no guarantees on the position of more fields with the same visit order).
+ *
+ * Node Behavior
+ * =============
+ *
+ *
  */
 public class FastrLoader extends Loader implements Translator {
 
@@ -66,6 +73,8 @@ public class FastrLoader extends Loader implements Translator {
     private static final boolean REPORT_EXISTING_DEEPCOPY = true;
     /** If enabled, RNodes with existing accept() methods will be reported. */
     private static final boolean REPORT_EXISTING_ACCEPT = true;
+    /** If enabled, RNodes with existing behaviorCHeck() methods will be reported. */
+    private static final boolean REPORT_EXISTING_BEHAVIOR_CHECKS = true;
 
     static ClassPool pool;
 
@@ -87,6 +96,8 @@ public class FastrLoader extends Loader implements Translator {
         doDelegation = true;
         // TODO possibly more classes should be added here
         delegateLoadingOf("r.analysis.codegen.annotations.");
+        //delegateLoadingOf("r.analysis.codegen.annotations.behavior.");
+        //delegateLoadingOf("javassist.");
     }
 
     /** Simple constructor assuming the parent loader to be the system class loader.
@@ -124,13 +135,20 @@ public class FastrLoader extends Loader implements Translator {
                 addDeepCopyMethod(cls);
             }
         }
-        // node visitors
+        // node visitors & behavior
         if (isRNode(cls)) {
+            // visitors
             if (!hasVisitorAcceptMethod(cls))
                 addVisitorAcceptMethod(cls);
             else
                 if (REPORT_EXISTING_ACCEPT)
                     DEBUG("  existing boolean accept(NodeVisitor) found, skipping...");
+            // behavior
+            if (!hasBehaviorCheckMethod(cls))
+                addBehaviorCheckMethod(cls);
+            else
+                if (REPORT_EXISTING_BEHAVIOR_CHECKS)
+                    DEBUG("  existing boolean behaviorCheck(Class) found, skipping...");
         }
     }
 
@@ -152,6 +170,25 @@ public class FastrLoader extends Loader implements Translator {
     private boolean isNode(CtClass cls) throws NotFoundException {
         return cls.subclassOf(pool.get("com.oracle.truffle.api.nodes.Node"));
     }
+
+    /** For a given class loads all its superclasses. This is important to revert class loading to be able to deal
+     * with anonymous classes.
+     */
+    private final void loadSuperclasses(CtClass cls) throws NotFoundException, ClassNotFoundException {
+        cls = cls.getSuperclass();
+        while (cls != null) {
+            loadClass(cls.getName());
+            cls = cls.getSuperclass();
+        }
+    }
+
+    /** Returns true if the class inherits from (or is) the RNode.
+     */
+    private boolean isRNode(CtClass cls) throws NotFoundException {
+        return cls.subclassOf(pool.get("r.nodes.truffle.RNode"));
+    }
+
+    // deep copying ----------------------------------------------------------------------------------------------------
 
     /** Checks if the given class implements deep or shallow constructor.
      *
@@ -179,17 +216,6 @@ public class FastrLoader extends Loader implements Translator {
             return true;
         } catch (NotFoundException e) {
             return false;
-        }
-    }
-
-    /** For a given class loads all its superclasses. This is important to revert class loading to be able to deal
-     * with anonymous classes.
-     */
-    private final void loadSuperclasses(CtClass cls) throws NotFoundException, ClassNotFoundException {
-        cls = cls.getSuperclass();
-        while (cls != null) {
-            loadClass(cls.getName());
-            cls = cls.getSuperclass();
         }
     }
 
@@ -311,12 +337,7 @@ public class FastrLoader extends Loader implements Translator {
         cls.addMethod(m);
     }
 
-
-    /** Returns true if the class inherits from (or is) the RNode.
-     */
-    private boolean isRNode(CtClass cls) throws NotFoundException {
-        return cls.subclassOf(pool.get("r.nodes.truffle.RNode"));
-    }
+    // node visiting ---------------------------------------------------------------------------------------------------
 
     /** Determines if the given class has the accept() method.
      *
@@ -339,7 +360,6 @@ public class FastrLoader extends Loader implements Translator {
             return false;
         }
     }
-
 
     /** For a given field, returns its visit order.
      *
@@ -413,6 +433,75 @@ public class FastrLoader extends Loader implements Translator {
             System.err.println("Unable to add the accept() method for node visitors:");
             System.err.println(sb.toString());
             e.printStackTrace();
+        }
+    }
+
+    // behavior --------------------------------------------------------------------------------------------------------
+
+    private boolean hasBehaviorCheckMethod(CtClass cls) {
+        try {
+            CtMethod m = cls.getDeclaredMethod("behaviorCheck");
+            CtClass[] args = m.getParameterTypes();
+            if ((args.length == 1) && (args[0].getName().equals("java.lang.Class"))) {
+                if (m.getReturnType().getName().equals("boolean"))
+                    return true;
+                else
+                    throw new Error("behaviorCheck() method for class "+cls.getName()+" does not have return type boolean");
+            } else {
+                throw new Error("behaviorCheck() method for class "+cls.getName()+" does not have single Class argument");
+            }
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
+    private static final String BEHAVIOR_ANNOTATION = "@r.analysis.codegen.annotations.behavior.";
+
+    private void addBehaviorCheckMethod(CtClass cls) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Object o : cls.getAnnotations()) {
+                // TODO this can be done by annotations only, but now two different loaders are used which prevets simple casts
+                // revisit when appropriate
+                String a = o.toString();
+                if (a.startsWith(BEHAVIOR_ANNOTATION)) {
+                    a = a.substring(BEHAVIOR_ANNOTATION.length());
+                    // if this ends with ), then arguments to the annotation have been passed and complex checking must
+                    // be generated
+                    if (a.endsWith(")")) {
+                        // currently, only check argument is processed
+                        int pos = a.indexOf("(");
+                        String aname = a.substring(0, pos);
+                        a = a.substring(pos + 1, a.length() - 2);
+                        if (a.startsWith("check=")) {
+                            a = a.substring(7);
+                            if (a.contains("="))
+                                throw new Error("  annotation "+aname+": Only check argument is accepted for behavior annotations");
+                            // add the check for the given annotation
+                            sb.append("if (behavior == r.analysis.codegen.annotations.behavior."+aname+".class)\n");
+                            sb.append("  return "+a+"();\n");
+                        } else {
+                            throw new Error("  annotation "+aname+": Only check argument is accepted for behavior annotations");
+                        }
+                    }
+                }
+            }
+            if (sb.length() != 0) { // only add the method if we have something to add
+                sb.insert(0, "public boolean behaviorCheck(java.lang.Class behavior) {\n");
+                sb.append("return super.behaviorCheck(behavior);\n");
+                sb.append("}");
+                try {
+                    CtMethod m = CtNewMethod.make(sb.toString(), cls);
+                    m.setModifiers(Modifier.PUBLIC);
+                    cls.addMethod(m);
+                } catch (CannotCompileException e) {
+                    System.err.println("Unable to add the behaviorCheck() method:");
+                    System.err.println(sb.toString());
+                    e.printStackTrace();
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
 }
