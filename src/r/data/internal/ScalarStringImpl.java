@@ -20,7 +20,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public Object get(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return get();
     }
 
@@ -30,7 +30,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public RAny boxedGet(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return boxedGet();
     }
 
@@ -40,7 +40,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public RArray set(int i, Object val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 
@@ -65,7 +65,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public boolean isNAorNaN(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return isNAorNaN();
     }
 
@@ -149,7 +149,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public String getString(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return getString();
     }
 
@@ -159,7 +159,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
 
     @Override
     public RString set(int i, String val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 

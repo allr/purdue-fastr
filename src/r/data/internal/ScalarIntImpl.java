@@ -25,7 +25,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public Object get(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return get();
     }
 
@@ -35,7 +35,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RAny boxedGet(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return boxedGet();
     }
 
@@ -45,7 +45,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RArray set(int i, Object val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 
@@ -70,7 +70,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public boolean isNAorNaN(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return isNAorNaN();
     }
 
@@ -150,7 +150,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public int getInt(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return getInt();
     }
 
@@ -160,7 +160,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
 
     @Override
     public RInt set(int i, int val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 

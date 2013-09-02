@@ -25,7 +25,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public Object get(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return  get();
     }
 
@@ -35,7 +35,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public RAny boxedGet(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return boxedGet();
     }
 
@@ -45,7 +45,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public RArray set(int i, Object val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 
@@ -72,7 +72,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public boolean isNAorNaN(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return isNAorNaN();
     }
 
@@ -156,7 +156,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public RComplex set(int i, double real, double imag) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(real, imag);
     }
 
@@ -168,7 +168,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public double getReal(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return getReal();
     }
 
@@ -178,7 +178,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
 
     @Override
     public double getImag(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return getImag();
     }
 

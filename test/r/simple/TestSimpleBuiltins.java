@@ -1306,6 +1306,44 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sprintf(\"Hello %2$*2$d\", 3, 2) }", "\"Hello  2\"");
         assertEval("{ sprintf(\"%4X\", 26) }", "\"  1A\"");
         assertEval("{ sprintf(\"%04X\", 26) }", "\"001A\"");
+
+        assertEvalError("{ sprintf(1:3) }", "'fmt' is not a character vector");
+        assertEval("{ sprintf(\"%s\",NULL) }", "character(0)");
+        assertEval("{ sprintf(c(\"%f\",\"%e\"),1) }", "\"1.000000\", \"1.000000e+00\"");
+        assertEval("{ sprintf(c(\"%f\",\"%% %e\"),1) }", "\"1.000000\", \"% 1.000000e+00\"");
+        assertEval("{ sprintf(c(\"%f\",\"%e %%\"),1) }", "\"1.000000\", \"1.000000e+00 %\"");
+        assertEval("{ sprintf(\"second %2$1.0f, first %1$5.2f, third %3$1.0f\", 3.141592, 2, 3) }", "\"second 2, first  3.14, third 3\""); // from GNU-R help page
+        assertEval("{ sprintf(\"res %4$6d\",1,2,3,4,5,6,7,8,9,10,11) }", "\"res      4\"");
+        assertEval("{ sprintf(\"res %11$06d\",1,2,3,4,5,6,7,8,9,10,11) }", "\"res 000011\"");
+        assertEvalError("{ sprintf(\"Hello %2$*2*$d\", 3, 2) }", "at most one asterisk '*' is supported in each conversion specification");
+        assertEvalError("{ sprintf(\"res %11$0.6d\",1,2,3) }", "reference to non-existent argument 11");
+        assertEval("{ sprintf(\"Hello %1$*11$d\", 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12) }", "\"Hello            3\"");
+        assertEvalError("{ sprintf(\"Hello %1$*99$d\", 3, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12) }", "reference to non-existent argument 99");
+        assertEvalError("{ sprintf(\"Hello %1$*3$d\", 3, 2, \"hello\") }", "argument for '*' conversion specification must be a number");
+        assertEval("{ sprintf(\"Hello %1$*3$d\", 3, 2, 4L) }", "\"Hello    3\"");
+        assertEvalError("{ sprintf(\"Hello %d\n\") }", "too few arguments");
+        assertEvalError("{ sprintf(\"Hello %*d\", 2) }", "too few arguments");
+        assertEvalError("{ sprintf(\"Hello %d %d %*d\", 3, 2) }", "too few arguments");
+        assertEvalError("{ sprintf(\"Hello %*d\", 2e100, 3) }", "argument for '*' conversion specification must be a number");
+        assertEval("{ sprintf(\"Hello %*i\", 2, 3) }", "\"Hello  3\"");
+        assertEvalError("{ sprintf(\"Hello %Q\") }", "unrecognized format specification '%Q'");
+        assertEvalError("{ sprintf(\"Hello %\") }", "unrecognized format specification '%'");
+        assertEval("{ sprintf(\"Hello %d == %s\", TRUE, TRUE) }", "\"Hello 1 == TRUE\"");
+        assertEval("{ sprintf(\"Hello %d == %s\", 1L, 1L) }", "\"Hello 1 == 1L\"");
+        assertEvalError("{ sprintf(\"Hello %d == %s\", 1+2i, 1+3i) }", "unsupported type");
+        assertEval("{ sprintf(\"Hello %s\", \"World!\") }", "\"Hello World!\"");
+        assertEvalError("{ sprintf(\"Hello %d\", 1e100) }", "invalid format '%d'; use format %f, %e, %g or %a for numeric objects");
+        assertEval("{ sprintf(\"Hello %d\", 100) }", "\"Hello 100\"");
+        assertEval("{ sprintf(\"Hello %f %f %f %f\", 0/0, -1/0, 1/0, 1[2]) }", "\"Hello NaN -Inf Inf NA\"");
+        assertEval("{ sprintf(\"Hello %5.f %5.f %5.f %5.f\", 0/0, -1/0, 1/0, 1[2]) }", "\"Hello   NaN  -Inf   Inf    NA\"");
+        assertEval("{ sprintf(\"% f\",1.234556) }", "\" 1.234556\"");
+        assertEval("{ sprintf(\"Hello %s\", 0/0) }", "\"Hello NaN\"");
+        assertEvalError("{ sprintf(\"Hello %x\", \"0/0\") }", "invalid format '%x'; use format %s for character objects");
+        assertEval("{ sprintf(\"Hello %x\", 1L[2]) }", "\"Hello NA\"");
+        assertEval("{ sprintf(\"Hello %g\", NA) }", "\"Hello NA\"");
+        assertEval("{ sprintf(\"Hello %g\", 1L[2]) }", "\"Hello NA\"");
+        assertEvalError("{ sprintf(\"Hello %X\", TRUE) }", "invalid format '%X'; use format %d or %i for logical objects");
+        assertEval("{ sprintf(\"Hello %i\", NA) }", "\"Hello NA\"");
     }
 
     @Test

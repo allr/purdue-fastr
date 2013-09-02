@@ -25,7 +25,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public Object get(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return  get();
     }
 
@@ -35,7 +35,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RAny boxedGet(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return boxedGet();
     }
 
@@ -45,7 +45,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RArray set(int i, Object val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 
@@ -70,7 +70,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public boolean isNAorNaN(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return isNAorNaN();
     }
 
@@ -158,7 +158,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public RDouble set(int i, double val) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return set(val);
     }
 
@@ -169,7 +169,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
 
     @Override
     public double getDouble(int i) {
-        Utils.check(i == 0);
+        assert Utils.check(i == 0);
         return getDouble();
     }
 

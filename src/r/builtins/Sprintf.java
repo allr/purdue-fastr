@@ -79,7 +79,7 @@ public class Sprintf extends CallFactory {
                 for (int k = 0; k < refIndexes.length; k++) {
                     int tmp = refIndexes[k];
                     tmp++;
-                    if (tmp > refs[k].size()) {
+                    if (tmp >= refs[k].size()) {
                         tmp = 0;
                     }
                     refIndexes[k] = tmp;
@@ -225,11 +225,11 @@ public class Sprintf extends CallFactory {
                             break;
                     }
                 }
-                formatStringPos = j;
-
                 if (!foundEnd) {
-                    throw RError.getUnrecognizedFormat(ast, formatString.substring(j));
+                    throw RError.getUnrecognizedFormat(ast, formatString.substring(formatStringPos));
                 }
+
+                formatStringPos = j;
 
                 // retrieve the reference (only an integer number is supported)
                 RArray r;
