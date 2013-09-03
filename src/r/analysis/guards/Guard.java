@@ -34,7 +34,7 @@ public abstract class Guard extends RNode {
      * Override this method, if more is to be done upon invalidation. This method is also called by MultiGuard when
      * invalidating automatically after a single guard failure.
      */
-    protected void invalidateInternal() {
+    public void invalidateInternal() {
         assumption.invalidate();
     }
 

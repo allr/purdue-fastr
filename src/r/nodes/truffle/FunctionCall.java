@@ -6,6 +6,7 @@ import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.analysis.codegen.annotations.behavior.Unsafe;
+import r.analysis.nodes.InliningCounter;
 import r.builtins.*;
 import r.data.*;
 import r.errors.*;
@@ -68,7 +69,10 @@ public abstract class FunctionCall extends AbstractCall {
             r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
             RSymbol fname = fcall.getName();
             RNode fexp = r.nodes.truffle.MatchCallable.getUninitialized(call, fname);
-            return getFunctionCall(fcall, fexp, names, exprs);
+            // TODO It is questionable whether this is the best place to intercept, I would say it is for now
+            // the other usage in builtins and in the stable builtin call are far less likely (and possibly more complex
+            // to optimize). 
+            return new InliningCounter(getFunctionCall(fcall, fexp, names, exprs));
         }
     };
 

@@ -12,6 +12,8 @@ import r.nodes.*;
 public abstract class RNode extends Node implements DeepCopyable {
 
     public ASTNode getAST() {
+        if (getParent() == null)
+            System.out.println("AAAA");
         return ((RNode) getParent()).getAST();
     }
 
