@@ -112,6 +112,10 @@ public class Identical extends CallFactory {
             }
             return false;
         }
+        if (x instanceof RNull) {
+            return y instanceof RNull;
+        }
+        // FIXME: add other types, often the result will be false
         Utils.nyi("unsupported type");
         return false;
     }
@@ -149,8 +153,11 @@ public class Identical extends CallFactory {
         if (xattr == yattr) {
             return true;
         }
-        if (xattr == null || yattr == null) {
-            return false;
+        if (xattr == null) {
+            return yattr.map().size() == 0;
+        }
+        if (yattr == null) {
+            return xattr.map().size() == 0;
         }
         LinkedHashMap<RSymbol, RAny> xmap = xattr.map();
         LinkedHashMap<RSymbol, RAny> ymap = yattr.map();
@@ -272,7 +279,7 @@ public class Identical extends CallFactory {
             if (xs == ys) {
                 continue;
             }
-            if (xs == null || ys == null) {
+            if (xs == RString.NA || ys == RString.NA) {
                 return false;
             }
             if (xs.compareTo(ys) != 0) {
