@@ -1,12 +1,10 @@
-package r.analysis.guards;
+package r.analysis.nodes;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.*;
+import r.analysis.guards.Guard;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
-
-import java.rmi.UnexpectedException;
 
 /** A guard holder.
  *

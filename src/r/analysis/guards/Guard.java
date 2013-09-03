@@ -17,9 +17,9 @@ import r.nodes.truffle.RNode;
  */
 public abstract class Guard extends RNode {
 
-    static class GuardFailureException extends SlowPathException { }
+    static public class GuardFailureException extends SlowPathException { }
 
-    final Assumption assumption;
+    public final Assumption assumption;
 
     /** Creates the guard.
      *

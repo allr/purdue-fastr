@@ -1,10 +1,11 @@
-package r.analysis.guards;
+package r.analysis.nodes;
 
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import r.analysis.codegen.annotations.*;
+import r.analysis.guards.Guard;
 import r.nodes.truffle.RNode;
 
 /** A guarded original implementation.
@@ -34,7 +35,7 @@ public class GuardedNode extends RNode {
      * @param node Node that depends on the validity of the guard.
      * @param fallback Fallback original providing the same functionality as original, but does not rely on the guard.
      */
-    protected GuardedNode(Guard guard, RNode node, RNode fallback) {
+    public GuardedNode(Guard guard, RNode node, RNode fallback) {
         this.guard = guard;
         this.guardedNode = adoptChild(node);
         this.fallbackNode = adoptChild(fallback);

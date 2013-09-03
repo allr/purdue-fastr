@@ -1,5 +1,6 @@
 package r.analysis.visitors;
 
+import r.analysis.codegen.annotations.behavior.Unsafe;
 import r.nodes.truffle.RNode;
 
 import java.util.HashSet;
@@ -16,6 +17,8 @@ import java.util.HashSet;
  * created by the static methods create().
  *
  * The behavior classes are expected to come from r.analysis.codegen.annotations.behavior package.
+ *
+ * If the Unsafe behavior is found in any node, then all checked behaviors are marked as found.
  */
 public abstract class BehaviorChecker implements NodeVisitor {
 
@@ -35,7 +38,7 @@ public abstract class BehaviorChecker implements NodeVisitor {
      */
     public static enum ResultType {
         ALL,
-        ANY
+        ANY,
     }
 
     /** Creates a behavior checker for single behavior class.
@@ -81,7 +84,7 @@ public abstract class BehaviorChecker implements NodeVisitor {
         public boolean visit(RNode node) {
             if (found)
                 return false; // no subsequent checks are needed
-            if (node.behaviorCheck(behavior)) {
+            if (node.behaviorCheck(behavior) || node.behaviorCheck(Unsafe.class)) {
                 found = true;
                 return false;
             }
@@ -126,13 +129,19 @@ public abstract class BehaviorChecker implements NodeVisitor {
 
         @Override
         public boolean visit(RNode node) {
-            for (int i : left) {
-                if (node.behaviorCheck(behaviors[i])) {
+            if (node.behaviorCheck(Unsafe.class)) {
+                for (int i : left)
                     found[i] = true;
-                    if (type == ResultType.ANY)
-                        left.clear();
-                    else
-                        left.remove(i);
+                left.clear();
+            } else {
+                for (int i : left) {
+                    if (node.behaviorCheck(behaviors[i])) {
+                        found[i] = true;
+                        if (type == ResultType.ANY)
+                            left.clear();
+                        else
+                            left.remove(i);
+                    }
                 }
             }
             return ! left.isEmpty();

@@ -5,17 +5,21 @@ import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
+import r.analysis.codegen.annotations.behavior.Unsafe;
 import r.builtins.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 
 // TODO: fix (extend?) the propagation of scalar values and values with guards, currently it is very restricted
+
+// TODO This takes care of eval as well, in the future it may be conditional
+@Unsafe
 public abstract class FunctionCall extends AbstractCall {
 
     public final static boolean PROMISES = true;
 
-    final RNode callableExpr;
+    public final RNode callableExpr;
 
     private FunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, int[] dotsArgs) {
         super(ast, argNames, argExprs, dotsArgs);
@@ -200,6 +204,18 @@ public abstract class FunctionCall extends AbstractCall {
         RBuiltIn lastBuiltIn; // null when last callable wasn't a builtin
         RSymbol builtInName;
         @Child RNode builtInNode;
+
+        /** Returns true if the last execution resulted in a builtin call. False otherwise.
+         */
+        public boolean isBuiltin() {
+            return (lastBuiltIn != null);
+        }
+
+        /** Returns the last closure called by the function call node.
+         */
+        public RClosure lastClosure() {
+            return lastClosure;
+        }
 
         GenericCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
             super(ast, callableExpr, argNames, argExprs, null);

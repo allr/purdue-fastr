@@ -3,6 +3,7 @@ package r.nodes.truffle;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
+import r.analysis.codegen.annotations.behavior.VariableWrite;
 import r.data.*;
 import r.nodes.*;
 
@@ -10,6 +11,7 @@ import com.oracle.truffle.api.frame.*;
 
 // FIXME: we could get some performance by specializing on whether an update (writing the same value) is likely ; this is so when the assignment is used
 // in update operations (vector update, replacement functions) ; we could use unconditional ref in other cases
+@VariableWrite
 public abstract class WriteVariable extends BaseR {
 
     // TODO: All BaseRNode are useless EXCEPT for the uninitialized version (since Truffle keeps track of the original)

@@ -4,10 +4,12 @@ import com.oracle.truffle.api.nodes.*;
 import com.oracle.truffle.api.frame.*;
 
 import r.*;
+import r.analysis.codegen.annotations.behavior.VariableWrite;
 import r.data.*;
 import r.data.RFunction.*;
 import r.nodes.*;
 
+@VariableWrite
 public abstract class SuperWriteVariable extends BaseR {
 
     final RSymbol symbol;

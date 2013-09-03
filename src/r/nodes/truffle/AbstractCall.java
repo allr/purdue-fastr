@@ -19,6 +19,14 @@ public abstract class AbstractCall extends BaseR {
     protected final int[] dotsArgs; // FIXME: move to FunctionCall?
 
 
+    /** Returns the number of arguments the function call specifies.
+     *
+     * Note this may be different to the number of arguments the called function specified in its definition.
+     */
+    public int argumentsCount() {
+        return argExprs == null ? 0 : argExprs.length;
+    }
+
     public AbstractCall(ASTNode orig, RSymbol[] argNames, RNode[] argsExprs, int[] dotsArgs) {
         super(orig);
         this.argNames = argNames;
