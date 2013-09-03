@@ -522,6 +522,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ order(c(1,2,3,NA), na.last=FALSE, decreasing=TRUE) }", "4L, 3L, 2L, 1L");
         assertEval("{ order(c(0/0, -1/0, 2)) }", "2L, 3L, 1L");
         assertEval("{ order(c(0/0, -1/0, 2), na.last=NA) }", "2L, 3L");
+
+        // set GNU-R locale to C - Sys.setlocale("LC_COLLATE", "C")
+        assertEval("{ order(c(\"a\",\"z\",\"Z\",\"xxxz\",\"zza\",\"b\")) }", "3L, 1L, 6L, 4L, 2L, 5L");
     }
 
     @Test
@@ -1027,6 +1030,20 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ sort(c(a=NA,b=NA,c=3L,d=-1L),na.last=TRUE, decreasing=FALSE) }", "  d  c  a  b\n-1L 3L NA NA");
         assertEval("{ sort(c(3,NA,1,d=10), decreasing=FALSE, index.return=TRUE) }","$x\n           d\n1.0 3.0 10.0\n\n$ix\n2L, 1L, 3L");
         assertEval("{ sort(3:1, index.return=TRUE) }", "$x\n1L, 2L, 3L\n\n$ix\n3L, 2L, 1L");
+        assertEval("{ sort(c(TRUE,FALSE,FALSE,NA,FALSE), index.return=TRUE)$ix }", "2L, 3L, 4L, 1L");
+
+        // set GNU-R locale to C - Sys.setlocale("LC_COLLATE", "C")
+        assertEval("{ sort(c(\"a\",\"z\",\"Z\",\"xxxz\",\"zza\",\"b\"), index.return=TRUE)$ix }", "3L, 1L, 6L, 4L, 2L, 5L");
+        assertEval("{ sort(c(a=NA,1,b=NA,0/0,2,3), na.last=TRUE, decreasing=FALSE) }", "             a  b    \n1.0 2.0 3.0 NA NA NaN");
+        assertEval("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=TRUE, decreasing=TRUE) }", "              a  b\n2L 1L 0L -3L NA NA");
+        assertEval("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=FALSE, decreasing=TRUE) }", " a  b             \nNA NA 2L 1L 0L -3L");
+        assertEval("{ sort(c(a=NA,1L,b=NA,0L,2L,-3L), na.last=NA, decreasing=TRUE) }", "            \n2L 1L 0L -3L");
+        assertEval("{ sort(c(\"A\",\"a\"), decreasing=TRUE) }", "\"a\", \"A\"");
+        assertEval("{ sort(c(\"a\",\"A\"), decreasing=FALSE) }", "\"A\", \"a\"");
+        assertEval("{ sort(c(\"a\",\"A\",\"z\",\"Z\",\"   01\",\"01\",NA), na.last=NA, decreasing=TRUE, index.return=TRUE)$ix }", "3L, 1L, 4L, 2L, 6L, 5L");
+        assertEval("{ sort(c(\"a\",\"A\",\"z\",\"Z\",\"   01\",\"01\",NA), na.last=TRUE, decreasing=FALSE) }", "\"   01\", \"01\", \"A\", \"Z\", \"a\", \"z\", NA");
+        assertEval("{ sort(c(TRUE,NA,TRUE,NA,FALSE,TRUE,NA), na.last=FALSE, decreasing=FALSE) }", "NA, NA, NA, FALSE, TRUE, TRUE, TRUE");
+        assertEval("{ sort(c(TRUE,NA,TRUE,NA,FALSE,TRUE,NA), na.last=NA, decreasing=TRUE) }", "TRUE, TRUE, TRUE, FALSE");
     }
 
     @Test
