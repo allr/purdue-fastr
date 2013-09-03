@@ -176,8 +176,20 @@ public class Convert {
         if (s != RString.NA) {
             // FIXME use R rules
             int intVal;
+            int len = s.length();
+            String str;
+            if (len > 0 && s.charAt(0) == '0') {
+                // Java would treat '0' prefix as octal code, but R just ignores it
+                int nzeros = 1;
+                while (nzeros < len && s.charAt(nzeros) == '0') {
+                    nzeros ++;
+                }
+                str = s.substring(nzeros);
+            } else {
+                str = s;
+            }
             try {
-                 intVal = Integer.decode(s);  // decode supports hex constants
+                 intVal = Integer.decode(str);  // decode supports hex constants
             } catch (NumberFormatException e) {
                 if (warn != null) {
                     warn.naIntroduced = true;

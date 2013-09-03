@@ -215,6 +215,10 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ as.matrix(1:3) }", "     [,1]\n[1,]   1L\n[2,]   2L\n[3,]   3L");
         assertEval("{ x <- 1:3; z <- as.matrix(x); x }", "1L, 2L, 3L");
         assertEval("{ x <- 1:3 ; attr(x,\"my\") <- 10 ; attributes(as.matrix(x)) }", "$dim\n3L, 1L");
+
+        assertEval("{ as.raw(\"09\") }", "09");
+        assertEval("{ as.raw(\"077\") }", "4d");
+        assertEval("{ as.raw(\"0004\") }", "04");
     }
 
     @Test
@@ -1425,5 +1429,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ scan(file=\"test/r/simple/data/coldata/test_comp1.inp\", what=1+2i) }", "Read 5 items.\n", "1.0+2.0i, NA, 3.141+0.0i, NaN+0.0i, 1.0+0.0i");
         assertEval("{ scan(file=\"test/r/simple/data/coldata/test_log.inp\", what=TRUE) }", "Read 6 items.\n", "TRUE, FALSE, NA, FALSE, FALSE, TRUE");
         assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_log_error.inp\", what=TRUE) }", "scan() expected 'a logical', got 'Naa'");
+        assertEval("{ scan(file=\"test/r/simple/data/coldata/test_raw.inp\", what=as.raw(10)) }", "Read 11 items.\n", "10, 11, fe, 0e, ff, ff, ab, ab, 00, 00, ee");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_raw_error.inp\", what=as.raw(10)) }", "scan() expected 'a raw', got 'X'");
+        assertEvalError("{ scan(file=\"test/r/simple/data/coldata/test_raw.inp\", what=function(){3}) }", "invalid 'what' argument");
     }
 }

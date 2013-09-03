@@ -274,6 +274,19 @@ final class Scan extends CallFactory {
         return RLogical.RLogicalFactory.getFor(content);
     }
 
+    static int hexDigit(char c) {
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        }
+        if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 10;
+        }
+        if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 10;
+        }
+        return -1;
+    }
+
     public static RRaw scanRaw(ArrayList<String> src, ASTNode ast) {
         int size = src.size();
         cs.naIntroduced = false;
@@ -281,8 +294,28 @@ final class Scan extends CallFactory {
         byte[] content = new byte[size];
         for (int i = 0; i < size; i++) {
             String str = src.get(i);
-            content[i] = Convert.string2raw(str, cs);
-            if (cs.naIntroduced || cs.outOfRange) { throw RError.getScanUnexpected(ast, "an raw", str); }
+
+            // conversion taken from GNU-R (yes, a bit strange)
+            if (str.equals("NA")) {
+                // zero
+                continue;
+            }
+            int slen = str.length();
+            if (slen == 2) {
+                int a = hexDigit(str.charAt(0));
+                int b = hexDigit(str.charAt(1));
+                if (a != -1 && b != -1) {
+                    content[i] = (byte) (a * 16 + b);
+                    continue;
+                }
+            }
+            if (slen == 1) {
+                if (hexDigit(str.charAt(0)) != -1) {
+                    // zero;
+                    continue;
+                }
+            }
+            throw RError.getScanUnexpected(ast, "a raw", str);
         }
         return RRaw.RRawFactory.getFor(content);
     }
@@ -294,8 +327,7 @@ final class Scan extends CallFactory {
         if (what instanceof RLogical) { return scanLogical(src, ast); }
         if (what instanceof RRaw) { return scanRaw(src, ast); }
         if (what instanceof RComplex) { return scanComplex(src, ast); }
-        Utils.nyi("unsupported type");
-        return null;
+        throw RError.getInvalidArgument(ast, "what");
     }
 
     public static boolean is_white(int c) {
