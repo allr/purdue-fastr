@@ -2,12 +2,26 @@ package r.analysis.optimizations;
 
 import r.analysis.codegen.annotations.behavior.VariableWrite;
 import r.analysis.guards.*;
-import r.analysis.nodes.GuardedNode;
+import r.analysis.nodes.*;
 import r.analysis.visitors.BehaviorChecker;
 import r.data.*;
-import r.data.internal.FunctionImpl;
 import r.nodes.truffle.*;
 
+
+/** Inlining optimizations.
+ *
+ * This class defines all the possible inlining optimizations. It is never meant to be instantiated and all members
+ * should remain static.
+ *
+ * See the respective optimize methods for more details. All the methods in general return the following node tree:
+ *
+ * GuardHolder:
+ *   - guard (SameEvaluationResult guard on the function object)
+ *   - GuardedNode:
+ *       - points to the guard above
+ *       - fallback is the old FunctionCall node
+ *       - content is the inlined function itself. 
+ */
 public class Inlining {
 
 
@@ -46,9 +60,9 @@ public class Inlining {
      * This is the most trivial example.
      *
      * @param call Call to be optimized.
-     * @return Returns a guarded node for the optimization, or null if the optimization cannot be applied.
+     * @return Returns a guard holder and guarded node for the optimization, or null if the optimization cannot be applied.
      */
-    public static GuardedNode optimizeNoArgsNoWrites(FunctionCall call) {
+    public static RNode optimizeNoArgsNoWrites(FunctionCall call) {
         // make sure it is a call to a function with no arguments
         if (!isSimpleFunctionCall(call) || !hasNoArguments(call))
             return null;
@@ -64,6 +78,6 @@ public class Inlining {
         // create the guard
         Guard g = new SameEvaluationResult(getLastClosure(call), (RNode) call.callableExpr.deepCopy());
         // construct the guarded node and return it
-        return new GuardedNode(g, inlinedFunction, call);
+        return new GuardHolder.SingleGuard(inlinedFunction.getAST(), g, new  GuardedNode(g, inlinedFunction, call));
     }
 }

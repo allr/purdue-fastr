@@ -71,7 +71,7 @@ public abstract class FunctionCall extends AbstractCall {
             RNode fexp = r.nodes.truffle.MatchCallable.getUninitialized(call, fname);
             // TODO It is questionable whether this is the best place to intercept, I would say it is for now
             // the other usage in builtins and in the stable builtin call are far less likely (and possibly more complex
-            // to optimize). 
+            // to optimize).
             return new InliningCounter(getFunctionCall(fcall, fexp, names, exprs));
         }
     };

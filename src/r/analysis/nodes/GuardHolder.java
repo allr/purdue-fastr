@@ -28,12 +28,12 @@ public abstract class GuardHolder extends BaseR {
 
     public GuardHolder(ASTNode orig, RNode original) {
         super(orig);
-        this.original = adoptChild(this.original);
+        this.original = adoptChild(original);
     }
 
     public GuardHolder(BaseR original) {
         super(original.getAST());
-        this.original = adoptChild(this.original);
+        this.original = adoptChild(original);
     }
 
     /** Adds the given guard to the guard(s) already held.

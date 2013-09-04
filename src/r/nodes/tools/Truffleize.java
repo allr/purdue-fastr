@@ -26,8 +26,40 @@ public class Truffleize implements Visitor {
     RNode result;
     public static final boolean DEBUG_SPECIAL_NODES = false;
 
+    /** Lazy root tree class so that the contents can be easily accessed.
+     *
+     * This is not an inner class so that the node field can be easily accessed by typecasting.
+     *
+     * TODO get rid of the comments in createLazyRootTree() when merge.
+     */
+    public static class LazyRootTree extends BaseR {
+
+        @Child RNode node;
+
+        public LazyRootTree(ASTNode orig, RNode root) {
+            super(orig);
+            node = adoptChild(root);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            try {
+                return node.execute(frame);
+            } catch (Loop.ContinueException | Loop.BreakException ce) {
+                throw RError.getNoLoopForBreakNext(ast);
+            }
+        }
+
+        /** Returns the contents of the tree for inspection.
+         */
+        public RNode getNode() {
+            return node;
+        }
+    }
+
     public RNode createLazyRootTree(final ASTNode ast) {
-        return new BaseR(ast) {
+        return new LazyRootTree(ast, createLazyTree(ast));
+/*        return new BaseR(ast) {
 
             @Child RNode node = adoptChild(createLazyTree(ast));
 
@@ -41,7 +73,7 @@ public class Truffleize implements Visitor {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
-        };
+        }; */
     }
 
     public RNode createTree(ASTNode ast) {
