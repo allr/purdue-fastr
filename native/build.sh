@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# This script is for Ubuntu 12.10 (now 13.10), 64-bit and JDK 1.7
+# This script is for Ubuntu 12.10 (now 13.04), 64-bit and JDK 1.7
 # it builds the wrappers for R library and libc
 #
 # (not for BLAS/LAPACK, see netlib-java for that)
