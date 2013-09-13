@@ -4,13 +4,13 @@ import org.junit.*;
 
 public class TestBase {
 
-   public static final boolean VERBOSE = false; // show the outputs of the running benchmarks
-   public static final boolean DEBUGGING_RUN = false; // run each benchmark first without capturing its output
+    public static final boolean VERBOSE = false; // show the outputs of the running benchmarks
+    public static final boolean DEBUGGING_RUN = false; // run each benchmark first without capturing its output
 
-    /** A simple class that holds the result of a test evaluation.
-     *
-     * Contains the actual result reported by eval, the captured std err and std out of the execution and the message
-     * of a Java exception if any was thrown during the execution, or null.
+    /**
+     * A simple class that holds the result of a test evaluation. Contains the actual result reported by eval, the
+     * captured std err and std out of the execution and the message of a Java exception if any was thrown during the
+     * execution, or null.
      */
     public static class EvalResult {
 

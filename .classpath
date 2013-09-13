@@ -7,7 +7,6 @@
 	<classpathentry kind="lib" path="lib/arpack_combined_all.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.8.jar"/>
 	<classpathentry kind="lib" path="lib/netlib-java-0.9.3.jar"/>
-	<classpathentry kind="lib" path="lib/truffle-api-28-Jun-13.jar"/>
 	<classpathentry kind="lib" path="lib/jline-2.12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

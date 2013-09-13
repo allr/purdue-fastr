@@ -22,7 +22,7 @@ public abstract class FunctionCall extends AbstractCall {
         this.callableExpr = adoptChild(callableExpr);
     }
 
-    public static FunctionCall getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
+    public static RNode getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         // place optimized nodes here, e.g. for positional-only argument passing
         // these are present in the old truffle api version, but not here, as they were not really helping
 
@@ -71,8 +71,7 @@ public abstract class FunctionCall extends AbstractCall {
     public static RNode createBuiltinCall(ASTNode call, RSymbol[] argNames, RNode[] argExprs) {
 
         int[] dotsArgs = findDotsArgs(argExprs);
-        if (dotsArgs != null) {
-            return null; // can't use a fixed builtin node when calling using ...
+        if (dotsArgs != null) { return null; // can't use a fixed builtin node when calling using ...
         }
 
         r.nodes.FunctionCall fcall = (r.nodes.FunctionCall) call;
@@ -128,7 +127,6 @@ public abstract class FunctionCall extends AbstractCall {
         final RNode[] rememberedArgExprs; // NOTE: not children - the real parent of the exprs is the builtin
         final RSymbol[] rememberedArgNames;
 
-
         SimpleBuiltinCall(ASTNode ast, RSymbol builtinName, RSymbol[] argNames, RNode[] argExprs, RNode builtInNode) {
             super(ast);
             this.builtinName = builtinName;
@@ -137,12 +135,9 @@ public abstract class FunctionCall extends AbstractCall {
             this.builtinNode = adoptChild(builtInNode);
         }
 
-        @Override
-        public Object execute(Frame callerFrame) {
+        @Override public Object execute(Frame callerFrame) {
             try {
-                if (builtinName.getValue() != null || builtinName.getVersion() != 0) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (builtinName.getValue() != null || builtinName.getVersion() != 0) { throw new UnexpectedResultException(null); }
                 return builtinNode.execute(callerFrame);
             } catch (UnexpectedResultException e) {
                 RNode callableExpr = r.nodes.truffle.MatchCallable.getUninitialized(ast, builtinName);
@@ -160,7 +155,6 @@ public abstract class FunctionCall extends AbstractCall {
         final RNode[] rememberedArgExprs; // NOTE: not children - the real parent of the exprs is the builtin
         final RSymbol[] rememberedArgNames;
 
-
         StableBuiltinCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RBuiltIn builtIn, RNode builtInNode) {
             super(ast);
             this.callableExpr = adoptChild(callableExpr);
@@ -170,13 +164,10 @@ public abstract class FunctionCall extends AbstractCall {
             this.builtInNode = adoptChild(builtInNode);
         }
 
-        @Override
-        public Object execute(Frame callerFrame) {
+        @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             try {
-                if (callable != builtIn) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (callable != builtIn) { throw new UnexpectedResultException(null); }
                 return builtInNode.execute(callerFrame);
             } catch (UnexpectedResultException e) {
                 GenericCall n = new GenericCall(ast, callableExpr, rememberedArgNames, rememberedArgExprs);

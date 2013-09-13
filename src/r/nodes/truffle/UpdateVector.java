@@ -27,7 +27,7 @@ public abstract class UpdateVector extends BaseR {
 
     final RSymbol var;
     @Child RNode lhs;
-    @Children RNode[] indexes;
+    @Children final RNode[] indexes;
     @Child RNode rhs;
     final boolean subset;
 
@@ -35,7 +35,7 @@ public abstract class UpdateVector extends BaseR {
     RAny newVector;
     final boolean isSuper;
 
-    FrameSlot frameSlot = null;  // FIXME: a lot of cached data, should split into nodes if possible
+    FrameSlot frameSlot = null; // FIXME: a lot of cached data, should split into nodes if possible
     boolean slotInitialized = false;
 
     private static final boolean DEBUG_UP = false;
@@ -130,9 +130,7 @@ public abstract class UpdateVector extends BaseR {
                 // TODO: this is super-inefficient
                 MaterializedFrame mframe = frame.materialize();
                 RAny base = Utils.cast(RFrameHeader.read(mframe, var));
-                if (base == null) {
-                    throw RError.getUnknownVariable(getAST(), var);
-                }
+                if (base == null) { throw RError.getUnknownVariable(getAST(), var); }
                 base.ref(); // TODO: this may ref unnecessarily, will copy every time invoked
                 RAny newBase = execute(base, index, value);
                 assert Utils.check(base != newBase);
@@ -632,9 +630,7 @@ public abstract class UpdateVector extends BaseR {
                     // bsize == 2
                     if (pos != -1 && pos != -2) { throw RError.getSelectMoreThanOne(ast); }
                 }
-                if (pos == 0) {
-                    return typedBase;
-                }
+                if (pos == 0) { return typedBase; }
                 int keep = -pos - 1;
                 Utils.refIfRAny(rawValue); // ref once again to make sure it is treated as shared
                 RArray res = Utils.createArray(typedBase, bsize, dimensions, names, base.attributesRef());
@@ -642,7 +638,7 @@ public abstract class UpdateVector extends BaseR {
 
                 if (keep >= bsize) {
                     // update all elements of the vector
-                    for(; i < bsize; i++) {
+                    for (; i < bsize; i++) {
                         res.set(i, rawValue);
                     }
                     return res;
@@ -881,15 +877,11 @@ public abstract class UpdateVector extends BaseR {
             }
 
             if (subset) {
-                if (i == 0 || i == RInt.NA) {
-                    return base;
-                }
+                if (i == 0 || i == RInt.NA) { return base; }
             } else {
                 if (i == 0) {
                     throw RError.getSelectLessThanOne(ast);
-                } else if (i == RInt.NA) {
-                    throw RError.getSelectMoreThanOne(ast);
-                }
+                } else if (i == RInt.NA) { throw RError.getSelectMoreThanOne(ast); }
             }
             // i < 0
             if (!subset) {
@@ -1106,9 +1098,7 @@ public abstract class UpdateVector extends BaseR {
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) {
-                                throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS);
-                            }
+                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
@@ -1132,7 +1122,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int steps = 0;
                             assert Utils.check(steps < isize);
-                            for(;;) {
+                            for (;;) {
                                 content[i] = typedValue.getRAnyRef(steps); // shallow copy
                                 i += delta;
                                 steps++;
@@ -1196,7 +1186,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int steps = 0;
                             assert Utils.check(steps < isize);
-                            for(;;) {
+                            for (;;) {
                                 content[i] = typedValue.getDouble(steps);
                                 i += delta;
                                 steps++;
@@ -1260,7 +1250,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int steps = 0;
                             assert Utils.check(steps < isize);
-                            for(;;) {
+                            for (;;) {
                                 content[i] = typedValue.getInt(steps);
                                 i += delta;
                                 steps++;
@@ -1317,7 +1307,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int steps = 0;
                             assert Utils.check(steps < isize);
-                            for(;;) {
+                            for (;;) {
                                 content[i] = typedValue.getLogical(steps);
                                 i += delta;
                                 steps++;
@@ -1374,7 +1364,7 @@ public abstract class UpdateVector extends BaseR {
                             }
                             int steps = 0;
                             assert Utils.check(steps < isize);
-                            for(;;) {
+                            for (;;) {
                                 content[i] = typedValue.getString(steps);
                                 i += delta;
                                 steps++;
@@ -1480,7 +1470,7 @@ public abstract class UpdateVector extends BaseR {
                     if (typedValue != null) {
                         int steps = 0;
                         assert Utils.check(steps < isize);
-                        for(;;) {
+                        for (;;) {
                             res.set(i, typedValue.get(steps));
                             i += delta;
                             steps++;
@@ -1496,8 +1486,8 @@ public abstract class UpdateVector extends BaseR {
                     } else { // list value
                         int steps = 0;
                         assert Utils.check(steps < isize);
-                        for(;;) {
-                            res.set(i, listValue.getRAnyRef(steps));    // shallow copy
+                        for (;;) {
+                            res.set(i, listValue.getRAnyRef(steps)); // shallow copy
                             i += delta;
                             steps++;
                             if (steps < isize) {
@@ -1712,7 +1702,7 @@ public abstract class UpdateVector extends BaseR {
                     typedBase = base;
                     listValue = value.asList();
                     typedValue = null;
-                }  else if (base instanceof RRaw) {
+                } else if (base instanceof RRaw) {
                     if (value instanceof RRaw) {
                         typedBase = base;
                         typedValue = value.asRaw();
@@ -1777,9 +1767,7 @@ public abstract class UpdateVector extends BaseR {
             }
             int vsize = typedValue != null ? typedValue.size() : listValue.size();
             if (!hasNegative) {
-                if (hasNA && vsize > 1) {
-                    throw RError.getNASubscripted(ast);
-                }
+                if (hasNA && vsize > 1) { throw RError.getNASubscripted(ast); }
                 int nsize = maxIndex;
                 Names names = base.names();
                 boolean expanding = false;
@@ -1881,28 +1869,23 @@ public abstract class UpdateVector extends BaseR {
         final double c;
 
         public LogicalEqualitySelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode xExpr, double c, RNode rhs, boolean subset) {
-            super(ast, isSuper, var, lhs, new RNode[] { xExpr }, rhs, subset);
-                // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
-                // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
+            super(ast, isSuper, var, lhs, new RNode[]{xExpr}, rhs, subset);
+            // NOTE: the parent, UpdateVector, will think that xExpr is the index, but that does not matter, it will
+            // do the right thing - it will evaluate it and call LogicalEqualitySelection's execute method
 
             assert Utils.check(subset);
             this.c = c;
         }
 
-        @Override
-        RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
+        @Override RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
             try {
-                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
                 RDouble base = (RDouble) baseArg;
                 RDouble x = (RDouble) xArg;
                 RDouble value = (RDouble) valueArg;
                 int size = base.size();
                 int vsize = value.size();
-                if (x.size() != size) {
-                    throw new UnexpectedResultException(null);
-                }
+                if (x.size() != size) { throw new UnexpectedResultException(null); }
                 // FIXME: avoid copying of private base, when the rhs does not depend on it
 
                 boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
@@ -1926,9 +1909,7 @@ public abstract class UpdateVector extends BaseR {
                             hasNA = hasNA || RDouble.RDoubleUtils.isNAorNaN(d);
                         }
                     }
-                    if (hasNA && vsize >= 2) {
-                        throw RError.getNASubscripted(ast);
-                    }
+                    if (hasNA && vsize >= 2) { throw RError.getNASubscripted(ast); }
                     if (vi != 0) {
                         RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                     }
@@ -1941,10 +1922,9 @@ public abstract class UpdateVector extends BaseR {
                 EQ eq = (EQ) av.getArgs().first().getValue();
                 RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
 
-                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC),
-                        r.nodes.truffle.Comparison.getEQ());
+                Comparison indexExpr = new Comparison(eq, indexes[0], new Constant(eq.getRHS(), boxedC), r.nodes.truffle.Comparison.getEQ());
 
-                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[] { indexExpr }, rhs, true);
+                LogicalSelection ls = new LogicalSelection(ast, isSuper, var, lhs, new RNode[]{indexExpr}, rhs, true);
                 replace(ls, "install LogicalSelection from LogicalEqualitySelection");
                 if (DEBUG_UP) Utils.debug("selection - replaced and re-executing with LogicalSelection");
 
@@ -2010,9 +1990,7 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RList res;
-                            if (isize == 0) {
-                                return typedBase;
-                            }
+                            if (isize == 0) { return typedBase; }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2089,9 +2067,7 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RDouble res;
-                            if (isize == 0) {
-                                return typedBase;
-                            }
+                            if (isize == 0) { return typedBase; }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2168,9 +2144,7 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RInt res;
-                            if (isize == 0) {
-                                return typedBase;
-                            }
+                            if (isize == 0) { return typedBase; }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2246,9 +2220,7 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RLogical res;
-                            if (isize == 0) {
-                                return typedBase;
-                            }
+                            if (isize == 0) { return typedBase; }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2323,9 +2295,7 @@ public abstract class UpdateVector extends BaseR {
                             int vi = 0;
                             boolean hasNA = false;
                             RString res;
-                            if (isize == 0) {
-                                return typedBase;
-                            }
+                            if (isize == 0) { return typedBase; }
                             if (!typedBase.isShared() && !typedValue.dependsOn(typedBase) && !index.dependsOn(typedBase) && typedBase.attributes() == null) {
                                 for (int bi = 0; bi < bsize; bi++) {
                                     int v = index.getLogical(ii);
@@ -2510,7 +2480,7 @@ public abstract class UpdateVector extends BaseR {
                 } else if (base instanceof RComplex || value instanceof RComplex) {
                     typedBase = base.asComplex();
                     typedValue = value.asComplex();
-                }  else if (base instanceof RDouble || value instanceof RDouble) {
+                } else if (base instanceof RDouble || value instanceof RDouble) {
                     typedBase = base.asDouble();
                     typedValue = value.asDouble();
                 } else if (base instanceof RInt || value instanceof RInt) {
@@ -2635,9 +2605,7 @@ public abstract class UpdateVector extends BaseR {
 
         public static RAny deleteElements(RList base, RString index, ASTNode ast) {
             Names bnames = base.names();
-            if (bnames == null) {
-                return Utils.dropDimensions(base);
-            }
+            if (bnames == null) { return Utils.dropDimensions(base); }
             int bsize = base.size();
             int isize = index.size();
             boolean[] remove = new boolean[bsize];
@@ -2744,8 +2712,8 @@ public abstract class UpdateVector extends BaseR {
 
             RSymbol[] addSymbols = new RSymbol[isize];
             int j = 0;
-                // NOTE: targetOffsets is here to avoid double lookup via the hashmap
-                // NOTE: firstOverwrite is here to make targetOffsets smaller in the quite common case that no (or little) new symbols are added
+            // NOTE: targetOffsets is here to avoid double lookup via the hashmap
+            // NOTE: firstOverwrite is here to make targetOffsets smaller in the quite common case that no (or little) new symbols are added
             int firstOverwrite = -1;
             int noverwrites = 0;
             int[] targetOffsets = null;
@@ -2906,9 +2874,7 @@ public abstract class UpdateVector extends BaseR {
             }
             // selection at the last level
             int indexv = index.getInt(i);
-            if (!(b instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, b.typeOf());
-            }
+            if (!(b instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, b.typeOf()); }
             RArray a = (RArray) b;
             if (value instanceof RNull) {
                 if (a instanceof RList) {
@@ -2973,9 +2939,7 @@ public abstract class UpdateVector extends BaseR {
                 }
             }
             // selection at the last level
-            if (!(b instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, b.typeOf());
-            }
+            if (!(b instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, b.typeOf()); }
             RArray a = (RArray) b;
             if (value instanceof RNull) {
                 if (a instanceof RList) {
@@ -3078,12 +3042,14 @@ public abstract class UpdateVector extends BaseR {
             } catch (UnexpectedResultException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericSelection failed: " + f);
-                switch(f) {
-                    case NOT_ARRAY_BASE: throw RError.getObjectNotSubsettable(ast, base.typeOf());
-                    case NOT_ARRAY_INDEX: throw RError.getInvalidSubscriptType(ast, index.typeOf());
-                    default:
-                        assert Utils.check(f == Failure.NOT_ARRAY_VALUE);
-                        throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                switch (f) {
+                case NOT_ARRAY_BASE:
+                    throw RError.getObjectNotSubsettable(ast, base.typeOf());
+                case NOT_ARRAY_INDEX:
+                    throw RError.getInvalidSubscriptType(ast, index.typeOf());
+                default:
+                    assert Utils.check(f == Failure.NOT_ARRAY_VALUE);
+                    throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
                 }
             }
         }
@@ -3093,11 +3059,9 @@ public abstract class UpdateVector extends BaseR {
     // ---------------------------------------------------------------------------------------
 
     /**
-     * Base class for all dollar selection ($) assignments. Defines final
-     * methods for updates, updates in place and appends of lists, typecasts to
-     * lists, position checking, etc. This class does not define the execute
-     * method and only acts as a common codebase for its descendants, where the
-     * DollarListUpdate is the root of the hierarchy.
+     * Base class for all dollar selection ($) assignments. Defines final methods for updates, updates in place and
+     * appends of lists, typecasts to lists, position checking, etc. This class does not define the execute method and
+     * only acts as a common codebase for its descendants, where the DollarListUpdate is the root of the hierarchy.
      */
 
     // TODO: support recursive indexing
@@ -3106,7 +3070,7 @@ public abstract class UpdateVector extends BaseR {
         RSymbol index;
 
         DollarUpdateBase(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RSymbol index, RNode rhs) {
-            super(ast, isSuper, var, lhs, new RNode[] { new BaseR(null) {
+            super(ast, isSuper, var, lhs, new RNode[]{new BaseR(null) {
 
                 @Override public Object execute(Frame frame) {
                     return null; // never used, but must be here as the base of update vector always evaluates the index
@@ -3122,8 +3086,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Converts the given base to list, emitting the warning about coercion
-         * for R compatibility.
+         * Converts the given base to list, emitting the warning about coercion for R compatibility.
          */
         protected final RList convertToList(RAny base) {
             RContext.warning(ast, RError.COERCING_LHS_TO_LIST);
@@ -3131,8 +3094,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Returns the position of the given symbol in the specified array
-         * names, or -1 if no such name exists in the array.
+         * Returns the position of the given symbol in the specified array names, or -1 if no such name exists in the
+         * array.
          */
         protected static int elementPos(RArray.Names names, RSymbol idx) {
             return (names == null) ? -1 : names.map(idx);
@@ -3156,8 +3119,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Creates a copy of the given list and then updates the specified
-         * position in it.
+         * Creates a copy of the given list and then updates the specified position in it.
          */
         protected static RAny updateList(RArray base, RArray.Names names, int size, RAny value, int pos) {
             RArray res = Utils.createArray(base, size, base.dimensions(), names, base.attributesRef());
@@ -3171,8 +3133,8 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Updates the given list in place - its specified position is rewritten
-         * to the supplied value and the same list is returned.
+         * Updates the given list in place - its specified position is rewritten to the supplied value and the same list
+         * is returned.
          */
         protected static RAny updateListInPlace(RArray base, RAny value, int pos) {
             return base.set(pos, value);
@@ -3180,11 +3142,9 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Fast update of a non shared list. This class assumes that it has (a) a
-     * list, (b) it must update the list, not append to it, and (c) the list is
-     * not shared, in which case performs the operation. Otherwise rewrites
-     * itself to either DollarUpdate if not a list, DollarSharedListUpdate if
-     * not shared update and DollarListAppend.
+     * Fast update of a non shared list. This class assumes that it has (a) a list, (b) it must update the list, not
+     * append to it, and (c) the list is not shared, in which case performs the operation. Otherwise rewrites itself to
+     * either DollarUpdate if not a list, DollarSharedListUpdate if not shared update and DollarListAppend.
      */
     public static class DollarListUpdate extends DollarUpdateBase {
 
@@ -3201,15 +3161,12 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Performs in place update of a list, or rewrites itself to the
-         * appropriate nodes.
+         * Performs in place update of a list, or rewrites itself to the appropriate nodes.
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
-                if (value instanceof RNull) {
-                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
-                }
+                if (value instanceof RNull) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int pos = elementPos(names, index);
@@ -3239,9 +3196,8 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Performs an update of a shared list, or an update of a non-shared list
-     * without rewriting itself, rewrites to append instead of update, or to
-     * perform the general operation with coercion to list.
+     * Performs an update of a shared list, or an update of a non-shared list without rewriting itself, rewrites to
+     * append instead of update, or to perform the general operation with coercion to list.
      */
 
     // TODO: extract the constant (symbol) used for the selection statically!
@@ -3260,15 +3216,13 @@ public abstract class UpdateVector extends BaseR {
         }
 
         /**
-         * Updates shared list while first copying it, or non-shared list in
-         * place. Rewrites to general case or to append instead of update.
+         * Updates shared list while first copying it, or non-shared list in place. Rewrites to general case or to
+         * append instead of update.
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
                 if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
-                if (value instanceof RNull) {
-                    throw new UnexpectedResultException(Failure.NOT_AN_UPDATE);
-                }
+                if (value instanceof RNull) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int size = list.size();
@@ -3298,8 +3252,8 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * Appends given list (shared or non shared). If not append, or not a list
-     * rewrites to the general case DollarUpdate.
+     * Appends given list (shared or non shared). If not append, or not a list rewrites to the general case
+     * DollarUpdate.
      */
     public static class DollarListAppend extends DollarUpdateBase {
 
@@ -3332,8 +3286,7 @@ public abstract class UpdateVector extends BaseR {
     }
 
     /**
-     * General update/append on a list/vector. Coerces the input type to a list
-     * if required.
+     * General update/append on a list/vector. Coerces the input type to a list if required.
      */
     public static class DollarUpdate extends DollarUpdateBase {
 

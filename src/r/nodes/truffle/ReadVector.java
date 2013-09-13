@@ -49,7 +49,7 @@ import r.nodes.*;
 public abstract class ReadVector extends BaseR {
 
     @Child RNode lhs;
-    @Children RNode[] indexes;
+    @Children final RNode[] indexes;
     final boolean subset;
 
     private static final boolean DEBUG_SEL = false;
@@ -299,9 +299,8 @@ public abstract class ReadVector extends BaseR {
 
                 if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) vector;
-                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) {
-                    throw new UnexpectedResultException(Failure.UNSPECIFIED);
-                    // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
+                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) { throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
                 }
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
@@ -429,7 +428,7 @@ public abstract class ReadVector extends BaseR {
                     return Utils.getNamedNA(base);
                 }
             } else {
-                throw RError.getInvalidSubscriptType(ast,index.typeOf());
+                throw RError.getInvalidSubscriptType(ast, index.typeOf());
             }
 
             if (i > 0) { // NOTE: RInt.NA < 0
@@ -970,8 +969,7 @@ public abstract class ReadVector extends BaseR {
             this.c = c;
         }
 
-        @Override
-        public Object execute(Frame frame) {
+        @Override public Object execute(Frame frame) {
             RAny base = (RAny) lhs.execute(frame); // note: order is important
             RAny x = (RAny) xExpr.execute(frame);
             return execute(base, x);
@@ -988,10 +986,8 @@ public abstract class ReadVector extends BaseR {
                 double[] b = ((DoubleImpl) base).getContent();
                 double[] x = ((DoubleImpl) xArg).getContent();
                 int size = b.length;
-                if (x.length != size || bdi.names() != null) {
-                    throw new UnexpectedResultException(null);
-                }
-                if (size > 1000) {  // TODO: a tuning parameter, what is the right cutoff???
+                if (x.length != size || bdi.names() != null) { throw new UnexpectedResultException(null); }
+                if (size > 1000) { // TODO: a tuning parameter, what is the right cutoff???
                     // NOTE: this is faster at least for larger vectors, I suppose because it is more cache friendly
                     // TODO: similar optimizations will likely help elsewhere
                     // TODO: this is yet another case for "growable" vector types, perhaps even non-contiguous
@@ -1019,7 +1015,7 @@ public abstract class ReadVector extends BaseR {
                     for (int i = 0; i < size; i++) {
                         double d = x[i];
                         if (d == c || RDouble.RDoubleUtils.isNAorNaN(d)) {
-                            nsize ++;
+                            nsize++;
                         }
                     }
                     double[] content = new double[nsize];
@@ -1035,15 +1031,14 @@ public abstract class ReadVector extends BaseR {
                     return RDouble.RDoubleFactory.getFor(content);
                 }
 
-            } catch(UnexpectedResultException e) {
+            } catch (UnexpectedResultException e) {
                 AccessVector av = (AccessVector) ast;
                 EQ eq = (EQ) av.getArgs().first().getValue();
                 RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
 
-                Comparison indexExpr = new Comparison(eq, xExpr, new Constant(eq.getRHS(), boxedC),
-                        r.nodes.truffle.Comparison.getEQ());
+                Comparison indexExpr = new Comparison(eq, xExpr, new Constant(eq.getRHS(), boxedC), r.nodes.truffle.Comparison.getEQ());
 
-                LogicalSelection ls = new LogicalSelection(ast, lhs, new RNode[] { indexExpr }, true);
+                LogicalSelection ls = new LogicalSelection(ast, lhs, new RNode[]{indexExpr}, true);
                 replace(ls, "install LogicalSelection from LogicalEqualitySelection");
                 if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with LogicalSelection");
 
@@ -1354,12 +1349,9 @@ public abstract class ReadVector extends BaseR {
             int indexv = index.getInt(i);
             if (!(b instanceof RArray)) {
                 // TODO: support language objects
-                if (indexv == 1) {
-                   throw RError.getInvalidTypeLength(ast, b.typeOf(), 1); // FIXME: a very obscure error message but what GNU-R returns
+                if (indexv == 1) { throw RError.getInvalidTypeLength(ast, b.typeOf(), 1); // FIXME: a very obscure error message but what GNU-R returns
                 }
-                if (indexv > 1) {
-                   throw RError.getSubscriptBounds(ast);
-                }
+                if (indexv > 1) { throw RError.getSubscriptBounds(ast); }
                 throw RError.getSelectLessThanOne(ast);
             }
             RArray a = (RArray) b;
@@ -1414,9 +1406,8 @@ public abstract class ReadVector extends BaseR {
                 }
             }
             // selection at the last level
-            if (!(b instanceof RArray)) {
-                throw RError.getSubscriptBounds(ast); // NOTE: this makes more sense than the error message with integer index
-                    // (both are to mimic GNU-R)
+            if (!(b instanceof RArray)) { throw RError.getSubscriptBounds(ast); // NOTE: this makes more sense than the error message with integer index
+            // (both are to mimic GNU-R)
             }
             RArray a = (RArray) b;
             Names names = a.names();
@@ -1450,17 +1441,11 @@ public abstract class ReadVector extends BaseR {
         public static RError invalidSubscript(RAny index, ASTNode ast) {
             if (index instanceof RList) {
                 int lsize = ((RList) index).size();
-                if (lsize == 1) {
-                    throw RError.getInvalidSubscriptType(ast, index.typeOf());
-                }
-                if (lsize == 0) {
-                    throw RError.getSelectLessThanOne(ast);
-                }
+                if (lsize == 1) { throw RError.getInvalidSubscriptType(ast, index.typeOf()); }
+                if (lsize == 0) { throw RError.getSelectLessThanOne(ast); }
                 throw RError.getSelectMoreThanOne(ast);
             }
-            if (index instanceof RNull) {
-                throw RError.getSelectLessThanOne(ast);
-            }
+            if (index instanceof RNull) { throw RError.getSelectLessThanOne(ast); }
             throw RError.getInvalidSubscriptType(ast, index.typeOf());
         }
 
@@ -1489,14 +1474,10 @@ public abstract class ReadVector extends BaseR {
 
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericSelection");
-            if (!(base instanceof RArray)) {
-                throw RError.getObjectNotSubsettable(ast, base.typeOf());
-            }
+            if (!(base instanceof RArray)) { throw RError.getObjectNotSubsettable(ast, base.typeOf()); }
             assert Utils.check(subset);
             RArray abase = (RArray) base;
-            if (!(index instanceof RArray) || index instanceof RList) {
-                throw RError.getInvalidSubscriptType(ast, index.typeOf());
-            }
+            if (!(index instanceof RArray) || index instanceof RList) { throw RError.getInvalidSubscriptType(ast, index.typeOf()); }
             RArray aindex = (RArray) index;
             int isize = aindex.size();
             if (isize == 1) { return GenericScalarSelection.executeScalar(abase, aindex, subset, ast); }

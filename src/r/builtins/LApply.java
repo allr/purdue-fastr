@@ -16,7 +16,7 @@ import com.oracle.truffle.api.nodes.*;
 /**
  * "lapply" returns a list of the same length as X, each element of which is the result of applying FUN to the
  * corresponding element of X.
- *
+ * 
  * <pre>
  * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.
@@ -52,7 +52,7 @@ final class LApply extends CallFactory {
             j++;
         }
         CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
-        FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+        RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
         return new Lapply(call, names, exprs, callNode, firstArgProvider, callableProvider, ia.position("X"), ia.position("FUN"));
     }
 
@@ -114,11 +114,11 @@ final class LApply extends CallFactory {
 
         @Child ValueProvider firstArgProvider;
         @Child CallableProvider callableProvider;
-        @Child FunctionCall callNode;
+        @Child RNode callNode;
         final int xPosition;
         final int funPosition;
 
-        public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
+        public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
             this.callableProvider = adoptChild(callableProvider);
             this.firstArgProvider = adoptChild(firstArgProvider);
@@ -127,7 +127,7 @@ final class LApply extends CallFactory {
             this.funPosition = funPosition;
         }
 
-        public static RAny generic(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) {
+        public static RAny generic(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) {
             if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
             RArray x = (RArray) argx;
             int xsize = x.size();
@@ -148,7 +148,7 @@ final class LApply extends CallFactory {
         public Specialized createSpecialized(RAny argxTemplate) {
             if (argxTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
                         if (!(argx instanceof RList)) { throw new UnexpectedResultException(null); }
                         RList x = (RList) argx;
                         int xsize = x.size();
@@ -164,7 +164,7 @@ final class LApply extends CallFactory {
             }
             if (argxTemplate instanceof RArray) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
                         if (argx instanceof RList || !(argx instanceof RArray)) { throw new UnexpectedResultException(null); }
                         RArray x = (RArray) argx;
                         int xsize = x.size();
@@ -183,7 +183,7 @@ final class LApply extends CallFactory {
 
         public Specialized createGeneric() {
             ApplyFunc a = new ApplyFunc() {
-                @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException {
+                @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
                     return generic(frame, argx, firstArgProvider, callNode);
                 }
             };
@@ -213,13 +213,13 @@ final class LApply extends CallFactory {
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, FunctionCall callNode) throws UnexpectedResultException;
+            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException;
         }
 
         class Specialized extends Lapply {
             final ApplyFunc apply;
 
-            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, FunctionCall callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,
+            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,
                     ApplyFunc apply) {
                 super(call, names, exprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition);
                 this.apply = apply;

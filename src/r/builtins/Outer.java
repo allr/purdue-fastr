@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.*;
 
 /**
  * "outer"
- *
+ * 
  * <pre>
  * X, Y -- First and second arguments for function FUN. Typically a vector or array.
  * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").
@@ -72,7 +72,7 @@ final class Outer extends CallFactory {
         }
 
         final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
-        final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+        final RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
         final int posX = ia.position("X");
         final int posY = ia.position("Y");
         final int posFUN = ia.position("FUN");
@@ -84,12 +84,12 @@ final class Outer extends CallFactory {
     }
 
     public abstract static class OuterBuiltIn extends Builtin { // note: this class only exists so that we can call updateParent...
-        @Child FunctionCall callNode;
+        @Child RNode callNode;
         @Child CallableProvider callableProvider;
         @Child ValueProvider xArgProvider;
         @Child ValueProvider yArgProvider;
 
-        public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, FunctionCall callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
+        public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, RNode callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
             super(ast, argNames, argExprs);
             this.callNode = adoptChild(callNode);
             this.callableProvider = adoptChild(callableProvider);

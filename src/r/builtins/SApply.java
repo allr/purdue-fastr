@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.*;
  * "sapply" is a user-friendly version and wrapper of lapply by default returning a vector, matrix or, if
  * simplify="array ", an array if appropriate, by applying simplify2array(). sapply(x, f, simplify=FALSE,
  * USE.NAMES=FALSE) is the same as lapply(x,f).
- *
+ * 
  * <pre>
  * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.
@@ -69,7 +69,7 @@ final class SApply extends CallFactory {
             j++;
         }
         final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
-        final FunctionCall callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+        final RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
         return new Sapply(call, names, exprs, callNode, firstArgProvider, callableProvider, ia.position("X"), ia.position("FUN"));
     }
 
@@ -310,8 +310,7 @@ final class SApply extends CallFactory {
 
             } else {
                 // result is a vector (or list) - not a matrix
-                if (hasMultipleSizes) {
-                    return RList.RListFactory.getFor(content, null, argIterator.names()); // result names not propagated
+                if (hasMultipleSizes) { return RList.RListFactory.getFor(content, null, argIterator.names()); // result names not propagated
                 }
                 if (hasList) {
                     if (!notAllScalarLists) { // all elements are scalar lists
@@ -442,9 +441,7 @@ final class SApply extends CallFactory {
         }
 
         public static RAny[] unpackPartial(Object partial) {
-            if (partial instanceof RAny[]) {
-                return (RAny[]) partial;
-            }
+            if (partial instanceof RAny[]) { return (RAny[]) partial; }
             PartialResult p = (PartialResult) partial;
             int size = p.content.size();
             RAny[] res = new RAny[size];
