@@ -42,7 +42,11 @@ public abstract class Frame {
     }
 
     private REnvironment rootEnvironment() {
-        return (REnvironment) returnValue;
+        if (returnValue != null) { // FIXME: get rid of this branch
+            return (REnvironment) returnValue;
+        } else {
+            return REnvironment.GLOBAL;
+        }
     }
 
     private boolean isDirty() {
@@ -60,8 +64,8 @@ public abstract class Frame {
         returnValue = value;
     }
 
-    public void rootEnvironment(REnvironment environment) {
-        this.environment = environment;
+    public void rootEnvironment(REnvironment rootEnvironment) {
+        this.returnValue = rootEnvironment;
     }
 
     public FrameExtension installExtension() {
@@ -111,8 +115,9 @@ public abstract class Frame {
         if (enclosingFrame == null) {
             return readFromRootLevel(symbol);
         }
-        if (extension != null) {
-            Object value = extension.getForcingPromises(symbol);
+        FrameExtension ext = enclosingFrame.extension();
+        if (ext != null) {
+            Object value = ext.getForcingPromises(symbol);
             if (value != null) {
                 return value;
             }
@@ -307,8 +312,9 @@ public abstract class Frame {
         if (enclosingFrame == null) {
             return matchFromRootLevel(symbol);
         }
-        if (extension != null) {
-            Object value = extension.getForcingPromises(symbol);
+        FrameExtension ext = enclosingFrame.extension();
+        if (ext != null) {
+            Object value = ext.getForcingPromises(symbol);
             if (value != null && value instanceof RCallable) {
                 return (RCallable) value;
             }
@@ -419,20 +425,20 @@ public abstract class Frame {
 
     // in contrast to e.g. read, match can be called with a null frame
     // FIXME: this may need to be adapted to work with eval
-    public RCallable match(RSymbol symbol) { // TODO: this == null
+    public static RCallable match(Frame frame, RSymbol symbol) { // TODO: this == null
 
-//        if (frame == null) {
-//            return REnvironment.GLOBAL.match(symbol);  // FIXME: get rid of this special case, FIX it for eval
-//        }
-        int slot = findVariable(symbol);
+        if (frame == null) {
+            return REnvironment.GLOBAL.match(symbol);  // FIXME: get rid of this special case, FIX it for eval
+        }
+        int slot = frame.findVariable(symbol);
         if (slot != -1) {
-            return matchViaWriteSet(slot, symbol);
+            return frame.matchViaWriteSet(slot, symbol);
         }
-        EnclosingSlot eslot = findEnclosingVariable(symbol);
+        EnclosingSlot eslot = frame.findEnclosingVariable(symbol);
         if (eslot != null) {
-            return enclosingFrame.matchViaEnclosingSlot(eslot.hops - 1, eslot.slot, symbol, this);
+            return frame.enclosingFrame().matchViaEnclosingSlot(eslot.hops - 1, eslot.slot, symbol, frame);
         }
-        return matchFromExtensionsAndRootLevelInclusiveEntry(symbol);
+        return frame.matchFromExtensionsAndRootLevelInclusiveEntry(symbol);
     }
 
     public EnclosingSlot readSetEntry(RSymbol symbol) {
@@ -900,8 +906,8 @@ public abstract class Frame {
         }
     }
 
-    public void markDirty(RSymbol symbol) {
-        Frame current = this;
+    public static void markDirty(Frame frame, RSymbol symbol) {
+        Frame current = frame;
         while (current != null) {
             if (current.hasVariable(symbol)) {
                 current.markDirty();

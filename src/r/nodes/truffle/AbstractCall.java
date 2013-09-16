@@ -196,7 +196,7 @@ public abstract class AbstractCall extends BaseR {
     }
 
     // used when the call is passing "..." (note, ... can be passed more than once)
-    protected final Object[] placeDotsArgs(Frame callerFrame, RSymbol[] paramNames) {
+    protected final void placeDotsArgs(Frame callerFrame, Frame newFrame, RSymbol[] paramNames) {
 
         int nextDots = dotsArgs[0];
         RDots dotsArg = (RDots) argExprs[nextDots].execute(callerFrame);
@@ -232,7 +232,6 @@ public abstract class AbstractCall extends BaseR {
         }
 
         boolean[] usedArgs = new boolean[nArgs];
-        Object[] paramValues = new Object[nParams]; // 1-based !!!  (0 means unallocated)
 
         for (int i = 0; i < nArgs; i++) { // matching by name
             RSymbol argName = actualArgNames[i];
@@ -241,10 +240,10 @@ public abstract class AbstractCall extends BaseR {
             }
             for (int j = 0; j < nParams; j++) {
                 if (argName == paramNames[j]) {
-                    if (paramValues[j] != null) {
+                    if (newFrame.get(j) != null) {
                         throw RError.getFormalMatchedMultiple(ast, argName.name());
                     }
-                    paramValues[j] = actualArgValues[i];
+                    newFrame.set(j, actualArgValues[i]);
                     usedArgs[i] = true;
                 }
             }
@@ -262,7 +261,7 @@ public abstract class AbstractCall extends BaseR {
         if (hasUnmatchedNamedArgs) { // partial matching
             boolean[] argMatchedViaPartialMatching = new boolean[nArgs];
             for (int j = 0; j < nParams; j++) {
-                if (paramValues[j] != null) {
+                if (newFrame.get(j) != null) {
                     continue;
                 }
                 RSymbol paramName = paramNames[j];
@@ -282,10 +281,10 @@ public abstract class AbstractCall extends BaseR {
                             throw RError.getArgumentMatchesMultiple(ast, i + 1);
                         }
                     } else if (!usedArgs[i] && paramName.startsWith(argName)) {
-                        if (paramValues[j] != null) {
+                        if (newFrame.get(j) != null) {
                             throw RError.getFormalMatchedMultiple(ast, paramName.name());
                         }
-                        paramValues[j] = actualArgValues[i];
+                        newFrame.set(j, actualArgValues[i]);
                         usedArgs[i] = true;
                         argMatchedViaPartialMatching[i] = true;
                     }
@@ -316,7 +315,7 @@ public abstract class AbstractCall extends BaseR {
                 if (j == nParams) {
                     reportUnusedArgsError(usedArgs, actualArgValues, actualArgNames);
                 }
-                if (paramValues[j] == null) {
+                if (newFrame.get(j) == null) {
                     break;
                 }
                 j++;
@@ -345,13 +344,13 @@ public abstract class AbstractCall extends BaseR {
                     }
                 }
 
-                paramValues[j] = new RDots(dnames, dvalues);
+                newFrame.set(j, new RDots(dnames, dvalues));
                 continue;
             }
             // j now points to unmatched parameter, which is not the three dots
 
             if (actualArgNames[i] == null) {
-                paramValues[j] = actualArgValues[i];
+                newFrame.set(j, actualArgValues[i]);
                 usedArgs[i] = true;
                 i++;
                 j++;
@@ -360,8 +359,6 @@ public abstract class AbstractCall extends BaseR {
                 hasUnusedArgsWithNames = true;
             }
         }
-
-        return paramValues;
     }
 
     private int reportUnusedArgsError(int nArgs, int[] argPositions) {
@@ -450,9 +447,8 @@ public abstract class AbstractCall extends BaseR {
     // dots
     //   dots.names == null when there are no ... in parameters
     //   otherwise, names of symbols that will appear in ...
-    @ExplodeLoop protected final Object[] placeArgs(Frame callerFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
+    @ExplodeLoop protected final void placeArgs(Frame callerFrame, Frame newFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
 
-        Object[] argValues = new Object[nParams];
         int i;
         RSymbol[] dnames = dotsInfo.names;
         if (dotsIndex == -1) {  // FIXME: turn into node-rewriting ?
@@ -460,7 +456,7 @@ public abstract class AbstractCall extends BaseR {
             for (i = 0; i < argExprs.length; i++) {
                 int p = argPositions[i] - 1;
                 assert Utils.check(p >= 0);
-                argValues[p] = promiseForArgument(callerFrame, i);
+                newFrame.set(p, promiseForArgument(callerFrame, i));
             }
         } else {
             Object[] dargs = new Object[dnames.length];
@@ -468,14 +464,13 @@ public abstract class AbstractCall extends BaseR {
             for (i = 0; i < argExprs.length; i++) {
                 int p = argPositions[i] - 1;
                 if (p >= 0) {
-                    argValues[p] = promiseForArgument(callerFrame, i);
+                    newFrame.set(p,promiseForArgument(callerFrame, i));
                 } else {
                     dargs[di++] =  promiseForArgument(callerFrame, i);
                 }
             }
-            argValues[dotsIndex] = new RDots(dnames, dargs);
+            newFrame.set(dotsIndex, new RDots(dnames, dargs));
 
         }
-        return argValues;
     }
 }

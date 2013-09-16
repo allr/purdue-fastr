@@ -65,7 +65,7 @@ public class FrameExtension {
         names[pos] = sym;
         values[pos] = val;
 
-        enclosing.enclosingFrame().markDirty(sym);
+        Frame.markDirty(enclosing.enclosingFrame(), sym);
             // the put method only gets called when the current write set does not have the value,
             // so we do not have to check the current write set and can immediately go to the parent
             // FIXME: handle environments that are not connected to top-level

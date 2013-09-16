@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -184,8 +183,7 @@ public abstract class FunctionCall extends AbstractCall {
         RClosure lastClosure; // null when last callable wasn't a function (closure)
         RFunction closureFunction;
         int[] functionArgPositions;
-        CallTarget functionCallTarget;
-        MaterializedFrame closureEnclosingFrame;
+        Frame closureEnclosingFrame;
         final DotsInfo functionDotsInfo = new DotsInfo();
 
         // for builtins
@@ -200,9 +198,9 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return functionCallTarget.call(arguments);
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return closureFunction.call(newFrame);
             }
             if (callable == lastBuiltIn) { return builtInNode.execute(callerFrame); }
             if (callable instanceof RClosure) {
@@ -211,14 +209,13 @@ public abstract class FunctionCall extends AbstractCall {
                 if (function != closureFunction) {
                     closureFunction = function;
                     functionArgPositions = computePositions(closureFunction, functionDotsInfo);
-                    functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return functionCallTarget.call(arguments);
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return closureFunction.call(newFrame);
             } else {
                 // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
@@ -240,11 +237,11 @@ public abstract class FunctionCall extends AbstractCall {
         // FIXME: essentially copy paste of execute
         // TODO: it would be far more important to have these in simple and stable builtin call than here
         @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
-            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return RValueConversion.expectScalarLogical((RAny) closureFunction.call(newFrame));
             }
             if (callable == lastBuiltIn) { return builtInNode.executeScalarLogical(callerFrame); }
             if (callable instanceof RClosure) {
@@ -253,14 +250,13 @@ public abstract class FunctionCall extends AbstractCall {
                 if (function != closureFunction) {
                     closureFunction = function;
                     functionArgPositions = computePositions(closureFunction, functionDotsInfo);
-                    functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return RValueConversion.expectScalarLogical((RAny) functionCallTarget.call(arguments));
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return RValueConversion.expectScalarLogical((RAny) closureFunction.call(newFrame));
             } else {
                 // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
@@ -282,11 +278,11 @@ public abstract class FunctionCall extends AbstractCall {
         // FIXME: essentially copy paste of execute
         // TODO: it would be far more important to have these in simple and stable builtin call than here
         @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
-            RCallable callable = (RCallable) callableExpr.execute(callerFrame);
+            Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return RValueConversion.expectScalarNonNALogical((RAny) closureFunction.call(newFrame));
             }
             if (callable == lastBuiltIn) { return builtInNode.executeScalarNonNALogical(callerFrame); }
             if (callable instanceof RClosure) {
@@ -295,14 +291,13 @@ public abstract class FunctionCall extends AbstractCall {
                 if (function != closureFunction) {
                     closureFunction = function;
                     functionArgPositions = computePositions(closureFunction, functionDotsInfo);
-                    functionCallTarget = function.callTarget();
                 }
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Object[] argValues = placeArgs(callerFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
-                RFrameHeader arguments = new RFrameHeader(closureFunction, closureEnclosingFrame, argValues);
-                return RValueConversion.expectScalarNonNALogical((RAny) functionCallTarget.call(arguments));
+                Frame newFrame = lastClosure.createFrame();
+                placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
+                return RValueConversion.expectScalarNonNALogical((RAny) closureFunction.call(newFrame));
             } else {
                 // callable instanceof RBuiltin
                 RBuiltIn builtIn = (RBuiltIn) callable;
@@ -320,6 +315,7 @@ public abstract class FunctionCall extends AbstractCall {
                 return builtInNode.executeScalarNonNALogical(callerFrame);
             }
         }
+
     }
 
     // function call that passes "..."
@@ -336,9 +332,9 @@ public abstract class FunctionCall extends AbstractCall {
             if (callable instanceof RClosure) {
                 RClosure closure = (RClosure) callable;
                 RFunction function = closure.function();
-                Object[] argValues = placeDotsArgs(callerFrame, function.paramNames());
-                RFrameHeader arguments = new RFrameHeader(function, closure.enclosingFrame(), argValues);
-                return function.callTarget().call(arguments);
+                Frame newFrame = closure.createFrame();
+                placeDotsArgs(callerFrame, newFrame, function.paramNames());
+                return function.call(newFrame);
 
             } else {
                 // FIXME: these calls to builtin seem pretty expensive

@@ -8,4 +8,5 @@ public interface RClosure extends RAny, RCallable {
 
     Frame enclosingFrame();
     RFunction function();
+    Frame createFrame();
 }

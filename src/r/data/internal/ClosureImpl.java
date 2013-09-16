@@ -16,6 +16,11 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
+    public Frame createFrame() {
+        return new GenericFrame(function, environment, function.frameDescriptor());
+    }
+
+    @Override
     public String pretty() {
         Utils.check(function != null);
         StringBuilder str = new StringBuilder();

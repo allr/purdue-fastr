@@ -35,7 +35,7 @@ public abstract class MatchCallable extends BaseR {
 
     // called from lapply
     public static RCallable matchGeneric(ASTNode ast, Frame frame, RSymbol symbol) {
-        RCallable res = frame.match(symbol);
+        RCallable res = Frame.match(frame, symbol);
         if (res != null) {
             return res;
         }

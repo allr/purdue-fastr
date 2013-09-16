@@ -107,11 +107,6 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public CallTarget callTarget() {
-            return null;
-        }
-
-        @Override
         public EnclosingSlot enclosingSlot(RSymbol sym) {
             return null;
         }
@@ -119,6 +114,14 @@ public interface REnvironment extends RAny {
         @Override
         public int dotsIndex() {
             return -1;
+        }
+
+        public FrameDescriptor frameDescriptor() {
+            return NoSlotsFrame.NO_SLOTS_DESCRIPTOR;
+        }
+
+        public Object call(Frame frame) {
+            return null;
         }
     }
 

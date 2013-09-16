@@ -77,7 +77,7 @@ public class Source extends CallFactory {
                     }
                 }
 
-                RFunction rootEnclosingFunction = targetFrame == null ? null : RFrameHeader.function(targetFrame);
+                RFunction rootEnclosingFunction = targetFrame == null ? null : targetFrame.function();
                 return (RAny) RContext.createRootNode(tree, rootEnclosingFunction).execute(targetFrame);
             }
 

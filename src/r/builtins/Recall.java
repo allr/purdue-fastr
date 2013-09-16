@@ -1,6 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.data.*;
@@ -34,7 +33,7 @@ final class Recall extends CallFactory {
                 if (frame == null) {
                     throw RError.getRecallCalledOutsideClosure(ast);
                 }
-                RFunction function = RFrameHeader.function(frame);
+                RFunction function = frame.function();
                 if (function == null) {
                     throw RError.getRecallCalledOutsideClosure(ast);
                 }
@@ -51,7 +50,6 @@ final class Recall extends CallFactory {
         final RFunction function;
         final DotsInfo functionDotsInfo = new DotsInfo();
         final int[] argPositions;
-        final CallTarget callTarget;
         final int nparams;
         final int dotsIndex;
 
@@ -59,15 +57,15 @@ final class Recall extends CallFactory {
             super(orig, argNames, argExprs);
             this.function = function;
             argPositions = computePositions(function, functionDotsInfo);
-            callTarget = function.callTarget();
             nparams = function.nparams();
             dotsIndex = function.dotsIndex();
         }
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
-            Object[] argValues = placeArgs(frame, argPositions, functionDotsInfo, dotsIndex, nparams);
-            RFrameHeader arguments = new RFrameHeader(function, (MaterializedFrame) RFrameHeader.enclosingFrame(frame), argValues);
-            return (RAny) callTarget.call(arguments);
+            // TODO: can we do something smarter here?
+            Frame newFrame = new GenericFrame(function, frame, function.frameDescriptor());
+            placeArgs(frame, newFrame, argPositions, functionDotsInfo, dotsIndex, nparams);
+            return (RAny) function.call(newFrame);
         }
     }
 

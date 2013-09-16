@@ -81,11 +81,11 @@ public class Eval extends CallFactory {
                 RAny exprArg = args[posExpr];
                 if (exprArg instanceof RLanguage) {
                     ASTNode exprAST = ((RLanguage) exprArg).get();
-                    RFunction rootEnclosingFunction = targetFrame == null ? null : RFrameHeader.function(targetFrame);
+                    RFunction rootEnclosingFunction = targetFrame == null ? null : targetFrame.function();
                     return (RAny) RContext.createRootNode(exprAST, rootEnclosingFunction).execute(targetFrame);
                 } else if (exprArg instanceof RSymbol) {
                     ASTNode exprAST = new r.nodes.SimpleAccessVariable((RSymbol) exprArg);
-                    RFunction rootEnclosingFunction = targetFrame == null ? null : RFrameHeader.function(targetFrame);
+                    RFunction rootEnclosingFunction = targetFrame == null ? null : targetFrame.function();
                     return (RAny) RContext.createRootNode(exprAST, rootEnclosingFunction).execute(targetFrame);
                 } else {
                     return exprArg;

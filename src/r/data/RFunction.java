@@ -1,7 +1,5 @@
 package r.data;
 
-import com.oracle.truffle.api.*;
-
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
 import r.runtime.*;
@@ -14,9 +12,8 @@ public interface RFunction {
     RNode body();
     RClosure createClosure(Frame frame);
     RSymbol[] localWriteSet();
-
-    CallTarget callTarget();
-
+    FrameDescriptor frameDescriptor();
+    Object call(Frame frame);
     ASTNode getSource();
 
     int nlocals();

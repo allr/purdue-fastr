@@ -30,15 +30,15 @@ public class Substitute extends CallFactory {
     }
 
     public static class FindInFrame extends FindVar {
-        final MaterializedFrame frame;
+        final Frame frame;
 
         public FindInFrame(Frame frame) {
-            this.frame = frame.materialize();
+            this.frame = frame;
         }
 
         @Override
         Object find(RSymbol name) {
-            return RFrameHeader.localReadNotForcing(frame, name);
+            return frame.localReadNotForcing(name);
         }
 
     }

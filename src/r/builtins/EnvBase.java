@@ -39,7 +39,7 @@ final class EnvBase {
     static REnvironment extractEnvironment(RAny envir, RAny pos, Frame frame, ASTNode ast) {
         if (envir != null) { return parseEnvir(envir, ast); }
         if (pos != null) { return asEnvironment(frame, ast, pos, true); }
-        return frame == null ? REnvironment.GLOBAL : RFrameHeader.environment(frame);
+        return frame == null ? REnvironment.GLOBAL : frame.environment();
     }
 
     // NOTE: get and assign have different failure modes for X
@@ -64,9 +64,9 @@ final class EnvBase {
             int idx = iarg.getInt(0);
             if (idx == -1) {
                 if (frame != null) {
-                    if (fakePromise) { return RFrameHeader.environment(frame); }
-                    Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
-                    return enclosingFrame == null ? REnvironment.GLOBAL : RFrameHeader.environment(enclosingFrame);
+                    if (fakePromise) { return frame.environment(); }
+                    Frame enclosingFrame = frame.enclosingFrame();
+                    return enclosingFrame == null ? REnvironment.GLOBAL : enclosingFrame.environment();
                 } else {
                     if (fakePromise) { return REnvironment.GLOBAL; }
                     throw RError.getNoEnclosingEnvironment(ast);

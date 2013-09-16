@@ -38,7 +38,7 @@ final class DelayedAssign extends CallFactory {
 
         private REnvironment parseEnv(Frame frame, RNode envNode, String argName) {
             if (envNode == null) {
-                return frame == null ? REnvironment.GLOBAL : RFrameHeader.environment(frame);
+                return frame == null ? REnvironment.GLOBAL : frame.environment();
             } else {
                 Object e = envNode.execute(frame);
                 if (e instanceof REnvironment) {

@@ -15,7 +15,7 @@ public class Function extends RNode {
 
     @Override
     public final Object execute(Frame frame) {
-        return function.createClosure(frame == null ? null : frame.materialize());
+        return function.createClosure(frame);
     }
 
     @Override

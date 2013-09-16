@@ -26,7 +26,6 @@ public class FunctionImpl extends BaseR implements RFunction {
     final int dotsIndex;
 
     final FrameDescriptor frameDescriptor;
-    final CallTarget callTarget;
 
     final RSymbol[] writeSet;
     final int writeSetBloom;
@@ -66,7 +65,6 @@ public class FunctionImpl extends BaseR implements RFunction {
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
         frameDescriptor = new FrameDescriptor(writeSet);
-        callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
 
         int tmpDotsIndex = -1;
         for (int i = 0; i < nparams; i++) {
@@ -79,30 +77,22 @@ public class FunctionImpl extends BaseR implements RFunction {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
-        assert Utils.check(false, "truffle calls to be removed");
-        return null;
-    }
+    public Object call(Frame frame) {
 
-    @Override
-    public Object execute(Frame frame) {
-        RFrameHeader h = RFrameHeader.header(frame);
-        Object[] args = h.arguments();
-        for (int i = 0; i < paramSlots.length; i++) {
-            Object value = args[i]; // FIXME: use RAny array instead?
-            if (value != null) {
-                Utils.frameSetObject(frame, paramSlots[i], value);
-                // note: ref done by caller
-            } else {
+        // TODO: as we no longer have truffle, get rid of this
+        // do only a single pass through the parameters to fill in (see placeArgs)
+        for (int i = 0; i < paramValues.length; i++) {
+            Object value = frame.get(i);
+            if (value == null) {
                 RNode n = paramValues[i];
                 if (n != null) {
                     if (FunctionCall.PROMISES) {
-                        Utils.frameSetObject(frame, paramSlots[i], RPromise.createDefault(n, frame));
+                        frame.set(i, RPromise.createDefault(n, frame));
                     } else {
                         RAny rvalue = (RAny) n.execute(frame);
 
                         if (rvalue != null) {
-                            Utils.frameSetObject(frame, paramSlots[i], rvalue);
+                            frame.set(i, rvalue);
                             rvalue.ref();
                         }
                         // NOTE: value can be null when a parameter is missing
@@ -110,10 +100,9 @@ public class FunctionImpl extends BaseR implements RFunction {
                     }
                 } else {
                     if (FunctionCall.PROMISES) {
-                        Utils.frameSetObject(frame, paramSlots[i], RPromise.createMissing(paramNames[i], frame));
+                        frame.set(i, RPromise.createMissing(paramNames[i], frame));
                     }
                 }
-
             }
         }
 
@@ -121,7 +110,7 @@ public class FunctionImpl extends BaseR implements RFunction {
         try {
             res = body.execute(frame);
         } catch (ReturnException re) {
-            res = h.returnValue();
+            res = frame.returnValue();
         }
         return res;
     }
@@ -234,13 +223,10 @@ public class FunctionImpl extends BaseR implements RFunction {
         return source;
     }
 
-    @Override public CallTarget callTarget() {
-        return callTarget;
-    }
-
     @Override public RClosure createClosure(Frame enclosingEnvironment) {
         return new ClosureImpl(this, enclosingEnvironment);
     }
+
 
     @Override public boolean isInWriteSet(RSymbol sym) {
         if (positionInLocalWriteSet(sym) != -1) { return true; }
@@ -263,6 +249,16 @@ public class FunctionImpl extends BaseR implements RFunction {
             int slot = func.localSlot(symbol);
             if (slot != -1) { return new EnclosingSlot(symbol, hops, slot); }
         }
+        return null;
+    }
+
+    @Override
+    public FrameDescriptor frameDescriptor() {
+        return frameDescriptor;
+    }
+
+    @Override public Object execute(Frame frame) {
+        assert Utils.check(false, "unreachable");
         return null;
     }
 }

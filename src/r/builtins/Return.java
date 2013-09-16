@@ -31,13 +31,13 @@ public final class Return extends CallFactory {
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
         if (exprs.length == 0) { return new Builtin.Builtin0(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame) {
-                RFrameHeader.setReturnValue(frame, RNull.getNull());
+                frame.returnValue(RNull.getNull());
                 throw ReturnException.instance;
             }
         }; }
         if (exprs.length == 1) { return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny param) {
-                RFrameHeader.setReturnValue(frame, param);
+                frame.returnValue(param);
                 throw ReturnException.instance;
             }
         }; }

@@ -2,8 +2,6 @@ package r.data.internal;
 
 import java.util.*;
 
-import com.oracle.truffle.api.*;
-
 import r.*;
 import r.Convert.ConversionStatus;
 import r.builtins.*;
@@ -175,7 +173,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public RCallable match(RSymbol name) {
-        return frame.match(name);
+        return Frame.match(frame, name);
     }
 
     public static RSymbol[] removeHidden(RSymbol[] symbols) { // FIXME: unnecessary copying
