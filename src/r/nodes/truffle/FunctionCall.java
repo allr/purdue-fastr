@@ -198,7 +198,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return closureFunction.call(newFrame);
             }
@@ -213,7 +213,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return closureFunction.call(newFrame);
             } else {
@@ -239,7 +239,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return RValueConversion.expectScalarLogical((RAny) closureFunction.call(newFrame));
             }
@@ -254,7 +254,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return RValueConversion.expectScalarLogical((RAny) closureFunction.call(newFrame));
             } else {
@@ -280,7 +280,7 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return RValueConversion.expectScalarNonNALogical((RAny) closureFunction.call(newFrame));
             }
@@ -295,7 +295,7 @@ public abstract class FunctionCall extends AbstractCall {
                 closureEnclosingFrame = closure.enclosingFrame();
                 lastClosure = closure;
                 lastBuiltIn = null;
-                Frame newFrame = lastClosure.createFrame();
+                Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
                 placeArgs(callerFrame, newFrame, functionArgPositions, functionDotsInfo, closureFunction.dotsIndex(), closureFunction.nparams());
                 return RValueConversion.expectScalarNonNALogical((RAny) closureFunction.call(newFrame));
             } else {
@@ -332,7 +332,7 @@ public abstract class FunctionCall extends AbstractCall {
             if (callable instanceof RClosure) {
                 RClosure closure = (RClosure) callable;
                 RFunction function = closure.function();
-                Frame newFrame = closure.createFrame();
+                Frame newFrame = function.createFrame(closure.enclosingFrame());
                 placeDotsArgs(callerFrame, newFrame, function.paramNames());
                 return function.call(newFrame);
 

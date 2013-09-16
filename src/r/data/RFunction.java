@@ -11,6 +11,7 @@ public interface RFunction {
     RNode[] paramValues();
     RNode body();
     RClosure createClosure(Frame frame);
+    Frame createFrame(Frame enclosingFrame);
     RSymbol[] localWriteSet();
     FrameDescriptor frameDescriptor();
     Object call(Frame frame);

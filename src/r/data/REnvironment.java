@@ -123,6 +123,10 @@ public interface REnvironment extends RAny {
         public Object call(Frame frame) {
             return null;
         }
+
+        public Frame createFrame(Frame callerFrame) {
+            return null;
+        }
     }
 
 }

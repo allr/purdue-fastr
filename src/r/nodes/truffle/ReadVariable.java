@@ -58,7 +58,11 @@ public abstract class ReadVariable extends BaseR {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";
                     } else if ((slot = frame.findVariable(symbol)) != -1) {
-                        node = getSimpleReadLocal(getAST(), symbol, slot);
+                        if (frame instanceof SmallFrame) {
+                            node = getSimpleReadLocalSmallFrame(getAST(), symbol, slot, (SmallFrame) frame);
+                        } else {
+                            node = getSimpleReadLocal(getAST(), symbol, slot);
+                        }
                         reason = "installReadLocalNode";
                     } else if ((rse = frame.readSetEntry(symbol)) == null) {
                             // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
@@ -93,6 +97,71 @@ public abstract class ReadVariable extends BaseR {
             }
         };
     }
+
+    private static ReadVariable getSimpleReadLocalSmallFrame(ASTNode orig, RSymbol sym, final int slot, SmallFrame frameTemplate) {
+
+        // TODO: add more specializations, but at the point when it starts making sense performance-wise
+        // also could make SmallFrameNSlots inherit from (N-1)Slots, allowing more re-use here
+        // surprisingly, this is not helping so much...
+
+        if (frameTemplate instanceof SmallFrame.SmallFrame1Slot && slot == 0) {
+            return new ReadVariable(orig, sym) {
+
+                @Override
+                public final Object execute(Frame frame) {
+                    SmallFrame.SmallFrame1Slot sframe = Utils.cast(frame);
+                    try {
+                        Object value =  RPromise.force(sframe.slot1);
+                        if (value == null) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        return value;
+                    } catch (UnexpectedResultException e) {
+                        return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+                    }
+                }
+            };
+        }
+        if (frameTemplate instanceof SmallFrame.SmallFrame2Slots && slot == 0) {
+            return new ReadVariable(orig, sym) {
+
+                @Override
+                public final Object execute(Frame frame) {
+                    SmallFrame.SmallFrame2Slots sframe = Utils.cast(frame);
+                    try {
+                        Object value =  RPromise.force(sframe.slot1);
+                        if (value == null) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        return value;
+                    } catch (UnexpectedResultException e) {
+                        return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+                    }
+                }
+            };
+        }
+        if (frameTemplate instanceof SmallFrame.SmallFrame2Slots && slot == 1) {
+            return new ReadVariable(orig, sym) {
+
+                @Override
+                public final Object execute(Frame frame) {
+                    SmallFrame.SmallFrame2Slots sframe = Utils.cast(frame);
+                    try {
+                        Object value =  RPromise.force(sframe.slot2);
+                        if (value == null) {
+                            throw new UnexpectedResultException(null);
+                        }
+                        return value;
+                    } catch (UnexpectedResultException e) {
+                        return replace(getReadLocal(ast, symbol, slot)).execute(frame);
+                    }
+                }
+            };
+        }
+        return getSimpleReadLocal(orig, sym, slot);
+
+    }
+
 
     private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final int slot) {
         return new ReadVariable(orig, sym) {

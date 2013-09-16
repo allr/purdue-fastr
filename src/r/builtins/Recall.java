@@ -63,7 +63,7 @@ final class Recall extends CallFactory {
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             // TODO: can we do something smarter here?
-            Frame newFrame = new GenericFrame(function, frame, function.frameDescriptor());
+            Frame newFrame = function.createFrame(frame);
             placeArgs(frame, newFrame, argPositions, functionDotsInfo, dotsIndex, nparams);
             return (RAny) function.call(newFrame);
         }

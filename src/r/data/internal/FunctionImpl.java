@@ -261,4 +261,19 @@ public class FunctionImpl extends BaseR implements RFunction {
         assert Utils.check(false, "unreachable");
         return null;
     }
+
+    public Frame createFrame(Frame enclosingFrame) {
+        switch(nlocals()) {
+            case 1:
+                return new SmallFrame.SmallFrame1Slot(this, enclosingFrame, frameDescriptor());
+            case 2:
+                return new SmallFrame.SmallFrame2Slots(this, enclosingFrame, frameDescriptor());
+            case 3:
+                return new SmallFrame.SmallFrame3Slots(this, enclosingFrame, frameDescriptor());
+            case 4:
+                return new SmallFrame.SmallFrame4Slots(this, enclosingFrame, frameDescriptor());
+            default:
+                return new GenericFrame(this, enclosingFrame, frameDescriptor());
+        }
+    }
 }
