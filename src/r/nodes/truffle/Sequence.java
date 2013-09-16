@@ -13,11 +13,10 @@ public class Sequence extends BaseR {
         super(ast);
         this.exprs = exprs;
         adoptChildren(exprs);
+        //        System.err.println("Sequence of length " + exprs.length);
     }
 
-    @Override
-    @ExplodeLoop
-    public final Object execute(Frame frame) {
+    @Override @ExplodeLoop public final Object execute(Frame frame) {
 
         Object res = null;
         for (RNode e : exprs) {
@@ -37,8 +36,7 @@ public class Sequence extends BaseR {
             this.child2 = adoptChild(exprs[1]);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             child1.execute(frame);
             return child2.execute(frame);
         }
@@ -56,8 +54,7 @@ public class Sequence extends BaseR {
             this.child3 = adoptChild(exprs[2]);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             child1.execute(frame);
             child2.execute(frame);
             return child3.execute(frame);
@@ -78,8 +75,7 @@ public class Sequence extends BaseR {
             this.child4 = adoptChild(exprs[3]);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             child1.execute(frame);
             child2.execute(frame);
             child3.execute(frame);
@@ -103,13 +99,40 @@ public class Sequence extends BaseR {
             this.child5 = adoptChild(exprs[4]);
         }
 
-        @Override
-        public final Object execute(Frame frame) {
+        @Override public final Object execute(Frame frame) {
             child1.execute(frame);
             child2.execute(frame);
             child3.execute(frame);
             child4.execute(frame);
             return child5.execute(frame);
+        }
+    }
+
+    public static class Sequence6 extends BaseR {
+        @Child RNode child1;
+        @Child RNode child2;
+        @Child RNode child3;
+        @Child RNode child4;
+        @Child RNode child5;
+        @Child RNode child6;
+
+        public Sequence6(ASTNode ast, RNode[] exprs) {
+            super(ast);
+            this.child1 = adoptChild(exprs[0]);
+            this.child2 = adoptChild(exprs[1]);
+            this.child3 = adoptChild(exprs[2]);
+            this.child4 = adoptChild(exprs[3]);
+            this.child5 = adoptChild(exprs[4]);
+            this.child6 = adoptChild(exprs[5]);
+        }
+
+        @Override public final Object execute(Frame frame) {
+            child1.execute(frame);
+            child2.execute(frame);
+            child3.execute(frame);
+            child4.execute(frame);
+            child5.execute(frame);
+            return child6.execute(frame);
         }
     }
 }
