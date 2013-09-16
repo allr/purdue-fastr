@@ -206,7 +206,7 @@ public final class RSymbol extends BaseObject implements RAny {
         this.primitive = primitive;
     }
 
-    void markDirty() {
+    public void markDirty() {
         version++;
     }
 

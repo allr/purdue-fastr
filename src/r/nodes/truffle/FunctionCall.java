@@ -1,7 +1,6 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -9,6 +8,7 @@ import r.builtins.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // TODO: fix (extend?) the propagation of scalar values and values with guards, currently it is very restricted
 public abstract class FunctionCall extends AbstractCall {

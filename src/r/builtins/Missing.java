@@ -1,13 +1,12 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.FunctionCall;
+import r.runtime.*;
 
 final class Missing extends CallFactory {
 
@@ -46,11 +45,11 @@ final class Missing extends CallFactory {
         Object value;
         int ddval = symbol.dotDotValue() - 1;
         if (ddval >= 0) {
-            FrameSlot slot = RFrameHeader.findVariable(frame, RSymbol.THREE_DOTS_SYMBOL);
-            if (slot == null) {
+            int slot = frame.findVariable(RSymbol.THREE_DOTS_SYMBOL);
+            if (slot == -1) {
                 throw RError.getMissingArguments(ast);
             }
-            RDots dots = (RDots) Utils.frameGetObject(frame, slot);
+            RDots dots = (RDots) frame.get(slot);
             Object[] dvalues = dots.values();
             if (ddval < dvalues.length) {
                 value = dvalues[ddval];
@@ -58,11 +57,11 @@ final class Missing extends CallFactory {
                 return RLogical.BOXED_TRUE;
             }
         } else {
-            FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-            if (slot == null) {
+            int slot = frame.findVariable(symbol);
+            if (slot == -1) {
                 throw RError.getMissingArguments(ast);
             }
-            value = Utils.frameGetObject(frame, slot);
+            value = frame.get(slot);
         }
         if (value == null) {
             throw RError.getMissingArguments(ast);
@@ -152,11 +151,11 @@ final class Missing extends CallFactory {
     private static RPromise getPromiseNoForce(Frame frame, RSymbol symbol) {
         Object value;
         if (frame != null) {
-            FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-            if (slot == null) {
+            int slot = frame.findVariable(symbol);
+            if (slot == -1) {
                 return null;
             }
-            value = Utils.frameGetObject(frame, slot);
+            value = frame.get(slot);
         } else {
             value = symbol.getValueNoForce();
         }

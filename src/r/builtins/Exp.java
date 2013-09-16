@@ -1,6 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.Frame;
 import r.*;
 import r.data.*;
 import r.data.internal.View;
@@ -8,6 +7,7 @@ import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Arithmetic;
 import r.nodes.truffle.RNode;
+import r.runtime.*;
 
 /**
  * "exp"

@@ -3,8 +3,7 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 // TODO: implement this builtin at least to support custom options
 //       shooutout benchmarks set the "digits" option

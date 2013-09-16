@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -10,6 +9,7 @@ import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Selector.SelectorNode;
+import r.runtime.*;
 
 // FIXME: during rewrites, the rhs (value) may be up-casted multiple times, through an inter-mediate type
 // FIXME: add more specializations

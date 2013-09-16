@@ -1,7 +1,5 @@
 package r.ifc;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.builtins.*;
 import r.builtins.CallFactory.ArgumentInfo;
 import r.data.*;
@@ -10,6 +8,7 @@ import r.data.internal.*;
 import r.ifc.Interop.Invokable;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 /**
  * Interface to the rest of the Java world. This class supports the registration of Java methods as R functions.

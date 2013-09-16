@@ -7,8 +7,8 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.FunctionCall;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 // FIXME: only a subset of R functionality

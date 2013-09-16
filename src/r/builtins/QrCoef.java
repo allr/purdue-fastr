@@ -3,14 +3,13 @@ package r.builtins;
 import org.netlib.lapack.*;
 import org.netlib.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 final class QrCoef extends CallFactory {
 

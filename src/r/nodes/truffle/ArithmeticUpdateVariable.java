@@ -4,8 +4,8 @@ import r.Utils;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.*;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 
@@ -52,9 +52,9 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
     // x <- x + 1L   or x <- 1L + x, only for x local, ScalarIntImpl, otherwise rewrites
     public static class ScalarIntLocalIncrement extends ArithmeticUpdateVariable {
 
-        final FrameSlot slot;
+        final int slot;
 
-        public ScalarIntLocalIncrement(SimpleAssignVariable ast, FrameSlot slot) {
+        public ScalarIntLocalIncrement(SimpleAssignVariable ast, int slot) {
             super(ast);
             this.slot = slot;
         }
@@ -62,13 +62,13 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
+                Object value = frame.getObjectForcingPromises(slot);
                 if (value != null && value instanceof ScalarIntImpl) {
                     int i = ((ScalarIntImpl) value).getInt();
                     int newi = i + 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        Utils.frameSetObject(frame, slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        frame.set(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }
@@ -104,9 +104,9 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
     // x <- x - 1L,  only for x local, ScalarIntImpl, otherwise rewrites
     public static class ScalarIntLocalDecrement extends ArithmeticUpdateVariable {
 
-        final FrameSlot slot;
+        final int slot;
 
-        public ScalarIntLocalDecrement(SimpleAssignVariable ast, FrameSlot slot) {
+        public ScalarIntLocalDecrement(SimpleAssignVariable ast, int slot) {
             super(ast);
             this.slot = slot;
         }
@@ -114,13 +114,13 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
         @Override
         public Object execute(Frame frame) {
             try {
-                Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
+                Object value = frame.getObjectForcingPromises(slot);
                 if (value != null && value instanceof ScalarIntImpl) {
                     int i = ((ScalarIntImpl) value).getInt();
                     int newi = i - 1;
                     if (i != RInt.NA && newi != RInt.NA) {
                         ScalarIntImpl res = new ScalarIntImpl(newi);
-                        Utils.frameSetObject(frame, slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
+                        frame.set(slot, res);  // NOTE: cannot modify a ScalarIntImpl (once written to a frame)
                         return res;
                     }
                 }

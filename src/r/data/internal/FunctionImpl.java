@@ -4,17 +4,18 @@ import r.*;
 import r.data.*;
 import r.nodes.Function;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
+
 import r.builtins.Return.ReturnException;
 
 // FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
 // FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
 // FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
 
-public class FunctionImpl extends RootNode implements RFunction {
+public class FunctionImpl extends BaseR implements RFunction {
 
     final RFunction enclosingFunction;
     final Function source;
@@ -25,7 +26,6 @@ public class FunctionImpl extends RootNode implements RFunction {
     final int dotsIndex;
 
     final FrameDescriptor frameDescriptor;
-    final FrameSlot[] paramSlots;
     final CallTarget callTarget;
 
     final RSymbol[] writeSet;
@@ -36,6 +36,7 @@ public class FunctionImpl extends RootNode implements RFunction {
     private static final boolean DEBUG_CALLS = false;
 
     public FunctionImpl(Function source, RSymbol[] paramNames, RNode[] paramValues, RNode body, RFunction enclosingFunction, RSymbol[] writeSet, EnclosingSlot[] readSet) {
+        super(source);
         this.source = source;
         this.paramNames = paramNames;
         this.paramValues = paramValues;
@@ -64,15 +65,7 @@ public class FunctionImpl extends RootNode implements RFunction {
 
         // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
         int nparams = paramNames.length;
-        paramSlots = new FrameSlot[nparams];
-        frameDescriptor = new FrameDescriptor();
-        for (int i = 0; i < nparams; i++) {
-            paramSlots[i] = frameDescriptor.addFrameSlot(writeSet[i]);
-        }
-        for (int i = nparams; i < writeSet.length; i++) {
-            frameDescriptor.addFrameSlot(writeSet[i]);
-        }
-
+        frameDescriptor = new FrameDescriptor(writeSet);
         callTarget = Truffle.getRuntime().createCallTarget(this, frameDescriptor);
 
         int tmpDotsIndex = -1;
@@ -85,7 +78,14 @@ public class FunctionImpl extends RootNode implements RFunction {
         dotsIndex = tmpDotsIndex;
     }
 
-    @Override public Object execute(VirtualFrame frame) {
+    @Override
+    public Object execute(VirtualFrame frame) {
+        assert Utils.check(false, "truffle calls to be removed");
+        return null;
+    }
+
+    @Override
+    public Object execute(Frame frame) {
         RFrameHeader h = RFrameHeader.header(frame);
         Object[] args = h.arguments();
         for (int i = 0; i < paramSlots.length; i++) {
@@ -238,7 +238,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         return callTarget;
     }
 
-    @Override public RClosure createClosure(MaterializedFrame enclosingEnvironment) {
+    @Override public RClosure createClosure(Frame enclosingEnvironment) {
         return new ClosureImpl(this, enclosingEnvironment);
     }
 
@@ -252,7 +252,7 @@ public class FunctionImpl extends RootNode implements RFunction {
         return writeSet;
     }
 
-    @Override public FrameSlot localSlot(RSymbol symbol) {
+    @Override public int localSlot(RSymbol symbol) {
         return frameDescriptor.findFrameSlot(symbol);
     }
 
@@ -260,8 +260,8 @@ public class FunctionImpl extends RootNode implements RFunction {
         int hops = 0;
         for (RFunction func = enclosingFunction; func != null; func = func.enclosingFunction()) {
             hops++;
-            FrameSlot slot = func.localSlot(symbol);
-            if (slot != null) { return new EnclosingSlot(symbol, hops, slot); }
+            int slot = func.localSlot(symbol);
+            if (slot != -1) { return new EnclosingSlot(symbol, hops, slot); }
         }
         return null;
     }

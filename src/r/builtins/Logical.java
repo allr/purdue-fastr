@@ -3,8 +3,7 @@ package r.builtins;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 /**
  * "logical" Integer vectors exist so that data can be passed to C or Fortran code which expects them, and so that

@@ -6,8 +6,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 /**
  * "new.env"
@@ -38,7 +37,7 @@ final class Newenv extends CallFactory {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 boolean hash = posHash != -1 ? parseHash(args[posHash], ast) : DEFAULT_HASH;
                 REnvironment rootEnvironment = null;
-                MaterializedFrame parentFrame = null;
+                Frame parentFrame = null;
                 if (posParent != -1) {
                     REnvironment env = parseParent(args[posParent], ast);
                     parentFrame = env.frame();
@@ -49,7 +48,7 @@ final class Newenv extends CallFactory {
                     if (frame == null) {
                         rootEnvironment = REnvironment.GLOBAL;
                     } else {
-                        parentFrame = frame.materialize();
+                        parentFrame = frame;
                     }
                 }
                 int size = DEFAULT_SIZE;

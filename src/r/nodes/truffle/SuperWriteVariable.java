@@ -1,12 +1,12 @@
 package r.nodes.truffle;
 
 import com.oracle.truffle.api.nodes.*;
-import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.data.*;
 import r.data.RFunction.*;
 import r.nodes.*;
+import r.runtime.*;
 
 public abstract class SuperWriteVariable extends BaseR {
 
@@ -32,18 +32,18 @@ public abstract class SuperWriteVariable extends BaseR {
                 try {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
-                    Frame enclosingFrame = (frame != null) ? RFrameHeader.enclosingFrame(frame) : null;
+                    Frame enclosingFrame = (frame != null) ? frame.enclosingFrame() : null;
 
                     if (enclosingFrame == null) {
                         return replaceAndExecute(WriteVariable.getWriteTopLevel(ast, symbol, expr), "install WriteTopLevel from SuperWriteVariable", frame);
                     }
 
-                    FrameSlot slot = RFrameHeader.findVariable(enclosingFrame, symbol);
-                    if (slot != null) {
+                    int slot = enclosingFrame.findVariable(symbol);
+                    if (slot != -1) {
                         return replaceAndExecute(getWriteViaWriteSet(ast, symbol, expr, slot), "install WriteViaWriteSet from SuperWriteVariable", frame);
                     }
 
-                    EnclosingSlot eslot = RFrameHeader.findEnclosingVariable(enclosingFrame, symbol);
+                    EnclosingSlot eslot = enclosingFrame.findEnclosingVariable(symbol);
                     if (eslot == null) {
                         return replaceAndExecute(getWriteToTopLevel(ast, symbol, expr), "install WriteToTopLevel from SuperWriteVariable", frame);
                     } else {
@@ -54,26 +54,26 @@ public abstract class SuperWriteVariable extends BaseR {
         };
     }
 
-    public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final FrameSlot slot) {
+    public static SuperWriteVariable getWriteViaWriteSet(ASTNode ast, RSymbol symbol, RNode expr, final int slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override
             public Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
-                Frame enclosing = RFrameHeader.enclosingFrame(frame);
-                boolean done = RFrameHeader.superWriteViaWriteSet(enclosing, slot, symbol, value);
+                Frame enclosing = frame.enclosingFrame();
+                boolean done = enclosing.superWriteViaWriteSet(slot, symbol, value);
                 assert Utils.check(done);
                 return value;
             }
         };
     }
 
-    public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final FrameSlot slot) {
+    public static SuperWriteVariable getWriteViaEnclosingSlot(ASTNode ast, RSymbol symbol, RNode expr, final int hops, final int slot) {
         return new SuperWriteVariable(ast, symbol, expr) {
             @Override
             public final Object execute(Frame frame) {
                 RAny value = (RAny) expr.execute(frame);
-                Frame enclosing = RFrameHeader.enclosingFrame(frame);
-                boolean done = RFrameHeader.superWriteViaEnclosingSlotAndTopLevel(enclosing, hops, slot, symbol, value);
+                Frame enclosing = frame.enclosingFrame();
+                boolean done = enclosing.superWriteViaEnclosingSlotAndTopLevel(hops, slot, symbol, value);
                 assert Utils.check(done);
                 return value;
             }
@@ -101,13 +101,13 @@ public abstract class SuperWriteVariable extends BaseR {
                 RAny value = (RAny) expr.execute(frame);
 
                 if (symbol.getVersion() != 0) {
-                    Frame enclosingFrame = RFrameHeader.enclosingFrame(frame);
-                    if (RFrameHeader.superWriteToExtensionEntry(enclosingFrame, symbol, value)) {
+                    Frame enclosingFrame = frame.enclosingFrame();
+                    if (enclosingFrame.superWriteToExtensionEntry(symbol, value)) {
                         return value;
                     }
                 }
 
-                RFrameHeader.superWriteToTopLevel(symbol, value);
+                Frame.superWriteToTopLevel(symbol, value);
                 return value;
             }
         };

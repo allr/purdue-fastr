@@ -2,14 +2,13 @@ package r.nodes;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.RFunction.*;
 import r.data.internal.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.RNode;
+import r.runtime.*;
 
 public class Function extends ASTNode {
 
@@ -159,8 +158,8 @@ public class Function extends ASTNode {
             RFunction p = parent;
             int hops = 1;
             while (p != null) {
-                FrameSlot slot = p.localSlot(s);
-                if (slot != null) {
+                int slot = p.localSlot(s);
+                if (slot != -1) {
                     rsl.add(new EnclosingSlot(s, hops, slot));
                     break;
                 }

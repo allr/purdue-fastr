@@ -1,11 +1,10 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // FIXME: not exactly R semantics
 public class Stop extends CallFactory {

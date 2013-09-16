@@ -3,12 +3,11 @@ package r.data;
 import r.errors.*;
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 public final class RPromise {
     private final RNode expression; // must be a root node
-    private final MaterializedFrame frame; // FIXME: can we merge the frame and value fields?
+    private final Frame frame; // FIXME: can we merge the frame and value fields?
     private RAny value;
     private int bits;
 
@@ -22,7 +21,7 @@ public final class RPromise {
 
     private RPromise(RNode expression, Frame frame, int bits) {
         this.expression = expression; // root node
-        this.frame = frame == null ? null : frame.materialize();
+        this.frame = frame;
         this.bits = bits;
     }
 
@@ -36,7 +35,7 @@ public final class RPromise {
 
     public static RPromise createMissing(final RSymbol argName, Frame frame) {
 
-        final ASTNode errorAST = frame == null ? null : RFrameHeader.function(frame).getSource();
+        final ASTNode errorAST = frame == null ? null : frame.function().getSource();
         // FIXME: could cache these nodes per function/argument (though missing is probably rare)
         RNode errorExpression = new BaseR(new r.nodes.Constant(RSymbol.EMPTY_SYMBOL)) {
             // FIXME: don't need bits, could detect missing arg using instanceof
@@ -106,7 +105,7 @@ public final class RPromise {
         return expression;
     }
 
-    public MaterializedFrame frame() {
+    public Frame frame() {
         return frame;
     }
 }

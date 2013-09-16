@@ -1,10 +1,11 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
+
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.runtime.*;
 
 /** A super assignment node. Works similarly to the UpdateArrayAssignment node, but uses the super assignment instead.
  *
@@ -118,7 +119,7 @@ public class UpdateArraySuperAssignment extends BaseR {
         public Object execute(Frame frame) {
             RAny rhsValue = (RAny) rhs.execute(frame); // note: order is important
 
-            RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
+            RAny lhsValue = (RAny) lhs.execute(frame.enclosingFrame());
 
             newVector = assignment.execute(frame, lhsValue, rhsValue);
             if (newVector != lhsValue) {
@@ -169,7 +170,7 @@ public class UpdateArraySuperAssignment extends BaseR {
             @Override
             public Object execute(Frame frame) {
 
-                RAny lhsValue = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
+                RAny lhsValue = (RAny) lhs.execute(frame.enclosingFrame());
 
                 newVector = assignment.execute(frame, lhsValue, rhsValue);
                 if (newVector != lhsValue) {

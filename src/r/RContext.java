@@ -5,7 +5,6 @@ import java.util.*;
 import org.antlr.runtime.*;
 
 import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
 
 import r.data.*;
 import r.data.internal.*;
@@ -14,6 +13,7 @@ import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
 import r.parser.*;
+import r.runtime.*;
 
 public class RContext {
 

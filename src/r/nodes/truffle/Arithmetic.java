@@ -3,7 +3,6 @@ package r.nodes.truffle;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -16,6 +15,7 @@ import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
 

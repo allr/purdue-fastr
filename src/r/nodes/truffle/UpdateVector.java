@@ -6,10 +6,10 @@ import r.data.RArray.Names;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.*;
+import r.runtime.*;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 // TODO: clean-up generic code using .getRef
@@ -35,7 +35,7 @@ public abstract class UpdateVector extends BaseR {
     RAny newVector;
     final boolean isSuper;
 
-    FrameSlot frameSlot = null; // FIXME: a lot of cached data, should split into nodes if possible
+    int frameSlot = -1; // FIXME: a lot of cached data, should split into nodes if possible
     boolean slotInitialized = false;
 
     private static final boolean DEBUG_UP = false;
@@ -87,7 +87,7 @@ public abstract class UpdateVector extends BaseR {
 
         RAny base;
         if (frame != null) { // FIXME: turn this guard into node rewriting, it only has to be done once
-            base = (RAny) lhs.execute(RFrameHeader.enclosingFrame(frame));
+            base = (RAny) lhs.execute(frame.enclosingFrame());
         } else {
             throw RError.getUnknownVariable(ast, var);
         }
@@ -104,37 +104,36 @@ public abstract class UpdateVector extends BaseR {
 
         if (frame != null) {
             if (!slotInitialized) { // FIXME: turn this into node rewriting
-                frameSlot = RFrameHeader.findVariable(frame, var);
+                frameSlot = frame.findVariable(var);
                 slotInitialized = true;
             }
             // variable has a local slot
             // note: except for dynamic invocation, this always has to be the case because the variable is in the write set
-            if (frameSlot != null) {
-                RAny base = Utils.cast(RFrameHeader.getObjectForcingPromises(frame, frameSlot));
+            if (frameSlot != -1) {
+                RAny base = Utils.cast(frame.getObjectForcingPromises(frameSlot));
                 if (base != null) {
                     RAny newBase = execute(base, index, value);
                     if (newBase != base) {
-                        RFrameHeader.writeAtRef(frame, frameSlot, newBase);
+                        frame.writeAtRef(frameSlot, newBase);
                     }
                 } else { // this should be uncommon
-                    base = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, var));
+                    base = Utils.cast(frame.readViaWriteSetSlowPath(var));
                     if (base == null) { throw RError.getUnknownVariable(getAST(), var); }
                     base.ref(); // reading from parent, hence need to copy on update
                     // ref once will make it shared unless it is stateless (like int sequence)
                     RAny newBase = execute(base, index, value);
                     // now typically base != newBase, but not always (an update may actually change nothing in the base vector)
-                    RFrameHeader.writeAtRef(frame, frameSlot, newBase);
+                    frame.writeAtRef(frameSlot, newBase);
                 }
             } else {
                 // dynamic invocation
                 // TODO: this is super-inefficient
-                MaterializedFrame mframe = frame.materialize();
-                RAny base = Utils.cast(RFrameHeader.read(mframe, var));
+                RAny base = Utils.cast(frame.read(var));
                 if (base == null) { throw RError.getUnknownVariable(getAST(), var); }
                 base.ref(); // TODO: this may ref unnecessarily, will copy every time invoked
                 RAny newBase = execute(base, index, value);
                 assert Utils.check(base != newBase);
-                RFrameHeader.writeToExtension(mframe, var, newBase);
+                frame.writeToExtension(var, newBase);
             }
         } else {
             // variable is top-level
@@ -142,7 +141,7 @@ public abstract class UpdateVector extends BaseR {
             if (base == null) { throw RError.getUnknownVariable(getAST(), var); }
             RAny newBase = execute(base, index, value);
             if (newBase != base) {
-                RFrameHeader.writeToTopLevelRef(var, newBase);
+                Frame.writeToTopLevelRef(var, newBase);
             }
         }
         return value;

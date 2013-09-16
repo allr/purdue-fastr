@@ -17,8 +17,7 @@ import r.nodes.UpdateVector;
 import r.nodes.truffle.*;
 import r.nodes.truffle.Loop;
 import r.nodes.truffle.ReplacementCall.RememberLast;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 public class Truffleize implements Visitor {
 
@@ -227,8 +226,8 @@ public class Truffleize implements Visitor {
             }
             if (binVar != null && constNode != null) {
                 RSymbol binVarSymbol = binVar.getSymbol();
-                FrameSlot slot = getFrameSlot(assign, binVarSymbol);
-                if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != null) {
+                int slot = getFrameSlot(assign, binVarSymbol);
+                if (binVarSymbol == symbol && !assign.isSuper() && (constNode.getValue() instanceof ScalarIntImpl) && slot != -1) {
                     int cValue = ((ScalarIntImpl) constNode.getValue()).getInt();
                     if (cValue == 1) {
                         if (valueNode instanceof Add) {
@@ -335,12 +334,12 @@ public class Truffleize implements Visitor {
         return rfunc;
     }
 
-    private FrameSlot getFrameSlot(ASTNode ast, RSymbol symbol) {
+    private int getFrameSlot(ASTNode ast, RSymbol symbol) {
         RFunction encFunction =  getEnclosingFunction(ast);
         if (encFunction != null) {
             return encFunction.localSlot(symbol);
         }
-        return null;
+        return -1;
     }
 
     private boolean hasLocalOrEnclosingFrameSlot(ASTNode ast, RSymbol symbol) {
@@ -348,8 +347,8 @@ public class Truffleize implements Visitor {
         if (encFunction == null) {
             return false;
         }
-        FrameSlot slot = encFunction.localSlot(symbol);
-        if (slot != null) {
+        int slot = encFunction.localSlot(symbol);
+        if (slot != -1) {
             return true;
         }
         return encFunction.enclosingSlot(symbol) != null;
@@ -661,7 +660,7 @@ public class Truffleize implements Visitor {
                 Utils.nyi("expecting matrix name for matrix update");
             }
             RFunction encFunction =  getEnclosingFunction(a);
-            FrameSlot varSlot = getFrameSlot(a, varName);
+            int varSlot = getFrameSlot(a, varName);
 
             if (u.isSuper()) {
                 result = UpdateArraySuperAssignment.create(a, varName, createTree(varAccess), createTree(u.getRHS()), UpdateArray.create(a, selNodes, a.isSubset(), isColumn));

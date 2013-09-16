@@ -3,7 +3,6 @@ package r.data.internal;
 import java.util.*;
 
 import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
 
 import r.*;
 import r.Convert.ConversionStatus;
@@ -11,18 +10,19 @@ import r.builtins.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 
 public class EnvironmentImpl extends BaseObject implements REnvironment {
 
-    final MaterializedFrame frame;
+    final Frame frame;
 
-    public EnvironmentImpl(MaterializedFrame frame) {
+    public EnvironmentImpl(Frame frame) {
         this.frame = frame;
     }
 
     @Override
-    public MaterializedFrame frame() {
+    public Frame frame() {
         return frame;
     }
 
@@ -138,44 +138,44 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     @Override
     public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
         if (!inherits) {
-            RFrameHeader.localWrite(frame, name, value);
+            frame.localWrite(name, value);
             return;
         } else {
-            RFrameHeader.reflectiveInheritsWrite(frame, name, value);
+            frame.reflectiveInheritsWrite(name, value);
         }
     }
 
     @Override
     public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
-        RFrameHeader.localWriteNoRef(frame, name, value);
+        frame.localWriteNoRef(name, value);
     }
 
     @Override
     public RAny get(RSymbol name, boolean inherits) {
         if (!inherits) {
-            return (RAny) RFrameHeader.localRead(frame, name);
+            return (RAny) frame.localRead(name);
         } else {
-            return Utils.cast(RFrameHeader.read(frame, name));
+            return Utils.cast(frame.read(name));
         }
     }
 
     @Override
     public Object localGetNotForcing(RSymbol name) {
-        return RFrameHeader.localReadNotForcing(frame, name);
+        return frame.localReadNotForcing(name);
     }
 
     @Override
     public boolean exists(RSymbol name, boolean inherits) {
         if (!inherits) {
-            return RFrameHeader.localExists(frame, name);
+            return frame.localExists(name);
         } else {
-            return RFrameHeader.exists(frame, name);
+            return frame.exists(name);
         }
     }
 
     @Override
     public RCallable match(RSymbol name) {
-        return RFrameHeader.match(frame, name);
+        return frame.match(name);
     }
 
     public static RSymbol[] removeHidden(RSymbol[] symbols) { // FIXME: unnecessary copying
@@ -191,7 +191,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
     @Override
     public RSymbol[] ls(boolean includingHidden) { // FIXME: maybe could speed-up by propagating the filtering further
-        RSymbol[] symbols =  RFrameHeader.listSymbols(frame);
+        RSymbol[] symbols =  frame.listSymbols();
         if (!includingHidden) {
             return removeHidden(symbols);
         } else {
@@ -207,39 +207,37 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     // it always has an extension
     public static class Custom extends EnvironmentImpl implements REnvironment {
 
-        public Custom(MaterializedFrame frame) {
+        public Custom(Frame frame) {
             super(frame);
             assert Utils.check(frame != null);
         }
 
         // NOTE: rootEnvironment only needs to be set when parentFrame is null
         // NOTE: rootEnvironment == null means the global environment
-        public static Custom create(MaterializedFrame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
+        public static Custom create(Frame parentFrame, REnvironment rootEnvironment, boolean hash, int hashSize) {
 
-            RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
-            MaterializedFrame newFrame = Truffle.getRuntime().createMaterializedFrame(header);
+            NoSlotsFrame newFrame = new NoSlotsFrame(new DummyFunction(), parentFrame);
             if (hash) {
-                RFrameHeader.installHashedExtension(newFrame, hashSize);
+                newFrame.installHashedExtension(hashSize);
             } else {
-                RFrameHeader.installExtension(newFrame);
+                newFrame.installExtension();
             }
-            RFrameHeader.setRootEnvironment(newFrame, rootEnvironment);
+            newFrame.rootEnvironment(rootEnvironment);
             return new Custom(newFrame);
         }
 
-        public static MaterializedFrame createForList(MaterializedFrame parentFrame, RList list) {
+        public static Frame createForList(Frame parentFrame, RList list) {
 
-            RFrameHeader header = new RFrameHeader(new DummyFunction(), parentFrame, null);
-            MaterializedFrame newFrame = Truffle.getRuntime().createMaterializedFrame(header);
+            NoSlotsFrame newFrame = new NoSlotsFrame(new DummyFunction(), parentFrame);
             int size = list.size();
-            RFrameHeader.installHashedExtension(newFrame, size);
+            newFrame.installHashedExtension(size);
             RArray.Names names = list.names();
             if (names != null) {
                 RSymbol[] symbols = names.sequence();
                 for (int i = 0; i < size; i++) {
                     RSymbol s = symbols[i];
                     if (s != RSymbol.NA_SYMBOL && s != RSymbol.EMPTY_SYMBOL) {
-                        RFrameHeader.localWrite(newFrame, s, list.getRAnyRef(i));
+                        newFrame.localWrite(s, list.getRAnyRef(i));
                     }
                 }
             }
@@ -250,38 +248,38 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         @Override
         public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
             if (!inherits) {
-                RFrameHeader.customLocalWrite(frame, name, value);
+                frame.customLocalWrite(name, value);
                 return;
             } else {
-                RFrameHeader.customReflectiveInheritsWrite(frame, name, value);
+                frame.customReflectiveInheritsWrite(name, value);
             }
         }
 
         @Override
         public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
-            RFrameHeader.customLocalWriteNoRef(frame, name, value);
+            frame.customLocalWriteNoRef(name, value);
         }
 
         @Override
         public RAny get(RSymbol name, boolean inherits) {
             if (!inherits) {
-                return (RAny) RFrameHeader.customLocalRead(frame, name);
+                return (RAny) frame.customLocalRead(name);
             } else {
-                return Utils.cast(RFrameHeader.customRead(frame, name));
+                return Utils.cast(frame.customRead(name));
             }
         }
 
         @Override
         public Object localGetNotForcing(RSymbol name) {
-            return RFrameHeader.customLocalReadNoForcing(frame, name);
+            return frame.customLocalReadNoForcing(name);
         }
 
         @Override
         public boolean exists(RSymbol name, boolean inherits) {
             if (!inherits) {
-                return RFrameHeader.customLocalExists(frame, name);
+                return frame.customLocalExists(name);
             } else {
-                return RFrameHeader.customExists(frame, name);
+                return frame.customExists(name);
             }
         }
 
@@ -300,12 +298,12 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
 
         @Override
         public void assign(RSymbol name, RAny value, boolean inherits, ASTNode ast) {
-            RFrameHeader.writeToTopLevelCondRef(name, value);
+            Frame.writeToTopLevelCondRef(name, value);
         }
 
         @Override
         public void delayedAssign(RSymbol name, RPromise value, ASTNode ast) {
-            RFrameHeader.writeToTopLevelNoRef(name, value);
+            Frame.writeToTopLevelNoRef(name, value);
         }
 
         @Override

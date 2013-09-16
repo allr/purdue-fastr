@@ -2,8 +2,7 @@ package r.nodes.truffle;
 
 import r.data.*;
 import r.nodes.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 // TODO: support optimizations that avoid copying - that is, "ref" values if they are being duplicated by the update
 //       (like in UpdateVector)

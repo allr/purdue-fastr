@@ -2,12 +2,11 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // FIXME: not full R semantics (some options unimplemented, but perhaps unimportant)
 // FIXME: could improve performance e.g. using direct access to arrays and memcmp/Arrays.equals, if needed

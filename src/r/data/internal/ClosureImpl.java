@@ -1,17 +1,16 @@
 package r.data.internal;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.Convert.*;
 import r.data.*;
+import r.runtime.*;
 
 public class ClosureImpl extends BaseObject implements RClosure {
 
-    final MaterializedFrame environment;
+    final Frame environment;
     final RFunction function;
 
-    public ClosureImpl(RFunction function, MaterializedFrame environment) {
+    public ClosureImpl(RFunction function, Frame environment) {
         this.function = function;
         this.environment = environment;
     }
@@ -70,7 +69,7 @@ public class ClosureImpl extends BaseObject implements RClosure {
     }
 
     @Override
-    public MaterializedFrame enclosingFrame() {
+    public Frame enclosingFrame() {
         return environment;
     }
 

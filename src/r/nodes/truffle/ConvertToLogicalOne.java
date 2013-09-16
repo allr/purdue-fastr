@@ -1,12 +1,12 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
 import r.errors.*;
+import r.runtime.*;
 
 public abstract class ConvertToLogicalOne extends BaseR {
 

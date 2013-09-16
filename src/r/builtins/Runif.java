@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.builtins.internal.*;
 import r.data.*;
@@ -9,6 +7,7 @@ import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 final class Runif extends CallFactory {
 

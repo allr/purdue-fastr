@@ -5,8 +5,8 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 // FIXME: local slot for functions can be looked up statically, so the code can be simplified accordingly
@@ -217,8 +217,8 @@ public abstract class Loop extends BaseR {
                         sn = createToplevel(ast, cvar, range, body);
                         dbg = "install IntSequenceRange.TopLevel from IntSequenceRange (uninitialized)";
                     } else {
-                        FrameSlot slot = RFrameHeader.findVariable(frame, cvar);
-                        if (slot != null) {
+                        int slot = frame.findVariable(cvar);
+                        if (slot != -1) {
                             sn = createSimple(ast, cvar, range, body, slot);
                             dbg = "install IntSequenceRange.Simple from IntSequenceRange (uninitialized)";
                         } else {
@@ -251,8 +251,8 @@ public abstract class Loop extends BaseR {
                         if (frame == null) {
                             gn = Generic.createToplevel(ast, cvar, range, body);
                         } else {
-                            FrameSlot slot = RFrameHeader.findVariable(frame, cvar);
-                            if (slot != null) {
+                            int slot = frame.findVariable(cvar);
+                            if (slot != -1) {
                                 gn = Generic.create(ast, cvar, range, body, slot);
                             } else {
                                 gn = Generic.createDynamic(ast, cvar, range, body);
@@ -275,7 +275,7 @@ public abstract class Loop extends BaseR {
                         final int step = sval.step();
                         try {
                             for (int i = from;; i += step) {
-                                RFrameHeader.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
+                                Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }
@@ -291,7 +291,7 @@ public abstract class Loop extends BaseR {
 
             // for a sequence l:k, l <= k
             // FIXME: could make this even simpler with a bit of analysis (removal of break, continue catch blocks)
-            public static RNode createSimple(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+            public static RNode createSimple(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
                 return new IntSequenceRange(ast, cvar, range, body) {
                     @Override
                     public final RAny execute(Frame frame) {
@@ -310,7 +310,7 @@ public abstract class Loop extends BaseR {
                             try {
                                 for (int i = 1; i <= to; i++) {
                                     // no ref needed because scalars do not have reference counts
-                                    RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
+                                    frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
                                     try {
                                         body.execute(frame);
                                     } catch (ContinueException ce) { }
@@ -332,7 +332,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+            public static Specialized create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
                 return new Specialized(ast, cvar, range, body) {
                     @Override
                     public final RAny execute(Frame frame, IntImpl.RIntSequence sval, int size) {
@@ -342,7 +342,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = from;; i += step) {
                                 // no ref needed because scalars do not have reference counts
-                                RFrameHeader.writeAtNoRef(frame, slot, RInt.RIntFactory.getScalar(i));
+                                frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }
@@ -363,12 +363,11 @@ public abstract class Loop extends BaseR {
                         final int from = sval.from();
                         final int to = sval.to();
                         final int step = sval.step();
-                        MaterializedFrame mframe = frame.materialize();
                         try {
                             for (int i = from;; i += step) {
                                 // no ref needed because scalars do not have reference counts
                                 // TODO: this is super-inefficient
-                                RFrameHeader.writeToExtension(mframe, cvar, RInt.RIntFactory.getScalar(i));
+                                frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }
@@ -410,7 +409,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange instanceof RList ? ((RList) arange).getRAny(i) : arange.boxedGet(i);
-                                RFrameHeader.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
+                                Frame.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }
@@ -421,7 +420,7 @@ public abstract class Loop extends BaseR {
                 };
             }
 
-            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final FrameSlot slot) {
+            public static Generic create(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
                 return new Generic(ast, cvar, range, body) {
                     @Override
                     public final RAny execute(Frame frame, RAny rval) {
@@ -433,7 +432,7 @@ public abstract class Loop extends BaseR {
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrameHeader.writeAtRef(frame, slot, vvalue);
+                                frame.writeAtRef(slot, vvalue);
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }
@@ -453,11 +452,10 @@ public abstract class Loop extends BaseR {
                         }
                         RArray arange = (RArray) rval;
                         int size = arange.size();
-                        MaterializedFrame mframe = frame.materialize();
                         try {
                             for (int i = 0; i < size; i++) {
                                 RAny vvalue = arange.boxedGet(i);
-                                RFrameHeader.writeToExtension(mframe, cvar, vvalue); // TODO: this is inefficient
+                                frame.writeToExtension(cvar, vvalue); // TODO: this is inefficient
                                 try {
                                     body.execute(frame);
                                 } catch (ContinueException ce) { }

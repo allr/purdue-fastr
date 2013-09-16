@@ -1,13 +1,12 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.Constant;
 import r.nodes.FunctionCall;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 
 // FIXME: GNU-R distinguishes the storage.mode of a language object (type "language")... we don't do it yet

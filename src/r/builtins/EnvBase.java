@@ -4,8 +4,7 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 final class EnvBase {
 

@@ -3,8 +3,6 @@ package r.builtins;
 import org.netlib.lapack.*;
 import org.netlib.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.RDouble.*;
@@ -12,6 +10,7 @@ import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // TODO: S3
 public class Qr extends CallFactory {

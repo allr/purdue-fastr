@@ -1,10 +1,9 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 final class Globalenv extends CallFactory {
     static final CallFactory _ = new Globalenv("globalenv", new String[]{}, null);

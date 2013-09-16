@@ -2,8 +2,6 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.builtins.Order.DoubleComparator;
 import r.builtins.Order.IntComparator;
@@ -13,6 +11,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 import java.lang.Integer;
 

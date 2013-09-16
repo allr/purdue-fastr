@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import r.*;
@@ -8,6 +7,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.runtime.*;
 
 import java.util.Arrays;
 

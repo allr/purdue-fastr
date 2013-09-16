@@ -2,12 +2,11 @@ package r.nodes.truffle;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: this is a very unoptimized version
 // FIXME: could optimize "%in% names" using the hash-map stored in Names

@@ -1,12 +1,11 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // FIXME: could re-factor as this shares a lot of code with All
 // FIXME: add S4

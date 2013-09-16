@@ -1,12 +1,12 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: scalar tests using instanceof
 

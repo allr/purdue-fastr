@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -8,6 +7,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: we probably could get some performance improvement by specializing for pairs of types,
 // thus avoiding the cast nodes

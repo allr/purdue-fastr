@@ -1,6 +1,5 @@
 package r;
 
-import com.oracle.truffle.api.frame.*;
 import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
@@ -277,20 +276,4 @@ public final class Utils {
         return a;
     }
 
-    public static void frameSetObject(Frame frame, FrameSlot slot, Object value) {
-        try {
-            frame.setObject(slot, value);
-        } catch (FrameSlotTypeException e) {
-            assert(false);
-        }
-    }
-
-    public static Object frameGetObject(Frame frame, FrameSlot slot) {
-        try {
-            return frame.getObject(slot);
-        } catch (FrameSlotTypeException e) {
-            assert(false);
-            return null;
-        }
-    }
 }

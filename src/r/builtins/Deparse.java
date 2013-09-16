@@ -1,10 +1,9 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // TODO: the GNU-R's deparse does much more
 public class Deparse extends CallFactory {

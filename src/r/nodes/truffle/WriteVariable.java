@@ -5,8 +5,7 @@ import com.oracle.truffle.api.nodes.*;
 import r.*;
 import r.data.*;
 import r.nodes.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 // FIXME: we could get some performance by specializing on whether an update (writing the same value) is likely ; this is so when the assignment is used
 // in update operations (vector update, replacement functions) ; we could use unconditional ref in other cases
@@ -43,8 +42,8 @@ public abstract class WriteVariable extends BaseR {
                         node = getWriteTopLevel(getAST(), symbol, expr);
                         reason = "installWriteTopLevelNode";
                     } else {
-                        FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                        if (slot != null) {
+                        int slot = frame.findVariable(symbol);
+                        if (slot != -1) {
                             node = getWriteLocal(getAST(), symbol, slot, expr);
                             reason = "installWriteLocalNode";
                         } else {
@@ -62,12 +61,12 @@ public abstract class WriteVariable extends BaseR {
         };
     }
 
-    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final FrameSlot slot, RNode rhs) {
+    public static WriteVariable getWriteLocal(ASTNode orig, RSymbol sym, final int slot, RNode rhs) {
         return new WriteVariable(orig, sym, rhs) {
 
             @Override public final Object execute(Frame frame) {
                 RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeAtCondRef(frame, slot, val);
+                frame.writeAtCondRef(slot, val);
                 if (DEBUG_W) {
                     Utils.debug("write - " + symbol.pretty() + " local-ws, wrote " + val + " (" + val.pretty() + ") to slot " + slot);
                 }
@@ -81,7 +80,7 @@ public abstract class WriteVariable extends BaseR {
 
             @Override public final Object execute(Frame frame) {
                 RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeToTopLevelCondRef(symbol, val);
+                Frame.writeToTopLevelCondRef(symbol, val);
                 if (DEBUG_W) {
                     Utils.debug("write - " + symbol.pretty() + " toplevel, wrote " + val + " (" + val.pretty() + ")");
                 }
@@ -95,7 +94,7 @@ public abstract class WriteVariable extends BaseR {
 
             @Override public final Object execute(Frame frame) {
                 RAny val = Utils.cast(expr.execute(frame));
-                RFrameHeader.writeToExtension(frame, symbol, val);
+                frame.writeToExtension(symbol, val);
                 return val;
             }
         };

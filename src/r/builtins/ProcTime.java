@@ -1,11 +1,10 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // TODO: add S3 support
 // TODO: add support for other elements then elapsed time (need to use a native call getrusage, see sys-unix.c in GNU-R sources

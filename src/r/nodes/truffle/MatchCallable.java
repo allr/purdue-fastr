@@ -6,8 +6,8 @@ import r.data.*;
 import r.data.RFunction.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 // TODO: re-visit this with eval in mind
@@ -35,7 +35,7 @@ public abstract class MatchCallable extends BaseR {
 
     // called from lapply
     public static RCallable matchGeneric(ASTNode ast, Frame frame, RSymbol symbol) {
-        RCallable res = RFrameHeader.match(frame, symbol);
+        RCallable res = frame.match(symbol);
         if (res != null) {
             return res;
         }
@@ -62,12 +62,12 @@ public abstract class MatchCallable extends BaseR {
                         return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", frame);
                     }
 
-                    FrameSlot slot = RFrameHeader.findVariable(frame, symbol);
-                    if (slot != null) {
+                    int slot = frame.findVariable(symbol);
+                    if (slot != -1) {
                         return replaceAndExecute(getMatchLocal(ast, symbol, slot), "installMatchLocal", frame);
                     }
 
-                    EnclosingSlot rse = RFrameHeader.readSetEntry(frame, symbol);
+                    EnclosingSlot rse = frame.readSetEntry(symbol);
                     if (rse == null) {
                         return replaceAndExecute(getMatchTopLevel(ast, symbol), "installMatchTopLevel", frame);
                     } else {
@@ -78,12 +78,12 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
-    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final FrameSlot slot) {
+    public static MatchCallable getMatchLocal(ASTNode ast, RSymbol symbol, final int slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val = RFrameHeader.matchViaWriteSet(frame, slot, symbol);
+                RAny val = frame.matchViaWriteSet(slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
@@ -92,12 +92,12 @@ public abstract class MatchCallable extends BaseR {
         };
     }
 
-    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final FrameSlot slot) {
+    public static MatchCallable getMatchEnclosing(ASTNode ast, RSymbol symbol, final int hops, final int slot) {
         return new MatchCallable(ast, symbol) {
 
             @Override
             public final Object execute(Frame frame) {
-                RAny val = RFrameHeader.matchViaReadSet(frame, hops, slot, symbol);
+                RAny val = frame.matchViaReadSet(hops, slot, symbol);
                 if (val == null) {
                     throw RError.getUnknownFunction(ast, symbol);
                 }
@@ -115,7 +115,7 @@ public abstract class MatchCallable extends BaseR {
                 Object val;
 
                 if (symbol.getVersion() != 0) { // NOTE: this could be made more efficient, see comments in ReadVariable
-                    val = RFrameHeader.matchFromExtensionEntry(frame, symbol);
+                    val = frame.matchFromExtensionEntry(symbol);
                     if (val == null) {
                         val = symbol.getValue();
                     }

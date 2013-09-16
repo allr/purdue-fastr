@@ -1,10 +1,10 @@
 package r.data;
 
 import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.frame.*;
 
 import r.nodes.ASTNode;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 public interface RFunction {
     RFunction enclosingFunction();
@@ -12,7 +12,7 @@ public interface RFunction {
     RSymbol[] paramNames();
     RNode[] paramValues();
     RNode body();
-    RClosure createClosure(MaterializedFrame frame);
+    RClosure createClosure(Frame frame);
     RSymbol[] localWriteSet();
 
     CallTarget callTarget();
@@ -25,7 +25,7 @@ public interface RFunction {
 
     public static final class EnclosingSlot {
 
-        public EnclosingSlot(RSymbol sym, int hops, FrameSlot slot) {
+        public EnclosingSlot(RSymbol sym, int hops, int slot) {
             symbol = sym;
             this.hops = hops;
             this.slot = slot;
@@ -33,13 +33,13 @@ public interface RFunction {
 
         public final RSymbol symbol;
         public final int hops;
-        public final FrameSlot slot;
+        public final int slot;
     }
 
     int positionInLocalWriteSet(RSymbol sym);
     int positionInLocalReadSet(RSymbol sym);
     EnclosingSlot getLocalReadSetEntry(RSymbol sym);
-    FrameSlot localSlot(RSymbol sym);
+    int localSlot(RSymbol sym);
     EnclosingSlot enclosingSlot(RSymbol sym);
     boolean isInWriteSet(RSymbol sym);
 }

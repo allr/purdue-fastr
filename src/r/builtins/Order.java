@@ -8,8 +8,8 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import java.lang.Integer;// do not delete java.lang.Integer import
 
 // TODO: support complex type

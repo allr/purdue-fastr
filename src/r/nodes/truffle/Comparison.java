@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -11,6 +10,7 @@ import r.data.internal.*;
 import r.data.internal.View.RLogicalView;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: update debugs for new specializations
 // FIXME: add more scalar specializations

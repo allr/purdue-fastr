@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.builtins.internal.*;
 import r.data.*;
@@ -9,6 +7,7 @@ import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 public class Rcauchy extends CallFactory {
     static final CallFactory _ = new Rcauchy("rcauchy", new String[]{"n", "location", "scale"}, new String[]{"n"});

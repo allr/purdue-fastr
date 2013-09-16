@@ -6,8 +6,7 @@ import r.data.internal.*;
 import r.data.internal.Connection.PipeConnection;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 /**
  * "pipe"

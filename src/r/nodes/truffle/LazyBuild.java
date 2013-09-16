@@ -1,10 +1,10 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
 import r.nodes.*;
+import r.runtime.*;
 
 public class LazyBuild extends BaseR {
 

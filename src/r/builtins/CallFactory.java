@@ -8,10 +8,9 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.tools.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
-
-import com.oracle.truffle.api.frame.*;
 
 /**
  * Parent of functions and operators. The create method is used to create the RNode for a particular call site.

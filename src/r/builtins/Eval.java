@@ -1,13 +1,12 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 public class Eval extends CallFactory {
 
@@ -32,9 +31,9 @@ public class Eval extends CallFactory {
                 if (posEnvir != -1) {
                     RAny envirArg = args[posEnvir];
                     if (envirArg instanceof RList) {
-                        MaterializedFrame parentFrame;
+                        Frame parentFrame;
                         if (posEnclos == -1) {
-                            parentFrame = frame == null ? null : frame.materialize();
+                            parentFrame = frame;
                         } else {
                             RAny enclosArg = args[posEnclos];
                             if (enclosArg instanceof RNull) {

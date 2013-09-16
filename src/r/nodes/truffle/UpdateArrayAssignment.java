@@ -1,12 +1,12 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import r.*;
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ASTNode;
+import r.runtime.*;
 
 // implements the assignment part of an array update
 //
@@ -27,7 +27,7 @@ import r.nodes.ASTNode;
 
 public abstract class UpdateArrayAssignment extends BaseR {
 
-    public static UpdateArrayAssignment create(ASTNode ast, RSymbol varName, RFunction enclosingFunction, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+    public static UpdateArrayAssignment create(ASTNode ast, RSymbol varName, RFunction enclosingFunction, int varSlot, RNode rhs, AssignmentNode assignment) {
 
         boolean topLevel = enclosingFunction == null;
         if (topLevel) {
@@ -37,7 +37,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
                 return new TopLevel(ast, varName, rhs, assignment);
             }
         } else {
-            if (varSlot != null) {
+            if (varSlot != -1) {
                 return new LocalInitial(ast, varName, varSlot, rhs, assignment);
             } else {
                 return new Dynamic(ast, varName, rhs, assignment);
@@ -97,9 +97,9 @@ public abstract class UpdateArrayAssignment extends BaseR {
     // update with a local slot, rewrites once (if) that local slot contains a value
     protected static class LocalInitial extends UpdateArrayAssignment {
 
-        final FrameSlot varSlot;
+        final int varSlot;
 
-        protected LocalInitial(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+        protected LocalInitial(ASTNode ast, RSymbol varName, int varSlot, RNode rhs, AssignmentNode assignment) {
             super(ast, varName, rhs, assignment);
             this.varSlot = varSlot;
         }
@@ -108,10 +108,10 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
+            RAny lhsValue = (RAny) frame.getObjectForcingPromises(varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
-                lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
+                lhsValue = Utils.cast(frame.readViaWriteSetSlowPath(varName));
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), varName);
                 }
@@ -120,7 +120,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
             if (lhsValue != newLhs) {
-                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+                frame.writeAtRef(varSlot, newLhs);
             }
 
             try {
@@ -135,9 +135,9 @@ public abstract class UpdateArrayAssignment extends BaseR {
     // update with a local slot that actually has a valid value, rewrites if it does not
     protected static class LocalSimple extends UpdateArrayAssignment {
 
-        final FrameSlot varSlot;
+        final int varSlot;
 
-        protected LocalSimple(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+        protected LocalSimple(ASTNode ast, RSymbol varName, int varSlot, RNode rhs, AssignmentNode assignment) {
             super(ast, varName, rhs, assignment);
             this.varSlot = varSlot;
         }
@@ -146,7 +146,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
+            RAny lhsValue = (RAny) frame.getObjectForcingPromises(varSlot);
 
             try {
                 if (lhsValue == null) {
@@ -158,7 +158,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
 
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
             if (lhsValue != newLhs) {
-                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+                frame.writeAtRef(varSlot, newLhs);
             }
             return rhsValue;
         }
@@ -166,9 +166,9 @@ public abstract class UpdateArrayAssignment extends BaseR {
 
     protected static class LocalGeneric extends UpdateArrayAssignment {
 
-        final FrameSlot varSlot;
+        final int varSlot;
 
-        protected LocalGeneric(ASTNode ast, RSymbol varName, FrameSlot varSlot, RNode rhs, AssignmentNode assignment) {
+        protected LocalGeneric(ASTNode ast, RSymbol varName, int varSlot, RNode rhs, AssignmentNode assignment) {
             super(ast, varName, rhs, assignment);
             this.varSlot = varSlot;
         }
@@ -177,10 +177,10 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
 
             RAny rhsValue = (RAny) rhs.execute(frame);
-            RAny lhsValue = (RAny) RFrameHeader.getObjectForcingPromises(frame, varSlot);
+            RAny lhsValue = (RAny) frame.getObjectForcingPromises(varSlot);
             if (lhsValue == null) {
                 // TODO maybe turn this to decompile for smaller methods?
-                lhsValue = Utils.cast(RFrameHeader.readViaWriteSetSlowPath(frame, varName));
+                lhsValue = Utils.cast(frame.readViaWriteSetSlowPath(varName));
                 if (lhsValue == null) {
                     throw RError.getUnknownVariable(getAST(), varName);
                 }
@@ -189,7 +189,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
             if (lhsValue != newLhs) {
-                RFrameHeader.writeAtRef(frame, varSlot, newLhs);
+                frame.writeAtRef(varSlot, newLhs);
             }
             return rhsValue;
         }
@@ -210,7 +210,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
             if (lhsValue != newLhs) {
-                RFrameHeader.writeToTopLevelRef(varName, newLhs);
+                Frame.writeToTopLevelRef(varName, newLhs);
             }
             return rhsValue;
         }
@@ -233,7 +233,7 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
             RAny newLhs = assignment.execute(frame, lhsValue, rhsVal);
             if (lhsValue != newLhs) {
-                RFrameHeader.writeToTopLevelRef(varName, newLhs);
+                Frame.writeToTopLevelRef(varName, newLhs);
             }
             return rhsVal;
         }
@@ -250,15 +250,14 @@ public abstract class UpdateArrayAssignment extends BaseR {
         public Object execute(Frame frame) {
             // TODO: this is super-inefficient
             RAny rhsValue = (RAny) rhs.execute(frame);
-            MaterializedFrame mframe = frame.materialize();
-            RAny lhsValue = Utils.cast(RFrameHeader.read(mframe, varName));
+            RAny lhsValue = Utils.cast(frame.read(varName));
             if (lhsValue == null) {
                 throw RError.getUnknownVariable(ast, varName);
             }
             lhsValue.ref(); // TODO: this may ref unnecessarily, will copy every time invoked
             RAny newLhs = assignment.execute(frame, lhsValue, rhsValue);
             assert Utils.check(lhsValue != newLhs);
-            RFrameHeader.writeToExtension(mframe, varName, newLhs);
+            frame.writeToExtension(varName, newLhs);
             return rhsValue;
         }
     }

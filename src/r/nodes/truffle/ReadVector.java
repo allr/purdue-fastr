@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -10,6 +9,7 @@ import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: add check for the number of dimensions in index
 // FIXME: probably should also specialize for base types

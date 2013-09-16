@@ -11,8 +11,7 @@ import r.nodes.*;
 import r.nodes.truffle.*;
 import r.nodes.truffle.Constant;
 import r.nodes.truffle.FunctionCall;
-
-import com.oracle.truffle.api.frame.*;
+import r.runtime.*;
 
 /**
  * "outer"

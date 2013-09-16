@@ -8,8 +8,8 @@ import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.Selector.OptionNode;
 import r.nodes.truffle.Selector.SelectorNode;
+import r.runtime.*;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 /**

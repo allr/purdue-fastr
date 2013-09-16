@@ -1,6 +1,5 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
 import com.oracle.truffle.api.nodes.*;
 
 import r.*;
@@ -9,6 +8,7 @@ import r.data.*;
 import r.data.RFunction.EnclosingSlot;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 // FIXME: the frame slot lookup can be done statically, like in ArithmeticUpdateVariable
 // TODO: needs to be updated with eval in mind (e.g. correct handling of top-level vs. empty environment)
@@ -50,17 +50,17 @@ public abstract class ReadVariable extends BaseR {
                     throw new UnexpectedResultException(null);
                 } catch (UnexpectedResultException e) {
                     ReadVariable node;
-                    FrameSlot slot;
+                    int slot;
                     EnclosingSlot rse;
                     String reason;
 
                     if (frame == null) {
                         node = getReadOnlyFromTopLevel(getAST(), symbol);
                         reason = "installReadOnlyFromTopLevelNode";
-                    } else if ((slot = RFrameHeader.findVariable(frame, symbol)) != null) {
+                    } else if ((slot = frame.findVariable(symbol)) != -1) {
                         node = getSimpleReadLocal(getAST(), symbol, slot);
                         reason = "installReadLocalNode";
-                    } else if ((rse = RFrameHeader.readSetEntry(frame, symbol)) == null) {
+                    } else if ((rse = frame.readSetEntry(symbol)) == null) {
                             // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
                         node = getReadTopLevel(getAST(), symbol);
                         reason = "installReadTopLevel";
@@ -76,13 +76,13 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+    private static ReadVariable getSimpleReadLocal(ASTNode orig, RSymbol sym, final int slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(Frame frame) {
                 try {
-                    Object value = RFrameHeader.getObjectForcingPromises(frame, slot);
+                    Object value = frame.getObjectForcingPromises(slot);
                     if (value == null) {
                         throw new UnexpectedResultException(null);
                     }
@@ -94,12 +94,12 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final FrameSlot slot) {
+    private static ReadVariable getReadLocal(ASTNode orig, RSymbol sym, final int slot) {
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(Frame frame) {
-                Object val = RFrameHeader.readViaWriteSet(frame, slot, symbol);
+                Object val = frame.readViaWriteSet(slot, symbol);
                 if (val == null) {
                     // NOTE: builtins handled in readViaWriteSet
                     throw RError.getUnknownVariable(ast, symbol);
@@ -110,13 +110,13 @@ public abstract class ReadVariable extends BaseR {
         };
     }
 
-    private static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final FrameSlot slot) {
+    private static ReadVariable getReadEnclosing(ASTNode orig, RSymbol sym, final int hops, final int slot) {
         // FIXME: could we get better performance through updating hops, position ?
         return new ReadVariable(orig, sym) {
 
             @Override
             public final Object execute(Frame frame) {
-                Object val = RFrameHeader.readViaReadSet(frame, hops, slot, symbol);
+                Object val = frame.readViaReadSet(hops, slot, symbol);
                 if (val == null) {
                     // NOTE: builtins handled in readViaReadSet
                     throw RError.getUnknownVariable(ast, symbol);
@@ -148,7 +148,7 @@ public abstract class ReadVariable extends BaseR {
                 Object val;
 
                 if (symbol.getVersion() != 0) {
-                    val = RFrameHeader.readFromExtensionEntry(frame, symbol);
+                    val = frame.readFromExtensionEntry(symbol);
                     if (val == null) {
                         val = symbol.getValue();
                     }

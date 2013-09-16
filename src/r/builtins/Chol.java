@@ -3,8 +3,6 @@ package r.builtins;
 import org.netlib.lapack.*;
 import org.netlib.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.RDouble.RDoubleFactory;
@@ -12,6 +10,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 // TODO: add S3
 // TODO: add pivoting with LAPACK and add LINPACK

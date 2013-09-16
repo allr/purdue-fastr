@@ -2,13 +2,12 @@ package r.nodes.truffle;
 
 import org.netlib.blas.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
+import r.runtime.*;
 
 public abstract class MatrixOperation extends BaseR {
 

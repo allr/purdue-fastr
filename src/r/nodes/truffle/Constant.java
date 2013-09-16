@@ -1,9 +1,8 @@
 package r.nodes.truffle;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.data.*;
 import r.nodes.*;
+import r.runtime.*;
 
 public class Constant extends BaseR {
     final RAny value;

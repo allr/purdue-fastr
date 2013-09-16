@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.builtins.Order.*;
 import r.data.*;
@@ -9,6 +7,7 @@ import r.data.internal.*;
 import r.errors.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
+import r.runtime.*;
 
 import java.lang.Integer;
 import java.util.*;

@@ -2,8 +2,6 @@ package r.builtins;
 
 import java.util.*;
 
-import com.oracle.truffle.api.frame.*;
-
 import r.*;
 import r.data.*;
 import r.data.RDouble.*;
@@ -11,7 +9,7 @@ import r.errors.*;
 import r.gnur.*;
 import r.nodes.*;
 import r.nodes.truffle.*;
-
+import r.runtime.*;
 import r.builtins.internal.Random;
 
 final class Rnorm extends CallFactory {
