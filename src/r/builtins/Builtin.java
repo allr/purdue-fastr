@@ -1,8 +1,8 @@
 package r.builtins;
 
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 import com.oracle.truffle.api.nodes.*;
@@ -70,7 +70,7 @@ public abstract class Builtin extends AbstractCall {
 
     /** Return a constant or the Java null. */
     public static RAny getConstantValue(RNode node) {
-        return node.getAST() instanceof r.nodes.Constant ? (RAny) node.execute(null) : null;
+        return node.getAST() instanceof r.nodes.ast.Constant ? (RAny) node.execute(null) : null;
     }
 
     /** Is node a logical constant with the value cvalue? */

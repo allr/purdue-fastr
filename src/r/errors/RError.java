@@ -1,9 +1,9 @@
 package r.errors;
 
 import r.data.*;
-import r.nodes.ASTNode;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.nodes.tools.*;
-import r.nodes.truffle.*;
 
 public abstract class RError extends RuntimeException {
     // LICENSE: The error messages are copy-pasted and/or hand re-written from GNU R, which is licensed under GPL

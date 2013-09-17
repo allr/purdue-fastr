@@ -1,8 +1,8 @@
 package r.data.internal;
 
 import r.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 
 public abstract class BaseObject {
     // FIXME: more methods could go to this class, removing copy-paste

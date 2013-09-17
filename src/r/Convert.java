@@ -5,7 +5,7 @@ import java.util.regex.*;
 import r.data.*;
 import r.data.RComplex.Complex;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 // FIXME: will have to support printing doubles to a given number of complex digits (Double.toString uses a different algorithm)
 public class Convert {

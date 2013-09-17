@@ -4,8 +4,8 @@ import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 public class Eval extends CallFactory {
@@ -84,7 +84,7 @@ public class Eval extends CallFactory {
                     RFunction rootEnclosingFunction = targetFrame == null ? null : targetFrame.function();
                     return (RAny) RContext.createRootNode(exprAST, rootEnclosingFunction).execute(targetFrame);
                 } else if (exprArg instanceof RSymbol) {
-                    ASTNode exprAST = new r.nodes.SimpleAccessVariable((RSymbol) exprArg);
+                    ASTNode exprAST = new r.nodes.ast.SimpleAccessVariable((RSymbol) exprArg);
                     RFunction rootEnclosingFunction = targetFrame == null ? null : targetFrame.function();
                     return (RAny) RContext.createRootNode(exprAST, rootEnclosingFunction).execute(targetFrame);
                 } else {

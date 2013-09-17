@@ -2,7 +2,7 @@ package r.data;
 
 import r.Convert.ConversionStatus;
 import r.data.internal.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.nodes.tools.*;
 
 // TODO: add more features if needed (GNU-R can convert to string, add attributes, names, but the semantics is a bit surprising as

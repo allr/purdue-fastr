@@ -12,8 +12,8 @@ import r.data.RRaw.RRawFactory;
 import r.data.RString.RStringFactory;
 import r.data.internal.*;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 /**

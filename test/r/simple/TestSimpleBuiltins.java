@@ -4,7 +4,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.*;
-import r.nodes.truffle.*;
+import r.nodes.exec.*;
 
 public class TestSimpleBuiltins extends SimpleTestBase {
 

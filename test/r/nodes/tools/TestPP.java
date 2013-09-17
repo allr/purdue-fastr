@@ -6,7 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.Test;
 
 import r.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.parser.*;
 
 public class TestPP {

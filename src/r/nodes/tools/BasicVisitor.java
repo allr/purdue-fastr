@@ -1,6 +1,6 @@
 package r.nodes.tools;
 
-import r.nodes.*;
+import r.nodes.ast.*;
 
 public class BasicVisitor implements Visitor {
 

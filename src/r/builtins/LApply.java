@@ -4,9 +4,9 @@ import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-import r.nodes.truffle.FunctionCall;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
 import com.oracle.truffle.api.nodes.*;
@@ -16,7 +16,7 @@ import com.oracle.truffle.api.nodes.*;
 /**
  * "lapply" returns a list of the same length as X, each element of which is the result of applying FUN to the
  * corresponding element of X.
- * 
+ *
  * <pre>
  * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.

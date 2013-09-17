@@ -5,10 +5,10 @@ import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
 import r.data.internal.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-import r.nodes.truffle.Constant;
-import r.nodes.truffle.Arithmetic.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
+import r.nodes.exec.Constant;
+import r.nodes.exec.Arithmetic.*;
 
 import java.lang.Double;
 import java.math.*;

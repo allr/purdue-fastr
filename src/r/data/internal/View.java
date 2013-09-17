@@ -3,8 +3,8 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 
 // FIXME: the Impl classes for data types should also inherit from View.*, reducing code duplication
 

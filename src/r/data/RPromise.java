@@ -1,8 +1,9 @@
 package r.data;
 
 import r.errors.*;
-import r.nodes.ASTNode;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
 public final class RPromise {
@@ -37,7 +38,7 @@ public final class RPromise {
 
         final ASTNode errorAST = frame == null ? null : frame.function().getSource();
         // FIXME: could cache these nodes per function/argument (though missing is probably rare)
-        RNode errorExpression = new BaseR(new r.nodes.Constant(RSymbol.EMPTY_SYMBOL)) {
+        RNode errorExpression = new BaseR(new r.nodes.ast.Constant(RSymbol.EMPTY_SYMBOL)) {
             // FIXME: don't need bits, could detect missing arg using instanceof
 
             @Override

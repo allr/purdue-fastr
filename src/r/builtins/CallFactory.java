@@ -5,9 +5,9 @@ import java.util.*;
 import r.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.nodes.tools.*;
-import r.nodes.truffle.*;
 import r.runtime.*;
 
 import java.lang.Integer; // needed because there is a class Integer in this package
@@ -398,8 +398,8 @@ public abstract class CallFactory {
         RNode[] exprs = new RNode[len];
         for (int i = 0; i < len; i++) {
             RAny value = values[i];
-            ASTNode dummyAST = new r.nodes.Constant(value);
-            exprs[i] = new r.nodes.truffle.Constant(dummyAST, value);
+            ASTNode dummyAST = new r.nodes.ast.Constant(value);
+            exprs[i] = new r.nodes.exec.Constant(dummyAST, value);
         }
         final RNode builtinNode = create(ast, names, exprs);
 

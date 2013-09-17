@@ -1,7 +1,7 @@
 package r.data;
 
-import r.nodes.ASTNode;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 public interface RFunction {

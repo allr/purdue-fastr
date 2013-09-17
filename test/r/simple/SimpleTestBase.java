@@ -9,7 +9,7 @@ import r.*;
 import r.builtins.internal.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.nodes.tools.*;
 
 // simple tests run string snippets of R code (usually one line) using debugging output format

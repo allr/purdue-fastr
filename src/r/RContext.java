@@ -9,9 +9,9 @@ import com.oracle.truffle.api.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.nodes.tools.*;
-import r.nodes.truffle.*;
 import r.parser.*;
 import r.runtime.*;
 

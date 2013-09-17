@@ -7,8 +7,8 @@ import r.data.*;
 import r.data.RComplex.RComplexUtils;
 import r.data.RDouble.RDoubleUtils;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 /**

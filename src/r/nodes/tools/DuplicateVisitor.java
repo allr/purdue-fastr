@@ -1,7 +1,7 @@
 package r.nodes.tools;
 
 import r.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 // WARNING: the duplication only duplicates nodes that have child nodes (e.g. for node rewriting tricks)
 // WARNING: it does not duplicate notes with no state or with a state that does not include nodes ! (see result = n below)

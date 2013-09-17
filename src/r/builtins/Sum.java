@@ -2,8 +2,8 @@ package r.builtins;
 
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 import java.lang.Integer;
@@ -91,16 +91,16 @@ final class Sum extends CallFactory {
     private static int relationOperatorAgainst(ASTNode ast) {
         // optimize for "sum(logical) == constant"
         ASTNode sumParent = ast.getParent();
-        if (sumParent != null && sumParent instanceof r.nodes.BinaryOperation) {
-            r.nodes.BinaryOperation op = (r.nodes.BinaryOperation) sumParent;
+        if (sumParent != null && sumParent instanceof r.nodes.ast.BinaryOperation) {
+            r.nodes.ast.BinaryOperation op = (r.nodes.ast.BinaryOperation) sumParent;
             ASTNode other;
             if (op.getRHS() == ast) {
                 other = op.getLHS();
             } else {
                 other = op.getRHS();
             }
-            if (other instanceof r.nodes.Constant) {
-                RAny res = ((r.nodes.Constant) other).getValue();
+            if (other instanceof r.nodes.ast.Constant) {
+                RAny res = ((r.nodes.ast.Constant) other).getValue();
                 if ((res instanceof RDouble || res instanceof RInt || res instanceof RLogical) && ((RArray)res).size() == 1) {
                     int cvalue = res.asInt().getInt(0);
                     if (cvalue >= 0) {
@@ -117,8 +117,8 @@ final class Sum extends CallFactory {
     private static int maxLogicalSum(ASTNode ast) {
        int res = relationOperatorAgainst(ast);
        ASTNode sumParent = ast.getParent();
-       if (res != -1 && (sumParent instanceof r.nodes.GT || sumParent instanceof r.nodes.GE || sumParent instanceof r.nodes.EQ ||
-               sumParent instanceof r.nodes.NE || sumParent instanceof r.nodes.LT || sumParent instanceof r.nodes.LE)) {
+       if (res != -1 && (sumParent instanceof r.nodes.ast.GT || sumParent instanceof r.nodes.ast.GE || sumParent instanceof r.nodes.ast.EQ ||
+               sumParent instanceof r.nodes.ast.NE || sumParent instanceof r.nodes.ast.LT || sumParent instanceof r.nodes.ast.LE)) {
            return res;
        }
        return -1;

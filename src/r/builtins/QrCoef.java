@@ -7,8 +7,8 @@ import r.*;
 import r.data.*;
 import r.errors.*;
 import r.gnur.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 final class QrCoef extends CallFactory {

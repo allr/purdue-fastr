@@ -5,7 +5,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.gnur.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 public final class Random {
     private static RSymbol seedSymbol = RSymbol.getSymbol(".Random.seed");

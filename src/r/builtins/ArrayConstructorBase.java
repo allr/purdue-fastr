@@ -3,7 +3,7 @@ package r.builtins;
 import r.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 abstract class ArrayConstructorBase extends CallFactory {
 

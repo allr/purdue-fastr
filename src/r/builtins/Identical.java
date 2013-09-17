@@ -4,8 +4,8 @@ import java.util.*;
 
 import r.*;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 // FIXME: not full R semantics (some options unimplemented, but perhaps unimportant)

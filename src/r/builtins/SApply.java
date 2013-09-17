@@ -6,9 +6,9 @@ import r.builtins.LApply.CallableProvider;
 import r.builtins.LApply.ValueProvider;
 import r.data.*;
 import r.data.internal.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-import r.nodes.truffle.FunctionCall;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
 import com.oracle.truffle.api.nodes.*;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.*;
  * "sapply" is a user-friendly version and wrapper of lapply by default returning a vector, matrix or, if
  * simplify="array ", an array if appropriate, by applying simplify2array(). sapply(x, f, simplify=FALSE,
  * USE.NAMES=FALSE) is the same as lapply(x,f).
- * 
+ *
  * <pre>
  * X -- a vector (atomic or list) or an expression object. Other objects
  *      (including classed objects) will be coerced by base::as.list.

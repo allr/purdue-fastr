@@ -3,7 +3,7 @@ package r.simple;
 import org.antlr.runtime.*;
 import org.junit.*;
 
-import r.nodes.truffle.*;
+import r.nodes.exec.*;
 
 public class TestSimpleFunctions extends SimpleTestBase {
 

@@ -2,7 +2,7 @@ package r.errors;
 
 import java.io.*;
 
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.nodes.tools.*;
 
 public class ManageError {

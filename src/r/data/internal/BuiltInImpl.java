@@ -4,8 +4,8 @@ import r.Convert.ConversionStatus;
 import r.*;
 import r.builtins.*;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 
 // this is a holder of a builtin when passed around in variables, e.g. in a way closures are
 // note we can't use a builtin object for this, because such object is dependent on the argument names and numbers (and possibly constant arguments)

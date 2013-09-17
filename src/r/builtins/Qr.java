@@ -8,8 +8,8 @@ import r.data.*;
 import r.data.RDouble.*;
 import r.errors.*;
 import r.gnur.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 // TODO: S3

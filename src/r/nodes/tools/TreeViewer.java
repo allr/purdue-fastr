@@ -9,7 +9,7 @@ import javax.swing.tree.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import r.nodes.*;
+import r.nodes.ast.*;
 
 public class TreeViewer extends JTree {
 

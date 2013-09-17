@@ -7,15 +7,15 @@ import r.builtins.LApply.CallableProvider;
 import r.builtins.LApply.ValueProvider;
 import r.data.*;
 import r.data.internal.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-import r.nodes.truffle.Constant;
-import r.nodes.truffle.FunctionCall;
+import r.nodes.ast.*;
+import r.nodes.exec.Constant;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
 /**
  * "outer"
- * 
+ *
  * <pre>
  * X, Y -- First and second arguments for function FUN. Typically a vector or array.
  * FUN -- a function to use on the outer products, found via match.fun (except for the special case "*").

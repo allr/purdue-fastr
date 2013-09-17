@@ -5,18 +5,16 @@ import r.builtins.Primitives;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.RError;
-import r.nodes.*;
-import r.nodes.Constant;
-import r.nodes.Function;
-import r.nodes.FunctionCall;
-import r.nodes.If;
-import r.nodes.Not;
-import r.nodes.Sequence;
-import r.nodes.UnaryMinus;
-import r.nodes.UpdateVector;
-import r.nodes.truffle.*;
-import r.nodes.truffle.Loop;
-import r.nodes.truffle.ReplacementCall.RememberLast;
+import r.nodes.exec.*;
+import r.nodes.ast.*;
+import r.nodes.ast.Constant;
+import r.nodes.ast.Function;
+import r.nodes.ast.FunctionCall;
+import r.nodes.ast.If;
+import r.nodes.ast.Not;
+import r.nodes.ast.Sequence;
+import r.nodes.ast.UnaryMinus;
+import r.nodes.ast.UpdateVector;
 import r.runtime.*;
 
 public class Truffleize implements Visitor {
@@ -33,9 +31,9 @@ public class Truffleize implements Visitor {
             @Override public final Object execute(Frame frame) {
                 try {
                     return node.execute(frame);
-                } catch (Loop.ContinueException ce) {
+                } catch (r.nodes.exec.Loop.ContinueException ce) {
                     throw RError.getNoLoopForBreakNext(ast);
-                } catch (Loop.BreakException be) {
+                } catch (r.nodes.exec.Loop.BreakException be) {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
@@ -68,31 +66,31 @@ public class Truffleize implements Visitor {
         ASTNode cond = ast.getCond();
         RNode rcond = createLazyTree(cond);
         RNode rtrueBranch = createLazyTree(ast.getTrueCase());
-        RNode rfalseBranch = (falseBranch == null) ? r.nodes.truffle.Constant.getNull() : createLazyTree(falseBranch);
+        RNode rfalseBranch = (falseBranch == null) ? r.nodes.exec.Constant.getNull() : createLazyTree(falseBranch);
 
         if (cond instanceof EQ) {
             EQ e = (EQ) cond;
             ASTNode rhs = e.getRHS();
             ASTNode lhs = e.getLHS();
             if (rhs instanceof Constant) {
-                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(lhs), rtrueBranch, rfalseBranch, ((Constant) rhs).getValue());
+                result = new r.nodes.exec.If.IfConst(ast, rcond, createTree(lhs), rtrueBranch, rfalseBranch, ((Constant) rhs).getValue());
                 return;
             }
             if (lhs instanceof Constant) {
-                result = new r.nodes.truffle.If.IfConst(ast, rcond, createTree(rhs), rtrueBranch, rfalseBranch, ((Constant) lhs).getValue());
+                result = new r.nodes.exec.If.IfConst(ast, rcond, createTree(rhs), rtrueBranch, rfalseBranch, ((Constant) lhs).getValue());
                 return;
             }
         }
 
         if (falseBranch == null) {
-            result = new r.nodes.truffle.If.IfNoElse(ast, rcond, rtrueBranch);
+            result = new r.nodes.exec.If.IfNoElse(ast, rcond, rtrueBranch);
         } else {
-            result = new r.nodes.truffle.If.IfElse(ast, rcond, rtrueBranch, rfalseBranch);
+            result = new r.nodes.exec.If.IfElse(ast, rcond, rtrueBranch, rfalseBranch);
         }
     }
 
     @Override public void visit(Repeat repeat) {
-        result = new r.nodes.truffle.Loop.Repeat(repeat, createLazyTree(repeat.getBody()));
+        result = new r.nodes.exec.Loop.Repeat(repeat, createLazyTree(repeat.getBody()));
     }
 
     @Override public void visit(While n) {
@@ -101,11 +99,11 @@ public class Truffleize implements Visitor {
             RAny value = ((Constant) cond).getValue();
             int l = value.asLogical().getLogical(0);
             if (l == RLogical.TRUE) {
-                result = new r.nodes.truffle.Loop.Repeat(n, createLazyTree(n.getBody()));
+                result = new r.nodes.exec.Loop.Repeat(n, createLazyTree(n.getBody()));
                 return;
             }
         }
-        result = new r.nodes.truffle.Loop.While(n, createTree(cond), createLazyTree(n.getBody()));
+        result = new r.nodes.exec.Loop.While(n, createTree(cond), createLazyTree(n.getBody()));
     }
 
     @Override public void visit(For n) {
@@ -123,15 +121,15 @@ public class Truffleize implements Visitor {
         //                return;
         //            }
         //        }
-        result = new r.nodes.truffle.Loop.For.IntSequenceRange(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
+        result = new r.nodes.exec.Loop.For.IntSequenceRange(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
     }
 
     @Override public void visit(Break n) {
-        result = new r.nodes.truffle.Loop.Break(n);
+        result = new r.nodes.exec.Loop.Break(n);
     }
 
     @Override public void visit(Next n) {
-        result = new r.nodes.truffle.Loop.Next(n);
+        result = new r.nodes.exec.Loop.Next(n);
     }
 
     @Override public void visit(Sequence sequence) {
@@ -145,41 +143,41 @@ public class Truffleize implements Visitor {
             result = rexprs[0];
             break;
         case 2:
-            result = new r.nodes.truffle.Sequence.Sequence2(sequence, rexprs);
+            result = new r.nodes.exec.Sequence.Sequence2(sequence, rexprs);
             break;
         case 3:
-            result = new r.nodes.truffle.Sequence.Sequence3(sequence, rexprs);
+            result = new r.nodes.exec.Sequence.Sequence3(sequence, rexprs);
             break;
         case 4:
-            result = new r.nodes.truffle.Sequence.Sequence4(sequence, rexprs);
+            result = new r.nodes.exec.Sequence.Sequence4(sequence, rexprs);
             break;
         case 5:
-            result = new r.nodes.truffle.Sequence.Sequence5(sequence, rexprs);
+            result = new r.nodes.exec.Sequence.Sequence5(sequence, rexprs);
             break;
         case 6:
-            result = new r.nodes.truffle.Sequence.Sequence6(sequence, rexprs);
+            result = new r.nodes.exec.Sequence.Sequence6(sequence, rexprs);
             break;
         default:
-            result = new r.nodes.truffle.Sequence(sequence, rexprs);
+            result = new r.nodes.exec.Sequence(sequence, rexprs);
             break;
         }
     }
 
     @Override public void visit(Not n) {
-        result = new r.nodes.truffle.Not.LogicalScalar(n, createTree(n.getLHS()));
+        result = new r.nodes.exec.Not.LogicalScalar(n, createTree(n.getLHS()));
     }
 
     @Override public void visit(UnaryMinus m) {
-        result = new r.nodes.truffle.UnaryMinus.NumericScalar(m, createTree(m.getLHS()));
+        result = new r.nodes.exec.UnaryMinus.NumericScalar(m, createTree(m.getLHS()));
     }
 
     @Override public void visit(Constant constant) {
-        result = new r.nodes.truffle.Constant(constant, constant.getValue());
+        result = new r.nodes.exec.Constant(constant, constant.getValue());
     }
 
     @Override public void visit(SimpleAccessVariable readVariable) {
         RSymbol symbol = readVariable.getSymbol();
-        result = r.nodes.truffle.ReadVariable.getUninitialized(readVariable, symbol);
+        result = r.nodes.exec.ReadVariable.getUninitialized(readVariable, symbol);
     }
 
     /**
@@ -206,7 +204,7 @@ public class Truffleize implements Visitor {
         // optimize expressions like x <- x + 1
         // more precisely x <- binaryOp(x,Constant) or y <- binaryOp(Constant, y)
 
-        r.nodes.truffle.Arithmetic.ValueArithmetic arit = getValueArithmetic(valueNode);
+        r.nodes.exec.Arithmetic.ValueArithmetic arit = getValueArithmetic(valueNode);
 
         if (arit != null) {
             BinaryOperation bin = (BinaryOperation) valueNode;
@@ -253,11 +251,11 @@ public class Truffleize implements Visitor {
         }
 
         if (assign.isSuper()) {
-            result = r.nodes.truffle.SuperWriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
+            result = r.nodes.exec.SuperWriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         } else {
             // Truffle does not like Lazy...
             //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
-            result = r.nodes.truffle.WriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
+            result = r.nodes.exec.WriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         }
 
     }
@@ -316,7 +314,7 @@ public class Truffleize implements Visitor {
         // note: body has to be built lazily, otherwise nested functions won't work correctly
         detectRepeatedParameters(a.convertedNames, function);
         RFunction impl = function.createImpl(a.convertedNames, a.convertedExpressions, createLazyRootTree(function.getBody()), encf);
-        r.nodes.truffle.Function functionNode = new r.nodes.truffle.Function(impl);
+        r.nodes.exec.Function functionNode = new r.nodes.exec.Function(impl);
 
         result = functionNode;
     }
@@ -360,7 +358,7 @@ public class Truffleize implements Visitor {
 
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
         // It's maybe smarter to move this instance of here and replace the type of name by expression
-        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.truffle.FunctionCall.PROMISES);
+        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.exec.FunctionCall.PROMISES);
         // NOTE: the "false" argument, which currently ensures that the arguments are not lazy, which in turn
         // makes it easy for hotspot to optimize the code
 
@@ -369,15 +367,15 @@ public class Truffleize implements Visitor {
         if (Primitives.STATIC_LOOKUP) {
             r.builtins.CallFactory factory = r.builtins.Primitives.getCallFactory(sym, getEnclosingFunction(functionCall));
             if (factory == null) {
-                factory = r.nodes.truffle.FunctionCall.FACTORY;
+                factory = r.nodes.exec.FunctionCall.FACTORY;
             }
             rCall = factory.create(functionCall, a.convertedNames, a.convertedExpressions);
         } else {
             if (!hasLocalOrEnclosingFrameSlot(functionCall, sym)) {
-                rCall = r.nodes.truffle.FunctionCall.createBuiltinCall(functionCall, a.convertedNames, a.convertedExpressions);
+                rCall = r.nodes.exec.FunctionCall.createBuiltinCall(functionCall, a.convertedNames, a.convertedExpressions);
             }
             if (rCall == null) {
-                rCall = r.nodes.truffle.FunctionCall.FACTORY.create(functionCall, a.convertedNames, a.convertedExpressions);
+                rCall = r.nodes.exec.FunctionCall.FACTORY.create(functionCall, a.convertedNames, a.convertedExpressions);
             }
         }
 
@@ -388,7 +386,7 @@ public class Truffleize implements Visitor {
 
         // replacement assignment
         RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
-        RememberLast remValueExpr = new RememberLast(valueExpr.getAST(), valueExpr);
+        ReplacementCall.RememberLast remValueExpr = new ReplacementCall.RememberLast(valueExpr.getAST(), valueExpr);
         valueExpr.replace(remValueExpr);
         a.convertedExpressions[a.convertedExpressions.length - 1] = remValueExpr;
 
@@ -436,7 +434,7 @@ public class Truffleize implements Visitor {
                 result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
                 RNode e = sa.convertedExpressions[0];
-                if (e instanceof r.nodes.truffle.Constant) {
+                if (e instanceof r.nodes.exec.Constant) {
                     RAny v = (RAny) e.execute(null);
                     if (v instanceof RDouble || v instanceof RInt) {
                         RInt iv = v.asInt();
@@ -555,7 +553,7 @@ public class Truffleize implements Visitor {
                         if (cv instanceof RDouble && ((RDouble) cv).size() == 1) {
                             double c = ((RDouble) cv).getDouble(0);
                             if (RDouble.RDoubleUtils.isFinite(c)) {
-                                result = new r.nodes.truffle.UpdateVector.LogicalEqualitySelection(u, u.isSuper(), var, createTree(varAccess), createTree(eqNode.getLHS()), c, createTree(u.getRHS()),
+                                result = new r.nodes.exec.UpdateVector.LogicalEqualitySelection(u, u.isSuper(), var, createTree(varAccess), createTree(eqNode.getLHS()), c, createTree(u.getRHS()),
                                         a.isSubset());
 
                                 return;
@@ -566,9 +564,9 @@ public class Truffleize implements Visitor {
             }
 
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-                result = new r.nodes.truffle.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.exec.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
-                result = new r.nodes.truffle.UpdateVector.DoubleBaseSimpleSelection.ScalarIntSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()),
+                result = new r.nodes.exec.UpdateVector.DoubleBaseSimpleSelection.ScalarIntSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()),
                         a.isSubset());
             }
         } else if (sa.convertedExpressions.length >= 2) {
@@ -636,7 +634,7 @@ public class Truffleize implements Visitor {
             Utils.nyi("expecting vector name for vector update"); // TODO: support expressions like x$a$b <- 10
         }
         RSymbol var = ((SimpleAccessVariable) varAccess).getSymbol();
-        result = new r.nodes.truffle.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), RSymbol.getSymbol(fa.fieldName()), createTree(u.getRHS()));
+        result = new r.nodes.exec.UpdateVector.DollarListUpdate(u, u.isSuper(), var, createTree(varAccess), RSymbol.getSymbol(fa.fieldName()), createTree(u.getRHS()));
     }
 
     @Override public void visit(UpdateExpression u) {
@@ -653,44 +651,44 @@ public class Truffleize implements Visitor {
     }
 
     @Override public void visit(EQ eq) {
-        result = new r.nodes.truffle.Comparison(eq, createTree(eq.getLHS()), createTree(eq.getRHS()), r.nodes.truffle.Comparison.getEQ());
+        result = new r.nodes.exec.Comparison(eq, createTree(eq.getLHS()), createTree(eq.getRHS()), r.nodes.exec.Comparison.getEQ());
     }
 
     @Override public void visit(NE ne) {
-        result = new r.nodes.truffle.Comparison(ne, createTree(ne.getLHS()), createTree(ne.getRHS()), r.nodes.truffle.Comparison.getNE());
+        result = new r.nodes.exec.Comparison(ne, createTree(ne.getLHS()), createTree(ne.getRHS()), r.nodes.exec.Comparison.getNE());
     }
 
     @Override public void visit(LE le) {
-        result = new r.nodes.truffle.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), r.nodes.truffle.Comparison.getLE());
+        result = new r.nodes.exec.Comparison(le, createTree(le.getLHS()), createTree(le.getRHS()), r.nodes.exec.Comparison.getLE());
     }
 
     @Override public void visit(GE ge) {
-        result = new r.nodes.truffle.Comparison(ge, createTree(ge.getLHS()), createTree(ge.getRHS()), r.nodes.truffle.Comparison.getGE());
+        result = new r.nodes.exec.Comparison(ge, createTree(ge.getLHS()), createTree(ge.getRHS()), r.nodes.exec.Comparison.getGE());
     }
 
     @Override public void visit(LT lt) {
-        result = new r.nodes.truffle.Comparison(lt, createTree(lt.getLHS()), createTree(lt.getRHS()), r.nodes.truffle.Comparison.getLT());
+        result = new r.nodes.exec.Comparison(lt, createTree(lt.getLHS()), createTree(lt.getRHS()), r.nodes.exec.Comparison.getLT());
     }
 
     @Override public void visit(GT gt) {
-        result = new r.nodes.truffle.Comparison(gt, createTree(gt.getLHS()), createTree(gt.getRHS()), r.nodes.truffle.Comparison.getGT());
+        result = new r.nodes.exec.Comparison(gt, createTree(gt.getLHS()), createTree(gt.getRHS()), r.nodes.exec.Comparison.getGT());
     }
 
-    public static r.nodes.truffle.Arithmetic.ValueArithmetic getValueArithmetic(ASTNode ast) {
-        if (ast instanceof Add) { return r.nodes.truffle.Arithmetic.ADD; }
-        if (ast instanceof Mult) { return r.nodes.truffle.Arithmetic.MULT; }
-        if (ast instanceof IntegerDiv) { return r.nodes.truffle.Arithmetic.INTEGER_DIV; }
-        if (ast instanceof Mod) { return r.nodes.truffle.Arithmetic.MOD; }
-        if (ast instanceof Pow) { return r.nodes.truffle.Arithmetic.POW; }
-        if (ast instanceof Div) { return r.nodes.truffle.Arithmetic.DIV; }
-        if (ast instanceof Sub) { return r.nodes.truffle.Arithmetic.SUB; }
+    public static r.nodes.exec.Arithmetic.ValueArithmetic getValueArithmetic(ASTNode ast) {
+        if (ast instanceof Add) { return r.nodes.exec.Arithmetic.ADD; }
+        if (ast instanceof Mult) { return r.nodes.exec.Arithmetic.MULT; }
+        if (ast instanceof IntegerDiv) { return r.nodes.exec.Arithmetic.INTEGER_DIV; }
+        if (ast instanceof Mod) { return r.nodes.exec.Arithmetic.MOD; }
+        if (ast instanceof Pow) { return r.nodes.exec.Arithmetic.POW; }
+        if (ast instanceof Div) { return r.nodes.exec.Arithmetic.DIV; }
+        if (ast instanceof Sub) { return r.nodes.exec.Arithmetic.SUB; }
         return null;
     }
 
     private void visitArithmetic(BinaryOperation op) {
-        r.nodes.truffle.Arithmetic.ValueArithmetic arit = getValueArithmetic(op);
+        r.nodes.exec.Arithmetic.ValueArithmetic arit = getValueArithmetic(op);
         assert Utils.check(arit != null);
-        result = new r.nodes.truffle.Arithmetic(op, createTree(op.getLHS()), createTree(op.getRHS()), arit);
+        result = new r.nodes.exec.Arithmetic(op, createTree(op.getLHS()), createTree(op.getRHS()), arit);
     }
 
     @Override public void visit(Add add) {
@@ -702,11 +700,11 @@ public class Truffleize implements Visitor {
     }
 
     @Override public void visit(MatMult mult) {
-        result = new r.nodes.truffle.MatrixOperation.MatrixProduct(mult, createTree(mult.getLHS()), createTree(mult.getRHS()));
+        result = new r.nodes.exec.MatrixOperation.MatrixProduct(mult, createTree(mult.getLHS()), createTree(mult.getRHS()));
     }
 
     @Override public void visit(OuterMult mult) {
-        result = new r.nodes.truffle.MatrixOperation.OuterProduct(mult, createTree(mult.getLHS()), createTree(mult.getRHS()));
+        result = new r.nodes.exec.MatrixOperation.OuterProduct(mult, createTree(mult.getLHS()), createTree(mult.getRHS()));
     }
 
     @Override public void visit(IntegerDiv div) {
@@ -714,7 +712,7 @@ public class Truffleize implements Visitor {
     }
 
     @Override public void visit(In in) {
-        result = new r.nodes.truffle.InOperation(in, createTree(in.getLHS()), createTree(in.getRHS()));
+        result = new r.nodes.exec.InOperation(in, createTree(in.getLHS()), createTree(in.getRHS()));
     }
 
     @Override public void visit(Mod mod) {
@@ -742,24 +740,24 @@ public class Truffleize implements Visitor {
             RAny value = (RAny) result.execute(null);
             value.ref();
             value.ref();
-            result = new r.nodes.truffle.Constant(col, value);
+            result = new r.nodes.exec.Constant(col, value);
         }
     }
 
     @Override public void visit(And and) {
-        result = new r.nodes.truffle.LogicalOperation.And(and, createTree(and.getLHS()), createTree(and.getRHS()));
+        result = new r.nodes.exec.LogicalOperation.And(and, createTree(and.getLHS()), createTree(and.getRHS()));
     }
 
     @Override public void visit(ElementwiseAnd and) {
-        result = r.nodes.truffle.ElementwiseLogicalOperation.createUninitialized(and, createTree(and.getLHS()), r.nodes.truffle.ElementwiseLogicalOperation.AND, createTree(and.getRHS()));
+        result = r.nodes.exec.ElementwiseLogicalOperation.createUninitialized(and, createTree(and.getLHS()), r.nodes.exec.ElementwiseLogicalOperation.AND, createTree(and.getRHS()));
     }
 
     @Override public void visit(Or or) {
-        result = new r.nodes.truffle.LogicalOperation.Or(or, createTree(or.getLHS()), createTree(or.getRHS()));
+        result = new r.nodes.exec.LogicalOperation.Or(or, createTree(or.getLHS()), createTree(or.getRHS()));
     }
 
     @Override public void visit(ElementwiseOr or) {
-        result = r.nodes.truffle.ElementwiseLogicalOperation.createUninitialized(or, createTree(or.getLHS()), r.nodes.truffle.ElementwiseLogicalOperation.OR, createTree(or.getRHS()));
+        result = r.nodes.exec.ElementwiseLogicalOperation.createUninitialized(or, createTree(or.getLHS()), r.nodes.exec.ElementwiseLogicalOperation.OR, createTree(or.getRHS()));
     }
 
     @Override public void visit(ArgumentList.Default.DefaultEntry entry) {}

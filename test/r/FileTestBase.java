@@ -6,7 +6,7 @@ import org.antlr.runtime.*;
 import org.junit.*;
 
 import r.data.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.parser.*;
 
 //file tests run input files of R code using non-debugging output format

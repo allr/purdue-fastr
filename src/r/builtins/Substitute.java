@@ -3,9 +3,9 @@ package r.builtins;
 import r.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.nodes.tools.*;
-import r.nodes.truffle.*;
 import r.runtime.*;
 
 public class Substitute extends CallFactory {
@@ -125,8 +125,8 @@ public class Substitute extends CallFactory {
 
     public static RAny substitute(ASTNode x, FindVar env) {
         ASTNode res = substituteVisitor.substitute(x, env);
-        if (res instanceof r.nodes.Constant) {
-            return ((r.nodes.Constant) res).getValue();
+        if (res instanceof r.nodes.ast.Constant) {
+            return ((r.nodes.ast.Constant) res).getValue();
         } else {
             return new RLanguage(res);
         }
@@ -152,7 +152,7 @@ public class Substitute extends CallFactory {
                 RLanguage l = (RLanguage) binding;
                 return independentDuplicator.duplicate(l.get());
             } else {
-                return new r.nodes.Constant((RAny) binding);
+                return new r.nodes.ast.Constant((RAny) binding);
             }
         }
 
@@ -187,7 +187,7 @@ public class Substitute extends CallFactory {
                                 newList.add(name, dast);
                             } else {
                                 if (name != null) {
-                                    newList.add(name, new r.nodes.SimpleAccessVariable(name));
+                                    newList.add(name, new r.nodes.ast.SimpleAccessVariable(name));
                                 } else {
                                     newList.add(name, null);
                                 }
@@ -202,7 +202,7 @@ public class Substitute extends CallFactory {
         }
 
         @Override
-        public void visit(r.nodes.FunctionCall n) {
+        public void visit(r.nodes.ast.FunctionCall n) {
             RSymbol symbol = n.getName();
             Object binding = env.find(symbol);
             if (binding == null) {
@@ -224,9 +224,9 @@ public class Substitute extends CallFactory {
 
             // TODO: support e.g. substitute(list(...))
             if (newTarget instanceof SimpleAccessVariable) {
-                result = new r.nodes.FunctionCall(((SimpleAccessVariable) newTarget).getSymbol(), d(n.getArgs()));
+                result = new r.nodes.ast.FunctionCall(((SimpleAccessVariable) newTarget).getSymbol(), d(n.getArgs()));
             } else if (newTarget instanceof RSymbol) {
-                result = new r.nodes.FunctionCall((RSymbol) newTarget, d(n.getArgs()));
+                result = new r.nodes.ast.FunctionCall((RSymbol) newTarget, d(n.getArgs()));
             } else {
                 Utils.nyi("unsupported substitution");
                 // FIXME: we cannot substitute as freely as GNU-R because we now only support a symbol as the target of the call

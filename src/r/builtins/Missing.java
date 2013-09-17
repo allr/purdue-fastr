@@ -3,9 +3,9 @@ package r.builtins;
 import r.*;
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
-import r.nodes.truffle.FunctionCall;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
 final class Missing extends CallFactory {
@@ -166,8 +166,8 @@ final class Missing extends CallFactory {
     }
 
     private static RSymbol getAccessedSymbol(ASTNode ast) {
-        if (ast instanceof r.nodes.SimpleAccessVariable) {
-            RSymbol symbol = ((r.nodes.SimpleAccessVariable) ast).getSymbol();
+        if (ast instanceof r.nodes.ast.SimpleAccessVariable) {
+            RSymbol symbol = ((r.nodes.ast.SimpleAccessVariable) ast).getSymbol();
             return symbol;
         } else {
             return null;

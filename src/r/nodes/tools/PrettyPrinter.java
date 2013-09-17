@@ -4,7 +4,7 @@ import java.io.*;
 
 import r.*;
 import r.data.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 public class PrettyPrinter extends BasicVisitor {
 

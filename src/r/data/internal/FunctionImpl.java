@@ -2,12 +2,10 @@ package r.data.internal;
 
 import r.*;
 import r.data.*;
-import r.nodes.Function;
-import r.nodes.truffle.*;
+import r.nodes.ast.Function;
+import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall;
 import r.runtime.*;
-
-import com.oracle.truffle.api.*;
-import com.oracle.truffle.api.nodes.*;
 
 import r.builtins.Return.ReturnException;
 

@@ -6,8 +6,8 @@ import r.data.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.ifc.Interop.Invokable;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 /**

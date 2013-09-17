@@ -2,8 +2,8 @@ package r.data;
 
 import r.*;
 import r.Convert.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 
 // FIXME: do we need RNull to implement RArray ? (vector code depends on it, but doesn't it feel wrong?)
 public final class RNull implements RArray {

@@ -12,7 +12,7 @@ import org.netlib.lapack.*;
 
 import r.data.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 import r.nodes.tools.*;
 import r.parser.*;
 

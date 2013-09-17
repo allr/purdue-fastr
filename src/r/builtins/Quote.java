@@ -1,8 +1,8 @@
 package r.builtins;
 
 import r.data.*;
-import r.nodes.*;
-import r.nodes.truffle.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 import r.runtime.*;
 
 final class Quote extends CallFactory {
@@ -33,11 +33,11 @@ final class Quote extends CallFactory {
     }
 
     public static Object quote(ASTNode ast, RNode expr) {
-        if (ast instanceof r.nodes.Constant) {
+        if (ast instanceof r.nodes.ast.Constant) {
             return expr.execute(null);
         }
-        if (ast instanceof r.nodes.SimpleAccessVariable) {
-            return ((r.nodes.SimpleAccessVariable) ast).getSymbol();
+        if (ast instanceof r.nodes.ast.SimpleAccessVariable) {
+            return ((r.nodes.ast.SimpleAccessVariable) ast).getSymbol();
         }
         return new RLanguage(ast);
     }

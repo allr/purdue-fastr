@@ -6,7 +6,7 @@ import java.util.*;
 
 import r.*;
 import r.errors.*;
-import r.nodes.*;
+import r.nodes.ast.*;
 
 
 public abstract class Connection {
