@@ -191,6 +191,14 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3DD_3DI
 JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_fmod
   (JNIEnv *, jclass, jdoubleArray, jdoubleArray, jdoubleArray, jint);
 
+/*
+ * Class:     r_gnur_GNUR
+ * Method:    exp
+ * Signature: (D)D
+ */
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_exp
+  (JNIEnv *, jclass, jdouble);
+
 #ifdef __cplusplus
 }
 #endif

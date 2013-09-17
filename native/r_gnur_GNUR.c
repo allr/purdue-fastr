@@ -381,3 +381,10 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_fmod
   
   return lostAccuracy ? JNI_TRUE : JNI_FALSE;
 }
+
+JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_exp
+  (JNIEnv *jenv, jclass jcls, jdouble x) {
+  
+  return exp(x);
+}
+  

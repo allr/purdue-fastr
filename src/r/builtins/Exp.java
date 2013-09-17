@@ -4,6 +4,7 @@ import r.*;
 import r.data.*;
 import r.data.internal.View;
 import r.errors.RError;
+import r.gnur.*;
 import r.nodes.ASTNode;
 import r.nodes.truffle.Arithmetic;
 import r.nodes.truffle.RNode;
@@ -11,7 +12,7 @@ import r.runtime.*;
 
 /**
  * "exp"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector.
  * </pre>
@@ -32,7 +33,12 @@ final class Exp extends CallFactory {
                         @Override public double getDouble(int i) {
                             double d = orig.getDouble(i);
                             if (RDouble.RDoubleUtils.isNAorNaN(d)) { return RDouble.NA; }
-                            double res = Math.exp(d);
+                            double res;
+                            if (RContext.hasGNUR()) {
+                                res = GNUR.exp(d);
+                            } else {
+                                res = Math.exp(d);
+                            }
                             if (RDouble.RDoubleUtils.isNAorNaN(res)) {
                                 RContext.warning(ast, RError.NAN_PRODUCED);
                             }
