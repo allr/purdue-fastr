@@ -38,9 +38,7 @@ public class If extends BaseR {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-            // FIXME: Truffle won't let us use replace, "The parent of a node can never be the node itself"
-            //  cond.replace(castNode);
-            cond = adoptChild(castNode);
+            cond.replace(castNode);
             ifVal = castNode.executeScalarLogical(result);
         }
 

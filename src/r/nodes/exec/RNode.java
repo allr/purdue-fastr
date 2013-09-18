@@ -262,7 +262,7 @@ public abstract class RNode {
         return false;
     }
 
-    private static boolean checkReplaceChild(Class nodeClass) {
+    public static boolean checkReplaceChild(Class nodeClass) {
 
         Field[] fields = nodeClass.getDeclaredFields();
 
@@ -284,25 +284,29 @@ public abstract class RNode {
             }
         }
 
-        if (childNodes.size() == 0) {
-            return true;
-        }
+        if (childNodes.size() > 0) {
 
-        try {
-            nodeClass.getDeclaredMethod("replaceChild", new Class[] { RNode.class, RNode.class } );
-            return true;
-        } catch (NoSuchMethodException e) {
-            if (suggestReplaceChildForClass(nodeClass)) {
-                System.err.println("ERROR: Missing replaceChild in class (suggestion above)");
-                System.err.print("Child nodes may be in fields:");
-                for(Field f : childNodes) {
-                    System.err.print(" " + f.getName());
+            try {
+                nodeClass.getDeclaredMethod("replaceChild", new Class[] { RNode.class, RNode.class } );
+                return true;
+            } catch (NoSuchMethodException e) {
+                if (suggestReplaceChildForClass(nodeClass)) {
+                    System.err.println("ERROR: Missing replaceChild in class (suggestion above)");
+                    System.err.print("Child nodes may be in fields:");
+                    for(Field f : childNodes) {
+                        System.err.print(" " + f.getName());
+                    }
+                    System.err.println();
                 }
-                System.err.println();
-            }
 
-            return false;
+                return false;
+            }
         }
+        Class superClass = nodeClass.getSuperclass();
+        if (superClass != RNode.class) {
+            return checkReplaceChild(superClass);
+        }
+        return true;
     }
 
 }

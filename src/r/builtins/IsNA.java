@@ -14,7 +14,6 @@ import r.runtime.*;
  * x -- an R object to be tested: the default method handles atomic vectors, lists and pairlists.
  */
 // FIXME: add more specializations, e.g. for a numeric vector
-// FIXME: Truffle can't inline BuiltIn.BuiltIn1
 final class IsNA extends CallFactory {
 
     static final CallFactory _ = new IsNA("is.na", new String[]{"x"}, new String[]{"x"});

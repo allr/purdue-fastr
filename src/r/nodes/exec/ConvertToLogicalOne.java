@@ -23,6 +23,16 @@ public abstract class ConvertToLogicalOne extends BaseR {
     }
 
     @Override
+    protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        assert oldNode != null;
+        if (input == oldNode) {
+            input = newNode;
+            return adoptInternal(newNode);
+        }
+        return super.replaceChild(oldNode, newNode);
+    }
+
+    @Override
     public final int executeScalarLogical(Frame frame) {
         return executeScalarLogical((RAny) input.execute(frame));
     }

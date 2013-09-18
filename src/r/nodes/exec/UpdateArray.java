@@ -1741,8 +1741,10 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Integer update to integer direct specialization. Only checks that direct access can be obtained to both lhs and
-     * to rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct
+     * to rhs, then copies the lhs if the lhs and rhs may alias.
+     *
+     * TODO the non lhs copying node may be rewritten to a special one
+     * TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct
      * access, then we can never alias and if we do alias we have the meaning less statement a[,,] = a
      */
     protected static class IntToIntDirect extends UpdateArray {
@@ -1832,8 +1834,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Integer update to double direct specialization. Only checks that direct access can be obtained to both lhs and to
-     * rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe lhs and rhs can never alias here in our implementation
+     * rhs, then copies the lhs if the lhs and rhs may alias.
      */
     protected static class IntToDoubleDirect extends UpdateArray {
 
@@ -1923,9 +1924,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Double update to double direct specialization. Only checks that direct access can be obtained to both lhs and to
-     * rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct
-     * access, then we can never alias and if we do alias we have the meaning less statement a[,,] = a
+     * rhs, then copies the lhs if the lhs and rhs may alias.
      */
     protected static class DoubleToDoubleDirect extends UpdateArray {
 
@@ -2016,8 +2015,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Integer update to complex direct specialization. Only checks that direct access can be obtained to both lhs and
-     * to rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe lhs and rhs can never alias here in our implementation
+     * to rhs, then copies the lhs if the lhs and rhs may alias.
      */
     protected static class IntToComplexDirect extends UpdateArray {
 
@@ -2109,8 +2107,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Double update to complex direct specialization. Only checks that direct access can be obtained to both lhs and to
-     * rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe lhs and rhs can never alias here in our implementation
+     * rhs, then copies the lhs if the lhs and rhs may alias.
      */
     protected static class DoubleToComplexDirect extends UpdateArray {
 
@@ -2203,9 +2200,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
     /**
      * Complex update to complex direct specialization. Only checks that direct access can be obtained to both lhs and
-     * to rhs, then copies the lhs if the lhs and rhs may alias. TODO the non lhs copying node may be rewritten to a
-     * special one for truffle TODO I believe the lhs == rhs check for aliasing is useless for us - if we are in direct
-     * access, then we can never alias and if we do alias we have the meaning less statement a[,,] = a
+     * to rhs, then copies the lhs if the lhs and rhs may alias.
      */
     protected static class ComplexToComplexDirect extends UpdateArray {
 

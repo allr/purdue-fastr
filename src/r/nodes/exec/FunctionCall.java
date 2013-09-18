@@ -30,7 +30,7 @@ public abstract class FunctionCall extends AbstractCall {
 
     public static RNode getFunctionCall(ASTNode ast, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs) {
         // place optimized nodes here, e.g. for positional-only argument passing
-        // these are present in the old truffle api version, but not here, as they were not really helping
+        // (but beware, at some point we had them and their were helping, but later there was no longer any performance improvement)
 
         int[] dotsArgs = findDotsArgs(argExprs);
         if (dotsArgs != null) {

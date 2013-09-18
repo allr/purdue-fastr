@@ -18,7 +18,7 @@ public class RContext {
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", false);
     private static boolean debuggingFormat = false;
     private static ManageError errorManager = new ManageError(System.err);
-    private static Truffleize truffleize = new Truffleize();
+    private static BuildExecutableTree executableTreeBuilder = new BuildExecutableTree();
     private static final int NCONNECTIONS = 128;
     private static final Connection[] connections = new Connection[NCONNECTIONS];
 
@@ -46,7 +46,7 @@ public class RContext {
 
     public static RAny eval(ASTNode expr) {
         try {
-            return (RAny) truffleize.createLazyRootTree(expr).execute(null); // null means top-level
+            return (RAny) executableTreeBuilder.createLazyRootTree(expr).execute(null); // null means top-level
         } catch (RError e) {
             if (DEBUG) {
                 e.printStackTrace();
@@ -57,12 +57,12 @@ public class RContext {
     }
 
     public static RNode createNode(ASTNode expr) {
-        return truffleize.createTree(expr);
+        return executableTreeBuilder.createTree(expr);
     }
 
     public static RNode createRootNode(ASTNode expr, final RFunction rootEnclosingFunction) {
         return new BaseR(expr) {
-            @Child RNode node = adoptChild(truffleize.createTree(ast, rootEnclosingFunction));
+            @Child RNode node = adoptChild(executableTreeBuilder.createTree(ast, rootEnclosingFunction));
 
             @Override
             public Object execute(Frame frame) {

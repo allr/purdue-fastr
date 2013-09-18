@@ -9,9 +9,8 @@ import r.runtime.*;
 
 import r.builtins.Return.ReturnException;
 
-// FIXME: with the new Truffle API, some of our older structures are no longer needed (e.g. read set, write set), could remove them
 // FIXME: in theory, a read set could be larger, simply a union of all write sets (slots) of enclosing functions
-// FIXME: "read set" and "write set" may not be the same names ; it is more "cached parent slots" and "slots"
+// FIXME: "read set" and "write set" may not be the best names ; it is more "cached parent slots" and "slots"
 
 public class FunctionImpl extends BaseR implements RFunction {
 
@@ -60,7 +59,7 @@ public class FunctionImpl extends BaseR implements RFunction {
             Utils.debug("  read set  [" + readSet.length + "]: " + printReadSet(readSet));
         }
 
-        // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node (the Truffle way to do it)
+        // FIXME: this could be turned into nodes and node rewriting, each argument copied by a special node
         int nparams = paramNames.length;
         frameDescriptor = new FrameDescriptor(writeSet);
 
@@ -77,8 +76,7 @@ public class FunctionImpl extends BaseR implements RFunction {
     @Override
     public Object call(Frame frame) {
 
-        // TODO: as we no longer have truffle, get rid of this
-        // do only a single pass through the parameters to fill in (see placeArgs)
+        // TODO: get rid of this, do only a single pass through the parameters to fill in (see placeArgs)
         for (int i = 0; i < paramValues.length; i++) {
             Object value = frame.get(i);
             if (value == null) {

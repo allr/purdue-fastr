@@ -14,7 +14,6 @@ public abstract class ASTNode {
         return prec == null ? Precedence.MIN : prec.value();
     }
 
-    // FIXME: do we still need these Truffle-like methods for the AST tree?
     public ASTNode getParent() {
         return parent;
     }

@@ -149,6 +149,16 @@ public class Abs extends CallFactory {
             // TODO Auto-generated method stub
             return null;
         }
+
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (expr == oldNode) {
+                expr = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
     }
 
     public static RAny generic(RAny arg) {

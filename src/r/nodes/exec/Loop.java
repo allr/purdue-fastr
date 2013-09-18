@@ -150,6 +150,16 @@ public abstract class Loop extends BaseR {
             this.cvar = cvar;
         }
 
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (range == oldNode) {
+                range = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
 //        public static final class NestedLocalIntSequenceRange extends BaseR {
 //            @Child RNode range;
 //            @Child RNode innerRange;

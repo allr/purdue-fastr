@@ -17,7 +17,7 @@ public final class RSymbol extends BaseObject implements RAny {
     public static final RSymbol NA_SYMBOL = RSymbol.getSymbol(RString.NA);
     public static final RSymbol EMPTY_SYMBOL = RSymbol.getSymbol("");
 
-    // from Truffleize
+    // from BuildExecutableTree
     public static final RSymbol DROP_SYMBOL = RSymbol.getSymbol("drop");
     public static final RSymbol EXACT_SYMBOL = RSymbol.getSymbol("exact");
 

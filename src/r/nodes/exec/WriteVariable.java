@@ -9,7 +9,6 @@ import r.runtime.*;
 // in update operations (vector update, replacement functions) ; we could use unconditional ref in other cases
 public abstract class WriteVariable extends BaseR {
 
-    // TODO: All BaseRNode are useless EXCEPT for the uninitialized version (since Truffle keeps track of the original)
     final RSymbol symbol;
     @Child RNode expr;
 

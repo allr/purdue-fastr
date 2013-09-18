@@ -17,7 +17,7 @@ import r.nodes.ast.UnaryMinus;
 import r.nodes.ast.UpdateVector;
 import r.runtime.*;
 
-public class Truffleize implements Visitor {
+public class BuildExecutableTree implements Visitor {
 
     RFunction rootEnclosingFunction;
     RNode result;
