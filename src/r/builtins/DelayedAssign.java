@@ -68,6 +68,28 @@ final class DelayedAssign extends CallFactory {
             return RNull.getNull();
         }
 
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (xNode == oldNode) {
+                xNode = newNode;
+                return adoptInternal(newNode);
+            }
+            if (valueNode == oldNode) {
+                valueNode = newNode;
+                return adoptInternal(newNode);
+            }
+            if (evalEnvNode == oldNode) {
+                evalEnvNode = newNode;
+                return adoptInternal(newNode);
+            }
+            if (assignEnvNode == oldNode) {
+                assignEnvNode = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
     }
 
 }

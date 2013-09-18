@@ -127,6 +127,24 @@ final class LApply extends CallFactory {
             this.funPosition = funPosition;
         }
 
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (firstArgProvider == oldNode) {
+                firstArgProvider = (r.builtins.LApply.ValueProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (callableProvider == oldNode) {
+                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (callNode == oldNode) {
+                callNode = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
         public static RAny generic(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) {
             if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
             RArray x = (RArray) argx;
@@ -216,7 +234,7 @@ final class LApply extends CallFactory {
             public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException;
         }
 
-        class Specialized extends Lapply {
+        static class Specialized extends Lapply {
             final ApplyFunc apply;
 
             public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,

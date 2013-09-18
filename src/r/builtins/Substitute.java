@@ -118,6 +118,16 @@ public class Substitute extends CallFactory {
                 }
                 return substitute(exprAST, find);
             }
+
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (envExpr == oldNode) {
+                    envExpr = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
+            }
         };
     }
 

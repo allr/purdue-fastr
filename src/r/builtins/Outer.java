@@ -96,6 +96,28 @@ final class Outer extends CallFactory {
             this.yArgProvider = adoptChild(yArgProvider);
         }
 
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (callNode == oldNode) {
+                callNode = newNode;
+                return adoptInternal(newNode);
+            }
+            if (callableProvider == oldNode) {
+                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (xArgProvider == oldNode) {
+                xArgProvider = (r.builtins.LApply.ValueProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (yArgProvider == oldNode) {
+                yArgProvider = (r.builtins.LApply.ValueProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
         public RAny outer(Frame frame, RAny xarg, RAny yarg, RAny farg) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
 

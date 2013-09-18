@@ -20,7 +20,7 @@ public class FunctionImpl extends BaseR implements RFunction {
 
     final RSymbol[] paramNames;
     @Children final RNode[] paramValues;
-    final RNode body;
+    @Child RNode body;
     final int dotsIndex;
 
     final FrameDescriptor frameDescriptor;
@@ -258,6 +258,24 @@ public class FunctionImpl extends BaseR implements RFunction {
     @Override public Object execute(Frame frame) {
         assert Utils.check(false, "unreachable");
         return null;
+    }
+
+    @Override
+    protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        assert oldNode != null;
+        if (paramValues != null) {
+            for(int i = 0; i < paramValues.length; i++) {
+                if (paramValues[i] == oldNode) {
+                    paramValues[i] = newNode;
+                    return adoptInternal(newNode);
+                }
+            }
+        }
+        if (body == oldNode) {
+            body = newNode;
+            return adoptInternal(newNode);
+        }
+        return super.replaceChild(oldNode, newNode);
     }
 
     public Frame createFrame(Frame enclosingFrame) {

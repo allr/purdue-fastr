@@ -76,6 +76,16 @@ public class RContext {
                 return node.execute(frame);
             }
 
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (node == oldNode) {
+                    node = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
+            }
+
         };
     }
 

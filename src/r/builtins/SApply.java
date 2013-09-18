@@ -91,6 +91,24 @@ final class SApply extends CallFactory {
             this.funPosition = funPosition;
         }
 
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (firstArgProvider == oldNode) {
+                firstArgProvider = (r.builtins.LApply.ValueProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (callableProvider == oldNode) {
+                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
+                return adoptInternal(newNode);
+            }
+            if (callNode == oldNode) {
+                callNode = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
         // FIXME: this will be slow (a second pass through the results array)
         public static RArray.Names extractNames(ArgIterator argIterator, boolean resultsHaveNames, RAny[] results, int size) {
             boolean argHasNames = argIterator.hasNames();

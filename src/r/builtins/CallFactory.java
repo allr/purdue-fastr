@@ -412,6 +412,16 @@ public abstract class CallFactory {
             public final Object execute(Frame builtinFrame) {
                 return node.execute(builtinFrame);
             }
+
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (node == oldNode) {
+                    node = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
+            }
         };
         return rootNode.execute(frame);
     }
@@ -428,6 +438,16 @@ public abstract class CallFactory {
             @Override
             public final Object execute(Frame builtinFrame) {
                 return node.execute(builtinFrame);
+            }
+
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (node == oldNode) {
+                    node = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
             }
         };
         return rootNode.execute(frame);

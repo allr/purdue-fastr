@@ -37,6 +37,17 @@ public class Truffleize implements Visitor {
                     throw RError.getNoLoopForBreakNext(ast);
                 }
             }
+
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (node == oldNode) {
+                    node = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
+            }
+
         };
     }
 
