@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -264,7 +262,7 @@ final class C extends CallFactory {
     }
 
     public abstract static class CombineAction {
-        public abstract RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException;
+        public abstract RAny combine(Frame frame, RAny[] params) throws SpecializationException;
     }
 
     public static class Specialized extends Builtin {
@@ -281,8 +279,8 @@ final class C extends CallFactory {
 
         public static Specialized createTransition(ASTNode ast, RSymbol[] names, RNode[] exprs, final Transition t) {
             CombineAction a = new CombineAction() {
-                @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
-                    throw new UnexpectedResultException(t);
+                @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
+                    throw new SpecializationException(t);
                 }
             };
             return new Specialized(ast, names, exprs, a);
@@ -292,12 +290,12 @@ final class C extends CallFactory {
             if (names != null) { return createTransition(ast, names, exprs, Transition.GENERIC); }
             if (typeTemplate instanceof ScalarStringImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         String[] content = new String[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarStringImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
+                            if (!(v instanceof ScalarStringImpl)) { throw new SpecializationException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarStringImpl) v).getString();
                         }
                         return RString.RStringFactory.getFor(content);
@@ -307,12 +305,12 @@ final class C extends CallFactory {
             }
             if (typeTemplate instanceof ScalarDoubleImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
+                            if (!(v instanceof ScalarDoubleImpl)) { throw new SpecializationException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarDoubleImpl) v).getDouble();
                         }
                         return RDouble.RDoubleFactory.getFor(content);
@@ -322,12 +320,12 @@ final class C extends CallFactory {
             }
             if (typeTemplate instanceof ScalarIntImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarIntImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
+                            if (!(v instanceof ScalarIntImpl)) { throw new SpecializationException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarIntImpl) v).getInt();
                         }
                         return RInt.RIntFactory.getFor(content);
@@ -337,12 +335,12 @@ final class C extends CallFactory {
             }
             if (typeTemplate instanceof ScalarLogicalImpl) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
                             RAny v = params[i];
-                            if (!(v instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(Transition.CASTING_SCALARS); }
+                            if (!(v instanceof ScalarLogicalImpl)) { throw new SpecializationException(Transition.CASTING_SCALARS); }
                             content[i] = ((ScalarLogicalImpl) v).getLogical();
                         }
                         return RLogical.RLogicalFactory.getFor(content);
@@ -358,7 +356,7 @@ final class C extends CallFactory {
             if (names != null) { return createTransition(ast, names, exprs, Transition.GENERIC); }
             if (typeTemplate instanceof RDouble) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         double[] content = new double[size];
                         for (int i = 0; i < size; i++) {
@@ -375,7 +373,7 @@ final class C extends CallFactory {
                                 content[i] = Convert.logical2double(((ScalarLogicalImpl) v).getLogical());
                                 continue;
                             }
-                            throw new UnexpectedResultException(Transition.GENERIC);
+                            throw new SpecializationException(Transition.GENERIC);
                         }
                         return RDouble.RDoubleFactory.getFor(content);
                     }
@@ -384,7 +382,7 @@ final class C extends CallFactory {
             }
             if (typeTemplate instanceof RInt) {
                 CombineAction a = new CombineAction() {
-                    @Override public final RAny combine(Frame frame, RAny[] params) throws UnexpectedResultException {
+                    @Override public final RAny combine(Frame frame, RAny[] params) throws SpecializationException {
                         int size = params.length;
                         int[] content = new int[size];
                         for (int i = 0; i < size; i++) {
@@ -397,7 +395,7 @@ final class C extends CallFactory {
                                 content[i] = Convert.logical2int(((ScalarLogicalImpl) v).getLogical());
                                 continue;
                             }
-                            throw new UnexpectedResultException(Transition.GENERIC);
+                            throw new SpecializationException(Transition.GENERIC);
                         }
                         return RInt.RIntFactory.getFor(content);
                     }
@@ -410,7 +408,7 @@ final class C extends CallFactory {
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             try {
                 return combine.combine(frame, params);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Transition t = (Transition) e.getResult();
                 Specialized s = null;
                 switch (t) {

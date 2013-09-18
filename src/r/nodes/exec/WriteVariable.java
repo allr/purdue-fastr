@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.ast.*;
@@ -43,8 +41,8 @@ public abstract class WriteVariable extends BaseR {
             @Override public final Object execute(Frame frame) {
 
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     WriteVariable node;
                     String reason;
 

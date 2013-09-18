@@ -4,8 +4,6 @@ import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.ast.*;
@@ -29,15 +27,15 @@ public abstract class RNode {
 
     public abstract Object execute(Frame frame);
 
-    public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+    public int executeScalarLogical(Frame frame) throws SpecializationException {
         return RValueConversion.expectScalarLogical((RAny) execute(frame));
     }
 
-    public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+    public int executeScalarInteger(Frame frame) throws SpecializationException {
         return RValueConversion.expectScalarInteger((RAny) execute(frame));
     }
 
-    public int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+    public int executeScalarNonNALogical(Frame frame) throws SpecializationException {
         return RValueConversion.expectScalarNonNALogical((RAny) execute(frame));
     }
 
@@ -60,8 +58,8 @@ public abstract class RNode {
         @Override
         public Object execute(Frame frame) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 replace(realChildNode);
                 return nextValue;
             }

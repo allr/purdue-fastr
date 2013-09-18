@@ -6,9 +6,6 @@ import r.data.internal.*;
 import r.nodes.ast.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
-
 public abstract class ArithmeticUpdateVariable extends BaseR {
 
     final RSymbol varName;
@@ -72,8 +69,8 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                         return res;
                     }
                 }
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 return constantAddReplaceAndExecute(frame);
             }
         }
@@ -124,8 +121,8 @@ public abstract class ArithmeticUpdateVariable extends BaseR {
                         return res;
                     }
                 }
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 return constantSubReplaceAndExecute(frame);
             }
         }

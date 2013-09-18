@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RFunction.*;
@@ -40,8 +38,8 @@ public abstract class SuperWriteVariable extends BaseR {
             @Override
             public final Object execute(Frame frame) {
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     Frame enclosingFrame = (frame != null) ? frame.enclosingFrame() : null;
 
                     if (enclosingFrame == null) {

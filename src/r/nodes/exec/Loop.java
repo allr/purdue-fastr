@@ -7,8 +7,6 @@ import r.errors.*;
 import r.nodes.ast.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 // FIXME: local slot for functions can be looked up statically, so the code can be simplified accordingly
 // but wait, if we start doing anything smarter about executing language objects, then the non-static look-up may again end-up useful, yet
 // will have to be extended
@@ -34,12 +32,12 @@ public abstract class Loop extends BaseR {
         return super.replaceChild(oldNode, newNode);
     }
 
-    public static final class BreakException extends ControlFlowException {
+    public static final class BreakException extends RuntimeException {
         public static BreakException instance = new BreakException();
         private static final long serialVersionUID = -7381797804423147124L;
     }
 
-    public static final class ContinueException extends ControlFlowException {
+    public static final class ContinueException extends RuntimeException {
         public static ContinueException instance = new ContinueException();
         private static final long serialVersionUID = -5960047826708655261L;
     }
@@ -107,7 +105,7 @@ public abstract class Loop extends BaseR {
                         int condVal;
                         try {
                             condVal = cond.executeScalarLogical(frame);
-                        } catch (UnexpectedResultException e) {
+                        } catch (SpecializationException e) {
                             RAny result = (RAny) e.getResult();
                             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                             cond = adoptChild(castNode);
@@ -229,8 +227,8 @@ public abstract class Loop extends BaseR {
             public Object execute(Frame frame) {
 
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     RNode sn;
                     String dbg;
                     if (frame == null) {
@@ -271,12 +269,12 @@ public abstract class Loop extends BaseR {
                     RAny rval = (RAny) range.execute(frame);
                     try {
                         if (!(rval instanceof IntImpl.RIntSequence)) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
                         int size = sval.size();
                         return execute(frame, sval, size);
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         Generic gn;
                         if (frame == null) {
                             gn = Generic.createToplevel(ast, cvar, range, body);
@@ -328,14 +326,14 @@ public abstract class Loop extends BaseR {
                         RAny rval = (RAny) range.execute(frame);
                         try {
                             if (!(rval instanceof IntImpl.RIntSequence)) {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                             IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
                             final int from = sval.from();
                             final int to = sval.to();
                             final int step = sval.step();
                             if (from > to || step != 1 || from != 1) {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                             try {
                                 for (int i = 1; i <= to; i++) {
@@ -347,7 +345,7 @@ public abstract class Loop extends BaseR {
                                 }
                             } catch (BreakException be) { }
                             return RNull.getNull();
-                        } catch (UnexpectedResultException e) {
+                        } catch (SpecializationException e) {
                             if (rval instanceof IntImpl.RIntSequence) {
                                 Specialized sn = Specialized.create(ast, cvar, range, body, slot);
                                 replace(sn, "install Specialized from IntSequenceRange.Simple");

@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.data.*;
 import r.errors.*;
 import r.nodes.ast.*;
@@ -28,8 +26,8 @@ final class Recall extends CallFactory {
 
         @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (frame == null) {
                     throw RError.getRecallCalledOutsideClosure(ast);
                 }

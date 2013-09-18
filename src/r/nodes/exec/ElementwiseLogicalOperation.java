@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RArray.*;
@@ -52,8 +50,8 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             @Override
             public RAny execute(RAny leftValue, RAny rightValue) {
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     ElementwiseLogicalOperation sn = Specialized.create(ast, left, op, right, leftValue, rightValue);
                     replace(sn, "install LogicalOperation from Uninitialized");
                     return sn.execute(leftValue, rightValue);
@@ -93,41 +91,41 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
         }
 
         public abstract static class Action {
-            abstract RAny doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws UnexpectedResultException;
+            abstract RAny doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException;
         }
 
         public static ElementwiseLogicalOperation create(final ASTNode ast, RNode left, final Operation op, RNode right, RAny leftTemplate, RAny rightTemplate) {
             if (leftTemplate instanceof ScalarLogicalImpl && rightTemplate instanceof ScalarLogicalImpl) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws UnexpectedResultException {
+                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
                         if ((leftValue instanceof ScalarLogicalImpl && rightValue instanceof ScalarLogicalImpl)) {
                             int l = op.op(((ScalarLogicalImpl) leftValue).getLogical(), ((ScalarLogicalImpl) rightValue).getLogical());
                             return RLogical.RLogicalFactory.getScalar(l);
                         }
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 });
             }
             if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws UnexpectedResultException {
+                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
                         if ((leftValue instanceof RLogical && rightValue instanceof RLogical)) {
                             return op.op((RLogical) leftValue, (RLogical) rightValue, ast);
                         }
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 });
             }
             if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RRaw doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws UnexpectedResultException {
+                    RRaw doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
                         if ((leftValue instanceof RRaw && rightValue instanceof RRaw)) {
                             return op.op((RRaw) leftValue, (RRaw) rightValue, ast);
                         }
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 });
             }
@@ -139,7 +137,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
         public RAny execute(RAny leftValue, RAny rightValue) {
             try {
                 return action.doFor(leftValue, rightValue, ast);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 ElementwiseLogicalOperation gn = createGeneric(ast, left, op, right);
                 replace(gn, "install Generic from ElementwiseLogicalOperation.Specialized");
                 return gn.execute(leftValue, rightValue);

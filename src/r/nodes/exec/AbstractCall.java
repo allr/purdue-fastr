@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -461,7 +459,7 @@ public abstract class AbstractCall extends BaseR {
     // dots
     //   dots.names == null when there are no ... in parameters
     //   otherwise, names of symbols that will appear in ...
-    @ExplodeLoop protected final void placeArgs(Frame callerFrame, Frame newFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
+    protected final void placeArgs(Frame callerFrame, Frame newFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
 
         int i;
         RSymbol[] dnames = dotsInfo.names;

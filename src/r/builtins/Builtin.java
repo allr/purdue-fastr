@@ -5,8 +5,6 @@ import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 /** The base class for builtin functions. */
 public abstract class Builtin extends AbstractCall {
 
@@ -97,7 +95,7 @@ public abstract class Builtin extends AbstractCall {
 
     public abstract RAny doBuiltIn(Frame frame, RAny[] params);
 
-    @ExplodeLoop private RAny[] evalArgs(Frame frame) {
+    private RAny[] evalArgs(Frame frame) {
         int len = argExprs.length;
         RAny[] args = new RAny[len];
         for (int i = 0; i < len; i++) {

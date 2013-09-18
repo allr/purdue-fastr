@@ -9,8 +9,6 @@ import r.nodes.exec.*;
 import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also used in lapply
 /**
@@ -166,8 +164,8 @@ final class LApply extends CallFactory {
         public Specialized createSpecialized(RAny argxTemplate) {
             if (argxTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
-                        if (!(argx instanceof RList)) { throw new UnexpectedResultException(null); }
+                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
+                        if (!(argx instanceof RList)) { throw new SpecializationException(null); }
                         RList x = (RList) argx;
                         int xsize = x.size();
                         RAny[] content = new RAny[xsize];
@@ -182,8 +180,8 @@ final class LApply extends CallFactory {
             }
             if (argxTemplate instanceof RArray) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
-                        if (argx instanceof RList || !(argx instanceof RArray)) { throw new UnexpectedResultException(null); }
+                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
+                        if (argx instanceof RList || !(argx instanceof RArray)) { throw new SpecializationException(null); }
                         RArray x = (RArray) argx;
                         int xsize = x.size();
                         RAny[] content = new RAny[xsize];
@@ -201,7 +199,7 @@ final class LApply extends CallFactory {
 
         public Specialized createGeneric() {
             ApplyFunc a = new ApplyFunc() {
-                @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException {
+                @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
                     return generic(frame, argx, firstArgProvider, callNode);
                 }
             };
@@ -210,8 +208,8 @@ final class LApply extends CallFactory {
 
         public RAny doApply(Frame frame, RAny argx, RAny argfun) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 Specialized sn = createSpecialized(argx);
                 if (sn != null) {
                     replace(sn, "install Specialized from Lapply");
@@ -231,7 +229,7 @@ final class LApply extends CallFactory {
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws UnexpectedResultException;
+            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException;
         }
 
         static class Specialized extends Lapply {
@@ -247,7 +245,7 @@ final class LApply extends CallFactory {
                 try {
                     callableProvider.matchAndSet(ast, frame, argfun);
                     return apply.apply(frame, argx, firstArgProvider, callNode);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Specialized sn = createGeneric();
                     replace(sn, "install Specialized<Generic> from Lapply.Specialized");
                     return sn.doApply(frame, argx, argfun);
@@ -261,7 +259,7 @@ final class LApply extends CallFactory {
         ValueProvider argProvider;
         int size;
 
-        public abstract void reset(ValueProvider provider, RAny source) throws UnexpectedResultException;
+        public abstract void reset(ValueProvider provider, RAny source) throws SpecializationException;
 
         public abstract void setNext();
 
@@ -288,8 +286,8 @@ final class LApply extends CallFactory {
             int step;
             int next;
 
-            @Override public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
-                if (!(source instanceof IntImpl.RIntSequence)) { throw new UnexpectedResultException(null); }
+            @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
+                if (!(source instanceof IntImpl.RIntSequence)) { throw new SpecializationException(null); }
                 IntImpl.RIntSequence seq = (IntImpl.RIntSequence) source;
                 this.argProvider = provider;
                 next = seq.from();
@@ -320,8 +318,8 @@ final class LApply extends CallFactory {
             RString string;
             int i;
 
-            @Override public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
-                if (!(source instanceof RString)) { throw new UnexpectedResultException(null); }
+            @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
+                if (!(source instanceof RString)) { throw new SpecializationException(null); }
                 this.argProvider = provider;
                 this.string = (RString) source;
                 i = 0;
@@ -361,8 +359,8 @@ final class LApply extends CallFactory {
             RArray array;
             int i;
 
-            @Override public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
-                if (source instanceof RList || source instanceof RString || !(source instanceof RArray)) { throw new UnexpectedResultException(null); }
+            @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
+                if (source instanceof RList || source instanceof RString || !(source instanceof RArray)) { throw new SpecializationException(null); }
                 this.argProvider = provider;
                 this.array = (RArray) source;
                 i = 0;
@@ -391,8 +389,8 @@ final class LApply extends CallFactory {
             RList list;
             int i;
 
-            @Override public void reset(ValueProvider provider, RAny source) throws UnexpectedResultException {
-                if (!(source instanceof RList)) { throw new UnexpectedResultException(null); }
+            @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
+                if (!(source instanceof RList)) { throw new SpecializationException(null); }
                 this.argProvider = provider;
                 this.list = (RList) source;
                 i = 0;

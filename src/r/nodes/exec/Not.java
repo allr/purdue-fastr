@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -51,9 +49,9 @@ public abstract class Not extends BaseR {
                         default: return RLogical.BOXED_NA;
                     }
                 } else {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 RawScalar n = new RawScalar(ast, lhs);  // FIXME: also create a specialized note for a logical vector
                 replace(n, "install RawScalar from LogicalScalar");
                 return n.execute(value);
@@ -71,16 +69,16 @@ public abstract class Not extends BaseR {
         RAny execute(RAny value) {
             try {
                 if (!(value instanceof RRaw)) {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
                 RRaw rvalue = (RRaw) value;
                 // TODO: get rid of this, perhaps by creating a ScalarRawImpl type
                 if (rvalue.size() != 1 || rvalue.dimensions() != null || rvalue.names() != null || rvalue.attributes() != null) {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
                 byte b = rvalue.getRaw(0);
                 return RRaw.RRawFactory.getScalar((byte) ~b);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Generic gn = new Generic(ast, lhs);
                 replace(gn, "install Generic from LogicalScalar");
                 return gn.execute(value);

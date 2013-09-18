@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.nodes.ast.*;
 import r.runtime.*;
@@ -16,8 +14,8 @@ public class LazyBuild extends BaseR {
     @Override
     public final Object execute(Frame frame) {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             RNode node = RContext.createNode(getAST());
             replace(node, "expandLazyBuildNode");
             return node.execute(frame);
@@ -25,10 +23,10 @@ public class LazyBuild extends BaseR {
     }
 
     @Override
-    public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+    public final int executeScalarLogical(Frame frame) throws SpecializationException {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             RNode node = RContext.createNode(getAST());
             replace(node, "expandLazyBuildNode");
             return node.executeScalarLogical(frame);
@@ -36,10 +34,10 @@ public class LazyBuild extends BaseR {
     }
 
     @Override
-    public final int executeScalarNonNALogical(Frame frame) throws UnexpectedResultException {
+    public final int executeScalarNonNALogical(Frame frame) throws SpecializationException {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             RNode node = RContext.createNode(getAST());
             replace(node, "expandLazyBuildNode");
             return node.executeScalarNonNALogical(frame);

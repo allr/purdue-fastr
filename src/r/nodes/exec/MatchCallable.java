@@ -8,8 +8,6 @@ import r.errors.*;
 import r.nodes.ast.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 // TODO: re-visit this with eval in mind
 
 // this class is indeed very similar to ReadVariable
@@ -55,8 +53,8 @@ public abstract class MatchCallable extends BaseR {
             public final Object execute(Frame frame) {
 
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
 
                     if (frame == null) {
                         return replaceAndExecute(getMatchOnlyFromTopLevel(ast, symbol), "installMatchOnlyFromTopLevel", frame);

@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -141,7 +139,7 @@ public abstract class Selector {
 
     // offset and selSizes are output arrays and are fully overwritten
     // initializes the offset array for indexing, initializes
-    public static boolean initialize(int[] offsets, Selector[] selectors, int[] dataDimensions, int[] selSizes, ASTNode ast) throws UnexpectedResultException {
+    public static boolean initialize(int[] offsets, Selector[] selectors, int[] dataDimensions, int[] selSizes, ASTNode ast) throws SpecializationException {
         int mult = 1;
         boolean hasNA = false;
         boolean mayHaveNA = false;
@@ -172,7 +170,7 @@ public abstract class Selector {
         return mayHaveNA;
     }
 
-    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast, boolean mayHaveNA) throws UnexpectedResultException {
+    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast, boolean mayHaveNA) throws SpecializationException {
         if (!mayHaveNA) {
             restartNoNA(offsets, selectors, dataDimensions, ast);
         } else {
@@ -180,7 +178,7 @@ public abstract class Selector {
         }
     }
 
-    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws UnexpectedResultException {
+    public static void restart(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws SpecializationException {
         int mult = 1;
         for (int i = 0; i < selectors.length; ++i) {
             Selector sel = selectors[i];
@@ -197,7 +195,7 @@ public abstract class Selector {
         partialToFullOffsets(offsets, selectors.length - 1);
     }
 
-    public static void restartNoNA(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws UnexpectedResultException {
+    public static void restartNoNA(int[] offsets, Selector[] selectors, int[] dataDimensions, ASTNode ast) throws SpecializationException {
         int mult = 1;
         for (int i = 0; i < selectors.length; ++i) {
             Selector sel = selectors[i];
@@ -211,7 +209,7 @@ public abstract class Selector {
     }
 
     // advance must not be called when all selectors are exhausted (the search is done) - restart has to be used instead if wrap-around is needed
-    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast, boolean mayHaveNA) throws UnexpectedResultException {
+    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast, boolean mayHaveNA) throws SpecializationException {
         if (!mayHaveNA) {
             advanceNoNA(offsets, dataDimensions, selectors, ast);
         } else {
@@ -219,7 +217,7 @@ public abstract class Selector {
         }
     }
 
-    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+    public static void advance(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws SpecializationException {
         assert Utils.check(selectors.length > 0);
         assert Utils.check(offsets.length == selectors.length + 1);
         assert Utils.check(offsets[offsets.length - 1] == 0);
@@ -254,7 +252,7 @@ public abstract class Selector {
         partialToFullOffsets(offsets, i + 1);
     }
 
-    public static void advanceNoNA(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws UnexpectedResultException {
+    public static void advanceNoNA(int[] offsets, int[] dataDimensions, Selector[] selectors, ASTNode ast) throws SpecializationException {
         assert Utils.check(selectors.length > 0);
         assert Utils.check(offsets.length == selectors.length + 1);
         assert Utils.check(offsets[offsets.length - 1] == 0);
@@ -292,10 +290,10 @@ public abstract class Selector {
     public Transition getTransition() {
         return null;
     }
-    public abstract void start(int dataSize, ASTNode ast) throws UnexpectedResultException;
+    public abstract void start(int dataSize, ASTNode ast) throws SpecializationException;
     public abstract void restart();
     public abstract int size();
-    public abstract int nextIndex(ASTNode ast) throws UnexpectedResultException;
+    public abstract int nextIndex(ASTNode ast) throws SpecializationException;
     public abstract boolean isConstant();
     public abstract boolean isExhausted(); // the next call to nextIndex would go above selector size (always for selectors of size 1)
     public abstract boolean mayHaveNA();
@@ -491,7 +489,7 @@ public abstract class Selector {
         }
 
         @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws SpecializationException {
             int value = index.getInt(offset++);
             if (value > 0) {
                 value--;
@@ -502,7 +500,7 @@ public abstract class Selector {
                 }
             }
             transition = Transition.GENERIC_SELECTION;
-            throw new UnexpectedResultException(this);
+            throw new SpecializationException(this);
         }
 
         @Override
@@ -546,7 +544,7 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        public void start(int dataSize, ASTNode ast) throws SpecializationException {
             if (index.size() == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
@@ -559,7 +557,7 @@ public abstract class Selector {
                 }
             }
             transition = Transition.GENERIC_SELECTION;
-            throw new UnexpectedResultException(this);
+            throw new SpecializationException(this);
         }
 
         @Override
@@ -572,7 +570,7 @@ public abstract class Selector {
         }
 
         @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws SpecializationException {
             return indexValue;
         }
 
@@ -609,7 +607,7 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) throws UnexpectedResultException {
+        public void start(int dataSize, ASTNode ast) throws SpecializationException {
             int isize = index.size();
             if (isize == 1) {
                 int i = index.getInt(0);
@@ -650,7 +648,7 @@ public abstract class Selector {
         }
 
         @Override
-        public int nextIndex(ASTNode ast) throws UnexpectedResultException {
+        public int nextIndex(ASTNode ast) throws SpecializationException {
             return indexValue;
         }
 
@@ -967,8 +965,8 @@ public abstract class Selector {
             @Override
             public Selector executeSelector(RAny index) {
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     SelectorNode sn = createSelectorNode(ast, subset, index, child, false, null);
                     replace(sn, "install Selector from Uninitialized");
                     return sn.executeSelector(index);
@@ -1064,8 +1062,8 @@ public abstract class Selector {
                         selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     if (DEBUG_M) Utils.debug("SimpleNumericSubsetSelector failed in Selector.execute (unexpected type), replacing.");
                     SelectorNode gn = createGenericSubsetSelectorNode(ast, child);
                     replace(gn, "install GenericSubsetSelectorNode from SimpleNumericSubsetSelectorNode");
@@ -1091,8 +1089,8 @@ public abstract class Selector {
                             selector.setIndex(index);
                             return selector;
                         }
-                        throw new UnexpectedResultException(null);
-                    } catch (UnexpectedResultException e) {
+                        throw new SpecializationException(null);
+                    } catch (SpecializationException e) {
                         if (DEBUG_M) Utils.debug("SpecializedSimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
                         SelectorNode gn = createGenericSimpleSubscriptSelectorNode(ast, child);
                         replace(gn, "install GenericSimpleSubscriptSelectorNode from SpecializedSimpleSubscriptSelectorNode");
@@ -1115,8 +1113,8 @@ public abstract class Selector {
                         selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     if (DEBUG_M) Utils.debug("SimpleSubscriptSelector failed in Selector.execute (unexpected type), replacing.");
                     SelectorNode gn = createGenericSubscriptSelectorNode(ast, child);
                     replace(gn, "install GenericSubscriptSelectorNode from SimpleSubscriptSelectorNode");
@@ -1137,8 +1135,8 @@ public abstract class Selector {
                         selector.setIndex(Convert.coerceToIntWarning(index, ast));
                         return selector;
                     }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     if (DEBUG_M) Utils.debug("SimpleScalarNumericSelector failed in Selector.execute (unexpected type), replacing.");
                     SelectorNode gn = createSimpleNumericSubsetSelectorNode(ast, child);
                     replace(gn, "install SimpleNumericSubsetSelectorNode from SimpleScalarNumericSubsetSelectorNode");

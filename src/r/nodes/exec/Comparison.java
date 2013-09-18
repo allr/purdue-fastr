@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RArray.Names;
@@ -36,16 +34,16 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public final int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+    public final int executeScalarLogical(Frame frame) throws SpecializationException {
         RAny lexpr = (RAny) left.execute(frame);
         RAny rexpr = (RAny) right.execute(frame);
         return executeScalarLogical(lexpr, rexpr);
     }
 
-    public int executeScalarLogical(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+    public int executeScalarLogical(RAny lexpr, RAny rexpr) throws SpecializationException {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             ScalarComparison sc = ScalarComparison.createSpecialized(lexpr, rexpr, ast, left, right, cmp);
             replace(sc, "install ScalarComparison.Specialized from Comparison");
             return sc.executeScalarLogical(lexpr, rexpr);
@@ -56,7 +54,7 @@ public class Comparison extends BaseR {
     public final Object execute(Frame frame) {
         try {
             return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
-        } catch (UnexpectedResultException e) {
+        } catch (SpecializationException e) {
             return e.getResult();
         }
     }
@@ -78,7 +76,7 @@ public class Comparison extends BaseR {
     public Object execute(RAny lexpr, RAny rexpr) {
         try {
             return RLogical.RLogicalFactory.getScalar(executeScalarLogical(lexpr, rexpr));
-        } catch (UnexpectedResultException e) {
+        } catch (SpecializationException e) {
             return e.getResult();
         }
     }
@@ -92,7 +90,7 @@ public class Comparison extends BaseR {
         }
 
         public abstract static class Comparator {
-            public abstract int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException;
+            public abstract int compare(RAny lexpr, RAny rexpr) throws SpecializationException;
         }
 
         enum Transition {
@@ -104,9 +102,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         double l = ((ScalarDoubleImpl) lexpr).getDouble();
                         double r = ((ScalarDoubleImpl) rexpr).getDouble();
@@ -121,9 +119,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         int l = ((ScalarIntImpl) lexpr).getInt();
                         int r = ((ScalarIntImpl) rexpr).getInt();
@@ -138,9 +136,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         double l = ((ScalarDoubleImpl) lexpr).getDouble();
                         int r = ((ScalarIntImpl) rexpr).getInt();
@@ -155,9 +153,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         int l = ((ScalarIntImpl) lexpr).getInt();
                         double r = ((ScalarDoubleImpl) rexpr).getDouble();
@@ -172,9 +170,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarLogicalImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarLogicalImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         int l = ((ScalarIntImpl) lexpr).getInt();
                         int r = ((ScalarLogicalImpl) rexpr).getLogical();
@@ -189,9 +187,9 @@ public class Comparison extends BaseR {
             if (leftTemplate instanceof ScalarLogicalImpl && rightTemplate instanceof ScalarIntImpl) {
                 Comparator c = new Comparator() {
                     @Override
-                    public final int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                    public final int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarLogicalImpl && rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(Transition.COMMON_SCALAR);
+                            throw new SpecializationException(Transition.COMMON_SCALAR);
                         }
                         int l = ((ScalarLogicalImpl) lexpr).getLogical();
                         int r = ((ScalarIntImpl) rexpr).getInt();
@@ -207,7 +205,7 @@ public class Comparison extends BaseR {
             return createGeneric(ast, left, right, cmp);
         }
 
-        public static int generic(RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws UnexpectedResultException {
+        public static int generic(RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws SpecializationException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
             if (lexpr instanceof ScalarStringImpl) { // note: could make this shorter if we didn't care about Java-level boxing
@@ -253,13 +251,13 @@ public class Comparison extends BaseR {
                     return cmp.cmp(lint, rdbl) ? RLogical.TRUE : RLogical.FALSE;
                 }
             }
-            throw new UnexpectedResultException(Transition.VECTOR_SCALAR);
+            throw new SpecializationException(Transition.VECTOR_SCALAR);
         }
 
         public static ScalarComparison createGeneric(final ASTNode ast, RNode left, RNode right, final ValueComparison cmp) {
             Comparator c = new Comparator() {
                 @Override
-                public int compare(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+                public int compare(RAny lexpr, RAny rexpr) throws SpecializationException {
                     return generic(lexpr, rexpr, cmp, ast);
                 }
             };
@@ -267,10 +265,10 @@ public class Comparison extends BaseR {
         }
 
         @Override
-        public final int executeScalarLogical(RAny lexpr, RAny rexpr) throws UnexpectedResultException {
+        public final int executeScalarLogical(RAny lexpr, RAny rexpr) throws SpecializationException {
             try {
                 return comp.compare(lexpr, rexpr);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Transition t = (Transition) e.getResult();
                 if (t == Transition.COMMON_SCALAR) {
                     ScalarComparison sc = createGeneric(ast, left, right, cmp);
@@ -281,12 +279,12 @@ public class Comparison extends BaseR {
                     if (LAZY_COMPARISON_IN_VECTOR_INDEX && isPartOfArrayIndex(ast)) {
                         LazyComparison ln = new LazyComparison(ast);
                         replace(ln, "installLazyComparison");
-                        throw new UnexpectedResultException(ln.execute(lexpr, rexpr));
+                        throw new SpecializationException(ln.execute(lexpr, rexpr));
                     }
                     VectorScalarComparison vs = new VectorScalarComparison(ast);
                     replace(vs, "specializeNumericVectorScalarComparison");
                     Object res = vs.execute(lexpr, rexpr);
-                    throw new UnexpectedResultException(res);
+                    throw new SpecializationException(res);
                 }
             }
         }
@@ -318,13 +316,13 @@ public class Comparison extends BaseR {
                             if (ldbl.size() >= 1 && rdbl.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(ldbl, rdbl.getDouble(0));
                             } else {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                         } else {
                             if (rdbl.size() > 1 && ldbl.size() == 1 && ldbl.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
                             } else {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                         }
                     }
@@ -338,13 +336,13 @@ public class Comparison extends BaseR {
                             if (lint.size() >= 1 && rint.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(lint, rint.getInt(0));
                             } else {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                         } else {
                             if (rint.size() > 1 && lint.size() == 1 && lint.dimensions() == null) {
                                 return Comparison.this.cmp.cmp(lint.getInt(0), rint);
                             } else {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                         }
                     }
@@ -358,11 +356,11 @@ public class Comparison extends BaseR {
                     } else if (lstr.size() == 1 && lstr.dimensions() == null) {
                         return Comparison.this.cmp.cmp(lstr.getString(0), rstr);
                     } else {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 }
                 if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
-                    throw new UnexpectedResultException(null); // we assume complex comparisons are rare, so use generic case
+                    throw new SpecializationException(null); // we assume complex comparisons are rare, so use generic case
                 }
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                     RDouble ldbl = lexpr.asDouble();
@@ -372,7 +370,7 @@ public class Comparison extends BaseR {
                     } else if (ldbl.size() == 1 && ldbl.dimensions() == null) {
                         return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
                     } else {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 }
                 if (lexpr instanceof RInt || rexpr instanceof RInt) {
@@ -383,13 +381,13 @@ public class Comparison extends BaseR {
                     } else if (lint.size() == 1 && lint.dimensions() == null) {
                         return Comparison.this.cmp.cmp(lint.getInt(0), rint);
                     } else {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                 }
                 // logicals and raws are expected to be less frequent, hence handled in GenericComparison
-                throw new UnexpectedResultException(null);
+                throw new SpecializationException(null);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 if (DEBUG_CMP) Utils.debug("comparison - 2nd level comparison failed (not int,double scalar and vector)");
                 GenericComparison vs = new GenericComparison(ast);
                 replace(vs, "genericComparison");
@@ -510,8 +508,8 @@ public class Comparison extends BaseR {
 
                     }
                 }
-                throw new UnexpectedResultException(null);
-            } catch(UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch(SpecializationException e) {
                 GenericComparison vs = new GenericComparison(ast);
                 replace(vs, "genericComparison");
                 return vs.execute(lexpr, rexpr);

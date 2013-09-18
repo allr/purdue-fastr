@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -50,7 +48,7 @@ public abstract class LogicalOperation extends BaseR {
         for (;;) {
             try {
                 return curNode.executeScalarLogical(frame);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 curNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
                 continue;
             }
@@ -126,12 +124,12 @@ public abstract class LogicalOperation extends BaseR {
         }
 
         @Override
-        public int executeScalarLogical(Frame frame) throws UnexpectedResultException {
+        public int executeScalarLogical(Frame frame) throws SpecializationException {
             RAny value = (RAny) child.execute(frame);
             return extract(value);
         }
 
-        abstract int extract(RAny value) throws UnexpectedResultException;
+        abstract int extract(RAny value) throws SpecializationException;
     }
 
     public static CastNode createAndInsertCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {
@@ -148,22 +146,22 @@ public abstract class LogicalOperation extends BaseR {
             if (template instanceof ScalarDoubleImpl) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
-                    int extract(RAny value) throws UnexpectedResultException {
+                    int extract(RAny value) throws SpecializationException {
                         if (value instanceof ScalarDoubleImpl) {
                             return Convert.double2logical(((ScalarDoubleImpl) value).getDouble());
                         }
-                        throw new UnexpectedResultException(value);
+                        throw new SpecializationException(value);
                     }
                 };
             }
             if (template instanceof ScalarIntImpl) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
-                    int extract(RAny value) throws UnexpectedResultException {
+                    int extract(RAny value) throws SpecializationException {
                         if (value instanceof ScalarIntImpl) {
                             return Convert.int2logical(((ScalarIntImpl) value).getInt());
                         }
-                        throw new UnexpectedResultException(value);
+                        throw new SpecializationException(value);
                     }
                 };
             }
@@ -172,7 +170,7 @@ public abstract class LogicalOperation extends BaseR {
             if (template instanceof RLogical) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
-                    int extract(RAny value) throws UnexpectedResultException {
+                    int extract(RAny value) throws SpecializationException {
                         if (value instanceof RLogical) {
                             RLogical v = (RLogical) value;
                             if (v.size() > 0) {
@@ -181,14 +179,14 @@ public abstract class LogicalOperation extends BaseR {
                                 return RLogical.NA;
                             }
                         }
-                        throw new UnexpectedResultException(value);
+                        throw new SpecializationException(value);
                     }
                 };
             }
             if (template instanceof RDouble) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
-                    int extract(RAny value) throws UnexpectedResultException {
+                    int extract(RAny value) throws SpecializationException {
                         if (value instanceof RDouble) {
                             RDouble v = (RDouble) value;
                             if (v.size() > 0) {
@@ -197,14 +195,14 @@ public abstract class LogicalOperation extends BaseR {
                                 return RLogical.NA;
                             }
                         }
-                        throw new UnexpectedResultException(value);
+                        throw new SpecializationException(value);
                     }
                 };
             }
             if (template instanceof RInt) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override
-                    int extract(RAny value) throws UnexpectedResultException {
+                    int extract(RAny value) throws SpecializationException {
                         if (value instanceof RInt) {
                             RInt v = (RInt) value;
                             if (v.size() > 0) {
@@ -213,7 +211,7 @@ public abstract class LogicalOperation extends BaseR {
                                 return RLogical.NA;
                             }
                         }
-                        throw new UnexpectedResultException(value);
+                        throw new SpecializationException(value);
                     }
                 };
             }

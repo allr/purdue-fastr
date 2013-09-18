@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RAny.*;
@@ -114,8 +112,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      */
     @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS && subset && !column && !MatrixScalarIndex.isMatrixScalar(selectorExprs, frame)) {
                 if (!lhs.isShared()) {
                     if ((lhs instanceof IntImpl) && (rhs instanceof IntImpl)) {
@@ -153,7 +151,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         try {
             if (lhs.isShared()) {
                 // yes, this can happen, even though many call sites unnecessarily do another check
-                throw new UnexpectedResultException(null);
+                throw new SpecializationException(null);
             }
             for (int i = 0; i < selectorVals.length; ++i) {
                 selectorVals[i] = selectorExprs[i].executeSelector(frame);
@@ -161,7 +159,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             while (true) {
                 try {
                     return update(lhs, rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Selector failedSelector = (Selector) e.getResult();
                     for (int i = 0; i < selectorVals.length; ++i) {
                         if (selectorVals[i] == failedSelector) {
@@ -175,7 +173,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     }
                 }
             }
-        } catch (UnexpectedResultException e) {
+        } catch (SpecializationException e) {
             if (DEBUG_UP) Utils.debug(getClass().getSimpleName() + " -> Generalized");
             return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
         }
@@ -188,7 +186,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
      * array manipulation.
      */
 
-    protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+    protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
         int[] lhsDim = lhs.dimensions();
         checkDimensions(lhsDim, selectorExprs.length, ast);
         boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -257,8 +255,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          */
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if ((lhs instanceof RDouble && rhs instanceof RDouble) || (lhs instanceof RInt && rhs instanceof RInt) || (lhs instanceof RLogical && rhs instanceof RLogical)
                         || (lhs instanceof RString && rhs instanceof RString) || (lhs instanceof RComplex && rhs instanceof RComplex) || (lhs instanceof RRaw && rhs instanceof RRaw)
                         || (lhs instanceof RList && rhs instanceof RList)) {
@@ -290,8 +288,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         /** Rewrites itself to either Scalar updater, or to the more generic NonScalar updater. */
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (!subset) {
                     if (DEBUG_UP) Utils.debug("IdenticalTypes -> Subscript");
                     return replace(Subscript.create(this, lhs, rhs)).execute(frame, lhs, rhs);
@@ -404,7 +402,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return super.execute(frame, lhs, rhs);
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             if (Configuration.ARRAY_UPDATE_DIRECT_SPECIALIZATIONS_IN_GENERALIZED) {
                 switch (updateType) {
                 case INT_TO_INT_DIRECT:
@@ -435,7 +433,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             assert Utils.check(!other.subset);
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return Subscript.doUpdate(lhs, rhs, selectorVals, ast);
         }
     }
@@ -484,7 +482,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             if (rhsImpl != null) {
                 try {
                     rhs = rhsImpl.copy(rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     assert (false) : "unreachable";
                 }
             }
@@ -494,7 +492,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             if (!(lhsImpl instanceof ValueCopy.Duplicate) || lhs.isShared() || rhs.dependsOn(lhs)) {
                 try {
                     lhs = lhsImpl.copy(lhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     assert (false) : "unreachable";
                 }
             }
@@ -671,8 +669,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          */
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 ValueCopy.Impl copy = determineCopyImplementation(lhs, rhs, selectorExprs.length, !subset, ast);
                 if (copy instanceof ValueCopy.Duplicate) {
                     return replace(new SpecializedDuplicate(this, (ValueCopy.Duplicate) copy)).execute(frame, lhs, rhs);
@@ -712,7 +710,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     rhsTypeGuard.check(rhs);
 
                     lhs = impl.copy(lhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("CopyLhs.Specialized -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -739,7 +737,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (lhsParam.isShared() || rhs.dependsOn(lhsParam)) {
                     try {
                         lhs = impl.copy(lhsParam);
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         if (DEBUG_UP) Utils.debug("CopyLhs.SpecializedDuplicate -> Generalized");
                         return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
                     }
@@ -753,47 +751,47 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     }
 
     public abstract static class TypeGuard {
-        abstract void check(RAny value) throws UnexpectedResultException;
+        abstract void check(RAny value) throws SpecializationException;
 
         public static TypeGuard create(RAny valueTemplate) {
             if (valueTemplate instanceof RList) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RList)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RList)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RString) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RString)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RString)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RComplex) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RComplex)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RComplex)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RDouble) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RDouble)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RDouble)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RInt) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RInt)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RInt)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RLogical) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RLogical)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RLogical)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RRaw) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RRaw)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RRaw)) { throw new SpecializationException(null); }
                 }
             }; }
             if (valueTemplate instanceof RNull) { return new TypeGuard() {
-                @Override void check(RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RNull)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny value) throws SpecializationException {
+                    if (!(value instanceof RNull)) { throw new SpecializationException(null); }
                 }
             }; }
             assert Utils.check(false, "unreachable");
@@ -897,8 +895,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          */
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 ValueCopy.Impl impl = determineCopyImplementation(lhs, rhs, selectorExprs.length, ast);
                 if (impl == null) {
                     if (DEBUG_UP) Utils.debug("CopyLhs -> Generalized (not know how to copy lhs)");
@@ -933,7 +931,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                     lhsTypeGuard.check(lhs);
 
                     rhs = impl.copy(rhsParam);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("CopyRhs.Specialized -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhsParam);
                 }
@@ -948,42 +946,42 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
     // =================================================================================================================
 
     public abstract static class BinaryTypeGuard {
-        abstract void check(RAny lhs, RAny rhs) throws UnexpectedResultException;
+        abstract void check(RAny lhs, RAny rhs) throws SpecializationException;
 
         public static BinaryTypeGuard create(RAny leftTemplate, RAny rightTemplate) {
             if (leftTemplate instanceof RString && rightTemplate instanceof RString) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RString && rhs instanceof RString)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RString && rhs instanceof RString)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RComplex && rightTemplate instanceof RComplex) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RComplex && rhs instanceof RComplex)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RComplex && rhs instanceof RComplex)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RDouble && rhs instanceof RDouble)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RDouble && rhs instanceof RDouble)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RInt && rhs instanceof RInt)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RInt && rhs instanceof RInt)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RLogical && rhs instanceof RLogical)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RLogical && rhs instanceof RLogical)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RRaw && rhs instanceof RRaw)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RRaw && rhs instanceof RRaw)) { throw new SpecializationException(null); }
                 }
             }; }
             if (leftTemplate instanceof RList && rightTemplate instanceof RList) { return new BinaryTypeGuard() {
-                @Override void check(RAny lhs, RAny rhs) throws UnexpectedResultException {
-                    if (!(lhs instanceof RList && rhs instanceof RList)) { throw new UnexpectedResultException(null); }
+                @Override void check(RAny lhs, RAny rhs) throws SpecializationException {
+                    if (!(lhs instanceof RList && rhs instanceof RList)) { throw new SpecializationException(null); }
                 }
             }; }
             assert Utils.check(false, "unreachable");
@@ -1010,13 +1008,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             try {
                 guard.check(lhs, rhs);
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 if (DEBUG_UP) Utils.debug("Subscript -> Generalized");
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
 
-        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
+        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws SpecializationException {
             int[] dim = lhs.dimensions();
             checkDimensions(dim, selectorVals.length, ast);
             int mult = 1;
@@ -1033,7 +1031,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs.set(offset, rhs instanceof RList ? rhs : rhs.get(0));
         }
 
-        @Override public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override public RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(lhs, rhs, selectorVals, ast);
         }
     }
@@ -1056,13 +1054,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
                 guard.check(lhs, rhs);
-                if (lhs.isShared()) { throw new UnexpectedResultException(null); }
+                if (lhs.isShared()) { throw new SpecializationException(null); }
                 int lastSel = selectorVals.length - 1;
                 Selector columnSel = selectorExprs[lastSel].executeSelector(frame);
                 while (true) {
                     try {
                         return update((RArray) lhs, (RArray) rhs, columnSel);
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         RAny index = columnSel.getIndex();
                         SelectorNode newSelector = Selector.createSelectorNode(ast, subset, index, selectorExprs[lastSel].child, false, columnSel.getTransition());
                         selectorExprs[lastSel].replace(newSelector);
@@ -1071,13 +1069,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                         if (DEBUG_UP) Utils.debug("Column selector changed...");
                     }
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 if (DEBUG_UP) Utils.debug("Column -> Generalized");
                 return Generic.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
         }
 
-        public static RArray doUpdate(RArray lhs, RArray rhs, int nSelectors, Selector columnSelector, ASTNode ast) throws UnexpectedResultException {
+        public static RArray doUpdate(RArray lhs, RArray rhs, int nSelectors, Selector columnSelector, ASTNode ast) throws SpecializationException {
             int[] dim = lhs.dimensions();
             checkDimensions(dim, nSelectors, ast);
             int n = dim[nSelectors - 1];
@@ -1108,11 +1106,11 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        public RArray update(RArray lhs, RArray rhs, Selector columnSelector) throws UnexpectedResultException {
+        public RArray update(RArray lhs, RArray rhs, Selector columnSelector) throws SpecializationException {
             return doUpdate(lhs, rhs, selectorExprs.length, columnSelector, ast);
         }
 
-        @Override public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override public RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             Utils.nyi("unreachable");
             return null;
         }
@@ -1164,7 +1162,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 extractIndex(ival);
                 extractIndex(jval);
                 result = true;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 result = false;
             }
 
@@ -1176,7 +1174,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return result;
         }
 
-        public static int extractIndex(Object val) throws UnexpectedResultException { // zero-based
+        public static int extractIndex(Object val) throws SpecializationException { // zero-based
             if (val instanceof ScalarIntImpl) {
                 int i = ((ScalarIntImpl) val).getInt();
                 if (i > 0) { return i - 1; }
@@ -1185,16 +1183,16 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 if (d > 0 && d <= Integer.MAX_VALUE) { return ((int) d) - 1; // truncate towards zero
                 }
             }
-            throw new UnexpectedResultException(null);
+            throw new SpecializationException(null);
         }
 
         @Override public RAny execute(Frame frame, RAny lhsArg, RAny rhsArg) {
             RArray lhs = Utils.cast(lhsArg); // FIXME: get rid of this
             RArray rhs = Utils.cast(rhsArg);
             try {
-                if (lhs.isShared()) { throw new UnexpectedResultException(null); }
+                if (lhs.isShared()) { throw new SpecializationException(null); }
                 guard.check(lhs, rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 if (DEBUG_UP) Utils.debug("MatrixScalarIndex -> Generalized");
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
             }
@@ -1210,13 +1208,13 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
                 j = extractIndex(jval);
 
                 int[] dim = lhs.dimensions();
-                if (dim == null || dim.length != 2 || rhs.size() != 1) { throw new UnexpectedResultException(null); }
+                if (dim == null || dim.length != 2 || rhs.size() != 1) { throw new SpecializationException(null); }
                 int m = dim[0];
                 int n = dim[1];
-                if (!(i < m && j < n)) { throw new UnexpectedResultException(null); }
+                if (!(i < m && j < n)) { throw new SpecializationException(null); }
                 return lhs.set(j * m + i, rhs.get(0));
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 selectorExprs[0].pushBack(selectorExprs[0].child, ival);
                 selectorExprs[1].pushBack(selectorExprs[1].child, jval);
 
@@ -1228,12 +1226,12 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
         }
 
-        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws UnexpectedResultException {
+        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws SpecializationException {
             Utils.nyi("unreachable");
             return null;
         }
 
-        @Override public RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override public RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             Utils.nyi("unreachable");
             return null;
         }
@@ -1253,8 +1251,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (rhs instanceof RInt) {
                     return replace(new Int(this)).execute(frame, lhs, rhs);
                 } else if (rhs instanceof RDouble) {
@@ -1281,14 +1279,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if ((!(rhs instanceof ScalarLogicalImpl)) || (!(lhs instanceof LogicalImpl))) { throw new UnexpectedResultException(null); }
+                    if ((!(rhs instanceof ScalarLogicalImpl)) || (!(lhs instanceof LogicalImpl))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
-            @Override protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            @Override protected final RArray update(RArray lhs, RArray rhs) throws SpecializationException {
                 int[] lhsDim = lhs.dimensions();
                 checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -1330,14 +1328,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if ((!(rhs instanceof ScalarIntImpl)) || (!(lhs instanceof IntImpl))) { throw new UnexpectedResultException(null); }
+                    if ((!(rhs instanceof ScalarIntImpl)) || (!(lhs instanceof IntImpl))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
-            @Override protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            @Override protected final RArray update(RArray lhs, RArray rhs) throws SpecializationException {
                 int[] lhsDim = lhs.dimensions();
                 checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -1379,14 +1377,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if ((!(rhs instanceof ScalarDoubleImpl)) || (!(lhs instanceof DoubleImpl))) { throw new UnexpectedResultException(null); }
+                    if ((!(rhs instanceof ScalarDoubleImpl)) || (!(lhs instanceof DoubleImpl))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
-            @Override protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            @Override protected final RArray update(RArray lhs, RArray rhs) throws SpecializationException {
                 int[] lhsDim = lhs.dimensions();
                 checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -1428,14 +1426,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if ((!(rhs instanceof ScalarComplexImpl)) || (!(lhs instanceof ComplexImpl))) { throw new UnexpectedResultException(null); }
+                    if ((!(rhs instanceof ScalarComplexImpl)) || (!(lhs instanceof ComplexImpl))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
-            @Override protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            @Override protected final RArray update(RArray lhs, RArray rhs) throws SpecializationException {
                 int[] lhsDim = lhs.dimensions();
                 checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -1480,14 +1478,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if ((!(rhs instanceof ScalarStringImpl)) || (!(lhs instanceof StringImpl))) { throw new UnexpectedResultException(null); }
+                    if ((!(rhs instanceof ScalarStringImpl)) || (!(lhs instanceof StringImpl))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
             }
 
-            @Override protected final RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+            @Override protected final RArray update(RArray lhs, RArray rhs) throws SpecializationException {
                 int[] lhsDim = lhs.dimensions();
                 checkDimensions(lhsDim, selectorExprs.length, ast);
                 boolean mayHaveNA = Selector.initialize(offsets, selectorVals, lhsDim, selSizes, ast);
@@ -1541,8 +1539,8 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          */
         @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if ((lhs instanceof RLogical) && (rhs instanceof RLogical)) {
                     if (DEBUG_UP) Utils.debug("NonScalar -> Logical");
                     return replace(new Logical(this)).execute(frame, lhs, rhs);
@@ -1587,9 +1585,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RLogical) || (!(rhs instanceof RLogical))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Logical -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1607,9 +1605,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RInt) || (!(rhs instanceof RInt))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Int -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1627,9 +1625,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RDouble) || (!(rhs instanceof RDouble))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Double -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1647,9 +1645,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RComplex) || (!(rhs instanceof RComplex))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Complex -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1667,9 +1665,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RString) || (!(rhs instanceof RString))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RString) || (!(rhs instanceof RString))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.String -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1687,9 +1685,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RRaw) || (!(rhs instanceof RRaw))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RRaw) || (!(rhs instanceof RRaw))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.Raw -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1704,9 +1702,9 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
 
             @Override public RAny execute(Frame frame, RAny lhs, RAny rhs) {
                 try {
-                    if (!(lhs instanceof RList) || (!(rhs instanceof RList))) { throw new UnexpectedResultException(null); }
+                    if (!(lhs instanceof RList) || (!(rhs instanceof RList))) { throw new SpecializationException(null); }
                     return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     if (DEBUG_UP) Utils.debug("NonScalar.List -> Generalized");
                     return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhs, rhs);
                 }
@@ -1756,14 +1754,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             RAny lhs;
             try {
-                if (!(lhsParam instanceof IntImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof IntImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
                     lhs = ValueCopy.INT_TO_INT_DIRECT.copy(lhsParam);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -1772,7 +1770,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -1827,7 +1825,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -1846,14 +1844,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhs);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -1862,7 +1860,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -1918,7 +1916,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -1938,14 +1936,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof DoubleImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
                     lhs = ValueCopy.DOUBLE_TO_DOUBLE_DIRECT.copy(lhsParam);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -1954,7 +1952,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -2011,7 +2009,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -2030,14 +2028,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof IntImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -2046,7 +2044,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -2104,7 +2102,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -2123,14 +2121,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof DoubleImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS) {
                     lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhs);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -2139,7 +2137,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -2198,7 +2196,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -2218,14 +2216,14 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
         @Override public RAny execute(Frame frame, RAny lhsParam, RAny rhs) {
             try {
                 RAny lhs;
-                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || lhsParam.isShared()) { throw new UnexpectedResultException(null); }
+                if (!(lhsParam instanceof ComplexImpl) || !(rhs instanceof ComplexImpl) || lhsParam.isShared()) { throw new SpecializationException(null); }
                 if (!Configuration.ARRAY_UPDATE_DO_NOT_COPY_LHS_WHEN_NO_ALIAS_IN_DIRECT_SPECIALIZATIONS || (lhsParam == rhs)) {
                     lhs = ValueCopy.COMPLEX_TO_COMPLEX_DIRECT.copy(lhsParam);
                 } else {
                     lhs = lhsParam;
                 }
                 return executeAndUpdateSelectors(frame, (RArray) lhs, (RArray) rhs);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return GenericSubset.replaceArrayUpdateTree(this).execute(frame, lhsParam, rhs);
             }
         }
@@ -2234,7 +2232,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
          * Static method so that the update can be called also from other UpdateArray nodes, notably the Generalized
          * one.
          */
-        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws UnexpectedResultException {
+        protected static RArray doUpdate(UpdateArray node, RArray lhs, RArray rhs) throws SpecializationException {
             int[] offsets = node.offsets;
             Selector[] selectorVals = node.selectorVals;
             int[] selSizes = node.selSizes;
@@ -2292,7 +2290,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             return lhs;
         }
 
-        @Override protected RArray update(RArray lhs, RArray rhs) throws UnexpectedResultException {
+        @Override protected RArray update(RArray lhs, RArray rhs) throws SpecializationException {
             return doUpdate(this, lhs, rhs);
         }
     }
@@ -2340,7 +2338,7 @@ class ValueCopy {
 
     protected abstract static class Impl {
 
-        public abstract RAny copy(RAny what) throws UnexpectedResultException;
+        public abstract RAny copy(RAny what) throws SpecializationException;
     }
 
     protected abstract static class Upcast extends Impl {}
@@ -2349,8 +2347,8 @@ class ValueCopy {
 
     public static final Duplicate LOGICAL_TO_LOGICAL = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RLogical)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RLogical)) { throw new SpecializationException(null); }
             RLogical from = (RLogical) what;
             int[] result = new int[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2362,8 +2360,8 @@ class ValueCopy {
 
     public static final Upcast LOGICAL_TO_INT = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RLogical)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RLogical)) { throw new SpecializationException(null); }
             RLogical from = (RLogical) what;
             int[] result = new int[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2375,8 +2373,8 @@ class ValueCopy {
 
     public static final Duplicate INT_TO_INT = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RInt)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RInt)) { throw new SpecializationException(null); }
             RInt from = (RInt) what;
             int[] result = new int[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2387,8 +2385,8 @@ class ValueCopy {
     };
 
     public static final Duplicate INT_TO_INT_DIRECT = new Duplicate() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof IntImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof IntImpl)) { throw new SpecializationException(null); }
             RInt old = (RInt) what;
             int[] from = ((IntImpl) what).getContent();
             int[] result = new int[from.length];
@@ -2399,8 +2397,8 @@ class ValueCopy {
 
     public static final Upcast LOGICAL_TO_DOUBLE = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RLogical)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RLogical)) { throw new SpecializationException(null); }
             RLogical from = (RLogical) what;
             double[] result = new double[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2412,8 +2410,8 @@ class ValueCopy {
 
     public static final Upcast INT_TO_DOUBLE = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RInt)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RInt)) { throw new SpecializationException(null); }
             RInt from = (RInt) what;
             double[] result = new double[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2424,8 +2422,8 @@ class ValueCopy {
     };
 
     public static final Upcast INT_TO_DOUBLE_DIRECT = new Upcast() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof IntImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof IntImpl)) { throw new SpecializationException(null); }
             RInt old = (RInt) what;
             int[] from = ((IntImpl) what).getContent();
             double[] result = new double[from.length];
@@ -2438,8 +2436,8 @@ class ValueCopy {
 
     public static final Duplicate DOUBLE_TO_DOUBLE = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RDouble)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RDouble)) { throw new SpecializationException(null); }
             RDouble from = (RDouble) what;
             double[] result = new double[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2450,8 +2448,8 @@ class ValueCopy {
     };
 
     public static final Duplicate DOUBLE_TO_DOUBLE_DIRECT = new Duplicate() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof DoubleImpl)) { throw new SpecializationException(null); }
             RDouble old = (RDouble) what;
             double[] from = ((DoubleImpl) what).getContent();
             double[] result = new double[from.length];
@@ -2462,8 +2460,8 @@ class ValueCopy {
 
     public static final Upcast LOGICAL_TO_COMPLEX = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RLogical)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RLogical)) { throw new SpecializationException(null); }
             RLogical from = (RLogical) what;
             int lsize = from.size();
             double[] result = new double[lsize * 2];
@@ -2482,8 +2480,8 @@ class ValueCopy {
 
     public static final Upcast INT_TO_COMPLEX = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RInt)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RInt)) { throw new SpecializationException(null); }
             RInt from = (RInt) what;
             int isize = from.size();
             double[] result = new double[isize * 2];
@@ -2501,8 +2499,8 @@ class ValueCopy {
     };
 
     public static final Upcast INT_TO_COMPLEX_DIRECT = new Upcast() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof IntImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof IntImpl)) { throw new SpecializationException(null); }
             RInt old = (RInt) what;
             int[] from = ((IntImpl) what).getContent();
             double[] result = new double[from.length * 2];
@@ -2521,8 +2519,8 @@ class ValueCopy {
 
     public static final Upcast DOUBLE_TO_COMPLEX = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RDouble)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RDouble)) { throw new SpecializationException(null); }
             RDouble from = (RDouble) what;
             int dsize = from.size();
             double[] result = new double[dsize * 2];
@@ -2541,8 +2539,8 @@ class ValueCopy {
     };
 
     public static final Upcast DOUBLE_TO_COMPLEX_DIRECT = new Upcast() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof DoubleImpl)) { throw new SpecializationException(null); }
             RDouble old = (RDouble) what;
             double[] from = ((DoubleImpl) what).getContent();
             double[] result = new double[from.length * 2];
@@ -2561,8 +2559,8 @@ class ValueCopy {
 
     public static final Duplicate COMPLEX_TO_COMPLEX = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RComplex)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RComplex)) { throw new SpecializationException(null); }
             RComplex from = (RComplex) what;
             int fsize = from.size();
             double[] result = new double[fsize * 2];
@@ -2575,8 +2573,8 @@ class ValueCopy {
     };
 
     public static final Duplicate COMPLEX_TO_COMPLEX_DIRECT = new Duplicate() {
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof ComplexImpl)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof ComplexImpl)) { throw new SpecializationException(null); }
             RComplex old = (RComplex) what;
             double[] from = ((ComplexImpl) what).getContent();
             double[] result = new double[from.length];
@@ -2587,8 +2585,8 @@ class ValueCopy {
 
     public static final Upcast LOGICAL_TO_STRING = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RLogical)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RLogical)) { throw new SpecializationException(null); }
             RLogical from = (RLogical) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2600,8 +2598,8 @@ class ValueCopy {
 
     public static final Upcast INT_TO_STRING = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RInt)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RInt)) { throw new SpecializationException(null); }
             RInt from = (RInt) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2613,8 +2611,8 @@ class ValueCopy {
 
     public static final Upcast DOUBLE_TO_STRING = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RDouble)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RDouble)) { throw new SpecializationException(null); }
             RDouble from = (RDouble) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2626,8 +2624,8 @@ class ValueCopy {
 
     public static final Upcast COMPLEX_TO_STRING = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RComplex)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RComplex)) { throw new SpecializationException(null); }
             RComplex from = (RComplex) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2639,8 +2637,8 @@ class ValueCopy {
 
     public static final Duplicate STRING_TO_STRING = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RString)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RString)) { throw new SpecializationException(null); }
             RString from = (RString) what;
             String[] result = new String[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2652,8 +2650,8 @@ class ValueCopy {
 
     public static final Upcast NONLIST_TO_LIST = new Upcast() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RArray) || what instanceof RList) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RArray) || what instanceof RList) { throw new SpecializationException(null); }
             RArray from = (RArray) what;
             RAny[] result = new RAny[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2665,8 +2663,8 @@ class ValueCopy {
 
     public static final Duplicate LIST_TO_LIST = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RList)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RList)) { throw new SpecializationException(null); }
             RList from = (RList) what;
             RAny[] result = new RAny[from.size()];
             for (int i = 0; i < result.length; ++i) { // shallow copy
@@ -2678,8 +2676,8 @@ class ValueCopy {
 
     public static final Duplicate RAW_TO_RAW = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
-            if (!(what instanceof RRaw)) { throw new UnexpectedResultException(null); }
+        @Override public final RAny copy(RAny what) throws SpecializationException {
+            if (!(what instanceof RRaw)) { throw new SpecializationException(null); }
             RRaw from = (RRaw) what;
             byte[] result = new byte[from.size()];
             for (int i = 0; i < result.length; ++i) {
@@ -2691,7 +2689,7 @@ class ValueCopy {
 
     public static final Duplicate NULL_TO_NULL = new Duplicate() {
 
-        @Override public final RAny copy(RAny what) throws UnexpectedResultException {
+        @Override public final RAny copy(RAny what) throws SpecializationException {
             assert Utils.check(false, "unreachable");
             return null;
         }

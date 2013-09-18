@@ -7,8 +7,6 @@ import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 /**
  * "abs"
  *
@@ -71,8 +69,8 @@ public class Abs extends CallFactory {
         return new Builtin.Builtin1(call, names, exprs) {
             @Override public final RAny doBuiltIn(Frame frame, RAny arg) {
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     if (arg instanceof ScalarIntImpl) {
                         replace(createScalarInt(call, names, exprs));
 
@@ -101,11 +99,11 @@ public class Abs extends CallFactory {
                 Object val = expr.execute(frame);
                 try {
                     if (!(val instanceof ScalarIntImpl)) {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                     int i = ((ScalarIntImpl) val).getInt();
                     return (i < 0) ? RInt.RIntFactory.getScalar(-i) : val; // NOTE: this also works with NA, NA will remain NA
-                } catch(UnexpectedResultException e) {
+                } catch(SpecializationException e) {
                     exprs[0].replace(expr); // keep the new child
                     replace(createGeneric(call, names, exprs));
                     return generic((RAny) val);
@@ -113,13 +111,13 @@ public class Abs extends CallFactory {
             }
 
             @Override
-            public int executeScalarInteger(Frame frame) throws UnexpectedResultException {
+            public int executeScalarInteger(Frame frame) throws SpecializationException {
                 try {
                     int i = expr.executeScalarInteger(frame);
                     return abs(i);
-                } catch(UnexpectedResultException e) {
+                } catch(SpecializationException e) {
                     replace(createGeneric(call, names, exprs));
-                    throw new UnexpectedResultException(generic((RAny) e.getResult()));
+                    throw new SpecializationException(generic((RAny) e.getResult()));
                 }
             }
 

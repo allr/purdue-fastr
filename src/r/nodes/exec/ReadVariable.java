@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -47,8 +45,8 @@ public abstract class ReadVariable extends BaseR {
             public final Object execute(Frame frame) {
 
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     ReadVariable node;
                     int slot;
                     EnclosingSlot rse;
@@ -88,10 +86,10 @@ public abstract class ReadVariable extends BaseR {
                 try {
                     Object value = frame.getObjectForcingPromises(slot);
                     if (value == null) {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                     return value;
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     return replace(getReadLocal(ast, symbol, slot)).execute(frame);
                 }
             }
@@ -113,10 +111,10 @@ public abstract class ReadVariable extends BaseR {
                     try {
                         Object value =  RPromise.force(sframe.slot1);
                         if (value == null) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         return value;
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         return replace(getReadLocal(ast, symbol, slot)).execute(frame);
                     }
                 }
@@ -131,10 +129,10 @@ public abstract class ReadVariable extends BaseR {
                     try {
                         Object value =  RPromise.force(sframe.slot1);
                         if (value == null) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         return value;
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         return replace(getReadLocal(ast, symbol, slot)).execute(frame);
                     }
                 }
@@ -149,10 +147,10 @@ public abstract class ReadVariable extends BaseR {
                     try {
                         Object value =  RPromise.force(sframe.slot2);
                         if (value == null) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         return value;
-                    } catch (UnexpectedResultException e) {
+                    } catch (SpecializationException e) {
                         return replace(getReadLocal(ast, symbol, slot)).execute(frame);
                     }
                 }

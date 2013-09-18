@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.nodes.ast.*;
 import r.runtime.*;
 
@@ -15,7 +13,7 @@ public class Sequence extends BaseR {
         adoptChildren(exprs);
     }
 
-    @Override @ExplodeLoop public final Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
 
         Object res = null;
         for (RNode e : exprs) {

@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
 import r.data.*;
 import r.errors.RError;
 import r.nodes.ast.*;
@@ -69,8 +67,8 @@ public class UpdateArraySuperAssignment extends BaseR {
      */
     public static UpdateArraySuperAssignment create(ASTNode orig, RSymbol lhsSymbol, RNode lhs, RNode rhs, UpdateArrayAssignment.AssignmentNode assignment) {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             if (rhs instanceof Constant) {
                 return new UpdateArraySuperAssignment.Const(orig, lhsSymbol, lhs, rhs, assignment);
             } else {
@@ -118,8 +116,8 @@ public class UpdateArraySuperAssignment extends BaseR {
     @Override
     public Object execute(Frame frame) {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
             if (frame == null) {  // FIXME: turn this guard into node rewriting, it only has to be done once
                 throw RError.getUnknownVariable(ast, lhsSymbol);
             }
@@ -169,8 +167,8 @@ public class UpdateArraySuperAssignment extends BaseR {
             @Override
         public Object execute(Frame frame) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (frame == null) { // TODO does this really has to be done once? (eval, etc? )
                     throw RError.getUnknownVariable(ast, lhsSymbol);
                 }

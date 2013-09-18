@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -111,8 +109,8 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 RNode n;
                 if (callable instanceof RBuiltIn) {
                     RBuiltIn builtIn = (RBuiltIn) callable;
@@ -145,9 +143,9 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public Object execute(Frame callerFrame) {
             try {
-                if (builtinName.getValue() != null || builtinName.getVersion() != 0) { throw new UnexpectedResultException(null); }
+                if (builtinName.getValue() != null || builtinName.getVersion() != 0) { throw new SpecializationException(null); }
                 return builtinNode.execute(callerFrame);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 RNode callableExpr = r.nodes.exec.MatchCallable.getUninitialized(ast, builtinName);
                 return replace(getFunctionCall(ast, callableExpr, rememberedArgNames, rememberedArgExprs)).execute(callerFrame);
             }
@@ -194,9 +192,9 @@ public abstract class FunctionCall extends AbstractCall {
         @Override public Object execute(Frame callerFrame) {
             Object callable = callableExpr.execute(callerFrame);
             try {
-                if (callable != builtIn) { throw new UnexpectedResultException(null); }
+                if (callable != builtIn) { throw new SpecializationException(null); }
                 return builtInNode.execute(callerFrame);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 GenericCall n = new GenericCall(ast, callableExpr, rememberedArgNames, rememberedArgExprs);
                 return replace(callableExpr, callable, n, callerFrame);
             }
@@ -296,7 +294,7 @@ public abstract class FunctionCall extends AbstractCall {
 
         // FIXME: essentially copy paste of execute
         // TODO: it would be far more important to have these in simple and stable builtin call than here
-        @Override public int executeScalarLogical(Frame callerFrame) throws UnexpectedResultException {
+        @Override public int executeScalarLogical(Frame callerFrame) throws SpecializationException {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
                 Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);
@@ -337,7 +335,7 @@ public abstract class FunctionCall extends AbstractCall {
 
         // FIXME: essentially copy paste of execute
         // TODO: it would be far more important to have these in simple and stable builtin call than here
-        @Override public int executeScalarNonNALogical(Frame callerFrame) throws UnexpectedResultException {
+        @Override public int executeScalarNonNALogical(Frame callerFrame) throws SpecializationException {
             Object callable = callableExpr.execute(callerFrame);
             if (callable == lastClosure) {
                 Frame newFrame = closureFunction.createFrame(closureEnclosingFrame);

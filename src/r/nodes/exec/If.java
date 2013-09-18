@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -36,7 +34,7 @@ public class If extends BaseR {
             if (DEBUG_IF) Utils.debug("executing condition");
             ifVal = cond.executeScalarLogical(frame);
             if (DEBUG_IF) Utils.debug("condition got expected result");
-        } catch (UnexpectedResultException e) {
+        } catch (SpecializationException e) {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
@@ -88,7 +86,7 @@ public class If extends BaseR {
 
             try {
                 ifVal = cond.executeScalarNonNALogical(frame);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
                 ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                 ifVal = castNode.executeScalarLogical(result);
@@ -141,7 +139,7 @@ public class If extends BaseR {
 
             try {
                 ifVal = cond.executeScalarNonNALogical(frame);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
                 ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                 ifVal = castNode.executeScalarLogical(result);
@@ -227,8 +225,8 @@ public class If extends BaseR {
 
         public Object execute(Frame frame, RAny value) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 Specialized s = Specialized.create(ast, cond, expr, trueBranch, falseBranch, constant, value);
                 if (s != null) {
                     replace(s, "install Specialized from IfConst");
@@ -242,7 +240,7 @@ public class If extends BaseR {
         }
 
         public abstract static class Comparison {
-            public abstract int cmp(RAny value) throws UnexpectedResultException;
+            public abstract int cmp(RAny value) throws SpecializationException;
         }
 
         public static class Specialized extends IfConst {
@@ -265,9 +263,9 @@ public class If extends BaseR {
                     final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                     Comparison cmp = new Comparison() {
                         @Override
-                        public int cmp(RAny value) throws UnexpectedResultException {
+                        public int cmp(RAny value) throws SpecializationException {
                             if (!(value instanceof ScalarDoubleImpl)) {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                             double v = ((ScalarDoubleImpl) value).getDouble();
                             if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
@@ -286,9 +284,9 @@ public class If extends BaseR {
                         final boolean cIsNAorNaN = RDouble.RDoubleUtils.isNAorNaN(c);
                         cmp = new Comparison() {
                             @Override
-                            public int cmp(RAny value) throws UnexpectedResultException {
+                            public int cmp(RAny value) throws SpecializationException {
                                 if (!(value instanceof ScalarIntImpl)) {
-                                    throw new UnexpectedResultException(null);
+                                    throw new SpecializationException(null);
                                 }
                                 double v = Convert.int2double(((ScalarIntImpl) value).getInt());
                                 if (!cIsNAorNaN && !RDouble.RDoubleUtils.isNAorNaN(v)) {
@@ -304,9 +302,9 @@ public class If extends BaseR {
                         final boolean cIsNA = (c == RInt.NA);
                         cmp = new Comparison() {
                             @Override
-                            public int cmp(RAny value) throws UnexpectedResultException {
+                            public int cmp(RAny value) throws SpecializationException {
                                 if (!(value instanceof ScalarIntImpl)) {
-                                    throw new UnexpectedResultException(null);
+                                    throw new SpecializationException(null);
                                 }
                                 int v = ((ScalarIntImpl) value).getInt();
                                 if (!cIsNA && v != RInt.NA) {
@@ -329,9 +327,9 @@ public class If extends BaseR {
                     final boolean cIsNA = (c == RLogical.NA);
                     Comparison cmp = new Comparison() {
                         @Override
-                        public int cmp(RAny value) throws UnexpectedResultException {
+                        public int cmp(RAny value) throws SpecializationException {
                             if (!(value instanceof ScalarLogicalImpl)) {
-                                throw new UnexpectedResultException(null);
+                                throw new SpecializationException(null);
                             }
                             int v = ((ScalarLogicalImpl) value).getLogical();
                             if (!cIsNA && v != RLogical.NA) {
@@ -357,7 +355,7 @@ public class If extends BaseR {
                         assert Utils.check(ifVal == RLogical.FALSE);
                         return falseBranch.execute(frame);
                     }
-                 } catch (UnexpectedResultException e) {
+                 } catch (SpecializationException e) {
                      If in = new If(ast, cond, trueBranch, falseBranch);
                      replace(in, "install If from IfConst.Specialized");
                      return in.execute(frame);

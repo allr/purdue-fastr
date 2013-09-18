@@ -10,8 +10,6 @@ import r.runtime.*;
 
 import java.util.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 // TODO: clean-up generic code using .getRef
 
 // FIXME: the code handling the replacement of a variable could be replaced via
@@ -218,20 +216,20 @@ public abstract class UpdateVector extends BaseR {
 
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 try {
-                    if (!(index instanceof ScalarIntImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(index instanceof ScalarIntImpl)) { throw new SpecializationException(null); }
                     int i = (((ScalarIntImpl) index).getInt()) - 1;
-                    if (!(base instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(base instanceof DoubleImpl)) { throw new SpecializationException(null); }
                     DoubleImpl dibase = (DoubleImpl) base;
-                    if (dibase.isShared()) { throw new UnexpectedResultException(null); }
+                    if (dibase.isShared()) { throw new SpecializationException(null); }
                     double[] dbase = dibase.getContent();
-                    if (i < 0 || i >= dbase.length) { throw new UnexpectedResultException(null); }
-                    if (!(value instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (i < 0 || i >= dbase.length) { throw new SpecializationException(null); }
+                    if (!(value instanceof ScalarDoubleImpl)) { throw new SpecializationException(null); }
                     double dvalue = ((ScalarDoubleImpl) value).getDouble();
 
                     dbase[i] = dvalue;
 
                     return dibase;
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     ScalarDoubleSelection ns = new ScalarDoubleSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                     replace(ns, "install DoubleBaseSimpleSelection.ScalarDoubleSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
                     return ns.execute(base, index, value);
@@ -246,23 +244,23 @@ public abstract class UpdateVector extends BaseR {
 
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 try {
-                    if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(index instanceof ScalarDoubleImpl)) { throw new SpecializationException(null); }
                     int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
 
                     if (!(base instanceof DoubleImpl)) { // FIXME: extract to a static method? (without performance overhead)
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                     DoubleImpl dibase = (DoubleImpl) base;
-                    if (dibase.isShared()) { throw new UnexpectedResultException(null); }
+                    if (dibase.isShared()) { throw new SpecializationException(null); }
                     double[] dbase = dibase.getContent();
-                    if (i < 0 || i >= dbase.length) { throw new UnexpectedResultException(null); }
-                    if (!(value instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (i < 0 || i >= dbase.length) { throw new SpecializationException(null); }
+                    if (!(value instanceof ScalarDoubleImpl)) { throw new SpecializationException(null); }
                     double dvalue = ((ScalarDoubleImpl) value).getDouble();
 
                     dbase[i] = dvalue;
 
                     return dibase;
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     ScalarDoubleWithAttributesSelection ns = new ScalarDoubleWithAttributesSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                     replace(ns, "install ScalarDoubleWithAttributesSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
                     return ns.execute(base, index, value);
@@ -277,22 +275,22 @@ public abstract class UpdateVector extends BaseR {
 
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 try {
-                    if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(index instanceof ScalarDoubleImpl)) { throw new SpecializationException(null); }
                     int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
 
                     if (!(base instanceof DoubleImpl)) { // FIXME: extract to a static method? (without performance overhead)
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                     DoubleImpl dibase = (DoubleImpl) base;
-                    if (dibase.isShared()) { throw new UnexpectedResultException(null); }
+                    if (dibase.isShared()) { throw new SpecializationException(null); }
                     double[] dbase = dibase.getContent();
-                    if (i < 0 || i >= dbase.length) { throw new UnexpectedResultException(null); }
-                    if (!(value instanceof RDouble)) { throw new UnexpectedResultException(null); }
+                    if (i < 0 || i >= dbase.length) { throw new SpecializationException(null); }
+                    if (!(value instanceof RDouble)) { throw new SpecializationException(null); }
                     RDouble dblvalue = (RDouble) value;
-                    if (dblvalue.size() != 1) { throw new UnexpectedResultException(null); }
+                    if (dblvalue.size() != 1) { throw new SpecializationException(null); }
                     dbase[i] = dblvalue.getDouble(0);
                     return dibase;
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     ScalarNumericSelection ns = new ScalarNumericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                     replace(ns, "install ScalarNumericSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
                     return ns.execute(base, index, value);
@@ -315,8 +313,8 @@ public abstract class UpdateVector extends BaseR {
             if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection (uninitialized)");
 
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 Specialized sn = createSimple(base, value);
                 if (sn != null) {
                     replace(sn, "specialize ScalarNumericSelection");
@@ -332,18 +330,18 @@ public abstract class UpdateVector extends BaseR {
         }
 
         abstract class ValueCopy {
-            abstract RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException;
+            abstract RAny copy(RArray base, int pos, RAny value) throws SpecializationException;
         }
 
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
             if (baseTemplate instanceof RInt) {
                 if (valueTemplate instanceof ScalarIntImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RInt) || !(value instanceof ScalarIntImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RInt) || !(value instanceof ScalarIntImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RInt ibase = (RInt) base;
                             int bsize = ibase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!ibase.isShared()) {
                                 return ibase.set(zpos, ((ScalarIntImpl) value).getInt());
@@ -365,11 +363,11 @@ public abstract class UpdateVector extends BaseR {
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RInt) || !(value instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RInt) || !(value instanceof ScalarLogicalImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RInt ibase = (RInt) base;
                             int bsize = ibase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!ibase.isShared()) {
                                 return ibase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
@@ -394,11 +392,11 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof ScalarDoubleImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble) || !(value instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RDouble) || !(value instanceof ScalarDoubleImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
                                 return dbase.set(zpos, ((ScalarDoubleImpl) value).getDouble());
@@ -420,11 +418,11 @@ public abstract class UpdateVector extends BaseR {
                 }
                 if (valueTemplate instanceof ScalarIntImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble) || !(value instanceof ScalarIntImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RDouble) || !(value instanceof ScalarIntImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
                                 return dbase.set(zpos, Convert.int2double(((ScalarIntImpl) value).getInt()));
@@ -446,11 +444,11 @@ public abstract class UpdateVector extends BaseR {
                 }
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble) || !(value instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RDouble) || !(value instanceof ScalarLogicalImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RDouble dbase = (RDouble) base;
                             int bsize = dbase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!dbase.isShared()) {
                                 return dbase.set(zpos, Convert.logical2double(((ScalarLogicalImpl) value).getLogical()));
@@ -475,11 +473,11 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RLogical) {
                 if (valueTemplate instanceof ScalarLogicalImpl) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RLogical) || !(value instanceof ScalarLogicalImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                            if (!(base instanceof RLogical) || !(value instanceof ScalarLogicalImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RLogical lbase = (RLogical) base;
                             int bsize = lbase.size();
-                            if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int zpos = pos - 1;
                             if (!lbase.isShared()) {
                                 return lbase.set(zpos, ((ScalarLogicalImpl) value).getLogical());
@@ -502,11 +500,11 @@ public abstract class UpdateVector extends BaseR {
             }
             if (baseTemplate instanceof RList && !subset && !(valueTemplate instanceof RNull)) {
                 ValueCopy cpy = new ValueCopy() {
-                    @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                        if (!(base instanceof RList) || (value instanceof RNull)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                    @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                        if (!(base instanceof RList) || (value instanceof RNull)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                         RList lbase = (RList) base;
                         int bsize = lbase.size();
-                        if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                        if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                         int zpos = pos - 1;
                         value.ref();
                         if (!lbase.isShared()) {
@@ -529,11 +527,11 @@ public abstract class UpdateVector extends BaseR {
             }
             if (baseTemplate instanceof RString && valueTemplate instanceof ScalarStringImpl) {
                 ValueCopy cpy = new ValueCopy() {
-                    @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                        if (!(base instanceof RString) || !(value instanceof ScalarStringImpl)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                    @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                        if (!(base instanceof RString) || !(value instanceof ScalarStringImpl)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                         RString sbase = (RString) base;
                         int bsize = sbase.size();
-                        if (pos < 1 || pos > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                        if (pos < 1 || pos > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                         int zpos = pos - 1;
                         if (!sbase.isShared()) {
                             return sbase.set(zpos, ((ScalarStringImpl) value).getString());
@@ -683,11 +681,11 @@ public abstract class UpdateVector extends BaseR {
 
         public Specialized createGeneric() {
             ValueCopy cpy = new ValueCopy() {
-                @Override RAny copy(RArray base, int pos, RAny value) throws UnexpectedResultException {
-                    if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                @Override RAny copy(RArray base, int pos, RAny value) throws SpecializationException {
+                    if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                     RArray avalue = (RArray) value;
                     int vsize = avalue.size();
-                    if (vsize != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_VALUE); }
+                    if (vsize != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT_VALUE); }
                     return genericUpdate(base, pos, value, subset, ast);
                 }
             };
@@ -707,7 +705,7 @@ public abstract class UpdateVector extends BaseR {
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing ScalarNumericSelection" + dbg);
                 try {
-                    if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                    if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                     RArray abase = (RArray) base;
                     int pos;
                     if (index instanceof ScalarIntImpl) {
@@ -715,11 +713,11 @@ public abstract class UpdateVector extends BaseR {
                     } else if (index instanceof ScalarDoubleImpl) {
                         pos = Convert.double2int(((ScalarDoubleImpl) index).getDouble());
                     } else {
-                        throw new UnexpectedResultException(null);
+                        throw new SpecializationException(null);
                     }
                     return copy.copy(abase, pos, value);
 
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();
                     if (f == null) {
                         if ((index instanceof RArray) && (((RArray) index).size() != 1)) {
@@ -966,12 +964,12 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RAny update(RArray base, RArray index, RArray value, ASTNode ast, boolean subset) throws UnexpectedResultException {
+        public static RAny update(RArray base, RArray index, RArray value, ASTNode ast, boolean subset) throws SpecializationException {
             int vsize = value.size();
             if (vsize == 0) { throw RError.getReplacementZero(ast); }
             if (index instanceof RString) { return ScalarStringSelection.genericUpdate(base, ((RString) index).getString(0), value, subset, ast); }
             if (index instanceof RLogical) {
-                if (subset) { throw new UnexpectedResultException(Failure.MAYBE_VECTOR_UPDATE); }
+                if (subset) { throw new SpecializationException(Failure.MAYBE_VECTOR_UPDATE); }
                 if (vsize > 1 && !(base instanceof RList)) { throw RError.getMoreElementsSupplied(ast); }
                 int l = ((RLogical) index).getLogical(0);
                 if (l == RLogical.FALSE) { throw RError.getSelectLessThanOne(ast); }
@@ -1004,7 +1002,7 @@ public abstract class UpdateVector extends BaseR {
                 if (vsize == 1) {
                     return ScalarNumericSelection.genericUpdate(base, i, value, subset, ast);
                 } else {
-                    throw new UnexpectedResultException(Failure.MAYBE_VECTOR_UPDATE);
+                    throw new SpecializationException(Failure.MAYBE_VECTOR_UPDATE);
                 }
             }
         }
@@ -1012,18 +1010,18 @@ public abstract class UpdateVector extends BaseR {
         @Override public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericScalarSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(index instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX); }
+                if (!(index instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_INDEX); }
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
-                if (isize != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT_INDEX); }
+                if (isize != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT_INDEX); }
                 if (value instanceof RNull) { return deleteElement(abase, aindex, ast, subset); }
-                if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
                 return update(abase, aindex, avalue, ast, subset);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericScalarSelection failed: " + f);
                 switch (f) {
@@ -1082,8 +1080,8 @@ public abstract class UpdateVector extends BaseR {
             if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection (uninitialized)");
 
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 Specialized sn = createSimple(base, value);
                 if (sn != null) {
                     replace(sn, "specialize IntSequenceSelection");
@@ -1099,7 +1097,7 @@ public abstract class UpdateVector extends BaseR {
         }
 
         abstract class ValueCopy {
-            abstract RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException;
+            abstract RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException;
         }
 
         // specialized for type combinations (base vector, value written)
@@ -1109,8 +1107,8 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RList) {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
-                            if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
+                            if (!(base instanceof RList)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RList typedBase = (RList) base;
                             RList typedValue;
                             if (value instanceof RList) {
@@ -1118,17 +1116,17 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
                                 typedValue = value.asList();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
                             int vsize = typedValue.size();
-                            if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                             RAny[] content = new RAny[bsize];
                             int i = 0;
                             for (; i < imin; i++) { // shallow copy
@@ -1173,8 +1171,8 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
+                            if (!(base instanceof RDouble)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RDouble typedBase = (RDouble) base;
                             RDouble typedValue;
                             if (value instanceof RDouble) {
@@ -1182,17 +1180,17 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RInt || value instanceof RLogical) {
                                 typedValue = value.asDouble();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
                             int vsize = typedValue.size();
-                            if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                             double[] content = new double[bsize];
                             int i = 0;
                             for (; i < imin; i++) {
@@ -1237,8 +1235,8 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RInt) {
                 if (valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
-                            if (!(base instanceof RInt)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
+                            if (!(base instanceof RInt)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RInt typedBase = (RInt) base;
                             RInt typedValue;
                             if (value instanceof RInt) {
@@ -1246,17 +1244,17 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RLogical) {
                                 typedValue = value.asInt();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
                             int vsize = typedValue.size();
-                            if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                             int[] content = new int[bsize];
                             int i = 0;
                             for (; i < imin; i++) {
@@ -1301,19 +1299,19 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RLogical) {
                 if (valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
-                            if (!(base instanceof RLogical && value instanceof RLogical)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
+                            if (!(base instanceof RLogical && value instanceof RLogical)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RLogical typedBase = (RLogical) base;
                             RLogical typedValue = (RLogical) value;
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
                             int vsize = typedValue.size();
-                            if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                             int[] content = new int[bsize];
                             int i = 0;
                             for (; i < imin; i++) {
@@ -1358,19 +1356,19 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RString) {
                 if (valueTemplate instanceof RString) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
-                            if (!(base instanceof RString && value instanceof RString)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
+                            if (!(base instanceof RString && value instanceof RString)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RString typedBase = (RString) base;
                             RString typedValue = (RString) value;
                             int bsize = base.size();
                             int imin = index.min();
                             int imax = index.max();
-                            if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             imin--;
                             imax--; // convert to 0-based
                             int isize = index.size();
                             int vsize = typedValue.size();
-                            if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                             String[] content = new String[bsize];
                             int i = 0;
                             for (; i < imin; i++) {
@@ -1418,7 +1416,7 @@ public abstract class UpdateVector extends BaseR {
         // handles type conversion of base
         public Specialized createExtended() {
             ValueCopy cpy = new ValueCopy() {
-                @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws UnexpectedResultException {
+                @Override RAny copy(RArray base, IntImpl.RIntSequence index, RArray value) throws SpecializationException {
                     RArray typedBase;
                     RArray typedValue;
                     RList listValue = null;
@@ -1470,12 +1468,12 @@ public abstract class UpdateVector extends BaseR {
                     int bsize = base.size();
                     int imin = index.min();
                     int imax = index.max();
-                    if (imin < 1 || imax > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                    if (imin < 1 || imax > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                     imin--;
                     imax--; // convert to 0-based
                     int isize = index.size();
                     int vsize = typedValue != null ? typedValue.size() : listValue.size();
-                    if (isize != vsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                    if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                     RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names(), base.attributesRef());
                     int i = 0;
                     for (; i < imin; i++) {
@@ -1547,14 +1545,14 @@ public abstract class UpdateVector extends BaseR {
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
                 try {
-                    if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                    if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                     RArray abase = (RArray) base;
-                    if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                    if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                     RArray avalue = (RArray) value;
-                    if (!(index instanceof IntImpl.RIntSequence)) { throw new UnexpectedResultException(Failure.NOT_INT_SEQUENCE_INDEX); }
+                    if (!(index instanceof IntImpl.RIntSequence)) { throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX); }
                     return copy.copy(abase, (IntImpl.RIntSequence) index, avalue);
 
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();
                     if (DEBUG_UP) Utils.debug("update - IntSequenceSelection" + dbg + " failed: " + f);
                     switch (f) {
@@ -1861,9 +1859,9 @@ public abstract class UpdateVector extends BaseR {
         @Override public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
                 RInt iindex;
                 if (index instanceof RInt) {
@@ -1871,10 +1869,10 @@ public abstract class UpdateVector extends BaseR {
                 } else if (index instanceof RDouble) {
                     iindex = index.asInt();
                 } else {
-                    throw new UnexpectedResultException(Failure.NOT_NUMERIC_INDEX);
+                    throw new SpecializationException(Failure.NOT_NUMERIC_INDEX);
                 }
                 return genericUpdate(abase, iindex, avalue, ast, subset);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
@@ -1904,19 +1902,19 @@ public abstract class UpdateVector extends BaseR {
 
         @Override RAny execute(RAny baseArg, RAny xArg, RAny valueArg) {
             try {
-                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+                if (!(baseArg instanceof DoubleImpl && xArg instanceof DoubleImpl && valueArg instanceof DoubleImpl)) { throw new SpecializationException(null); }
                 RDouble base = (RDouble) baseArg;
                 RDouble x = (RDouble) xArg;
                 RDouble value = (RDouble) valueArg;
                 int size = base.size();
                 int vsize = value.size();
-                if (x.size() != size) { throw new UnexpectedResultException(null); }
+                if (x.size() != size) { throw new SpecializationException(null); }
                 // FIXME: avoid copying of private base, when the rhs does not depend on it
 
                 boolean hasNA = vsize < 2; // an optimization, we don't care about NAs when vsize < 2
 
                 if (base.isShared()) {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 } else {
                     int vi = 0;
                     double[] baseArr = base.getContent();
@@ -1941,7 +1939,7 @@ public abstract class UpdateVector extends BaseR {
                     return base;
                 }
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 r.nodes.ast.UpdateVector uv = (r.nodes.ast.UpdateVector) ast;
                 AccessVector av = uv.getVector();
                 EQ eq = (EQ) av.getArgs().first().getValue();
@@ -1972,8 +1970,8 @@ public abstract class UpdateVector extends BaseR {
         @Override public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing LogicalSelection (uninitialized)");
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 Specialized sn = createSimple(base, value);
                 if (sn != null) {
                     replace(sn, "specialize LogicalSelection");
@@ -1989,15 +1987,15 @@ public abstract class UpdateVector extends BaseR {
         }
 
         abstract class ValueCopy {
-            abstract RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException;
+            abstract RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException;
         }
 
         public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
             if (baseTemplate instanceof RList) {
                 if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException {
+                            if (!(base instanceof RList)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RList typedBase = (RList) base;
                             RList typedValue;
                             if (value instanceof RList) {
@@ -2005,11 +2003,11 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
                                 typedValue = value.asList();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int isize = index.size();
-                            if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (isize > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
                             int ii = 0;
                             int vi = 0;
@@ -2073,8 +2071,8 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RDouble) {
                 if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RDouble)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException {
+                            if (!(base instanceof RDouble)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RDouble typedBase = (RDouble) base;
                             RDouble typedValue;
                             if (value instanceof RDouble) {
@@ -2082,11 +2080,11 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RInt || value instanceof RLogical) {
                                 typedValue = value.asDouble();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int isize = index.size();
-                            if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (isize > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
                             int ii = 0;
                             int vi = 0;
@@ -2150,8 +2148,8 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RInt) {
                 if (valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RInt)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException {
+                            if (!(base instanceof RInt)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RInt typedBase = (RInt) base;
                             RInt typedValue;
                             if (value instanceof RInt) {
@@ -2159,11 +2157,11 @@ public abstract class UpdateVector extends BaseR {
                             } else if (value instanceof RLogical) {
                                 typedValue = value.asInt();
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int isize = index.size();
-                            if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (isize > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
                             int ii = 0;
                             int vi = 0;
@@ -2227,18 +2225,18 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RLogical) {
                 if (valueTemplate instanceof RLogical) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RLogical)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException {
+                            if (!(base instanceof RLogical)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RLogical typedBase = (RLogical) base;
                             RLogical typedValue;
                             if (value instanceof RLogical) {
                                 typedValue = (RLogical) value;
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int isize = index.size();
-                            if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (isize > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
                             int[] content = new int[bsize];
                             int ii = 0;
@@ -2302,18 +2300,18 @@ public abstract class UpdateVector extends BaseR {
             if (baseTemplate instanceof RString) {
                 if (valueTemplate instanceof RString) {
                     ValueCopy cpy = new ValueCopy() {
-                        @Override RAny copy(RArray base, RLogical index, RAny value) throws UnexpectedResultException {
-                            if (!(base instanceof RString)) { throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE); }
+                        @Override RAny copy(RArray base, RLogical index, RAny value) throws SpecializationException {
+                            if (!(base instanceof RString)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
                             RString typedBase = (RString) base;
                             RString typedValue;
                             if (value instanceof RString) {
                                 typedValue = (RString) value;
                             } else {
-                                throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
                             int bsize = base.size();
                             int isize = index.size();
-                            if (isize > bsize) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            if (isize > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                             int vsize = typedValue.size();
                             String[] content = new String[bsize];
                             int ii = 0;
@@ -2597,14 +2595,14 @@ public abstract class UpdateVector extends BaseR {
             @Override public RAny execute(RAny base, RAny index, RAny value) {
                 if (DEBUG_UP) Utils.debug("update - executing LogicalSelection" + dbg);
                 try {
-                    if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                    if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                     RArray abase = (RArray) base;
-                    if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                    if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                     RArray avalue = (RArray) value;
-                    if (!(index instanceof RLogical)) { throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX); }
+                    if (!(index instanceof RLogical)) { throw new SpecializationException(Failure.NOT_LOGICAL_INDEX); }
                     RLogical lindex = (RLogical) index;
                     return copy.copy(abase, lindex, avalue);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();
                     if (DEBUG_UP) Utils.debug("update - LogicalSelection" + dbg + " failed: " + f);
                     switch (f) {
@@ -2998,13 +2996,13 @@ public abstract class UpdateVector extends BaseR {
         @Override public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing Subscript");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
                 return executeSubscript(index, abase, avalue, ast);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - Subscript failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
@@ -3026,9 +3024,9 @@ public abstract class UpdateVector extends BaseR {
         @Override public RAny execute(RAny base, RAny index, RAny value) {
             if (DEBUG_UP) Utils.debug("update - executing GenericSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(index instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX); }
+                if (!(index instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_INDEX); }
                 assert Utils.check(subset);
                 RArray aindex = (RArray) index;
                 int isize = aindex.size();
@@ -3052,7 +3050,7 @@ public abstract class UpdateVector extends BaseR {
                     }
                 }
                 // TODO: allow storing non-array values into lists (e.g. closures)
-                if (!(value instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_VALUE); }
+                if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                 RArray avalue = (RArray) value;
 
                 if (aindex instanceof RDouble || aindex instanceof RInt) {
@@ -3064,7 +3062,7 @@ public abstract class UpdateVector extends BaseR {
                 } else {
                     throw RError.getInvalidSubscriptType(ast, aindex.typeOf());
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_UP) Utils.debug("update - GenericSelection failed: " + f);
                 switch (f) {
@@ -3190,15 +3188,15 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
-                if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
-                if (value instanceof RNull) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
+                if (!(base instanceof RList)) { throw new SpecializationException(Failure.NOT_A_LIST); }
+                if (value instanceof RNull) { throw new SpecializationException(Failure.NOT_AN_UPDATE); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int pos = elementPos(names, index);
-                if (pos == -1) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
-                if (list.isShared()) { throw new UnexpectedResultException(Failure.SHARED_UPDATE); }
+                if (pos == -1) { throw new SpecializationException(Failure.NOT_AN_UPDATE); }
+                if (list.isShared()) { throw new SpecializationException(Failure.SHARED_UPDATE); }
                 return updateListInPlace(list, value, pos);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 DollarUpdateBase x;
                 switch ((Failure) e.getResult()) {
                 case NOT_A_LIST:
@@ -3246,19 +3244,19 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
-                if (!(base instanceof RList)) { throw new UnexpectedResultException(Failure.NOT_A_LIST); }
-                if (value instanceof RNull) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
+                if (!(base instanceof RList)) { throw new SpecializationException(Failure.NOT_A_LIST); }
+                if (value instanceof RNull) { throw new SpecializationException(Failure.NOT_AN_UPDATE); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int size = list.size();
                 int pos = elementPos(names, index);
-                if (pos == -1) { throw new UnexpectedResultException(Failure.NOT_AN_UPDATE); }
+                if (pos == -1) { throw new SpecializationException(Failure.NOT_AN_UPDATE); }
                 if (list.isShared()) {
                     return updateList(list, names, size, value, pos);
                 } else {
                     return updateListInPlace(list, value, pos);
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 DollarUpdateBase x;
                 switch ((Failure) e.getResult()) {
                 case NOT_A_LIST:
@@ -3295,14 +3293,14 @@ public abstract class UpdateVector extends BaseR {
          */
         @Override RAny execute(RAny base, RAny indexDummy, RAny value) {
             try {
-                if (!(base instanceof RList) || value instanceof RNull) { throw new UnexpectedResultException(null); }
+                if (!(base instanceof RList) || value instanceof RNull) { throw new SpecializationException(null); }
                 RList list = (RList) base;
                 RArray.Names names = list.names();
                 int size = list.size();
                 int pos = elementPos(names, index);
-                if (pos != -1) { throw new UnexpectedResultException(null); }
+                if (pos != -1) { throw new SpecializationException(null); }
                 return appendToList(list, names, size, value, index);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 DollarUpdateBase x = new DollarUpdate(this);
                 replace(x, "not a list or not append in assignment");
                 return x.execute(base, index, value);

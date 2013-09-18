@@ -3,8 +3,6 @@ package r.nodes.exec;
 
 import java.util.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RAny.Attributes;
@@ -72,8 +70,8 @@ public class Arithmetic extends BaseR {
 
     public Object execute(Object lexpr, Object rexpr) {
         try {
-            throw new UnexpectedResultException(null);
-        } catch (UnexpectedResultException e) {
+            throw new SpecializationException(null);
+        } catch (SpecializationException e) {
 
             if (left instanceof Constant || right instanceof Constant) {
                 SpecializedConst sc = SpecializedConst.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
@@ -119,16 +117,16 @@ public class Arithmetic extends BaseR {
         }
 
         public abstract static class Calculator {
-            public abstract Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException;
+            public abstract Object calc(Object lexpr, Object rexpr) throws SpecializationException;
         }
 
         public static Specialized createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
             if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarComplexImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
                         double lreal = lcomp.getReal();
@@ -148,9 +146,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarComplexImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarComplexImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         ScalarComplexImpl lcomp = (ScalarComplexImpl) lexpr;
                         double lreal = lcomp.getReal();
@@ -168,9 +166,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarComplexImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
                         ScalarComplexImpl rcomp = (ScalarComplexImpl) rexpr;
@@ -188,9 +186,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
@@ -205,9 +203,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarDoubleImpl && rightTemplate instanceof ScalarIntImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl && rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         int rint = ((ScalarIntImpl) rexpr).getInt();
@@ -222,9 +220,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof ScalarIntImpl && rightTemplate instanceof ScalarDoubleImpl) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
@@ -240,9 +238,9 @@ public class Arithmetic extends BaseR {
                 if (returnsDouble(arit)) {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             int rint = ((ScalarIntImpl) rexpr).getInt();
@@ -256,9 +254,9 @@ public class Arithmetic extends BaseR {
                 } else {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(lexpr instanceof ScalarIntImpl && rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             int rint = ((ScalarIntImpl) rexpr).getInt();
@@ -274,9 +272,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof RDouble && rexpr instanceof RDouble)) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         return doubleBinary((RDouble)lexpr,  (RDouble)rexpr, arit, ast);
                     }
@@ -286,9 +284,9 @@ public class Arithmetic extends BaseR {
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt && !returnsDouble(arit)) {
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof RInt && rexpr instanceof RInt)) {
-                            throw new UnexpectedResultException(null);
+                            throw new SpecializationException(null);
                         }
                         return intBinary((RInt)lexpr,  (RInt)rexpr, arit, ast);
                     }
@@ -305,7 +303,7 @@ public class Arithmetic extends BaseR {
                 final boolean alwaysDouble = returnsDouble(arit);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (lexpr instanceof ScalarDoubleImpl) {
                             double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                             boolean leftIsNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
@@ -349,7 +347,7 @@ public class Arithmetic extends BaseR {
                                 }
                             }
                         }
-                        throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
+                        throw new SpecializationException(FailedSpecialization.MULTI_TYPE);
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<ScalarDouble|Int, ScalarDouble|Int>");
@@ -414,7 +412,7 @@ public class Arithmetic extends BaseR {
         public final Object execute(Object lexpr, Object rexpr) {
             try {
                 return calc.calc(lexpr, rexpr);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 FailedSpecialization f = (FailedSpecialization) e.getResult();
                 if (f == FailedSpecialization.FIXED_TYPE) {
                     Specialized sn = createSpecializedMultiType((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
@@ -504,7 +502,7 @@ public class Arithmetic extends BaseR {
         }
 
         public abstract static class Calculator {
-            public abstract Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException;
+            public abstract Object calc(Object lexpr, Object rexpr) throws SpecializationException;
         }
 
         public static SpecializedConst createSpecialized(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
@@ -519,9 +517,9 @@ public class Arithmetic extends BaseR {
                 final boolean isLeftNA = RComplex.RComplexUtils.arithEitherIsNA(lreal, limag);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(rexpr instanceof ScalarComplexImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         ScalarComplexImpl rcmp = (ScalarComplexImpl) rexpr;
                         double rreal = rcmp.getReal();
@@ -542,9 +540,9 @@ public class Arithmetic extends BaseR {
                  final boolean isRightNA = RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag);
                  Calculator c = new Calculator() {
                      @Override
-                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                     public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                          if (!(lexpr instanceof ScalarComplexImpl)) {
-                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                             throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                          }
                          ScalarComplexImpl lcmp = (ScalarComplexImpl) lexpr;
                          double lreal = lcmp.getReal();
@@ -565,9 +563,9 @@ public class Arithmetic extends BaseR {
                  final boolean isLeftNA = RComplex.RComplexUtils.arithEitherIsNA(lreal, limag);
                  Calculator c = new Calculator() {
                      @Override
-                     public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                     public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                          if (!(rexpr instanceof ScalarDoubleImpl)) {
-                             throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                             throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                          }
                          double rreal = ((ScalarDoubleImpl) rexpr).getDouble();
                          if (isLeftNA || RDouble.RDoubleUtils.isNAorNaN(rreal)) { // NOTE: not arithIsNA !
@@ -585,9 +583,9 @@ public class Arithmetic extends BaseR {
                 final boolean isRightNA = RComplex.RComplexUtils.arithEitherIsNA(rreal, rimag);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double lreal = ((ScalarDoubleImpl) lexpr).getDouble();
                         if (isRightNA || RDouble.RDoubleUtils.isNAorNaN(lreal)) { // NOTE: not arithIsNA !
@@ -604,9 +602,9 @@ public class Arithmetic extends BaseR {
                 final boolean isLeftNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(rexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
                         if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
@@ -622,9 +620,9 @@ public class Arithmetic extends BaseR {
                 final boolean isRightNA = RDouble.RDoubleUtils.arithIsNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarDoubleImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                         if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
@@ -642,9 +640,9 @@ public class Arithmetic extends BaseR {
                 final boolean isLeftNA = RDouble.RDoubleUtils.arithIsNA(ldbl);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(rexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         int rint = ((ScalarIntImpl) rexpr).getInt();
                         if (isLeftNA || rint == RInt.NA) {
@@ -660,9 +658,9 @@ public class Arithmetic extends BaseR {
                 final boolean isRightNA = RDouble.RDoubleUtils.arithIsNA(rdbl);
                 Calculator c = new Calculator() {
                     @Override
-                    public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                         if (!(lexpr instanceof ScalarIntImpl)) {
-                            throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                            throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                         }
                         int lint = ((ScalarIntImpl) lexpr).getInt();
                         if (isRightNA || lint == RInt.NA) {
@@ -681,9 +679,9 @@ public class Arithmetic extends BaseR {
                     final double ldbl = lint;
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int rint = ((ScalarIntImpl) rexpr).getInt();
                             if (isLeftNA || rint == RInt.NA) {
@@ -696,9 +694,9 @@ public class Arithmetic extends BaseR {
                 } else {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(rexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int rint = ((ScalarIntImpl) rexpr).getInt();
                             if (isLeftNA || rint == RInt.NA) {
@@ -717,9 +715,9 @@ public class Arithmetic extends BaseR {
                     final double rdbl = rint;
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(lexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             if (isRightNA || lint == RInt.NA) {
@@ -732,9 +730,9 @@ public class Arithmetic extends BaseR {
                 } else {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (!(lexpr instanceof ScalarIntImpl)) {
-                                throw new UnexpectedResultException(FailedSpecialization.FIXED_TYPE);
+                                throw new SpecializationException(FailedSpecialization.FIXED_TYPE);
                             }
                             int lint = ((ScalarIntImpl) lexpr).getInt();
                             if (isRightNA || lint == RInt.NA) {
@@ -786,7 +784,7 @@ public class Arithmetic extends BaseR {
                 if (isLeftDouble || alwaysDouble) {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
                                 if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
@@ -800,7 +798,7 @@ public class Arithmetic extends BaseR {
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, ldbl, rint));
                             } else {
-                                throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
+                                throw new SpecializationException(FailedSpecialization.MULTI_TYPE);
                             }
                         }
                     };
@@ -809,7 +807,7 @@ public class Arithmetic extends BaseR {
                     // left is constant int
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (rexpr instanceof ScalarDoubleImpl) {
                                 double rdbl = ((ScalarDoubleImpl) rexpr).getDouble();
                                 if (isLeftNA || RDouble.RDoubleUtils.arithIsNA(rdbl)) {
@@ -823,7 +821,7 @@ public class Arithmetic extends BaseR {
                                 }
                                 return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
-                                throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
+                                throw new SpecializationException(FailedSpecialization.MULTI_TYPE);
                             }
                         }
                     };
@@ -854,7 +852,7 @@ public class Arithmetic extends BaseR {
                 if (isRightDouble || alwaysDouble) {
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                                 if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
@@ -868,7 +866,7 @@ public class Arithmetic extends BaseR {
                                 }
                                 return RDouble.RDoubleFactory.getScalar(arit.op(ast, lint, rdbl));
                             } else {
-                                throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
+                                throw new SpecializationException(FailedSpecialization.MULTI_TYPE);
                             }
                         }
                     };
@@ -877,7 +875,7 @@ public class Arithmetic extends BaseR {
                     // left is constant int
                     Calculator c = new Calculator() {
                         @Override
-                        public Object calc(Object lexpr, Object rexpr) throws UnexpectedResultException {
+                        public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
                             if (lexpr instanceof ScalarDoubleImpl) {
                                 double ldbl = ((ScalarDoubleImpl) lexpr).getDouble();
                                 if (isRightNA || RDouble.RDoubleUtils.arithIsNA(ldbl)) {
@@ -891,7 +889,7 @@ public class Arithmetic extends BaseR {
                                 }
                                 return RInt.RIntFactory.getScalar(arit.opWarnOverflow(ast, lint, rint));
                             } else {
-                                throw new UnexpectedResultException(FailedSpecialization.MULTI_TYPE);
+                                throw new SpecializationException(FailedSpecialization.MULTI_TYPE);
                             }
                         }
                     };
@@ -1040,7 +1038,7 @@ public class Arithmetic extends BaseR {
         public Object execute(Object lexpr, Object rexpr) {
             try {
                 return calc.calc(lexpr, rexpr);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 FailedSpecialization f = (FailedSpecialization) e.getResult();
                 RAny leftTemplate = getExpr(left, (RAny) lexpr);
                 RAny rightTemplate = getExpr(right, (RAny) rexpr);

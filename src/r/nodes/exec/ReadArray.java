@@ -9,8 +9,6 @@ import r.nodes.ast.*;
 import r.nodes.exec.Selector.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 /**
  * A multi-dimensional read. arrayname '[' [first index] , [second index] { , [ other index]} [ , drop = ] ']' There are
  * no node rewrites, but the selection operator nodes have their selector nodes which tend to be overwritten. The
@@ -118,7 +116,7 @@ public abstract class ReadArray extends BaseR {
             while (true) {
                 try {
                     return execute(array, dropVal, exactVal);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Selector failedSelector = (Selector) e.getResult();
                     for (int i = 0; i < selectorVals.length; ++i) {
                         if (selectorVals[i] == failedSelector) {
@@ -138,7 +136,7 @@ public abstract class ReadArray extends BaseR {
          * indices used to compute the source offset). The selIdx array contains the position in the selector (when this
          * is equal to the selector size the selector has overflown).
          */
-        public Object execute(RArray source, boolean drop, int exact) throws UnexpectedResultException {
+        public Object execute(RArray source, boolean drop, int exact) throws SpecializationException {
             int[] sourceDim = source.dimensions();
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, !subset || drop);
@@ -204,9 +202,9 @@ public abstract class ReadArray extends BaseR {
                 } else if (colVal instanceof ScalarDoubleImpl) {
                     col = Convert.double2int(((ScalarDoubleImpl) colVal).getDouble());
                 } else {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
-                if (col > n || col <= 0) { throw new UnexpectedResultException(null); }
+                if (col > n || col <= 0) { throw new SpecializationException(null); }
 
                 int[] ndim;
                 int m; // size of the result
@@ -251,7 +249,7 @@ public abstract class ReadArray extends BaseR {
                     res.set(i, array.getRef(offset + i));
                 }
                 return res;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 SelectorNode[] selectorExprs = new SelectorNode[nSelectors];
                 for (int i = 0; i < nSelectors - 1; i++) {
                     selectorExprs[i] = Selector.createSelectorNode(ast, true, null);
@@ -326,7 +324,7 @@ public abstract class ReadArray extends BaseR {
             for (;;) {
                 try {
                     return execute(array, selI, selJ, dropVal, exactVal);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Selector failedSelector = (Selector) e.getResult();
                     if (failedSelector == selI) {
                         RAny index = selI.getIndex();
@@ -342,7 +340,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
+        public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws SpecializationException {
             assert Utils.check(subset);
             int[] ndim = source.dimensions();
             int m = ndim[0];
@@ -406,7 +404,7 @@ public abstract class ReadArray extends BaseR {
             super(ast, false, lhs, selectorIExpr, selectorJExpr, dropExpr, exactExpr);
         }
 
-        @Override public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws UnexpectedResultException {
+        @Override public Object execute(RArray base, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws SpecializationException {
             int[] ndim = base.dimensions();
             int m = ndim[0];
             int n = ndim[1];
@@ -454,9 +452,9 @@ public abstract class ReadArray extends BaseR {
                 } else if (colVal instanceof ScalarDoubleImpl) {
                     col = Convert.double2int(((ScalarDoubleImpl) colVal).getDouble());
                 } else {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
-                if (col > n || col <= 0) { throw new UnexpectedResultException(null); }
+                if (col > n || col <= 0) { throw new SpecializationException(null); }
 
                 int[] ndim;
                 if (dropVal) {
@@ -472,7 +470,7 @@ public abstract class ReadArray extends BaseR {
                     res.set(i, array.getRef(offset + i));
                 }
                 return res;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 SelectorNode selIExpr = Selector.createSelectorNode(ast, true, null);
                 SelectorNode selJExpr = Selector.createSelectorNode(ast, true, columnExpr);
                 MatrixRead mr = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
@@ -524,9 +522,9 @@ public abstract class ReadArray extends BaseR {
                 } else if (rowVal instanceof ScalarDoubleImpl) {
                     row = Convert.double2int(((ScalarDoubleImpl) rowVal).getDouble());
                 } else {
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
-                if (row > n || row <= 0) { throw new UnexpectedResultException(null); }
+                if (row > n || row <= 0) { throw new SpecializationException(null); }
 
                 int[] ndim;
                 if (dropVal) {
@@ -543,7 +541,7 @@ public abstract class ReadArray extends BaseR {
                     offset += m;
                 }
                 return res;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 SelectorNode selIExpr = Selector.createSelectorNode(ast, true, rowExpr);
                 SelectorNode selJExpr = Selector.createSelectorNode(ast, true, null);
                 MatrixRead nn = new MatrixRead(ast, true, lhs, selIExpr, selJExpr, dropExpr, exactExpr);
@@ -581,7 +579,7 @@ public abstract class ReadArray extends BaseR {
             this.colToExpr = adoptChild(colToExpr);
         }
 
-        private static int extractLimit(Object value) throws UnexpectedResultException { // zero-based
+        private static int extractLimit(Object value) throws SpecializationException { // zero-based
             if (value instanceof ScalarDoubleImpl) {
                 double d = ((ScalarDoubleImpl) value).getDouble();
                 if (d > 0 && d <= Integer.MAX_VALUE) { return ((int) d) - 1; // truncate towards zero
@@ -590,7 +588,7 @@ public abstract class ReadArray extends BaseR {
                 int i = ((ScalarIntImpl) value).getInt();
                 if (i > 0) { return i - 1; }
             }
-            throw new UnexpectedResultException(null);
+            throw new SpecializationException(null);
         }
 
         @Override public Object execute(Frame frame) {
@@ -621,11 +619,11 @@ public abstract class ReadArray extends BaseR {
                 int rowSize;
                 if (rowFrom <= rowTo) {
                     rowStep = 1;
-                    if (rowTo > m) { throw new UnexpectedResultException(null); }
+                    if (rowTo > m) { throw new SpecializationException(null); }
                     rowSize = rowTo - rowFrom + 1;
                 } else {
                     rowStep = -1;
-                    if (rowFrom > m) { throw new UnexpectedResultException(null); }
+                    if (rowFrom > m) { throw new SpecializationException(null); }
                     rowSize = rowFrom - rowTo + 1;
                 }
 
@@ -633,11 +631,11 @@ public abstract class ReadArray extends BaseR {
                 int colSize;
                 if (colFrom <= colTo) {
                     colStep = 1;
-                    if (colTo > n) { throw new UnexpectedResultException(null); }
+                    if (colTo > n) { throw new SpecializationException(null); }
                     colSize = colTo - colFrom + 1;
                 } else {
                     colStep = -1;
-                    if (colFrom > n) { throw new UnexpectedResultException(null); }
+                    if (colFrom > n) { throw new SpecializationException(null); }
                     colSize = colFrom - colTo + 1;
                 }
 
@@ -672,7 +670,7 @@ public abstract class ReadArray extends BaseR {
                     }
                 }
                 return res;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 // FIXME: clean this up; does Colon need to be package-private?
                 ASTNode rowAST = rowFromExpr.getAST().getParent();
                 Builtin rowColon = (Builtin) Primitives.getCallFactory(RSymbol.getSymbol(":"), null).create(rowAST, rowFromExpr, rowToExpr);

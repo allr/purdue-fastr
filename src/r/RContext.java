@@ -4,8 +4,6 @@ import java.util.*;
 
 import org.antlr.runtime.*;
 
-import com.oracle.truffle.api.*;
-
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -19,7 +17,6 @@ public class RContext {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", false);
     private static boolean debuggingFormat = false;
-    private static boolean usesTruffleOptimizer = Truffle.getRuntime().equals("Default Truffle Runtime");
     private static ManageError errorManager = new ManageError(System.err);
     private static Truffleize truffleize = new Truffleize();
     private static final int NCONNECTIONS = 128;
@@ -27,10 +24,6 @@ public class RContext {
 
     static {
         Arrays.fill(connections, null);
-    }
-
-    public static boolean usesTruffleOptimizer() {
-        return usesTruffleOptimizer;
     }
 
     public static boolean debuggingFormat() {

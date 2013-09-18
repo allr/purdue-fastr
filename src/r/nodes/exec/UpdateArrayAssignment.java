@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
 import r.*;
 import r.data.*;
 import r.errors.RError;
@@ -137,8 +135,8 @@ public abstract class UpdateArrayAssignment extends BaseR {
             }
 
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 replace(new LocalSimple(ast, varName, varSlot, rhs, assignment));
             }
             return rhsValue;
@@ -163,9 +161,9 @@ public abstract class UpdateArrayAssignment extends BaseR {
 
             try {
                 if (lhsValue == null) {
-                   throw new UnexpectedResultException(null);
+                   throw new SpecializationException(null);
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return replace(rhs, rhsValue, new LocalGeneric(ast, varName, varSlot, rhs, assignment), frame);
             }
 

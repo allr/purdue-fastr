@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RArray.Names;
@@ -109,35 +107,35 @@ public abstract class ReadVector extends BaseR {
 
     // NOTE: currently not used
     private abstract static class Select {
-        abstract RAny select(RAny vector, int index) throws UnexpectedResultException;
+        abstract RAny select(RAny vector, int index) throws SpecializationException;
     }
 
     // NOTE: currently not used
     private static Select createScalarSelect(boolean subset, RAny vectorTemplate) {
         if (subset) {
             return new Select() {
-                @Override final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                    if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                @Override final RAny select(RAny vector, int index) throws SpecializationException {
+                    if (!(vector instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                     RArray vrarr = (RArray) vector;
-                    if (index > vrarr.size()) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                    if (index > vrarr.size()) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                     return vrarr.boxedGet(index - 1);
                 }
             };
         } else if (!(vectorTemplate instanceof RList)) {
             return new Select() {
-                @Override final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                    if (vector instanceof RList || !(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                @Override final RAny select(RAny vector, int index) throws SpecializationException {
+                    if (vector instanceof RList || !(vector instanceof RArray)) { throw new SpecializationException(Failure.UNSPECIFIED); }
                     RArray vrarr = (RArray) vector;
-                    if (index > vrarr.size()) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                    if (index > vrarr.size()) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                     return vrarr.boxedGet(index - 1);
                 }
             };
         } else {
             return new Select() {
-                @Override final RAny select(RAny vector, int index) throws UnexpectedResultException {
-                    if (!(vector instanceof RList)) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                @Override final RAny select(RAny vector, int index) throws SpecializationException {
+                    if (!(vector instanceof RList)) { throw new SpecializationException(Failure.UNSPECIFIED); }
                     RList vlist = (RList) vector;
-                    if (index > vlist.size()) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                    if (index > vlist.size()) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                     return vlist.getRAny(index - 1);
                 }
             };
@@ -154,20 +152,20 @@ public abstract class ReadVector extends BaseR {
 
         @Override public RAny execute(RAny index, RAny vector) {
             try {
-                if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
-                if (!(index instanceof RInt)) { throw new UnexpectedResultException(Failure.NOT_INT_INDEX); }
+                if (!(vector instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
+                if (!(index instanceof RInt)) { throw new SpecializationException(Failure.NOT_INT_INDEX); }
                 RArray vrarr = (RArray) vector;
-                if (vrarr.names() != null) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                if (vrarr.names() != null) { throw new SpecializationException(Failure.UNSPECIFIED); }
                 RInt irint = (RInt) index;
-                if (irint.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
+                if (irint.size() != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT); }
                 int i = irint.getInt(0);
-                if (i <= 0 || i > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                if (i <= 0 || i > vrarr.size()) { throw new SpecializationException(Failure.UNSPECIFIED); }// includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 if (subset || !(vrarr instanceof RList)) {
                     return vrarr.boxedGet(i - 1);
                 } else {
                     return ((RList) vrarr).getRAny(i - 1);
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarIntSelection failed: " + f);
                 switch (f) {
@@ -222,12 +220,12 @@ public abstract class ReadVector extends BaseR {
         @Override public Object execute(Frame frame) {
             RAny base = (RAny) lhs.execute(frame);
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) base;
-                if (index > vrarr.size()) { throw new UnexpectedResultException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
+                if (index > vrarr.size()) { throw new SpecializationException(Failure.UNSPECIFIED); // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS
                 }
                 return getWithName(vrarr, index - 1, subset);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                 replace(gen, "");
                 return gen.execute((RAny) indexes[0].execute(frame), base);
@@ -252,15 +250,15 @@ public abstract class ReadVector extends BaseR {
 
             @Override public RAny execute(RAny index, RAny vector) {
                 try {
-                    if (!(index instanceof ScalarIntImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(index instanceof ScalarIntImpl)) { throw new SpecializationException(null); }
                     int i = (((ScalarIntImpl) index).getInt()) - 1;
-                    if (!(vector instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(vector instanceof DoubleImpl)) { throw new SpecializationException(null); }
                     DoubleImpl dbase = (DoubleImpl) vector;
                     double[] base = dbase.getContent();
-                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new UnexpectedResultException(null); }
+                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new SpecializationException(null); }
                     return RDouble.RDoubleFactory.getScalar(base[i]);
 
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     ScalarDoubleSelection ns = new ScalarDoubleSelection(ast, lhs, indexes, subset);
                     replace(ns, "install DoubleBaseSimpleSelection.ScalarDoubleSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
                     return ns.execute(index, vector);
@@ -275,15 +273,15 @@ public abstract class ReadVector extends BaseR {
 
             @Override public RAny execute(RAny index, RAny vector) {
                 try {
-                    if (!(index instanceof ScalarDoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(index instanceof ScalarDoubleImpl)) { throw new SpecializationException(null); }
                     int i = Convert.double2int(((ScalarDoubleImpl) index).getDouble()) - 1;
-                    if (!(vector instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+                    if (!(vector instanceof DoubleImpl)) { throw new SpecializationException(null); }
                     DoubleImpl dbase = (DoubleImpl) vector;
                     double[] base = dbase.getContent();
-                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new UnexpectedResultException(null); }
+                    if (i < 0 || i >= base.length || dbase.names() != null) { throw new SpecializationException(null); }
                     return RDouble.RDoubleFactory.getScalar(base[i]);
 
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     SimpleScalarIntSelection is = new SimpleScalarIntSelection(ast, lhs, indexes, subset);
                     replace(is, "install SimpleScalarIntSelection from DoubleBaseSimpleSelection.ScalarIntSelection");
                     return is.execute(index, vector);
@@ -304,9 +302,9 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarDoubleSelection");
             try {
-                if (!(index instanceof RDouble)) { throw new UnexpectedResultException(Failure.NOT_DOUBLE_INDEX); }
+                if (!(index instanceof RDouble)) { throw new SpecializationException(Failure.NOT_DOUBLE_INDEX); }
                 RDouble irdbl = (RDouble) index;
-                if (irdbl.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
+                if (irdbl.size() != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT); }
                 int i = Convert.double2int(irdbl.getDouble(0)); // FIXME: check when the index is too large
 
                 // FIXME: surprisingly using select did not work well in binarytrees benchmark, where the base alternates between list and integer
@@ -315,9 +313,9 @@ public abstract class ReadVector extends BaseR {
                 //                }
                 //                return select.select(vector, i);
 
-                if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(vector instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) vector;
-                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) { throw new UnexpectedResultException(Failure.UNSPECIFIED);
+                if (i <= 0 || i > vrarr.size() || vrarr.names() != null) { throw new SpecializationException(Failure.UNSPECIFIED);
                 // includes NA_INDEX, NOT_POSITIVE_INDEX, INDEX_OUT_OF_BOUNDS, has names
                 }
                 if (subset || !(vrarr instanceof RList)) {
@@ -325,7 +323,7 @@ public abstract class ReadVector extends BaseR {
                 } else {
                     return ((RList) vrarr).getRAny(i - 1);
                 }
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarDoubleSelection failed: " + f);
                 switch (f) {
@@ -366,18 +364,18 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleScalarStringSelection");
             try {
-                if (!(index instanceof RString)) { throw new UnexpectedResultException(Failure.NOT_STRING_INDEX); }
+                if (!(index instanceof RString)) { throw new SpecializationException(Failure.NOT_STRING_INDEX); }
                 RString irstr = (RString) index;
-                if (irstr.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
-                if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (irstr.size() != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT); }
+                if (!(vector instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) vector;
                 Names names = vrarr.names();
-                if (names == null) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                if (names == null) { throw new SpecializationException(Failure.UNSPECIFIED); }
                 RSymbol symbol = RSymbol.getSymbol(irstr.getString(0));
                 int i = names.map(symbol);
-                if (i == -1) { throw new UnexpectedResultException(Failure.UNSPECIFIED); }
+                if (i == -1) { throw new SpecializationException(Failure.UNSPECIFIED); }
                 return getWithName(vrarr, i, subset);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleScalarStringSelection failed: " + f);
                 switch (f) {
@@ -538,14 +536,14 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny vector) {
             if (DEBUG_SEL) Utils.debug("selection - executing GenericScalarSelection");
             try {
-                if (!(vector instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(vector instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) vector;
-                if (!(index instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_INDEX); }
+                if (!(index instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_INDEX); }
                 RArray irarr = (RArray) index;
-                if (irarr.size() != 1) { throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT); }
+                if (irarr.size() != 1) { throw new SpecializationException(Failure.NOT_ONE_ELEMENT); }
                 return executeScalar(vrarr, irarr, subset, ast);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - GenericScalarSelection failed: " + f);
 
@@ -582,18 +580,18 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleIntSequenceSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (abase.names() != null) { throw new UnexpectedResultException(Failure.BASE_HAS_NAMES); // FIXME: lazy names?
+                if (abase.names() != null) { throw new SpecializationException(Failure.BASE_HAS_NAMES); // FIXME: lazy names?
                 }
                 if (!(index instanceof IntImpl.RIntSequence)) { // FIXME: this goes directly to Int implementation, not terribly nice
-                    throw new UnexpectedResultException(Failure.NOT_INT_SEQUENCE_INDEX);
+                    throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX);
                 }
                 IntImpl.RIntSequence sindex = (IntImpl.RIntSequence) index;
 
-                if (!sindex.isPositive()) { throw new UnexpectedResultException(Failure.NOT_ALL_POSITIVE_INDEX); }
+                if (!sindex.isPositive()) { throw new SpecializationException(Failure.NOT_ALL_POSITIVE_INDEX); }
                 int size = abase.size();
-                if (sindex.max() > size) { throw new UnexpectedResultException(Failure.INDEX_OUT_OF_BOUNDS); }
+                if (sindex.max() > size) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                 // FIXME: should specialize for a particular base type, or have a type hierarchy on factories
                 if (abase instanceof RDouble) { return new RDoubleView((RDouble) abase, sindex.from(), sindex.to(), sindex.step()); }
                 if (abase instanceof RInt) { return new RIntView((RInt) abase, sindex.from(), sindex.to(), sindex.step()); }
@@ -603,7 +601,7 @@ public abstract class ReadVector extends BaseR {
                 if (abase instanceof RRaw) { return new RRawView((RRaw) abase, sindex.from(), sindex.to(), sindex.step()); }
                 assert Utils.check(abase instanceof RComplex);
                 return new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step());
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleIntSequenceSelection failed: " + f);
                 switch (f) {
@@ -948,7 +946,7 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing IntSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
                 RInt iindex;
                 if (index instanceof RInt) {
@@ -956,11 +954,11 @@ public abstract class ReadVector extends BaseR {
                 } else if (index instanceof RDouble) {
                     iindex = index.asInt();
                 } else {
-                    throw new UnexpectedResultException(Failure.NOT_INT_OR_DOUBLE_INDEX);
+                    throw new SpecializationException(Failure.NOT_INT_OR_DOUBLE_INDEX);
                 }
                 return executeIntVector(iindex, abase, ast);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - IntSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
@@ -1010,7 +1008,7 @@ public abstract class ReadVector extends BaseR {
         public RAny execute(RAny base, RAny xArg) {
             try {
                 if (!(base instanceof DoubleImpl && xArg instanceof DoubleImpl)) { // FIXME: also could materialize
-                    throw new UnexpectedResultException(null);
+                    throw new SpecializationException(null);
                 }
                 // NOTE: in this case, it is very important for performance to access the arrays directly (found out experimentally)
                 // it is indeed puzzling as e.g. with matrix multiply, going through .getDouble did cost nothing
@@ -1018,7 +1016,7 @@ public abstract class ReadVector extends BaseR {
                 double[] b = ((DoubleImpl) base).getContent();
                 double[] x = ((DoubleImpl) xArg).getContent();
                 int size = b.length;
-                if (x.length != size || bdi.names() != null) { throw new UnexpectedResultException(null); }
+                if (x.length != size || bdi.names() != null) { throw new SpecializationException(null); }
                 if (size > 1000) { // TODO: a tuning parameter, what is the right cutoff???
                     // NOTE: this is faster at least for larger vectors, I suppose because it is more cache friendly
                     // TODO: similar optimizations will likely help elsewhere
@@ -1063,7 +1061,7 @@ public abstract class ReadVector extends BaseR {
                     return RDouble.RDoubleFactory.getFor(content);
                 }
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 AccessVector av = (AccessVector) ast;
                 EQ eq = (EQ) av.getArgs().first().getValue();
                 RDouble boxedC = RDouble.RDoubleFactory.getScalar(c);
@@ -1092,14 +1090,14 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing SimpleLogicalSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(index instanceof RLogical)) { throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX); }
-                if (abase.names() != null) { throw new UnexpectedResultException(Failure.BASE_HAS_NAMES); }
+                if (!(index instanceof RLogical)) { throw new SpecializationException(Failure.NOT_LOGICAL_INDEX); }
+                if (abase.names() != null) { throw new SpecializationException(Failure.BASE_HAS_NAMES); }
                 RLogical lindex = (RLogical) index;
                 int isize = lindex.size();
                 int bsize = abase.size();
-                if (isize != bsize) { throw new UnexpectedResultException(Failure.NOT_SAME_LENGTH); }
+                if (isize != bsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
                 int nsize = 0;
                 for (int i = 0; i < isize; i++) {
                     if (lindex.getLogical(i) != RLogical.FALSE) {
@@ -1117,7 +1115,7 @@ public abstract class ReadVector extends BaseR {
                     }
                 }
                 return res;
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleLogicalSelection failed: " + f);
                 switch (f) {
@@ -1247,11 +1245,11 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing LogicalSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
-                if (!(index instanceof RLogical)) { throw new UnexpectedResultException(Failure.NOT_LOGICAL_INDEX); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
+                if (!(index instanceof RLogical)) { throw new SpecializationException(Failure.NOT_LOGICAL_INDEX); }
                 return executeLogicalVector((RLogical) index, (RArray) base);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - LogicalSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
@@ -1294,12 +1292,12 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing StringSelection");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
-                if (!(index instanceof RString)) { throw new UnexpectedResultException(Failure.NOT_STRING_INDEX); }
+                if (!(index instanceof RString)) { throw new SpecializationException(Failure.NOT_STRING_INDEX); }
                 return executeStringVector((RString) index, abase, ast);
 
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - StringSelection failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
@@ -1484,10 +1482,10 @@ public abstract class ReadVector extends BaseR {
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing Subscript");
             try {
-                if (!(base instanceof RArray)) { throw new UnexpectedResultException(Failure.NOT_ARRAY_BASE); }
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
                 return executeSubscript(index, abase, ast);
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - Subscript failed: " + f);
                 GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset); // rewriting itself only to handle the error, there is no way to recover
@@ -1569,8 +1567,8 @@ public abstract class ReadVector extends BaseR {
 
             @Override RAny execute(RAny base) {
                 try {
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     if (base instanceof RList) {
                         RList list = (RList) base;
                         RArray.Names names = list.names();
@@ -1614,8 +1612,8 @@ public abstract class ReadVector extends BaseR {
                         RArray.Names names = list.names();
                         if (names == fixedNames) { return list.getRAny(fixedPosition); }
                     }
-                    throw new UnexpectedResultException(null);
-                } catch (UnexpectedResultException e) {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
                     GenericSelection gs = new GenericSelection(ast, lhs, index);
                     replace(gs, "install GenericSelection from FixedPositionSelection (Field)");
                     if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");

@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
 import r.*;
 import r.data.*;
 import r.data.internal.*;
@@ -215,8 +213,8 @@ final class Aperm extends CallFactory {
 
         @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (ary instanceof IntImpl) {
                     return replace(new Int(this)).aperm(ary, perm, resize);
                 } else if (ary instanceof DoubleImpl) {
@@ -241,7 +239,7 @@ final class Aperm extends CallFactory {
 
         @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof IntImpl)) { throw new UnexpectedResultException(null); }
+                if (!(ary instanceof IntImpl)) { throw new SpecializationException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -257,7 +255,7 @@ final class Aperm extends CallFactory {
                     increment(idx, aryDim);
                 }
                 return RInt.RIntFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
         }
@@ -275,7 +273,7 @@ final class Aperm extends CallFactory {
 
         @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof DoubleImpl)) { throw new UnexpectedResultException(null); }
+                if (!(ary instanceof DoubleImpl)) { throw new SpecializationException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -291,7 +289,7 @@ final class Aperm extends CallFactory {
                     increment(idx, aryDim);
                 }
                 return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
         }
@@ -309,7 +307,7 @@ final class Aperm extends CallFactory {
 
         @Override public RAny aperm(RArray ary, int[] perm, boolean resize) {
             try {
-                if (!(ary instanceof ComplexImpl)) { throw new UnexpectedResultException(null); }
+                if (!(ary instanceof ComplexImpl)) { throw new SpecializationException(null); }
                 int arySize = ary.size();
                 int[] aryDim = ary.dimensions();
                 int[] resultDim = calculateResizedDimension(aryDim, perm);
@@ -326,7 +324,7 @@ final class Aperm extends CallFactory {
                     increment(idx, aryDim);
                 }
                 return RDouble.RDoubleFactory.getFor(dest, resize ? resultDim : aryDim, ary.names(), null); // drop attributes
-            } catch (UnexpectedResultException e) {
+            } catch (SpecializationException e) {
                 return replace(new Generalized(this)).aperm(ary, perm, resize);
             }
         }

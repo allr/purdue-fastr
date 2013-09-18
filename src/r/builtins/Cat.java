@@ -10,18 +10,16 @@ import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 /**
  * "cat" Outputs the objects, concatenating the representations. cat performs much less conversion than print.
- * 
+ *
  * <pre>
  * ... -- R objects
- * file -- A connection, or a character string naming the file to print to. If "" (the default), cat prints to the 
- *      standard output connection, the console unless redirected by sink. If it is "|cmd", the output is piped to the 
+ * file -- A connection, or a character string naming the file to print to. If "" (the default), cat prints to the
+ *      standard output connection, the console unless redirected by sink. If it is "|cmd", the output is piped to the
  *      command given by cmd, by opening a pipe connection.
  * sep -- a character vector of strings to append after each element.
- * fill -- a logical or (positive) numeric controlling how the output is broken into successive lines. If FALSE (default), 
+ * fill -- a logical or (positive) numeric controlling how the output is broken into successive lines. If FALSE (default),
  *        newlines created explicitly by "\n" are printed. Otherwise, the output is broken into lines with print width equal
  *         to the option width if fill is TRUE, or the value of fill if this is numeric. Non-positive fill values are
  *          ignored, with a warning.
@@ -41,7 +39,7 @@ final class Cat extends CallFactory {
     }
 
     private static final int DEFAULT_BUFFER_SIZE = 4096;
-    private static char[] buffer = new char[DEFAULT_BUFFER_SIZE]; // FIXME: This is not thread safe!!! 
+    private static char[] buffer = new char[DEFAULT_BUFFER_SIZE]; // FIXME: This is not thread safe!!!
 
     static String catElement(RArray v, int i) { // TODO: replace this by virtual calls, even cat can be important for performance (e.g. fasta)
         if (v instanceof RDouble) { return Convert.prettyNA(Convert.double2string(((RDouble) v).getDouble(i))); }
@@ -116,13 +114,13 @@ final class Cat extends CallFactory {
     // speculates on that all arguments are strings and separator is an empty string
     // the empty separator is a usual thing in R programs
     // all args strings is inspired by fasta
-    static void catStringsBuilder(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
-        if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
+    static void catStringsBuilder(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws SpecializationException {
+        if (sepArgPos == -1) { throw new SpecializationException(null); }
         StringBuilder str = new StringBuilder();
         int argslen = args.length;
         for (int j = 0; j < argslen; j++) {
             RAny arg = args[j];
-            if (!(arg instanceof RString)) { throw new UnexpectedResultException(null); }
+            if (!(arg instanceof RString)) { throw new SpecializationException(null); }
             RString rs = (RString) arg;
             int size = rs.size();
             if (j != sepArgPos) {
@@ -130,7 +128,7 @@ final class Cat extends CallFactory {
                     str.append(rs.getString(i));
                 }
             } else {
-                if (size != 1 || rs.getString(0).length() > 0) { throw new UnexpectedResultException(null); }
+                if (size != 1 || rs.getString(0).length() > 0) { throw new SpecializationException(null); }
             }
         }
         out.append(str); // FIXME: this creates a copy of the string, internally
@@ -138,13 +136,13 @@ final class Cat extends CallFactory {
     }
 
     // a (slightly) faster version of catStringsBuilder
-    static void catStrings(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
-        if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
+    static void catStrings(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws SpecializationException {
+        if (sepArgPos == -1) { throw new SpecializationException(null); }
         int argslen = args.length;
         int bufPos = 0;
         for (int j = 0; j < argslen; j++) {
             RAny arg = args[j];
-            if (!(arg instanceof RString)) { throw new UnexpectedResultException(null); }
+            if (!(arg instanceof RString)) { throw new SpecializationException(null); }
             RString rs = (RString) arg;
             int size = rs.size();
             if (j != sepArgPos) {
@@ -165,7 +163,7 @@ final class Cat extends CallFactory {
                     }
                 }
             } else {
-                if (size != 1 || rs.getString(0).length() > 0) { throw new UnexpectedResultException(null); }
+                if (size != 1 || rs.getString(0).length() > 0) { throw new SpecializationException(null); }
             }
         }
         out.write(buffer, 0, bufPos);
@@ -177,15 +175,15 @@ final class Cat extends CallFactory {
     // argument; however, it is unlikely to help much, if printing a lot and doing it line-by-line, we cannot really help much
     // an optimization to do a lazy flush could help more
 
-    static void catScalarStringsNoCopy(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws UnexpectedResultException {
-        if (sepArgPos == -1) { throw new UnexpectedResultException(null); }
+    static void catScalarStringsNoCopy(PrintWriter out, RAny[] args, int sepArgPos, ASTNode ast) throws SpecializationException {
+        if (sepArgPos == -1) { throw new SpecializationException(null); }
         int argslen = args.length;
         for (int j = 0; j < argslen; j++) {
             RAny arg = args[j];
-            if (!(arg instanceof ScalarStringImpl)) { throw new UnexpectedResultException(null); }
+            if (!(arg instanceof ScalarStringImpl)) { throw new SpecializationException(null); }
         }
         String sep = ((ScalarStringImpl) args[sepArgPos]).getString();
-        if (sep.length() != 0) { throw new UnexpectedResultException(null); }
+        if (sep.length() != 0) { throw new SpecializationException(null); }
         for (int j = 0; j < argslen; j++) {
             String str = ((ScalarStringImpl) args[j]).getString();
             out.write(str);
@@ -210,7 +208,7 @@ final class Cat extends CallFactory {
                     catStrings(stdOut, params, sepPosition, ast);
                     // not so much better than catStrings, and fasta uses non-scalar strings, so we would need yet another node
                     //                        catScalarStringsNoCopy(stdOut, params, sepPosition, ast);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     RNode generic = new Builtin(ast, argNames, argExprs) {
                         @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
                             genericCat(stdOut, params, sepPosition, ast);

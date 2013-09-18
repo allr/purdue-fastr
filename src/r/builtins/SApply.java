@@ -11,8 +11,6 @@ import r.nodes.exec.*;
 import r.nodes.exec.FunctionCall;
 import r.runtime.*;
 
-import com.oracle.truffle.api.nodes.*;
-
 // FIXME: only a subset of R functionality
 // TODO: specializations for different argument types done in sapply can be also
 // used in lapply
@@ -488,7 +486,7 @@ final class SApply extends CallFactory {
         public Specialized createSpecialized(RAny resTemplate, ArgIterator argIterator) {
             if (resTemplate instanceof RDouble && ((RDouble) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
                         int xsize = it.size();
                         double[] content = new double[xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -497,7 +495,7 @@ final class SApply extends CallFactory {
                             if (v instanceof ScalarDoubleImpl) {
                                 content[i] = ((ScalarDoubleImpl) v).getDouble();
                             } else { // NOTE: can also add Int and Logical support here
-                                throw new UnexpectedResultException(new PartialResult(RDouble.RDoubleFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RDouble.RDoubleFactory.getFor(content), i, v));
                             }
                         }
                         return RDouble.RDoubleFactory.getFor(content, null, it.names());
@@ -507,7 +505,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RInt && ((RInt) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
                         int xsize = it.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -516,7 +514,7 @@ final class SApply extends CallFactory {
                             if (v instanceof ScalarIntImpl) {
                                 content[i] = ((ScalarIntImpl) v).getInt();
                             } else { // NOTE: can also add Logical support here
-                                throw new UnexpectedResultException(new PartialResult(RInt.RIntFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RInt.RIntFactory.getFor(content), i, v));
                             }
                         }
                         return RInt.RIntFactory.getFor(content, null, it.names());
@@ -526,7 +524,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RLogical && ((RLogical) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                         int xsize = argIterator.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -535,7 +533,7 @@ final class SApply extends CallFactory {
                             if (v instanceof ScalarLogicalImpl) {
                                 content[i] = ((ScalarLogicalImpl) v).getLogical();
                             } else {
-                                throw new UnexpectedResultException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
                             }
                         }
                         return RLogical.RLogicalFactory.getFor(content, null, argIterator.names());
@@ -545,7 +543,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RString && ((RString) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                         int xsize = argIterator.size();
                         String[] content = new String[xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -554,7 +552,7 @@ final class SApply extends CallFactory {
                             if (v instanceof ScalarStringImpl) {
                                 content[i] = ((ScalarStringImpl) v).getString();
                             } else {
-                                throw new UnexpectedResultException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
                             }
                         }
                         return RString.RStringFactory.getFor(content, null, argIterator.names());
@@ -564,7 +562,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RComplex && ((RComplex) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                         int xsize = argIterator.size();
                         double[] content = new double[2 * xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -575,7 +573,7 @@ final class SApply extends CallFactory {
                                 content[2 * i] = cv.getReal();
                                 content[2 * i + 1] = cv.getImag();
                             } else {
-                                throw new UnexpectedResultException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
                             }
                         }
                         return RComplex.RComplexFactory.getFor(content, null, argIterator.names());
@@ -585,7 +583,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RList && ((RList) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                         int xsize = argIterator.size();
                         RAny[] content = new RAny[xsize];
                         boolean returnsList = false;
@@ -605,7 +603,7 @@ final class SApply extends CallFactory {
                                 }
                             }
                         }
-                        if (!returnsList) { throw new UnexpectedResultException(content); }
+                        if (!returnsList) { throw new SpecializationException(content); }
                         return RList.RListFactory.getFor(content, null, argIterator.names());
                     }
                 };
@@ -613,7 +611,7 @@ final class SApply extends CallFactory {
             }
             if (resTemplate instanceof RRaw && ((RRaw) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                         int xsize = argIterator.size();
                         byte[] content = new byte[xsize];
                         for (int i = 0; i < xsize; i++) {
@@ -622,7 +620,7 @@ final class SApply extends CallFactory {
                             if (v instanceof RRaw) {
                                 content[i] = ((RRaw) v).getRaw(0);
                             } else {
-                                throw new UnexpectedResultException(new PartialResult(RRaw.RRawFactory.getFor(content), i, v));
+                                throw new SpecializationException(new PartialResult(RRaw.RRawFactory.getFor(content), i, v));
                             }
                         }
                         return RRaw.RRawFactory.getFor(content, null, argIterator.names());
@@ -636,14 +634,14 @@ final class SApply extends CallFactory {
         public RAny doApply(Frame frame, RAny argx, RAny argfun) {
 
             try {
-                throw new UnexpectedResultException(null);
-            } catch (UnexpectedResultException e) {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
                 if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
                 callableProvider.matchAndSet(ast, frame, argfun);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
-                } catch (UnexpectedResultException e1) {
+                } catch (SpecializationException e1) {
                     throw Utils.nyi("unsupported type");
                 }
                 RAny res = generic(frame, argIterator, this, null);
@@ -665,7 +663,7 @@ final class SApply extends CallFactory {
 
         public Specialized createGeneric(ArgIterator argIterator) {
             ApplyFunc a = new ApplyFunc() {
-                @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException {
+                @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
                     return generic(frame, argIterator, sapply, null);
                 }
             };
@@ -673,7 +671,7 @@ final class SApply extends CallFactory {
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws UnexpectedResultException;
+            public abstract RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException;
         }
 
         class Specialized extends Sapply {
@@ -693,7 +691,7 @@ final class SApply extends CallFactory {
                 callableProvider.matchAndSet(ast, frame, argfun);
                 try {
                     argIterator.reset(firstArgProvider, argx);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     ArgIterator ai = new ArgIterator.Generic();
                     Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, ai, apply, dbg);
                     replace(sn, "install Specialized<Generic, ?> from Sapply.Specialized");
@@ -702,7 +700,7 @@ final class SApply extends CallFactory {
 
                 try {
                     return apply.apply(frame, argIterator, this);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     RAny[] partialContent = unpackPartial(e.getResult());
                     Specialized sn = createGeneric(argIterator);
                     replace(sn, "install Specialized<?, Generic> from Sapply.Specialized");

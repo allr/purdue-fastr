@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.data.RLogical.RLogicalFactory;
@@ -34,7 +32,7 @@ public abstract class ConvertToLogicalOne extends BaseR {
         try {
             if (DEBUG_C) Utils.debug("executing 2nd level cast");
             return cast(condValue);
-        } catch (UnexpectedResultException e) {
+        } catch (SpecializationException e) {
             if (DEBUG_C) Utils.debug("2nd level cast failed, replacing by generic");
             ConvertToLogicalOne castNode = replace(fromGeneric(input), "installGenericConvertToLogical from cast node");
             return castNode.executeScalarLogical(condValue);
@@ -52,16 +50,16 @@ public abstract class ConvertToLogicalOne extends BaseR {
         }
     }
 
-    public abstract int cast(RAny value) throws UnexpectedResultException;
+    public abstract int cast(RAny value) throws SpecializationException;
 
     public static ConvertToLogicalOne fromLogical(RNode input) {
         return new ConvertToLogicalOne(input) {
 
             @Override
-            public int cast(RAny value) throws UnexpectedResultException {
+            public int cast(RAny value) throws SpecializationException {
                 if (DEBUG_C) Utils.debug("casting logical to one logical");
                 if (!(value instanceof RLogical)) {
-                    throw new UnexpectedResultException(input);
+                    throw new SpecializationException(input);
                 }
                 RLogical logicalArray = ((RLogical) value);
                 if (logicalArray.size() == 1) {
@@ -80,10 +78,10 @@ public abstract class ConvertToLogicalOne extends BaseR {
         return new ConvertToLogicalOne(input) {
 
             @Override
-            public int cast(RAny value) throws UnexpectedResultException {
+            public int cast(RAny value) throws SpecializationException {
                 if (DEBUG_C) Utils.debug("casting integer to one logical");
                 if (!(value instanceof RInt)) {
-                    throw new UnexpectedResultException(input);
+                    throw new SpecializationException(input);
                 }
                 RInt intArray = ((RInt) value);
                 int intValue;

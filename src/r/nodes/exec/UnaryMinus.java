@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -48,12 +46,12 @@ public abstract class UnaryMinus extends BaseR {
         }
 
         abstract class Minus {
-            abstract RAny minus(RAny value) throws UnexpectedResultException;
+            abstract RAny minus(RAny value) throws SpecializationException;
         }
 
-        private static RComplex forComplex(RComplex cvalue) throws UnexpectedResultException {
+        private static RComplex forComplex(RComplex cvalue) throws SpecializationException {
             if (cvalue.size() != 1) {
-                throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
+                throw new SpecializationException(Failure.NOT_ONE_ELEMENT);
             }
             double real = cvalue.getReal(0);
             double imag = cvalue.getImag(0);
@@ -73,9 +71,9 @@ public abstract class UnaryMinus extends BaseR {
         }
 
 
-        private static RDouble forDouble(RDouble dvalue) throws UnexpectedResultException {
+        private static RDouble forDouble(RDouble dvalue) throws SpecializationException {
             if (dvalue.size() != 1) {
-                throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
+                throw new SpecializationException(Failure.NOT_ONE_ELEMENT);
             }
             double d = dvalue.getDouble(0);
             if (RDouble.RDoubleUtils.arithIsNA(d)) {
@@ -85,9 +83,9 @@ public abstract class UnaryMinus extends BaseR {
             }
         }
 
-        private static RInt forInt(RInt ivalue) throws UnexpectedResultException {
+        private static RInt forInt(RInt ivalue) throws SpecializationException {
             if (ivalue.size() != 1) {
-                throw new UnexpectedResultException(Failure.NOT_ONE_ELEMENT);
+                throw new SpecializationException(Failure.NOT_ONE_ELEMENT);
             }
             int i = ivalue.getInt(0);
             return RInt.RIntFactory.getScalar(-i); // NOTE: this also works for NA
@@ -97,9 +95,9 @@ public abstract class UnaryMinus extends BaseR {
             if (valueTemplate instanceof RComplex) {
                 Minus minus = new Minus() {
                     @Override
-                    RAny minus(RAny value) throws UnexpectedResultException {
+                    RAny minus(RAny value) throws SpecializationException {
                         if (!(value instanceof RComplex)) {
-                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                         }
                         return forComplex((RComplex) value);
                     }
@@ -109,9 +107,9 @@ public abstract class UnaryMinus extends BaseR {
             if (valueTemplate instanceof RDouble) {
                 Minus minus = new Minus() {
                     @Override
-                    RAny minus(RAny value) throws UnexpectedResultException {
+                    RAny minus(RAny value) throws SpecializationException {
                         if (!(value instanceof RDouble)) {
-                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                         }
                         return forDouble((RDouble) value);
                     }
@@ -121,9 +119,9 @@ public abstract class UnaryMinus extends BaseR {
             if (valueTemplate instanceof RInt) {
                 Minus minus = new Minus() {
                     @Override
-                    RAny minus(RAny value) throws UnexpectedResultException {
+                    RAny minus(RAny value) throws SpecializationException {
                         if (!(value instanceof RInt)) {
-                            throw new UnexpectedResultException(Failure.UNEXPECTED_TYPE);
+                            throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                         }
                         return forInt((RInt) value);
                     }
@@ -137,7 +135,7 @@ public abstract class UnaryMinus extends BaseR {
         public Specialized createGeneric() {
             Minus minus = new Minus() {
                 @Override
-                RAny minus(RAny value) throws UnexpectedResultException {
+                RAny minus(RAny value) throws SpecializationException {
                     if (value instanceof RComplex) {
                         return forComplex((RComplex) value);
                     }
@@ -183,7 +181,7 @@ public abstract class UnaryMinus extends BaseR {
             public RAny execute(RAny value) {
                 try {
                     return minus.minus(value);
-                } catch (UnexpectedResultException e) {
+                } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();
                     if (f == Failure.UNEXPECTED_TYPE) {
                         Specialized sn = createGeneric();

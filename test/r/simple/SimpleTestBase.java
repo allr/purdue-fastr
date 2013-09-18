@@ -154,23 +154,6 @@ public class SimpleTestBase extends TestBase {
             }
         }
 
-        if (RContext.usesTruffleOptimizer()) {
-            String verboseOutput = "Captured output of " + input + " is below:\n" + output + "\n" +
-                    "Captured output of " + input + " is above.\n";
-            if (output.contains("createOptimizedGraph:") && !output.contains("new specialization]#")) {
-                System.err.println("Truffle compilation failed for " + input);
-                System.err.println(verboseOutput);
-                Assert.fail("Truffle compilation failed");
-            }
-            if (!input.contains("junitWrapper")) {
-                // the test did not trigger compilation
-                String newInput = "{ junitWrapper <- function() { " + input + " }; junitWrapper(); junitWrapper() }";
-                System.out.println("Converted input " + input + " to " + newInput);
-                return testEval(newInput); // run us again
-            } else {
-                System.out.println(verboseOutput);
-            }
-        }
         return new EvalResult(result, output, errorOutput, e);
     }
 

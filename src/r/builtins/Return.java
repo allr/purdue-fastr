@@ -1,7 +1,5 @@
 package r.builtins;
 
-import com.oracle.truffle.api.nodes.*;
-
 import r.*;
 import r.data.*;
 import r.nodes.ast.*;
@@ -23,7 +21,7 @@ public final class Return extends CallFactory {
         super(name, params, required);
     }
 
-    public static final class ReturnException extends ControlFlowException {
+    public static final class ReturnException extends RuntimeException {
         public static ReturnException instance = new ReturnException();
         private static final long serialVersionUID = -9147675462255551205L;
     }
