@@ -219,7 +219,7 @@ public abstract class Loop extends BaseR {
 //                    pushBack(range, rangeVal);
 //                    pushBack(innerRange, innerRangeVal);
 //                    r.nodes.For outerAST = (r.nodes.For) ast;
-//                    r.nodes.For innerAST = (r.nodes.For) Truffleize.skipTrivialSequences(outerAST.getBody());
+//                    r.nodes.For innerAST = (r.nodes.For) BuildExecutableTree.skipTrivialSequences(outerAST.getBody());
 //                    RNode inner = IntSequenceRange.create(innerAST, innerAST.getCVar(), innerRange, innerBody, innerCvarSlot);
 //                    RNode outer = IntSequenceRange.create(outerAST, outerAST.getCVar(), range, inner, cvarSlot);
 //                    return outer.execute(frame);

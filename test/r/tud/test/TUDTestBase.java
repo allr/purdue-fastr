@@ -19,7 +19,6 @@ public class TUDTestBase extends FileTestBase {
     }
 
     public static String sourceFilePath(String benchFileBase) {
-//      String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
         String prefix = "";
         return prefix + "test" + File.separator + "r" + File.separator + "tud" + File.separator + "test" + File.separator + benchFileBase + ".r";
     }

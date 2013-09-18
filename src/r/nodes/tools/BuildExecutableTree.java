@@ -71,7 +71,6 @@ public class BuildExecutableTree implements Visitor {
     }
 
     @Override public void visit(If ast) {
-        // FIXME: lazy build breaks Truffle inliner
 
         ASTNode falseBranch = ast.getFalseCase();
         ASTNode cond = ast.getCond();
@@ -128,7 +127,7 @@ public class BuildExecutableTree implements Visitor {
         //            FrameSlot cvarSlot = getFrameSlot(n, n.getCVar());
         //            FrameSlot innerCvarSlot = getFrameSlot(innerFor, innerFor.getCVar());
         //            if (cvarSlot != null && innerCvarSlot != null) {
-        //                result = new r.nodes.truffle.Loop.For.NestedLocalIntSequenceRange(n, cvarSlot, createTree(n.getRange()), innerCvarSlot, createTree(innerFor.getRange()), createLazyTree(innerFor.getBody()));
+        //                result = new r.nodes.exec.Loop.For.NestedLocalIntSequenceRange(n, cvarSlot, createTree(n.getRange()), innerCvarSlot, createTree(innerFor.getRange()), createLazyTree(innerFor.getBody()));
         //                return;
         //            }
         //        }
@@ -264,8 +263,7 @@ public class BuildExecutableTree implements Visitor {
         if (assign.isSuper()) {
             result = r.nodes.exec.SuperWriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         } else {
-            // Truffle does not like Lazy...
-            //result = r.nodes.truffle.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
+            //result = r.nodes.exec.WriteVariable.getUninitialized(assign, assign.getSymbol(), createLazyTree(assign.getExpr()));
             result = r.nodes.exec.WriteVariable.getUninitialized(assign, symbol, createTree(valueNode));
         }
 

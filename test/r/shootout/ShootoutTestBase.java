@@ -10,7 +10,6 @@ import r.Console;
 public class ShootoutTestBase extends FileTestBase {
 
     public static String sourceFilePath(String benchDir, String benchFileBase) {
-//        String prefix = ".." + File.separator + "fastr" + File.separator; // For execution by mx tool from the graal directory
         String prefix = "";
         return prefix + "test" + File.separator + "r" + File.separator + "shootout" + File.separator + benchDir + File.separator + benchFileBase + ".r";
     }
