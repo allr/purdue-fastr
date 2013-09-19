@@ -63,7 +63,15 @@ public class Arithmetic extends BaseR {
 //            return replace(new ScalarIntSpecialized(ast, left, right, arit)).execute(frame);
 //        }
 
+        if (right == null) {
+            System.err.println("Shit...");
+        }
+        Object oldRight = right;
+        Object oldLeft = left;
         Object lexpr = left.execute(frame);
+        if (right == null) {
+            System.err.println("Shit..." + oldRight + " " + oldLeft);
+        }
         Object rexpr = right.execute(frame);
         return execute(lexpr, rexpr);
     }

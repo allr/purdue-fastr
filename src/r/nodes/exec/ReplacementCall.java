@@ -1,5 +1,6 @@
 package r.nodes.exec;
 
+import r.*;
 import r.data.*;
 import r.nodes.ast.*;
 import r.runtime.*;
@@ -17,26 +18,28 @@ import r.runtime.*;
 // and RememberLast (the value) as its last argument
 public class ReplacementCall extends BaseR {
     @Child RNode forcePromiseNode;
-    @Child RNode callNode;
-    @Child RememberLast valueNode;
+    @Child AbstractCall callNode;
     @Child RNode assign;
 
     final boolean isSuper;
 
     Object newContent;
 
-    public ReplacementCall(ASTNode ast, boolean isSuper, RSymbol var, RNode callNode, RememberLast valueNode) {
+    public ReplacementCall(ASTNode ast, boolean isSuper, RSymbol var, AbstractCall callNode) {
         super(ast);
         this.isSuper = isSuper;
         this.callNode = adoptChild(callNode);
-        this.valueNode = adoptChild(valueNode);
 
-        RNode node = adoptChild(new BaseR(ast) {
+        RNode[] argExprs = callNode.argExprs;
+        assert Utils.check(argExprs.length >= 1);
+        assert Utils.check(argExprs[argExprs.length - 1] instanceof RememberLast);
+
+        RNode node = new BaseR(ast) {
             @Override
             public final Object execute(Frame frame) {
                 return newContent;
             }
-        });
+        };
         if (isSuper) {
             this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {
@@ -51,7 +54,8 @@ public class ReplacementCall extends BaseR {
         forcePromiseNode.execute(frame);
         newContent = callNode.execute(frame);
         assign.execute(frame);
-        return valueNode.lastValue();
+        RNode[] argExprs = callNode.argExprs;
+        return ((RememberLast) argExprs[argExprs.length - 1]).lastValue();
     }
 
     @Override
@@ -62,11 +66,7 @@ public class ReplacementCall extends BaseR {
             return adoptInternal(newNode);
         }
         if (callNode == oldNode) {
-            callNode = newNode;
-            return adoptInternal(newNode);
-        }
-        if (valueNode == oldNode) {
-            valueNode = (r.nodes.exec.ReplacementCall.RememberLast) newNode;
+            callNode = (AbstractCall) newNode;
             return adoptInternal(newNode);
         }
         if (assign == oldNode) {

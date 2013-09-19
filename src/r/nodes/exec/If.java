@@ -38,7 +38,7 @@ public class If extends BaseR {
             if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
             ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-            cond.replace(castNode);
+            cond = adoptChild(castNode);
             ifVal = castNode.executeScalarLogical(result);
         }
 
@@ -86,14 +86,11 @@ public class If extends BaseR {
                 ifVal = cond.executeScalarNonNALogical(frame);
             } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
+                RNode theCond = cond;
                 ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-                ifVal = castNode.executeScalarLogical(result);
-
                 If ifnode = new If(ast, castNode, trueBranch, r.nodes.exec.Constant.getNull());
                 replace(ifnode, "install generic If from IfNoElse");
-                if (ifVal == RLogical.NA) {
-                    throw RError.getUnexpectedNA(getAST());
-                }
+                return replace(theCond, result, ifnode, frame);
             }
 
             if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
@@ -139,14 +136,10 @@ public class If extends BaseR {
                 ifVal = cond.executeScalarNonNALogical(frame);
             } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
+                RNode theCond = cond;
                 ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-                ifVal = castNode.executeScalarLogical(result);
-
                 If ifnode = new If(ast, castNode, trueBranch, falseBranch);
-                replace(ifnode, "install generic If from IfNoElse");
-                if (ifVal == RLogical.NA) {
-                    throw RError.getUnexpectedNA(getAST());
-                }
+                return replace(theCond, result, ifnode, frame);
             }
 
             if (ifVal == RLogical.TRUE) { // Is it the right ordering ?

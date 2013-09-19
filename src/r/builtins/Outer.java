@@ -84,16 +84,16 @@ final class Outer extends CallFactory {
 
     public abstract static class OuterBuiltIn extends Builtin { // note: this class only exists so that we can call updateParent...
         @Child RNode callNode;
-        @Child CallableProvider callableProvider;
-        @Child ValueProvider xArgProvider;
-        @Child ValueProvider yArgProvider;
+        CallableProvider callableProvider; // !!! not a child, just a shortcut into callNode
+        ValueProvider xArgProvider; // !!! not a child
+        ValueProvider yArgProvider; // !!! not a child
 
         public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, RNode callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
             super(ast, argNames, argExprs);
             this.callNode = adoptChild(callNode);
-            this.callableProvider = adoptChild(callableProvider);
-            this.xArgProvider = adoptChild(xArgProvider);
-            this.yArgProvider = adoptChild(yArgProvider);
+            this.callableProvider = callableProvider; // !!! no adopt
+            this.xArgProvider = xArgProvider; // !!! no adopt
+            this.yArgProvider = yArgProvider; // !!! no adopt
         }
 
         @Override
@@ -103,18 +103,9 @@ final class Outer extends CallFactory {
                 callNode = newNode;
                 return adoptInternal(newNode);
             }
-            if (callableProvider == oldNode) {
-                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
-                return adoptInternal(newNode);
-            }
-            if (xArgProvider == oldNode) {
-                xArgProvider = (r.builtins.LApply.ValueProvider) newNode;
-                return adoptInternal(newNode);
-            }
-            if (yArgProvider == oldNode) {
-                yArgProvider = (r.builtins.LApply.ValueProvider) newNode;
-                return adoptInternal(newNode);
-            }
+            assert Utils.check(oldNode != callableProvider); // this not must not be rewritten
+            assert Utils.check(oldNode != xArgProvider);
+            assert Utils.check(oldNode != yArgProvider);
             return super.replaceChild(oldNode, newNode);
         }
 

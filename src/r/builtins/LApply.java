@@ -54,6 +54,7 @@ final class LApply extends CallFactory {
         return new Lapply(call, names, exprs, callNode, firstArgProvider, callableProvider, ia.position("X"), ia.position("FUN"));
     }
 
+    // !!! this node must not rewrite itself
     public static class ValueProvider extends BaseR {
         RAny value;
 
@@ -70,6 +71,7 @@ final class LApply extends CallFactory {
         }
     }
 
+    // will never rewrite itself
     public static class CallableProvider extends BaseR {
         RCallable value;
         final RSymbol callsiteSymbol;
@@ -110,16 +112,16 @@ final class LApply extends CallFactory {
 
     public static class Lapply extends Builtin {
 
-        @Child ValueProvider firstArgProvider;
-        @Child CallableProvider callableProvider;
+        ValueProvider firstArgProvider; // !!! not a child, just a shortcut into arguments
+        CallableProvider callableProvider;  // !!! not a child, just a shortcut into callNode
         @Child RNode callNode;
         final int xPosition;
         final int funPosition;
 
         public Lapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.callableProvider = adoptChild(callableProvider);
-            this.firstArgProvider = adoptChild(firstArgProvider);
+            this.callableProvider = callableProvider;  // !!! no adopt
+            this.firstArgProvider = firstArgProvider;  // !!! no adopt
             this.callNode = adoptChild(callNode);
             this.xPosition = xPosition;
             this.funPosition = funPosition;
@@ -128,14 +130,8 @@ final class LApply extends CallFactory {
         @Override
         protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
-            if (firstArgProvider == oldNode) {
-                firstArgProvider = (r.builtins.LApply.ValueProvider) newNode;
-                return adoptInternal(newNode);
-            }
-            if (callableProvider == oldNode) {
-                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
-                return adoptInternal(newNode);
-            }
+            assert Utils.check(oldNode != firstArgProvider);
+            assert Utils.check(oldNode != callableProvider);
             if (callNode == oldNode) {
                 callNode = newNode;
                 return adoptInternal(newNode);
@@ -143,7 +139,7 @@ final class LApply extends CallFactory {
             return super.replaceChild(oldNode, newNode);
         }
 
-        public static RAny generic(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) {
+        public RAny generic(Frame frame, RAny argx, Lapply lapply) {
             if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
             RArray x = (RArray) argx;
             int xsize = x.size();
@@ -155,8 +151,8 @@ final class LApply extends CallFactory {
             }
             RAny[] content = new RAny[xsize];
             for (int i = 0; i < xsize; i++) {
-                firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
-                content[i] = (RAny) callNode.execute(frame);
+                lapply.firstArgProvider.setValue(isList ? l.getRAny(i) : x.boxedGet(i));
+                content[i] = (RAny) lapply.callNode.execute(frame);
             }
             return RList.RListFactory.getFor(content, null, isList ? l.names() : x.names());
         }
@@ -164,14 +160,14 @@ final class LApply extends CallFactory {
         public Specialized createSpecialized(RAny argxTemplate) {
             if (argxTemplate instanceof RList) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
+                    @Override public RAny apply(Frame frame, RAny argx, Lapply lapply) throws SpecializationException {
                         if (!(argx instanceof RList)) { throw new SpecializationException(null); }
                         RList x = (RList) argx;
                         int xsize = x.size();
                         RAny[] content = new RAny[xsize];
                         for (int i = 0; i < xsize; i++) {
-                            firstArgProvider.setValue(x.getRAny(i));
-                            content[i] = (RAny) callNode.execute(frame);
+                            lapply.firstArgProvider.setValue(x.getRAny(i));
+                            content[i] = (RAny) lapply.callNode.execute(frame);
                         }
                         return RList.RListFactory.getFor(content, null, x.names());
                     }
@@ -180,14 +176,14 @@ final class LApply extends CallFactory {
             }
             if (argxTemplate instanceof RArray) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
+                    @Override public RAny apply(Frame frame, RAny argx, Lapply lapply) throws SpecializationException {
                         if (argx instanceof RList || !(argx instanceof RArray)) { throw new SpecializationException(null); }
                         RArray x = (RArray) argx;
                         int xsize = x.size();
                         RAny[] content = new RAny[xsize];
                         for (int i = 0; i < xsize; i++) {
-                            firstArgProvider.setValue(x.boxedGet(i));
-                            content[i] = (RAny) callNode.execute(frame);
+                            lapply.firstArgProvider.setValue(x.boxedGet(i));
+                            content[i] = (RAny) lapply.callNode.execute(frame);
                         }
                         return RList.RListFactory.getFor(content, null, x.names());
                     }
@@ -199,8 +195,8 @@ final class LApply extends CallFactory {
 
         public Specialized createGeneric() {
             ApplyFunc a = new ApplyFunc() {
-                @Override public RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException {
-                    return generic(frame, argx, firstArgProvider, callNode);
+                @Override public RAny apply(Frame frame, RAny argx, Lapply lapply) throws SpecializationException {
+                    return generic(frame, argx, lapply);
                 }
             };
             return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, a);
@@ -229,7 +225,7 @@ final class LApply extends CallFactory {
         }
 
         abstract static class ApplyFunc {
-            public abstract RAny apply(Frame frame, RAny argx, ValueProvider firstArgProvider, RNode callNode) throws SpecializationException;
+            public abstract RAny apply(Frame frame, RAny argx, Lapply lapply) throws SpecializationException;
         }
 
         static class Specialized extends Lapply {
@@ -244,7 +240,7 @@ final class LApply extends CallFactory {
             @Override public RAny doApply(Frame frame, RAny argx, RAny argfun) {
                 try {
                     callableProvider.matchAndSet(ast, frame, argfun);
-                    return apply.apply(frame, argx, firstArgProvider, callNode);
+                    return apply.apply(frame, argx, this);
                 } catch (SpecializationException e) {
                     Specialized sn = createGeneric();
                     replace(sn, "install Specialized<Generic> from Lapply.Specialized");

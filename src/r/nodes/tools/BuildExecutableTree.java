@@ -393,6 +393,10 @@ public class BuildExecutableTree implements Visitor {
             return;
         }
 
+        if (!(rCall instanceof AbstractCall)) {
+            Utils.nyi("Currently only builtins which are abstract call children can be used with replacement call");
+        }
+
         // replacement assignment
         RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
         ReplacementCall.RememberLast remValueExpr = new ReplacementCall.RememberLast(valueExpr.getAST(), valueExpr);
@@ -401,7 +405,7 @@ public class BuildExecutableTree implements Visitor {
 
         SimpleAccessVariable xAST = (SimpleAccessVariable) a.convertedExpressions[0].getAST();
 
-        result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), rCall, remValueExpr);
+        result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), (AbstractCall) rCall);
     }
 
     public static boolean isArrayColumnSubset(boolean subset, RNode[] selectors, int dims) {

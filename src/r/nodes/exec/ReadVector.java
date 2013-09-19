@@ -226,9 +226,10 @@ public abstract class ReadVector extends BaseR {
                 }
                 return getWithName(vrarr, index - 1, subset);
             } catch (SpecializationException e) {
+                RNode theIndex0 = indexes[0];
                 GenericScalarSelection gen = new GenericScalarSelection(ast, lhs, indexes, subset);
                 replace(gen, "");
-                return gen.execute((RAny) indexes[0].execute(frame), base);
+                return gen.execute((RAny) theIndex0.execute(frame), base);
             }
         }
 

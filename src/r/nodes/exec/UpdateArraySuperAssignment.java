@@ -85,12 +85,12 @@ public class UpdateArraySuperAssignment extends BaseR {
         this.lhs = adoptChild(lhs);
         this.rhs = adoptChild(rhs);
         this.assignment = adoptChild(assignment);
-        RNode node = adoptChild(new BaseR(ast) {
+        RNode node = new BaseR(ast) {
             @Override
             public final Object execute(Frame frame) {
                 return newVector;
             }
-        });
+        };
         this.writeBack = adoptChild(SuperWriteVariable.getUninitialized(ast, lhsSymbol, node));
     }
 
@@ -102,12 +102,12 @@ public class UpdateArraySuperAssignment extends BaseR {
         this.lhs = adoptChild(other.lhs);
         this.rhs = adoptChild(other.rhs);
         this.assignment = adoptChild(other.assignment);
-        RNode node = adoptChild(new BaseR(ast) {
+        RNode node = new BaseR(ast) {
             @Override
             public final Object execute(Frame frame) {
                 return newVector;
             }
-        });
+        };
         this.writeBack = adoptChild(SuperWriteVariable.getUninitialized(ast, lhsSymbol, node));
     }
 
@@ -164,7 +164,7 @@ public class UpdateArraySuperAssignment extends BaseR {
         }
 
 
-            @Override
+        @Override
         public Object execute(Frame frame) {
             try {
                 throw new SpecializationException(null);

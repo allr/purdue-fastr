@@ -74,16 +74,16 @@ final class SApply extends CallFactory {
     // TODO: handle names
     public static class Sapply extends Builtin {
 
-        @Child ValueProvider firstArgProvider;
-        @Child CallableProvider callableProvider;
+        ValueProvider firstArgProvider; // !!!! not a child (a shortcut to the arguments)
+        CallableProvider callableProvider; // !!!! not a child (a shortcut to the callable expression of the callNode)
         @Child RNode callNode;
         final int xPosition;
         final int funPosition;
 
         public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
-            this.callableProvider = adoptChild(callableProvider);
-            this.firstArgProvider = adoptChild(firstArgProvider);
+            this.callableProvider = callableProvider;  // !!! no adopt
+            this.firstArgProvider = firstArgProvider;  // !!! no adopt
             this.callNode = adoptChild(callNode);
             this.xPosition = xPosition;
             this.funPosition = funPosition;
@@ -92,14 +92,8 @@ final class SApply extends CallFactory {
         @Override
         protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
-            if (firstArgProvider == oldNode) {
-                firstArgProvider = (r.builtins.LApply.ValueProvider) newNode;
-                return adoptInternal(newNode);
-            }
-            if (callableProvider == oldNode) {
-                callableProvider = (r.builtins.LApply.CallableProvider) newNode;
-                return adoptInternal(newNode);
-            }
+            assert Utils.check(oldNode != firstArgProvider);
+            assert Utils.check(oldNode != callableProvider); // this node must not be rewritten
             if (callNode == oldNode) {
                 callNode = newNode;
                 return adoptInternal(newNode);
@@ -187,8 +181,7 @@ final class SApply extends CallFactory {
                 RAny v;
                 if (partialContent == null || content[i] == null) {
                     argIterator.setNext();
-                    RNode callNode = sapply.callNode;
-                    v = (RAny) callNode.execute(frame);
+                    v = (RAny) sapply.callNode.execute(frame);
                     content[i] = v;
                 } else {
                     v = content[i];
@@ -704,7 +697,7 @@ final class SApply extends CallFactory {
                     RAny[] partialContent = unpackPartial(e.getResult());
                     Specialized sn = createGeneric(argIterator);
                     replace(sn, "install Specialized<?, Generic> from Sapply.Specialized");
-                    return generic(frame, argIterator, this, partialContent);
+                    return generic(frame, argIterator, sn, partialContent); // NOTE: not passing this, because sn now has the callnode
                 }
             }
         }

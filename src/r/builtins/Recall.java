@@ -4,6 +4,7 @@ import r.data.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
+import r.nodes.exec.FunctionCall.DotsInfo;
 import r.runtime.*;
 
 final class Recall extends CallFactory {

@@ -255,7 +255,7 @@ public abstract class ReadVariable extends BaseR {
             assert Utils.check(index >= 0);
 
             this.index = index;
-            readDots = adoptChild(ReadVariable.getUninitialized(ast, RSymbol.THREE_DOTS_SYMBOL));
+            this.readDots = adoptChild(ReadVariable.getUninitialized(ast, RSymbol.THREE_DOTS_SYMBOL));
         }
 
         @Override

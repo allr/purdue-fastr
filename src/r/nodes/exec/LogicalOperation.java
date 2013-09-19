@@ -43,17 +43,39 @@ public abstract class LogicalOperation extends BaseR {
     @Override
     public abstract int executeScalarLogical(Frame frame);
 
-    public static final int extractValue(Frame frame, RNode node) {
-        RNode curNode = node;
+    public final int extractLeftValue(Frame frame) {
         for (;;) {
             try {
-                return curNode.executeScalarLogical(frame);
+                return left.executeScalarLogical(frame);
             } catch (SpecializationException e) {
-                curNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
+                createAndInsertCastNode(left.getAST(),(RAny) e.getResult(), left);
                 continue;
             }
         }
     }
+
+    public final int extractRightValue(Frame frame) {
+        for (;;) {
+            try {
+                return right.executeScalarLogical(frame);
+            } catch (SpecializationException e) {
+                createAndInsertCastNode(right.getAST(),(RAny) e.getResult(), right);
+                continue;
+            }
+        }
+    }
+
+//    public static final int extractValue(Frame frame, RNode node) {
+//        RNode curNode = node;
+//        for (;;) {
+//            try {
+//                return curNode.executeScalarLogical(frame);
+//            } catch (SpecializationException e) {
+//                curNode = createAndInsertCastNode(node.getAST(), node, (RAny) e.getResult(), curNode);
+//                continue;
+//            }
+//        }
+//    }
 
     public static class Or extends LogicalOperation {
         public Or(ASTNode ast, RNode left, RNode right) {
@@ -62,11 +84,11 @@ public abstract class LogicalOperation extends BaseR {
 
         @Override
         public int executeScalarLogical(Frame frame) {
-            int leftValue = extractValue(frame, left);
+            int leftValue = extractLeftValue(frame);
             if (leftValue == RLogical.TRUE) {
                 return RLogical.TRUE;
             }
-            return extractValue(frame, right);
+            return extractRightValue(frame);
         }
     }
 
@@ -77,15 +99,15 @@ public abstract class LogicalOperation extends BaseR {
 
         @Override
         public int executeScalarLogical(Frame frame) {
-            int leftValue = extractValue(frame, left);
+            int leftValue = extractLeftValue(frame);
             if (leftValue == RLogical.TRUE) {
-                return extractValue(frame, right);
+                return extractRightValue(frame);
             }
             if (leftValue == RLogical.FALSE) {
                 return RLogical.FALSE;
             }
             // leftValue == RLogical.NA
-            int rightValue = extractValue(frame, right);
+            int rightValue = extractRightValue(frame);
             if (rightValue == RLogical.FALSE) {
                 return RLogical.FALSE;
             }
@@ -132,7 +154,7 @@ public abstract class LogicalOperation extends BaseR {
         abstract int extract(RAny value) throws SpecializationException;
     }
 
-    public static CastNode createAndInsertCastNode(ASTNode ast, RNode childNode, RAny template, RNode failedNode) {
+    public static CastNode createAndInsertCastNode(ASTNode ast, RAny template, RNode failedNode) {
 
         int iteration = -1;
         RNode child;
@@ -140,7 +162,7 @@ public abstract class LogicalOperation extends BaseR {
             iteration = ((CastNode) failedNode).iteration;
             child = ((CastNode) failedNode).child;
         } else {
-            child = childNode;
+            child = failedNode;
         }
         if (iteration < 0) {
             if (template instanceof ScalarDoubleImpl) {
@@ -228,14 +250,14 @@ public abstract class LogicalOperation extends BaseR {
                     }
                 }
 
-                BinaryOperation parent = (BinaryOperation) ast.getParent();
+                BinaryOperation parentOp = (BinaryOperation) ast.getParent();
                 String operator;
-                if (parent.getLHS() == ast) {
+                if (parentOp.getLHS() == ast) {
                     operator = "x";
                 } else {
                     operator = "y";
                 }
-                throw RError.getInvalidTypeIn(parent, operator, parent.getPrettyOperator());
+                throw RError.getInvalidTypeIn(parentOp, operator, parentOp.getPrettyOperator());
             }
         };
     }

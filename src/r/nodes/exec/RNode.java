@@ -11,6 +11,13 @@ import r.runtime.*;
 
 public abstract class RNode {
 
+    public static final boolean CLEAR_PARENT_POINTERS = false;  // when removing a node from the tree, set its pointer to a parent to null
+    public static final boolean CLEAR_CHILD_POINTERS = false;   // when removing a node from the tree, clear its parent's pointer to that removed node
+    public static final boolean CHECKED_REPLACE_CHILD = false;
+    public static final boolean CHECKED_REPLACE = false;
+
+    public static final boolean DEBUG_REPLACE = false;
+
     protected RNode parent;
 
     public RNode() {
@@ -93,15 +100,50 @@ public abstract class RNode {
     @Target({ElementType.FIELD})
     public @interface Child {}
 
+    private static void unlinkChildNode(RNode childNode) {
+        // be defensive to detect errors in tree rewriting
+
+        RNode parentNode = childNode.getParent();
+        if (parentNode != null) {
+            if (CLEAR_CHILD_POINTERS) {
+                parentNode.replaceChild(childNode, null);
+            }
+            if (CLEAR_PARENT_POINTERS) {
+                childNode.parent = null;
+            }
+        }
+    }
+
+    private static void unlinkArrayElementChildNode(RNode childNode) {
+        // be defensive to detect errors in tree rewriting
+
+        RNode parentNode = childNode.getParent();
+        if (parentNode != null) {
+            // we cannot delete the child from the old parent, because it is in an array, which is shared possibly among multiple nodes
+            if (CLEAR_PARENT_POINTERS) {
+                childNode.parent = null;
+            }
+        }
+    }
+
     public final <N extends RNode> N replace(N newNode, String msg) {
+        if (DEBUG_REPLACE) {
+            System.err.println("REPLACE: " + msg + " current node " + this + " by new node " + newNode + ", parent is " + getParent());
+        }
+
+        unlinkChildNode(newNode);
         RNode oldParent = getParent();
         if (oldParent == null) {
             // replacing root node
             return newNode;
         }
         N res = oldParent.replaceChild(this, newNode);
-        this.parent = null;
-        assert Utils.check(newNode.getParent() == oldParent);
+        if (CLEAR_PARENT_POINTERS) {
+            this.parent = null;
+        }
+        if (CHECKED_REPLACE) {
+            assert Utils.check(newNode.getParent() == oldParent);
+        }
         return res;
     }
 
@@ -110,21 +152,41 @@ public abstract class RNode {
     }
 
     protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
-        suggestReplaceChild(oldNode, newNode);
-        assert Utils.check(false, "missing/incomplete replaceChild method in " + this.getClass());
-        return null;
+        if (CHECKED_REPLACE_CHILD) {
+            suggestReplaceChild(oldNode, newNode);
+            assert Utils.check(false, "missing/incomplete replaceChild method in " + this.getClass());
+            return null;
+        } else {
+            return newNode;
+        }
     }
 
     public final <N extends RNode> N adoptChild(N childNode) {
         if (childNode != null) {
+            unlinkChildNode(childNode);
             childNode.parent = this;
         }
         return childNode;
     }
 
     public final <N extends RNode> N[] adoptChildren(N[] childNodes) {
-        for (RNode n : childNodes) {
+
+        boolean detectedArraySharing = false;
+
+        for (int i = 0; i < childNodes.length; i++) {
+            N n = childNodes[i];
             if (n != null) {
+                // unlink the node from parent (to discover rewriting errors easier)
+
+                RNode pn = n.getParent();
+                if (CLEAR_CHILD_POINTERS && pn != null && !detectedArraySharing) {
+                    pn.replaceChild(n, null);
+                    if (childNodes[i] == null) {
+                        // the array of nodes is being shared (!)
+                        childNodes[i] = n; // fix it
+                        detectedArraySharing = true;
+                    }
+                }
                 n.parent = this;
             }
         }
@@ -133,6 +195,9 @@ public abstract class RNode {
 
     public final <N extends RNode> N adoptInternal(N childNode) {
         if (childNode != null) {
+            if (CLEAR_PARENT_POINTERS) {
+                assert Utils.check(childNode.parent == null); // not necessary now when unlinking child nodes
+            }
             childNode.parent = this;
         }
         return childNode;

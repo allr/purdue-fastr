@@ -52,11 +52,11 @@ public abstract class UpdateVector extends BaseR {
         this.isSuper = isSuper;
 
         if (isSuper) { // FIXME: turn this switch into node rewriting?
-            RNode node = adoptChild(new BaseR(ast) {
+            RNode node = new BaseR(ast) {
                 @Override public final Object execute(Frame frame) {
                     return newVector;
                 }
-            });
+            };
             this.assign = adoptChild(SuperWriteVariable.getUninitialized(ast, var, node));
         } else {
             // this.assign = updateParent(WriteVariable.getUninitialized(ast, var, node));
