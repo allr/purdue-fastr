@@ -314,6 +314,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ for (idxs in list(1:3, c(1,2,3), c(Z=\"a\",\"x\",\"z\"))) { x <- lapply(idxs, function(i) { i }) } ; x }", "$Z\n\"a\"\n\n[[2]]\n\"x\"\n\n[[3]]\n\"z\"");
         assertEval("{ for (idxs in list(as.list(1:3), c(1,2,3), c(Z=\"a\",\"x\",\"z\"))) { x <- lapply(idxs, function(i) { i }) } ; x }", "$Z\n\"a\"\n\n[[2]]\n\"x\"\n\n[[3]]\n\"z\"");
         assertEval("{ for (idxs in list(as.list(1:3), c(1,2,3), list(Z=\"a\",\"x\",\"z\"))) { x <- lapply(idxs, function(i) { i }) } ; x }", "$Z\n\"a\"\n\n[[2]]\n\"x\"\n\n[[3]]\n\"z\"");
+
+        // evaluation of constant arguments
+        assertEval("{ n <- 1 ; cnt <- function() { n <<- n + 1 ; n } ; lapply(1:3, function(x,y) { x*y }, cnt()) }", "[[1]]\n2.0\n\n[[2]]\n4.0\n\n[[3]]\n6.0");
     }
 
     @Test

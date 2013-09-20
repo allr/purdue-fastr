@@ -630,7 +630,7 @@ final class SApply extends CallFactory {
                 throw new SpecializationException(null);
             } catch (SpecializationException e) {
                 if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
-                callableProvider.matchAndSet(ast, frame, argfun);
+                callableProvider.matchAndSet(frame, argfun);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
@@ -681,7 +681,7 @@ final class SApply extends CallFactory {
             }
 
             @Override public RAny doApply(Frame frame, RAny argx, RAny argfun) {
-                callableProvider.matchAndSet(ast, frame, argfun);
+                callableProvider.matchAndSet(frame, argfun);
                 try {
                     argIterator.reset(firstArgProvider, argx);
                 } catch (SpecializationException e) {

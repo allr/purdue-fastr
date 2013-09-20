@@ -167,7 +167,7 @@ final class Outer extends CallFactory {
 
             xArgProvider.setValue(expx);
             yArgProvider.setValue(expy);
-            callableProvider.matchAndSet(ast, frame, farg);
+            callableProvider.matchAndSet(frame, farg);
             RArray res = (RArray) callNode.execute(frame);
 
             int[] dimx = x.dimensions();

@@ -32,6 +32,12 @@ public abstract class RNode {
         return parent;
     }
 
+    public boolean inTree() {
+        // this assumes clearing of parent pointers
+        // and indeed means that a root node is never assumed to be in a tree
+        return parent != null;
+    }
+
     public abstract Object execute(Frame frame);
 
     public int executeScalarLogical(Frame frame) throws SpecializationException {
@@ -151,6 +157,7 @@ public abstract class RNode {
         return replace(newNode, "");
     }
 
+    // replaceChild should never be called directly by user program (from nodes, except from replaceChild itself)
     protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
         if (CHECKED_REPLACE_CHILD) {
             suggestReplaceChild(oldNode, newNode);
