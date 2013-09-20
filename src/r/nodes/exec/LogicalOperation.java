@@ -124,8 +124,15 @@ public abstract class LogicalOperation extends BaseR {
 
         public CastNode(ASTNode ast, RNode child, int iteration, RNode failedNode) {
             super(ast);
-            failedNode.replace(this);
-            this.child = adoptChild(child);
+            if (failedNode == child) {
+                // inserting a new cast
+                this.child = insert(child, "insert cast node for logical operation");
+            } else {
+                // replacing a cast
+                assert Utils.check(failedNode instanceof CastNode);
+                failedNode.replace(this);
+                this.child = adoptChild(child);
+            }
             this.iteration = iteration;
         }
 
@@ -165,6 +172,9 @@ public abstract class LogicalOperation extends BaseR {
             child = failedNode;
         }
         if (iteration < 0) {
+            assert Utils.check(!(failedNode instanceof CastNode));
+            assert Utils.check(child == failedNode);
+            // FIXME: this code is unnecessary cryptic - node this branch only takes place when inserting the first cast node
             if (template instanceof ScalarDoubleImpl) {
                 return new CastNode(ast, child, iteration + 1, failedNode) {
                     @Override

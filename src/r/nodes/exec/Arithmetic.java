@@ -63,16 +63,23 @@ public class Arithmetic extends BaseR {
 //            return replace(new ScalarIntSpecialized(ast, left, right, arit)).execute(frame);
 //        }
 
-        if (right == null) {
-            System.err.println("Shit...");
-        }
-        Object oldRight = right;
-        Object oldLeft = left;
         Object lexpr = left.execute(frame);
-        if (right == null) {
-            System.err.println("Shit..." + oldRight + " " + oldLeft);
+        if (getNewNode() != null) {
+            return ((Arithmetic) getNewNode()).executeWithLexpr(frame, lexpr);
         }
+        // hand-inlined execute(Frame, Object)
         Object rexpr = right.execute(frame);
+        if (getNewNode() != null) {
+            return ((Arithmetic) getNewNode()).execute(lexpr, rexpr);
+        }
+        return execute(lexpr, rexpr);
+    }
+
+    public Object executeWithLexpr(Frame frame, Object lexpr) {
+        Object rexpr = right.execute(frame);
+        if (getNewNode() != null) {
+            return ((Arithmetic) getNewNode()).execute(lexpr, rexpr);
+        }
         return execute(lexpr, rexpr);
     }
 
@@ -407,13 +414,6 @@ public class Arithmetic extends BaseR {
                 }
             };
             return new Specialized(ast, left, right, arit, c, "<Generic, Generic>");
-        }
-
-        @Override
-        public Object execute(Frame frame) {
-            Object lexpr = left.execute(frame);
-            Object rexpr = right.execute(frame);
-            return execute(lexpr, rexpr);
         }
 
         @Override
@@ -1017,6 +1017,9 @@ public class Arithmetic extends BaseR {
                 @Override
                 public Object execute(Frame frame) {
                     RAny rexpr = (RAny) right.execute(frame);
+                    if (getNewNode() != null) {
+                        ((SpecializedConst) getNewNode()).executeWithLexpr(null, rexpr);
+                    }
                     return execute(null, rexpr);
                 }
             };
@@ -1029,6 +1032,9 @@ public class Arithmetic extends BaseR {
                 @Override
                 public Object execute(Frame frame) {
                     RAny lexpr = (RAny) left.execute(frame);
+                    if (getNewNode() != null) {
+                        ((SpecializedConst) getNewNode()).execute(lexpr, null);
+                    }
                     return execute(lexpr, null);
                 }
             };

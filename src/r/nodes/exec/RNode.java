@@ -11,14 +11,15 @@ import r.runtime.*;
 
 public abstract class RNode {
 
-    public static final boolean CLEAR_PARENT_POINTERS = false;  // when removing a node from the tree, set its pointer to a parent to null
-    public static final boolean CLEAR_CHILD_POINTERS = false;   // when removing a node from the tree, clear its parent's pointer to that removed node
-    public static final boolean CHECKED_REPLACE_CHILD = false;
-    public static final boolean CHECKED_REPLACE = false;
+    public static final boolean CLEAR_PARENT_POINTERS = true;  // when removing a node from the tree, set its pointer to a parent to null
+    public static final boolean CLEAR_CHILD_POINTERS = true;   // when removing a node from the tree, clear its parent's pointer to that removed node
+    public static final boolean CHECKED_REPLACE_CHILD = true;
+    public static final boolean CHECKED_REPLACE = true;
 
-    public static final boolean DEBUG_REPLACE = false;
+    public static final boolean DEBUG_REWRITING = false;
 
     protected RNode parent;
+    protected RNode replacedByNode;
 
     public RNode() {
         assert Utils.check(checkReplaceChild(this.getClass()));
@@ -30,6 +31,10 @@ public abstract class RNode {
 
     public RNode getParent() {
         return parent;
+    }
+
+    public RNode getNewNode() {
+        return replacedByNode;
     }
 
     public boolean inTree() {
@@ -133,10 +138,11 @@ public abstract class RNode {
     }
 
     public final <N extends RNode> N replace(N newNode, String msg) {
-        if (DEBUG_REPLACE) {
+        if (DEBUG_REWRITING) {
             System.err.println("REPLACE: " + msg + " current node " + this + " by new node " + newNode + ", parent is " + getParent());
         }
-
+        assert Utils.check(newNode != this, "replacing a node by itself.. why?");
+        this.replacedByNode = newNode;
         unlinkChildNode(newNode);
         RNode oldParent = getParent();
         if (oldParent == null) {
@@ -151,6 +157,24 @@ public abstract class RNode {
             assert Utils.check(newNode.getParent() == oldParent);
         }
         return res;
+    }
+
+    public final <N extends RNode> N insert(N childNode, String msg) {
+        assert Utils.check(childNode != this);
+
+        RNode parentNode = childNode.getParent();
+        if (DEBUG_REWRITING) {
+            System.err.println("INSERT: " + msg + " current node " + this + " between parent node " + parentNode + " and child node " + childNode);
+        }
+        assert Utils.check(parentNode != this);
+        assert Utils.check(parentNode != childNode);
+        assert Utils.check(parentNode != null);
+        assert Utils.check(childNode != null);
+
+        parentNode.replaceChild(childNode, this);
+        this.parent = parentNode;
+        childNode.parent = this;
+        return childNode;
     }
 
     public final <N extends RNode> N replace(N newNode) {

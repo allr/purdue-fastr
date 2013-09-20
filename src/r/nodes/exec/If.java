@@ -89,7 +89,6 @@ public class If extends BaseR {
                 RNode theCond = cond;
                 ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
                 If ifnode = new If(ast, castNode, trueBranch, r.nodes.exec.Constant.getNull());
-                replace(ifnode, "install generic If from IfNoElse");
                 return replace(theCond, result, ifnode, frame);
             }
 

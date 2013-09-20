@@ -35,8 +35,20 @@ public class Comparison extends BaseR {
 
     @Override
     public final int executeScalarLogical(Frame frame) throws SpecializationException {
+        assert Utils.check(getNewNode() == null);
+        RNode oldleft = left;
         RAny lexpr = (RAny) left.execute(frame);
+        if (getNewNode() != null) {
+            return ((Comparison) getNewNode()).executeScalarLogicalWithLeft(frame, lexpr);
+        }
+        return executeScalarLogicalWithLeft(frame, lexpr);
+    }
+
+    public final int executeScalarLogicalWithLeft(Frame frame, RAny lexpr) throws SpecializationException {
         RAny rexpr = (RAny) right.execute(frame);
+        if (getNewNode() != null) {
+            return ((Comparison) getNewNode()).executeScalarLogical(lexpr, rexpr);
+        }
         return executeScalarLogical(lexpr, rexpr);
     }
 
@@ -277,11 +289,11 @@ public class Comparison extends BaseR {
                 } else {
                     if (DEBUG_CMP) Utils.debug("comparison - optimistic comparison failed, values are not scalar numbers");
                     if (LAZY_COMPARISON_IN_VECTOR_INDEX && isPartOfArrayIndex(ast)) {
-                        LazyComparison ln = new LazyComparison(ast);
+                        LazyComparison ln = new LazyComparison(ast, left, right, cmp);
                         replace(ln, "installLazyComparison");
                         throw new SpecializationException(ln.execute(lexpr, rexpr));
                     }
-                    VectorScalarComparison vs = new VectorScalarComparison(ast);
+                    VectorScalarComparison vs = new VectorScalarComparison(ast, left, right, cmp);
                     replace(vs, "specializeNumericVectorScalarComparison");
                     Object res = vs.execute(lexpr, rexpr);
                     throw new SpecializationException(res);
@@ -290,19 +302,13 @@ public class Comparison extends BaseR {
         }
     }
 
-    class VectorScalarComparison extends BaseR {
+    static class VectorScalarComparison extends Comparison {
 
-        public VectorScalarComparison(ASTNode ast) {
-            super(ast);
+        public VectorScalarComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
+            super(ast, left, right, cmp);
         }
 
         @Override
-        public final Object execute(Frame frame) {
-            RAny lexpr = (RAny) left.execute(frame);
-            RAny rexpr = (RAny) right.execute(frame);
-            return execute(lexpr, rexpr);
-        }
-
         public Object execute(RAny lexpr, RAny rexpr) {
             // FIXME: some of these checks should be rewritten as we now enforce scalar representation
             try {  // FIXME: perhaps should create different nodes for the cases below
@@ -314,13 +320,13 @@ public class Comparison extends BaseR {
                         RDouble rdbl = (RDouble) rexpr;
                         if (rdbl.size() == 1) {
                             if (ldbl.size() >= 1 && rdbl.dimensions() == null) {
-                                return Comparison.this.cmp.cmp(ldbl, rdbl.getDouble(0));
+                                return cmp.cmp(ldbl, rdbl.getDouble(0));
                             } else {
                                 throw new SpecializationException(null);
                             }
                         } else {
                             if (rdbl.size() > 1 && ldbl.size() == 1 && ldbl.dimensions() == null) {
-                                return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
+                                return cmp.cmp(ldbl.getDouble(0), rdbl);
                             } else {
                                 throw new SpecializationException(null);
                             }
@@ -334,13 +340,13 @@ public class Comparison extends BaseR {
                         RInt rint = (RInt) rexpr;
                         if (rint.size() == 1) {
                             if (lint.size() >= 1 && rint.dimensions() == null) {
-                                return Comparison.this.cmp.cmp(lint, rint.getInt(0));
+                                return cmp.cmp(lint, rint.getInt(0));
                             } else {
                                 throw new SpecializationException(null);
                             }
                         } else {
                             if (rint.size() > 1 && lint.size() == 1 && lint.dimensions() == null) {
-                                return Comparison.this.cmp.cmp(lint.getInt(0), rint);
+                                return cmp.cmp(lint.getInt(0), rint);
                             } else {
                                 throw new SpecializationException(null);
                             }
@@ -352,9 +358,9 @@ public class Comparison extends BaseR {
                     RString lstr = lexpr.asString();
                     RString rstr = rexpr.asString();
                     if (rstr.size() == 1 && rstr.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(lstr, rstr.getString(0));
+                        return cmp.cmp(lstr, rstr.getString(0));
                     } else if (lstr.size() == 1 && lstr.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(lstr.getString(0), rstr);
+                        return cmp.cmp(lstr.getString(0), rstr);
                     } else {
                         throw new SpecializationException(null);
                     }
@@ -366,9 +372,9 @@ public class Comparison extends BaseR {
                     RDouble ldbl = lexpr.asDouble();
                     RDouble rdbl = rexpr.asDouble();
                     if (rdbl.size() == 1 && rdbl.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(ldbl, rdbl.getDouble(0));
+                        return cmp.cmp(ldbl, rdbl.getDouble(0));
                     } else if (ldbl.size() == 1 && ldbl.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(ldbl.getDouble(0), rdbl);
+                        return cmp.cmp(ldbl.getDouble(0), rdbl);
                     } else {
                         throw new SpecializationException(null);
                     }
@@ -377,9 +383,9 @@ public class Comparison extends BaseR {
                     RInt lint = lexpr.asInt();
                     RInt rint = rexpr.asInt();
                     if (rint.size() == 1 && rint.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(lint,  rint.getInt(0));
+                        return cmp.cmp(lint,  rint.getInt(0));
                     } else if (lint.size() == 1 && lint.dimensions() == null) {
-                        return Comparison.this.cmp.cmp(lint.getInt(0), rint);
+                        return cmp.cmp(lint.getInt(0), rint);
                     } else {
                         throw new SpecializationException(null);
                     }
@@ -389,7 +395,7 @@ public class Comparison extends BaseR {
 
             } catch (SpecializationException e) {
                 if (DEBUG_CMP) Utils.debug("comparison - 2nd level comparison failed (not int,double scalar and vector)");
-                GenericComparison vs = new GenericComparison(ast);
+                GenericComparison vs = new GenericComparison(ast, left, right, cmp);
                 replace(vs, "genericComparison");
                 return vs.execute(lexpr, rexpr);
             }
@@ -465,18 +471,12 @@ public class Comparison extends BaseR {
         }
     }
 
-    class LazyComparison extends BaseR {
-        public LazyComparison(ASTNode ast) {
-            super(ast);
+    static class LazyComparison extends Comparison {
+        public LazyComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
+            super(ast, left, right, cmp);
         }
 
         @Override
-        public final Object execute(Frame frame) {
-            RAny lexpr = (RAny) left.execute(frame);
-            RAny rexpr = (RAny) right.execute(frame);
-            return execute(lexpr, rexpr);
-        }
-
         public Object execute(RAny lexpr, RAny rexpr) {
             try {
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
@@ -491,8 +491,8 @@ public class Comparison extends BaseR {
                         if (RDouble.RDoubleUtils.isNAorNaN(bconst)) {
                             return RLogicalFactory.getNAArray(na, adbl.dimensions());
                         }
-                        if (Comparison.this.cmp.resultForNaN() == false) {
-                            return new LogicalView(adbl, bdbl, na, Comparison.this.cmp, ast) {
+                        if (cmp.resultForNaN() == false) {
+                            return new LogicalView(adbl, bdbl, na, cmp, ast) {
 
                                 @Override
                                 public int getLogical(int i) {
@@ -510,57 +510,51 @@ public class Comparison extends BaseR {
                 }
                 throw new SpecializationException(null);
             } catch(SpecializationException e) {
-                GenericComparison vs = new GenericComparison(ast);
+                GenericComparison vs = new GenericComparison(ast, left, right, cmp);
                 replace(vs, "genericComparison");
                 return vs.execute(lexpr, rexpr);
             }
         }
     }
 
-    class GenericComparison extends BaseR {
+    static class GenericComparison extends Comparison {
 
-        public GenericComparison(ASTNode ast) {
-            super(ast);
+        public GenericComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
+            super(ast, left, right, cmp);
         }
 
         @Override
-        public final Object execute(Frame frame) {
-            RAny lexpr = (RAny) left.execute(frame);
-            RAny rexpr = (RAny) right.execute(frame);
-            return execute(lexpr, rexpr);
-        }
-
         public Object execute(RAny lexpr, RAny rexpr) {
             if (DEBUG_CMP) Utils.debug("comparison - the most generic case");
             if (lexpr instanceof RString || rexpr instanceof RString) {
                 RString lstr = lexpr.asString();
                 RString rstr = rexpr.asString();
-                return Comparison.this.cmp.cmp(lstr, rstr, ast);
+                return cmp.cmp(lstr, rstr, ast);
             }
             if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
                 RComplex lcmp = lexpr.asComplex();
                 RComplex rcmp = rexpr.asComplex();  // if the cast fails, a zero-length array is returned
-                return Comparison.this.cmp.cmp(lcmp, rcmp, ast);
+                return cmp.cmp(lcmp, rcmp, ast);
             }
             if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                 RDouble ldbl = lexpr.asDouble();
                 RDouble rdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned
-                return Comparison.this.cmp.cmp(ldbl, rdbl, ast);
+                return cmp.cmp(ldbl, rdbl, ast);
             }
             if (lexpr instanceof RInt || rexpr instanceof RInt) {
                 RInt lint = lexpr.asInt();
                 RInt rint = rexpr.asInt();
-                return Comparison.this.cmp.cmp(lint, rint, ast);
+                return cmp.cmp(lint, rint, ast);
             }
             if (lexpr instanceof RLogical || rexpr instanceof RLogical) {
                 RLogical llog = lexpr.asLogical();
                 RLogical rlog = rexpr.asLogical();
-                return Comparison.this.cmp.cmp(llog, rlog, ast);
+                return cmp.cmp(llog, rlog, ast);
             }
             if (lexpr instanceof RRaw || rexpr instanceof RRaw) {
                 RRaw lraw = lexpr.asRaw();
                 RRaw rraw = rexpr.asRaw();
-                return Comparison.this.cmp.cmp(lraw, rraw, ast);
+                return cmp.cmp(lraw, rraw, ast);
             }
             Utils.nyi("unsupported case for comparison");
             return null;
