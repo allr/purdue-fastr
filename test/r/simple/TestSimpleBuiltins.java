@@ -317,6 +317,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         // evaluation of constant arguments
         assertEval("{ n <- 1 ; cnt <- function() { n <<- n + 1 ; n } ; lapply(1:3, function(x,y) { x*y }, cnt()) }", "[[1]]\n2.0\n\n[[2]]\n4.0\n\n[[3]]\n6.0");
+        assertEval("{ n <- 1 ; cnt <- function() { n <<- n + 1 ; n } ; sapply(1:3, function(x,y) { x*y }, cnt()) }", "2.0, 4.0, 6.0");
+        assertEval("{ n <- 1 ; cnt <- function() { n <<- n + 1 ; n } ; sapply(1:3, function(x,y,z) { x*y + z*100 }, cnt(), cnt()) }", "302.0, 304.0, 306.0");
+        assertEval("{ n <- 1 ; cnt <- function() { n <<- n + 1 ; n } ; lapply(1:3, function(x,y,z) { x*y + z*100 }, cnt(), cnt()) }", "[[1]]\n302.0\n\n[[2]]\n304.0\n\n[[3]]\n306.0");
     }
 
     @Test
@@ -337,6 +340,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ outer(1:3,1:2, function(x,y,z) { x*y*z }, 10) }", "     [,1] [,2]\n[1,] 10.0 20.0\n[2,] 20.0 40.0\n[3,] 30.0 60.0");
         assertEval("{ outer(1:2, 1:3, \"<\") }", "      [,1]  [,2] [,3]\n[1,] FALSE  TRUE TRUE\n[2,] FALSE FALSE TRUE");
         assertEval("{ outer(1:2, 1:3, '<') }", "      [,1]  [,2] [,3]\n[1,] FALSE  TRUE TRUE\n[2,] FALSE FALSE TRUE");
+        assertEval("{ n <- 10 ; cnt <- function() { n <<- n + 1 ; n } ; outer(1:3, 11:13, function(x,y,z) { x*y*z }, cnt()) }", "      [,1]  [,2]  [,3]\n[1,] 121.0 132.0 143.0\n[2,] 242.0 264.0 286.0\n[3,] 363.0 396.0 429.0");
+        assertEval("{ n <- 10 ; cnt <- function() { n <<- n + 1 ; n } ; outer(1:3, 11:13, function(x,y,z,u) { x*y*z+u }, cnt(), cnt()) }", "      [,1]  [,2]  [,3]\n[1,] 133.0 144.0 155.0\n[2,] 254.0 276.0 298.0\n[3,] 375.0 408.0 441.0");
     }
 
     @Test

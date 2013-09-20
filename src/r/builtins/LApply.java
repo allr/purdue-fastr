@@ -250,6 +250,7 @@ final class LApply extends CallFactory {
                         callableProvider.matchAndSet(frame, args[i]);
                     } else {
                         constantArgProviders[j].setValue(args[i]);
+                        j++;
                     }
                 }
                 try {
@@ -265,7 +266,7 @@ final class LApply extends CallFactory {
 
     // FIXME: should move these iterators to RArray ? (though note that the names semantics is sapply specific)
     public abstract static class ArgIterator {
-        ValueProvider argProvider;
+        ValueProvider argProvider; // !! not a child
         int size;
 
         public abstract void reset(ValueProvider provider, RAny source) throws SpecializationException;
@@ -298,7 +299,7 @@ final class LApply extends CallFactory {
             @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
                 if (!(source instanceof IntImpl.RIntSequence)) { throw new SpecializationException(null); }
                 IntImpl.RIntSequence seq = (IntImpl.RIntSequence) source;
-                this.argProvider = provider;
+                this.argProvider = provider; // !! not adopt
                 next = seq.from();
                 to = seq.to();
                 step = seq.step();
@@ -329,7 +330,7 @@ final class LApply extends CallFactory {
 
             @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
                 if (!(source instanceof RString)) { throw new SpecializationException(null); }
-                this.argProvider = provider;
+                this.argProvider = provider; // !! not adopt
                 this.string = (RString) source;
                 i = 0;
                 size = string.size();
@@ -370,7 +371,7 @@ final class LApply extends CallFactory {
 
             @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
                 if (source instanceof RList || source instanceof RString || !(source instanceof RArray)) { throw new SpecializationException(null); }
-                this.argProvider = provider;
+                this.argProvider = provider; // !! not adopt
                 this.array = (RArray) source;
                 i = 0;
                 size = array.size();
@@ -400,7 +401,7 @@ final class LApply extends CallFactory {
 
             @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
                 if (!(source instanceof RList)) { throw new SpecializationException(null); }
-                this.argProvider = provider;
+                this.argProvider = provider; // !! not adopt
                 this.list = (RList) source;
                 i = 0;
                 size = list.size();
@@ -432,7 +433,7 @@ final class LApply extends CallFactory {
                 if (!(source instanceof RArray)) {
                     Utils.nyi("unsupported type");
                 }
-                this.argProvider = provider;
+                this.argProvider = provider; // !! not adopt
                 this.array = (RArray) source;
                 i = 0;
                 size = array.size();

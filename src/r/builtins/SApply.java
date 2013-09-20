@@ -1,9 +1,7 @@
 package r.builtins;
 
 import r.*;
-import r.builtins.LApply.ArgIterator;
-import r.builtins.LApply.CallableProvider;
-import r.builtins.LApply.ValueProvider;
+import r.builtins.LApply.*;
 import r.data.*;
 import r.data.internal.*;
 import r.nodes.ast.*;
@@ -57,32 +55,37 @@ final class SApply extends CallFactory {
         cnNames[0] = null;
         ValueProvider firstArgProvider = new ValueProvider(call);
         cnExprs[0] = firstArgProvider;
+        ValueProvider[] constantArgProviders = new ValueProvider[cnArgs];
         int j = 0;
         for (int i = 0; i < names.length; i++) {
             if (ia.position("X") == i || ia.position("FUN") == i) {
                 continue;
             }
             cnNames[1 + j] = names[i];
-            cnExprs[1 + j] = exprs[i];
+            ValueProvider vp = new ValueProvider(call);
+            cnExprs[1 + j] = vp;
+            constantArgProviders[j] = vp;
             j++;
         }
-        final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
-        final RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
-        return new Sapply(call, names, exprs, callNode, firstArgProvider, callableProvider, ia.position("X"), ia.position("FUN"));
+        CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
+        RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
+        return new Sapply(call, names, exprs, callNode, firstArgProvider, constantArgProviders, callableProvider, ia.position("X"), ia.position("FUN"));
     }
 
     // TODO: handle names
     public static class Sapply extends Builtin {
 
         ValueProvider firstArgProvider; // !!!! not a child (a shortcut to the arguments)
+        ValueProvider[] constantArgProviders; // !!!! not a child (a shortcut to the arguments)
         CallableProvider callableProvider; // !!!! not a child (a shortcut to the callable expression of the callNode)
         @Child RNode callNode;
         final int xPosition;
         final int funPosition;
 
-        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition) {
+        public Sapply(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, ValueProvider[] constantArgProviders, CallableProvider callableProvider, int xPosition, int funPosition) {
             super(call, names, exprs);
             this.callableProvider = callableProvider;  // !!! no adopt
+            this.constantArgProviders = constantArgProviders; // !!! no adopt
             this.firstArgProvider = firstArgProvider;  // !!! no adopt
             this.callNode = adoptChild(callNode);
             this.xPosition = xPosition;
@@ -494,7 +497,7 @@ final class SApply extends CallFactory {
                         return RDouble.RDoubleFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RDouble>");
             }
             if (resTemplate instanceof RInt && ((RInt) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
@@ -513,15 +516,15 @@ final class SApply extends CallFactory {
                         return RInt.RIntFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RInt>");
             }
             if (resTemplate instanceof RLogical && ((RLogical) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                        int xsize = argIterator.size();
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                        int xsize = it.size();
                         int[] content = new int[xsize];
                         for (int i = 0; i < xsize; i++) {
-                            argIterator.setNext();
+                            it.setNext();
                             RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarLogicalImpl) {
                                 content[i] = ((ScalarLogicalImpl) v).getLogical();
@@ -529,18 +532,18 @@ final class SApply extends CallFactory {
                                 throw new SpecializationException(new PartialResult(RLogical.RLogicalFactory.getFor(content), i, v));
                             }
                         }
-                        return RLogical.RLogicalFactory.getFor(content, null, argIterator.names());
+                        return RLogical.RLogicalFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RLogical>");
             }
             if (resTemplate instanceof RString && ((RString) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                        int xsize = argIterator.size();
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                        int xsize = it.size();
                         String[] content = new String[xsize];
                         for (int i = 0; i < xsize; i++) {
-                            argIterator.setNext();
+                            it.setNext();
                             RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarStringImpl) {
                                 content[i] = ((ScalarStringImpl) v).getString();
@@ -548,18 +551,18 @@ final class SApply extends CallFactory {
                                 throw new SpecializationException(new PartialResult(RString.RStringFactory.getFor(content), i, v));
                             }
                         }
-                        return RString.RStringFactory.getFor(content, null, argIterator.names());
+                        return RString.RStringFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RString>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RString>");
             }
             if (resTemplate instanceof RComplex && ((RComplex) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                        int xsize = argIterator.size();
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                        int xsize = it.size();
                         double[] content = new double[2 * xsize];
                         for (int i = 0; i < xsize; i++) {
-                            argIterator.setNext();
+                            it.setNext();
                             RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof ScalarComplexImpl) {
                                 ScalarComplexImpl cv = (ScalarComplexImpl) v;
@@ -569,19 +572,19 @@ final class SApply extends CallFactory {
                                 throw new SpecializationException(new PartialResult(RComplex.RComplexFactory.getFor(content), i, v));
                             }
                         }
-                        return RComplex.RComplexFactory.getFor(content, null, argIterator.names());
+                        return RComplex.RComplexFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RComplex>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RComplex>");
             }
             if (resTemplate instanceof RList && ((RList) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                        int xsize = argIterator.size();
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                        int xsize = it.size();
                         RAny[] content = new RAny[xsize];
                         boolean returnsList = false;
                         for (int i = 0; i < xsize; i++) {
-                            argIterator.setNext();
+                            it.setNext();
                             RAny v = (RAny) sapply.callNode.execute(frame);
                             content[i] = v;
                             if (!returnsList) {
@@ -597,18 +600,18 @@ final class SApply extends CallFactory {
                             }
                         }
                         if (!returnsList) { throw new SpecializationException(content); }
-                        return RList.RListFactory.getFor(content, null, argIterator.names());
+                        return RList.RListFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RList>");
             }
             if (resTemplate instanceof RRaw && ((RRaw) resTemplate).dimensions() == null) {
                 ApplyFunc a = new ApplyFunc() {
-                    @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                        int xsize = argIterator.size();
+                    @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                        int xsize = it.size();
                         byte[] content = new byte[xsize];
                         for (int i = 0; i < xsize; i++) {
-                            argIterator.setNext();
+                            it.setNext();
                             RAny v = (RAny) sapply.callNode.execute(frame);
                             if (v instanceof RRaw) {
                                 content[i] = ((RRaw) v).getRaw(0);
@@ -616,21 +619,38 @@ final class SApply extends CallFactory {
                                 throw new SpecializationException(new PartialResult(RRaw.RRawFactory.getFor(content), i, v));
                             }
                         }
-                        return RRaw.RRawFactory.getFor(content, null, argIterator.names());
+                        return RRaw.RRawFactory.getFor(content, null, it.names());
                     }
                 };
-                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<=RRaw>");
+                return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<=RRaw>");
             }
             return null; // FIXME: should return generic by default?
         }
 
-        public RAny doApply(Frame frame, RAny argx, RAny argfun) {
+        protected RAny processArgsAndReturnArgx(Frame frame, RAny[] args) {
+            // FIXME: the same method could be used in LApply
+
+            RAny argx = null;
+            int j = 0;
+            for (int i = 0; i < args.length; i++) {
+                if (i == xPosition) {
+                    argx = args[i];
+                } else if (i == funPosition) {
+                    callableProvider.matchAndSet(frame, args[i]);
+                } else {
+                    constantArgProviders[j].setValue(args[i]);
+                    j++;
+                }
+            }
+            return argx;
+        }
+
+        public RAny doApply(Frame frame, RAny[] args) {
 
             try {
                 throw new SpecializationException(null);
             } catch (SpecializationException e) {
-                if (!(argx instanceof RArray)) { throw Utils.nyi("unsupported type"); }
-                callableProvider.matchAndSet(frame, argfun);
+                RAny argx = processArgsAndReturnArgx(frame, args);
                 ArgIterator argIterator = ArgIterator.create(argx);
                 try {
                     argIterator.reset(firstArgProvider, argx);
@@ -649,46 +669,44 @@ final class SApply extends CallFactory {
         }
 
         @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-            RAny argx = args[xPosition];
-            RAny argfun = args[funPosition];
-            return doApply(frame, argx, argfun);
+            return doApply(frame, args);
         }
 
         public Specialized createGeneric(ArgIterator argIterator) {
             ApplyFunc a = new ApplyFunc() {
-                @Override public RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException {
-                    return generic(frame, argIterator, sapply, null);
+                @Override public RAny apply(Frame frame, ArgIterator it, Sapply sapply) throws SpecializationException {
+                    return generic(frame, it, sapply, null);
                 }
             };
-            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, argIterator, a, "<Generic>");
+            return new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, argIterator, a, "<Generic>");
         }
 
         abstract static class ApplyFunc {
             public abstract RAny apply(Frame frame, ArgIterator argIterator, Sapply sapply) throws SpecializationException;
         }
 
-        class Specialized extends Sapply {
+        static class Specialized extends Sapply {
             final ApplyFunc apply;
             final ArgIterator argIterator;
             final String dbg;
 
-            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, CallableProvider callableProvider, int xPosition, int funPosition,
+            public Specialized(ASTNode call, RSymbol[] names, RNode[] exprs, RNode callNode, ValueProvider firstArgProvider, ValueProvider[] constantArgProviders, CallableProvider callableProvider, int xPosition, int funPosition,
                     ArgIterator argIterator, ApplyFunc apply, String dbg) {
-                super(call, names, exprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition);
+                super(call, names, exprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition);
                 this.apply = apply;
                 this.argIterator = argIterator;
                 this.dbg = dbg;
             }
 
-            @Override public RAny doApply(Frame frame, RAny argx, RAny argfun) {
-                callableProvider.matchAndSet(frame, argfun);
+            @Override public RAny doApply(Frame frame, RAny[] args) {
+                RAny argx = processArgsAndReturnArgx(frame, args);
                 try {
                     argIterator.reset(firstArgProvider, argx);
                 } catch (SpecializationException e) {
                     ArgIterator ai = new ArgIterator.Generic();
-                    Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, callableProvider, xPosition, funPosition, ai, apply, dbg);
+                    Specialized sn = new Specialized(ast, argNames, argExprs, callNode, firstArgProvider, constantArgProviders, callableProvider, xPosition, funPosition, ai, apply, dbg);
                     replace(sn, "install Specialized<Generic, ?> from Sapply.Specialized");
-                    return sn.doApply(frame, argx, argfun);
+                    return sn.doApply(frame, args);
                 }
 
                 try {

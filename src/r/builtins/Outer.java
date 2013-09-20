@@ -50,7 +50,9 @@ final class Outer extends CallFactory {
         } else {
             product = true;
         }
-        if (product) { return new MatrixOperation.OuterProduct(call, exprs[ia.position("X")], exprs[ia.position("Y")]); }
+        if (product) {
+            return new MatrixOperation.OuterProduct(call, exprs[ia.position("X")], exprs[ia.position("Y")]);
+        }
 
         int cnArgs = 2 + names.length - 3; // "-2" because both FUN, X, Y
         RSymbol[] cnNames = new RSymbol[cnArgs];
@@ -60,13 +62,16 @@ final class Outer extends CallFactory {
         cnExprs[0] = xArgProvider;
         ValueProvider yArgProvider = new ValueProvider(call);
         cnExprs[1] = yArgProvider;
+        ValueProvider[] constantArgProviders = new ValueProvider[cnArgs];
         int j = 0;
         for (int i = 0; i < names.length; i++) {
             if (ia.position("X") == i || ia.position("Y") == i || ia.position("FUN") == i) {
                 continue;
             }
             cnNames[2 + j] = names[i];
-            cnExprs[2 + j] = exprs[i];
+            ValueProvider vp = new ValueProvider(call);
+            cnExprs[2 + j] = vp;
+            constantArgProviders[j] = vp;
             j++;
         }
 
@@ -75,9 +80,26 @@ final class Outer extends CallFactory {
         final int posX = ia.position("X");
         final int posY = ia.position("Y");
         final int posFUN = ia.position("FUN");
-        return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider) {
+
+        return new OuterBuiltIn(call, names, exprs, callNode, callableProvider, xArgProvider, yArgProvider, constantArgProviders) {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
-                return outer(frame, args[posX], args[posY], args[posFUN]);
+                RAny argx = null;
+                RAny argy = null;
+                RAny argfun = null;
+                int k = 0;
+                for (int i = 0; i < args.length; i++) {
+                    if (i == posX) {
+                        argx = args[i];
+                    } else if (i == posY) {
+                        argy = args[i];
+                    } else if (i == posFUN) {
+                        argfun = args[i];
+                    } else {
+                        constantArgProviders[k].setValue(args[i]);
+                        k++;
+                    }
+                }
+                return outer(frame, argx, argy, argfun);
             }
         };
     }
@@ -87,13 +109,15 @@ final class Outer extends CallFactory {
         CallableProvider callableProvider; // !!! not a child, just a shortcut into callNode
         ValueProvider xArgProvider; // !!! not a child
         ValueProvider yArgProvider; // !!! not a child
+        ValueProvider[] constantArgProviders; // !!! not children
 
-        public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, RNode callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider) {
+        public OuterBuiltIn(ASTNode ast, RSymbol[] argNames, RNode[] argExprs, RNode callNode, CallableProvider callableProvider, ValueProvider xArgProvider, ValueProvider yArgProvider, ValueProvider[] constantArgProviders) {
             super(ast, argNames, argExprs);
             this.callNode = adoptChild(callNode);
             this.callableProvider = callableProvider; // !!! no adopt
             this.xArgProvider = xArgProvider; // !!! no adopt
             this.yArgProvider = yArgProvider; // !!! no adopt
+            this.constantArgProviders = constantArgProviders; // !!! no adopt
         }
 
         @Override
