@@ -1,5 +1,6 @@
 package r.nodes.exec;
 
+import java.io.*;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -7,6 +8,7 @@ import java.util.*;
 import r.*;
 import r.data.*;
 import r.nodes.ast.*;
+import r.nodes.tools.*;
 import r.runtime.*;
 
 public abstract class RNode {
@@ -23,6 +25,9 @@ public abstract class RNode {
 
     public RNode() {
         assert Utils.check(checkReplaceChild(this.getClass()));
+        if (DEBUG_REWRITING) {
+            registerConstructors();
+        }
     }
 
     public ASTNode getAST() {
@@ -140,6 +145,7 @@ public abstract class RNode {
     public final <N extends RNode> N replace(N newNode, String msg) {
         if (DEBUG_REWRITING) {
             System.err.println("REPLACE: " + msg + " current node " + this + " by new node " + newNode + ", parent is " + getParent());
+            printCurrentTree();
         }
         assert Utils.check(newNode != this, "replacing a node by itself.. why?");
         this.replacedByNode = newNode;
@@ -165,6 +171,7 @@ public abstract class RNode {
         RNode parentNode = childNode.getParent();
         if (DEBUG_REWRITING) {
             System.err.println("INSERT: " + msg + " current node " + this + " between parent node " + parentNode + " and child node " + childNode);
+            printCurrentTree();
         }
         assert Utils.check(parentNode != this);
         assert Utils.check(parentNode != childNode);
@@ -403,6 +410,109 @@ public abstract class RNode {
             return checkReplaceChild(superClass);
         }
         return true;
+    }
+
+    private RNode currentRoot() {
+        assert Utils.check(getNewNode() == null);
+
+        RNode n = this;
+        while(n.getParent() != null) {
+            n = n.getParent();
+        }
+        return n;
+    }
+
+    private void printCurrentTree() {
+        RNode root = currentRoot();
+        printTree(root, 0, System.err);
+    }
+
+    private static void printIndent(int indent, PrintStream ps) {
+        for(int i = 0; i < indent; i++) {
+            ps.print(" ");
+        }
+    }
+
+    private static Field[] getAllFields(Class cls) {
+        ArrayList<Field> res = new ArrayList<Field>();
+        Class c = cls;
+        while (c != RNode.class) {
+            assert Utils.check(c != null);
+            res.addAll(Arrays.asList(c.getDeclaredFields()));
+            c = c.getSuperclass();
+        }
+        return res.toArray(new Field[res.size()]);
+    }
+
+    private static void printTree(RNode root, int indent, PrintStream ps) {
+
+        if (root == null) {
+            ps.println("."); // marks a leaf node
+            return;
+        }
+
+        Class nodeClass = root.getClass();
+        String className = nodeClass.getName();
+        ps.print("->" + className);
+        String info = knownConstructors.get(className);
+        if (info != null) {
+            ps.print(" (" + info + ") ");
+        }
+        ps.println(" [" + PrettyPrinter.prettyPrint(root.getAST()) + "]");
+
+        Field[] fields = getAllFields(nodeClass);
+        for(Field f : fields) {
+            if (f.isSynthetic()) {
+                continue;
+            }
+            Class fieldClass = f.getType();
+            if (RNode.class.isAssignableFrom(fieldClass)) {
+                printIndent(indent + 2, ps);
+                ps.print(f.getName());
+                RNode child;
+                try {
+                    f.setAccessible(true);
+                    child = (RNode) f.get(root);
+                    printTree(child, indent + 4, ps);
+                } catch (IllegalAccessException e) {
+                    assert Utils.check(false, "can't read a node field " + e);
+                }
+            }
+            if (fieldClass.isArray()) {
+                Class componentClass = fieldClass.getComponentType();
+                if (RNode.class.isAssignableFrom(componentClass)) {
+                    try {
+                        f.setAccessible(true);
+                        Object nodesArray = f.get(root);
+                        int length = Array.getLength(nodesArray);
+                        for (int i = 0; i < length; i++) {
+                            RNode child = (RNode) Array.get(nodesArray, i);
+                            printIndent(indent + 2, ps);
+                            ps.print(f.getName() + "[" + i + "]");
+                            printTree(child, indent + 4, ps);
+                        }
+                    } catch (IllegalAccessException e) {
+                        assert Utils.check(false, "can't read a node field (array field) " + e);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private static HashMap<String, String> knownConstructors = new HashMap<String,String>();
+    private static void registerConstructors() {
+        StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+        for(StackTraceElement e : traces) {
+            if ("<init>".equals(e.getMethodName())) {
+                String className = e.getClassName();
+                if (!knownConstructors.containsKey(className)) {
+                    String info = e.getFileName() + ":" + e.getLineNumber();
+                    knownConstructors.put(className, info);
+                }
+            }
+        }
+
     }
 
 }
