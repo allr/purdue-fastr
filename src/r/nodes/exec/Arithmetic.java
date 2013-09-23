@@ -2525,7 +2525,11 @@ public class Arithmetic extends BaseR {
             res = new DoubleView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
         } else {
             int n = resultSize(ast, na, nb);
-            res = new DoubleView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
+            if (n == na) {
+                res = new DoubleView.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
+            } else {
+                res = new DoubleView.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+            }
         }
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
             return RDouble.RDoubleFactory.copy(res);
@@ -2565,9 +2569,17 @@ public class Arithmetic extends BaseR {
         } else {
             int n = resultSize(ast, na, nb);
             if (b instanceof RIntSequence) {
-                res = new DoubleViewForDoubleInt.VectorSequence(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                if (n == na) {
+                    res = new DoubleViewForDoubleInt.VectorSequenceASized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new DoubleViewForDoubleInt.VectorSequenceBSized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                }
             } else {
-                res = new DoubleView.Generic(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+                if (n == na) {
+                    res = new DoubleView.GenericASized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new DoubleView.GenericBSized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+                }
             }
         }
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
@@ -2608,9 +2620,17 @@ public class Arithmetic extends BaseR {
         } else {
             int n = resultSize(ast, na, nb);
             if (a instanceof RIntSequence) {
-                res = new DoubleViewForIntDouble.SequenceVector((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                if (n == na) {
+                    res = new DoubleViewForIntDouble.SequenceVectorASized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new DoubleViewForIntDouble.SequenceVectorBSized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                }
             } else {
-                res = new DoubleView.Generic(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+                if (n == na) {
+                    res = new DoubleView.GenericASized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new DoubleView.GenericBSized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+                }
             }
         }
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
@@ -2715,6 +2735,52 @@ public class Arithmetic extends BaseR {
                 }
                 double adbl = a.getDouble(ai);
                 double bdbl = b.getDouble(bi);
+                if (RDouble.RDoubleUtils.arithIsNA(adbl) || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
+
+        static final class GenericASized extends DoubleView implements RDouble {
+            final int nb;
+
+            public GenericASized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(a.size() == n);
+                nb = b.size();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int bi = i % nb;
+                double adbl = a.getDouble(i);
+                double bdbl = b.getDouble(bi);
+                if (RDouble.RDoubleUtils.arithIsNA(adbl) || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bdbl);
+                }
+             }
+        }
+
+        static final class GenericBSized extends DoubleView implements RDouble {
+            final int na;
+
+            public GenericBSized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                assert Utils.check(b.size() == n);
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int ai = i % na;
+                double adbl = a.getDouble(ai);
+                double bdbl = b.getDouble(i);
                 if (RDouble.RDoubleUtils.arithIsNA(adbl) || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
                 } else {
@@ -2903,6 +2969,60 @@ public class Arithmetic extends BaseR {
              }
         }
 
+        static final class VectorSequenceASized extends DoubleViewForDoubleInt implements RDouble {
+            final int nb;
+            final int bfrom;
+            final int bstep;
+
+            public VectorSequenceASized(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(a.size() == n);
+                nb = b.size();
+                bfrom = b.from();
+                bstep = b.step();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int bi = i % nb;
+                double adbl = a.getDouble(i);
+                int bint = bfrom + bi * bstep;
+                if (RDouble.RDoubleUtils.arithIsNA(adbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bint);
+                }
+             }
+        }
+
+        static final class VectorSequenceBSized extends DoubleViewForDoubleInt implements RDouble {
+            final int na;
+            final int bfrom;
+            final int bstep;
+
+            public VectorSequenceBSized(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                assert Utils.check(n == b.size());
+                bfrom = b.from();
+                bstep = b.step();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int ai = i % na;
+                double adbl = a.getDouble(ai);
+                int bint = bfrom + i * bstep;
+                if (RDouble.RDoubleUtils.arithIsNA(adbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, adbl, bint);
+                }
+             }
+        }
+
         static final class EqualSizeVectorVector extends DoubleViewForDoubleInt implements RDouble {
 
             public EqualSizeVectorVector(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -3069,6 +3189,62 @@ public class Arithmetic extends BaseR {
                 }
                 int aint = afrom + ai * astep;
                 double bdbl = b.getDouble(bi);
+
+                if (RDouble.RDoubleUtils.arithIsNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, aint, bdbl);
+                }
+             }
+        }
+
+        static final class SequenceVectorASized extends DoubleViewForIntDouble implements RDouble {
+            final int nb;
+            final int afrom;
+            final int astep;
+
+            public SequenceVectorASized(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(n == a.size());
+                nb = b.size();
+                afrom = a.from();
+                astep = a.step();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int bi = i % nb;
+                int aint = afrom + i * astep;
+                double bdbl = b.getDouble(bi);
+
+                if (RDouble.RDoubleUtils.arithIsNA(bdbl)) {
+                    return RDouble.NA;
+                } else {
+                    return arit.op(ast, aint, bdbl);
+                }
+             }
+        }
+
+        static final class SequenceVectorBSized extends DoubleViewForIntDouble implements RDouble {
+            final int na;
+            final int afrom;
+            final int astep;
+
+            public SequenceVectorBSized(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                assert Utils.check(n == b.size());
+                afrom = a.from();
+                astep = a.step();
+            }
+
+            @Override
+            public double getDouble(int i) {
+
+                int ai = i % na;
+                int aint = afrom + ai * astep;
+                double bdbl = b.getDouble(i);
 
                 if (RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
@@ -3299,11 +3475,23 @@ public class Arithmetic extends BaseR {
 //                    return arit.op(ast, (IntImpl) a, (RIntSequence) b, n, dim, names, attributes);
 //                }
 
-                res = new IntView.VectorSequence(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                if (na == n) {
+                    res = new IntView.VectorSequenceASized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new IntView.VectorSequenceBSized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                }
             } else if (a instanceof RIntSequence) {
-                res = new IntView.SequenceVector((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                if (na == n) {
+                    res = new IntView.SequenceVectorASized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new IntView.SequenceVectorBSized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                }
             } else {
-                res = new IntView.Generic(a, b, dim, names, attributes, n, depth, arit, ast);
+                if (n == na) {
+                    res = new IntView.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new IntView.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                }
             }
         }
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
@@ -3418,6 +3606,60 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        static final class GenericASized extends IntView implements RInt {
+            final int nb;
+
+            public GenericASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(n == a.size());
+                nb = b.size();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int bi = i % nb;
+                int aint = a.getInt(i);
+                int bint = b.getInt(bi);
+                if (aint == RInt.NA || bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
+        static final class GenericBSized extends IntView implements RInt {
+            final int na;
+
+            public GenericBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                assert Utils.check(b.size() == n);
+            }
+
+            @Override
+            public int getInt(int i) {
+                int ai = i % na;
+                int aint = a.getInt(ai);
+                int bint = b.getInt(i);
+                if (aint == RInt.NA || bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
         static final class VectorSequence extends IntView implements RInt {
             final int na;
             final int nb;
@@ -3461,6 +3703,68 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        static final class VectorSequenceASized extends IntView implements RInt {
+            final int nb;
+            final int bfrom;
+            final int bstep;
+
+            public VectorSequenceASized(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(a.size() == n);
+                nb = b.size();
+                bfrom = b.from();
+                bstep = b.step();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int bi = i % nb;
+                int aint = a.getInt(i);
+                int bint = bfrom + bi * bstep;
+                if (aint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
+        static final class VectorSequenceBSized extends IntView implements RInt {
+            final int na;
+            final int bfrom;
+            final int bstep;
+
+            public VectorSequenceBSized(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(b.size() == n);
+                na = a.size();
+                bfrom = b.from();
+                bstep = b.step();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int ai = i % na;
+                int aint = a.getInt(ai);
+                int bint = bfrom + i * bstep;
+                if (aint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
         static final class SequenceVector extends IntView implements RInt {
             final int na;
             final int nb;
@@ -3491,6 +3795,68 @@ public class Arithmetic extends BaseR {
                 }
                 int aint = afrom + ai * astep;
                 int bint = b.getInt(bi);
+                if (bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
+        static final class SequenceVectorASized extends IntView implements RInt {
+            final int nb;
+            final int afrom;
+            final int astep;
+
+            public SequenceVectorASized(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(n == a.size());
+                nb = b.size();
+                afrom = a.from();
+                astep = a.step();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int bi = i % nb;
+                int aint = afrom + i * astep;
+                int bint = b.getInt(bi);
+                if (bint == RInt.NA) {
+                    return RInt.NA;
+                } else {
+                    int res = arit.op(ast, aint, bint);
+                    if (res == RInt.NA && !overflown) {
+                        overflown = true;
+                        arit.emitOverflowWarning(ast);
+                    }
+                    return res;
+                }
+            }
+        }
+
+        static final class SequenceVectorBSized extends IntView implements RInt {
+            final int na;
+            final int afrom;
+            final int astep;
+
+            public SequenceVectorBSized(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                assert Utils.check(n == b.size());
+                afrom = a.from();
+                astep = a.step();
+            }
+
+            @Override
+            public int getInt(int i) {
+                int ai = i % na;
+                int aint = afrom + ai * astep;
+                int bint = b.getInt(i);
                 if (bint == RInt.NA) {
                     return RInt.NA;
                 } else {
