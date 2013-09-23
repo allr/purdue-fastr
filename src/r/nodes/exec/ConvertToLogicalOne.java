@@ -14,7 +14,7 @@ public abstract class ConvertToLogicalOne extends BaseR {
 
     private ConvertToLogicalOne(RNode input) {
         super(input.getAST());
-        this.input = adoptChild(input);
+        this.input = insert(input, "inserting cast node ConvertToLogicalOne");
     }
 
     @Override
@@ -34,7 +34,12 @@ public abstract class ConvertToLogicalOne extends BaseR {
 
     @Override
     public final int executeScalarLogical(Frame frame) {
-        return executeScalarLogical((RAny) input.execute(frame));
+        assert Utils.check(getNewNode() == null);
+        RAny value = (RAny) input.execute(frame);
+        if (getNewNode() != null) {
+            return ((ConvertToLogicalOne)getNewNode()).executeScalarLogical(value);
+        }
+        return executeScalarLogical(value);
     }
 
     // The execute methods are use by intermediate cast nodes - those assuming an array of logicals or ints
@@ -49,7 +54,7 @@ public abstract class ConvertToLogicalOne extends BaseR {
         }
     }
 
-    public static ConvertToLogicalOne createNode(RNode input, RAny value) {
+    public static ConvertToLogicalOne createAndInsertNode(RNode input, RAny value) {
 
         if (value instanceof RLogical) {
             return fromLogical(input);

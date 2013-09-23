@@ -36,7 +36,6 @@ public class Comparison extends BaseR {
     @Override
     public final int executeScalarLogical(Frame frame) throws SpecializationException {
         assert Utils.check(getNewNode() == null);
-        RNode oldleft = left;
         RAny lexpr = (RAny) left.execute(frame);
         if (getNewNode() != null) {
             return ((Comparison) getNewNode()).executeScalarLogicalWithLeft(frame, lexpr);
@@ -63,7 +62,7 @@ public class Comparison extends BaseR {
     }
 
     @Override
-    public final Object execute(Frame frame) {
+    public Object execute(Frame frame) {
         try {
             return RLogical.RLogicalFactory.getScalar(executeScalarLogical(frame));
         } catch (SpecializationException e) {
@@ -302,7 +301,31 @@ public class Comparison extends BaseR {
         }
     }
 
-    static class VectorScalarComparison extends Comparison {
+    static class NonScalarComparison extends Comparison {
+        public NonScalarComparison (ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
+            super(ast, left, right, cmp);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            Object lexpr = left.execute(frame);
+            if (getNewNode() != null) {
+                return ((Arithmetic) getNewNode()).executeWithLexpr(frame, lexpr);
+            }
+            return executeWithLexpr(frame, lexpr);
+        }
+
+        public Object executeWithLexpr(Frame frame, Object lexpr) {
+            Object rexpr = right.execute(frame);
+            if (getNewNode() != null) {
+                return ((Arithmetic) getNewNode()).execute(lexpr, rexpr);
+            }
+            return execute((RAny)lexpr, (RAny)rexpr);
+        }
+
+    }
+
+    static class VectorScalarComparison extends NonScalarComparison {
 
         public VectorScalarComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
             super(ast, left, right, cmp);
@@ -471,7 +494,7 @@ public class Comparison extends BaseR {
         }
     }
 
-    static class LazyComparison extends Comparison {
+    static class LazyComparison extends NonScalarComparison {
         public LazyComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
             super(ast, left, right, cmp);
         }
@@ -517,7 +540,7 @@ public class Comparison extends BaseR {
         }
     }
 
-    static class GenericComparison extends Comparison {
+    static class GenericComparison extends NonScalarComparison {
 
         public GenericComparison(ASTNode ast, RNode left, RNode right, ValueComparison cmp) {
             super(ast, left, right, cmp);

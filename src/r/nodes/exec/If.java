@@ -30,18 +30,37 @@ public class If extends BaseR {
     public final Object execute(Frame frame) {
         int ifVal;
 
+        assert Utils.check(getNewNode() == null);
         try {
             if (DEBUG_IF) Utils.debug("executing condition");
             ifVal = cond.executeScalarLogical(frame);
             if (DEBUG_IF) Utils.debug("condition got expected result");
         } catch (SpecializationException e) {
-            if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
             RAny result = (RAny) e.getResult();
-            ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
-            cond = adoptChild(castNode);
-            ifVal = castNode.executeScalarLogical(result);
-        }
+            if (getNewNode() != null) {
+                return ((If)getNewNode()).executeWithFailedCond(frame, result);
+            }
+            return executeWithFailedCond(frame, result);
 
+        }
+        if (getNewNode() != null) {
+            return ((If)getNewNode()).executeWithCond(frame, ifVal);
+        }
+        return executeWithCond(frame, ifVal);
+    }
+
+    public Object executeWithFailedCond(Frame frame, RAny result) {
+        if (DEBUG_IF) Utils.debug("condition got unexpected result, inserting 2nd level cast node");
+
+        ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
+        int ifVal = castNode.executeScalarLogical(result);
+        if (getNewNode() != null) {
+            return ((If)getNewNode()).executeWithCond(frame, ifVal);
+        }
+        return executeWithCond(frame, ifVal);
+    }
+
+    public Object executeWithCond(Frame frame, int ifVal) {
         if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
             return trueBranch.execute(frame);
         } else if (ifVal == RLogical.FALSE) {
@@ -82,12 +101,13 @@ public class If extends BaseR {
         public final Object execute(Frame frame) {
             int ifVal;
 
+            assert Utils.check(getNewNode() == null);
             try {
                 ifVal = cond.executeScalarNonNALogical(frame);
             } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
                 RNode theCond = cond;
-                ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+                ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
                 If ifnode = new If(ast, castNode, trueBranch, r.nodes.exec.Constant.getNull());
                 return replace(theCond, result, ifnode, frame);
             }
@@ -131,12 +151,13 @@ public class If extends BaseR {
         public final Object execute(Frame frame) {
             int ifVal;
 
+            assert Utils.check(getNewNode() == null);
             try {
                 ifVal = cond.executeScalarNonNALogical(frame);
             } catch (SpecializationException e) {
                 RAny result = (RAny) e.getResult();
                 RNode theCond = cond;
-                ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+                ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
                 If ifnode = new If(ast, castNode, trueBranch, falseBranch);
                 return replace(theCond, result, ifnode, frame);
             }
@@ -187,7 +208,9 @@ public class If extends BaseR {
 
         @Override
         public final Object execute(Frame frame) {
+            assert Utils.check(getNewNode() == null);
             RAny value = (RAny) expr.execute(frame);
+            assert Utils.check(getNewNode() == null); // FIXME
             return execute(frame, value);
         }
 
@@ -214,6 +237,7 @@ public class If extends BaseR {
         }
 
         public Object execute(Frame frame, RAny value) {
+            assert Utils.check(getNewNode() == null);
             try {
                 throw new SpecializationException(null);
             } catch (SpecializationException e) {
@@ -337,11 +361,14 @@ public class If extends BaseR {
 
             @Override
             public final Object execute(Frame frame, RAny value) {
+                assert Utils.check(getNewNode() == null);
                 try {
                     int ifVal = cmp.cmp(value);
                     if (ifVal == RLogical.TRUE) {
+                        assert Utils.check(getNewNode() == null); // FIXME
                         return trueBranch.execute(frame);
                     } else {
+                        assert Utils.check(getNewNode() == null); // FIXME
                         assert Utils.check(ifVal == RLogical.FALSE);
                         return falseBranch.execute(frame);
                     }

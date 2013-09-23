@@ -155,6 +155,7 @@ public abstract class RNode {
             // replacing root node
             return newNode;
         }
+        newNode.replacedByNode = null;
         N res = oldParent.replaceChild(this, newNode);
         if (CLEAR_PARENT_POINTERS) {
             this.parent = null;
@@ -203,6 +204,8 @@ public abstract class RNode {
         if (childNode != null) {
             unlinkChildNode(childNode);
             childNode.parent = this;
+            assert Utils.check(replacedByNode == null);
+            childNode.replacedByNode = null;
         }
         return childNode;
     }
@@ -236,6 +239,7 @@ public abstract class RNode {
             if (CLEAR_PARENT_POINTERS) {
                 assert Utils.check(childNode.parent == null); // not necessary now when unlinking child nodes
             }
+            childNode.replacedByNode = null;
             childNode.parent = this;
         }
         return childNode;

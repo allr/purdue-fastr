@@ -107,7 +107,7 @@ public abstract class Loop extends BaseR {
                             condVal = cond.executeScalarLogical(frame);
                         } catch (SpecializationException e) {
                             RAny result = (RAny) e.getResult();
-                            ConvertToLogicalOne castNode = ConvertToLogicalOne.createNode(cond, result);
+                            ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
                             cond = adoptChild(castNode);
                             condVal = castNode.executeScalarLogical(result);
                         }

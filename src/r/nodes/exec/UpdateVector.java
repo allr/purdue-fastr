@@ -96,9 +96,12 @@ public abstract class UpdateVector extends BaseR {
     }
 
     @Override public final Object execute(Frame frame) {
+        assert Utils.check(getNewNode() == null);
         if (isSuper) { return executeSuper(frame); }
         RAny value = (RAny) rhs.execute(frame); // note: order is important
+        assert Utils.check(getNewNode() == null); // FIXME
         RAny index = (RAny) indexes[0].execute(frame);
+        assert Utils.check(getNewNode() == null); // FIXME
 
         if (frame != null) {
             if (!slotInitialized) { // FIXME: turn this into node rewriting

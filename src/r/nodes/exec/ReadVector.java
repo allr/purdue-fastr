@@ -80,8 +80,23 @@ public abstract class ReadVector extends BaseR {
     }
 
     @Override public Object execute(Frame frame) {
+        if (getNewNode() != null) {
+            System.err.println("Shit...\n");
+        }
+
+        assert Utils.check(getNewNode() == null);
         RAny base = (RAny) lhs.execute(frame); // note: order is important
+        if (getNewNode() != null) {
+            return ((ReadVector)getNewNode()).executeWithBase(frame, base);
+        }
+        return executeWithBase(frame, base);
+    }
+
+    public Object executeWithBase(Frame frame, RAny base) {
         RAny index = (RAny) indexes[0].execute(frame);
+        if (getNewNode() != null) {
+            return ((ReadVector)getNewNode()).execute(index, base);
+        }
         return execute(index, base);
     }
 
@@ -218,7 +233,16 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override public Object execute(Frame frame) {
+            assert Utils.check(getNewNode() == null);
             RAny base = (RAny) lhs.execute(frame);
+            if (getNewNode() != null) {
+                return ((ReadVector.SimpleConstantScalarIntSelection)getNewNode()).executeWithBase(frame, base);
+            }
+            return executeWithBase(frame, base);
+        }
+
+        @Override
+        public Object executeWithBase(Frame frame, RAny base) {
             try {
                 if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray vrarr = (RArray) base;
@@ -233,7 +257,8 @@ public abstract class ReadVector extends BaseR {
             }
         }
 
-        @Override public RAny execute(RAny index, RAny vector) {
+        @Override
+        public RAny execute(RAny index, RAny vector) {
             return null;
         }
     }
@@ -987,8 +1012,19 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override public Object execute(Frame frame) {
+            assert Utils.check(getNewNode() == null);
             RAny base = (RAny) lhs.execute(frame); // note: order is important
+            if (getNewNode() != null) {
+                return ((ReadVector.LogicalEqualitySelection) getNewNode()).executeWithBase(frame, base);
+            }
+            return executeWithBase(frame,base);
+        }
+
+        public Object executeWithBase(Frame frame, RAny base) {
             RAny x = (RAny) xExpr.execute(frame);
+            if (getNewNode() != null) {
+                return ((ReadVector.LogicalEqualitySelection) getNewNode()).executeWithBase(frame, base);
+            }
             return execute(base, x);
         }
 
@@ -1543,7 +1579,11 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override public Object execute(Frame frame) {
+            assert Utils.check(getNewNode() == null);
             RAny base = (RAny) lhs.execute(frame);
+            if (getNewNode() != null) {
+                return ((ReadVector.FieldSelection)getNewNode()).execute(base);
+            }
             return execute(base);
         }
 
