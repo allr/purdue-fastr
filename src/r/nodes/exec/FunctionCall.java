@@ -87,7 +87,7 @@ public abstract class FunctionCall extends AbstractCall {
         return null;
     }
 
-    public static AbstractCall createBuiltinCall(ASTNode call, RSymbol[] argNames, RNode[] argExprs) {
+    public static RNode createBuiltinCall(ASTNode call, RSymbol[] argNames, RNode[] argExprs) {
 
         int[] dotsArgs = findDotsArgs(argExprs);
         if (dotsArgs != null) {
@@ -110,7 +110,28 @@ public abstract class FunctionCall extends AbstractCall {
             }
             assert Utils.check(builtinNode != null);
 //            return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
-            return new SimpleListenerBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
+//            return new SimpleListenerBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
+
+            final RNode lbuiltinNode = builtinNode;
+            final RSymbol lbuiltinName = fname;
+            final ASTNode lcall = call;
+            final RSymbol[] largNames = argNames;
+            final RNode[] largExprs = argExprs; // FIXME: we rely on that these nodes wont get rewritten (!) - like below in builtin calls
+            SymbolChangeListener listener = new SymbolChangeListener() {
+                public boolean onChange(RSymbol symbol) {
+                    RNode oldNode = lbuiltinNode;
+                    while(oldNode.getNewNode() != null) {
+                        oldNode = oldNode.getNewNode();
+                    }
+                    RNode callableExpr = r.nodes.exec.MatchCallable.getUninitialized(lcall, lbuiltinName); // FIXME: a different ast?
+                    oldNode.replace(getFunctionCall(lcall, callableExpr, largNames, largExprs));
+                    return false;
+                }
+
+            };
+            fname.addChangeListener(listener);
+            return builtinNode;
+
         }
         return null;
     }
