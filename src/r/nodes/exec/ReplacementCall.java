@@ -82,7 +82,7 @@ public class ReplacementCall extends BaseR {
 
         public RememberLast(ASTNode ast, RNode node) {
             super(ast);
-            this.node = node;
+            this.node = insert(node, "inserting RememberLast");
         }
 
         @Override

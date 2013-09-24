@@ -367,7 +367,8 @@ public class BuildExecutableTree implements Visitor {
 
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
         // It's maybe smarter to move this instance of here and replace the type of name by expression
-        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.exec.FunctionCall.PROMISES);
+//        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.exec.FunctionCall.PROMISES);
+        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), false);
         // NOTE: the "false" argument, which currently ensures that the arguments are not lazy, which in turn
         // makes it easy for hotspot to optimize the code
 
@@ -399,10 +400,7 @@ public class BuildExecutableTree implements Visitor {
 
         // replacement assignment
         RNode valueExpr = a.convertedExpressions[a.convertedExpressions.length - 1];
-        ReplacementCall.RememberLast remValueExpr = new ReplacementCall.RememberLast(valueExpr.getAST(), valueExpr);
-        valueExpr.replace(remValueExpr);
-        a.convertedExpressions[a.convertedExpressions.length - 1] = remValueExpr;
-
+        new ReplacementCall.RememberLast(valueExpr.getAST(), valueExpr); // inserts itself
         SimpleAccessVariable xAST = (SimpleAccessVariable) a.convertedExpressions[0].getAST();
 
         result = new ReplacementCall(functionCall, functionCall.isSuper(), xAST.getSymbol(), (AbstractCall) rCall);
