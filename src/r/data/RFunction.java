@@ -15,6 +15,7 @@ public interface RFunction {
     RSymbol[] localWriteSet();
     FrameDescriptor frameDescriptor();
     Object call(Frame frame);
+    Object callNoDefaults(Frame frame);
     ASTNode getSource();
 
     int nlocals();

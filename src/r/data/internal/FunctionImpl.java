@@ -111,6 +111,17 @@ public class FunctionImpl extends BaseR implements RFunction {
         return res;
     }
 
+    @Override
+    public Object callNoDefaults(Frame frame) {
+        Object res;
+        try {
+            res = body.execute(frame);
+        } catch (ReturnException re) {
+            res = frame.returnValue();
+        }
+        return res;
+    }
+
     private static String printWriteSet(RSymbol[] writeSet) {
         StringBuilder str = new StringBuilder();
         boolean first = true;

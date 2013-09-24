@@ -1,5 +1,7 @@
 package r.nodes.exec;
 
+import com.sun.org.apache.xml.internal.security.utils.resolver.implementations.*;
+
 import r.*;
 import r.builtins.*;
 import r.data.*;
@@ -158,7 +160,29 @@ public abstract class FunctionCall extends AbstractCall {
                     RSymbol fcallName = getFunctionName(callableExpr);
                     RClosure closure = (RClosure) callable;
                     if (fcallName != null && (callerFrame == null || !callerFrame.function().hasLocalOrEnclosingSlot(fcallName)) && fcallName.getVersion() == 0 && closure.enclosingFrame() == null) {
-                        n = new SimpleTopLevelClosureCall(ast, fcallName, callableExpr, argNames, argExprs, closure.function());
+                        // calling a closure created at top-level and bound to a top-level symbol
+                        RFunction function = closure.function();
+                        boolean hasNullExpr = false;
+                        for (RNode ex : argExprs) {
+                            if (ex == null) {
+                                hasNullExpr = true;
+                                break;
+                            }
+                        }
+                        boolean hasNonNullName = false;
+                        for (RSymbol s : argNames) {
+                            if (s != null) {
+                                hasNonNullName = true;
+                                break;
+                            }
+                        }
+                        if ((argNames == null || !hasNonNullName) && function.dotsIndex() == -1 && !hasNullExpr && argExprs.length <= 3 && argExprs.length == function.nparams()) {
+                            // a positional call
+                            // TODO: very surprisingly, this seems to be helping only very little, if at all...
+                            n = PositionalTopLevelClosureCall.create(ast, fcallName, callableExpr, argNames, argExprs, closure.function());
+                        } else {
+                            n = new SimpleTopLevelClosureCall(ast, fcallName, callableExpr, argNames, argExprs, closure.function());
+                        }
                         replace(n, "install SimpleTopLevelClosureCall from UninitializedCall");
                         return n.execute(callerFrame);
                     } else {
@@ -344,6 +368,93 @@ public abstract class FunctionCall extends AbstractCall {
         }
 
     }
+
+    public static abstract class PositionalTopLevelClosureCall extends FunctionCall implements SymbolChangeListener {
+
+        final RFunction function;
+
+        PositionalTopLevelClosureCall(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+            super(ast, callableExpr, argNames, argExprs, null);
+            this.function = function;
+            closureName.addChangeListener(this);
+
+        }
+
+        public static PositionalTopLevelClosureCall create(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+            switch(argExprs.length) {
+                case 0 : return new Args0(ast, closureName, callableExpr, argNames, argExprs, function);
+                case 1 : return new Args1(ast, closureName, callableExpr, argNames, argExprs, function);
+                case 2 : return new Args2(ast, closureName, callableExpr, argNames, argExprs, function);
+                case 3 : return new Args3(ast, closureName, callableExpr, argNames, argExprs, function);
+                default:
+                    assert Utils.check(false, "unreachable");
+                    return null;
+            }
+        }
+
+        public static final class Args0 extends PositionalTopLevelClosureCall {
+
+            Args0(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+                super(ast, closureName, callableExpr, argNames, argExprs, function);
+            }
+
+            @Override public Object execute(Frame callerFrame) {
+                Frame newFrame = function.createFrame(null); // FIXME: could speed this up, create a special empty frame
+                return function.callNoDefaults(newFrame);
+            }
+        }
+
+        public static final class Args1 extends PositionalTopLevelClosureCall {
+
+            Args1(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+                super(ast, closureName, callableExpr, argNames, argExprs, function);
+            }
+
+            @Override public Object execute(Frame callerFrame) {
+                Frame newFrame = function.createFrame(null);
+                newFrame.set(0, RPromise.createNormal(argExprs[0], callerFrame));
+                return function.callNoDefaults(newFrame);
+            }
+        }
+
+        public static final class Args2 extends PositionalTopLevelClosureCall {
+
+            Args2(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+                super(ast, closureName, callableExpr, argNames, argExprs, function);
+            }
+
+            @Override public Object execute(Frame callerFrame) {
+                Frame newFrame = function.createFrame(null);
+                newFrame.set(0, RPromise.createNormal(argExprs[0], callerFrame));
+                newFrame.set(1, RPromise.createNormal(argExprs[1], callerFrame));
+                return function.callNoDefaults(newFrame);
+            }
+        }
+
+        public static final class Args3 extends PositionalTopLevelClosureCall {
+
+            Args3(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+                super(ast, closureName, callableExpr, argNames, argExprs, function);
+            }
+
+            @Override public Object execute(Frame callerFrame) {
+                Frame newFrame = function.createFrame(null);
+                newFrame.set(0, RPromise.createNormal(argExprs[0], callerFrame));
+                newFrame.set(1, RPromise.createNormal(argExprs[1], callerFrame));
+                newFrame.set(2, RPromise.createNormal(argExprs[2], callerFrame));
+                return function.callNoDefaults(newFrame);
+            }
+        }
+
+        @Override
+        public boolean onChange(RSymbol symbol) {
+            RNode n = new GenericCall(ast, callableExpr, argNames, argExprs);
+            replace(n, "install GenericCall from SimpleTopLevelClosureCall");
+            return false;
+        }
+
+    }
+
 
     public static final class GenericCall extends FunctionCall {
 

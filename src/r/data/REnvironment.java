@@ -128,6 +128,10 @@ public interface REnvironment extends RAny {
         public boolean hasLocalSlot(RSymbol sym) {
             return false;
         }
+
+        public Object callNoDefaults(Frame frame) {
+            return null;
+        }
     }
 
 }
