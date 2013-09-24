@@ -32,6 +32,9 @@
         <version>2.16</version>
 				<configuration>
 					<argLine>-Duser.language=en</argLine><!--ensure vm is loaded with the good locales-->
+					<systemPropertyVariables>
+						<allr.prefix>${project.build.outputDirectory}</allr.prefix>
+					</systemPropertyVariables>
 				</configuration>
       </plugin>
       <plugin>
@@ -78,9 +81,4 @@
 			<version>0.9.3</version>
 		</dependency>
 	</dependencies>
-	<!--<dependency>
-		<groupId>net.sourceforge.f2j</groupId>
-		<artifactId>arpack_combined_all</artifactId>
-		<version>0.1</version>
-	</dependency>-->
 </project>

@@ -14,28 +14,18 @@ public class TestNodes {
     public void testReplaceChild() {
         // make sure that all node class that have children also define a replaceChild method
 
-        String prefix = "bin/";
-        Path classfilesDir = Paths.get(prefix + "r");
+        String prefix =  System.getProperty("allr.prefix", "bin");
+        Path classfilesDir = Paths.get(prefix, "r");
 
+				final int prefixSize = prefix.length() + 1;
+				final int extLength = ".class".length();
 
         FileVisitor pathVisitor = new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                String basename = file.getFileName().toString();
-                if (basename.endsWith(".class")) {
-                    int nelems = file.getNameCount();
-                    StringBuilder cname = new StringBuilder();
-                    for(int i = 1; i < nelems - 1; i++) {
-                        if (i > 1) {
-                            cname.append(".");
-                        }
-                        cname.append(file.getName(i));
-                    }
-                    if (nelems > 1) {
-                        cname.append(".");
-                    }
-                    cname.append(basename.substring(0, basename.length() - ".class".length()));
-                    String className = cname.toString();
+                if (file.endsWith(".class")) {
+										String cname = file.toString();
+                    String className = cname.substring(prefixSize, cname.length() - extLength).replaceAll("/", ".");
                     try {
                         Class rClass = Class.forName(className);
                         if (RNode.class.isAssignableFrom(rClass)) {
