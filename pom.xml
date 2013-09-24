@@ -26,6 +26,14 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+				<configuration>
+					<argLine>-Duser.language=en</argLine><!--ensure vm is loaded with the good locales-->
+				</configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.5</version>
@@ -39,6 +47,13 @@
       </plugin>
 		</plugins>
 	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>se</id>
+			<url>dav:https://webdav.labri.fr/vhosts/se.labri.fr/maven/</url>
+		</repository>
+	</distributionManagement>
 
 	<dependencies>
 		<dependency>
