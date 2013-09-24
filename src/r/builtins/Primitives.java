@@ -226,7 +226,7 @@ public class Primitives {
 
     public static PrimitiveEntry get(RSymbol name, RFunction fun) {
         PrimitiveEntry pe = get(name);
-        if (STATIC_LOOKUP && pe != null && fun != null && fun.isInWriteSet(name)) { // TODO: fix these checks
+        if (STATIC_LOOKUP && pe != null && fun != null && fun.hasLocalOrEnclosingSlot(name)) { // TODO: fix these checks
             Utils.debug("IGNORING over-shadowing of built-in " + name.pretty() + "!!!");
             throw Utils.nyi(); // TODO the case when a primitive is shadowed by a local symbol
             // FIXME: but shouldn't we keep traversing recursively through all frames of the caller?

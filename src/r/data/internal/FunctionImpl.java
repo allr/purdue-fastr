@@ -224,17 +224,21 @@ public class FunctionImpl extends BaseR implements RFunction {
     }
 
 
-    @Override public boolean isInWriteSet(RSymbol sym) {
+    @Override public boolean hasLocalOrEnclosingSlot(RSymbol sym) {
         if (positionInLocalWriteSet(sym) != -1) { return true; }
         if (enclosingFunction == null) { return false; }
-        return enclosingFunction.isInWriteSet(sym);
+        return enclosingFunction.hasLocalOrEnclosingSlot(sym);
+    }
+
+    @Override public boolean hasLocalSlot(RSymbol sym) {
+        return positionInLocalWriteSet(sym) != -1;
     }
 
     @Override public RSymbol[] localWriteSet() {
         return writeSet;
     }
 
-    @Override public int localSlot(RSymbol symbol) {
+    @Override public int localSlot(RSymbol symbol) { // FIXME: could use the bloom filter instead?
         return frameDescriptor.findFrameSlot(symbol);
     }
 

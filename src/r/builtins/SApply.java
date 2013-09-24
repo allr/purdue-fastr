@@ -67,7 +67,8 @@ final class SApply extends CallFactory {
             constantArgProviders[j] = vp;
             j++;
         }
-        CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
+        RNode funExpr = exprs[ia.position("FUN")];
+        CallableProvider callableProvider = new CallableProvider(funExpr.getAST(), funExpr);
         RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
         return new Sapply(call, names, exprs, callNode, firstArgProvider, constantArgProviders, callableProvider, ia.position("X"), ia.position("FUN"));
     }

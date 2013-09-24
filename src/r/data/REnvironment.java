@@ -41,7 +41,7 @@ public interface REnvironment extends RAny {
         }
 
         @Override
-        public boolean isInWriteSet(RSymbol sym) {
+        public boolean hasLocalOrEnclosingSlot(RSymbol sym) {
             return false;
         }
 
@@ -123,6 +123,10 @@ public interface REnvironment extends RAny {
 
         public Frame createFrame(Frame callerFrame) {
             return null;
+        }
+
+        public boolean hasLocalSlot(RSymbol sym) {
+            return false;
         }
     }
 

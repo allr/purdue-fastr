@@ -78,8 +78,8 @@ public abstract class Frame {
         return extension;
     }
 
-    public boolean hasVariable(RSymbol sym) {
-        return function().isInWriteSet(sym);
+    public boolean hasLocalVariable(RSymbol sym) {
+        return function().hasLocalSlot(sym);
     }
 
     public int findVariable(RSymbol symbol) {
@@ -909,7 +909,7 @@ public abstract class Frame {
     public static void markDirty(Frame frame, RSymbol symbol) {
         Frame current = frame;
         while (current != null) {
-            if (current.hasVariable(symbol)) {
+            if (current.hasLocalVariable(symbol)) {
                 current.markDirty();
                 return;
             }

@@ -99,6 +99,8 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEval("{ f <- function(func, a) { func(a) && TRUE } ; g <- function(x) {TRUE} ; f(g, 5) ; f(is.na, 4) ; f(length, 10) }", "TRUE");
         assertEval("{ f <- function(func, a) { func(a) && TRUE } ; g <- function(x) {TRUE} ; f(g, 5) ; f(is.na, 4) ; f(g, 10) ; f(is.na,5) }", "FALSE");
         assertEval("{ f <- function(func, a) { func(a) && TRUE } ; g <- function(x) {TRUE} ; f(g, 5) ; f(is.na, 4) ; f(function(x) { x + x }, 10) }", "TRUE");
+
+        assertEval("{ g <- function() {3} ; f <- function() { g() } ; f(); g <- function() {4} ; f() }", "4.0");
     }
 
     @Test

@@ -35,6 +35,8 @@ public final class RSymbol extends BaseObject implements RAny {
     // The next two fields are for the topLevel
     Object value;
     int version;
+    ArrayList<SymbolChangeListener> changeListeners;
+
     // The next is for the builtins registration
     PrimitiveEntry primitive;
 
@@ -137,6 +139,7 @@ public final class RSymbol extends BaseObject implements RAny {
         for (RSymbol s : symbolTable.table.values()) {
             s.value = null;
             s.version = 0;
+            s.changeListeners = null;
         }
         RSymbol.getSymbol(".GlobalEnv").setValue(REnvironment.GLOBAL);
         // TODO: .GlobalEnv should be set in some other environment
@@ -192,6 +195,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public void setValue(Object val) {
         value = val;
+        notifyChangeListeners();
     }
 
     public int getVersion() {
@@ -208,6 +212,21 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public void markDirty() {
         version++;
+        notifyChangeListeners();
+    }
+
+    private void notifyChangeListeners() {
+
+        ArrayList<SymbolChangeListener> listeners = changeListeners;
+        changeListeners = null;
+        if (listeners != null) {
+            for (SymbolChangeListener l : listeners) {
+                boolean keep = l.onChange(this);
+                if (keep) {
+                    addChangeListener(l);
+                }
+            }
+        }
     }
 
     @Override public boolean isShared() {
@@ -234,6 +253,13 @@ public final class RSymbol extends BaseObject implements RAny {
             ivalue += c - '0';
         }
         return ivalue;
+    }
+
+    public void addChangeListener(SymbolChangeListener l) {
+        if (changeListeners == null) {
+            changeListeners = new ArrayList<SymbolChangeListener>();
+        }
+        changeListeners.add(l);
     }
 
     @Override public void ref() {}
@@ -302,4 +328,5 @@ public final class RSymbol extends BaseObject implements RAny {
     public boolean isHidden() { // FIXME: could add a bit instead
         return name != null && name.length() > 0 && name.charAt(0) == '.';
     }
+
 }

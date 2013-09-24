@@ -39,5 +39,6 @@ public interface RFunction {
     EnclosingSlot getLocalReadSetEntry(RSymbol sym);
     int localSlot(RSymbol sym);
     EnclosingSlot enclosingSlot(RSymbol sym);
-    boolean isInWriteSet(RSymbol sym);
+    boolean hasLocalOrEnclosingSlot(RSymbol sym);
+    boolean hasLocalSlot(RSymbol sym);
 }

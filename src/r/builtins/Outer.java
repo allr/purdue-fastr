@@ -75,7 +75,8 @@ final class Outer extends CallFactory {
             j++;
         }
 
-        final CallableProvider callableProvider = new CallableProvider(call, exprs[ia.position("FUN")]);
+        RNode funExpr = exprs[ia.position("FUN")];
+        final CallableProvider callableProvider = new CallableProvider(funExpr.getAST(), funExpr);
         final RNode callNode = FunctionCall.getFunctionCall(call, callableProvider, cnNames, cnExprs);
         final int posX = ia.position("X");
         final int posY = ia.position("Y");

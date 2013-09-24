@@ -3,6 +3,7 @@ package r.nodes.exec;
 import r.*;
 import r.builtins.*;
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.tools.*;
@@ -68,20 +69,29 @@ public abstract class FunctionCall extends AbstractCall {
         }
     }
 
-    public static CallFactory FACTORY = new CallFactory("<empty>") { // only used with static lookup of builtins
+    public static CallFactory FACTORY = new CallFactory("<empty>") {
 
         @Override public FunctionCall create(ASTNode call, RSymbol[] names, RNode[] exprs) {
             r.nodes.ast.FunctionCall fcall = (r.nodes.ast.FunctionCall) call;
             RSymbol fname = fcall.getName();
             RNode fexp = r.nodes.exec.MatchCallable.getUninitialized(call, fname);
-            return getFunctionCall(fcall, fexp, names, exprs);
+            return getFunctionCall(fcall, fexp, names, exprs); // note that only builtins will use static lookup, not function calls
         }
     };
+
+    private static RSymbol getFunctionName(RNode callableExpr) {
+        ASTNode expr = callableExpr.getAST();
+        if (expr instanceof r.nodes.ast.FunctionCall) {
+            return ((r.nodes.ast.FunctionCall) expr).getName();
+        }
+        return null;
+    }
 
     public static AbstractCall createBuiltinCall(ASTNode call, RSymbol[] argNames, RNode[] argExprs) {
 
         int[] dotsArgs = findDotsArgs(argExprs);
-        if (dotsArgs != null) { return null; // can't use a fixed builtin node when calling using ...
+        if (dotsArgs != null) {
+            return null; // can't use a fixed builtin node when calling using ...
         }
 
         r.nodes.ast.FunctionCall fcall = (r.nodes.ast.FunctionCall) call;
@@ -99,7 +109,8 @@ public abstract class FunctionCall extends AbstractCall {
                 return null;
             }
             assert Utils.check(builtinNode != null);
-            return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
+//            return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
+            return new SimpleListenerBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
         }
         return null;
     }
@@ -122,9 +133,19 @@ public abstract class FunctionCall extends AbstractCall {
                     RNode builtInNode = builtIn.callFactory().create(ast, argNames, argExprs);
                     n = new StableBuiltinCall(ast, callableExpr, argNames, argExprs, builtIn, builtInNode);
                 } else {
-                    n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                    assert Utils.check(callable instanceof RClosure);
+                    RSymbol fcallName = getFunctionName(callableExpr);
+                    RClosure closure = (RClosure) callable;
+                    if (fcallName != null && (callerFrame == null || !callerFrame.function().hasLocalOrEnclosingSlot(fcallName)) && fcallName.getVersion() == 0 && closure.enclosingFrame() == null) {
+                        n = new SimpleTopLevelClosureCall(ast, fcallName, callableExpr, argNames, argExprs, closure.function());
+                        replace(n, "install SimpleTopLevelClosureCall from UninitializedCall");
+                        return n.execute(callerFrame);
+                    } else {
+                        n = new GenericCall(ast, callableExpr, argNames, argExprs);
+                    }
                 }
                 return replace(theCallableExpr, callable, n, callerFrame);
+
             }
         }
     }
@@ -166,6 +187,56 @@ public abstract class FunctionCall extends AbstractCall {
                 return adoptInternal(newNode);
             }
             return super.replaceChild(oldNode, newNode);
+        }
+    }
+
+    // calling a non-overriden builtin; uses a listener instead of a check
+    public static final class SimpleListenerBuiltinCall extends AbstractCall implements SymbolChangeListener {
+
+        final RSymbol builtinName;
+        @Child RNode builtinNode;
+
+        SimpleListenerBuiltinCall(ASTNode ast, RSymbol builtinName, RSymbol[] argNames, RNode[] argExprs, RNode builtInNode) {
+            super(ast, argNames, argExprs, false);
+            // NOTE: argExprs are not children - the real parent of the exprs is the builtin
+            // NOTE: as long as this array is _shared_ with the builtin, it all works with node rewriting
+            // FIXME: this feels indeed quite fragile
+
+            // FIXME: also, this does not work for builtins which take their argument nodes out of the arguments array (!)
+            // FIXME: probably we should keep a copy of the tree (or create more "root" nodes, but that may have performance overhead)
+
+            this.builtinName = builtinName;
+            this.builtinNode = adoptChild(builtInNode);
+            builtinName.addChangeListener(this);
+        }
+
+        @Override public Object execute(Frame callerFrame) {
+            return builtinNode.execute(callerFrame); // FIXME: can we get rid of this call?
+        }
+
+        @Override public int executeScalarLogical(Frame callerFrame) throws SpecializationException {
+            return builtinNode.executeScalarLogical(callerFrame);
+        }
+
+        @Override public int executeScalarNonNALogical(Frame callerFrame) throws SpecializationException {
+            return builtinNode.executeScalarNonNALogical(callerFrame);
+        }
+
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (builtinNode == oldNode) {
+                builtinNode = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
+        @Override
+        public boolean onChange(RSymbol symbol) {
+            RNode callableExpr = r.nodes.exec.MatchCallable.getUninitialized(ast, builtinName);
+            replace(getFunctionCall(ast, callableExpr, argNames, argExprs));
+            return false;
         }
 
     }
@@ -221,6 +292,36 @@ public abstract class FunctionCall extends AbstractCall {
             }
             return super.replaceChild(oldNode, newNode);
         }
+    }
+
+    public static final class SimpleTopLevelClosureCall extends FunctionCall implements SymbolChangeListener {
+
+        final RFunction function;
+        final int[] argPositions;
+        final DotsInfo dotsInfo;
+
+        SimpleTopLevelClosureCall(ASTNode ast, RSymbol closureName, RNode callableExpr, RSymbol[] argNames, RNode[] argExprs, RFunction function) {
+            super(ast, callableExpr, argNames, argExprs, null);
+            this.dotsInfo = new DotsInfo();
+            this.function = function;
+            this.argPositions = computePositions(function, dotsInfo);
+            closureName.addChangeListener(this);
+
+        }
+
+        @Override public Object execute(Frame callerFrame) {
+            Frame newFrame = function.createFrame(null);
+            placeArgs(callerFrame, newFrame, argPositions, dotsInfo, function.dotsIndex(), function.nparams());
+            return function.call(newFrame);
+        }
+
+        @Override
+        public boolean onChange(RSymbol symbol) {
+            RNode n = new GenericCall(ast, callableExpr, argNames, argExprs);
+            replace(n, "install GenericCall from SimpleTopLevelClosureCall");
+            return false;
+        }
+
     }
 
     public static final class GenericCall extends FunctionCall {
