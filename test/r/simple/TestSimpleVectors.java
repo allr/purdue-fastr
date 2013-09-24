@@ -781,6 +781,8 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ list(1,b=list(2,3)) }", "[[1]]\n1.0\n\n$b\n$b[[1]]\n2.0\n\n$b[[2]]\n3.0");
         assertEval("{ list(1,b=list(c=2,3)) }", "[[1]]\n1.0\n\n$b\n$b$c\n2.0\n\n$b[[2]]\n3.0");
         assertEval("{ list(list(c=2)) }", "[[1]]\n[[1]]$c\n2.0");
+
+        assertEvalError("{ list(1,,2) }", "argument 2 is empty");
     }
 
     @Test

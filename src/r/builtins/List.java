@@ -8,7 +8,7 @@ import r.runtime.*;
 
 /**
  * "list"
- * 
+ *
  * <pre>
  * ...  -- objects, possibly named.
  * </pre>
@@ -22,6 +22,7 @@ final class List extends CallFactory {
     }
 
     @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
+        check(call, names, exprs);
         RArray.Names listNames = null;
         if (names != null) {
             boolean hasNonNull = false;
