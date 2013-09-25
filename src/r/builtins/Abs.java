@@ -103,7 +103,7 @@ public class Abs extends CallFactory {
                     }
                     int i = ((ScalarIntImpl) val).getInt();
                     return (i < 0) ? RInt.RIntFactory.getScalar(-i) : val; // NOTE: this also works with NA, NA will remain NA
-                } catch(SpecializationException e) {
+                } catch (SpecializationException e) {
                     exprs[0].replace(expr); // keep the new child
                     replace(createGeneric(call, names, exprs));
                     return generic((RAny) val);
@@ -115,7 +115,7 @@ public class Abs extends CallFactory {
                 try {
                     int i = expr.executeScalarInteger(frame);
                     return abs(i);
-                } catch(SpecializationException e) {
+                } catch (SpecializationException e) {
                     replace(createGeneric(call, names, exprs));
                     throw new SpecializationException(generic((RAny) e.getResult()));
                 }

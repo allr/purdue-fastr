@@ -142,7 +142,7 @@ public class Console {
                 } else {
                     interactive(createReader(new BufferedReader(new FileReader(inputFile))));
                 }
-//                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
+                //                interactive((inputFile == null) ? new BufferedReader(new InputStreamReader(System.in)) : new BufferedReader(new FileReader(inputFile)));
             } else {
                 processFile(openANTLRStream(inputFile));
             }
@@ -152,21 +152,20 @@ public class Console {
         System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
     }
 
-    static interface RLineReader {
-        public String readLine() throws IOException;
-        public void prompt(String s);
+    interface RLineReader {
+        String readLine() throws IOException;
+
+        void prompt(String s);
     }
 
     private static RLineReader createReader(final BufferedReader buf) {
         return new RLineReader() {
 
-            @Override
-            public String readLine() throws IOException {
+            @Override public String readLine() throws IOException {
                 return buf.readLine();
             }
 
-            @Override
-            public void prompt(String s) {
+            @Override public void prompt(String s) {
                 System.out.print(s);
             }
         };
@@ -175,13 +174,11 @@ public class Console {
     private static RLineReader createReader(final ConsoleReader console) {
         return new RLineReader() {
 
-            @Override
-            public String readLine() throws IOException {
+            @Override public String readLine() throws IOException {
                 return console.readLine();
             }
 
-            @Override
-            public void prompt(String s) {
+            @Override public void prompt(String s) {
                 console.setPrompt(s);
             }
 
@@ -277,8 +274,8 @@ public class Console {
     static void parseError(RParser parser, RecognitionException e) {
         Token token = e.token;
         String[] tokenNames = parser.getTokenNames();
-        System.err
-                .print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1) + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "): " : ": "));
+        System.err.print("Parse error on '" + token.getText() + "' at " + token.getLine() + ":" + (token.getCharPositionInLine() + 1)
+                + ((token.getType() > 0) ? " (" + tokenNames[token.getType()] + "): " : ": "));
         System.err.println(parser.getErrorMessage(e, tokenNames) + ".");
     }
 

@@ -181,7 +181,7 @@ public class Convert {
                 // Java would treat '0' prefix as octal code, but R just ignores it
                 int nzeros = 1;
                 while (nzeros < len && s.charAt(nzeros) == '0') {
-                    nzeros ++;
+                    nzeros++;
                 }
                 str = s.substring(nzeros);
             } else {
