@@ -27,11 +27,11 @@ public class ProcTime extends CallFactory {
         };
     }
 
-    private static final RArray.Names names = RArray.Names.create(RSymbol.getSymbols(new String[]{"user.self", "sys.self", "elapsed", "user.child", "sys.child"}));
+    private static final RArray.Names _names = RArray.Names.create(RSymbol.getSymbols(new String[]{"user.self", "sys.self", "elapsed", "user.child", "sys.child"}));
 
     public static RDouble procTime() {
         double elapsed = (System.nanoTime() - Console.startTime) / 1e9;
         double[] res = new double[] {0, 0, elapsed, 0, 0 };
-        return RDouble.RDoubleFactory.getFor(res, null, names, null);
+        return RDouble.RDoubleFactory.getFor(res, null, _names, null);
     }
 }

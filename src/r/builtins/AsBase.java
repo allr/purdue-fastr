@@ -41,7 +41,7 @@ abstract class AsBase extends CallFactory {
     }
 
     // list
-    static RAny genericAsList(ASTNode ast, RAny arg) {
+    static RAny genericAsList(@SuppressWarnings("unused") ASTNode ast, RAny arg) {
         if (arg instanceof RList) {
             return arg;
         }

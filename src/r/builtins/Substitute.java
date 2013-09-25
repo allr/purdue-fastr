@@ -146,8 +146,8 @@ public class Substitute extends CallFactory {
         private FindVar env;
         private final DuplicateVisitor independentDuplicator = new DuplicateVisitor();
 
-        public ASTNode substitute(ASTNode ast, FindVar env) {
-            this.env = env;
+        public ASTNode substitute(ASTNode ast, FindVar e) {
+            env = e;
             ast.accept(this);
             return result;
         }

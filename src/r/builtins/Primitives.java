@@ -203,11 +203,11 @@ public class Primitives {
     }
 
     public static boolean hasCallFactory(final RSymbol name, final RFunction enclosing) {
-        return Primitives.get(name, enclosing) != null;
+        return get(name, enclosing) != null;
     }
 
     public static CallFactory getCallFactory(RSymbol name, RFunction enclosing) {
-        final PrimitiveEntry pe = Primitives.get(name, enclosing);
+        final PrimitiveEntry pe = get(name, enclosing);
         if (pe == null) {
             return null;
         } else {
@@ -216,7 +216,7 @@ public class Primitives {
     }
 
     public static RBuiltIn getBuiltIn(RSymbol name, RFunction enclosing) {
-        final PrimitiveEntry pe = Primitives.get(name, enclosing);
+        final PrimitiveEntry pe = get(name, enclosing);
         if (pe == null) {
             return null;
         } else {

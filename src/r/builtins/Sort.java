@@ -84,7 +84,7 @@ final class Sort extends CallFactory {
                 RInt partial = (partialPosition == -1) ? null : parsePartial(params[partialPosition], ast);
                 int naLast = (naLastPosition == -1) ? RLogical.NA : Order.parseNALast(params[naLastPosition], ast);
                 boolean decreasing = (decreasingPosition == -1) ? false : Order.parseDecreasing(params[decreasingPosition], ast);
-                boolean quickSort = (methodPosition == -1) ? false : parseMethod(params[methodPosition], ast);
+                @SuppressWarnings("unused") boolean quickSort = (methodPosition == -1) ? false : parseMethod(params[methodPosition], ast);
                 boolean indexReturn = (indexReturnPosition == -1) ? false : parseIndexReturn(params[indexReturnPosition], ast);
 
                 if (partial != null) {
@@ -138,7 +138,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RDouble x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<>();  // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -173,7 +173,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RInt x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<>();  // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -208,7 +208,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RString x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<>();  // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;
@@ -243,7 +243,7 @@ final class Sort extends CallFactory {
     public static RArray sort(RLogical x, int naLast, final boolean decreasing, boolean indexReturn) {
         int size = x.size();
         Integer[] order = new Integer[size]; // TODO: remove Java boxing through primitive sort methods
-        ArrayList<Integer> naorder = new ArrayList<Integer>();  // TODO: replace this by an implementation for primitives
+        ArrayList<Integer> naorder = new ArrayList<>();  // TODO: replace this by an implementation for primitives
         int[] naRemoveIndex = indexReturn ? new int[size] : null; // maps each index to index if NA/NaNs were removed
         int nnas = 0;
         int oi = 0;

@@ -98,7 +98,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (leftTemplate instanceof ScalarLogicalImpl && rightTemplate instanceof ScalarLogicalImpl) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
+                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode a) throws SpecializationException {
                         if ((leftValue instanceof ScalarLogicalImpl && rightValue instanceof ScalarLogicalImpl)) {
                             int l = op.op(((ScalarLogicalImpl) leftValue).getLogical(), ((ScalarLogicalImpl) rightValue).getLogical());
                             return RLogical.RLogicalFactory.getScalar(l);
@@ -110,7 +110,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (leftTemplate instanceof RLogical && rightTemplate instanceof RLogical) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
+                    RLogical doFor(RAny leftValue, RAny rightValue, ASTNode a) throws SpecializationException {
                         if ((leftValue instanceof RLogical && rightValue instanceof RLogical)) {
                             return op.op((RLogical) leftValue, (RLogical) rightValue, ast);
                         }
@@ -121,7 +121,7 @@ public abstract class ElementwiseLogicalOperation extends BaseR {
             if (leftTemplate instanceof RRaw && rightTemplate instanceof RRaw) {
                 return new Specialized(ast, left, op, right, new Action() {
                     @Override
-                    RRaw doFor(RAny leftValue, RAny rightValue, ASTNode ast) throws SpecializationException {
+                    RRaw doFor(RAny leftValue, RAny rightValue, ASTNode a) throws SpecializationException {
                         if ((leftValue instanceof RRaw && rightValue instanceof RRaw)) {
                             return op.op((RRaw) leftValue, (RRaw) rightValue, ast);
                         }

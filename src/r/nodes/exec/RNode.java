@@ -130,7 +130,7 @@ public abstract class RNode {
         }
     }
 
-    private static void unlinkArrayElementChildNode(RNode childNode) {
+    @SuppressWarnings("unused") private static void unlinkArrayElementChildNode(RNode childNode) {
         // be defensive to detect errors in tree rewriting
 
         RNode parentNode = childNode.getParent();
@@ -245,7 +245,7 @@ public abstract class RNode {
         return childNode;
     }
 
-    private static HashSet<Class> suggestedForClass = new HashSet<Class>();
+    private static HashSet<Class> suggestedForClass = new HashSet<>();
 
     private void suggestReplaceChild(RNode oldNode, RNode newNode) {
         suggestReplaceChild(this.getClass(), oldNode, newNode);
@@ -369,11 +369,11 @@ public abstract class RNode {
         return false;
     }
 
-    public static boolean checkReplaceChild(Class nodeClass) {
+    public static boolean checkReplaceChild(Class<?> nodeClass) {
 
         Field[] fields = nodeClass.getDeclaredFields();
 
-        ArrayList<Field> childNodes = new ArrayList<Field>();
+        ArrayList<Field> childNodes = new ArrayList<>();
         for (Field f : fields) {
             if (f.isSynthetic()) {
                 continue;
@@ -438,7 +438,7 @@ public abstract class RNode {
     }
 
     private static Field[] getAllFields(Class cls) {
-        ArrayList<Field> res = new ArrayList<Field>();
+        ArrayList<Field> res = new ArrayList<>();
         Class c = cls;
         while (c != RNode.class) {
             assert Utils.check(c != null);
@@ -504,7 +504,7 @@ public abstract class RNode {
 
     }
 
-    private static HashMap<String, String> knownConstructors = new HashMap<String,String>();
+    private static HashMap<String, String> knownConstructors = new HashMap<>();
     private static void registerConstructors() {
         StackTraceElement[] traces = Thread.currentThread().getStackTrace();
         for(StackTraceElement e : traces) {

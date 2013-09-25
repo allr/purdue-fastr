@@ -131,7 +131,7 @@ final class Scan extends CallFactory {
                     // note that we cannot simply use Scan because it would buffer too much data (Scan cannot push its remaining buffered data back to the
                     // underlying BufferedReader ; probably will have to implement a custom BufferedScanner for R
                     Reader reader = con.reader(ast);
-                    ArrayList<String> buf = new ArrayList<String>();
+                    ArrayList<String> buf = new ArrayList<>();
                     int nread = 0;
                     StringBuilder item = null;
                     int c;
@@ -194,7 +194,7 @@ final class Scan extends CallFactory {
 
     private static ConversionStatus cs = new ConversionStatus();
 
-    public static RString scanString(ArrayList<String> src, ASTNode ast) {
+    public static RString scanString(ArrayList<String> src, @SuppressWarnings("unused") ASTNode ast) {
         int size = src.size();
         String[] content = new String[size];
         return RString.RStringFactory.getFor(src.toArray(content));

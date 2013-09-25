@@ -1,7 +1,5 @@
 package r.nodes.exec;
 
-import com.sun.org.apache.xml.internal.security.utils.resolver.implementations.*;
-
 import r.*;
 import r.builtins.*;
 import r.data.*;

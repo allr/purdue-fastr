@@ -282,8 +282,7 @@ public abstract class Selector {
 
     private static final boolean DEBUG_M = false;
 
-    public void setIndex(RAny index) {
-    }
+    abstract public void setIndex(RAny index);
     public RAny getIndex() {
         return null;
     }
@@ -403,6 +402,9 @@ public abstract class Selector {
         public boolean mayHaveNA() {
             return false;
         }
+
+        @Override public void setIndex(RAny index) {
+        }
     }
 
     // non-failing
@@ -447,6 +449,9 @@ public abstract class Selector {
         public boolean mayHaveNA() {
             return false;
         }
+
+        @Override public void setIndex(RAny index) {
+        }
     }
 
     // only for positive indexes, fails otherwise
@@ -472,8 +477,8 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) {
-            this.dataSize = dataSize;
+        public void start(int dSize, ASTNode ast) {
+            dataSize = dSize;
             offset = 0;
             transition = null;
         }
@@ -544,13 +549,13 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) throws SpecializationException {
+        public void start(int dSize, ASTNode ast) throws SpecializationException {
             if (index.size() == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
                     i--;
-                    if (i < dataSize) {
-                        this.dataSize = dataSize;
+                    if (i < dSize) {
+                        dataSize = dSize;
                         indexValue = i;
                         return;
                     } // else bounds error - handle in the generic case
@@ -607,14 +612,14 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) throws SpecializationException {
+        public void start(int dSize, ASTNode ast) throws SpecializationException {
             int isize = index.size();
             if (isize == 1) {
                 int i = index.getInt(0);
                 if (i > 0) {
                     i--;
-                    if (i < dataSize) {
-                        this.dataSize = dataSize;
+                    if (i < dSize) {
+                        dataSize = dSize;
                         indexValue = i;
                         return;
                     } else {
@@ -687,7 +692,7 @@ public abstract class Selector {
         }
 
         @Override
-        public void start(int dataSize, ASTNode ast) {
+        public void start(int dSize, ASTNode ast) {
 
             hasNA = false;
             boolean hasNegative = false;
@@ -699,7 +704,7 @@ public abstract class Selector {
                 int value = index.getInt(i);
                 if (value > 0) {
                     hasPositive = true;
-                    if (value - 1 > dataSize) {
+                    if (value - 1 > dSize) {
                         throw RError.getSubscriptBounds(ast);
                     }
                     continue;
@@ -715,19 +720,19 @@ public abstract class Selector {
                 // value < 0
                 if (!hasNegative) {
                     hasNegative = true;
-                    size = dataSize;
+                    size = dSize;
                     if (omit != null) {
-                        if (omit.length < dataSize) {
-                            omit = new boolean[dataSize];
+                        if (omit.length < dSize) {
+                            omit = new boolean[dSize];
                         } else {
                             Arrays.fill(omit, false);
                         }
                     } else {
-                        omit = new boolean[dataSize];
+                        omit = new boolean[dSize];
                     }
                 }
                 int e = -value - 1;
-                if (e < dataSize && !omit[e]) {
+                if (e < dSize && !omit[e]) {
                     omit[e] = true;
                     size--;
                 }
@@ -745,7 +750,7 @@ public abstract class Selector {
                 if (hasNegative) {
                     if (!hasNA) {
                         positiveSelection = false;
-                        this.dataSize = dataSize;
+                        dataSize = dSize;
                         // all elements are negative, selection size will depend on the data size
                     } else {
                         throw RError.getOnlyZeroMixed(ast);

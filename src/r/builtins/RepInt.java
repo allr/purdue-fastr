@@ -17,7 +17,7 @@ import r.runtime.*;
  */
 class RepInt extends Rep {
 
-    static final CallFactory _ = new RepInt("rep.int", new String[]{"x", "times"}, new String[]{"x", "times"});
+    @SuppressWarnings("hiding") static final CallFactory _ = new RepInt("rep.int", new String[]{"x", "times"}, new String[]{"x", "times"});
 
     RepInt(String name, String[] params, String[] required) {
         super(name, params, required);

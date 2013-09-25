@@ -46,7 +46,7 @@ final class ReadLines extends CallFactory {
             @Override public RAny doBuiltIn(Frame frame, RAny[] args) {
                 final int n = posN == -1 ? -1 : parseN(args[posN], ast);
                 final boolean ok = posOk == -1 ? true : parseLogicalScalar(args[posOk], ast, "ok");
-                final boolean warn = posWarn == -1 ? true : parseLogicalScalar(args[posWarn], ast, "warn");
+                @SuppressWarnings("unused") final boolean warn = posWarn == -1 ? true : parseLogicalScalar(args[posWarn], ast, "warn");
                 Connection con = null;
                 boolean wasOpen = false;
                 if (posCon == -1) { throw Utils.nyi("stdin"); } // FIXME: this is common code, extract? (e.g. also in scan)

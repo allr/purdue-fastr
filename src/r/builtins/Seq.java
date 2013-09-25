@@ -185,9 +185,9 @@ final class Seq extends CallFactory {
                             if (len == 0) { return RInt.EMPTY; }
                             if (len == 1) {
                                 if (aarg instanceof RInt) {
-                                    int ia = ((RInt) aarg).getInt(0);
-                                    Colon.checkNA(ia, ast);
-                                    return Colon.create(1, ia);
+                                    int arginfo = ((RInt) aarg).getInt(0);
+                                    Colon.checkNA(arginfo, ast);
+                                    return Colon.create(1, arginfo);
                                 }
                                 if (aarg instanceof RDouble) {
                                     double da = ((RDouble) aarg).getDouble(0);

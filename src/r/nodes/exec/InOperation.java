@@ -2,7 +2,6 @@ package r.nodes.exec;
 
 import java.util.*;
 
-import r.*;
 import r.data.*;
 import r.errors.*;
 import r.nodes.ast.*;
@@ -20,15 +19,13 @@ public class InOperation extends BaseR {
         this.right = adoptChild(right);
     }
 
-    @Override
-    public final  Object execute(Frame frame) {
+    @Override public final Object execute(Frame frame) {
         RAny leftValue = (RAny) left.execute(frame);
         RAny rightValue = (RAny) right.execute(frame);
         return execute(leftValue, rightValue);
     }
 
-    @Override
-    protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+    @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
         assert oldNode != null;
         if (left == oldNode) {
             left = newNode;
@@ -43,28 +40,28 @@ public class InOperation extends BaseR {
 
     // TODO: this could be customized to elide cast view creation, boxing when creating a hash map
     // FIXME: could use some primitive collections library, e.g. Trove or PCJ?
-    public Object execute(RAny left, RAny right) {
+    public Object execute(RAny lhs, RAny rhs) {
 
         RArray typedX;
         RArray typedTable;
 
         // note: R also converts raw to string, but using int seems functionally equivalent
         // note: this requires list to string conversion
-        if (left instanceof RString || right instanceof RString || left instanceof RList || right instanceof RList) {
-            typedX = left.asString();
-            typedTable = right.asString();
-        } else if (left instanceof RComplex || right instanceof RComplex) {
-            typedX = left.asComplex();
-            typedTable = right.asComplex();
-        } else if (left instanceof RDouble || right instanceof RDouble) {
-            typedX = left.asDouble();
-            typedTable = right.asDouble();
-        } else if (left instanceof RInt || right instanceof RInt || left instanceof RRaw || right instanceof RRaw) {
-            typedX = left.asInt();
-            typedTable = right.asInt();
-        } else if (left instanceof RLogical && right instanceof RLogical) {
-            typedX = left.asLogical();
-            typedTable = right.asLogical();
+        if (lhs instanceof RString || rhs instanceof RString || lhs instanceof RList || rhs instanceof RList) {
+            typedX = lhs.asString();
+            typedTable = rhs.asString();
+        } else if (lhs instanceof RComplex || rhs instanceof RComplex) {
+            typedX = lhs.asComplex();
+            typedTable = rhs.asComplex();
+        } else if (lhs instanceof RDouble || rhs instanceof RDouble) {
+            typedX = lhs.asDouble();
+            typedTable = rhs.asDouble();
+        } else if (lhs instanceof RInt || rhs instanceof RInt || lhs instanceof RRaw || rhs instanceof RRaw) {
+            typedX = lhs.asInt();
+            typedTable = rhs.asInt();
+        } else if (lhs instanceof RLogical && rhs instanceof RLogical) {
+            typedX = lhs.asLogical();
+            typedTable = rhs.asLogical();
         } else {
             throw RError.getMatchVectorArgs(ast);
         }
@@ -76,14 +73,12 @@ public class InOperation extends BaseR {
             Object x = typedX.get(0);
             for (int i = 0; i < tableSize; i++) {
                 Object v = typedTable.get(i);
-                if (x.equals(v)) {
-                    return RLogical.BOXED_TRUE;
-                }
+                if (x.equals(v)) { return RLogical.BOXED_TRUE; }
             }
             return RLogical.BOXED_FALSE;
         }
         int[] content = new int[xsize];
-        HashSet<Object> set = new HashSet<Object>(tableSize);
+        HashSet<Object> set = new HashSet<>(tableSize);
         for (int i = 0; i < tableSize; i++) {
             Object v = typedTable.get(i);
             set.add(v);

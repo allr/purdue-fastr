@@ -34,8 +34,7 @@ public abstract class ReadArray extends BaseR {
         this(other.ast, other.subset, other.lhs, other.dropExpr, other.exactExpr);
     }
 
-    @Override
-    protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+    @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
         assert oldNode != null;
         if (lhs == oldNode) {
             lhs = newNode;
@@ -91,11 +90,10 @@ public abstract class ReadArray extends BaseR {
             return executeLoop(array, dropVal, exactVal);
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (selectorExprs != null) {
-                for(int i = 0; i < selectorExprs.length; i++) {
+                for (int i = 0; i < selectorExprs.length; i++) {
                     if (selectorExprs[i] == oldNode) {
                         selectorExprs[i] = (r.nodes.exec.Selector.SelectorNode) newNode;
                         return adoptInternal(newNode);
@@ -136,7 +134,7 @@ public abstract class ReadArray extends BaseR {
          * indices used to compute the source offset). The selIdx array contains the position in the selector (when this
          * is equal to the selector size the selector has overflown).
          */
-        public Object execute(RArray source, boolean drop, int exact) throws SpecializationException {
+        public Object execute(RArray source, boolean drop, @SuppressWarnings("unused") int exact) throws SpecializationException {
             int[] sourceDim = source.dimensions();
             boolean mayHaveNA = Selector.initialize(offsets, selectorVals, sourceDim, selSizes, ast);
             int[] destDim = Selector.calculateDestinationDimensions(selSizes, !subset || drop);
@@ -265,8 +263,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (columnExpr == oldNode) {
                 columnExpr = newNode;
@@ -304,8 +301,7 @@ public abstract class ReadArray extends BaseR {
             return executeLoop(array, selectorI, selectorJ, dropVal, exactVal);
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (selectorIExpr == oldNode) {
                 selectorIExpr = (r.nodes.exec.Selector.SelectorNode) newNode;
@@ -340,7 +336,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, int exact) throws SpecializationException {
+        public Object execute(RArray source, Selector selectorI, Selector selectorJ, boolean drop, @SuppressWarnings("unused") int exact) throws SpecializationException {
             assert Utils.check(subset);
             int[] ndim = source.dimensions();
             int m = ndim[0];
@@ -481,8 +477,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (columnExpr == oldNode) {
                 columnExpr = newNode;
@@ -552,8 +547,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (rowExpr == oldNode) {
                 rowExpr = newNode;
@@ -686,8 +680,7 @@ public abstract class ReadArray extends BaseR {
             }
         }
 
-        @Override
-        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+        @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
             assert oldNode != null;
             if (rowFromExpr == oldNode) {
                 rowFromExpr = newNode;

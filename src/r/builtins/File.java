@@ -53,7 +53,7 @@ final class File extends CallFactory {
     static final ConnectionMode defaultMode = ConnectionMode.get("rt");
 
     public abstract static class OpenConnection {
-        public abstract Connection createUnopened(String description, ConnectionMode defaultMode);
+        public abstract Connection createUnopened(String description, ConnectionMode dMode);
 
         public abstract Connection createOpened(String description, ConnectionMode mode, ASTNode ast);
 
@@ -74,8 +74,8 @@ final class File extends CallFactory {
     }
 
     private static final OpenConnection OPEN_FILE = new OpenConnection() {
-        @Override public Connection createUnopened(String description, ConnectionMode defaultMode) {
-            return FileConnection.createUnopened(description, defaultMode);
+        @Override public Connection createUnopened(String description, ConnectionMode dMode) {
+            return FileConnection.createUnopened(description, dMode);
         }
 
         @Override public Connection createOpened(String description, ConnectionMode mode, ASTNode ast) {

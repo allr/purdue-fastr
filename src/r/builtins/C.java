@@ -38,7 +38,7 @@ final class C extends CallFactory {
         return Specialized.createUninitialized(call, collapsedNames, exprs);
     }
 
-    private static <T extends RArray, U extends T> int fillIn(U result, T input, int offset) {
+    private static <I extends RArray, U extends I> int fillIn(U result, I input, int offset) {
         int len = input.size();
         for (int i = 0; i < len; i++) {
             result.set(offset + i, input.get(i));

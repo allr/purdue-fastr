@@ -59,7 +59,7 @@ final class Strsplit extends CallFactory {
         Pattern[] patterns = new Pattern[splitSize];
         int xsize = x.size();
         RAny[] content = new RAny[xsize];
-        ArrayList<String> buf = new ArrayList<String>();
+        ArrayList<String> buf = new ArrayList<>();
         for (int i = 0; i < xsize; i++) {
             Pattern p = patterns[splitIndex];
             if (p == null) {
@@ -106,7 +106,7 @@ final class Strsplit extends CallFactory {
         RAny[] content = new RAny[xsize];
         int splitIndex = 0;
         int splitSize = split.size();
-        ArrayList<String> buf = new ArrayList<String>();
+        ArrayList<String> buf = new ArrayList<>();
         for (int i = 0; i < xsize; i++) {
             String separator = split.getString(splitIndex++);
             int separatorLength = separator.length();

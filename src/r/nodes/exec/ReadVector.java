@@ -126,7 +126,7 @@ public abstract class ReadVector extends BaseR {
     }
 
     // NOTE: currently not used
-    private static Select createScalarSelect(boolean subset, RAny vectorTemplate) {
+    @SuppressWarnings("unused") private static Select createScalarSelect(boolean subset, RAny vectorTemplate) {
         if (subset) {
             return new Select() {
                 @Override final RAny select(RAny vector, int index) throws SpecializationException {
@@ -258,7 +258,7 @@ public abstract class ReadVector extends BaseR {
         }
 
         @Override
-        public RAny execute(RAny index, RAny vector) {
+        public RAny execute(RAny idx, RAny vector) {
             return null;
         }
     }
@@ -320,7 +320,7 @@ public abstract class ReadVector extends BaseR {
     //   for more complicated and corner cases rewrites itself
     public static class SimpleScalarDoubleSelection extends ReadVector {
         //final Select select;
-        public SimpleScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, RAny vectorTemplate) {
+        public SimpleScalarDoubleSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, @SuppressWarnings("unused") RAny vectorTemplate) {
             super(ast, lhs, indexes, subset);
             //this.select = createScalarSelect(subset, vectorTemplate);
         }
@@ -383,7 +383,7 @@ public abstract class ReadVector extends BaseR {
 
     // when the index has only one argument, which is a string
     public static class SimpleScalarStringSelection extends ReadVector {
-        public SimpleScalarStringSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, RAny vectorTemplate) {
+        public SimpleScalarStringSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset, @SuppressWarnings("unused") RAny vectorTemplate) {
             super(ast, lhs, indexes, subset);
         }
 
@@ -1305,7 +1305,7 @@ public abstract class ReadVector extends BaseR {
             Utils.check(subset);
         }
 
-        public static RAny executeStringVector(RString index, RArray base, ASTNode ast) {
+        public static RAny executeStringVector(RString index, RArray base, @SuppressWarnings("unused") ASTNode ast) {
             int isize = index.size();
             if (isize == 0) { return Utils.createEmptyArray(base, base.names() != null); }
             Names baseNames = base.names();

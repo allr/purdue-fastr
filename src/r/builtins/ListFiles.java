@@ -70,7 +70,7 @@ final class ListFiles extends CallFactory {
             }
         }
         int pathSize = path.size();
-        ArrayList<String> res = new ArrayList<String>();
+        ArrayList<String> res = new ArrayList<>();
         for (int i = 0; i < pathSize; i++) {
             String dir = path.getString(i);
             list(dir, res, pattern, 0, allFiles, fullNames ? dir + File.separatorChar : "", recursive, ignoreCase, includeDirs);

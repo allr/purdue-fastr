@@ -1,6 +1,5 @@
 package r.builtins;
 
-import r.builtins.UpperTri.*;
 import r.data.*;
 
 /**
@@ -30,7 +29,7 @@ final class LowerTri extends UpperTri {
         }
     };
 
-    static final CallFactory _ = new LowerTri("lower.tri", new String[]{"x", "diag"}, new String[]{"x"}, LOWER);
+    @SuppressWarnings("hiding") static final CallFactory _ = new LowerTri("lower.tri", new String[]{"x", "diag"}, new String[]{"x"}, LOWER);
 
     private LowerTri(String name, String[] params, String[] required, Triangular trian) {
         super(name, params, required, trian);
