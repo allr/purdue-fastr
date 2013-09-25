@@ -23,10 +23,10 @@ package r.parser;
 
 import r.*;
 import r.data.*;
-import r.nodes.*;
-import r.nodes.Call.*;
-import r.nodes.UnaryOperation.*;
-import r.nodes.BinaryOperation.*;
+import r.nodes.ast.*;
+import r.nodes.ast.Call.*;
+import r.nodes.ast.UnaryOperation.*;
+import r.nodes.ast.BinaryOperation.*;
 //Checkstyle: stop
 }
 @lexer::header {

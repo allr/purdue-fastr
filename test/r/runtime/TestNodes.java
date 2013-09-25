@@ -10,21 +10,19 @@ import r.nodes.exec.*;
 
 public class TestNodes {
 
-    @Test
-    public void testReplaceChild() {
+    @Test public void testReplaceChild() {
         // make sure that all node class that have children also define a replaceChild method
 
-        String prefix =  System.getProperty("allr.prefix", "bin");
+        String prefix = System.getProperty("allr.prefix", "bin");
         Path classfilesDir = Paths.get(prefix, "r");
 
-				final int prefixSize = prefix.length() + 1;
-				final int extLength = ".class".length();
+        final int prefixSize = prefix.length() + 1;
+        final int extLength = ".class".length();
 
-        FileVisitor pathVisitor = new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+        FileVisitor<Path> pathVisitor = new SimpleFileVisitor<Path>() {
+            @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 if (file.endsWith(".class")) {
-										String cname = file.toString();
+                    String cname = file.toString();
                     String className = cname.substring(prefixSize, cname.length() - extLength).replaceAll("/", ".");
                     try {
                         Class rClass = Class.forName(className);
@@ -48,6 +46,6 @@ public class TestNodes {
             Assert.fail("Cannot walk the source tree: " + e);
         }
 
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.{java,class}");
+        //PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.{java,class}");
     }
 }
