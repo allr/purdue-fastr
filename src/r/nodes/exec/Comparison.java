@@ -216,7 +216,7 @@ public class Comparison extends BaseR {
             return createGeneric(ast, left, right, cmp);
         }
 
-        public static int generic(RAny lexpr, RAny rexpr, ValueComparison cmp, ASTNode ast) throws SpecializationException {
+        public static int generic(RAny lexpr, RAny rexpr, ValueComparison cmp, @SuppressWarnings("unused") ASTNode ast) throws SpecializationException {
             if (DEBUG_CMP) Utils.debug("comparison - assuming scalar numbers");
 
             if (lexpr instanceof ScalarStringImpl) { // note: could make this shorter if we didn't care about Java-level boxing

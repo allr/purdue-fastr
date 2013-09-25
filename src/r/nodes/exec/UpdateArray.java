@@ -1226,7 +1226,7 @@ public class UpdateArray extends UpdateArrayAssignment.AssignmentNode {
             }
         }
 
-        public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws SpecializationException {
+        @SuppressWarnings("unused") public static RArray doUpdate(RArray lhs, RArray rhs, Selector[] selectorVals, ASTNode ast) throws SpecializationException {
             Utils.nyi("unreachable");
             return null;
         }

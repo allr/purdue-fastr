@@ -76,7 +76,7 @@ public interface RAny {
             RSymbol fullName;   // null means not present, RSymbol.NA_SYMBOL is not a valid attribute name
 
             public PartialEntry(RSymbol fullName) {
-                children = new TreeMap<Character, PartialEntry>();
+                children = new TreeMap<>();
                 this.fullName = fullName;
             }
 
@@ -86,7 +86,7 @@ public interface RAny {
         }
 
         public Attributes() {
-            map = new LinkedHashMap<RSymbol, RAny>();
+            map = new LinkedHashMap<>();
             shared = false;
         }
 

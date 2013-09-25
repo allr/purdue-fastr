@@ -2,7 +2,6 @@ package r.data.internal;
 
 import java.util.*;
 
-
 public class ConnectionMode {
 
     boolean read;
@@ -19,7 +18,7 @@ public class ConnectionMode {
         this.truncate = truncate;
     }
 
-    static final HashMap<String, ConnectionMode> modes = new HashMap<String, ConnectionMode>();
+    static final HashMap<String, ConnectionMode> modes = new HashMap<>();
 
     public static ConnectionMode get(String mode) {
         return modes.get(mode);

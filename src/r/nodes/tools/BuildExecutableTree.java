@@ -38,8 +38,7 @@ public class BuildExecutableTree implements Visitor {
                 }
             }
 
-            @Override
-            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
                 assert oldNode != null;
                 if (node == oldNode) {
                     node = newNode;
@@ -304,7 +303,7 @@ public class BuildExecutableTree implements Visitor {
         return new SplitArgumentList(names, expressions);
     }
 
-    private void detectRepeatedParameters(RSymbol[] params, ASTNode ast) {
+    private static void detectRepeatedParameters(RSymbol[] params, ASTNode ast) {
         int n = params.length;
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
@@ -367,7 +366,7 @@ public class BuildExecutableTree implements Visitor {
 
         // TODO: FunctionCall for now are ONLY for variable (see Call.create ...).
         // It's maybe smarter to move this instance of here and replace the type of name by expression
-//        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.exec.FunctionCall.PROMISES);
+        //        SplitArgumentList a = splitArgumentList(functionCall.getArgs(), r.nodes.exec.FunctionCall.PROMISES);
         SplitArgumentList a = splitArgumentList(functionCall.getArgs(), false);
         // NOTE: the "false" argument, which currently ensures that the arguments are not lazy, which in turn
         // makes it easy for hotspot to optimize the code

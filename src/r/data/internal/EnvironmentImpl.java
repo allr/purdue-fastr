@@ -177,7 +177,7 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
     }
 
     public static RSymbol[] removeHidden(RSymbol[] symbols) { // FIXME: unnecessary copying
-        ArrayList<RSymbol> nonHidden = new ArrayList<RSymbol>(symbols.length);
+        ArrayList<RSymbol> nonHidden = new ArrayList<>(symbols.length);
 
         for (RSymbol s : symbols) {
             if (!s.isHidden()) {

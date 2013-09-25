@@ -115,7 +115,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
         private RSymbol[] listUsed(boolean includingHidden) { // FIXME: unnecessary copying
             Collection<RSymbol> values = table.values();
-            ArrayList<RSymbol> used = new ArrayList<RSymbol>(values.size());
+            ArrayList<RSymbol> used = new ArrayList<>(values.size());
 
             for(RSymbol s : values) {
                 if (s.getValue() != null) {
@@ -257,7 +257,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public void addChangeListener(SymbolChangeListener l) {
         if (changeListeners == null) {
-            changeListeners = new ArrayList<SymbolChangeListener>();
+            changeListeners = new ArrayList<>();
         }
         changeListeners.add(l);
     }
@@ -309,7 +309,7 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
-    @Override public boolean dependsOn(RAny value) {
+    @Override public boolean dependsOn(RAny val) {
         return false;
     }
 

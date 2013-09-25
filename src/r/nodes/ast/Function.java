@@ -8,7 +8,6 @@ import r.data.RFunction.*;
 import r.data.internal.*;
 import r.nodes.exec.*;
 import r.nodes.tools.*;
-import r.runtime.*;
 
 public class Function extends ASTNode {
 
@@ -42,13 +41,11 @@ public class Function extends ASTNode {
         return body;
     }
 
-    @Override
-    public void accept(Visitor v) {
+    @Override public void accept(Visitor v) {
         v.visit(this);
     }
 
-    @Override
-    public void visit_all(Visitor v) {
+    @Override public void visit_all(Visitor v) {
         body.accept(v);
     }
 
@@ -56,8 +53,7 @@ public class Function extends ASTNode {
         return new Function(alist, body);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         // FIXME: real R remembers the expression string for this
         StringBuilder str = new StringBuilder();
         str.append("function (");
@@ -122,7 +118,7 @@ public class Function extends ASTNode {
     private static RSymbol[] buildWriteSet(RSymbol[] argNames, Set<RSymbol> origWSet) {
         int maxSize = origWSet.size() + argNames.length;
         RSymbol[] writeSet = new RSymbol[maxSize];
-        HashSet <RSymbol> args = new HashSet<RSymbol>(argNames.length);
+        HashSet<RSymbol> args = new HashSet<>(argNames.length);
         int i = 0;
         for (; i < argNames.length; i++) {
             RSymbol s = argNames[i];
@@ -191,8 +187,7 @@ public class Function extends ASTNode {
             }
         }
 
-        @Override
-        public void visit(SimpleAccessVariable readVariable) {
+        @Override public void visit(SimpleAccessVariable readVariable) {
             RSymbol symbol = readVariable.getSymbol();
             int ddval = symbol.dotDotValue();
             if (ddval == -1) {
@@ -202,18 +197,14 @@ public class Function extends ASTNode {
             }
         }
 
-        @Override
-        public void visit(SimpleAssignVariable assign) {
+        @Override public void visit(SimpleAssignVariable assign) {
             written.add(assign.getSymbol());
             assign.visit_all(this); // visit the rhs expression
         }
 
-        @Override
-        public void visit(Function function) {
-        }
+        @Override public void visit(Function function) {}
 
-        @Override
-        public void visit(FunctionCall functionCall) {
+        @Override public void visit(FunctionCall functionCall) {
             read.add(functionCall.getName());
             functionCall.visit_all(this); // visit the arguments passed (simple access variable)
             if (functionCall.isAssignment()) {
@@ -222,14 +213,12 @@ public class Function extends ASTNode {
             }
         }
 
-        @Override
-        public void visit(For n) {
+        @Override public void visit(For n) {
             written.add(n.getCVar());
             n.visit_all(this);
         }
 
-        @Override
-        public void visit(UpdateVector n) {
+        @Override public void visit(UpdateVector n) {
             AccessVector a = n.getVector();
             ASTNode v = a.getVector();
             if (!(v instanceof SimpleAccessVariable)) {

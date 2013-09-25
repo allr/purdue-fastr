@@ -243,7 +243,7 @@ public abstract class AbstractCall extends BaseR {
     // dots
     //   dots.names == null when there are no ... in parameters
     //   otherwise, names of symbols that will appear in ...
-    protected final void placeArgs(Frame callerFrame, Frame newFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex, int nParams) {
+    protected final void placeArgs(Frame callerFrame, Frame newFrame, int[] argPositions, DotsInfo dotsInfo, int dotsIndex) {
 
         int i;
         RSymbol[] dnames = dotsInfo.names;

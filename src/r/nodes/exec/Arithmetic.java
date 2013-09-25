@@ -4116,7 +4116,7 @@ public class Arithmetic extends BaseR {
         throw RError.getNonConformableArrays(ast);
     }
 
-    public static Names resultNames(ASTNode ast, RArray a, RArray b) {
+    public static Names resultNames(@SuppressWarnings("unused") ASTNode ast, RArray a, RArray b) {
         Names na = a.names();
         Names nb = b.names();
         if (nb == null) {
@@ -4136,7 +4136,7 @@ public class Arithmetic extends BaseR {
     }
 
     // note: increments reference count on attributes
-    public static Attributes resultAttributes(ASTNode ast, RArray a, RArray b) {
+    public static Attributes resultAttributes(@SuppressWarnings("unused") ASTNode ast, RArray a, RArray b) {
         Attributes aa = a.attributes();
         Attributes ba = b.attributes();
 

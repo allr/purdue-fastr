@@ -123,7 +123,7 @@ public class FrameExtension {
         private HashMap<RSymbol, Integer> map; // FIXME: use a primitive map
 
         public Hashed(int size) {
-            map = new HashMap<RSymbol, Integer>(size);
+            map = new HashMap<>(size);
         }
 
         @Override

@@ -213,7 +213,7 @@ public interface RArray extends RAny {
         //
         // (this is used by optimized algorithms e.g. on vector update to know that a map should be built anyway,
         // and hence building it to manage the update itself is for free)
-        public boolean keepsMap() {
+        public static boolean keepsMap() {
             return true;
         }
     }

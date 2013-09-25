@@ -148,15 +148,14 @@ public abstract class UpdateVector extends BaseR {
         return value;
     }
 
-    @Override
-    protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+    @Override protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
         assert oldNode != null;
         if (lhs == oldNode) {
             lhs = newNode;
             return adoptInternal(newNode);
         }
         if (indexes != null) {
-            for(int i = 0; i < indexes.length; i++) {
+            for (int i = 0; i < indexes.length; i++) {
                 if (indexes[i] == oldNode) {
                     indexes[i] = newNode;
                     return adoptInternal(newNode);
@@ -2379,7 +2378,7 @@ public abstract class UpdateVector extends BaseR {
             return null;
         }
 
-        public static RAny deleteElements(RList base, RLogical index, ASTNode ast) {
+        public static RAny deleteElements(RList base, RLogical index, @SuppressWarnings("unused") ASTNode ast) {
             int bsize = base.size();
             int isize = index.size();
 
@@ -2629,7 +2628,7 @@ public abstract class UpdateVector extends BaseR {
 
     public static class StringSelection {
 
-        public static RAny deleteElements(RList base, RString index, ASTNode ast) {
+        public static RAny deleteElements(RList base, RString index, @SuppressWarnings("unused") ASTNode ast) {
             Names bnames = base.names();
             if (bnames == null) { return Utils.dropDimensions(base); }
             int bsize = base.size();
@@ -2730,9 +2729,9 @@ public abstract class UpdateVector extends BaseR {
                 nmap = new HashMap<>(bsize);
                 bsymbols = null;
             } else {
-                assert Utils.check(bnames.keepsMap()); // FIXME: re-visit this if we re-introduce names that don't carry hashmaps
-                                                       // (probably should build a new one in such a case)
-                nmap = new HashMap<RSymbol, Integer>(bnames.getMap());
+                assert Utils.check(Names.keepsMap()); // FIXME: re-visit this if we re-introduce names that don't carry hashmaps
+                                                      // (probably should build a new one in such a case)
+                nmap = new HashMap<>(bnames.getMap());
                 bsymbols = bnames.sequence();
             }
 
