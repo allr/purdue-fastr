@@ -176,7 +176,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
             }
         }
         final int lvalue = value;
-        return new View.RLogicalView() {
+        return TracingView.ViewTrace.trace(new View.RLogicalView() {
 
             @Override
             public int getLogical(int i) {
@@ -208,7 +208,7 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
                 return index.dependsOn(v);
             }
 
-        };
+        });
     }
 
     @Override

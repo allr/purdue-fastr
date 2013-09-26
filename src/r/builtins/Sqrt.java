@@ -2,7 +2,7 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
-import r.data.internal.View;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
@@ -37,7 +37,7 @@ final class Sqrt extends CallFactory {
                 } else {
                     throw RError.getNonNumericMath(ast);
                 }
-                return new View.RDoubleProxy<RDouble>(typedArg) {
+                return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(typedArg) {
                     @Override public double getDouble(int i) {
                         double d = orig.getDouble(i);
                         if (RDouble.RDoubleUtils.isNAorNaN(d)) {
@@ -50,7 +50,7 @@ final class Sqrt extends CallFactory {
                             return res;
                         }
                     }
-                };
+                });
             }
         };
     }

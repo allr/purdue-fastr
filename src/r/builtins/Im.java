@@ -21,13 +21,13 @@ final class Im extends CallFactory {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RComplex) {
                     final RComplex orig = (RComplex) arg;
-                    return new View.RDoubleProxy<RComplex>(orig) {
+                    return TracingView.ViewTrace.trace(new View.RDoubleProxy<RComplex>(orig) {
 
                         @Override public double getDouble(int i) {
                             return orig.getImag(i);
                         }
 
-                    };
+                    });
                 } else if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
                     RArray arr = (RArray) arg;
                     int size = ((RArray) arg).size();

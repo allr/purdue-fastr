@@ -211,7 +211,7 @@ public interface RDouble extends RNumber {
         public static RDouble exclude(int excludeIndex, RDouble orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RDoubleExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RDoubleExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -225,7 +225,7 @@ public interface RDouble extends RNumber {
             return RDoubleFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RDouble subset(RDouble value, RInt index) {
-            return new RDoubleSubset(value, index);
+            return TracingView.ViewTrace.trace(new RDoubleSubset(value, index));
         }
     }
 

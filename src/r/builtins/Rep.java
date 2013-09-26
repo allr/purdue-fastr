@@ -239,7 +239,7 @@ class Rep extends CallFactory {
 
         RArray.Names names = orig.names();
         if (!EAGER && names == null) {
-            return new View.RRawProxy<RRaw>(orig) {
+            return TracingView.ViewTrace.trace(new View.RRawProxy<RRaw>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -257,7 +257,7 @@ class Rep extends CallFactory {
                     return null;
                 }
 
-            };
+            });
         } else {
             return RRawFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }
@@ -267,7 +267,7 @@ class Rep extends CallFactory {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
-            return new View.RLogicalProxy<RLogical>(orig) {
+            return TracingView.ViewTrace.trace(new View.RLogicalProxy<RLogical>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -284,7 +284,7 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
-            };
+            });
         } else {
             return RLogicalFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }
@@ -294,7 +294,7 @@ class Rep extends CallFactory {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
-            return new View.RIntProxy<RInt>(orig) {
+            return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -311,7 +311,7 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
-            };
+            });
         } else {
             return RIntFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }
@@ -321,7 +321,7 @@ class Rep extends CallFactory {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
-            return new View.RDoubleProxy<RDouble>(orig) {
+            return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -339,7 +339,7 @@ class Rep extends CallFactory {
                     return null;
                 }
 
-            };
+            });
         } else {
             return RDoubleFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }
@@ -349,7 +349,7 @@ class Rep extends CallFactory {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
-            return new View.RComplexProxy<RComplex>(orig) {
+            return TracingView.ViewTrace.trace(new View.RComplexProxy<RComplex>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -370,7 +370,7 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
-            };
+            });
         } else {
             return RComplexFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }
@@ -380,7 +380,7 @@ class Rep extends CallFactory {
         RArray.Names names = orig.names();
 
         if (!EAGER && names == null) {
-            return new View.RStringProxy<RString>(orig) {
+            return TracingView.ViewTrace.trace(new View.RStringProxy<RString>(orig) {
 
                 @Override public RArray.Names names() {
                     return null;
@@ -397,7 +397,7 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
-            };
+            });
         } else {
             return RStringFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
         }

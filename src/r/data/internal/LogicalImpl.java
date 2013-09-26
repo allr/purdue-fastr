@@ -99,7 +99,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RRaw asRaw() {
-        return new RLogical.RRawView(this);
+        return TracingView.ViewTrace.trace(new RLogical.RRawView(this));
     }
 
     @Override
@@ -129,7 +129,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RDouble asDouble() {
-        return new RLogical.RDoubleView(this);
+        return TracingView.ViewTrace.trace(new RLogical.RDoubleView(this));
     }
 
     @Override
@@ -139,7 +139,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RComplex asComplex() {
-        return new RLogical.RComplexView(this);
+        return TracingView.ViewTrace.trace(new RLogical.RComplexView(this));
     }
 
     @Override
@@ -149,7 +149,7 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
 
     @Override
     public RString asString() {
-        return new RLogical.RStringView(this);
+        return TracingView.ViewTrace.trace(new RLogical.RStringView(this));
     }
 
     @Override

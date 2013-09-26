@@ -176,7 +176,7 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
 
     @Override
     public RList asList() {
-        return new RArray.RListView(this);
+        return TracingView.ViewTrace.trace(new RArray.RListView(this));
     }
 
     protected String namedPretty() {

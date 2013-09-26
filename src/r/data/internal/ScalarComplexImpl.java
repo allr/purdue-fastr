@@ -199,7 +199,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
         }
         final double rvalue = real;
         final double ivalue = imag;
-        return new View.RComplexView() {
+        return TracingView.ViewTrace.trace(new View.RComplexView() {
 
             @Override
             public double getReal(int i) {
@@ -241,7 +241,7 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
                 return index.dependsOn(v);
             }
 
-        };
+        });
     }
 
     @Override

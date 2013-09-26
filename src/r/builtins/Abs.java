@@ -37,30 +37,30 @@ public class Abs extends CallFactory {
 
     public static RDouble abs(final RDouble orig) {
 
-        return new View.RDoubleProxy<RDouble>(orig) {
+        return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(orig) {
 
             @Override public double getDouble(int i) {
                 return abs(orig.getDouble(i));
             }
-        };
+        });
     }
 
     public static RInt abs(final RInt orig) {
 
-        return new View.RIntProxy<RInt>(orig) {
+        return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(orig) {
             @Override public int getInt(int i) {
                 return abs(orig.getInt(i));
             }
-        };
+        });
     }
 
     public static RDouble abs(final RComplex orig) {
 
-        return new View.RDoubleProxy<RComplex>(orig) {
+        return TracingView.ViewTrace.trace(new View.RDoubleProxy<RComplex>(orig) {
             @Override public double getDouble(int i) {
                 return abs(orig.getReal(i), orig.getImag(i));
             }
-        };
+        });
     }
 
     @Override

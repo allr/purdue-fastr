@@ -2,7 +2,7 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
-import r.data.internal.View;
+import r.data.internal.*;
 import r.errors.RError;
 import r.gnur.*;
 import r.nodes.ast.*;
@@ -28,7 +28,7 @@ final class Exp extends CallFactory {
         return new Builtin.Builtin1(call, names, exprs) {
             @Override public RAny doBuiltIn(Frame frame, RAny arg) {
                 if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
-                    return new View.RDoubleProxy<RDouble>(arg.asDouble()) {
+                    return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(arg.asDouble()) {
                         @Override public double getDouble(int i) {
                             double d = orig.getDouble(i);
                             if (RDouble.RDoubleUtils.isNAorNaN(d)) { return RDouble.NA; }
@@ -43,7 +43,7 @@ final class Exp extends CallFactory {
                             }
                             return res;
                         }
-                    };
+                    });
                 } else if (arg instanceof RComplex) {
                     return Arithmetic.ComplexView.create(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
                 } else {

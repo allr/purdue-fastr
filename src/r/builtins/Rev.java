@@ -9,7 +9,7 @@ import r.runtime.*;
 
 /**
  * "rev"
- * 
+ *
  * <pre>
  * x -- a vector or another object for which reversal is defined.
  * </pre>
@@ -32,7 +32,7 @@ class Rev extends CallFactory {
 
     public static RString rev(RString orig) {
         final int size = orig.size() - 1;
-        return new View.RStringProxy<RString>(orig) {
+        return TracingView.ViewTrace.trace(new View.RStringProxy<RString>(orig) {
             @Override public String getString(int i) {
                 return orig.getString(size - i);
             }
@@ -40,12 +40,12 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
-        };
+        });
     }
 
     public static RLogical rev(RLogical orig) {
         final int size = orig.size() - 1;
-        return new View.RLogicalProxy<RLogical>(orig) {
+        return TracingView.ViewTrace.trace(new View.RLogicalProxy<RLogical>(orig) {
             @Override public int getLogical(int i) {
                 return orig.getLogical(size - i);
             }
@@ -53,12 +53,12 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
-        };
+        });
     }
 
     public static RInt rev(RInt orig) {
         final int size = orig.size() - 1;
-        return new View.RIntProxy<RInt>(orig) {
+        return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(orig) {
 
             @Override public int getInt(int i) {
                 return orig.getInt(size - i);
@@ -67,12 +67,12 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
-        };
+        });
     }
 
     public static RDouble rev(RDouble orig) {
         final int size = orig.size() - 1;
-        return new View.RDoubleProxy<RDouble>(orig) {
+        return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(orig) {
 
             @Override public double getDouble(int i) {
                 return orig.getDouble(size - i);
@@ -81,7 +81,7 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
-        };
+        });
     }
 
     // FIXME: should do type-specialization

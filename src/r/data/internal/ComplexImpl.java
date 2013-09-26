@@ -161,7 +161,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public RLogical asLogical() {
-        return new RComplex.RLogicalView(this);
+        return TracingView.ViewTrace.trace(new RComplex.RLogicalView(this));
     }
 
     @Override
@@ -201,7 +201,7 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public RString asString() {
-        return new RComplex.RStringView(this);
+        return TracingView.ViewTrace.trace(new RComplex.RStringView(this));
     }
 
     @Override

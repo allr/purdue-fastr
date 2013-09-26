@@ -20,7 +20,7 @@ abstract class CharBase extends CallFactory {
         if (value instanceof ScalarStringImpl) {
             return RString.RStringFactory.getScalar(op(ast, value.getString(0)), value.dimensions());
         } else {
-            return new View.RStringProxy<RString>(value) {
+            return TracingView.ViewTrace.trace(new View.RStringProxy<RString>(value) {
                 @Override public int size() {
                     return size;
                 }
@@ -28,7 +28,7 @@ abstract class CharBase extends CallFactory {
                 @Override public String getString(int i) {
                     return op(ast, value.getString(i));
                 }
-            };
+            });
         }
     }
 

@@ -169,7 +169,7 @@ public interface RString extends RArray {
         public static RString exclude(int excludeIndex, RString orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RStringExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RStringExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -183,7 +183,7 @@ public interface RString extends RArray {
             return RStringFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RString subset(RString value, RInt index) {
-            return new RStringSubset(value, index);
+            return TracingView.ViewTrace.trace(new RStringSubset(value, index));
         }
     }
 

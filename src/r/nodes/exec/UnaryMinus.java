@@ -207,7 +207,7 @@ public abstract class UnaryMinus extends BaseR {
 
             if (value instanceof RComplex) {
                 final RComplex cvalue = (RComplex) value;
-                return new View.RComplexProxy<RComplex>(cvalue) {
+                return TracingView.ViewTrace.trace(new View.RComplexProxy<RComplex>(cvalue) {
 
                     @Override
                     public double getReal(int i) {
@@ -228,11 +228,11 @@ public abstract class UnaryMinus extends BaseR {
                             return d;
                         }
                     }
-                };
+                });
             }
             if (value instanceof RDouble) {
                 final RDouble dvalue = (RDouble) value;
-                return new View.RDoubleProxy<RDouble>(dvalue) {
+                return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(dvalue) {
 
                     @Override
                     public double getDouble(int i) {
@@ -243,18 +243,18 @@ public abstract class UnaryMinus extends BaseR {
                             return -d;
                         }
                     }
-                };
+                });
             }
             if (value instanceof RInt || value instanceof RLogical) {
                 final RInt ivalue = value.asInt();
-                return new View.RIntProxy<RInt>(ivalue) {
+                return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(ivalue) {
 
                     @Override
                     public int getInt(int i) {
                         int v = ivalue.getInt(i);
                         return -v; // NOTE: this also works for NA
                     }
-                };
+                });
             }
             throw RError.getInvalidArgTypeUnary(ast);
         }

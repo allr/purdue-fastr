@@ -150,7 +150,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public static RLogical exclude(int excludeIndex, RLogical orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RLogicalExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RLogicalExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -164,7 +164,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             return RLogicalFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RLogical subset(RLogical value, RInt index) {
-            return new RLogicalSubset(value, index);
+            return TracingView.ViewTrace.trace(new RLogicalSubset(value, index));
         }
     }
 

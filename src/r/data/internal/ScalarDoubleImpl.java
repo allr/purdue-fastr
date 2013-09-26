@@ -189,7 +189,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
             }
         }
         final double dvalue = value;
-        return new View.RDoubleView() {
+        return TracingView.ViewTrace.trace(new View.RDoubleView() {
 
             @Override
             public double getDouble(int i) {
@@ -221,7 +221,7 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
                 return index.dependsOn(v);
             }
 
-        };
+        });
     }
 
     @Override

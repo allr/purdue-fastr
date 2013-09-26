@@ -70,10 +70,10 @@ public interface RList extends RArray {
             return named ? NULL_NAMED_NA : BOXED_NULL;
         }
         public static RList exclude(int excludeIndex, RList orig) {
-            return new RListExclusion(excludeIndex, orig);
+            return TracingView.ViewTrace.trace(new RListExclusion(excludeIndex, orig));
         }
         public static RList subset(RList value, RInt index) {
-            return new RListSubset(value, index);
+            return TracingView.ViewTrace.trace(new RListSubset(value, index));
         }
     }
 

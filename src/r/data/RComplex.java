@@ -232,7 +232,7 @@ public interface RComplex extends RArray {
         public static RComplex exclude(int excludeIndex, RComplex orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RComplexExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RComplexExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -248,7 +248,7 @@ public interface RComplex extends RArray {
             return RComplexFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RComplex subset(RComplex value, RInt index) {
-            return new RComplexSubset(value, index);
+            return TracingView.ViewTrace.trace(new RComplexSubset(value, index));
         }
     }
 

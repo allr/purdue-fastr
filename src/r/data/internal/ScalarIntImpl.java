@@ -181,7 +181,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
             }
         }
         final int ivalue = value;
-        return new View.RIntView() {
+        return TracingView.ViewTrace.trace(new View.RIntView() {
 
             @Override
             public int getInt(int i) {
@@ -213,7 +213,7 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
                 return index.dependsOn(v);
             }
 
-        };
+        });
     }
 
     @Override

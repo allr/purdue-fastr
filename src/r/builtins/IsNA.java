@@ -32,7 +32,7 @@ final class IsNA extends CallFactory {
             final RArray a = (RArray) arg;
             final int asize = a.size();
             if (asize == 1) { return a.isNAorNaN(0) ? RLogical.BOXED_TRUE : RLogical.BOXED_FALSE; }
-            if (asize > 1) { return new View.RLogicalProxy<RArray>(a) {
+            if (asize > 1) { return TracingView.ViewTrace.trace(new View.RLogicalProxy<RArray>(a) {
 
                 @Override public int size() {
                     return asize;
@@ -41,7 +41,7 @@ final class IsNA extends CallFactory {
                 @Override public int getLogical(int i) {
                     return a.isNAorNaN(i) ? RLogical.TRUE : RLogical.FALSE;
                 }
-            }; }
+            }); }
             return RLogical.EMPTY; // asize == 0
 
         }

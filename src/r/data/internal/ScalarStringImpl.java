@@ -180,7 +180,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
             }
         }
         final String svalue = value;
-        return new View.RStringView() {
+        return TracingView.ViewTrace.trace(new View.RStringView() {
 
             @Override
             public String getString(int i) {
@@ -212,7 +212,7 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
                 return index.dependsOn(v);
             }
 
-        };
+        });
     }
 
     @Override

@@ -270,7 +270,7 @@ final class Outer extends CallFactory {
 
     public static RInt lazyExpandYVector(RInt yarg, int ysize, final int count) {
         final int nsize = ysize * count;
-        return new View.RIntProxy<RInt>(yarg) {
+        return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(yarg) {
 
             @Override public int getInt(int i) {
                 int j = i / count;
@@ -292,7 +292,7 @@ final class Outer extends CallFactory {
             @Override public Attributes attributes() {
                 return null;
             }
-        };
+        });
     }
 
     public static RArray expandXVector(RArray x, int xsize, int count) {
@@ -356,7 +356,7 @@ final class Outer extends CallFactory {
 
     public static RInt lazyExpandXVector(RInt xarg, int xsize, final int count) {
         final int nsize = xsize * count;
-        return new View.RIntProxy<RInt>(xarg) {
+        return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(xarg) {
 
             @Override public int getInt(int i) {
                 int j = i % count;
@@ -378,7 +378,7 @@ final class Outer extends CallFactory {
             @Override public Attributes attributes() {
                 return null;
             }
-        };
+        });
     }
 
 }

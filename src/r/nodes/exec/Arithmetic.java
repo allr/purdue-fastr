@@ -2369,7 +2369,7 @@ public class Arithmetic extends BaseR {
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
-            ComplexView res = new ComplexView(a, b, dim, names, attributes, depth, arit, ast);
+            RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
             if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl)) {
                 return RComplexFactory.copy(res);
             }
@@ -2500,7 +2500,7 @@ public class Arithmetic extends BaseR {
         Attributes attributes = resultAttributes(ast, a, b);
         int na = a.size();
         int nb = b.size();
-        DoubleView res;
+        RDouble res;
 
         if (na == nb) {
             if (arit == POW && na > 1) {
@@ -2531,6 +2531,7 @@ public class Arithmetic extends BaseR {
                 res = new DoubleView.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
             }
         }
+        res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
             return RDouble.RDoubleFactory.copy(res);
         }
@@ -2582,6 +2583,7 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
             return RDouble.RDoubleFactory.copy(res);
         }
@@ -2633,6 +2635,7 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
             return RDouble.RDoubleFactory.copy(res);
         }
@@ -3440,7 +3443,7 @@ public class Arithmetic extends BaseR {
         Attributes attributes = resultAttributes(ast, a, b);
         int na = a.size();
         int nb = b.size();
-        IntView res;
+        RInt res;
 
         if (na == nb) {
             if (b instanceof RIntSequence) {
@@ -3494,6 +3497,7 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
             return RInt.RIntFactory.copy(res);
         }

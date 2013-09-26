@@ -619,14 +619,14 @@ public abstract class ReadVector extends BaseR {
                 int size = abase.size();
                 if (sindex.max() > size) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
                 // FIXME: should specialize for a particular base type, or have a type hierarchy on factories
-                if (abase instanceof RDouble) { return new RDoubleView((RDouble) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RInt) { return new RIntView((RInt) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RLogical) { return new RLogicalView((RLogical) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RList) { return new RListView((RList) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RString) { return new RStringView((RString) abase, sindex.from(), sindex.to(), sindex.step()); }
-                if (abase instanceof RRaw) { return new RRawView((RRaw) abase, sindex.from(), sindex.to(), sindex.step()); }
+                if (abase instanceof RDouble) { return TracingView.ViewTrace.trace(new RDoubleView((RDouble) abase, sindex.from(), sindex.to(), sindex.step())); }
+                if (abase instanceof RInt) { return TracingView.ViewTrace.trace(new RIntView((RInt) abase, sindex.from(), sindex.to(), sindex.step())); }
+                if (abase instanceof RLogical) { return TracingView.ViewTrace.trace(new RLogicalView((RLogical) abase, sindex.from(), sindex.to(), sindex.step())); }
+                if (abase instanceof RList) { return TracingView.ViewTrace.trace(new RListView((RList) abase, sindex.from(), sindex.to(), sindex.step())); }
+                if (abase instanceof RString) { return TracingView.ViewTrace.trace(new RStringView((RString) abase, sindex.from(), sindex.to(), sindex.step())); }
+                if (abase instanceof RRaw) { return TracingView.ViewTrace.trace(new RRawView((RRaw) abase, sindex.from(), sindex.to(), sindex.step())); }
                 assert Utils.check(abase instanceof RComplex);
-                return new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step());
+                return TracingView.ViewTrace.trace(new RComplexView((RComplex) abase, sindex.from(), sindex.to(), sindex.step()));
             } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
                 if (DEBUG_SEL) Utils.debug("selection - SimpleIntSequenceSelection failed: " + f);

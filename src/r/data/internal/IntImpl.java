@@ -127,7 +127,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RRaw asRaw() {
-        return new RInt.RRawView(this);
+        return TracingView.ViewTrace.trace(new RInt.RRawView(this));
     }
 
     @Override
@@ -137,7 +137,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RLogical asLogical() {
-        return new RInt.RLogicalView(this);
+        return TracingView.ViewTrace.trace(new RInt.RLogicalView(this));
     }
 
     @Override
@@ -157,7 +157,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RDouble asDouble() {
-        return new RInt.RDoubleView(this);
+        return TracingView.ViewTrace.trace(new RInt.RDoubleView(this));
     }
 
     @Override
@@ -167,7 +167,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RComplex asComplex() {
-        return new RInt.RComplexView(this);
+        return TracingView.ViewTrace.trace(new RInt.RComplexView(this));
     }
 
     @Override
@@ -177,7 +177,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     @Override
     public RString asString() {
-        return new RInt.RStringView(this);
+        return TracingView.ViewTrace.trace(new RInt.RStringView(this));
     }
 
     @Override

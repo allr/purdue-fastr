@@ -125,7 +125,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RRaw asRaw() {
-        return new RDouble.RRawView(this);
+        return TracingView.ViewTrace.trace(new RDouble.RRawView(this));
     }
 
     @Override
@@ -135,7 +135,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RLogical asLogical() {
-        return new RDouble.RLogicalView(this);
+        return TracingView.ViewTrace.trace(new RDouble.RLogicalView(this));
     }
 
     @Override
@@ -145,7 +145,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RInt asInt() {
-        return new RDouble.RIntView(this);
+        return TracingView.ViewTrace.trace(new RDouble.RIntView(this));
     }
 
     @Override
@@ -165,7 +165,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RComplex asComplex() {
-        return new RDouble.RComplexView(this);
+        return TracingView.ViewTrace.trace(new RDouble.RComplexView(this));
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public RString asString() {
-        return new RDouble.RStringView(this);
+        return TracingView.ViewTrace.trace(new RDouble.RStringView(this));
     }
 
     @Override

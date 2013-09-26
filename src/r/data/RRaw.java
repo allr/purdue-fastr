@@ -72,7 +72,7 @@ public interface RRaw extends RArray {
         public static RRaw exclude(int excludeIndex, RRaw orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RRawExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RRawExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -86,7 +86,7 @@ public interface RRaw extends RArray {
             return RRawFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RRaw subset(RRaw value, RInt index) {
-            return new RRawSubset(value, index);
+            return TracingView.ViewTrace.trace(new RRawSubset(value, index));
         }
     }
 

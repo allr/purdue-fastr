@@ -11,6 +11,7 @@ import org.netlib.blas.*;
 import org.netlib.lapack.*;
 
 import r.data.*;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.tools.*;
@@ -150,6 +151,10 @@ public class Console {
         long after = System.nanoTime();
         long elapsed = after - before;
         System.err.println("\n" + (inputFile == null ? "(stdin)" : inputFile) + ": Elapsed " + (elapsed / 1000000L) + " microseconds");
+
+        if (TracingView.VIEW_TRACING) {
+            TracingView.ViewTrace.printGlobalStats();
+        }
     }
 
     interface RLineReader {

@@ -136,7 +136,7 @@ public interface RInt extends RNumber {
             return new IntImpl(values, dimensions, names, attributes, false);
         }
         public static RInt forSequence(int from, int to, int step) {
-            return new IntImpl.RIntSequence(from, to, step);
+            return TracingView.ViewTrace.trace(new IntImpl.RIntSequence(from, to, step));
         }
         public static RInt getEmpty(boolean named) {
             return named ? EMPTY_NAMED_NA : EMPTY;
@@ -147,7 +147,7 @@ public interface RInt extends RNumber {
         public static RInt exclude(int excludeIndex, RInt orig) {
             Names names = orig.names();
             if (names == null) {
-                return new RIntExclusion(excludeIndex, orig);
+                return TracingView.ViewTrace.trace(new RIntExclusion(excludeIndex, orig));
             }
             int size = orig.size();
             int nsize = size - 1;
@@ -161,7 +161,7 @@ public interface RInt extends RNumber {
             return RIntFactory.getFor(content, null, names.exclude(excludeIndex));
         }
         public static RInt subset(RInt value, RInt index) {
-            return new RIntSubset(value, index);
+            return TracingView.ViewTrace.trace(new RIntSubset(value, index));
         }
     }
 

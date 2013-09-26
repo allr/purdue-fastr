@@ -96,7 +96,7 @@ public abstract class Not extends BaseR {
             if (value instanceof RLogical || value instanceof RDouble || value instanceof RInt) {
                 final RLogical lvalue = value.asLogical();
 
-                return new View.RLogicalProxy<RLogical>(lvalue) {
+                return TracingView.ViewTrace.trace(new View.RLogicalProxy<RLogical>(lvalue) {
 
                     @Override
                     public int getLogical(int i) {
@@ -115,12 +115,12 @@ public abstract class Not extends BaseR {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
-                };
+                });
             }
             if (value instanceof RRaw) {
                 final RRaw rvalue = (RRaw) value;
 
-                return new View.RRawProxy<RRaw>(rvalue) {
+                return TracingView.ViewTrace.trace(new View.RRawProxy<RRaw>(rvalue) {
 
                     @Override
                     public byte getRaw(int i) {
@@ -133,7 +133,7 @@ public abstract class Not extends BaseR {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
-                };
+                });
             }
             if (value instanceof RArray) {
                 if (((RArray) value).size() == 0) {

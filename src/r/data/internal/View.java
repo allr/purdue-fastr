@@ -134,7 +134,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RLogical asLogical() {
-            return new RRaw.RLogicalView(this);
+            return TracingView.ViewTrace.trace(new RRaw.RLogicalView(this));
         }
 
         @Override
@@ -144,7 +144,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RInt asInt() {
-            return new RRaw.RIntView(this);
+            return TracingView.ViewTrace.trace(new RRaw.RIntView(this));
         }
 
         @Override
@@ -154,7 +154,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
-            return new RRaw.RDoubleView(this);
+            return TracingView.ViewTrace.trace(new RRaw.RDoubleView(this));
         }
 
         @Override
@@ -164,7 +164,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RComplex asComplex() {
-            return new RRaw.RComplexView(this);
+            return TracingView.ViewTrace.trace(new RRaw.RComplexView(this));
         }
 
         @Override
@@ -174,7 +174,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            return new RRaw.RStringView(this);
+            return TracingView.ViewTrace.trace(new RRaw.RStringView(this));
         }
 
         @Override
@@ -275,7 +275,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RRaw asRaw() {
-            return new RLogical.RRawView(this);
+            return TracingView.ViewTrace.trace(new RLogical.RRawView(this));
         }
 
         @Override
@@ -295,7 +295,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RInt asInt() {
-            return new RLogical.RIntView(this);
+            return TracingView.ViewTrace.trace(new RLogical.RIntView(this));
         }
 
         @Override
@@ -305,7 +305,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
-            return new RLogical.RDoubleView(this);
+            return TracingView.ViewTrace.trace(new RLogical.RDoubleView(this));
         }
 
         @Override
@@ -315,7 +315,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RComplex asComplex() {
-            return new RLogical.RComplexView(this);
+            return TracingView.ViewTrace.trace(new RLogical.RComplexView(this));
         }
 
         @Override
@@ -325,7 +325,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            return new RLogical.RStringView(this);
+            return TracingView.ViewTrace.trace(new RLogical.RStringView(this));
         }
 
         @Override
@@ -432,7 +432,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RRaw asRaw() {
-            return new RInt.RRawView(this);
+            return TracingView.ViewTrace.trace(new RInt.RRawView(this));
         }
 
         @Override
@@ -442,7 +442,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RLogical asLogical() {
-            return new RInt.RLogicalView(this);
+            return TracingView.ViewTrace.trace(new RInt.RLogicalView(this));
         }
 
         @Override
@@ -462,7 +462,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble asDouble() {
-            return new RInt.RDoubleView(this);
+            return TracingView.ViewTrace.trace(new RInt.RDoubleView(this));
         }
 
         @Override
@@ -472,7 +472,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RComplex asComplex() {
-            return new RInt.RComplexView(this);
+            return TracingView.ViewTrace.trace(new RInt.RComplexView(this));
         }
 
         @Override
@@ -482,7 +482,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            return new RInt.RStringView(this);
+            return TracingView.ViewTrace.trace(new RInt.RStringView(this));
         }
 
         @Override
@@ -584,7 +584,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RRaw asRaw() {
-            return new RDouble.RRawView(this);
+            return TracingView.ViewTrace.trace(new RDouble.RRawView(this));
         }
 
         @Override
@@ -594,7 +594,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RLogical asLogical() {
-            return new RDouble.RLogicalView(this);
+            return TracingView.ViewTrace.trace(new RDouble.RLogicalView(this));
         }
 
         @Override
@@ -604,7 +604,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RInt asInt() {
-            return new RDouble.RIntView(this);
+            return TracingView.ViewTrace.trace(new RDouble.RIntView(this));
         }
 
         @Override
@@ -624,7 +624,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RComplex asComplex() {
-            return new RDouble.RComplexView(this);
+            return TracingView.ViewTrace.trace(new RDouble.RComplexView(this));
         }
 
         @Override
@@ -634,7 +634,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            return new RDouble.RStringView(this);
+            return TracingView.ViewTrace.trace(new RDouble.RStringView(this));
         }
 
         @Override
@@ -751,7 +751,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RLogical asLogical() {
-            return new RComplex.RLogicalView(this);
+            return TracingView.ViewTrace.trace(new RComplex.RLogicalView(this));
         }
 
         @Override
@@ -791,7 +791,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString asString() {
-            return new RComplex.RStringView(this);
+            return TracingView.ViewTrace.trace(new RComplex.RStringView(this));
         }
 
         @Override

@@ -20,15 +20,17 @@ abstract class MathBase extends CallFactory {
         final int size = value.size();
         if (size == 1) {
             return RDouble.RDoubleFactory.getScalar(op(ast, value.getDouble(0)), value.dimensions(), value.names(), value.attributesRef());
-        } else if (size > 0) { return new View.RDoubleProxy<RDouble>(value) {
-            @Override public int size() {
-                return size;
-            }
+        } else if (size > 0) {
+            return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(value) {
+                @Override public int size() {
+                    return size;
+                }
 
-            @Override public double getDouble(int i) {
-                return op(ast, value.getDouble(i));
-            }
-        }; }
+                @Override public double getDouble(int i) {
+                    return op(ast, value.getDouble(i));
+                }
+            });
+        }
         return RDouble.EMPTY;
     }
 
