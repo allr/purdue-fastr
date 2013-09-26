@@ -10,6 +10,7 @@ import r.data.RArray.Names;
 import r.data.RComplex.RComplexUtils;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
+import r.data.internal.TracingView.*;
 import r.errors.*;
 import r.gnur.*;
 import r.nodes.ast.*;
@@ -2362,9 +2363,7 @@ public class Arithmetic extends BaseR {
             }
             int depth = 0;
             if (LIMIT_VIEW_DEPTH) {
-                int adepth = (a instanceof ComplexView) ? ((ComplexView) a).depth : 0; // FIXME what about chains of double/complex views, etc?
-                int bdepth = (b instanceof ComplexView) ? ((ComplexView) b).depth : 0;
-                depth = adepth + bdepth + 1;
+                depth = complexViewDepth(a) + complexViewDepth(b) + 1;
             }
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
@@ -2488,12 +2487,56 @@ public class Arithmetic extends BaseR {
         }
     }
 
+    private static int doubleViewDepth(RDouble a) {
+        RDouble x = a;
+
+        if (TracingView.VIEW_TRACING) {
+            if (a instanceof RDoubleTracingView) {
+                x = ((RDoubleTracingView) a).orig;
+            }
+        }
+        if (x instanceof DoubleView) {
+            return ((DoubleView) x).depth();
+        } else {
+            return 0;
+        }
+    }
+
+    private static int intViewDepth(RInt a) {
+        RInt x = a;
+
+        if (TracingView.VIEW_TRACING) {
+            if (a instanceof RIntTracingView) {
+                x = ((RIntTracingView) a).orig;
+            }
+        }
+        if (x instanceof IntView) {
+            return ((IntView) x).depth();
+        } else {
+            return 0;
+        }
+    }
+
+    private static int complexViewDepth(RComplex a) {
+        RComplex x = a;
+
+        if (TracingView.VIEW_TRACING) {
+            if (a instanceof RComplexTracingView) {
+                x = ((RComplexTracingView) a).orig;
+            }
+        }
+        if (x instanceof ComplexView) {
+            return ((ComplexView) x).depth;
+        } else {
+            return 0;
+        }
+    }
+
+
     public static RDouble doubleBinary(RDouble a, RDouble b, ValueArithmetic arit, ASTNode ast) {
         int depth = 0;
         if (LIMIT_VIEW_DEPTH) {
-            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
-            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
-            depth = adepth + bdepth + 1;
+            depth = doubleViewDepth(a) + doubleViewDepth(b) + 1;
         }
         int[] dim = resultDimensions(ast, a, b);
         Names names = resultNames(ast, a, b);
@@ -2542,9 +2585,7 @@ public class Arithmetic extends BaseR {
     public static RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) {
         int depth = 0;
         if (LIMIT_VIEW_DEPTH) {
-            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
-            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
-            depth = adepth + bdepth + 1;
+            depth = doubleViewDepth(a) + intViewDepth(b) + 1;
         }
         int[] dim = resultDimensions(ast, a, b);
         Names names = resultNames(ast, a, b);
@@ -2594,9 +2635,7 @@ public class Arithmetic extends BaseR {
     public static RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) {
         int depth = 0;
         if (LIMIT_VIEW_DEPTH) {
-            int adepth = (a instanceof DoubleView) ? ((DoubleView) a).depth() : 0;
-            int bdepth = (b instanceof DoubleView) ? ((DoubleView) b).depth() : 0;
-            depth = adepth + bdepth + 1;
+            depth = intViewDepth(a) + doubleViewDepth(b) + 1;
         }
         int[] dim = resultDimensions(ast, a, b);
         Names names = resultNames(ast, a, b);
@@ -3434,9 +3473,7 @@ public class Arithmetic extends BaseR {
 
         int depth = 0;
         if (LIMIT_VIEW_DEPTH) {
-            int adepth = (a instanceof IntView) ? ((IntView) a).depth() : 0;
-            int bdepth = (b instanceof IntView) ? ((IntView) b).depth() : 0;
-            depth = adepth + bdepth + 1;
+            depth = intViewDepth(a) + intViewDepth(b) + 1;
         }
         int[] dim = resultDimensions(ast, a, b);
         Names names = resultNames(ast, a, b);

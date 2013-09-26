@@ -523,7 +523,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
     public abstract static class RIntProxy<O extends RArray> extends RIntView implements RInt {
-        protected final O orig;
+        public final O orig;
 
         public RIntProxy(O orig) {
             this.orig = orig;
@@ -680,7 +680,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
  // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
     public abstract static class RDoubleProxy<O extends RArray> extends RDoubleView implements RDouble {
-        protected final O orig;
+        public final O orig;
 
         public RDoubleProxy(O orig) {
             this.orig = orig;
@@ -837,7 +837,7 @@ public abstract class View extends ArrayImpl implements RArray {
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
     public abstract static class RComplexProxy<O extends RArray> extends RComplexView implements RComplex {
-        protected final O orig;
+        public final O orig;
 
         public RComplexProxy(O orig) {
             this.orig = orig;
