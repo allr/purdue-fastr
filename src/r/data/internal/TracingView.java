@@ -164,8 +164,8 @@ public interface TracingView {
             }
             if (trace.materializeCount > 0) {
                 indent(depth);
-                System.err.println("    firstMaterializeSite = ");
-                printElement(trace.firstGetSite, 2);
+                System.err.print("    firstMaterializeSite = ");
+                printElement(trace.firstMaterializeSite, 3);
                 System.err.println();
             }
             System.err.println();
