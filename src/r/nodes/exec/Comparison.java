@@ -515,7 +515,7 @@ public class Comparison extends BaseR {
                             return RLogicalFactory.getNAArray(na, adbl.dimensions());
                         }
                         if (cmp.resultForNaN() == false) {
-                            return new LogicalView(adbl, bdbl, na, cmp, ast) {
+                            return TracingView.ViewTrace.trace(new LogicalView(adbl, bdbl, na, cmp, ast) {
 
                                 @Override
                                 public int getLogical(int i) {
@@ -526,7 +526,7 @@ public class Comparison extends BaseR {
                                         return RDouble.RDoubleUtils.isNAorNaN(aval) ? RLogical.NA : RLogical.FALSE;
                                     }
                                 }
-                            };
+                            });
                         }
 
                     }

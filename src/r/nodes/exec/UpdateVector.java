@@ -1030,7 +1030,7 @@ public abstract class UpdateVector extends BaseR {
                 case MAYBE_VECTOR_UPDATE:
                 case NOT_ONE_ELEMENT_INDEX:
                     if (subset) {
-                        if (index instanceof IntImpl.RIntSequence) {
+                        if (IntImpl.RIntSequence.isInstance(index)) {
                             IntSequenceSelection is = new IntSequenceSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(is, "install IntSequenceSelection from GenericScalarSelection");
                             if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
@@ -1551,8 +1551,8 @@ public abstract class UpdateVector extends BaseR {
                     RArray abase = (RArray) base;
                     if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
                     RArray avalue = (RArray) value;
-                    if (!(index instanceof IntImpl.RIntSequence)) { throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX); }
-                    return copy.copy(abase, (IntImpl.RIntSequence) index, avalue);
+                    if (!IntImpl.RIntSequence.isInstance(index)) { throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX); }
+                    return copy.copy(abase, IntImpl.RIntSequence.cast(index), avalue);
 
                 } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();

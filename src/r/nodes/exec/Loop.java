@@ -278,10 +278,10 @@ public abstract class Loop extends BaseR {
                 public final RAny execute(Frame frame) {
                     RAny rval = (RAny) range.execute(frame);
                     try {
-                        if (!(rval instanceof IntImpl.RIntSequence)) {
+                        if (!IntImpl.RIntSequence.isInstance(rval)) {
                             throw new SpecializationException(null);
                         }
-                        IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
+                        IntImpl.RIntSequence sval = IntImpl.RIntSequence.cast(rval);
                         int size = sval.size();
                         return execute(frame, sval, size);
                     } catch (SpecializationException e) {
@@ -335,10 +335,10 @@ public abstract class Loop extends BaseR {
                     public final RAny execute(Frame frame) {
                         RAny rval = (RAny) range.execute(frame);
                         try {
-                            if (!(rval instanceof IntImpl.RIntSequence)) {
+                            if (!IntImpl.RIntSequence.isInstance(rval)) {
                                 throw new SpecializationException(null);
                             }
-                            IntImpl.RIntSequence sval = (IntImpl.RIntSequence) rval;
+                            IntImpl.RIntSequence sval = IntImpl.RIntSequence.cast(rval);
                             final int from = sval.from();
                             final int to = sval.to();
                             final int step = sval.step();
@@ -356,10 +356,11 @@ public abstract class Loop extends BaseR {
                             } catch (BreakException be) { }
                             return RNull.getNull();
                         } catch (SpecializationException e) {
-                            if (rval instanceof IntImpl.RIntSequence) {
+                            if (IntImpl.RIntSequence.isInstance(rval)) {
+                                IntImpl.RIntSequence sval = IntImpl.RIntSequence.cast(rval);
                                 Specialized sn = Specialized.create(ast, cvar, range, body, slot);
                                 replace(sn, "install Specialized from IntSequenceRange.Simple");
-                                return sn.execute(frame, (IntImpl.RIntSequence) rval, ((IntImpl.RIntSequence) rval).size());
+                                return sn.execute(frame, sval, sval.size());
                             } else {
                                 Generic gn = Generic.create(ast, cvar, range, body, slot);
                                 replace(gn, "install Generic from IntSequenceRange.Simple");

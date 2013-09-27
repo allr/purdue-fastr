@@ -2595,26 +2595,26 @@ public class Arithmetic extends BaseR {
         RDouble res;
 
         if (na == nb) {
-            if (b instanceof RIntSequence) {
-                res = new DoubleViewForDoubleInt.EqualSizeVectorSequence(a, (RIntSequence) b, dim, names, attributes, na, depth, arit, ast);
+            if (RIntSequence.isInstance(b)) {
+                res = new DoubleViewForDoubleInt.EqualSizeVectorSequence(a, RIntSequence.cast(b), dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForDoubleInt.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
             res = new DoubleView.VectorScalar(a, b.asDouble(), dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
-            if (b instanceof RIntSequence) {
-                res = new DoubleViewForDoubleInt.ScalarSequence(a, (RIntSequence) b, dim, names, attributes, nb, depth, arit, ast);
+            if (RIntSequence.isInstance(b)) {
+                res = new DoubleViewForDoubleInt.ScalarSequence(a, RIntSequence.cast(b), dim, names, attributes, nb, depth, arit, ast);
             } else {
                 res = new DoubleView.ScalarVector(a, b.asDouble(), dim, names, attributes, nb, depth, arit, ast);
             }
         } else {
             int n = resultSize(ast, na, nb);
-            if (b instanceof RIntSequence) {
+            if (RIntSequence.isInstance(b)) {
                 if (n == na) {
-                    res = new DoubleViewForDoubleInt.VectorSequenceASized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSequenceASized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForDoubleInt.VectorSequenceBSized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSequenceBSized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
@@ -2645,14 +2645,14 @@ public class Arithmetic extends BaseR {
         RDouble res;
 
         if (na == nb) {
-            if (a instanceof RIntSequence) {
-                res = new DoubleViewForIntDouble.EqualSizeSequenceVector((RIntSequence) a, b, dim, names, attributes, na, depth, arit, ast);
+            if (RIntSequence.isInstance(a)) {
+                res = new DoubleViewForIntDouble.EqualSizeSequenceVector(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForIntDouble.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
-            if (a instanceof RIntSequence) {
-                res = new DoubleViewForIntDouble.SequenceScalar((RIntSequence) a, b, dim, names, attributes, na, depth, arit, ast);
+            if (RIntSequence.isInstance(a)) {
+                res = new DoubleViewForIntDouble.SequenceScalar(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForIntDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
@@ -2660,11 +2660,11 @@ public class Arithmetic extends BaseR {
             res = new DoubleView.ScalarVector(a.asDouble(), b, dim, names, attributes, nb, depth, arit, ast);
         } else {
             int n = resultSize(ast, na, nb);
-            if (a instanceof RIntSequence) {
+            if (RIntSequence.isInstance(a)) {
                 if (n == na) {
-                    res = new DoubleViewForIntDouble.SequenceVectorASized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SequenceVectorASized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForIntDouble.SequenceVectorBSized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SequenceVectorBSized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
@@ -3483,28 +3483,28 @@ public class Arithmetic extends BaseR {
         RInt res;
 
         if (na == nb) {
-            if (b instanceof RIntSequence) {
-                res = new IntView.EqualSizeIntSequence(a, (RIntSequence) b, dim, names, attributes, na, depth, arit, ast);
-            } else if (a instanceof RIntSequence) {
-                res = new IntView.EqualSizeSequenceInt((RIntSequence) a, b, dim, names, attributes, na, depth, arit, ast);
+            if (RIntSequence.isInstance(b)) {
+                res = new IntView.EqualSizeIntSequence(a, RIntSequence.cast(b), dim, names, attributes, na, depth, arit, ast);
+            } else if (RIntSequence.isInstance(a)) {
+                res = new IntView.EqualSizeSequenceInt(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new IntView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
-            if (a instanceof RIntSequence) {
-                res = new IntView.SequenceScalar((RIntSequence) a, b, dim, names, attributes, na, depth, arit, ast);
+            if (RIntSequence.isInstance(a)) {
+                res = new IntView.SequenceScalar(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new IntView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (na == 1 && nb > 0) {
-            if (b instanceof RIntSequence) {
-                res = new IntView.ScalarSequence(a, (RIntSequence) b, dim, names, attributes, nb, depth, arit, ast);
+            if (RIntSequence.isInstance(b)) {
+                res = new IntView.ScalarSequence(a, RIntSequence.cast(b), dim, names, attributes, nb, depth, arit, ast);
             } else {
                 res = new IntView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
             }
         } else {
             int n = resultSize(ast, na, nb);
-            if (b instanceof RIntSequence) {
+            if (RIntSequence.isInstance(b)) {
                 // HACK HACK just to test if this would help in one benchmark
 //                if (na > 1 && arit == ADD && a.isTemporary() && n == na) {
 //                    return hackAddTemporaryIntandSequence(a, (RIntSequence) b, na, nb, arit, ast);
@@ -3516,15 +3516,15 @@ public class Arithmetic extends BaseR {
 //                }
 
                 if (na == n) {
-                    res = new IntView.VectorSequenceASized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSequenceASized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.VectorSequenceBSized(a, (RIntSequence) b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSequenceBSized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
                 }
-            } else if (a instanceof RIntSequence) {
+            } else if (RIntSequence.isInstance(a)) {
                 if (na == n) {
-                    res = new IntView.SequenceVectorASized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SequenceVectorASized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.SequenceVectorBSized((RIntSequence) a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SequenceVectorBSized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {

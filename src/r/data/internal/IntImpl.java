@@ -3,6 +3,7 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
+import r.data.internal.TracingView.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 
@@ -215,6 +216,30 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
                 size = (from - to + absstep) / absstep;
             }
             assert Utils.check(size > 0);
+        }
+
+        public static final boolean isInstance(Object o) {
+            if (TracingView.VIEW_TRACING) {
+                Object x = o;
+                if (o instanceof RIntTracingView) {
+                    x = ((RIntTracingView) o).getTrace().realView;
+                }
+                return x instanceof RIntSequence;
+            } else {
+                return o instanceof RIntSequence;
+            }
+        }
+
+        public static RIntSequence cast(Object o) {
+            if (TracingView.VIEW_TRACING) {
+                Object x = o;
+                if (o instanceof RIntTracingView) {
+                    x = ((RIntTracingView) o).getTrace().realView;
+                }
+                return (RIntSequence) x;
+            } else {
+                return (RIntSequence) o;
+            }
         }
 
         @Override

@@ -285,7 +285,7 @@ final class LApply extends CallFactory {
         public abstract boolean hasNames();
 
         public static ArgIterator create(RAny sourceTemplate) {
-            if (sourceTemplate instanceof IntImpl.RIntSequence) { return new IntSequence(); }
+            if (IntImpl.RIntSequence.isInstance(sourceTemplate)) { return new IntSequence(); }
             if (sourceTemplate instanceof RList) { return new List(); }
             if (sourceTemplate instanceof RString) { return new StringArray(); }
             if (sourceTemplate instanceof RArray) { return new NonlistNonstringArray(); }
@@ -298,8 +298,8 @@ final class LApply extends CallFactory {
             int next;
 
             @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
-                if (!(source instanceof IntImpl.RIntSequence)) { throw new SpecializationException(null); }
-                IntImpl.RIntSequence seq = (IntImpl.RIntSequence) source;
+                if (!(IntImpl.RIntSequence.isInstance(source))) { throw new SpecializationException(null); }
+                IntImpl.RIntSequence seq = IntImpl.RIntSequence.cast(source);
                 this.argProvider = provider; // !! not adopt
                 next = seq.from();
                 to = seq.to();

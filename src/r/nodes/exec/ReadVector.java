@@ -192,7 +192,7 @@ public abstract class ReadVector extends BaseR {
 
                 case NOT_ONE_ELEMENT:
                     if (subset) {
-                        if (index instanceof IntImpl.RIntSequence) {
+                        if (IntImpl.RIntSequence.isInstance(index)) {
                             SimpleIntSequenceSelection is = new SimpleIntSequenceSelection(ast, lhs, indexes, subset);
                             replace(is, "install SimpleIntSequenceSelection from SimpleScalarIntSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleIntSequenceSelection");
@@ -610,10 +610,10 @@ public abstract class ReadVector extends BaseR {
                 RArray abase = (RArray) base;
                 if (abase.names() != null) { throw new SpecializationException(Failure.BASE_HAS_NAMES); // FIXME: lazy names?
                 }
-                if (!(index instanceof IntImpl.RIntSequence)) { // FIXME: this goes directly to Int implementation, not terribly nice
+                if (!IntImpl.RIntSequence.isInstance(index)) { // FIXME: this goes directly to Int implementation, not terribly nice
                     throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX);
                 }
-                IntImpl.RIntSequence sindex = (IntImpl.RIntSequence) index;
+                IntImpl.RIntSequence sindex = IntImpl.RIntSequence.cast(index);
 
                 if (!sindex.isPositive()) { throw new SpecializationException(Failure.NOT_ALL_POSITIVE_INDEX); }
                 int size = abase.size();

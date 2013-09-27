@@ -1,5 +1,6 @@
 package r.data.internal;
 
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -9,7 +10,19 @@ import r.data.*;
 public interface TracingView {
 
     public static final boolean VIEW_TRACING = false;
+
+    public static final boolean SILENT = false; // good for JUnit tests
+
     public static final String THIS_FILE_NAME = "TracingView.java";
+    public static PrintStream nullPS = new PrintStream(new OutputStream() {
+
+        @Override
+        public void write(int b) {
+        }
+
+    });
+    public static PrintStream ps = SILENT ? nullPS : System.err;
+
 
     public ViewTrace getTrace();
 
@@ -86,7 +99,7 @@ public interface TracingView {
         private static final HashSet<String> skipMethods = new HashSet<String>(Arrays.asList(skipMethodsNames));
         public static void printSite(Site s) {
             if (s == null) {
-                System.err.print("(null)");
+                ps.print("(null)");
                 return;
             }
             StackTraceElement[] st = s.site();
@@ -97,7 +110,7 @@ public interface TracingView {
                 if (THIS_FILE_NAME.equals(fileName)) {
                     continue;
                 }
-                System.err.print( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                ps.print( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
                 if (fileName == null || "View.java".equals(fileName)) {
                     continue;
                 }
@@ -111,16 +124,16 @@ public interface TracingView {
 
         public static void printElement(Site s, int index) {
             if (s == null || index >= s.site().length) {
-                System.err.print("(null)");
+                ps.print("(null)");
             } else {
                 StackTraceElement e = s.site()[index];
-                System.err.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                ps.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
             }
         }
 
         public static void printElements(Site s, int index, int nelems) {
             if (s == null || index >= s.site().length) {
-                System.err.print("(null)");
+                ps.print("(null)");
             } else {
                 for (int i = 0; i < nelems; i++) {
                     int j = index + i;
@@ -128,10 +141,10 @@ public interface TracingView {
                         break;
                     }
                     if (i > 0) {
-                        System.err.print(", ");
+                        ps.print(", ");
                     }
                     StackTraceElement e = s.site()[j];
-                    System.err.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                    ps.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
                 }
             }
         }
@@ -250,19 +263,19 @@ public interface TracingView {
 
         private static void indent(int depth) {
             for(int i = 0; i < depth; i++) {
-                System.err.print(" ");
+                ps.print(" ");
             }
         }
 
         private static void dumpView(int depth, ViewTrace trace) {
             printed.add(trace);
 
-            System.err.println(trace.realView + " size = " + trace.realView.size());
+            ps.println(trace.realView + " size = " + trace.realView.size());
             indent(depth);
-            System.err.print("    allocationSite =");
+            ps.print("    allocationSite =");
 //            Site.printElement(trace.allocationSite, 4);
             Site.printSite(trace.allocationSite);
-            System.err.println();
+            ps.println();
 
             int unused = trace.unusedElements();
             int redundant = trace.redundantGets();
@@ -270,63 +283,63 @@ public interface TracingView {
             Site[] useSites = trace.useSites.toArray(new Site[trace.useSites.size()]);
             if (useSites.length == 1) {
                 indent(depth);
-                System.err.print("    singleUseSite =");
+                ps.print("    singleUseSite = US");
 //                Site.printElements(useSites[0], 4, 3);
                 Site.printSite(useSites[0]);
 
                 if (trace.getCount > 0) {
-                    System.err.println(" (get)");
+                    ps.println(" (get)");
                 } else {
-                    System.err.println(" (materialize)");
+                    ps.println(" (materialize)");
                 }
 
             } else if (trace.getCount > 0) {
                 indent(depth);
-                System.err.print("    firstGetSite =");
+                ps.print("    firstGetSite =");
 //                Site.printElement(trace.firstGetSite, 3);
                 Site.printSite(trace.firstGetSite);
-                System.err.println();
+                ps.println();
                 if (trace.materializeCount == 0) {
                     if (unused > 0) {
                         indent(depth);
-                        System.err.println("    unusedElements = " + unused);
+                        ps.println("    unusedElements = " + unused);
                     }
                     if (redundant > 0) {
                         indent(depth);
-                        System.err.println("    redundantGets = " + redundant + " (no materialize)");
+                        ps.println("    redundantGets = " + redundant + " (no materialize)");
                     }
                 }
             } else {
                 if (trace.materializeCount == 0) {
                     indent(depth);
-                    System.err.println("    UNUSED");
+                    ps.println("    UNUSED");
                 } else {
                     if (trace.getCount > 0) {
                         indent(depth);
-                        System.err.println("    extraGets = " + trace.getCount + " (in addition to materialize)");
+                        ps.println("    extraGets = " + trace.getCount + " (in addition to materialize)");
                     }
                 }
             }
             if (trace.materializeCount > 0 && useSites.length != 1) {
                 indent(depth);
-                System.err.print("    firstMaterializeSite =");
+                ps.print("    firstMaterializeSite =");
 //                Site.printElement(trace.firstMaterializeSite, 3);
                 Site.printSite(trace.firstMaterializeSite);
-                System.err.println();
+                ps.println();
             }
             if (useSites.length != 1) {
                 indent(depth);
-                System.err.println("    useSites (" + useSites.length + "):");
+                ps.println("    useSites (" + useSites.length + "):");
                 for (Site s : useSites) {
                     indent(depth);
-                    System.err.print("        ");
+                    ps.print("        US");
 //                    Site.printElements(s, 4, 10);
                     Site.printSite(s);
-                    System.err.println();
+                    ps.println();
                 }
             }
 
-            System.err.println();
+            ps.println();
             RArray view = trace.realView;
             Class viewClass = view.getClass();
             Field[] fields = getAllFields(viewClass);
@@ -341,10 +354,10 @@ public interface TracingView {
                     continue; // these later
                 }
                 indent(depth);
-                System.err.print("    " + f.getName() + " ");
+                ps.print("    " + f.getName() + " ");
                 try {
                     f.setAccessible(true);
-                    System.err.println(f.get(view));
+                    ps.println(f.get(view));
                     printedField = true;
                 } catch (IllegalAccessException e) {
                     assert Utils.check(false, "can't read a view field " + e);
@@ -361,25 +374,25 @@ public interface TracingView {
                     continue;
                 }
                 if (printNewline) {
-                    System.err.println();
+                    ps.println();
                     printNewline = false;
                 }
                 indent(depth);
-                System.err.print("    " + f.getName() + " ");
+                ps.print("    " + f.getName() + " ");
                 try {
                     f.setAccessible(true);
                     Object o = f.get(view);
                     if (o instanceof TracingView) {
-                        System.err.print("VIEW ");
+                        ps.print("VIEW ");
                         TracingView child = (TracingView) o;
                         dumpView(depth + 2, child.getTrace());
                     } else {
-                        System.err.print("ARRAY " + o + " size = " + ((RArray)o).size());
+                        ps.print("ARRAY " + o + " size = " + ((RArray)o).size());
                         if (o instanceof View) {
-                            System.err.println("MISSED VIEW " + o);
+                            ps.println("MISSED VIEW " + o);
                         }
                     }
-                    System.err.println();
+                    ps.println();
                 } catch (IllegalAccessException e) {
                     assert Utils.check(false, "can't read a view field " + e);
                 }
@@ -389,15 +402,15 @@ public interface TracingView {
         static HashSet<ViewTrace> printed;
         public static void printGlobalStats() {
             printed = new HashSet<ViewTrace>();
-            System.err.println("Global views statistics ------------------- \n");
+            ps.println("Global views statistics ------------------- \n");
             for(ViewTrace trace : viewsRegistry) {
                 if (printed.contains(trace)) {
                     continue;
                 }
                 ViewTrace v = trace.getRootView();
-                System.err.print("ROOT ");
+                ps.print("ROOT ");
                 dumpView(0, v);
-                System.err.println();
+                ps.println();
             }
         }
 
