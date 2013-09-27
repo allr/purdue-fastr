@@ -1,0 +1,13 @@
+These versions use the same random seed and random number generator for each
+run, and also for GNU R and FastR. In addition, they print a sum or some
+other function of the last computed result. This is useful for checking
+correctness, but also it forces evaluation with lazy arithmetics of FastR.
+Note that the choice of these functions depends on the random seeds and
+input data (some benchmarks could produce NAs, Infs depending on the state
+of the random number generator, which changes indeed after each iteration,
+and the NAs/Infs may propagate to the summary).
+
+These versions moreover use very reduced vector sizes, so that they are
+useful for tracing view use sites. Indeed note that consequently the traced
+view sizes will not be the same as in full benchmarks. Indeed also the
+result values will be different from other versions of the benchmarks.
