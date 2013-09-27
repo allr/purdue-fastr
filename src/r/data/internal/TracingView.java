@@ -9,8 +9,133 @@ import r.data.*;
 public interface TracingView {
 
     public static final boolean VIEW_TRACING = false;
+    public static final String THIS_FILE_NAME = "TracingView.java";
 
     public ViewTrace getTrace();
+
+    public static class Site {
+        final StackTraceElement[] site;
+        int hashCode;
+        final int offset; // offset to first element that we care about (for performance of tracing)
+
+        public Site(StackTraceElement[] site) {
+            this.site = site;
+
+            int i = 0;
+            while(!THIS_FILE_NAME.equals(site[i].getFileName())) {
+                i++;
+            }
+            while(THIS_FILE_NAME.equals(site[i].getFileName())) {
+                i++;
+            }
+            assert Utils.check(i < site.length - 1);
+            this.offset = i;
+        }
+
+        public Site() {
+            this(Thread.currentThread().getStackTrace());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (!(o instanceof Site)) {
+                return false;
+            }
+            Site other = (Site) o;
+            if (other.hashCode() != hashCode()) {
+                return false;
+            }
+            StackTraceElement[] osite = other.site();
+            if (site.length != osite.length) {
+                return false;
+            }
+            for (int i = offset; i < site.length; i++) {
+                if (!site[i].equals(osite[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            if (hashCode == 0) {
+                int res = 1 + site.length * 17;
+                int max = Math.max(site.length, 10);
+                for(int i = offset; i < max; i++) {
+                    StackTraceElement e = site[i];
+                    int lineNumber = e.getLineNumber();
+                    res = res * 19 + 31 * lineNumber ;
+                }
+                hashCode = res;
+            }
+            return hashCode;
+        }
+
+        public StackTraceElement[] site() {
+            return site;
+        }
+
+
+        private static final String[] skipMethodsNames = new String[] { "getRAny", "getString", "getComplex", "getReal", "getImag", "getDouble",
+            "getInt", "getLogical", "getRaw", "boxedGet", "getRef", "copy"
+        };
+        private static final HashSet<String> skipMethods = new HashSet<String>(Arrays.asList(skipMethodsNames));
+        public static void printSite(Site s) {
+            if (s == null) {
+                System.err.print("(null)");
+                return;
+            }
+            StackTraceElement[] st = s.site();
+
+            for(int i = s.offset; i < st.length; i++) {
+                StackTraceElement e = st[i];
+                String fileName = e.getFileName();
+                if (THIS_FILE_NAME.equals(fileName)) {
+                    continue;
+                }
+                System.err.print( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                if (fileName == null || "View.java".equals(fileName)) {
+                    continue;
+                }
+                String methodName = e.getMethodName();
+                if (skipMethods.contains(methodName)) {
+                    continue;
+                }
+                break;
+            }
+        }
+
+        public static void printElement(Site s, int index) {
+            if (s == null || index >= s.site().length) {
+                System.err.print("(null)");
+            } else {
+                StackTraceElement e = s.site()[index];
+                System.err.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
+            }
+        }
+
+        public static void printElements(Site s, int index, int nelems) {
+            if (s == null || index >= s.site().length) {
+                System.err.print("(null)");
+            } else {
+                for (int i = 0; i < nelems; i++) {
+                    int j = index + i;
+                    if (j >= s.site().length) {
+                        break;
+                    }
+                    if (i > 0) {
+                        System.err.print(", ");
+                    }
+                    StackTraceElement e = s.site()[j];
+                    System.err.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                }
+            }
+        }
+    }
 
     public static class ViewTrace {
         final RArray realView;
@@ -19,15 +144,18 @@ public interface TracingView {
         int[] getCounts;
         int materializeCount;
         int getCount;
-        final StackTraceElement[] allocationSite;
-        StackTraceElement[] firstGetSite;
-        StackTraceElement[] firstMaterializeSite;
+        final Site allocationSite;
+        Site firstGetSite;
+        Site firstMaterializeSite;
+
+        HashSet<Site> useSites;
 
         static HashSet<ViewTrace> viewsRegistry = new HashSet<ViewTrace>();
 
         public ViewTrace(RArray real) {
             getCounts = new int[real.size()];
-            allocationSite = Thread.currentThread().getStackTrace();
+            allocationSite = new Site();
+            useSites = new HashSet<Site>();
             realView = real;
             viewsRegistry.add(this);
             linkChildren(real, this);
@@ -66,17 +194,25 @@ public interface TracingView {
             }
         }
 
+        private Site updateUseSite() {
+            Site here = new Site();
+            useSites.add(here);
+            return here;
+        }
+
         public void get(int i) {
+            Site here = updateUseSite();
             if (getCount == 0) {
-                firstGetSite = Thread.currentThread().getStackTrace();
+                firstGetSite = here;
             }
             getCount++;
             getCounts[i]++;
         }
 
         public void materialize() {
+            Site here = updateUseSite();
             if (materializeCount == 0) {
-                firstMaterializeSite = Thread.currentThread().getStackTrace();
+                firstMaterializeSite = here;
             }
             materializeCount++;
         }
@@ -101,14 +237,7 @@ public interface TracingView {
             return redundant;
         }
 
-        private static void printElement(StackTraceElement[] elements, int index) {
-            if (elements == null || index >= elements.length) {
-                System.err.print("(null)");
-            } else {
-                StackTraceElement e = elements[index];
-                System.err.print( e.getMethodName() + " (" + e.getFileName() + ":" + e.getLineNumber() + ")");
-            }
-        }
+
 
         private ViewTrace getRootView() {
             ViewTrace v = this;
@@ -124,22 +253,38 @@ public interface TracingView {
                 System.err.print(" ");
             }
         }
+
         private static void dumpView(int depth, ViewTrace trace) {
             printed.add(trace);
 
             System.err.println(trace.realView + " size = " + trace.realView.size());
             indent(depth);
-            System.err.print("    allocationSite = ");
-            printElement(trace.allocationSite, 4);
+            System.err.print("    allocationSite =");
+//            Site.printElement(trace.allocationSite, 4);
+            Site.printSite(trace.allocationSite);
             System.err.println();
 
             int unused = trace.unusedElements();
             int redundant = trace.redundantGets();
 
-            if (trace.getCount > 0) {
+            Site[] useSites = trace.useSites.toArray(new Site[trace.useSites.size()]);
+            if (useSites.length == 1) {
                 indent(depth);
-                System.err.print("    firstGetSite = ");
-                printElement(trace.firstGetSite, 3);
+                System.err.print("    singleUseSite =");
+//                Site.printElements(useSites[0], 4, 3);
+                Site.printSite(useSites[0]);
+
+                if (trace.getCount > 0) {
+                    System.err.println(" (get)");
+                } else {
+                    System.err.println(" (materialize)");
+                }
+
+            } else if (trace.getCount > 0) {
+                indent(depth);
+                System.err.print("    firstGetSite =");
+//                Site.printElement(trace.firstGetSite, 3);
+                Site.printSite(trace.firstGetSite);
                 System.err.println();
                 if (trace.materializeCount == 0) {
                     if (unused > 0) {
@@ -162,12 +307,25 @@ public interface TracingView {
                     }
                 }
             }
-            if (trace.materializeCount > 0) {
+            if (trace.materializeCount > 0 && useSites.length != 1) {
                 indent(depth);
-                System.err.print("    firstMaterializeSite = ");
-                printElement(trace.firstMaterializeSite, 3);
+                System.err.print("    firstMaterializeSite =");
+//                Site.printElement(trace.firstMaterializeSite, 3);
+                Site.printSite(trace.firstMaterializeSite);
                 System.err.println();
             }
+            if (useSites.length != 1) {
+                indent(depth);
+                System.err.println("    useSites (" + useSites.length + "):");
+                for (Site s : useSites) {
+                    indent(depth);
+                    System.err.print("        ");
+//                    Site.printElements(s, 4, 10);
+                    Site.printSite(s);
+                    System.err.println();
+                }
+            }
+
             System.err.println();
             RArray view = trace.realView;
             Class viewClass = view.getClass();
