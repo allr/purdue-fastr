@@ -2597,9 +2597,9 @@ public class Arithmetic extends BaseR {
 
         if (na == nb) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new DoubleViewForDoubleInt.EqualSizeVectorSimpleRange(a, RIntSimpleRange.cast(b), dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForDoubleInt.EqualSizeVectorSimpleRange(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new DoubleViewForDoubleInt.EqualSizeVectorSequence(a, RIntSequence.cast(b), dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForDoubleInt.EqualSizeVectorSequence(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForDoubleInt.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             }
@@ -2607,9 +2607,9 @@ public class Arithmetic extends BaseR {
             res = new DoubleView.VectorScalar(a, b.asDouble(), dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new DoubleViewForDoubleInt.ScalarSimpleRange(a, RIntSimpleRange.cast(b), dim, names, attributes, nb, depth, arit, ast);
+                res = new DoubleViewForDoubleInt.ScalarSimpleRange(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new DoubleViewForDoubleInt.ScalarSequence(a, RIntSequence.cast(b), dim, names, attributes, nb, depth, arit, ast);
+                res = new DoubleViewForDoubleInt.ScalarSequence(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else {
                 res = new DoubleView.ScalarVector(a, b.asDouble(), dim, names, attributes, nb, depth, arit, ast);
             }
@@ -2617,15 +2617,15 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             if (RIntSimpleRange.isInstance(b)) {
                 if (n == na) {
-                    res = new DoubleViewForDoubleInt.VectorSimpleRangeASized(a, RIntSimpleRange.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSimpleRangeASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForDoubleInt.VectorSimpleRangeBSized(a, RIntSimpleRange.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSimpleRangeBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(b)) {
                 if (n == na) {
-                    res = new DoubleViewForDoubleInt.VectorSequenceASized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSequenceASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForDoubleInt.VectorSequenceBSized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleInt.VectorSequenceBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
@@ -2657,17 +2657,17 @@ public class Arithmetic extends BaseR {
 
         if (na == nb) {
             if (RIntSimpleRange.isInstance(a)) {
-                res = new DoubleViewForIntDouble.EqualSizeSimpleRangeVector(RIntSimpleRange.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForIntDouble.EqualSizeSimpleRangeVector(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new DoubleViewForIntDouble.EqualSizeSequenceVector(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForIntDouble.EqualSizeSequenceVector(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForIntDouble.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
             if (RIntSimpleRange.isInstance(a)) {
-                res = new DoubleViewForIntDouble.SimpleRangeScalar(RIntSimpleRange.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForIntDouble.SimpleRangeScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new DoubleViewForIntDouble.SequenceScalar(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new DoubleViewForIntDouble.SequenceScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new DoubleViewForIntDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
@@ -2677,15 +2677,15 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             if (RIntSimpleRange.isInstance(a)) {
                 if (n == na) {
-                    res = new DoubleViewForIntDouble.SimpleRangeVectorASized(RIntSimpleRange.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SimpleRangeVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForIntDouble.SimpleRangeVectorBSized(RIntSimpleRange.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SimpleRangeVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(a)) {
                 if (n == na) {
-                    res = new DoubleViewForIntDouble.SequenceVectorASized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SequenceVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleViewForIntDouble.SequenceVectorBSized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForIntDouble.SequenceVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
@@ -3037,12 +3037,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public VectorSequenceASized(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSequenceASized(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(a.size() == n);
                 nb = b.size();
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -3062,8 +3063,9 @@ public class Arithmetic extends BaseR {
         static final class VectorSimpleRangeASized extends DoubleViewForDoubleInt implements RDouble {
             final int nb;
 
-            public VectorSimpleRangeASized(RDouble a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSimpleRangeASized(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 assert Utils.check(a.size() == n);
                 nb = b.size();
             }
@@ -3086,12 +3088,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public VectorSequenceBSized(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSequenceBSized(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
                 assert Utils.check(n == b.size());
-                bfrom = b.from();
-                bstep = b.step();
+                na = a.size();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -3111,10 +3114,11 @@ public class Arithmetic extends BaseR {
         static final class VectorSimpleRangeBSized extends DoubleViewForDoubleInt implements RDouble {
             final int na;
 
-            public VectorSimpleRangeBSized(RDouble a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSimpleRangeBSized(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 assert Utils.check(n == b.size());
+                na = a.size();
             }
 
             @Override
@@ -3153,10 +3157,11 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public EqualSizeVectorSequence(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeVectorSequence(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -3173,8 +3178,9 @@ public class Arithmetic extends BaseR {
 
         static final class EqualSizeVectorSimpleRange extends DoubleViewForDoubleInt implements RDouble {
 
-            public EqualSizeVectorSimpleRange(RDouble a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeVectorSimpleRange(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
             }
 
             @Override
@@ -3195,12 +3201,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public ScalarSequence(RDouble a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public ScalarSequence(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 adbl = a.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -3219,8 +3226,9 @@ public class Arithmetic extends BaseR {
             final boolean arithIsNA;
             final double adbl;
 
-            public ScalarSimpleRange(RDouble a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public ScalarSimpleRange(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 adbl = a.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
             }
@@ -3348,12 +3356,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceVectorASized(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceVectorASized(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(n == a.size());
                 nb = b.size();
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -3374,8 +3383,9 @@ public class Arithmetic extends BaseR {
         static final class SimpleRangeVectorASized extends DoubleViewForIntDouble implements RDouble {
             final int nb;
 
-            public SimpleRangeVectorASized(RIntSimpleRange a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeVectorASized(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 assert Utils.check(n == a.size());
                 nb = b.size();
             }
@@ -3399,12 +3409,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceVectorBSized(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceVectorBSized(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
                 assert Utils.check(n == b.size());
-                afrom = a.from();
-                astep = a.step();
+                na = a.size();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -3425,10 +3436,11 @@ public class Arithmetic extends BaseR {
         static final class SimpleRangeVectorBSized extends DoubleViewForIntDouble implements RDouble {
             final int na;
 
-            public SimpleRangeVectorBSized(RIntSimpleRange a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeVectorBSized(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 assert Utils.check(n == b.size());
+                na = a.size();
             }
 
             @Override
@@ -3468,10 +3480,11 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public EqualSizeSequenceVector(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeSequenceVector(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -3489,8 +3502,9 @@ public class Arithmetic extends BaseR {
 
         static final class EqualSizeSimpleRangeVector extends DoubleViewForIntDouble implements RDouble {
 
-            public EqualSizeSimpleRangeVector(RIntSimpleRange a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeSimpleRangeVector(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
             }
 
             @Override
@@ -3534,12 +3548,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceScalar(RIntSequence a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceScalar(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bdbl = b.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -3558,8 +3573,9 @@ public class Arithmetic extends BaseR {
             final boolean arithIsNA;
             final double bdbl;
 
-            public SimpleRangeScalar(RIntSimpleRange a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeScalar(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 bdbl = b.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
@@ -3672,29 +3688,29 @@ public class Arithmetic extends BaseR {
 
         if (na == nb) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new IntView.EqualSizeIntSimpleRange(a, RIntSimpleRange.cast(b), dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.EqualSizeIntSimpleRange(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSimpleRange.isInstance(a)) {
-                res = new IntView.EqualSizeSimpleRangeInt(RIntSimpleRange.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.EqualSizeSimpleRangeInt(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new IntView.EqualSizeIntSequence(a, RIntSequence.cast(b), dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.EqualSizeIntSequence(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new IntView.EqualSizeSequenceInt(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.EqualSizeSequenceInt(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new IntView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
             if (RIntSimpleRange.isInstance(a)) {
-                res = new IntView.SimpleRangeScalar(RIntSimpleRange.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.SimpleRangeScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new IntView.SequenceScalar(RIntSequence.cast(a), b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntView.SequenceScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
                 res = new IntView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (na == 1 && nb > 0) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new IntView.ScalarSimpleRange(a, RIntSimpleRange.cast(b), dim, names, attributes, nb, depth, arit, ast);
+                res = new IntView.ScalarSimpleRange(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new IntView.ScalarSequence(a, RIntSequence.cast(b), dim, names, attributes, nb, depth, arit, ast);
+                res = new IntView.ScalarSequence(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else {
                 res = new IntView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
             }
@@ -3702,15 +3718,15 @@ public class Arithmetic extends BaseR {
             int n = resultSize(ast, na, nb);
             if (RIntSimpleRange.isInstance(b)) {
                 if (na == n) {
-                    res = new IntView.VectorSimpleRangeASized(a, RIntSimpleRange.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSimpleRangeASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.VectorSimpleRangeBSized(a, RIntSimpleRange.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSimpleRangeBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSimpleRange.isInstance(a)) {
                 if (na == n) {
-                    res = new IntView.SimpleRangeVectorASized(RIntSimpleRange.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SimpleRangeVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.SimpleRangeVectorBSized(RIntSimpleRange.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SimpleRangeVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(b)) {
                 // HACK HACK just to test if this would help in one benchmark
@@ -3724,15 +3740,15 @@ public class Arithmetic extends BaseR {
 //                }
 
                 if (na == n) {
-                    res = new IntView.VectorSequenceASized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSequenceASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.VectorSequenceBSized(a, RIntSequence.cast(b), dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.VectorSequenceBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(a)) {
                 if (na == n) {
-                    res = new IntView.SequenceVectorASized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SequenceVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.SequenceVectorBSized(RIntSequence.cast(a), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntView.SequenceVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
@@ -3957,12 +3973,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public VectorSequenceASized(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSequenceASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(a.size() == n);
                 nb = b.size();
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -3986,8 +4003,9 @@ public class Arithmetic extends BaseR {
         static final class VectorSimpleRangeASized extends IntView implements RInt {
             final int nb;
 
-            public VectorSimpleRangeASized(RInt a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSimpleRangeASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 assert Utils.check(a.size() == n);
                 nb = b.size();
             }
@@ -4014,12 +4032,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public VectorSequenceBSized(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSequenceBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(b.size() == n);
                 na = a.size();
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -4043,8 +4062,9 @@ public class Arithmetic extends BaseR {
         static final class VectorSimpleRangeBSized extends IntView implements RInt {
             final int na;
 
-            public VectorSimpleRangeBSized(RInt a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public VectorSimpleRangeBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 assert Utils.check(b.size() == n);
                 na = a.size();
             }
@@ -4114,12 +4134,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceVectorASized(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceVectorASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(n == a.size());
                 nb = b.size();
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -4143,8 +4164,9 @@ public class Arithmetic extends BaseR {
         static final class SimpleRangeVectorASized extends IntView implements RInt {
             final int nb;
 
-            public SimpleRangeVectorASized(RIntSimpleRange a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeVectorASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 assert Utils.check(n == a.size());
                 nb = b.size();
             }
@@ -4171,12 +4193,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceVectorBSized(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceVectorBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
                 assert Utils.check(n == b.size());
-                afrom = a.from();
-                astep = a.step();
+                na = a.size();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -4200,10 +4223,11 @@ public class Arithmetic extends BaseR {
         static final class SimpleRangeVectorBSized extends IntView implements RInt {
             final int na;
 
-            public SimpleRangeVectorBSized(RIntSimpleRange a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeVectorBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                na = a.size();
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 assert Utils.check(n == b.size());
+                na = a.size();
             }
 
             @Override
@@ -4252,10 +4276,11 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public EqualSizeIntSequence(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeIntSequence(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -4279,8 +4304,9 @@ public class Arithmetic extends BaseR {
         static final class EqualSizeIntSimpleRange extends IntView implements RInt {
 
 
-            public EqualSizeIntSimpleRange(RInt a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeIntSimpleRange(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
             }
 
             @Override
@@ -4305,10 +4331,11 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public EqualSizeSequenceInt(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeSequenceInt(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -4331,8 +4358,9 @@ public class Arithmetic extends BaseR {
 
         static final class EqualSizeSimpleRangeInt extends IntView implements RInt {
 
-            public EqualSizeSimpleRangeInt(RIntSimpleRange a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeSimpleRangeInt(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
             }
 
             @Override
@@ -4387,12 +4415,13 @@ public class Arithmetic extends BaseR {
             final int afrom;
             final int astep;
 
-            public SequenceScalar(RIntSequence a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SequenceScalar(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 bint = b.getInt(0);
                 arithIsNA = bint == RInt.NA;
-                afrom = a.from();
-                astep = a.step();
+                RIntSequence as = RIntSequence.cast(a);
+                afrom = as.from();
+                astep = as.step();
             }
 
             @Override
@@ -4417,8 +4446,9 @@ public class Arithmetic extends BaseR {
             final boolean arithIsNA;
             final int bint;
 
-            public SimpleRangeScalar(RIntSimpleRange a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public SimpleRangeScalar(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(a));
                 bint = b.getInt(0);
                 arithIsNA = bint == RInt.NA;
             }
@@ -4474,12 +4504,13 @@ public class Arithmetic extends BaseR {
             final int bfrom;
             final int bstep;
 
-            public ScalarSequence(RInt a, RIntSequence b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public ScalarSequence(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 aint = a.getInt(0);
                 arithIsNA = aint == RInt.NA;
-                bfrom = b.from();
-                bstep = b.step();
+                RIntSequence bs = RIntSequence.cast(b);
+                bfrom = bs.from();
+                bstep = bs.step();
             }
 
             @Override
@@ -4504,8 +4535,9 @@ public class Arithmetic extends BaseR {
             final boolean arithIsNA;
             final int aint;
 
-            public ScalarSimpleRange(RInt a, RIntSimpleRange b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public ScalarSimpleRange(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(RIntSimpleRange.isInstance(b));
                 aint = a.getInt(0);
                 arithIsNA = aint == RInt.NA;
             }
