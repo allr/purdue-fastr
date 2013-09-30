@@ -136,6 +136,9 @@ public interface RInt extends RNumber {
             return new IntImpl(values, dimensions, names, attributes, false);
         }
         public static RInt forSequence(int from, int to, int step) {
+            if (from == to) {
+                return getScalar(from);
+            }
             if (from == 1 && to > 0 && step == 1) {
                 return TracingView.ViewTrace.trace(new IntImpl.RIntSimpleRange(to));
             }

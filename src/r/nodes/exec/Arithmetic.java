@@ -2369,8 +2369,11 @@ public class Arithmetic extends BaseR {
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
+            if (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl) {
+                return new ComplexView(a, b, dim, names, attributes, depth, arit, ast).materialize();
+            }
             RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl)) {
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
                 return RComplexFactory.copy(res);
             }
             return res;
@@ -2576,8 +2579,8 @@ public class Arithmetic extends BaseR {
             }
         }
         res = TracingView.ViewTrace.trace(res);
-        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) {
+            return res.materialize();
         }
         return res;
     }
@@ -2637,7 +2640,7 @@ public class Arithmetic extends BaseR {
         }
         res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
+            return res.materialize();
         }
         return res;
     }
@@ -2697,7 +2700,7 @@ public class Arithmetic extends BaseR {
         }
         res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RDouble.RDoubleFactory.copy(res);
+            return res.materialize();
         }
         return res;
     }
@@ -3760,7 +3763,7 @@ public class Arithmetic extends BaseR {
         }
         res = TracingView.ViewTrace.trace(res);
         if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) ||  (na == 1 && nb == 1)) {
-            return RInt.RIntFactory.copy(res);
+            return res.materialize();
         }
         return res;
     }

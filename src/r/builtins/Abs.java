@@ -15,6 +15,7 @@ import r.runtime.*;
  * </pre>
  */
 // FIXME: use node rewriting to get rid of the type checks
+// FIXME: use math base?
 public class Abs extends CallFactory {
 
     static final Abs _ = new Abs("abs", new String[]{"x"}, null);

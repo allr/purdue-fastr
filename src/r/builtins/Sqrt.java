@@ -16,6 +16,7 @@ import r.runtime.*;
  * </pre>
  */
 // FIXME: scalar optimizations
+// FIXME: use math base?
 final class Sqrt extends CallFactory {
 
     static final CallFactory _ = new Sqrt("sqrt", new String[]{"x"}, new String[]{"x"});
@@ -37,21 +38,29 @@ final class Sqrt extends CallFactory {
                 } else {
                     throw RError.getNonNumericMath(ast);
                 }
+                if (typedArg.size() == 1) {
+                    double d = typedArg.getDouble(0);
+                    return RDouble.RDoubleFactory.getScalar(sqrt(d, ast));
+                }
                 return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(typedArg) {
                     @Override public double getDouble(int i) {
                         double d = orig.getDouble(i);
-                        if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                            return RDouble.NA;
-                        } else {
-                            double res = Math.sqrt(d);
-                            if (RDouble.RDoubleUtils.isNAorNaN(res)) {
-                                RContext.warning(ast, RError.NAN_PRODUCED);
-                            }
-                            return res;
-                        }
+                        return sqrt(d, ast);
                     }
                 });
             }
         };
+    }
+
+    public static double sqrt(double d, ASTNode ast) {
+        if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+            return RDouble.NA;
+        } else {
+            double res = Math.sqrt(d);
+            if (RDouble.RDoubleUtils.isNAorNaN(res)) {
+                RContext.warning(ast, RError.NAN_PRODUCED);
+            }
+            return res;
+        }
     }
 }

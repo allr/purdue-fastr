@@ -218,7 +218,7 @@ final class Outer extends CallFactory {
                     System.arraycopy(dimy, 0, dim, dimx.length, dimy.length);
                 }
             }
-            return res.setDimensions(dim);
+            return res.setDimensions(dim); // triggers materialization of the result
         }
     }
 
