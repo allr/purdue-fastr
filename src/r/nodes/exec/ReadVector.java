@@ -41,7 +41,7 @@ import r.runtime.*;
 //                             -> IntSelection -> GenericSelection
 //                             -> Subscript -> GenericSelection
 //                             -
-// *SimpleIntSequenceSelection -> IntSelection -> GenericSelection
+// *SimpleIntSimpleRangeSelection -> SimpleIntSequenceSelection -> IntSelection -> GenericSelection
 //                             -> GenericSelection
 //
 public abstract class ReadVector extends BaseR {
@@ -192,7 +192,12 @@ public abstract class ReadVector extends BaseR {
 
                 case NOT_ONE_ELEMENT:
                     if (subset) {
-                        if (IntImpl.RIntSequence.isInstance(index)) {
+                        if (IntImpl.RIntSimpleRange.isInstance(index)) {
+                            SimpleIntSimpleRangeSelection is = new SimpleIntSimpleRangeSelection(ast, lhs, indexes, subset);
+                            replace(is, "install SimpleIntSimpleRangeSelection from SimpleScalarIntSelection");
+                            if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleIntSimpleRangeSelection");
+                            return is.execute(index, vector);
+                        } else if (IntImpl.RIntSequence.isInstance(index)) {
                             SimpleIntSequenceSelection is = new SimpleIntSequenceSelection(ast, lhs, indexes, subset);
                             replace(is, "install SimpleIntSequenceSelection from SimpleScalarIntSelection");
                             if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleIntSequenceSelection");
@@ -595,7 +600,7 @@ public abstract class ReadVector extends BaseR {
         }
     }
 
-    // when the index is a sequence of integers (e.g. created using the colon operator)
+ // when the index is a sequence of integers (e.g. created using the colon operator)
     //   rewrites itself for other and corner cases
     public static class SimpleIntSequenceSelection extends ReadVector {
         public SimpleIntSequenceSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
@@ -851,6 +856,225 @@ public abstract class ReadVector extends BaseR {
                 assert Utils.check(i < size, "bounds check");
                 assert Utils.check(i >= 0, "bounds check");
                 return orig.getRAny(from + i * step - 1);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+    }
+
+    // when the index is simple range of integers (e.g. created using the colon operator)
+    //   rewrites itself for other and corner cases
+    public static class SimpleIntSimpleRangeSelection extends ReadVector {
+        public SimpleIntSimpleRangeSelection(ASTNode ast, RNode lhs, RNode[] indexes, boolean subset) {
+            super(ast, lhs, indexes, subset);
+            Utils.check(subset);
+        }
+
+        @Override public RAny execute(RAny index, RAny base) {
+            if (DEBUG_SEL) Utils.debug("selection - executing SimpleIntSimpleRangeSelection");
+            try {
+                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
+                RArray abase = (RArray) base;
+                if (abase.names() != null) { throw new SpecializationException(Failure.BASE_HAS_NAMES); // FIXME: lazy names?
+                }
+                if (!IntImpl.RIntSimpleRange.isInstance(index)) {
+                    throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX);
+                }
+                IntImpl.RIntSimpleRange sindex = IntImpl.RIntSimpleRange.cast(index);
+
+                int size = abase.size();
+                int indexTo = sindex.to();
+                if (indexTo > size) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                // FIXME: should specialize for a particular base type, or have a type hierarchy on factories
+                if (abase instanceof RDouble) { return TracingView.ViewTrace.trace(new RDoubleView((RDouble) abase, indexTo)); }
+                if (abase instanceof RInt) { return TracingView.ViewTrace.trace(new RIntView((RInt) abase, indexTo)); }
+                if (abase instanceof RLogical) { return TracingView.ViewTrace.trace(new RLogicalView((RLogical) abase, indexTo)); }
+                if (abase instanceof RList) { return TracingView.ViewTrace.trace(new RListView((RList) abase, indexTo)); }
+                if (abase instanceof RString) { return TracingView.ViewTrace.trace(new RStringView((RString) abase, indexTo)); }
+                if (abase instanceof RRaw) { return TracingView.ViewTrace.trace(new RRawView((RRaw) abase, indexTo)); }
+                assert Utils.check(abase instanceof RComplex);
+                return TracingView.ViewTrace.trace(new RComplexView((RComplex) abase, indexTo));
+            } catch (SpecializationException e) {
+                Failure f = (Failure) e.getResult();
+                if (DEBUG_SEL) Utils.debug("selection - SimpleIntSimpleRangeSelection failed: " + f);
+                switch (f) {
+                case NOT_INT_SEQUENCE_INDEX:
+                    SimpleIntSequenceSelection iss = new SimpleIntSequenceSelection(ast, lhs, indexes, subset);
+                    replace(iss, "install SimpleIntSequenceSelection from SimpleIntSimpleRangeSelection");
+                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with SimpleIntSequenceSelection");
+                    return iss.execute(index, base);
+
+                case NOT_ALL_POSITIVE_INDEX:
+                case INDEX_OUT_OF_BOUNDS:
+                case BASE_HAS_NAMES:
+                    IntSelection is = new IntSelection(ast, lhs, indexes, subset);
+                    replace(is, "install IntSelection from SimpleIntSimpleRangeSelection");
+                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with IntSelection");
+                    return is.execute(index, base);
+
+                default:
+                    GenericSelection gs = new GenericSelection(ast, lhs, indexes, subset);
+                    replace(gs, "install GenericSelection from SimpleIntSimpleRangeSelection");
+                    if (DEBUG_SEL) Utils.debug("selection - replaced and re-executing with GenericSelection");
+                    return gs.execute(index, base);
+                }
+            }
+        }
+
+        static class RRawView extends View.RRawProxy<RRaw> implements RRaw {
+            final int to;
+
+            public RRawView(RRaw base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public byte getRaw(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getRaw(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RLogicalView extends View.RLogicalProxy<RLogical> implements RLogical {
+            final int to;
+
+            public RLogicalView(RLogical base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public int getLogical(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getLogical(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RIntView extends View.RIntProxy<RInt> implements RInt {
+            final int to;
+
+            public RIntView(RInt base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public int getInt(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getInt(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RDoubleView extends View.RDoubleProxy<RDouble> implements RDouble {
+            final int to;
+
+            public RDoubleView(RDouble base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public double getDouble(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getDouble(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RComplexView extends View.RComplexProxy<RComplex> implements RComplex {
+            final int to;
+
+            public RComplexView(RComplex base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public double getReal(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getReal(i);
+            }
+
+            @Override public double getImag(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getImag(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RStringView extends View.RStringProxy<RString> implements RString {
+            final int to;
+
+            public RStringView(RString base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public String getString(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getString(i);
+            }
+
+            @Override public int[] dimensions() { // drop dimensions
+                return null;
+            }
+        }
+
+        static class RListView extends View.RListProxy<RList> implements RList {
+            final int to;
+
+            public RListView(RList base, int to) {
+                super(base);
+                this.to = to;
+            }
+
+            @Override public int size() {
+                return to;
+            }
+
+            @Override public RAny getRAny(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getRAny(i);
             }
 
             @Override public int[] dimensions() { // drop dimensions

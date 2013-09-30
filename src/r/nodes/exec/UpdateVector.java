@@ -1030,6 +1030,12 @@ public abstract class UpdateVector extends BaseR {
                 case MAYBE_VECTOR_UPDATE:
                 case NOT_ONE_ELEMENT_INDEX:
                     if (subset) {
+                        if (IntImpl.RIntSimpleRange.isInstance(index)) {
+                            IntSimpleRangeSelection is = new IntSimpleRangeSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                            replace(is, "install IntSimpleRangeSelection from GenericScalarSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSimpleRangeSelection");
+                            return is.execute(base, index, value);
+                        }
                         if (IntImpl.RIntSequence.isInstance(index)) {
                             IntSequenceSelection is = new IntSequenceSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
                             replace(is, "install IntSequenceSelection from GenericScalarSelection");
@@ -1569,6 +1575,323 @@ public abstract class UpdateVector extends BaseR {
                         replace(ns, "install NumericSelection from IntSequenceSelection");
                         if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection");
                         return ns.execute(base, index, value);
+                    }
+                }
+            }
+        }
+    }
+
+    // for updates where the index is an int simple range
+    // specializes for types (base, value) in simple cases
+    // handles also some simple cases when types change or when type-conversion
+    // of base is needed
+    // rewrites itself for more complicated cases
+    public static class IntSimpleRangeSelection extends UpdateVector {
+
+        public IntSimpleRangeSelection(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset) {
+            super(ast, isSuper, var, lhs, indexes, rhs, subset);
+            assert Utils.check(subset);
+        }
+
+        @Override public RAny execute(RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing IntSimpleRangeSelection (uninitialized)");
+
+            try {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
+                Specialized sn = createSimple(base, value);
+                if (sn != null) {
+                    replace(sn, "specialize IntSimpleRangeSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSimpleRangeSelection.Simple");
+                    return sn.execute(base, index, value);
+                } else {
+                    sn = createExtended();
+                    replace(sn, "specialize IntSequenceSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSimpleRangeSelection.Extended");
+                    return sn.execute(base, index, value);
+                }
+            }
+        }
+
+        abstract class ValueCopy {
+            abstract RAny copy(RArray base, int ito, RArray value) throws SpecializationException;
+        }
+
+        // specialized for type combinations (base vector, value written)
+        // TODO: avoid copying when the base is non-shared and the index, rhs don't depend on it
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+            // FIXME: could reduce copying when value is not shared
+            if (baseTemplate instanceof RList) {
+                if (valueTemplate instanceof RList || valueTemplate instanceof RDouble || valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                            if (!(base instanceof RList)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
+                            RList typedBase = (RList) base;
+                            RList typedValue;
+                            if (value instanceof RList) {
+                                typedValue = (RList) value;
+                            } else if (value instanceof RDouble || value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asList();
+                            } else {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            int isize = ito;
+                            int vsize = typedValue.size();
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                            RAny[] content = new RAny[bsize];
+                            int i = 0;
+                            for (; i < ito; i++) {
+                                content[i] = typedValue.getRAnyRef(i); // shallow copy
+                            }
+                            for (; i < bsize; i++) { // shallow copy
+                                content[i] = typedBase.getRAny(i);
+                            }
+                            return RList.RListFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RDouble) {
+                if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                            if (!(base instanceof RDouble)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
+                            RDouble typedBase = (RDouble) base;
+                            RDouble typedValue;
+                            if (value instanceof RDouble) {
+                                typedValue = (RDouble) value;
+                            } else if (value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asDouble();
+                            } else {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            int isize = ito;
+                            int vsize = typedValue.size();
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                            double[] content = new double[bsize];
+                            int i = 0;
+                            for (; i < ito; i++) {
+                                content[i] = typedValue.getDouble(i);
+                            }
+                            for (; i < bsize; i++) {
+                                content[i] = typedBase.getDouble(i);
+                            }
+                            return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RDouble|RInt|RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RInt) {
+                if (valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                            if (!(base instanceof RInt)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
+                            RInt typedBase = (RInt) base;
+                            RInt typedValue;
+                            if (value instanceof RInt) {
+                                typedValue = (RInt) value;
+                            } else if (value instanceof RLogical) {
+                                typedValue = value.asInt();
+                            } else {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            int isize = ito;
+                            int vsize = typedValue.size();
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                            int[] content = new int[bsize];
+                            int i = 0;
+                            for (; i < ito; i++) {
+                                content[i] = typedValue.getInt(i);
+                            }
+                            for (; i < bsize; i++) {
+                                content[i] = typedBase.getInt(i);
+                            }
+                            return RInt.RIntFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RInt,RInt|RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RLogical) {
+                if (valueTemplate instanceof RLogical) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                            if (!(base instanceof RLogical && value instanceof RLogical)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
+                            RLogical typedBase = (RLogical) base;
+                            RLogical typedValue = (RLogical) value;
+                            int bsize = base.size();
+                            if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            int isize = ito;
+                            int vsize = typedValue.size();
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                            int[] content = new int[bsize];
+                            int i = 0;
+                            for (; i < ito; i++) {
+                                content[i] = typedValue.getLogical(i);
+                            }
+                            for (; i < bsize; i++) {
+                                content[i] = typedBase.getLogical(i);
+                            }
+                            return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RLogical,RLogical>");
+                }
+                return null;
+            }
+            if (baseTemplate instanceof RString) {
+                if (valueTemplate instanceof RString) {
+                    ValueCopy cpy = new ValueCopy() {
+                        @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                            if (!(base instanceof RString && value instanceof RString)) { throw new SpecializationException(Failure.UNEXPECTED_TYPE); }
+                            RString typedBase = (RString) base;
+                            RString typedValue = (RString) value;
+                            int bsize = base.size();
+                            if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                            int isize = ito;
+                            int vsize = typedValue.size();
+                            if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                            String[] content = new String[bsize];
+                            int i = 0;
+                            for (; i < ito; i++) {
+                                content[i] = typedValue.getString(i);
+                            }
+                            for (; i < bsize; i++) {
+                                content[i] = typedBase.getString(i);
+                            }
+                            return RString.RStringFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RString,RString>");
+                }
+                return null;
+            }
+            return null;
+        }
+
+        // handles type conversion of base
+        public Specialized createExtended() {
+            ValueCopy cpy = new ValueCopy() {
+                @Override RAny copy(RArray base, int ito, RArray value) throws SpecializationException {
+                    RArray typedBase;
+                    RArray typedValue;
+                    RList listValue = null;
+                    int[] dimensions;
+
+                    if (value instanceof RList) { // FIXME: fragment copied around
+                        typedValue = null;
+                        listValue = (RList) value;
+                        if (base instanceof RList) {
+                            typedBase = base;
+                            dimensions = base.dimensions();
+                        } else {
+                            typedBase = base.asList();
+                            dimensions = null;
+                        }
+                    } else {
+                        if (base instanceof RList) {
+                            typedBase = base;
+                            typedValue = value.asList();
+                        } else if (base instanceof RRaw) {
+                            if (value instanceof RRaw) {
+                                typedBase = base;
+                                typedValue = value.asRaw();
+                            } else {
+                                throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                            }
+                        } else if (value instanceof RRaw) {
+                            throw RError.getSubassignTypeFix(ast, value.typeOf(), base.typeOf());
+                        } else if (base instanceof RString || value instanceof RString) {
+                            typedBase = base.asString();
+                            typedValue = value.asString();
+                        } else if (base instanceof RComplex || value instanceof RComplex) {
+                            typedBase = base.asComplex();
+                            typedValue = value.asComplex();
+                        } else if (base instanceof RDouble || value instanceof RDouble) {
+                            typedBase = base.asDouble();
+                            typedValue = value.asDouble();
+                        } else if (base instanceof RInt || value instanceof RInt) {
+                            typedBase = base.asInt();
+                            typedValue = value.asInt();
+                        } else {
+                            assert Utils.check(base instanceof RLogical || base instanceof RNull);
+                            assert Utils.check(value instanceof RLogical);
+                            typedBase = base.asLogical();
+                            typedValue = value;
+                        }
+                        dimensions = typedBase.dimensions();
+                    }
+                    int bsize = base.size();
+                    if (ito > bsize) { throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS); }
+                    int isize = ito;
+                    int vsize = typedValue != null ? typedValue.size() : listValue.size();
+                    if (isize != vsize) { throw new SpecializationException(Failure.NOT_SAME_LENGTH); }
+                    RArray res = Utils.createArray(typedBase, bsize, dimensions, base.names(), base.attributesRef());
+                    int i = 0;
+                    if (typedValue != null) {
+                        for (; i < ito; i++) {
+                            res.set(i, typedValue.get(i));
+                        }
+                    } else {
+                        for (; i < ito; i++) { // shallow copy
+                            res.set(i, listValue.getRAnyRef(i));
+                        }
+                    }
+                    for (; i < bsize; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    return res;
+                }
+            };
+            return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<Extended>");
+        }
+
+        class Specialized extends IntSimpleRangeSelection {
+            final ValueCopy copy;
+            final String dbg;
+
+            Specialized(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueCopy copy, String dbg) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
+                this.copy = copy;
+                this.dbg = dbg;
+            }
+
+            @Override public RAny execute(RAny base, RAny index, RAny value) {
+                if (DEBUG_UP) Utils.debug("update - executing IntSequenceSelection" + dbg);
+                try {
+                    if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
+                    RArray abase = (RArray) base;
+                    if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
+                    RArray avalue = (RArray) value;
+                    if (!IntImpl.RIntSimpleRange.isInstance(index)) { throw new SpecializationException(Failure.NOT_INT_SEQUENCE_INDEX); }
+                    return copy.copy(abase, IntImpl.RIntSimpleRange.cast(index).to(), avalue);
+
+                } catch (SpecializationException e) {
+                    Failure f = (Failure) e.getResult();
+                    if (DEBUG_UP) Utils.debug("update - IntSimpleRangeSelection" + dbg + " failed: " + f);
+                    switch (f) {
+                    case UNEXPECTED_TYPE:
+                        Specialized sn = createExtended();
+                        replace(sn, "specialize IntSimpleRangeSelection");
+                        if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSimpleRangeSelection.Extended");
+                        return sn.execute(base, index, value);
+
+                    default:
+                        IntSequenceSelection is = new IntSequenceSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                        replace(is, "install IntSequenceSelection from IntSimpleRangeSelection");
+                        if (DEBUG_UP) Utils.debug("update - replaced and re-executing with IntSequenceSelection");
+                        return is.execute(base, index, value);
                     }
                 }
             }

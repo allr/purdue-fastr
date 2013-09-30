@@ -298,6 +298,65 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         }
     }
 
+    public static class RIntSimpleRange extends View.RIntView implements RInt {
+        // note: the sequence can go from large values to smaller values
+        final int to;
+
+        public RIntSimpleRange(int to) {
+            assert Utils.check(to > 0);
+            this.to = to;
+        }
+
+        public static final boolean isInstance(Object o) {
+            if (TracingView.VIEW_TRACING) {
+                Object x = o;
+                if (o instanceof RIntTracingView) {
+                    x = ((RIntTracingView) o).getTrace().realView;
+                }
+                return x instanceof RIntSimpleRange;
+            } else {
+                return o instanceof RIntSimpleRange;
+            }
+        }
+
+        public static RIntSimpleRange cast(Object o) {
+            if (TracingView.VIEW_TRACING) {
+                Object x = o;
+                if (o instanceof RIntTracingView) {
+                    x = ((RIntTracingView) o).getTrace().realView;
+                }
+                return (RIntSimpleRange) x;
+            } else {
+                return (RIntSimpleRange) o;
+            }
+        }
+
+        @Override
+        public int size() {
+            return to;
+        }
+
+        @Override
+        public int getInt(int i) {
+            assert Utils.check(i < to, "bounds check");
+            return i + 1;
+        }
+
+        public int to() {
+            return to;
+        }
+
+        @Override
+        public boolean isSharedReal() { // no state, so not shared
+            return false;
+        }
+
+        @Override
+        public boolean dependsOn(RAny value) {
+            return false;
+        }
+    }
+
     @Override
     public String typeOf() {
         return RInt.TYPE_STRING;

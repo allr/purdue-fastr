@@ -285,6 +285,7 @@ final class LApply extends CallFactory {
         public abstract boolean hasNames();
 
         public static ArgIterator create(RAny sourceTemplate) {
+            if (IntImpl.RIntSimpleRange.isInstance(sourceTemplate)) { return new IntSimpleRange(); }
             if (IntImpl.RIntSequence.isInstance(sourceTemplate)) { return new IntSequence(); }
             if (sourceTemplate instanceof RList) { return new List(); }
             if (sourceTemplate instanceof RString) { return new StringArray(); }
@@ -293,7 +294,6 @@ final class LApply extends CallFactory {
         }
 
         public static final class IntSequence extends ArgIterator {
-            int to;
             int step;
             int next;
 
@@ -302,7 +302,6 @@ final class LApply extends CallFactory {
                 IntImpl.RIntSequence seq = IntImpl.RIntSequence.cast(source);
                 this.argProvider = provider; // !! not adopt
                 next = seq.from();
-                to = seq.to();
                 step = seq.step();
                 size = seq.size();
             }
@@ -310,6 +309,35 @@ final class LApply extends CallFactory {
             @Override public void setNext() {
                 argProvider.setValue(RInt.RIntFactory.getScalar(next));
                 next += step;
+            }
+
+            @Override public RArray.Names names() {
+                return null;
+            }
+
+            @Override public RString stringNames() {
+                return null;
+            }
+
+            @Override public boolean hasNames() {
+                return false;
+            }
+        }
+
+        public static final class IntSimpleRange extends ArgIterator {
+            int next;
+
+            @Override public void reset(ValueProvider provider, RAny source) throws SpecializationException {
+                if (!(IntImpl.RIntSimpleRange.isInstance(source))) { throw new SpecializationException(null); }
+                IntImpl.RIntSimpleRange seq = IntImpl.RIntSimpleRange.cast(source);
+                this.argProvider = provider; // !! not adopt
+                next = 1;
+                size = seq.size();
+            }
+
+            @Override public void setNext() {
+                argProvider.setValue(RInt.RIntFactory.getScalar(next));
+                next++;
             }
 
             @Override public RArray.Names names() {

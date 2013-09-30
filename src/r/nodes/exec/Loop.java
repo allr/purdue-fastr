@@ -421,6 +421,156 @@ public abstract class Loop extends BaseR {
             }
         }
 
+        public static class IntSimpleRangeFor extends For {
+            public IntSimpleRangeFor(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                super(ast, cvar, range, body);
+            }
+
+            @Override
+            public Object execute(Frame frame) {
+
+                try {
+                    throw new SpecializationException(null);
+                } catch (SpecializationException e) {
+                    RNode sn;
+                    String dbg;
+                    if (frame == null) {
+                        sn = createToplevel(ast, cvar, range, body);
+                        dbg = "install IntSimpleRangeFor.TopLevel from IntSimpleRangeFor (uninitialized)";
+                    } else {
+                        int slot = frame.findVariable(cvar);
+                        if (slot != -1) {
+                            sn = createSimple(ast, cvar, range, body, slot);
+                            dbg = "install IntSimpleRangeFor.Simple from IntSimpleRangeFor (uninitialized)";
+                        } else {
+                            sn = createDynamic(ast, cvar, range, body);
+                            dbg = "install IntSimpleRangeFor.Dynamic from IntSimpleRangeFor (uninitialized)";
+                        }
+                    }
+                    replace(sn, dbg);
+                    return sn.execute(frame);
+                }
+            }
+
+            @Override
+            protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+                assert oldNode != null;
+                if (range == oldNode) {
+                    range = newNode;
+                    return adoptInternal(newNode);
+                }
+                return super.replaceChild(oldNode, newNode);
+            }
+
+            public abstract static class Specialized extends IntSimpleRangeFor {
+                public Specialized(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                    super(ast, cvar, range, body);
+                }
+
+                @Override
+                public final RAny execute(Frame frame) {
+                    RAny rval = (RAny) range.execute(frame);
+                    try {
+                        if (!IntImpl.RIntSimpleRange.isInstance(rval)) {
+                            throw new SpecializationException(null);
+                        }
+                        IntImpl.RIntSimpleRange sval = IntImpl.RIntSimpleRange.cast(rval);
+                        int to = sval.to();
+                        return execute(frame, to);
+                    } catch (SpecializationException e) {
+                        Generic gn;
+                        if (frame == null) {
+                            gn = Generic.createToplevel(ast, cvar, range, body);
+                        } else {
+                            int slot = frame.findVariable(cvar);
+                            if (slot != -1) {
+                                gn = Generic.create(ast, cvar, range, body, slot);
+                            } else {
+                                gn = Generic.createDynamic(ast, cvar, range, body);
+                            }
+                        }
+                        replace(gn, "install Generic from IntSequenceRange");
+                        return gn.execute(frame, rval);
+                    }
+                }
+
+                public abstract RAny execute(Frame frame, int to);
+            }
+
+            public static Specialized createToplevel(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Specialized(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame, int to) {
+                        try {
+                            for (int i = 1; i <= to; i++) {
+                                Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
+                                try {
+                                    body.execute(frame);
+                                } catch (ContinueException ce) { }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
+
+            public static RNode createSimple(ASTNode ast, RSymbol cvar, RNode range, RNode body, final int slot) {
+                return new IntSequenceRange(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame) {
+                        RAny rval = (RAny) range.execute(frame);
+                        try {
+                            if (!IntImpl.RIntSimpleRange.isInstance(rval)) {
+                                throw new SpecializationException(null);
+                            }
+                            IntImpl.RIntSimpleRange sval = IntImpl.RIntSimpleRange.cast(rval);
+                            int to = sval.to();
+                            try {
+                                for (int i = 1; i <= to; i++) {
+                                    // no ref needed because scalars do not have reference counts
+                                    frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
+                                    try {
+                                        body.execute(frame);
+                                    } catch (ContinueException ce) { }
+                                }
+                            } catch (BreakException be) { }
+                            return RNull.getNull();
+                        } catch (SpecializationException e) {
+                            if (IntImpl.RIntSequence.isInstance(rval)) {
+                                IntImpl.RIntSequence sval = IntImpl.RIntSequence.cast(rval);
+                                Specialized sn = IntSequenceRange.Specialized.create(ast, cvar, range, body, slot);
+                                replace(sn, "install IntSequenceRange.Specialized from IntSimpleRangeFor.Simple");
+                                return sn.execute(frame, sval, sval.size());
+                            } else {
+                                Generic gn = Generic.create(ast, cvar, range, body, slot);
+                                replace(gn, "install Generic from IntSimpleRangeFor.Simple");
+                                return gn.execute(frame, rval);
+                            }
+                        }
+                    }
+                };
+            }
+
+            public static Specialized createDynamic(ASTNode ast, RSymbol cvar, RNode range, RNode body) {
+                return new Specialized(ast, cvar, range, body) {
+                    @Override
+                    public final RAny execute(Frame frame, int to) {
+                        try {
+                            for (int i = 1; i <= 10; i++) {
+                                // no ref needed because scalars do not have reference counts
+                                // TODO: this is super-inefficient
+                                frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(i));
+                                try {
+                                    body.execute(frame);
+                                } catch (ContinueException ce) { }
+                            }
+                        } catch (BreakException be) { }
+                        return RNull.getNull();
+                    }
+                };
+            }
+        }
+
         // works for any type of loop range
         public abstract static class Generic extends For {
 

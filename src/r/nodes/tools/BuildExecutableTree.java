@@ -130,7 +130,7 @@ public class BuildExecutableTree implements Visitor {
         //                return;
         //            }
         //        }
-        result = new r.nodes.exec.Loop.For.IntSequenceRange(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
+        result = new r.nodes.exec.Loop.For.IntSimpleRangeFor(n, n.getCVar(), createTree(n.getRange()), createLazyTree(n.getBody()));
     }
 
     @Override public void visit(Break n) {
@@ -441,7 +441,7 @@ public class BuildExecutableTree implements Visitor {
             }
 
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-                result = new ReadVector.SimpleIntSequenceSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
+                result = new ReadVector.SimpleIntSimpleRangeSelection(a, createTree(a.getVector()), sa.convertedExpressions, a.isSubset());
             } else {
                 RNode e = sa.convertedExpressions[0];
                 if (e instanceof r.nodes.exec.Constant) {
@@ -574,7 +574,7 @@ public class BuildExecutableTree implements Visitor {
             }
 
             if (a.getArgs().first().getValue() instanceof Colon && a.isSubset()) {
-                result = new r.nodes.exec.UpdateVector.IntSequenceSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
+                result = new r.nodes.exec.UpdateVector.IntSimpleRangeSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()), a.isSubset());
             } else {
                 result = new r.nodes.exec.UpdateVector.DoubleBaseSimpleSelection.ScalarIntSelection(u, u.isSuper(), var, createTree(varAccess), sa.convertedExpressions, createTree(u.getRHS()),
                         a.isSubset());
