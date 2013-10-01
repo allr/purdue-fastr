@@ -1092,7 +1092,7 @@ public abstract class ReadVector extends BaseR {
             Utils.check(subset);
         }
 
-        public static RAny executeIntVector(RInt index, RArray base, ASTNode ast) {
+        public static RAny executeIntVector(RInt indexArg, RArray base, ASTNode ast) {
 
             Names names = base.names();
             RSymbol[] symbols = (names == null) ? null : names.sequence();
@@ -1102,12 +1102,18 @@ public abstract class ReadVector extends BaseR {
             boolean hasPositive = false;
             boolean hasNA = false;
             int bsize = base.size();
+
+            RInt index;
+            if (indexArg instanceof View.ParametricView) {
+                index = indexArg.materialize(); // there will be always at least one pass through the full index vector, typically at least two
+            } else {
+                index = indexArg;
+            }
             int isize = index.size();
             boolean[] omit = null;
             int nomit = 0;
 
-            for (int i = 0; i < isize; i++) { // FIXME: does that really pay off creating a view (not materializing) given that we have to
-                                              //        traverse the index vector anyway?
+            for (int i = 0; i < isize; i++) {
                 int v = index.getInt(i);
                 if (v == RInt.NA) {
                     hasNA = true;

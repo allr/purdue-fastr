@@ -2016,13 +2016,20 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RArray genericUpdate(RArray base, RInt index, RArray value, ASTNode ast, boolean subset) {
+        public static RArray genericUpdate(RArray base, RInt indexArg, RArray value, ASTNode ast, boolean subset) {
             assert Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
             final boolean listBase = base instanceof RList;
             RList listValue = null;
             int[] dimensions;
+
+            RInt index;
+            if (indexArg instanceof View.ParametricView) {
+                index = indexArg.materialize();
+            } else {
+                index = indexArg;
+            }
 
             if (value instanceof RNull) { // FIXME: fragment copied around
                 if (listBase) {
