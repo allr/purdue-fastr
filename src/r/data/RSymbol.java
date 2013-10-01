@@ -6,6 +6,7 @@ import r.*;
 import r.Convert.*;
 import r.builtins.Primitives.PrimitiveEntry;
 import r.data.internal.*;
+import r.runtime.*;
 
 public final class RSymbol extends BaseObject implements RAny {
 
@@ -194,7 +195,13 @@ public final class RSymbol extends BaseObject implements RAny {
     }
 
     public void setValue(Object val) {
-        value = val;
+        if (Frame.MATERIALIZE_ON_ASSIGNMENT && val instanceof View) {
+            RAny v = ((View) val).materialize();
+            value = v;
+            v.ref(); // always must ref
+        } else {
+            value = val;
+        }
         notifyChangeListeners();
     }
 

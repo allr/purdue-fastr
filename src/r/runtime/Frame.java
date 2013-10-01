@@ -7,6 +7,8 @@ import r.data.internal.*;
 
 public abstract class Frame {
 
+    public static final boolean MATERIALIZE_ON_ASSIGNMENT = false;
+
     Object returnValue;  // for top-level frames, used to store REnvironment
     boolean isDirty; // FIXME: move down? empty frames can't be dirty
     final Frame enclosingFrame;
@@ -686,26 +688,48 @@ public abstract class Frame {
         }
     }
 
+    private void writeView(int slot, View view) {
+        RAny v = view.materialize();
+        set(slot, v);
+        v.ref(); // always must ref
+    }
+
     public void writeAtCondRef(int slot, RAny value) {
         Object oldContent = get(slot);
         if (value != oldContent) {
-            set(slot, value);
-            value.ref();
+            if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View) {
+                writeView(slot, (View) value);
+            } else {
+                set(slot, value);
+                value.ref();
+            }
         }
     }
 
     public void writeAtNoRef(int slot, Object value) {
-        set(slot, value);
+        if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View) {
+            writeView(slot, (View) value);
+        } else {
+            set(slot, value);
+        }
     }
 
     public void writeAtRef(int slot, Object value) {
-        set(slot, value);
-        ((RAny) value).ref();
+        if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View) {
+            writeView(slot, (View) value);
+        } else {
+            set(slot, value);
+            ((RAny) value).ref();
+        }
     }
 
     public void writeAtRef(int slot, RAny value) {
-        set(slot, value);
-        value.ref();
+        if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View) {
+            writeView(slot, (View) value);
+        } else {
+            set(slot, value);
+            value.ref();
+        }
     }
 
     // starts from enclosing
