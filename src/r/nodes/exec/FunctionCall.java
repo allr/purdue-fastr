@@ -12,7 +12,7 @@ import r.runtime.*;
 // TODO: fix (extend?) the propagation of scalar values and values with guards, currently it is very restricted
 public abstract class FunctionCall extends AbstractCall {
 
-    public final static boolean PROMISES = true;
+    public final static boolean PROMISES = true; // note, this has been on true for a long time, probably won't work without anymore
 
     @Child RNode callableExpr;
     protected final int[] dotsArgs; // FIXME: move to FunctionCall?

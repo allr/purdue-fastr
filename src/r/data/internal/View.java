@@ -111,7 +111,11 @@ public abstract class View extends ArrayImpl implements RArray {
         return true; // a safe default, but should be overridden for performance whenever possible
     }
 
-    public abstract static class RRawView extends View implements RRaw {
+    public abstract static class ParametricView extends View { // just a marker for views that are worth materializing
+
+    }
+
+    public abstract static class RRawView extends ParametricView implements RRaw {
         @Override
         public Object get(int i) {
             return getRaw(i);
@@ -262,7 +266,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RLogicalView extends View implements RLogical {
+    public abstract static class RLogicalView extends ParametricView implements RLogical {
         @Override
         public Object get(int i) {
             return getLogical(i);
@@ -414,7 +418,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RIntView extends View implements RInt {
+    public abstract static class RIntView extends ParametricView implements RInt {
         @Override
         public Object get(int i) {
             return getInt(i);
@@ -566,7 +570,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RDoubleView extends View implements RDouble {
+    public abstract static class RDoubleView extends ParametricView implements RDouble {
         @Override
         public Object get(int i) {
             return getDouble(i);
@@ -723,7 +727,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RComplexView extends View implements RComplex {
+    public abstract static class RComplexView extends ParametricView implements RComplex {
         @Override
         public Object get(int i) {
             return new Complex(getReal(i), getImag(i));
@@ -880,7 +884,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RStringView extends View implements RString {
+    public abstract static class RStringView extends ParametricView implements RString {
         @Override
         public Object get(int i) {
             return getString(i);
@@ -1037,7 +1041,7 @@ public abstract class View extends ArrayImpl implements RArray {
         }
     }
 
-    public abstract static class RListView extends View implements RList {
+    public abstract static class RListView extends ParametricView implements RList {
         @Override
         public Object get(int i) {
             return getRAny(i);
@@ -1181,6 +1185,114 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+    }
+
+    // FIXME: copy-paste of RIntView
+    public abstract static class ConstantIntView extends View implements RInt {
+        @Override
+        public Object get(int i) {
+            return getInt(i);
+         }
+
+        @Override
+        public RInt materialize() {
+            return RIntFactory.copy(this);
+        }
+
+        @Override
+        public int[] getContent() {
+            return materialize().getContent();
+        }
+
+        @Override
+        public RRaw asRaw() {
+            return TracingView.ViewTrace.trace(new RInt.RRawView(this));
+        }
+
+        @Override
+        public RRaw asRaw(ConversionStatus warn) {
+            return RInt.RIntUtils.intToRaw(this, warn);
+        }
+
+        @Override
+        public RLogical asLogical() {
+            return TracingView.ViewTrace.trace(new RInt.RLogicalView(this));
+        }
+
+        @Override
+        public RLogical asLogical(ConversionStatus warn) {
+            return asLogical();
+        }
+
+        @Override
+        public RInt asInt() {
+            return this;
+        }
+
+        @Override
+        public RInt asInt(ConversionStatus warn) {
+            return this;
+        }
+
+        @Override
+        public RDouble asDouble() {
+            return TracingView.ViewTrace.trace(new RInt.RDoubleView(this));
+        }
+
+        @Override
+        public RDouble asDouble(ConversionStatus warn) {
+            return asDouble();
+        }
+
+        @Override
+        public RComplex asComplex() {
+            return TracingView.ViewTrace.trace(new RInt.RComplexView(this));
+        }
+
+        @Override
+        public RComplex asComplex(ConversionStatus warn) {
+            return asComplex();
+        }
+
+        @Override
+        public RString asString() {
+            return TracingView.ViewTrace.trace(new RInt.RStringView(this));
+        }
+
+        @Override
+        public RAny boxedGet(int i) {
+            return RIntFactory.getScalar(getInt(i));
+        }
+
+        @Override
+        public boolean isNAorNaN(int i) {
+            return getInt(i) == RInt.NA;
+        }
+
+        @Override
+        public RInt set(int i, int val) {
+            return materialize().set(i, val);
+        }
+
+        @Override
+        public RArray subset(RInt index) {
+            return RInt.RIntFactory.subset(this, index);
+        }
+
+        @Override
+        public String typeOf() {
+            return RInt.TYPE_STRING;
+        }
+
+        @Override
+        public RInt doStrip() {
+            return RInt.RIntFactory.strip(this);
+        }
+
+        @Override
+        public RInt doStripKeepNames() {
+            return RInt.RIntFactory.stripKeepNames(this);
         }
     }
 }

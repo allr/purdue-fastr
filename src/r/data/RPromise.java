@@ -59,7 +59,7 @@ public final class RPromise {
                     throw RError.getPromiseCycle(expression.getAST()); // TODO: use the correct AST - probably the current context
                 }
                 value = (RAny) expression.execute(frame);
-                if (AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS && value instanceof View) {
+                if (AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS && value instanceof View.ParametricView) {
                     value = ((View) value).materialize();
                 }
             } finally {

@@ -196,7 +196,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         return RInt.RIntFactory.subset(this, index);
     }
 
-    public static class RIntSequence extends View.RIntView implements RInt {
+    public static class RIntSequence extends View.ConstantIntView implements RInt {
         // note: the sequence can go from large values to smaller values
         final int from;
         final int to;
@@ -296,9 +296,20 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
                 return (from - to + 1) / absstep;
             }
         }
+
+        @Override
+        public RInt materialize() {
+            int[] content = new int[size];
+            int j = from;
+            for (int i = 0; i < size; i++) {
+                content[i] = j;
+                j += step;
+            }
+            return RInt.RIntFactory.getFor(content);
+        }
     }
 
-    public static class RIntSimpleRange extends View.RIntView implements RInt {
+    public static class RIntSimpleRange extends View.ConstantIntView implements RInt {
         // note: the sequence can go from large values to smaller values
         final int to;
 
@@ -354,6 +365,15 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         @Override
         public boolean dependsOn(RAny value) {
             return false;
+        }
+
+        @Override
+        public RInt materialize() {
+            int[] content = new int[to];
+            for (int i = 0; i < to; i++) {
+                content[i] = i + 1;
+            }
+            return RInt.RIntFactory.getFor(content);
         }
     }
 

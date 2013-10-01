@@ -39,7 +39,7 @@ public class Arithmetic extends BaseR {
     final ValueArithmetic arit;
 
     private static final boolean EAGER = false;
-    private static final boolean LIMIT_VIEW_DEPTH = true;
+    private static final boolean LIMIT_VIEW_DEPTH = true && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;

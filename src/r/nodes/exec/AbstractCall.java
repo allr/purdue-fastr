@@ -278,7 +278,7 @@ public abstract class AbstractCall extends BaseR {
             } else {
                 Object argV = argExpr.execute(callerFrame);
                 if (MATERIALIZE_FUNCTION_ARGUMENTS) {
-                    if (argV instanceof View) {
+                    if (argV instanceof View.ParametricView) {
                         argV = ((View) argV).materialize();
                     }
                 }
