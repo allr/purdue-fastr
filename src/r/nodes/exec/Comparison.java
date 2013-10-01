@@ -502,6 +502,7 @@ public class Comparison extends BaseR {
         @Override
         public Object execute(RAny lexpr, RAny rexpr) {
             try {
+                // TODO: this is very unfinished, just served as an experiment
                 if (lexpr instanceof RDouble || rexpr instanceof RDouble) {
                     final RDouble adbl = lexpr.asDouble();
                     final RDouble bdbl = rexpr.asDouble();  // if the cast fails, a zero-length array is returned

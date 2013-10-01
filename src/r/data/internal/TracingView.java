@@ -13,6 +13,7 @@ public interface TracingView {
 
     public static final boolean SILENT = false; // good for JUnit tests
 
+    public static final int SITES_TO_PRINT = 5;
     public static final String THIS_FILE_NAME = "TracingView.java";
     public static PrintStream nullPS = new PrintStream(new OutputStream() {
 
@@ -104,6 +105,7 @@ public interface TracingView {
             }
             StackTraceElement[] st = s.site();
 
+            int interestingSitesPrinted = 0;
             for(int i = s.offset; i < st.length; i++) {
                 StackTraceElement e = st[i];
                 String fileName = e.getFileName();
@@ -111,6 +113,10 @@ public interface TracingView {
                     continue;
                 }
                 ps.print( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                interestingSitesPrinted++;
+                if (interestingSitesPrinted <= SITES_TO_PRINT) {
+                    continue;
+                }
                 if (fileName == null || "View.java".equals(fileName)) {
                     continue;
                 }

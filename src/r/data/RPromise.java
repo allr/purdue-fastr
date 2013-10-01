@@ -1,5 +1,6 @@
 package r.data;
 
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
@@ -58,6 +59,9 @@ public final class RPromise {
                     throw RError.getPromiseCycle(expression.getAST()); // TODO: use the correct AST - probably the current context
                 }
                 value = (RAny) expression.execute(frame);
+                if (AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS && value instanceof View) {
+                    value = ((View) value).materialize();
+                }
             } finally {
                 markForceClean();
             }

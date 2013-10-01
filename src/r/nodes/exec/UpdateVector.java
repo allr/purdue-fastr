@@ -2086,7 +2086,7 @@ public abstract class UpdateVector extends BaseR {
             int isize = index.size();
             boolean[] omit = null;
             int maxIndex = 0;
-
+                // FIXME: this is doing two passes through the index vector
             for (int i = 0; i < isize; i++) {
                 int v = index.getInt(i);
                 if (v > maxIndex) {

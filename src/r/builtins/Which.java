@@ -9,12 +9,12 @@ import r.runtime.*;
 
 /**
  * "which"
- * 
+ *
  * <pre>
  * x  --  logical vector or array. NAs are allowed and omitted (treated as if FALSE).
  * arr.ind -- logical; should array indices be returned when x is an array?
  * useNames -- logical indicating if the value of arrayInd() should have (non-null) dimnames at all.
- * 
+ *
  * <pre>
  */
 // FIXME: implements only part of R semantics
@@ -48,7 +48,7 @@ final class Which extends CallFactory {
             RSymbol[] isymbols = inames.sequence();
             j = 0;
             for (int i = 0; i < size; i++) {
-                if (input.getLogical(i) == RLogical.TRUE) {
+                if (input.getLogical(i) == RLogical.TRUE) { // FIXME: two passes through the input vector
                     symbols[j++] = isymbols[i];
                 }
             }

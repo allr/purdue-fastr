@@ -11,7 +11,7 @@ import r.runtime.*;
 
 public abstract class AbstractCall extends BaseR {
 
-    private static final boolean MATERIALIZE_ON_FUNCTION_CALL = true;
+    public static final boolean MATERIALIZE_FUNCTION_ARGUMENTS = true;
 
     protected final RSymbol[] argNames;
     @Children protected final RNode[] argExprs;
@@ -277,7 +277,7 @@ public abstract class AbstractCall extends BaseR {
                 return RPromise.createNormal(argExpr, callerFrame);
             } else {
                 Object argV = argExpr.execute(callerFrame);
-                if (MATERIALIZE_ON_FUNCTION_CALL) {
+                if (MATERIALIZE_FUNCTION_ARGUMENTS) {
                     if (argV instanceof View) {
                         argV = ((View) argV).materialize();
                     }
