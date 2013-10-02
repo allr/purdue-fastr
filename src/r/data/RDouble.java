@@ -31,6 +31,8 @@ public interface RDouble extends RNumber {
     RDouble materialize();
     double[] getContent();
 
+    double sum(boolean narm);
+
     public class RDoubleUtils {
         private static final boolean ARITH_NA_CHECKS = false;
         // should have explicit checks with floating point arithmetics to avoid NAs turning into NaNs?
@@ -114,6 +116,20 @@ public interface RDouble extends RNumber {
                 }
                 return res;
             }
+        }
+        public static double sum(RDouble v, boolean narm) {
+            int size = v.size();
+            double res = 0;
+            for (int i = 0; i < size; i++) {
+                double d = v.getDouble(i);
+                if (narm) {
+                    if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                        continue;
+                    }
+                }
+                res += d;
+            }
+            return res;
         }
     }
     public class RDoubleFactory {

@@ -680,6 +680,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public RDouble doStripKeepNames() {
             return RDouble.RDoubleFactory.stripKeepNames(this);
         }
+
+        @Override
+        public double sum(boolean narm) {
+            return RDouble.RDoubleUtils.sum(this, narm);
+        }
     }
 
  // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance

@@ -553,6 +553,12 @@ public interface TracingView {
             return orig.materialize();
         }
 
+        @Override
+        public double sum(boolean narm) {
+            // TODO: trace
+            return orig.sum(narm);
+        }
+
     }
 
     public static class RIntTracingView extends View.RIntProxy<RInt> implements RInt, TracingView {

@@ -228,4 +228,13 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
     public String typeOf() {
         return RDouble.TYPE_STRING;
     }
+
+    @Override
+    public double sum(boolean narm) {
+        if (narm && RDouble.RDoubleUtils.isNAorNaN(value)) {
+            return 0;
+        } else {
+            return value;
+        }
+    }
 }

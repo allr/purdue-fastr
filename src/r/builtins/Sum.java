@@ -48,21 +48,6 @@ final class Sum extends CallFactory {
         res[1] = rimag;
     }
 
-    public static double sum(RDouble v, boolean narm) {
-        int size = v.size();
-        double res = 0;
-        for (int i = 0; i < size; i++) {
-            double d = v.getDouble(i);
-            if (narm) {
-                if (RDouble.RDoubleUtils.isNAorNaN(d)) {
-                    continue;
-                }
-            }
-            res += d;
-        }
-        return res;
-    }
-
     public static double sum(RInt v, boolean narm) {
         int size = v.size();
         double res = 0;
@@ -216,7 +201,7 @@ final class Sum extends CallFactory {
                         if (v instanceof RNull) {
                             continue;
                         }
-                        double d = sum(v.asDouble(), naRM);
+                        double d = v.asDouble().sum(naRM);
                         if (RDouble.RDoubleUtils.isNAorNaN(d)) {
                             // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
                             res = d;

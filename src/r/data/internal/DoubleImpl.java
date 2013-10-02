@@ -202,4 +202,9 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     public DoubleImpl doStripKeepNames() {
         return new DoubleImpl(content, null, names, null, false);
     }
+
+    @Override
+    public double sum(boolean narm) {
+        return RDouble.RDoubleUtils.sum(this, narm);
+    }
 }
