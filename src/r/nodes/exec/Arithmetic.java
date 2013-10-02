@@ -3309,7 +3309,31 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bi + 1);
                 }
-             }
+            }
+
+            @Override
+            public double sum(boolean narm) {
+                if (a instanceof DoubleImpl) {
+                    double[] acontent = ((DoubleImpl) a).getContent();
+                    double res = 0;
+                    int j = 1;
+                    for(int i = 0; i < n; i++) {
+                        double adbl = acontent[i];
+                        if (narm && RDouble.RDoubleUtils.arithIsNA(adbl)) {
+                            continue;
+                        }
+                        res += arit.op(ast,  adbl, (double) j); // FIXME: possibly virtual call
+                        j++;
+                        if (j > nb) {
+                            j = 1;
+                        }
+                    }
+                    return res;
+                } else {
+                    return super.sum(narm);
+                }
+            }
+
         }
 
         static final class VectorSequenceBSized extends DoubleViewForDoubleInt implements RDouble {

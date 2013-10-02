@@ -9,9 +9,18 @@ import r.data.*;
 
 public interface TracingView {
 
-    public static final boolean VIEW_TRACING = false;
-
+    public static final boolean VIEW_TRACING = false;  // master switch
     public static final boolean SILENT = false; // good for JUnit tests
+
+    public static final boolean PRINT_INDIVIDUAL_VIEWS = false;
+    public static final boolean PRINT_VIEW_PATTERNS = true;
+
+    public static final boolean TRACE_USE_SITES = false;
+    public static final boolean TRACE_SINGLE_USE_SITE = false;
+    public static final boolean TRACE_FIRST_GET_SITE = false;
+    public static final boolean TRACE_FIRST_MATERIALIZE_SITE = false;
+    public static final boolean TRACE_FIRST_SUM_SITE = false;
+    public static final boolean TRACE_ALLOCATION_SITE = false;
 
     public static final int SITES_TO_PRINT = 5;
     public static final String THIS_FILE_NAME = "TracingView.java";
@@ -97,10 +106,12 @@ public interface TracingView {
         private static final String[] skipMethodsNames = new String[] { "getRAny", "getString", "getComplex", "getReal", "getImag", "getDouble",
             "getInt", "getLogical", "getRaw", "boxedGet", "getRef", "copy"
         };
+
         private static final HashSet<String> skipMethods = new HashSet<String>(Arrays.asList(skipMethodsNames));
-        public static void printSite(Site s) {
+
+        public static void printSite(Site s, StringBuilder out) {
             if (s == null) {
-                ps.print("(null)");
+                out.append("(null)");
                 return;
             }
             StackTraceElement[] st = s.site();
@@ -112,7 +123,7 @@ public interface TracingView {
                 if (THIS_FILE_NAME.equals(fileName)) {
                     continue;
                 }
-                ps.print( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
+                out.append( " " + e.getMethodName() + "(" + e.getFileName() + ":" + e.getLineNumber() + ")");
                 interestingSitesPrinted++;
                 if (interestingSitesPrinted <= SITES_TO_PRINT) {
                     continue;
@@ -126,6 +137,12 @@ public interface TracingView {
                 }
                 break;
             }
+        }
+
+        public static void printSite(Site s) {
+            StringBuilder b = new StringBuilder();
+            printSite(s, b);
+            ps.println(b.toString());
         }
 
         public static void printElement(Site s, int index) {
@@ -163,9 +180,13 @@ public interface TracingView {
         int[] getCounts;
         int materializeCount;
         int getCount;
+        int sumCount;
         final Site allocationSite;
         Site firstGetSite;
         Site firstMaterializeSite;
+        Site firstSumSite;
+        Site singleUseSite;
+        boolean multipleUseSites;
 
         HashSet<Site> useSites;
 
@@ -173,7 +194,7 @@ public interface TracingView {
 
         public ViewTrace(RArray real) {
             getCounts = new int[real.size()];
-            allocationSite = new Site();
+            allocationSite = TRACE_ALLOCATION_SITE ? new Site() : null;
             useSites = new HashSet<Site>();
             realView = real;
             viewsRegistry.add(this);
@@ -214,15 +235,42 @@ public interface TracingView {
         }
 
         private Site updateUseSite() {
-            Site here = new Site();
-            useSites.add(here);
-            return here;
+            if (TRACE_USE_SITES) {
+                Site here = new Site();
+                useSites.add(here);
+                return here;
+            } else if (TRACE_SINGLE_USE_SITE) {
+                if (multipleUseSites) {
+                    return null;
+                } else {
+                    Site here = new Site();
+                    if (singleUseSite == null) {
+                        singleUseSite = here;
+                    } else {
+                        if (!here.equals(singleUseSite)) {
+                            multipleUseSites = true;
+                            singleUseSite = null;
+                        }
+                    }
+                    return here;
+
+                }
+            } else {
+                return null;
+            }
+        }
+
+        private static Site currentSite(Site here) {
+            if (here != null) {
+                return here;
+            }
+            return new Site();
         }
 
         public void get(int i) {
             Site here = updateUseSite();
-            if (getCount == 0) {
-                firstGetSite = here;
+            if (TRACE_FIRST_GET_SITE && getCount == 0) {
+                firstGetSite = currentSite(here);
             }
             getCount++;
             getCounts[i]++;
@@ -230,10 +278,19 @@ public interface TracingView {
 
         public void materialize() {
             Site here = updateUseSite();
-            if (materializeCount == 0) {
-                firstMaterializeSite = here;
+            if (TRACE_FIRST_MATERIALIZE_SITE && materializeCount == 0) {
+                firstMaterializeSite = currentSite(here);
             }
             materializeCount++;
+        }
+
+        public void sum() {
+            Site here = updateUseSite();
+            if (TRACE_FIRST_SUM_SITE && sumCount == 0) {
+                firstSumSite = currentSite(here);
+            }
+            sumCount++;
+
         }
 
         public int unusedElements() {
@@ -256,8 +313,6 @@ public interface TracingView {
             return redundant;
         }
 
-
-
         private ViewTrace getRootView() {
             ViewTrace v = this;
             while(v.parentView != null) {
@@ -274,74 +329,93 @@ public interface TracingView {
         }
 
         private static void dumpView(int depth, ViewTrace trace) {
-            printed.add(trace);
+            printedIndividualViews.add(trace);
 
             ps.println(trace.realView + " size = " + trace.realView.size());
-            indent(depth);
-            ps.print("    allocationSite =");
-//            Site.printElement(trace.allocationSite, 4);
-            Site.printSite(trace.allocationSite);
-            ps.println();
+            if (TRACE_ALLOCATION_SITE) {
+                indent(depth);
+                ps.print("    allocationSite =");
+                Site.printSite(trace.allocationSite);
+                ps.println();
+            }
 
             int unused = trace.unusedElements();
             int redundant = trace.redundantGets();
 
-            Site[] useSites = trace.useSites.toArray(new Site[trace.useSites.size()]);
-            if (useSites.length == 1) {
+            boolean singleUse;
+            Site[] useSites;
+
+            if (TRACE_USE_SITES) {
+                useSites = trace.useSites.toArray(new Site[trace.useSites.size()]);
+                singleUse = (useSites.length == 1);
+            } else if (TRACE_SINGLE_USE_SITE){
+                useSites = null;
+                singleUse = !trace.multipleUseSites;
+            } else {
+                useSites = null;
+                singleUse = false;
+            }
+            if (singleUse) {
                 indent(depth);
                 ps.print("    singleUseSite = US");
-//                Site.printElements(useSites[0], 4, 3);
-                Site.printSite(useSites[0]);
+                Site.printSite(useSites != null ? useSites[0] : trace.singleUseSite);
 
                 if (trace.getCount > 0) {
                     ps.println(" (get)");
+                } else if (trace.sumCount > 0) {
+                    ps.println(" (sum)");
                 } else {
                     ps.println(" (materialize)");
                 }
 
             } else if (trace.getCount > 0) {
-                indent(depth);
-                ps.print("    firstGetSite =");
-//                Site.printElement(trace.firstGetSite, 3);
-                Site.printSite(trace.firstGetSite);
-                ps.println();
-                if (trace.materializeCount == 0) {
+                if (TRACE_FIRST_GET_SITE) {
+                    indent(depth);
+                    ps.print("    firstGetSite =");
+                    Site.printSite(trace.firstGetSite);
+                    ps.println();
+                }
+                if (trace.materializeCount == 0 && trace.sumCount == 0) {
                     if (unused > 0) {
                         indent(depth);
                         ps.println("    unusedElements = " + unused);
                     }
                     if (redundant > 0) {
                         indent(depth);
-                        ps.println("    redundantGets = " + redundant + " (no materialize)");
+                        ps.println("    redundantGets = " + redundant + " (no materialize, sum)");
                     }
                 }
             } else {
-                if (trace.materializeCount == 0) {
+                if (trace.materializeCount == 0 && trace.sumCount == 0) {
                     indent(depth);
                     ps.println("    UNUSED");
                 } else {
-                    if (trace.getCount > 0) {
-                        indent(depth);
-                        ps.println("    extraGets = " + trace.getCount + " (in addition to materialize)");
-                    }
+                    indent(depth);
+                    ps.println("    materializeCount = " + trace.materializeCount + " sumCount = " + trace.sumCount + " getCount = " + trace.getCount);
                 }
             }
-            if (trace.materializeCount > 0 && useSites.length != 1) {
+            if (TRACE_FIRST_MATERIALIZE_SITE && trace.materializeCount > 0 && !singleUse) {
                 indent(depth);
                 ps.print("    firstMaterializeSite =");
-//                Site.printElement(trace.firstMaterializeSite, 3);
                 Site.printSite(trace.firstMaterializeSite);
                 ps.println();
             }
-            if (useSites.length != 1) {
+            if (TRACE_FIRST_SUM_SITE && trace.sumCount > 0 && !singleUse) {
                 indent(depth);
-                ps.println("    useSites (" + useSites.length + "):");
-                for (Site s : useSites) {
+                ps.print("    firstSumSite =");
+                Site.printSite(trace.firstSumSite);
+                ps.println();
+            }
+            if (TRACE_USE_SITES) {
+                if (useSites.length != 1) {
                     indent(depth);
-                    ps.print("        US");
-//                    Site.printElements(s, 4, 10);
-                    Site.printSite(s);
-                    ps.println();
+                    ps.println("    useSites (" + useSites.length + "):");
+                    for (Site s : useSites) {
+                        indent(depth);
+                        ps.print("        US");
+                        Site.printSite(s);
+                        ps.println();
+                    }
                 }
             }
 
@@ -405,18 +479,156 @@ public interface TracingView {
             }
         }
 
-        static HashSet<ViewTrace> printed;
-        public static void printGlobalStats() {
-            printed = new HashSet<ViewTrace>();
-            ps.println("Global views statistics ------------------- \n");
+        static HashSet<ViewTrace> printedIndividualViews;
+        public static void printIndividualViews() {
+            printedIndividualViews = new HashSet<ViewTrace>();
+            ps.println("Individual views statistics ------------------- \n");
             for(ViewTrace trace : viewsRegistry) {
-                if (printed.contains(trace)) {
+                if (printedIndividualViews.contains(trace)) {
                     continue;
                 }
                 ViewTrace v = trace.getRootView();
                 ps.print("ROOT ");
                 dumpView(0, v);
                 ps.println();
+            }
+            printViewPatterns();
+            printedIndividualViews = null;
+        }
+
+        public static void printGlobalStats() {
+            if (PRINT_INDIVIDUAL_VIEWS) {
+                printIndividualViews();
+            }
+            if (PRINT_VIEW_PATTERNS) {
+                printViewPatterns();
+            }
+        }
+
+        private static void indent(int depth, StringBuilder p) {
+            for(int i = 0; i < depth; i++) {
+                p.append(" ");
+            }
+        }
+        private static void extractViewPattern(int depth, ViewTrace trace, StringBuilder p) {
+            if (!processedViewsForPatterns.add(trace)) {
+               p.append("(ALIASED) ");
+            }
+
+            p.append(trace.realView.getClass() + " size = " + trace.realView.size() + "\n");
+            indent(depth, p);
+
+            p.append("    use:");
+            if (trace.materializeCount == 0 && trace.sumCount == 0 && trace.getCount == 0) {
+                p.append(" UNUSED");
+            } else {
+                if (trace.getCount > 0) {
+                    p.append(" get");
+                }
+                if (trace.materializeCount > 0) {
+                    p.append(" materialize");
+                }
+                if (trace.sumCount > 0) {
+                    p.append(" sum");
+                }
+            }
+            p.append("\n");
+
+            if (false) {
+                p.append("    allocationSite =");
+                Site.printSite(trace.allocationSite, p);
+                p.append("\n");
+                indent(depth, p);
+            }
+
+            RArray view = trace.realView;
+            Class viewClass = view.getClass();
+            Field[] fields = getAllFields(viewClass);
+            boolean printedField = false;
+
+            for(Field f : fields) {
+                if (f.isSynthetic()) {
+                    continue;
+                }
+                Class fieldClass = f.getType();
+                if (RArray.class.isAssignableFrom(fieldClass)) {
+                    continue; // these later
+                }
+                indent(depth, p);
+                p.append("    " + f.getName() + " ");
+                try {
+                    f.setAccessible(true);
+                    Object o = f.get(view);
+                    p.append(o == null ? "null (" + fieldClass + ")" : o.getClass());
+                    p.append("\n");
+                    printedField = true;
+                } catch (IllegalAccessException e) {
+                    assert Utils.check(false, "can't read a view field " + e);
+                }
+            }
+
+            boolean printNewline = printedField;
+            for(Field f : fields) {
+                if (f.isSynthetic()) {
+                    continue;
+                }
+                Class fieldClass = f.getType();
+                if (!RArray.class.isAssignableFrom(fieldClass)) {
+                    continue;
+                }
+                if (printNewline) {
+                    p.append("\n");
+                    printNewline = false;
+                }
+                indent(depth, p);
+                p.append("    " + f.getName() + " ");
+                try {
+                    f.setAccessible(true);
+                    Object o = f.get(view);
+                    if (o instanceof TracingView) {
+                        p.append("VIEW ");
+                        TracingView child = (TracingView) o;
+                        extractViewPattern(depth + 2, child.getTrace(), p);
+                    } else {
+                        p.append("ARRAY " + o.getClass() + " size = " + ((RArray)o).size());
+                        if (o instanceof View) {
+                            ps.println("MISSED VIEW " + o);
+                        }
+                    }
+                    p.append("\n");
+                } catch (IllegalAccessException e) {
+                    assert Utils.check(false, "can't read a view field " + e);
+                }
+            }
+        }
+
+        static HashSet<ViewTrace> processedViewsForPatterns;
+        public static void printViewPatterns() {
+            processedViewsForPatterns = new HashSet<ViewTrace>();
+            HashMap<String, Integer> viewPatterns = new HashMap<String, Integer>();
+
+            ps.println("ViewPatterns ------------------- \n");
+            for(ViewTrace trace : viewsRegistry) {
+                if (processedViewsForPatterns.contains(trace)) {
+                    continue;
+                }
+                ViewTrace v = trace.getRootView();
+                StringBuilder p = new StringBuilder();
+                p.append("PATTERN ");
+                extractViewPattern(0, v, p);
+                p.append("\n");
+                String pattern = p.toString();
+                Integer count = viewPatterns.get(pattern);
+                if (count == null) {
+                    viewPatterns.put(pattern, 1);
+                } else {
+                    viewPatterns.put(pattern, count + 1);
+                }
+            }
+            processedViewsForPatterns = null;
+            for (Map.Entry<String, Integer> e : viewPatterns.entrySet()) {
+                ps.print("(" + e.getValue() + ") ");
+                ps.println(e.getKey());
             }
         }
 
@@ -469,6 +681,12 @@ public interface TracingView {
             return orig.getRAny(i);
         }
 
+        @Override
+        public ListImpl materialize() {
+            trace.materialize();
+            return orig.materialize();
+        }
+
     }
 
     public static class RStringTracingView extends View.RStringProxy<RString> implements RString, TracingView {
@@ -489,6 +707,12 @@ public interface TracingView {
         public String getString(int i) {
             trace.get(i);
             return orig.getString(i);
+        }
+
+        @Override
+        public RString materialize() {
+            trace.materialize();
+            return orig.materialize();
         }
 
     }
@@ -555,7 +779,7 @@ public interface TracingView {
 
         @Override
         public double sum(boolean narm) {
-            // TODO: trace
+            trace.sum();
             return orig.sum(narm);
         }
 
