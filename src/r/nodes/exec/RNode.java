@@ -166,6 +166,14 @@ public abstract class RNode {
         return res;
     }
 
+    public final void clearParentPointer() { // don't use if possible
+        parent = null;
+    }
+
+    public final void changeChildPointer(RNode oldChild, RNode newChild) { // don't use if possible
+        replaceChild(oldChild, newChild);
+    }
+
     public final <N extends RNode> N insert(N childNode, String msg) {
         assert Utils.check(childNode != this);
 

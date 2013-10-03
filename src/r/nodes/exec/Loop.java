@@ -33,12 +33,12 @@ public abstract class Loop extends BaseR {
     }
 
     public static final class BreakException extends RuntimeException {
-        public static BreakException instance = new BreakException();
+        public static final BreakException instance = new BreakException();
         private static final long serialVersionUID = -7381797804423147124L;
     }
 
     public static final class ContinueException extends RuntimeException {
-        public static ContinueException instance = new ContinueException();
+        public static final ContinueException instance = new ContinueException();
         private static final long serialVersionUID = -5960047826708655261L;
     }
 

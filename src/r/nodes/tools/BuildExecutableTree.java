@@ -19,9 +19,14 @@ import r.runtime.*;
 
 public class BuildExecutableTree implements Visitor {
 
+    public static final boolean OPTIMIZE_RETURN = true;
+    public static final boolean DEBUG_SPECIAL_NODES = false;
+    public static final boolean DEBUG_RETURN = false;
+
     RFunction rootEnclosingFunction;
     RNode result;
-    public static final boolean DEBUG_SPECIAL_NODES = false;
+
+    public static RSymbol RETURN_SYMBOL = RSymbol.getSymbol("return");
 
     public RNode createLazyRootTree(final ASTNode ast) {
         return new BaseR(ast) {
@@ -141,34 +146,160 @@ public class BuildExecutableTree implements Visitor {
         result = new r.nodes.exec.Loop.Next(n);
     }
 
+    private RNode returnCallArgument(ASTNode expr) {
+        if (expr instanceof FunctionCall) {
+            FunctionCall f = (FunctionCall) expr;
+            if (f.getName() == RETURN_SYMBOL) {
+                SplitArgumentList a = splitArgumentList(f.getArgs(), false);
+                if (a.convertedExpressions.length == 0) {
+                    return new r.nodes.exec.Constant(expr, RNull.getNull());
+                }
+                if (a.convertedExpressions.length == 1) {
+                    return a.convertedExpressions[0];
+                }
+            }
+        }
+        return null;
+    }
+
+    // intended for detecting whether a return statement if executed, will be executed last in a function
+    private boolean isTrailingInAFunction(ASTNode n) {
+        ASTNode parent = n.getParent();
+        if (parent == null) {
+            return false; // (?) but this should not have return anyway
+        }
+        if (parent instanceof Function) {
+            return true;
+        }
+        if (parent instanceof Sequence) {
+            Sequence parentSeq = (Sequence) parent;
+            ASTNode[] exprs = parentSeq.getExprs();
+            return (exprs[exprs.length - 1] == n) && isTrailingInAFunction(parentSeq);
+        }
+        if (parent instanceof If) {
+            If parentIf = (If) parent;
+            ASTNode trueBranch = parentIf.getTrueCase();
+            ASTNode falseBranch = parentIf.getFalseCase();
+            return ((trueBranch == n || falseBranch == n ) && isTrailingInAFunction(parentIf));
+        }
+        return false;
+    }
+
+    // replaces trailing return statements just by the argument value
+    // introduces IfReturnRest if enabled
+    //
+    // FIXME: this will not optimize nested if-return-rest constructs (nested within the true branch)
+    private RNode buildSequence(Sequence origSequence, ASTNode[] exprs, int from, int to, boolean introduceIfReturnRest) {
+        RNode[] rexprs = new RNode[exprs.length - from];
+        int i = from;
+        for (; i < to; i++) {
+            ASTNode e = exprs[i];
+
+            if (introduceIfReturnRest && e instanceof If && !RETURN_SYMBOL.builtinIsOverridden()) {
+                If ifExpr = (If) e;
+                if (i < to - 1 && ifExpr.getFalseCase() == null) {
+                    // if (cond) { .... } ; remaining   - we don't know yet if there is a return
+                    ASTNode trueBranch = ifExpr.getTrueCase();
+                    RNode truePart = null;
+                    RNode returnCallArg = returnCallArgument(trueBranch);
+                    if (returnCallArg != null) {
+                        truePart = null;
+                    } else if (trueBranch instanceof Sequence) {
+                        Sequence trueSequence = (Sequence) trueBranch;
+                        ASTNode[] trueExprs = trueSequence.getExprs();
+                        if (trueExprs.length > 1) {
+                            // FIXME: in theory we could be looking recursively into the tree, but recovery would then become hard
+                            ASTNode lastTrueExpr = trueExprs[trueExprs.length - 1];
+                            returnCallArg = returnCallArgument(lastTrueExpr);
+                            if (returnCallArg != null) {
+                                truePart = buildSequence(trueSequence, trueExprs, 0, trueExprs.length - 1, false);
+                            }
+                        }
+                    }
+
+                    if (returnCallArg != null) {
+                        // if (cond) { .... ; return(returnCallArg) } ; remaining   (no we know there is a return in the true branch
+                        RNode remainingSubsequence = buildSequence(origSequence, exprs, i + 1, to, true);
+                        RNode newIf = new r.nodes.exec.If.IfReturnRest.ReturnBuiltin(e, createLazyTree(ifExpr.getCond()), truePart,
+                                returnCallArg, remainingSubsequence);
+                        rexprs[i - from] = newIf;
+                        if (DEBUG_RETURN) System.err.println("Converted if with return, new if is " + PrettyPrinter.prettyPrint(newIf.getAST()));
+                        i++;
+                        break;
+                    }
+                }
+            }
+            if (i == to - 1 && isTrailingInAFunction(origSequence) && !RETURN_SYMBOL.builtinIsOverridden()) {
+                // last element of a sequence - could it be a trailing return?
+                // this optimization is done only for returns known to be trailing in the original AST tree, before introducing
+                // IfReturnRest ; such returns will still be trailing in after the introduction of IfReturnRest
+
+                RNode returnCallArg = returnCallArgument(e);
+                if (returnCallArg != null) {
+                    rexprs[i - from] = returnCallArg; // TODO: listener for return override
+                    final RNode lreturnCallArg = returnCallArg;
+                    final ASTNode lreturnCallAST = e;
+                    SymbolChangeListener listener = new SymbolChangeListener() {
+                        public boolean onChange(RSymbol symbol) {
+                            RNode oldNode = lreturnCallArg;
+                            while(oldNode.getNewNode() != null) {
+                                oldNode = oldNode.getNewNode();
+                            }
+                            RNode[] newArgExprs = new RNode[] { oldNode };
+                            RNode parent = oldNode.getParent();
+                            oldNode.clearParentPointer(); // FIXME: this sucks, but function call does not support insertion on argument
+
+                                // we can ignore names because return ignores them
+                            RNode fullReturnCall = r.nodes.exec.FunctionCall.FACTORY.create(lreturnCallAST, new RSymbol[]{null}, newArgExprs);
+
+                            parent.changeChildPointer(oldNode, fullReturnCall);
+                            return false;
+                        }
+                    };
+
+                    RETURN_SYMBOL.addChangeListener(listener);
+                    if (DEBUG_RETURN) System.err.println("Removed trailing return " + PrettyPrinter.prettyPrint(e));
+                    continue;
+                }
+            }
+            rexprs[i - from] = createTree(e);
+        }
+        int length = i - from;
+        RNode[] newRExprs = new RNode[length];
+        System.arraycopy(rexprs, 0, newRExprs, 0, length);
+        return createSequenceFor(origSequence, newRExprs);
+    }
+
+    private static RNode createSequenceFor(Sequence sequence, RNode[] rexprs) {
+        switch (rexprs.length) {
+            case 1:
+                return rexprs[0];
+            case 2:
+                return new r.nodes.exec.Sequence.Sequence2(sequence, rexprs);
+            case 3:
+                return new r.nodes.exec.Sequence.Sequence3(sequence, rexprs);
+            case 4:
+                return new r.nodes.exec.Sequence.Sequence4(sequence, rexprs);
+            case 5:
+                return new r.nodes.exec.Sequence.Sequence5(sequence, rexprs);
+            case 6:
+                return new r.nodes.exec.Sequence.Sequence6(sequence, rexprs);
+            default:
+                return new r.nodes.exec.Sequence(sequence, rexprs);
+        }
+    }
+
     @Override public void visit(Sequence sequence) {
         ASTNode[] exprs = sequence.getExprs();
-        RNode[] rexprs = new RNode[exprs.length];
-        for (int i = 0; i < exprs.length; i++) {
-            rexprs[i] = createTree(exprs[i]);
-        }
-        switch (exprs.length) {
-        case 1:
-            result = rexprs[0];
-            break;
-        case 2:
-            result = new r.nodes.exec.Sequence.Sequence2(sequence, rexprs);
-            break;
-        case 3:
-            result = new r.nodes.exec.Sequence.Sequence3(sequence, rexprs);
-            break;
-        case 4:
-            result = new r.nodes.exec.Sequence.Sequence4(sequence, rexprs);
-            break;
-        case 5:
-            result = new r.nodes.exec.Sequence.Sequence5(sequence, rexprs);
-            break;
-        case 6:
-            result = new r.nodes.exec.Sequence.Sequence6(sequence, rexprs);
-            break;
-        default:
-            result = new r.nodes.exec.Sequence(sequence, rexprs);
-            break;
+        if (!OPTIMIZE_RETURN) {
+            RNode[] rexprs = new RNode[exprs.length];
+            for (int i = 0; i < exprs.length; i++) {
+                rexprs[i] = createTree(exprs[i]);
+            }
+            result = createSequenceFor(sequence, rexprs);
+        } else {
+            ASTNode parent = sequence.getParent();
+            result = buildSequence(sequence, exprs, 0, exprs.length, parent == null || parent instanceof Function);
         }
     }
 

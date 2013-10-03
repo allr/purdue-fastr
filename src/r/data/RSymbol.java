@@ -336,4 +336,7 @@ public final class RSymbol extends BaseObject implements RAny {
         return name != null && name.length() > 0 && name.charAt(0) == '.';
     }
 
+    public boolean builtinIsOverridden() {
+        return value != null || version != 0;
+    }
 }

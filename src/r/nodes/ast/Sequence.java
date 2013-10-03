@@ -42,10 +42,10 @@ public class Sequence extends ASTNode {
         return str.toString();
     }
 
-    public static ASTNode create(ArrayList<ASTNode> exprs) {
+    public static Sequence create(ArrayList<ASTNode> exprs) {
         return new Sequence(exprs.toArray(new ASTNode[exprs.size()]));
     }
-    public static ASTNode create(ASTNode[] exprs) {
+    public static Sequence create(ASTNode[] exprs) {
         return new Sequence(exprs);
     }
 }

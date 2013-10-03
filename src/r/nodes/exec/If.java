@@ -1,6 +1,7 @@
 package r.nodes.exec;
 
 import r.*;
+import r.builtins.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
@@ -185,6 +186,139 @@ public class If extends BaseR {
                 return adoptInternal(newNode);
             }
             return super.replaceChild(oldNode, newNode);
+        }
+
+    }
+
+    // for expressions like  if (cond) { trueBranch ; return } ; restBranch
+    //
+
+
+    public abstract static class IfReturnRest extends BaseR {
+        @Child RNode cond;
+        @Child RNode trueBranch;
+        @Child RNode returnCall;
+        @Child RNode restBranch;
+
+        protected RSymbol RETURN_SYMBOL = RSymbol.getSymbol("return");
+
+        public IfReturnRest(ASTNode ast, RNode cond, RNode trueBranch, RNode returnCallArgument, RNode restBranch) {
+            super(ast);
+            this.cond = adoptChild(cond);
+            this.trueBranch = trueBranch == null ? null : adoptChild(trueBranch);
+            this.restBranch = adoptChild(restBranch);
+            this.returnCall = adoptChild(returnCallArgument); // as long as return is not overridden, just return a value
+        }
+
+        @Override
+        protected <N extends RNode> N replaceChild(RNode oldNode, N newNode) {
+            assert oldNode != null;
+            if (cond == oldNode) {
+                cond = newNode;
+                return adoptInternal(newNode);
+            }
+            if (trueBranch == oldNode) {
+                trueBranch = newNode;
+                return adoptInternal(newNode);
+            }
+            if (returnCall == oldNode) {
+                returnCall = newNode;
+                return adoptInternal(newNode);
+            }
+            if (restBranch == oldNode) {
+                restBranch = newNode;
+                return adoptInternal(newNode);
+            }
+            return super.replaceChild(oldNode, newNode);
+        }
+
+        public static class ReturnBuiltin extends IfReturnRest {
+
+            public ReturnBuiltin(ASTNode ast, RNode cond, RNode trueBranch, RNode returnCallArgument, RNode restBranch) {
+                super(ast, cond, trueBranch, returnCallArgument, restBranch);
+
+                assert Utils.check(!RETURN_SYMBOL.builtinIsOverridden());
+                final RNode lreturnCallArg = returnCall;
+                final ASTNode lreturnCallAST = returnCall.getAST().getParent().getParent();
+                SymbolChangeListener listener = new SymbolChangeListener() {
+                    public boolean onChange(RSymbol symbol) {
+                        RNode oldNode = lreturnCallArg;
+                        while(oldNode.getNewNode() != null) {
+                            oldNode = oldNode.getNewNode();
+                        }
+                        RNode[] newArgExprs = new RNode[] { oldNode };
+                        IfReturnRest oldIfNode = (IfReturnRest) oldNode.getParent();
+
+                            // we can ignore names because return ignores them
+                        RNode fullReturnCall = r.nodes.exec.FunctionCall.FACTORY.create(lreturnCallAST, new RSymbol[]{null}, newArgExprs);
+                        RNode newIfNode = new Overridden(lreturnCallAST, oldIfNode.cond, oldIfNode.trueBranch, fullReturnCall, oldIfNode.restBranch);
+                        oldIfNode.replace(newIfNode);
+                        return false;
+                    }
+                };
+                RETURN_SYMBOL.addChangeListener(listener);
+            }
+
+            @Override
+            public Object execute(Frame frame) {
+                int ifVal;
+
+                assert Utils.check(getNewNode() == null);
+                try {
+                    ifVal = cond.executeScalarNonNALogical(frame);
+                } catch (SpecializationException e) {
+                    RAny result = (RAny) e.getResult();
+                    RNode theCond = cond;
+                    ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
+                    IfReturnRest ifnode = new ReturnBuiltin(ast, castNode, trueBranch, returnCall, restBranch);
+                    return replace(theCond, result, ifnode, frame);
+                }
+                assert Utils.check(getNewNode() == null); // TODO: handle recursive rewriting
+
+                if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
+                    if (trueBranch != null) {
+                        trueBranch.execute(frame);
+                    }
+                    assert Utils.check(getNewNode() == null);
+                    return returnCall.execute(frame); // TODO: handle recursive rewriting
+                } else {
+                    return restBranch.execute(frame);
+                }
+            }
+        }
+
+        public static class Overridden extends IfReturnRest {
+
+            public Overridden(ASTNode ast, RNode cond, RNode trueBranch, RNode returnCallArgument, RNode restBranch) {
+                super(ast, cond, trueBranch, returnCallArgument, restBranch);
+            }
+
+            @Override
+            public final Object execute(Frame frame) {
+                int ifVal;
+
+                assert Utils.check(getNewNode() == null);
+                try {
+                    ifVal = cond.executeScalarNonNALogical(frame);
+                } catch (SpecializationException e) {
+                    RAny result = (RAny) e.getResult();
+                    RNode theCond = cond;
+                    ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
+                    IfReturnRest ifnode = new Overridden(ast, castNode, trueBranch, returnCall, restBranch);
+                    return replace(theCond, result, ifnode, frame);
+                }
+                assert Utils.check(getNewNode() == null); // TODO: handle recursive rewriting
+
+                if (ifVal == RLogical.TRUE) { // Is it the right ordering ?
+                    if (trueBranch != null) {
+                        trueBranch.execute(frame);
+                    }
+                    assert Utils.check(getNewNode() == null);
+                    returnCall.execute(frame); // TODO: handle recursive rewriting
+                    assert Utils.check(getNewNode() == null);
+                }
+                return restBranch.execute(frame);
+            }
         }
 
     }

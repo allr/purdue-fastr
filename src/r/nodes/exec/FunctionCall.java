@@ -112,6 +112,10 @@ public abstract class FunctionCall extends AbstractCall {
 //            return new SimpleBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
 //            return new SimpleListenerBuiltinCall(fcall, fname, argNames, argExprs, builtinNode);
 
+            if (fname.builtinIsOverridden()) {
+                return null; // the builtin has already been overriden
+            }
+
             final RNode lbuiltinNode = builtinNode;
             final RSymbol lbuiltinName = fname;
             final ASTNode lcall = call;
@@ -214,7 +218,7 @@ public abstract class FunctionCall extends AbstractCall {
 
         @Override public Object execute(Frame callerFrame) {
             try {
-                if (builtinName.getValue() != null || builtinName.getVersion() != 0) { throw new SpecializationException(null); }
+                if (builtinName.builtinIsOverridden()) { throw new SpecializationException(null); }
                 return builtinNode.execute(callerFrame);
             } catch (SpecializationException e) {
                 RNode callableExpr = r.nodes.exec.MatchCallable.getUninitialized(ast, builtinName);

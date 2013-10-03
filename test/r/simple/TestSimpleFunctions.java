@@ -101,6 +101,7 @@ public class TestSimpleFunctions extends SimpleTestBase {
         assertEval("{ f <- function(func, a) { func(a) && TRUE } ; g <- function(x) {TRUE} ; f(g, 5) ; f(is.na, 4) ; f(function(x) { x + x }, 10) }", "TRUE");
 
         assertEval("{ g <- function() {3} ; f <- function() { g() } ; f(); g <- function() {4} ; f() }", "4.0");
+        assertEval("{ f <- function() { c(1,10) } ; c <- sum ; f() }", "11.0");
     }
 
     @Test
@@ -197,5 +198,14 @@ public class TestSimpleFunctions extends SimpleTestBase {
 
         assertEvalError("{ f <- function(...) { ..2 + ..2 } ; f(1,,2) }", "'..2' is missing");
         assertEvalError("{ f <- function(...) { ..1 + ..2 } ; f(1,,3) }", "'..2' is missing");
+    }
+
+    @Test
+    public void testReturn() throws RecognitionException {
+        assertEval("{ f <- function() { x <- 10 ; return(x) } ; return <- is.na ; f() }", "FALSE");
+        assertEval("{ f <- function() { x <- 10 ; return(x) } ; z <- f() ; return <- is.na ; c(z,f()) }", "10.0, 0.0");
+        assertEval("{ f <- function(o) { x <- 10 ; if (o) { assign(\"return\", is.na) } ; return(x) } ; f(FALSE) ; f(TRUE) }", "FALSE");
+        assertEval("{ f <- function(o) { x <- 10 ; if (o) { x <- 10 * x ; return(x+x) } ; return(x) } ; c(f(FALSE),f(TRUE)) }", "10.0, 200.0");
+        assertEval("{ f <- function(o) { x <- 10:11 ; if (o) { x <- 10 * x ; return(x+x) } ; return(x) } ; c(f(FALSE),f(TRUE)) ; return <- sum ;  c(f(FALSE),f(TRUE)) }", "21.0, 210.0");
     }
 }
