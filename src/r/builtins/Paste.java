@@ -40,11 +40,19 @@ final class Paste extends CallFactory {
             args--;
         }
         final int realArgs = args;
-        return new Builtin(call, names, exprs) {
-            @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
-                return paste(params, realArgs, sepPosition, collapsePosition, ast);
-            }
-        };
+        if (realArgs != 1) {
+            return new Builtin(call, names, exprs) {
+                @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
+                    return paste(params, realArgs, sepPosition, collapsePosition, ast);
+                }
+            };
+        } else {
+            return new Builtin(call, names, exprs) {
+                @Override public RAny doBuiltIn(Frame frame, RAny[] params) {
+                    return pasteSingleRealArg(params, sepPosition, collapsePosition, ast);
+                }
+            };
+        }
     }
 
     public static String parseSeparator(ASTNode ast, RAny arg) {
@@ -125,6 +133,47 @@ final class Paste extends CallFactory {
                     RString s = stringArgs[j];
                     str.append(s.getString(i % s.size()));
                 }
+            }
+            return RString.RStringFactory.getScalar(str.toString());
+        }
+    }
+
+    public static RString pasteSingleRealArg(RAny[] args, int sepPosition, int collapsePosition, ASTNode ast) {
+
+        if (sepPosition != -1) {
+            parseSeparator(ast, args[sepPosition]); // just checking
+        }
+
+        String collapse = null;
+        if (collapsePosition != -1) {
+            collapse = parseCollapse(ast, args[collapsePosition]);
+        }
+
+        RString stringArg = null;
+        for (int i = 0; i < args.length; i++) {
+            if (i == sepPosition || i == collapsePosition) {
+                continue;
+            }
+            stringArg = AsBase.genericAsString(ast, args[i]); // FIXME: can we remove R-level boxing?
+        }
+
+        int size = stringArg.size();
+
+        if (collapse == null) {
+            return (RString) stringArg.stripAttributes();
+        } else if (collapse.length() == 0) {
+            StringBuilder str = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                str.append(stringArg.getString(i));
+            }
+            return RString.RStringFactory.getScalar(str.toString());
+        } else {
+            StringBuilder str = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                if (i > 0) {
+                    str.append(collapse);
+                }
+                str.append(stringArg.getString(i));
             }
             return RString.RStringFactory.getScalar(str.toString());
         }
