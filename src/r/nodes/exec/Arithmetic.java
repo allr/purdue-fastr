@@ -2882,6 +2882,27 @@ public class Arithmetic extends BaseR {
             return depth;
         }
 
+        public RDouble materializeInto(DoubleImpl res) {
+            for (int i = 0; i < n; i++) {
+                res.set(i, get(i));
+            }
+            return (RDouble) res.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+        }
+
+        @Override
+        public RDouble materializeOnAssignment(Object oldValue) {
+
+            DoubleImpl res;
+            if (a == oldValue && a instanceof DoubleImpl && !a.isShared() && a.size() == n) {
+                res = (DoubleImpl) a;
+            } else if (b == oldValue && b instanceof DoubleImpl && !b.isShared() && b.size() == n) {
+                res = (DoubleImpl) b;
+            } else {
+                return materialize();
+            }
+            return materializeInto(res);
+        }
+
         static final class Generic extends DoubleView implements RDouble {
             final int na;
             final int nb;
@@ -2980,6 +3001,16 @@ public class Arithmetic extends BaseR {
                     return arit.op(ast, adbl, bdbl);
                 }
              }
+
+            @Override
+            public RDouble materializeInto(DoubleImpl res) {
+                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
+                    arit.op(ast, ((DoubleImpl) a).getContent(), ((DoubleImpl) b).getContent(), res.getContent(), n);
+                    return res;
+                } else {
+                    return super.materializeInto(res);
+                }
+            }
 
             @Override
             public RDouble materialize() {

@@ -688,8 +688,8 @@ public abstract class Frame {
         }
     }
 
-    private void writeView(int slot, View view) {
-        RAny v = view.materialize();
+    private void writeView(int slot, View view, Object oldValue) {
+        RAny v = view.materializeOnAssignment(oldValue);
         set(slot, v);
         v.ref(); // always must ref
     }
@@ -698,7 +698,7 @@ public abstract class Frame {
         Object oldContent = get(slot);
         if (value != oldContent) {
             if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
-                writeView(slot, (View) value);
+                writeView(slot, (View) value, oldContent);
             } else {
                 set(slot, value);
                 value.ref();
@@ -708,7 +708,7 @@ public abstract class Frame {
 
     public void writeAtNoRef(int slot, Object value) {
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
-            writeView(slot, (View) value);
+            writeView(slot, (View) value, get(slot));
         } else {
             set(slot, value);
         }
@@ -716,7 +716,7 @@ public abstract class Frame {
 
     public void writeAtRef(int slot, Object value) {
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
-            writeView(slot, (View) value);
+            writeView(slot, (View) value, get(slot));
         } else {
             set(slot, value);
             ((RAny) value).ref();
@@ -725,7 +725,7 @@ public abstract class Frame {
 
     public void writeAtRef(int slot, RAny value) {
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
-            writeView(slot, (View) value);
+            writeView(slot, (View) value, get(slot));
         } else {
             set(slot, value);
             value.ref();

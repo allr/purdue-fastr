@@ -111,6 +111,11 @@ public abstract class View extends ArrayImpl implements RArray {
         return true; // a safe default, but should be overridden for performance whenever possible
     }
 
+    // this method in subclasses can re-use the storage for the oldValue, if not shared
+    public RArray materializeOnAssignment(Object oldValue) {
+        return materialize();
+    }
+
     public abstract static class ParametricView extends View { // just a marker for views that are worth materializing
 
     }

@@ -196,7 +196,7 @@ public final class RSymbol extends BaseObject implements RAny {
 
     public void setValue(Object val) {
         if (Frame.MATERIALIZE_ON_ASSIGNMENT && val instanceof View.ParametricView) {
-            RAny v = ((View) val).materialize();
+            RAny v = ((View) val).materializeOnAssignment(value);
             value = v;
             v.ref(); // always must ref
         } else {
