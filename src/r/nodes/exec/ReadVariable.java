@@ -4,6 +4,7 @@ import r.*;
 import r.builtins.*;
 import r.data.*;
 import r.data.RFunction.EnclosingSlot;
+import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.runtime.*;
@@ -53,7 +54,7 @@ public abstract class ReadVariable extends BaseR {
                     String reason;
 
                     if (frame == null) {
-                        node = getReadOnlyFromTopLevel(getAST(), symbol);
+                        node = getReadOnlyFromTopLevel(getAST(), symbol); // FIXME: could also add a listener here
                         reason = "installReadOnlyFromTopLevelNode";
                     } else if ((slot = frame.findVariable(symbol)) != -1) {
                         if (frame instanceof SmallFrame) {
@@ -64,8 +65,13 @@ public abstract class ReadVariable extends BaseR {
                         reason = "installReadLocalNode";
                     } else if ((rse = frame.readSetEntry(symbol)) == null) {
                             // note: this can happen even without reflective variable access, when reading a top-level variable from a top-level function
-                        node = getReadTopLevel(getAST(), symbol);
-                        reason = "installReadTopLevel";
+
+                        node = getReadStableTopLevel(getAST(), symbol);
+                        reason = "installReadStableTopLevel";
+                        if (node == null) {
+                            node = getReadTopLevel(getAST(), symbol);
+                            reason = "installReadTopLevel";
+                        }
                     } else {
                         node = getReadEnclosing(getAST(), symbol, rse.hops, rse.slot);
                         reason = "installReadEnclosingNode";
@@ -192,6 +198,40 @@ public abstract class ReadVariable extends BaseR {
                 return val;
             }
         };
+    }
+
+    public static class ReadStableTopLevel extends ReadVariable implements SymbolChangeListener {
+
+        private final Object stableValue;
+
+        public ReadStableTopLevel(ASTNode orig, RSymbol symbol, Object stableValue) {
+            super(orig, symbol);
+            this.stableValue = stableValue;
+            assert Utils.check(stableValue != null);
+            assert Utils.check(!(stableValue instanceof RPromise));
+            symbol.addChangeListener(this);
+        }
+
+        @Override
+        public Object execute(Frame frame) {
+            return stableValue;
+        }
+
+        @Override
+        public boolean onChange(RSymbol sym) {
+            assert Utils.check(getNewNode() == null);
+            replace(getReadTopLevel(ast, symbol), "install ReadTopLevel from ReadStableTopLevel");
+            return false;
+        }
+
+    }
+
+    private static ReadVariable getReadStableTopLevel(ASTNode orig, RSymbol sym) {
+        Object value = sym.getValueNoForce();
+        if (value == null || value instanceof RPromise || sym.getVersion() != 0) {
+            return null;
+        }
+        return new ReadStableTopLevel(orig, sym, value);
     }
 
     private static ReadVariable getReadTopLevel(ASTNode orig, RSymbol sym) {
