@@ -2,6 +2,7 @@ package r.nodes.exec;
 
 import r.*;
 import r.data.*;
+import r.data.RAny.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
@@ -1535,7 +1536,7 @@ public abstract class ReadVector extends BaseR {
             Utils.check(subset);
         }
 
-        public static RAny executeStringVector(RString index, RArray base, @SuppressWarnings("unused") ASTNode ast) {
+        public static RAny executeStringVector(RString index, RArray base) {
             int isize = index.size();
             if (isize == 0) { return Utils.createEmptyArray(base, base.names() != null); }
             Names baseNames = base.names();
@@ -1556,13 +1557,149 @@ public abstract class ReadVector extends BaseR {
             return res.setNames(Names.create(symbols));
         }
 
+        // lazy helps when not all elements are needed and when the names are not needed
+        public static class RStringSubset extends View.RStringView implements RString {
+
+            final RString base;
+            final RString index;
+            final Names baseNames;
+            RString result; // a caching view
+
+            public RStringSubset(RString base, RString index, Names baseNames) {
+                this.base = base;
+                this.index = index;
+                this.baseNames = baseNames;
+                assert Utils.check(baseNames != null);
+            }
+
+            public int size() {
+                return index.size();
+            }
+
+            public String getString(int i) {
+                if (result != null) {  // using the cache
+                    return result.getString(i);
+                }
+                RSymbol symbol = RSymbol.getSymbol(index.getString(i));
+                int v = baseNames.map(symbol);
+                if (v != -1) { // FIXME: not caching individual accesses
+                    return base.getString(v);
+                } else {
+                    return RString.NA;
+                }
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return base.isShared() || index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return base.dependsOn(v) || index.dependsOn(v);
+            }
+
+            @Override
+            public Names names() {
+                return materialize().names();
+            }
+
+            @Override
+            public RString materialize() {
+                if (result == null) {
+                    result = (RString) executeStringVector(index, base);
+                }
+                return result;
+            }
+
+        }
+
+        public static class RDoubleSubset extends View.RDoubleView implements RDouble {
+
+            final RDouble base;
+            final RString index;
+            final Names baseNames;
+            RDouble result; // a caching view
+
+            public RDoubleSubset(RDouble base, RString index, Names baseNames) {
+                this.base = base;
+                this.index = index;
+                this.baseNames = baseNames;
+                assert Utils.check(baseNames != null);
+            }
+
+            public int size() {
+                return index.size();
+            }
+
+            public double getDouble(int i) {
+                if (result != null) {  // using the cache
+                    return result.getDouble(i);
+                }
+                RSymbol symbol = RSymbol.getSymbol(index.getString(i));
+                int v = baseNames.map(symbol);
+                if (v != -1) { // FIXME: not caching individual accesses
+                    return base.getDouble(v);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public boolean isSharedReal() {
+                return base.isShared() || index.isShared();
+            }
+
+            @Override
+            public void ref() {
+                base.ref();
+                index.ref();
+            }
+
+            @Override
+            public boolean dependsOn(RAny v) {
+                return base.dependsOn(v) || index.dependsOn(v);
+            }
+
+            @Override
+            public Names names() {
+                return materialize().names();
+            }
+
+            @Override
+            public RDouble materialize() {
+                if (result == null) {
+                    result = (RDouble) executeStringVector(index, base);
+                }
+                return result;
+            }
+
+        }
+
         @Override public RAny execute(RAny index, RAny base) {
             if (DEBUG_SEL) Utils.debug("selection - executing StringSelection");
             try {
                 if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
                 RArray abase = (RArray) base;
                 if (!(index instanceof RString)) { throw new SpecializationException(Failure.NOT_STRING_INDEX); }
-                return executeStringVector((RString) index, abase, ast);
+                RString sindex = (RString) index;
+                Names baseNames = abase.names();
+                if (baseNames != null) {
+                    if (abase instanceof RString) {
+                        return TracingView.ViewTrace.trace(new RStringSubset((RString) abase, sindex, baseNames));
+                    }
+                    if (abase instanceof RDouble) {
+                        return TracingView.ViewTrace.trace(new RDoubleSubset((RDouble) abase, sindex, baseNames));
+                    }
+                    // TODO: add more specializations
+                }
+                return executeStringVector(sindex, abase);
 
             } catch (SpecializationException e) {
                 Failure f = (Failure) e.getResult();
@@ -1785,7 +1922,7 @@ public abstract class ReadVector extends BaseR {
             } else if (aindex instanceof RLogical) {
                 return LogicalSelection.executeLogicalVector((RLogical) aindex, abase);
             } else if (aindex instanceof RString) {
-                return StringSelection.executeStringVector((RString) aindex, abase, ast);
+                return StringSelection.executeStringVector((RString) aindex, abase);
             } else if (aindex instanceof RNull) { return Utils.createEmptyArray(abase); }
             throw RError.getInvalidSubscriptType(ast, aindex.typeOf());
         }
