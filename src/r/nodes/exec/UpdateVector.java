@@ -201,7 +201,11 @@ public abstract class UpdateVector extends BaseR {
         RSymbol[] symbols = new RSymbol[size + 1];
         System.arraycopy(oldSymbols, 0, symbols, 0, size);
         symbols[size] = newName;
-        return Names.create(symbols);
+        HashMap<RSymbol, Integer> oldMap = names.stealMap();
+        if (oldMap != null && !oldMap.containsKey(newName)) {
+            oldMap.put(newName, size);
+        }
+        return Names.create(symbols, oldMap);
     }
 
     // for an update of a materialized double private vector using a double scalar,
@@ -830,10 +834,20 @@ public abstract class UpdateVector extends BaseR {
             }
             // pos == -1
             // appending, if names are empty, create them - this is for appending to empty lists and vectors
+
+            RArray.Names newNames;
+
             if (names == null) {
-                names = RArray.Names.create(bsize);
+                RSymbol[] newSymbols = new RSymbol[bsize + 1];
+                for (int i = 0; i < bsize; ++i) {
+                    newSymbols[i] = RSymbol.EMPTY_SYMBOL;
+                }
+                newSymbols[bsize] = symbol;
+                newNames = Names.create(newSymbols);
+            } else {
+                newNames = appendName(names, symbol);
             }
-            RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, appendName(names, symbol), base.attributesRef());
+            RArray res = Utils.createArray(typedBase, bsize + 1, dimensions, newNames, base.attributesRef());
             for (int i = 0; i < bsize; i++) {
                 res.set(i, typedBase.get(i));
             }

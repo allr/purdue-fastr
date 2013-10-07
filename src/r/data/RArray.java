@@ -197,6 +197,12 @@ public interface RArray extends RAny {
             }
         }
 
+        public HashMap<RSymbol, Integer> stealMap() { // do this when the map is very likely to be needed with a new value instead
+            HashMap<RSymbol, Integer> stolenMap = map;
+            map = null;
+            return stolenMap;
+        }
+
         public int map(RSymbol name) {
             initializeMapIfNeeded();
             Integer index = map.get(name);
