@@ -89,7 +89,8 @@ class Regexpr extends CallFactory {
     public static RList gregexpr(Pattern p, RString text) {
         int size = text.size();
         RAny[] content = new RAny[size];
-        int[] buf = new int[size]; // FIXME: would be cool and have a growable Vector/ArrayList of primitives
+        int[] buf = new int[size]; // FIXME: would be cool to have a growable Vector/ArrayList of primitives
+            // also could have a view for the result to avoid copying (a view with adjustable length)
         int bufUsed = 0;
         for (int i = 0; i < size; i++) {
             String s = text.getString(i);

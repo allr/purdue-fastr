@@ -11,7 +11,7 @@ import r.runtime.*;
 
 /**
  * "sub"
- * 
+ *
  * <pre>
  * ppattern -- character string containing a regular expression (or character string for fixed = TRUE) to be matched in
  *          the given character vector. Coerced by as.character to a character string if possible. If a character vector
