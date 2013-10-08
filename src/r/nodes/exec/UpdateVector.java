@@ -77,6 +77,8 @@ public abstract class UpdateVector extends BaseR {
         UNEXPECTED_TYPE,
         NOT_SAME_LENGTH,
         MAYBE_VECTOR_UPDATE,
+        UNEXPECTED_DEPENDENCY,
+        SHARED_BASE
     }
 
     public final Object executeSuper(Frame frame) {
@@ -2030,7 +2032,7 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        public static RArray genericUpdate(RArray base, RInt indexArg, RArray value, ASTNode ast, boolean subset) {
+        public static RArray genericUpdate(RArray base, RInt indexArg, RAny value, ASTNode ast, boolean subset) {
             assert Utils.check(subset);
             RArray typedBase;
             RArray typedValue;
@@ -2096,7 +2098,7 @@ public abstract class UpdateVector extends BaseR {
                     assert Utils.check(base instanceof RLogical || base instanceof RNull);
                     assert Utils.check(value instanceof RLogical);
                     typedBase = base.asLogical();
-                    typedValue = value;
+                    typedValue = (RLogical) value;
                 }
             }
 
@@ -2140,10 +2142,18 @@ public abstract class UpdateVector extends BaseR {
                 int nsize = maxIndex;
                 Names names = base.names();
                 boolean expanding = false;
+                boolean copying = true;
                 RArray res;
                 if (nsize <= bsize) {
                     nsize = bsize;
-                    res = Utils.createArray(typedBase, nsize, dimensions, names, base.attributesRef());
+                    if (typedBase == base && !typedBase.isShared() && !index.dependsOn(typedBase) &&
+                            (typedValue == null || !typedValue.dependsOn(typedBase)) &&
+                            (listValue == null || !listValue.dependsOn(typedBase))) {
+                        copying = false;
+                        res = typedBase;
+                    } else {
+                        res = Utils.createArray(typedBase, nsize, dimensions, names, base.attributesRef());
+                    }
                 } else {
                     expanding = true;
                     // drop dimensions
@@ -2151,15 +2161,18 @@ public abstract class UpdateVector extends BaseR {
                 }
 
                 // FIXME: this may lead to unnecessary computation and copying if the base is a complex view
-                int i = 0;
-                for (; i < bsize; i++) {
-                    res.set(i, typedBase.get(i));
-                }
-                for (; i < nsize; i++) {
-                    Utils.setNA(res, i);
+
+                if (copying) { // FIXME: reduce virtual calls in the copy?
+                    int i = 0;
+                    for (; i < bsize; i++) {
+                        res.set(i, typedBase.get(i));
+                    }
+                    for (; i < nsize; i++) {
+                        Utils.setNA(res, i);
+                    }
                 }
                 int j = 0;
-                for (i = 0; i < isize; i++) {
+                for (int i = 0; i < isize; i++) {
                     int v = index.getInt(i);
                     if (v != 0 && v != RInt.NA) {
                         if (typedValue != null) {
@@ -2202,31 +2215,311 @@ public abstract class UpdateVector extends BaseR {
             }
         }
 
-        @Override public RAny execute(RAny base, RAny index, RAny value) {
-            if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
-            try {
-                if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
-                RArray abase = (RArray) base;
-                if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
-                RArray avalue = (RArray) value;
-                RInt iindex;
-                if (index instanceof RInt) {
-                    iindex = (RInt) index;
-                } else if (index instanceof RDouble) {
-                    iindex = index.asInt();
-                } else {
-                    throw new SpecializationException(Failure.NOT_NUMERIC_INDEX);
+        abstract class ValueUpdate {
+            abstract RAny update(RArray base, RInt index, RAny value) throws SpecializationException;
+        }
+
+        public Specialized createSimple(RAny baseTemplate, RAny valueTemplate) {
+
+            if (baseTemplate instanceof StringImpl) {
+                if (valueTemplate instanceof RString) {
+                    ValueUpdate up = new ValueUpdate() {
+                        @Override
+                        RAny update(RArray base, RInt index, RAny value) throws SpecializationException {
+                            if (!(base instanceof StringImpl && value instanceof RString)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            RString typedValue = (RString) value;
+                            if (base.isShared()) {
+                                throw new SpecializationException(Failure.SHARED_BASE);
+                            }
+                            if (index.dependsOn(base) || value.dependsOn(base)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
+                            }
+                            String[] sbase = ((StringImpl) base).getContent();
+                            int bsize = base.size();
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+
+                            RInt mindex;
+                            if (index instanceof View.ParametricView) {
+                                mindex = index.materialize();
+                            } else {
+                                mindex = index;
+                            }
+                            for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                int v = mindex.getInt(i);
+                                if (v <= 0 || v > bsize) { // includes RInt.NA
+                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                }
+                            }
+                            int j = 0;
+                            for (int i = 0; i < isize; i++) {
+                                int ivalue = mindex.getInt(i) - 1; // 0-based
+                                sbase[ivalue] = typedValue.getString(j);
+                                j++;
+                                if (j == vsize) {
+                                    j = 0;
+                                }
+                            }
+                            if (j != 0) {
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return base;
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RString,RString>");
                 }
-                return genericUpdate(abase, iindex, avalue, ast, subset);
-            } catch (SpecializationException e) {
-                Failure f = (Failure) e.getResult();
-                if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
-                GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
-                replace(gs, "install GenericSelection from NumericSelection");
-                if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
-                return gs.execute(base, index, value);
+            }
+            if (baseTemplate instanceof DoubleImpl) {
+                if (valueTemplate instanceof RDouble || valueTemplate instanceof RLogical || valueTemplate instanceof RInt) {
+                    ValueUpdate up = new ValueUpdate() {
+                        @Override
+                        RAny update(RArray base, RInt index, RAny value) throws SpecializationException {
+                            if (!(base instanceof DoubleImpl)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            if (base.isShared()) {
+                                throw new SpecializationException(Failure.SHARED_BASE);
+                            }
+                            if (index.dependsOn(base) || value.dependsOn(base)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
+                            }
+                            double[] dbase = ((DoubleImpl) base).getContent();
+                            RDouble typedValue;
+                            if (value instanceof RDouble) {
+                                typedValue = (RDouble) value;
+                            } else if (value instanceof RInt || value instanceof RLogical) {
+                                typedValue = value.asDouble();
+                            } else {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+
+                            RInt mindex;
+                            if (index instanceof View.ParametricView) {
+                                mindex = index.materialize();
+                            } else {
+                                mindex = index;
+                            }
+                            for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                int v = mindex.getInt(i);
+                                if (v <= 0 || v > bsize) { // includes RInt.NA
+                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                }
+                            }
+                            int j = 0;
+                            for (int i = 0; i < isize; i++) {
+                                int ivalue = mindex.getInt(i) - 1; // 0-based
+                                dbase[ivalue] = typedValue.getDouble(j);
+                                j++;
+                                if (j == vsize) {
+                                    j = 0;
+                                }
+                            }
+                            if (j != 0) {
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return base;
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RDouble,RDouble|RInt|RLogical>");
+                }
+            }
+
+            if (baseTemplate instanceof IntImpl) {
+                if (valueTemplate instanceof RInt || valueTemplate instanceof RLogical) {
+                    ValueUpdate up = new ValueUpdate() {
+                        @Override
+                        RAny update(RArray base, RInt index, RAny value) throws SpecializationException {
+                            if (!(base instanceof IntImpl)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            if (base.isShared()) {
+                                throw new SpecializationException(Failure.SHARED_BASE);
+                            }
+                            if (index.dependsOn(base) || value.dependsOn(base)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
+                            }
+                            int[] ibase = ((IntImpl) base).getContent();
+                            RInt typedValue;
+                            if (value instanceof RInt) {
+                                typedValue = (RInt) value;
+                            } else if (value instanceof RLogical) {
+                                typedValue = value.asInt();
+                            } else {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            int bsize = base.size();
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+
+                            RInt mindex;
+                            if (index instanceof View.ParametricView) {
+                                mindex = index.materialize();
+                            } else {
+                                mindex = index;
+                            }
+                            for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                int v = mindex.getInt(i);
+                                if (v <= 0 || v > bsize) { // includes RInt.NA
+                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                }
+                            }
+                            int j = 0;
+                            for (int i = 0; i < isize; i++) {
+                                int ivalue = mindex.getInt(i) - 1; // 0-based
+                                ibase[ivalue] = typedValue.getInt(j);
+                                j++;
+                                if (j == vsize) {
+                                    j = 0;
+                                }
+                            }
+                            if (j != 0) {
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return base;
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RInt,RInt|RLogical>");
+                }
+            }
+
+            if (baseTemplate instanceof LogicalImpl) {
+                if (valueTemplate instanceof RLogical) {
+                    ValueUpdate up = new ValueUpdate() {
+                        @Override
+                        RAny update(RArray base, RInt index, RAny value) throws SpecializationException {
+                            if (!(base instanceof LogicalImpl && value instanceof RLogical)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_TYPE);
+                            }
+                            if (base.isShared()) {
+                                throw new SpecializationException(Failure.SHARED_BASE);
+                            }
+                            if (index.dependsOn(base) || value.dependsOn(base)) {
+                                throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
+                            }
+                            int[] lbase = ((LogicalImpl) base).getContent();
+                            RLogical typedValue = (RLogical) value;
+                            int bsize = base.size();
+                            int isize = index.size();
+                            int vsize = typedValue.size();
+
+                            RInt mindex;
+                            if (index instanceof View.ParametricView) {
+                                mindex = index.materialize();
+                            } else {
+                                mindex = index;
+                            }
+                            for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                int v = mindex.getInt(i);
+                                if (v <= 0 || v > bsize) { // includes RInt.NA
+                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                }
+                            }
+                            int j = 0;
+                            for (int i = 0; i < isize; i++) {
+                                int ivalue = mindex.getInt(i) - 1; // 0-based
+                                lbase[ivalue] = typedValue.getLogical(j);
+                                j++;
+                                if (j == vsize) {
+                                    j = 0;
+                                }
+                            }
+                            if (j != 0) {
+                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                            }
+                            return base;
+                        }
+                    };
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RLogical,RLogical>");
+                }
+            }
+
+            return null;
+        }
+
+        public Specialized createGeneric() {
+            ValueUpdate up = new ValueUpdate() {
+                @Override RAny update(RArray base, RInt index, RAny value) {
+                    return genericUpdate(base, index, value, ast, true);
+                }
+            };
+            return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<Generic>");
+        }
+
+        class Specialized extends NumericSelection {
+            final ValueUpdate update;
+            final String dbg;
+
+            Specialized(ASTNode ast, boolean isSuper, RSymbol var, RNode lhs, RNode[] indexes, RNode rhs, boolean subset, ValueUpdate update, String dbg) {
+                super(ast, isSuper, var, lhs, indexes, rhs, subset);
+                this.update = update;
+                this.dbg = dbg;
+            }
+
+            @Override public RAny execute(RAny base, RAny index, RAny value) {
+                if (DEBUG_UP) Utils.debug("update - executing NumericSelection");
+                try {
+                    if (!(base instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_BASE); }
+                    RArray abase = (RArray) base;
+                    if (!(value instanceof RArray)) { throw new SpecializationException(Failure.NOT_ARRAY_VALUE); }
+                    RArray avalue = (RArray) value;
+                    RInt iindex;
+                    if (index instanceof RInt) {
+                        iindex = (RInt) index;
+                    } else if (index instanceof RDouble) {
+                        iindex = index.asInt();
+                    } else {
+                        throw new SpecializationException(Failure.NOT_NUMERIC_INDEX);
+                    }
+                    return update.update(abase, iindex, avalue);
+                } catch (SpecializationException e) {
+                    Failure f = (Failure) e.getResult();
+                    if (DEBUG_UP) Utils.debug("update - NumericSelection failed: " + f);
+                    switch(f) {
+                        case UNEXPECTED_TYPE:
+                        case SHARED_BASE:
+                        case UNEXPECTED_DEPENDENCY:
+                        case INDEX_OUT_OF_BOUNDS:
+                            Specialized sn = createGeneric();
+                            replace(sn, "generalize NumericSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection.Generic");
+                            return sn.execute(base, index, value);
+
+                        default:
+                            GenericSelection gs = new GenericSelection(ast, isSuper, var, lhs, indexes, rhs, subset);
+                            replace(gs, "install GenericSelection from NumericSelection");
+                            if (DEBUG_UP) Utils.debug("update - replaced and re-executing with GenericSelection");
+                            return gs.execute(base, index, value);
+
+                    }
+
+                }
             }
         }
+
+        @Override public RAny execute(RAny base, RAny index, RAny value) {
+            if (DEBUG_UP) Utils.debug("update - executing NumericSelection (uninitialized)");
+            try {
+                throw new SpecializationException(null);
+            } catch (SpecializationException e) {
+                Specialized sn = createSimple(base, value);
+                if (sn != null) {
+                    replace(sn, "specialize NumericSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection.Simple");
+                    return sn.execute(base, index, value);
+                } else {
+                    sn = createGeneric();
+                    replace(sn, "specialize NumericSelection");
+                    if (DEBUG_UP) Utils.debug("update - replaced and re-executing with NumericSelection.Generic");
+                    return sn.execute(base, index, value);
+                }
+            }
+        }
+
     }
 
     // for expressions like d[x == c] <- v, where
@@ -2410,7 +2703,7 @@ public abstract class UpdateVector extends BaseR {
                             return res;
                         }
                     };
-                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RDouble,RList|RDouble|RInt|RLogical>");
+                    return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, cpy, "<RList,RList|RDouble|RInt|RLogical>");
                 }
                 return null;
             }
@@ -2955,7 +3248,7 @@ public abstract class UpdateVector extends BaseR {
                     case INDEX_OUT_OF_BOUNDS:
                     case UNEXPECTED_TYPE:
                         Specialized sn = createGeneric();
-                        replace(sn, "specialize LogicalSelection");
+                        replace(sn, "generalize LogicalSelection");
                         if (DEBUG_UP) Utils.debug("update - replaced and re-executing with LogicalSelection.Generic");
                         return sn.execute(base, index, value);
 
