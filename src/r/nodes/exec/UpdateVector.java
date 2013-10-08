@@ -2236,36 +2236,57 @@ public abstract class UpdateVector extends BaseR {
                             if (index.dependsOn(base) || value.dependsOn(base)) {
                                 throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
                             }
-                            String[] sbase = ((StringImpl) base).getContent();
                             int bsize = base.size();
                             int isize = index.size();
                             int vsize = typedValue.size();
+                            String[] sbase = ((StringImpl) base).getContent();
 
-                            RInt mindex;
-                            if (index instanceof View.ParametricView) {
-                                mindex = index.materialize();
+                            if (!base.isShared() && !index.dependsOn(base) && !value.dependsOn(base)) {
+                                RInt mindex;
+                                if (index instanceof View.ParametricView) {
+                                    mindex = index.materialize();
+                                } else {
+                                    mindex = index;
+                                }
+                                for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                    int v = mindex.getInt(i);
+                                    if (v <= 0 || v > bsize) { // includes RInt.NA
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                }
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = mindex.getInt(i) - 1; // 0-based
+                                    sbase[ivalue] = typedValue.getString(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
+                                }
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                }
+                                return base;
                             } else {
-                                mindex = index;
-                            }
-                            for (int i = 0; i < isize; i++) { // note two passes through the index array
-                                int v = mindex.getInt(i);
-                                if (v <= 0 || v > bsize) { // includes RInt.NA
-                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                String[] content = new String[bsize]; // TODO: add this also to other types?
+                                System.arraycopy(sbase, 0, content, 0, bsize);
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = index.getInt(i); // 1-based
+                                    if (ivalue <= 0 || ivalue > bsize) {
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                    content[ivalue - 1] = typedValue.getString(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
                                 }
-                            }
-                            int j = 0;
-                            for (int i = 0; i < isize; i++) {
-                                int ivalue = mindex.getInt(i) - 1; // 0-based
-                                sbase[ivalue] = typedValue.getString(j);
-                                j++;
-                                if (j == vsize) {
-                                    j = 0;
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                                 }
+                                return RString.RStringFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
-                            if (j != 0) {
-                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
-                            }
-                            return base;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RString,RString>");
@@ -2298,31 +2319,53 @@ public abstract class UpdateVector extends BaseR {
                             int isize = index.size();
                             int vsize = typedValue.size();
 
-                            RInt mindex;
-                            if (index instanceof View.ParametricView) {
-                                mindex = index.materialize();
+                            if (!base.isShared() && !index.dependsOn(base) && !value.dependsOn(base)) {
+                                RInt mindex;
+                                if (index instanceof View.ParametricView) {
+                                    mindex = index.materialize();
+                                } else {
+                                    mindex = index;
+                                }
+                                for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                    int v = mindex.getInt(i);
+                                    if (v <= 0 || v > bsize) { // includes RInt.NA
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                }
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = mindex.getInt(i) - 1; // 0-based
+                                    dbase[ivalue] = typedValue.getDouble(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
+                                }
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                }
+                                return base;
                             } else {
-                                mindex = index;
-                            }
-                            for (int i = 0; i < isize; i++) { // note two passes through the index array
-                                int v = mindex.getInt(i);
-                                if (v <= 0 || v > bsize) { // includes RInt.NA
-                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                double[] content = new double[bsize]; // TODO: add this also to other types?
+                                System.arraycopy(dbase, 0, content, 0, bsize);
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = index.getInt(i); // 1-based
+                                    if (ivalue <= 0 || ivalue > bsize) {
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                    content[ivalue - 1] = typedValue.getDouble(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
                                 }
-                            }
-                            int j = 0;
-                            for (int i = 0; i < isize; i++) {
-                                int ivalue = mindex.getInt(i) - 1; // 0-based
-                                dbase[ivalue] = typedValue.getDouble(j);
-                                j++;
-                                if (j == vsize) {
-                                    j = 0;
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                                 }
+                                return RDouble.RDoubleFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
-                            if (j != 0) {
-                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
-                            }
-                            return base;
+
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RDouble,RDouble|RInt|RLogical>");
@@ -2337,13 +2380,6 @@ public abstract class UpdateVector extends BaseR {
                             if (!(base instanceof IntImpl)) {
                                 throw new SpecializationException(Failure.UNEXPECTED_TYPE);
                             }
-                            if (base.isShared()) {
-                                throw new SpecializationException(Failure.SHARED_BASE);
-                            }
-                            if (index.dependsOn(base) || value.dependsOn(base)) {
-                                throw new SpecializationException(Failure.UNEXPECTED_DEPENDENCY);
-                            }
-                            int[] ibase = ((IntImpl) base).getContent();
                             RInt typedValue;
                             if (value instanceof RInt) {
                                 typedValue = (RInt) value;
@@ -2355,32 +2391,54 @@ public abstract class UpdateVector extends BaseR {
                             int bsize = base.size();
                             int isize = index.size();
                             int vsize = typedValue.size();
+                            int[] ibase = ((IntImpl) base).getContent();
 
-                            RInt mindex;
-                            if (index instanceof View.ParametricView) {
-                                mindex = index.materialize();
+                            if (!base.isShared() && !index.dependsOn(base) && !value.dependsOn(base)) {
+                                RInt mindex;
+                                if (index instanceof View.ParametricView) {
+                                    mindex = index.materialize();
+                                } else {
+                                    mindex = index;
+                                }
+                                for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                    int v = mindex.getInt(i);
+                                    if (v <= 0 || v > bsize) { // includes RInt.NA
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                }
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = mindex.getInt(i) - 1; // 0-based
+                                    ibase[ivalue] = typedValue.getInt(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
+                                }
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                }
+                                return base;
                             } else {
-                                mindex = index;
-                            }
-                            for (int i = 0; i < isize; i++) { // note two passes through the index array
-                                int v = mindex.getInt(i);
-                                if (v <= 0 || v > bsize) { // includes RInt.NA
-                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                int[] content = new int[bsize]; // TODO: add this also to other types?
+                                System.arraycopy(ibase, 0, content, 0, bsize);
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = index.getInt(i); // 1-based
+                                    if (ivalue <= 0 || ivalue > bsize) {
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                    content[ivalue - 1] = typedValue.getInt(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
                                 }
-                            }
-                            int j = 0;
-                            for (int i = 0; i < isize; i++) {
-                                int ivalue = mindex.getInt(i) - 1; // 0-based
-                                ibase[ivalue] = typedValue.getInt(j);
-                                j++;
-                                if (j == vsize) {
-                                    j = 0;
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                                 }
+                                return RInt.RIntFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
-                            if (j != 0) {
-                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
-                            }
-                            return base;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RInt,RInt|RLogical>");
@@ -2407,31 +2465,52 @@ public abstract class UpdateVector extends BaseR {
                             int isize = index.size();
                             int vsize = typedValue.size();
 
-                            RInt mindex;
-                            if (index instanceof View.ParametricView) {
-                                mindex = index.materialize();
+                            if (!base.isShared() && !index.dependsOn(base) && !value.dependsOn(base)) {
+                                RInt mindex;
+                                if (index instanceof View.ParametricView) {
+                                    mindex = index.materialize();
+                                } else {
+                                    mindex = index;
+                                }
+                                for (int i = 0; i < isize; i++) { // note two passes through the index array
+                                    int v = mindex.getInt(i);
+                                    if (v <= 0 || v > bsize) { // includes RInt.NA
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                }
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = mindex.getInt(i) - 1; // 0-based
+                                    lbase[ivalue] = typedValue.getLogical(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
+                                }
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
+                                }
+                                return base;
                             } else {
-                                mindex = index;
-                            }
-                            for (int i = 0; i < isize; i++) { // note two passes through the index array
-                                int v = mindex.getInt(i);
-                                if (v <= 0 || v > bsize) { // includes RInt.NA
-                                    throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                int[] content = new int[bsize]; // TODO: add this also to other types?
+                                System.arraycopy(lbase, 0, content, 0, bsize);
+                                int j = 0;
+                                for (int i = 0; i < isize; i++) {
+                                    int ivalue = index.getInt(i); // 1-based
+                                    if (ivalue <= 0 || ivalue > bsize) {
+                                        throw new SpecializationException(Failure.INDEX_OUT_OF_BOUNDS);
+                                    }
+                                    content[ivalue - 1] = typedValue.getLogical(j);
+                                    j++;
+                                    if (j == vsize) {
+                                        j = 0;
+                                    }
                                 }
-                            }
-                            int j = 0;
-                            for (int i = 0; i < isize; i++) {
-                                int ivalue = mindex.getInt(i) - 1; // 0-based
-                                lbase[ivalue] = typedValue.getLogical(j);
-                                j++;
-                                if (j == vsize) {
-                                    j = 0;
+                                if (j != 0) {
+                                    RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
                                 }
+                                return RLogical.RLogicalFactory.getFor(content, base.dimensions(), base.names(), base.attributesRef());
                             }
-                            if (j != 0) {
-                                RContext.warning(ast, RError.NOT_MULTIPLE_REPLACEMENT);
-                            }
-                            return base;
                         }
                     };
                     return new Specialized(ast, isSuper, var, lhs, indexes, rhs, subset, up, "<RLogical,RLogical>");
