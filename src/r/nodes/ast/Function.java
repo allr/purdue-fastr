@@ -22,6 +22,7 @@ public class Function extends ASTNode {
 
     Function(ArgumentList alist, ASTNode body) {
         this.signature = alist;
+        ArgumentList.Default.updateParent(this, signature);
         this.body = updateParent(body);
     }
 

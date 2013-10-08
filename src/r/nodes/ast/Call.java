@@ -9,6 +9,7 @@ public abstract class Call extends ASTNode {
 
     public Call(ArgumentList alist) {
         args = alist;
+        ArgumentList.Default.updateParent(this, args);
     }
 
     @Override

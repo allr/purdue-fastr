@@ -8,7 +8,7 @@ public class AccessVector extends Call {
 
     public AccessVector(ASTNode vector, ArgumentList args, boolean subset) {
         super(args);
-        this.vector = vector;
+        this.vector = updateParent(vector);
         this.subset = subset;
     }
 

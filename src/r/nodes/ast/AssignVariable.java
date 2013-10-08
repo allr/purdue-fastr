@@ -70,6 +70,7 @@ public abstract class AssignVariable extends ASTNode {
                 return new UpdateExpression(isSuper, lhs, rhs);
             } else {
                 lhs.args.add("value", rhs);
+                ArgumentList.Default.updateParent(lhs, lhs.args); // TODO: avoid repeated update parent, perhaps convert to array
             }
         }
         lhs.name = RSymbol.getSymbol(lhs.name.pretty() + "<-");

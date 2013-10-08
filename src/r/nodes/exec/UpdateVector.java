@@ -2554,6 +2554,7 @@ public abstract class UpdateVector extends BaseR {
                     } else {
                         throw new SpecializationException(Failure.NOT_NUMERIC_INDEX);
                     }
+//                    System.err.println("NUMERIC - base is " + base + " node " + this + " parent " + getParent());
                     return update.update(abase, iindex, avalue);
                 } catch (SpecializationException e) {
                     Failure f = (Failure) e.getResult();

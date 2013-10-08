@@ -5,6 +5,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
 import r.nodes.ast.*;
+import r.nodes.tools.*;
 import r.runtime.*;
 
 // FIXME: local slot for functions can be looked up statically, so the code can be simplified accordingly
@@ -14,12 +15,17 @@ import r.runtime.*;
 public abstract class Loop extends BaseR {
 
     @Child RNode body;
+    @Child RNode bodyFirst; // copy of the body for the first iteration
 
     private static final boolean DEBUG_LO = false;
+    private static final DuplicateVisitor bodyDuplicator = new DuplicateVisitor();
 
     Loop(ASTNode ast, RNode body) {
         super(ast);
         this.body = adoptChild(body);
+        ASTNode bcopy = bodyDuplicator.duplicate(body.getAST());
+        bcopy.setParent(body.getAST().getParent());
+        this.bodyFirst = adoptChild(new LazyBuild(bcopy));
     }
 
     @Override
@@ -27,6 +33,10 @@ public abstract class Loop extends BaseR {
         assert oldNode != null;
         if (body == oldNode) {
             body = newNode;
+            return adoptInternal(newNode);
+        }
+        if (bodyFirst == oldNode) {
+            bodyFirst = newNode;
             return adoptInternal(newNode);
         }
         return super.replaceChild(oldNode, newNode);
@@ -73,6 +83,11 @@ public abstract class Loop extends BaseR {
         public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering repeat loop");
+                try {
+                    bodyFirst.execute(frame);
+                } catch (ContinueException ce) {
+                    if (DEBUG_LO) Utils.debug("loop - repeat loop received continue exception");
+                }
                 for (;;) {
                     try {
                         body.execute(frame);
@@ -100,6 +115,26 @@ public abstract class Loop extends BaseR {
         public final RAny execute(Frame frame) {
             try {
                 if (DEBUG_LO) Utils.debug("loop - entering while loop");
+                try {
+                    int condVal;
+                    try {
+                        condVal = cond.executeScalarLogical(frame);
+                    } catch (SpecializationException e) {
+                        RAny result = (RAny) e.getResult();
+                        ConvertToLogicalOne castNode = ConvertToLogicalOne.createAndInsertNode(cond, result);
+                        cond = adoptChild(castNode);
+                        condVal = castNode.executeScalarLogical(result);
+                    }
+                    if (condVal == RLogical.FALSE) {
+                        return RNull.getNull();
+                    }
+                    if (condVal == RLogical.NA) {
+                        throw RError.getUnexpectedNA(ast);
+                    }
+                    bodyFirst.execute(frame);
+                } catch (ContinueException ce) {
+                    if (DEBUG_LO) Utils.debug("loop - while loop received continue exception");
+                }
                 for (;;) {
                     try {
                         int condVal;
@@ -312,7 +347,14 @@ public abstract class Loop extends BaseR {
                         final int to = sval.to();
                         final int step = sval.step();
                         try {
-                            for (int i = from;; i += step) {
+                            Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(from));
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            if (size == 1) {
+                                return RNull.getNull();
+                            }
+                            for (int i = from + step;; i += step) {
                                 Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
@@ -346,7 +388,11 @@ public abstract class Loop extends BaseR {
                                 throw new SpecializationException(null);
                             }
                             try {
-                                for (int i = 1; i <= to; i++) {
+                                frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(1));
+                                try {
+                                    bodyFirst.execute(frame);
+                                } catch (ContinueException ce) { }
+                                for (int i = 2; i <= to; i++) {
                                     // no ref needed because scalars do not have reference counts
                                     frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
                                     try {
@@ -379,7 +425,14 @@ public abstract class Loop extends BaseR {
                         final int to = sval.to();
                         final int step = sval.step();
                         try {
-                            for (int i = from;; i += step) {
+                            frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(from));
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            if (size == 1) {
+                                return RNull.getNull();
+                            }
+                            for (int i = from + step;; i += step) {
                                 // no ref needed because scalars do not have reference counts
                                 frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
                                 try {
@@ -403,7 +456,14 @@ public abstract class Loop extends BaseR {
                         final int to = sval.to();
                         final int step = sval.step();
                         try {
-                            for (int i = from;; i += step) {
+                            frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(from));
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            if (size == 1) {
+                                return RNull.getNull();
+                            }
+                            for (int i = from + step;; i += step) {
                                 // no ref needed because scalars do not have reference counts
                                 // TODO: this is super-inefficient
                                 frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(i));
@@ -502,7 +562,11 @@ public abstract class Loop extends BaseR {
                     @Override
                     public final RAny execute(Frame frame, int to) {
                         try {
-                            for (int i = 1; i <= to; i++) {
+                            Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(1));
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            for (int i = 2; i <= to; i++) {
                                 Frame.writeToTopLevelNoRef(cvar, RInt.RIntFactory.getScalar(i));
                                 try {
                                     body.execute(frame);
@@ -526,7 +590,11 @@ public abstract class Loop extends BaseR {
                             IntImpl.RIntSimpleRange sval = IntImpl.RIntSimpleRange.cast(rval);
                             int to = sval.to();
                             try {
-                                for (int i = 1; i <= to; i++) {
+                                frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(1));
+                                try {
+                                    bodyFirst.execute(frame);
+                                } catch (ContinueException ce) { }
+                                for (int i = 2; i <= to; i++) {
                                     // no ref needed because scalars do not have reference counts
                                     frame.writeAtNoRef(slot, RInt.RIntFactory.getScalar(i));
                                     try {
@@ -556,7 +624,11 @@ public abstract class Loop extends BaseR {
                     @Override
                     public final RAny execute(Frame frame, int to) {
                         try {
-                            for (int i = 1; i <= 10; i++) {
+                            frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(1));
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            for (int i = 2; i <= to; i++) {
                                 // no ref needed because scalars do not have reference counts
                                 // TODO: this is super-inefficient
                                 frame.writeToExtension(cvar, RInt.RIntFactory.getScalar(i));
@@ -596,8 +668,16 @@ public abstract class Loop extends BaseR {
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
-                            for (int i = 0; i < size; i++) {
-                                RAny vvalue = arange instanceof RList ? ((RList) arange).getRAny(i) : arange.boxedGet(i);
+                            if (size == 0) {
+                                return RNull.getNull();
+                            }
+                            RAny vvalue = arange instanceof RList ? ((RList) arange).getRAny(0) : arange.boxedGet(0);
+                            Frame.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            for (int i = 1; i < size; i++) {
+                                vvalue = arange instanceof RList ? ((RList) arange).getRAny(i) : arange.boxedGet(i);
                                 Frame.writeToTopLevelRef(cvar, vvalue); // FIXME: ref is only needed if the value is a list
                                 try {
                                     body.execute(frame);
@@ -619,8 +699,16 @@ public abstract class Loop extends BaseR {
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
-                            for (int i = 0; i < size; i++) {
-                                RAny vvalue = arange.boxedGet(i);
+                            if (size == 0) {
+                                return RNull.getNull();
+                            }
+                            RAny vvalue = arange.boxedGet(0);
+                            frame.writeAtRef(slot, vvalue);
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            for (int i = 1; i < size; i++) {
+                                vvalue = arange.boxedGet(i);
                                 frame.writeAtRef(slot, vvalue);
                                 try {
                                     body.execute(frame);
@@ -642,8 +730,16 @@ public abstract class Loop extends BaseR {
                         RArray arange = (RArray) rval;
                         int size = arange.size();
                         try {
-                            for (int i = 0; i < size; i++) {
-                                RAny vvalue = arange.boxedGet(i);
+                            if (size == 0) {
+                                return RNull.getNull();
+                            }
+                            RAny vvalue = arange.boxedGet(0);
+                            frame.writeToExtension(cvar, vvalue); // TODO: this is inefficient
+                            try {
+                                bodyFirst.execute(frame);
+                            } catch (ContinueException ce) { }
+                            for (int i = 1; i < size; i++) {
+                                vvalue = arange.boxedGet(i);
                                 frame.writeToExtension(cvar, vvalue); // TODO: this is inefficient
                                 try {
                                     body.execute(frame);

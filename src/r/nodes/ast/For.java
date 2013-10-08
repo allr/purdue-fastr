@@ -11,7 +11,7 @@ public class For extends Loop {
     public For(RSymbol cvar, ASTNode range, ASTNode body) {
         super(body);
         this.cvar = cvar;
-        this.range = range;
+        this.range = updateParent(range);
     }
 
     public ASTNode getRange() {

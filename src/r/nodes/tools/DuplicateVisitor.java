@@ -4,7 +4,7 @@ import r.*;
 import r.nodes.ast.*;
 
 // WARNING: the duplication only duplicates nodes that have child nodes (e.g. for node rewriting tricks)
-// WARNING: it does not duplicate notes with no state or with a state that does not include nodes ! (see result = n below)
+// WARNING: it does not duplicate nodes with no state or with a state that does not include nodes ! (see result = n below)
 public class DuplicateVisitor extends BasicVisitor implements Visitor {
     protected ASTNode result;
 
@@ -224,7 +224,7 @@ public class DuplicateVisitor extends BasicVisitor implements Visitor {
 
     @Override
     public void visit(FunctionCall n) {
-        result = new FunctionCall(n.getName(), d(n.getArgs()));
+        result = new FunctionCall(n.getName(), d(n.getArgs()), n.isAssignment(), n.isSuper());
     }
 
     @Override

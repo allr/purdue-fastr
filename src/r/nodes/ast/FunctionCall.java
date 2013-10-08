@@ -13,6 +13,13 @@ public class FunctionCall extends Call {
         name = funName;
     }
 
+    public FunctionCall(RSymbol funName, ArgumentList args, boolean isAssignment, boolean isSuper) {
+        super(args);
+        name = funName;
+        this.isAssignment = isAssignment;
+        this.isSuper = isSuper;
+    }
+
     public RSymbol getName() {
         return name;
     }
