@@ -15,6 +15,7 @@ public abstract class MatrixOperation extends BaseR {
     @Child RNode right;
 
     private static final boolean USE_PRIMITIVE_ACCESS = false; // surprisingly primitive access in naive algo is not faster than getters
+    private static final boolean DGEMM_NA_WORKAROUND = true; // the workaround is used in GNU-R to prevent agains buggy BLAS implementations
 
     public MatrixOperation(ASTNode ast, RNode left, RNode right) {
         super(ast);
@@ -165,7 +166,8 @@ public abstract class MatrixOperation extends BaseR {
             int p = dimb[1];
 
             double[] res;
-            if (RDouble.RDoubleUtils.hasNAorNaN(a) || RDouble.RDoubleUtils.hasNAorNaN(b) || m == 0 || n == 0 || p == 0) {
+            if (DGEMM_NA_WORKAROUND && (RDouble.RDoubleUtils.hasNAorNaN(a) || RDouble.RDoubleUtils.hasNAorNaN(b)) ||
+                    m == 0 || n == 0 || p == 0) {
                 if (USE_PRIMITIVE_ACCESS && a.size() > 1 && b.size() > 1) {
                     res =  matrixTimesMatrixPrimitive(((DoubleImpl) a.materialize()).getContent(), ((DoubleImpl) b.materialize()).getContent(), m, n, p);
                 } else {

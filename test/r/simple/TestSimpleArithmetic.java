@@ -475,6 +475,9 @@ public class TestSimpleArithmetic extends SimpleTestBase {
         assertEvalWarning("{ c(1L,2L,3L,4L) + c(2147483647L,2147483647L) }", "NA, NA, NA, NA", "NAs produced by integer overflow");
         assertEvalWarning("{ c(2147483647L,2147483647L) + c(1L,2L,3L,4L) }", "NA, NA, NA, NA", "NAs produced by integer overflow");
 
+        assertEval("{ 0 %*% NA }", "     [,1]\n[1,]   NA");
+        assertEval("{ NA %*% 0 }", "     [,1]\n[1,]   NA");
+
     }
 
     @Test
