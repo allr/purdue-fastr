@@ -192,6 +192,19 @@ final class Round extends CallFactory {
             }
         }
         @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = round(a, b);
+                }
+            }
+        }
+        @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }

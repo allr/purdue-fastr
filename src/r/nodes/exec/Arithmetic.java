@@ -36,6 +36,7 @@ public class Arithmetic extends BaseR {
     @Child RNode right;
     final ValueArithmetic arit;
 
+    private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
     private static final boolean EAGER = false;
     private static final boolean LIMIT_VIEW_DEPTH = true && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
     private static final int MAX_VIEW_DEPTH = 5;
@@ -1117,6 +1118,8 @@ public class Arithmetic extends BaseR {
             return op(ast, (double) a, b);
         }
 
+        // TODO: NA checks on operations with scalars below
+
         public abstract void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size);
         public abstract void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size);
         public abstract void opScalarComplex(ASTNode ast, double a, double b, double[] y, double[] res, int size);
@@ -1214,6 +1217,22 @@ public class Arithmetic extends BaseR {
             } else {
                 double[] res = new double[size];
                 opScalarDouble(ast, x, y, res, size);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public abstract void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size);
+
+        public RDouble opDoubleIntImplEqualSize(ASTNode ast, DoubleImpl xdbl, IntImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xdbl.getContent();
+            int[] y = ydbl.getContent();
+            if (xdbl.isTemporary()) {
+                opDoubleIntEqualSize(ast, x, y, x, size);
+                xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xdbl;
+            } else {
+                double[] res = new double[size];
+                opDoubleIntEqualSize(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
@@ -1383,6 +1402,20 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+            }
+        }
+
+        @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             int y = yfrom;
             boolean overflown = false;
@@ -1537,6 +1570,20 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+            }
+        }
+
         @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
@@ -1748,6 +1795,19 @@ public class Arithmetic extends BaseR {
                     }
                 } else {
                     res[i] = c;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
                 }
             }
         }
@@ -2126,6 +2186,20 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+            }
+        }
+
+        @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
@@ -2313,6 +2387,19 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+            }
+        }
+        @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
@@ -2411,6 +2498,20 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+            }
+        }
+
         @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
@@ -2528,6 +2629,20 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+        @Override
+        public void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+            }
+        }
+
         @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
@@ -2728,8 +2843,8 @@ public class Arithmetic extends BaseR {
                 x = ((RDoubleTracingView) a).orig;
             }
         }
-        if (x instanceof DoubleView) {
-            return ((DoubleView) x).depth();
+        if (x instanceof DoubleViewForDoubleDouble) {
+            return ((DoubleViewForDoubleDouble) x).depth();
         } else {
             return 0;
         }
@@ -2787,7 +2902,7 @@ public class Arithmetic extends BaseR {
                 // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
                 return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
             }
-            res = new DoubleView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (nb == 1 && na > 0) {
             if (arit == POW && na > 1) {
                 return arit.opDoubleImplScalar(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
@@ -2796,15 +2911,15 @@ public class Arithmetic extends BaseR {
                 // FIXME: re-visit the condition, like above
                 return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
             }
-            res = new DoubleView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
-            res = new DoubleView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
         } else {
             int n = resultSize(ast, na, nb);
             if (n == na) {
-                res = new DoubleView.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                res = new DoubleViewForDoubleDouble.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
             } else {
-                res = new DoubleView.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                res = new DoubleViewForDoubleDouble.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
             }
         }
         res = TracingView.ViewTrace.trace(res);
@@ -2836,14 +2951,14 @@ public class Arithmetic extends BaseR {
                 res = new DoubleViewForDoubleInt.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
-            res = new DoubleView.VectorScalar(a, b.asDouble(), dim, names, attributes, na, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.VectorScalar(a, b.asDouble(), dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
             if (RIntSimpleRange.isInstance(b)) {
                 res = new DoubleViewForDoubleInt.ScalarSimpleRange(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
                 res = new DoubleViewForDoubleInt.ScalarSequence(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else {
-                res = new DoubleView.ScalarVector(a, b.asDouble(), dim, names, attributes, nb, depth, arit, ast);
+                res = new DoubleViewForDoubleDouble.ScalarVector(a, b.asDouble(), dim, names, attributes, nb, depth, arit, ast);
             }
         } else {
             int n = resultSize(ast, na, nb);
@@ -2861,9 +2976,9 @@ public class Arithmetic extends BaseR {
                 }
             } else {
                 if (n == na) {
-                    res = new DoubleView.GenericASized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleDouble.GenericASized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleView.GenericBSized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleDouble.GenericBSized(a, b.asDouble(), dim, names, attributes, n, depth, arit, ast);
                 }
             }
         }
@@ -2904,7 +3019,7 @@ public class Arithmetic extends BaseR {
                 res = new DoubleViewForIntDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (na == 1 && nb > 0) {
-            res = new DoubleView.ScalarVector(a.asDouble(), b, dim, names, attributes, nb, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.ScalarVector(a.asDouble(), b, dim, names, attributes, nb, depth, arit, ast);
         } else {
             int n = resultSize(ast, na, nb);
             if (RIntSimpleRange.isInstance(a)) {
@@ -2921,9 +3036,9 @@ public class Arithmetic extends BaseR {
                 }
             } else {
                 if (n == na) {
-                    res = new DoubleView.GenericASized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleDouble.GenericASized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new DoubleView.GenericBSized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
+                    res = new DoubleViewForDoubleDouble.GenericBSized(a.asDouble(), b, dim, names, attributes, n, depth, arit, ast);
                 }
             }
         }
@@ -2934,12 +3049,7 @@ public class Arithmetic extends BaseR {
         return res;
     }
 
-
-    // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
-    // int and double combinations; unfortunately, that leads to slower execution
     abstract static class DoubleView extends View.RDoubleView implements RDouble {
-        final RDouble a;
-        final RDouble b;
         final int n;
         final int[] dimensions;
         final Names names;
@@ -2951,9 +3061,7 @@ public class Arithmetic extends BaseR {
         // limiting view depth
         private int depth;  // total views involved
 
-        public DoubleView(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
-            this.a = a;
-            this.b = b;
+        public DoubleView(int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.dimensions = dimensions;
             this.names = names;
             this.attributes = attributes;
@@ -2966,17 +3074,6 @@ public class Arithmetic extends BaseR {
         @Override
         public final int size() {
             return n;
-        }
-
-        @Override
-        public final boolean isSharedReal() {
-            return a.isShared() || b.isShared();
-        }
-
-        @Override
-        public final void ref() {
-            a.ref();
-            b.ref();
         }
 
         @Override
@@ -2994,27 +3091,70 @@ public class Arithmetic extends BaseR {
             return attributes;
         }
 
+        public final int depth() {
+            return depth;
+        }
+
+        @Override
+        public RDouble materialize() {
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                double[] content = new double[n];
+                materializeInto(content);
+                return RDouble.RDoubleFactory.getFor(content, dimensions, names, attributes);
+            } else {
+                return super.materialize();
+            }
+        }
+
+        // FIXME: this is probably a general thing for double views (note - unlike the on-the-fly version)
+        public void materializeInto(double[] res) {
+            for (int i = 0; i < n; i++) {
+                res[i] = getDouble(i);
+            }
+        }
+
+        // TODO: implement more efficient versions of this
+        //   note that one can change to DoubleImpl, and then use .dependsOn to rule out a dependency, and hence fall back
+        //   to tight loops
+        public void materializeIntoOnTheFly(double[] res) {
+            // the base class implementation of materializeInto is also on-the-fly, but the subclasses overwrite res
+            for (int i = 0; i < n; i++) {
+                res[i] = getDouble(i);
+            }
+        }
+    }
+
+    // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
+    // int and double combinations; unfortunately, that leads to slower execution
+    abstract static class DoubleViewForDoubleDouble extends DoubleView implements RDouble {
+        final RDouble a;
+        final RDouble b;
+
+        public DoubleViewForDoubleDouble(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            super(dimensions, names, attributes, n, depth, arit, ast);
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
+        public final boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public final void ref() {
+            a.ref();
+            b.ref();
+        }
+
         @Override
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
-        public final int depth() {
-            return depth;
-        }
-
-        public RDouble materializeInto(DoubleImpl res) {
-            for (int i = 0; i < n; i++) {
-                res.set(i, get(i));
-            }
-            return (RDouble) res.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-        }
-
         @Override
         public RDouble materializeOnAssignmentRef(Object oldValue) {
-
-            // FIXME: although a bit error prone perhaps we could also  mark the oldValue as temporary and then call the normal
-            // materialize
+            // TODO: this optimization does not work with over-writing materializeInto
             DoubleImpl res;
             if (a == oldValue && a instanceof DoubleImpl && !a.isShared() && a.size() == n) {
                 res = (DoubleImpl) a;
@@ -3023,10 +3163,11 @@ public class Arithmetic extends BaseR {
             } else {
                 return super.materializeOnAssignmentRef(oldValue);
             }
-            return materializeInto(res); // no ref
+            materializeIntoOnTheFly(res.getContent()); // no ref
+            return (RDouble) res.setNames(names).setDimensions(dimensions).setAttributes(attributes);
         }
 
-        static final class Generic extends DoubleView implements RDouble {
+        static final class Generic extends DoubleViewForDoubleDouble implements RDouble {
             final int na;
             final int nb;
 
@@ -3061,7 +3202,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class GenericASized extends DoubleView implements RDouble {
+        static final class GenericASized extends DoubleViewForDoubleDouble implements RDouble {
             final int nb;
 
             public GenericASized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -3084,7 +3225,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class GenericBSized extends DoubleView implements RDouble {
+        static final class GenericBSized extends DoubleViewForDoubleDouble implements RDouble {
             final int na;
 
             public GenericBSized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -3107,7 +3248,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSize extends DoubleView implements RDouble {
+        static final class EqualSize extends DoubleViewForDoubleDouble implements RDouble {
 
             public EqualSize(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
@@ -3126,26 +3267,46 @@ public class Arithmetic extends BaseR {
              }
 
             @Override
-            public RDouble materializeInto(DoubleImpl res) {
-                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-                    arit.opDoubleEqualSize(ast, ((DoubleImpl) a).getContent(), ((DoubleImpl) b).getContent(), res.getContent(), n);
-                    return res;
-                } else { // FIXME: ?? or should work recursively ??
-                    return super.materializeInto(res);
+            public void materializeInto(double[] resContent) {
+                if (a instanceof DoubleImpl) {
+                    if (b instanceof DoubleImpl) {
+                        arit.opDoubleEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                        return;
+                    }
+                    if (b instanceof DoubleView) {
+                        ((DoubleView) b).materializeInto(resContent);
+                        arit.opDoubleEqualSize(ast, a.getContent(), resContent, resContent, n);
+                        return;
+                    }
+                } else if (a instanceof DoubleView && b instanceof DoubleImpl) {
+                    ((DoubleView) a).materializeInto(resContent);
+                    arit.opDoubleEqualSize(ast, resContent, b.getContent(), resContent, n);
+                    return;
                 }
+                // FIXME: should create an extra buffer?
+                super.materializeInto(resContent);
             }
 
-            @Override
-            public RDouble materialize() {
-                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, n, dimensions, names, attributes);
-                } else {
-                    return super.materialize();
-                }
-            }
+//            @Override
+//            public void materializeIntoOnTheFly(double[] resContent) {
+//                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
+//                    arit.opDoubleEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+//                } else {
+//                    super.materializeInto(resContent);
+//                }
+//            }
+
+//            @Override
+//            public RDouble materialize() {
+//                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
+//                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, n, dimensions, names, attributes);
+//                } else {
+//                    return super.materialize();
+//                }
+//            }
         }
 
-        static final class VectorScalar extends DoubleView implements RDouble {
+        static final class VectorScalar extends DoubleViewForDoubleDouble implements RDouble {
 
             final boolean arithIsNA;
             final double bdbl;
@@ -3166,18 +3327,30 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+//            @Override
+//            public RDouble materialize() {
+//                if (a instanceof DoubleImpl) {
+//                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), n, dimensions, names, attributes);
+//                } else {
+//                    return super.materialize();
+//                }
+//            }
+
             @Override
-            public RDouble materialize() {
+            public void materializeInto(double[] resContent) {
                 if (a instanceof DoubleImpl) {
-                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), n, dimensions, names, attributes);
-                } else {
-                    return super.materialize();
+                    arit.opDoubleScalar(ast, a.getContent(), bdbl, resContent, n);
+                } else if (a instanceof DoubleView) {
+                    ((DoubleView) a).materializeInto(resContent);
+                    arit.opDoubleScalar(ast, resContent, bdbl, resContent, n);
+                } else  {
+                    super.materializeInto(resContent);
                 }
             }
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
-        static final class ScalarVector extends DoubleView implements RDouble {
+        static final class ScalarVector extends DoubleViewForDoubleDouble implements RDouble {
 
             final boolean arithIsNA;
             final double adbl;
@@ -3259,95 +3432,86 @@ public class Arithmetic extends BaseR {
             }
 
             @Override
-            public RDouble materialize() {
-
-                if (false) { // hack to test if synthesis could help for b25-prog2 (perfres)
-                    if (a instanceof ScalarDoubleImpl && b instanceof RInt.RDoubleView) {
-                        RInt bint = ((RInt.RDoubleView) b).asInt(); // hack to get the original view
-                        if (bint instanceof IntView.VectorSequenceASized) {
-                            // 1 / (t(b) + 0:(a-1))
-                            IntView.VectorSequenceASized bview = (IntView.VectorSequenceASized) bint;
-                            double avalue = ((ScalarDoubleImpl) a).getDouble();
-                            int[] ba = bview.a.getContent();
-                            RIntSequence bbs = (RIntSequence) bview.b;
-                            int bbfrom = bbs.from();
-                            int bbto = bbs.to();
-                            int bbstep = bbs.step();
-                            ValueArithmetic barith = bview.arit;
-
-                            double[] content = new double[n];
-                            int bbb = bbfrom;
-                            boolean overflown = false;
-
-                            for(int i = 0; i < n; i++) {
-                                int bba = ba[i];
-                                if (bba == RInt.NA) {
-                                    content[i] = RDouble.NA;
-                                } else {
-                                    int r = barith.op(ast, bba, bbb);
-                                    double rd;
-                                    if (r == RInt.NA) {
-                                        overflown = true;
-                                        rd = RDouble.NA;
-                                    } else {
-                                        rd = r;
-                                    }
-                                    content[i] = arit.op(ast, avalue, rd);
-                                }
-                                bbb += bbstep;
-                                if (bbb > bbto) {
-                                    bbb = bbfrom;
-                                }
-                            }
-                            if (overflown) {
-                                barith.emitOverflowWarning(ast);
-                            }
-                            return RDouble.RDoubleFactory.getFor(content, dimensions, names, attributes);
-                        }
-                    }
-                }
-
+            public void materializeInto(double[] resContent) {
                 if (b instanceof DoubleImpl) {
-                    return arit.opScalarDoubleImpl(ast, a.getDouble(0), (DoubleImpl) b, n, dimensions, names, attributes);
-                } else {
-                    return super.materialize();
+                    arit.opScalarDouble(ast, adbl, b.getContent(), resContent, n);
+                } else if (b instanceof DoubleView) {
+                    ((DoubleView) b).materializeInto(resContent);
+                    arit.opScalarDouble(ast, adbl, resContent, resContent, n);
+                } else  {
+                    super.materializeInto(resContent);
                 }
             }
+
+//            @Override
+//            public RDouble materialize() {
+//
+//                if (false) { // hack to test if synthesis could help for b25-prog2 (perfres)
+//                    if (a instanceof ScalarDoubleImpl && b instanceof RInt.RDoubleView) {
+//                        RInt bint = ((RInt.RDoubleView) b).asInt(); // hack to get the original view
+//                        if (bint instanceof IntView.VectorSequenceASized) {
+//                            // 1 / (t(b) + 0:(a-1))
+//                            IntView.VectorSequenceASized bview = (IntView.VectorSequenceASized) bint;
+//                            double avalue = ((ScalarDoubleImpl) a).getDouble();
+//                            int[] ba = bview.a.getContent();
+//                            RIntSequence bbs = (RIntSequence) bview.b;
+//                            int bbfrom = bbs.from();
+//                            int bbto = bbs.to();
+//                            int bbstep = bbs.step();
+//                            ValueArithmetic barith = bview.arit;
+//
+//                            double[] content = new double[n];
+//                            int bbb = bbfrom;
+//                            boolean overflown = false;
+//
+//                            for(int i = 0; i < n; i++) {
+//                                int bba = ba[i];
+//                                if (bba == RInt.NA) {
+//                                    content[i] = RDouble.NA;
+//                                } else {
+//                                    int r = barith.op(ast, bba, bbb);
+//                                    double rd;
+//                                    if (r == RInt.NA) {
+//                                        overflown = true;
+//                                        rd = RDouble.NA;
+//                                    } else {
+//                                        rd = r;
+//                                    }
+//                                    content[i] = arit.op(ast, avalue, rd);
+//                                }
+//                                bbb += bbstep;
+//                                if (bbb > bbto) {
+//                                    bbb = bbfrom;
+//                                }
+//                            }
+//                            if (overflown) {
+//                                barith.emitOverflowWarning(ast);
+//                            }
+//                            return RDouble.RDoubleFactory.getFor(content, dimensions, names, attributes);
+//                        }
+//                    }
+//                }
+//
+//                if (b instanceof DoubleImpl) {
+//                    return arit.opScalarDoubleImpl(ast, a.getDouble(0), (DoubleImpl) b, n, dimensions, names, attributes);
+//                } else {
+//                    return super.materialize();
+//                }
+//            }
         }
 
     }
 
 
     // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
-    abstract static class DoubleViewForDoubleInt extends View.RDoubleView implements RDouble {
+    abstract static class DoubleViewForDoubleInt extends DoubleView implements RDouble {
         final RDouble a;
         final RInt b;
-        final int n;
-        final int[] dimensions;
-        final Names names;
-        final Attributes attributes;
-
-        final ValueArithmetic arit;
-        final ASTNode ast;
-
-        // limiting view depth
-        private int depth;  // total views involved
 
         public DoubleViewForDoubleInt(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            super(dimensions, names, attributes, n, depth, arit, ast);
             this.a = a;
             this.b = b;
-            this.dimensions = dimensions;
-            this.names = names;
-            this.attributes = attributes;
-            this.n = n;
-            this.depth = depth;
-            this.arit = arit;
-            this.ast = ast;
-        }
-
-        @Override
-        public final int size() {
-            return n;
         }
 
         @Override
@@ -3362,27 +3526,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public final int[] dimensions() {
-            return dimensions;
-        }
-
-        @Override
-        public final Names names() {
-            return names;
-        }
-
-        @Override
-        public final Attributes attributes() {
-            return attributes;
-        }
-
-        @Override
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
-        }
-
-        public final int depth() {
-            return depth;
         }
 
         static final class VectorSequence extends DoubleViewForDoubleInt implements RDouble {
@@ -3565,7 +3710,24 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, bint);
-             }
+            }
+
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (a instanceof DoubleImpl && b instanceof IntImpl) {
+                    arit.opDoubleIntEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                    return;
+                }
+                if (a instanceof DoubleView && b instanceof IntImpl) {
+                    ((DoubleView) a).materializeInto(resContent);
+                    arit.opDoubleIntEqualSize(ast, resContent, b.getContent(), resContent, n);
+                    return;
+                }
+                // TODO: handle int view
+                // FIXME: should create an extra buffer?
+                super.materializeInto(resContent);
+            }
+
         }
 
         static final class EqualSizeVectorSequence extends DoubleViewForDoubleInt implements RDouble {
@@ -3661,35 +3823,14 @@ public class Arithmetic extends BaseR {
     }
 
  // note: the base class is a copy-paste of Arithmetic.DoubleView, but templates make it slower
-    abstract static class DoubleViewForIntDouble extends View.RDoubleView implements RDouble {
+    abstract static class DoubleViewForIntDouble extends DoubleView implements RDouble {
         final RInt a;
         final RDouble b;
-        final int n;
-        final int[] dimensions;
-        final Names names;
-        final Attributes attributes;
-
-        final ValueArithmetic arit;
-        final ASTNode ast;
-
-        // limiting view depth
-        private int depth;  // total views involved
 
         public DoubleViewForIntDouble(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            super(dimensions, names, attributes, n, depth, arit, ast);
             this.a = a;
             this.b = b;
-            this.dimensions = dimensions;
-            this.names = names;
-            this.attributes = attributes;
-            this.n = n;
-            this.depth = depth;
-            this.arit = arit;
-            this.ast = ast;
-        }
-
-        @Override
-        public final int size() {
-            return n;
         }
 
         @Override
@@ -3704,27 +3845,8 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public final int[] dimensions() {
-            return dimensions;
-        }
-
-        @Override
-        public final Names names() {
-            return names;
-        }
-
-        @Override
-        public final Attributes attributes() {
-            return attributes;
-        }
-
-        @Override
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
-        }
-
-        public final int depth() {
-            return depth;
         }
 
         static final class SequenceVector extends DoubleViewForIntDouble implements RDouble {
@@ -4417,14 +4539,14 @@ public class Arithmetic extends BaseR {
                 }
             }
 
-            @Override
-            public RInt materialize() {
-                if (a instanceof IntImpl) {
-                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, bfrom, bto, bstep, n, dimensions, names, attributes);
-                } else {
-                    return super.materialize();
-                }
-            }
+//            @Override
+//            public RInt materialize() {
+//                if (a instanceof IntImpl) {
+//                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, bfrom, bto, bstep, n, dimensions, names, attributes);
+//                } else {
+//                    return super.materialize();
+//                }
+//            }
         }
 
         static final class VectorSimpleRangeASized extends IntView implements RInt {
@@ -4453,14 +4575,14 @@ public class Arithmetic extends BaseR {
                 }
             }
 
-            @Override
-            public RInt materialize() {
-                if (a instanceof IntImpl) {
-                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, 1, nb, 1, n, dimensions, names, attributes);
-                } else {
-                    return super.materialize();
-                }
-            }
+//            @Override
+//            public RInt materialize() {
+//                if (a instanceof IntImpl) {
+//                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, 1, nb, 1, n, dimensions, names, attributes);
+//                } else {
+//                    return super.materialize();
+//                }
+//            }
         }
 
         static final class VectorSequenceBSized extends IntView implements RInt {
