@@ -4,7 +4,9 @@ import r.*;
 import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
+import r.data.RComplex.*;
 import r.data.internal.*;
+import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.nodes.exec.Constant;
@@ -101,6 +103,8 @@ final class Round extends CallFactory {
 
     // FIXME: check this actually corresponds with the R semantics
     // in GNU-R, they do not use the same infrastructure for round as for arithmetic operators
+    // TODO: and indeed this does not really work, because we should not be casting to the common type here (value and digits)
+    // yet, it would be nice to be able to use the specializations... and views... as done for the other arithmetic operations
     public static final class RoundJava extends ValueArithmetic {
 
         @Override
@@ -129,27 +133,18 @@ final class Round extends CallFactory {
         }
 
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             Utils.nyi();
-            return null;
         }
 
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
-            double[] x = xcomp.getContent();
-            if (xcomp.isTemporary()) {
-                round(x, c, x);
-                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return xcomp;
-            } else {
-                double[] res = new double[x.length];
-                round(x, c, res);
-                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
-            }
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
+            // TODO: fix this, not really a binary math operation, we should throw an error if
+            // the imaginary part is non-zero _or_ if it is zero but the originally passed argument was a complex
+            round(x, c, res);
         }
-
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -164,7 +159,7 @@ final class Round extends CallFactory {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = round(a, y);
@@ -178,7 +173,7 @@ final class Round extends CallFactory {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = round(x, b);
@@ -192,7 +187,7 @@ final class Round extends CallFactory {
             }
         }
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override

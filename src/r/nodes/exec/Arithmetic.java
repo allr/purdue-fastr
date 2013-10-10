@@ -32,8 +32,6 @@ import r.runtime.*;
 
 public class Arithmetic extends BaseR {
 
-    private static final boolean IN_PLACE = true;
-
     @Child RNode left;
     @Child RNode right;
     final ValueArithmetic arit;
@@ -297,6 +295,30 @@ public class Arithmetic extends BaseR {
                     }
                 };
                 return new Specialized(ast, left, right, arit, c, "<RDouble, RDouble>");
+            }
+            if (leftTemplate instanceof RDouble && rightTemplate instanceof RInt) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
+                        if (!(lexpr instanceof RDouble && rexpr instanceof RInt)) {
+                            throw new SpecializationException(null);
+                        }
+                        return doubleBinary((RDouble)lexpr,  (RInt)rexpr, arit, ast);
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<RDouble, RInt>");
+            }
+            if (leftTemplate instanceof RInt && rightTemplate instanceof RDouble) {
+                Calculator c = new Calculator() {
+                    @Override
+                    public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
+                        if (!(lexpr instanceof RInt && rexpr instanceof RDouble)) {
+                            throw new SpecializationException(null);
+                        }
+                        return doubleBinary((RInt)lexpr,  (RDouble)rexpr, arit, ast);
+                    }
+                };
+                return new Specialized(ast, left, right, arit, c, "<RInt, RDouble>");
             }
             if (leftTemplate instanceof RInt && rightTemplate instanceof RInt && !returnsDouble(arit)) {
                 Calculator c = new Calculator() {
@@ -1095,70 +1117,103 @@ public class Arithmetic extends BaseR {
             return op(ast, (double) a, b);
         }
 
-        public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes);
-        public abstract RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes);
+        public abstract void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size);
+        public abstract void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size);
 
-        public abstract void op(ASTNode ast, double[] x, double[] y, double[] res, int size);
-        public abstract void op(ASTNode ast, double[] x, double y, double[] res, int size);
-        public abstract void op(ASTNode ast, double x, double[] y, double[] res, int size);
+        public RComplex opComplexImplEqualSize(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
 
-        public RDouble op(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xcomp.getContent();
+            double[] y = ycomp.getContent();
+            if (xcomp.isTemporary()) {
+                opComplexEqualSize(ast, x, y, x, size);
+                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xcomp;
+            } else if (ycomp.isTemporary()) {
+                opComplexEqualSize(ast, x, y, y, size);
+                ycomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return ycomp;
+            } else {
+                int rsize = size * 2;
+                double[] res = new double[rsize];
+                opComplexEqualSize(ast, x, y, res, size);
+                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+
+        public RComplex opComplexImplScalar(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xcomp.getContent();
+            if (xcomp.isTemporary()) {
+                opComplexScalar(ast, x, c, d, x, size);
+                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xcomp;
+            } else {
+                int rsize = size * 2;
+                double[] res = new double[rsize];
+                opComplexScalar(ast, x, c, d, res, size);
+                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public abstract void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size);
+        public abstract void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size);
+        public abstract void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size);
+
+        public RDouble opDoubleImplEqualSize(ASTNode ast, DoubleImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
             double[] y = ydbl.getContent();
-            if (IN_PLACE && xdbl.isTemporary()) {
-                op(ast, x, y, x, size);
+            if (xdbl.isTemporary()) {
+                opDoubleEqualSize(ast, x, y, x, size);
                 xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xdbl;
-            } else if (IN_PLACE && ydbl.isTemporary()) {
-                op(ast, x, y, y, size);
+            } else if (ydbl.isTemporary()) {
+                opDoubleEqualSize(ast, x, y, y, size);
                 ydbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return ydbl;
             } else {
                 double[] res = new double[size];
-                op(ast, x, y, res, size);
+                opDoubleEqualSize(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
 
-        public RDouble op(ASTNode ast, DoubleImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
+        public RDouble opDoubleImplScalar(ASTNode ast, DoubleImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
-            if (IN_PLACE && xdbl.isTemporary()) {
-                op(ast, x, y, x, size);
+            if (xdbl.isTemporary()) {
+                opDoubleScalar(ast, x, y, x, size);
                 xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xdbl;
             } else {
                 double[] res = new double[size];
-                op(ast, x, y, res, size);
+                opDoubleScalar(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
 
-        public RDouble op(ASTNode ast, double x, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+        public RDouble opScalarDoubleImpl(ASTNode ast, double x, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] y = ydbl.getContent();
-            if (IN_PLACE && ydbl.isTemporary()) {
-                op(ast, x, y, y, size);
+            if (ydbl.isTemporary()) {
+                opScalarDouble(ast, x, y, y, size);
                 ydbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return ydbl;
             } else {
                 double[] res = new double[size];
-                op(ast, x, y, res, size);
+                opScalarDouble(ast, x, y, res, size);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
 
-        public abstract void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size);
+        public abstract void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size);
 
-        public RInt opASized(ASTNode ast, IntImpl xint, int yfrom, int yto, int ystep, int size, int[] dimensions, Names names, Attributes attributes) {
-
+        public RInt opIntImplSequenceASized(ASTNode ast, IntImpl xint, int yfrom, int yto, int ystep, int size, int[] dimensions, Names names, Attributes attributes) {
             int[] x = xint.getContent();
-
-            if (IN_PLACE && xint.isTemporary()) {
-                opASized(ast, x, yfrom, yto, ystep, x, size);
+            if (xint.isTemporary()) {
+                opIntImplSequenceASized(ast, x, yfrom, yto, ystep, x, size);
                 xint.setNames(names).setDimensions(dimensions).setAttributes(attributes);
                 return xint;
             } else {
                 int[] res = new int[size];
-                opASized(ast, x, yfrom, yto, ystep, res, size);
+                opIntImplSequenceASized(ast, x, yfrom, yto, ystep, res, size);
                 return RInt.RIntFactory.getFor(res, dimensions, names, attributes);
             }
         }
@@ -1203,7 +1258,7 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
-        private static void add(double[] res, double[] x, double[] y, int rsize) {
+        private static void add(double[] x, double[] y, double[] res, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -1219,26 +1274,13 @@ public class Arithmetic extends BaseR {
                 }
             }
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
-            int rsize = size * 2;
-            double[] x = xcomp.getContent();
-            double[] y = ycomp.getContent();
-            if (IN_PLACE && xcomp.isTemporary()) {
-                add(x, x, y, rsize);
-                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return xcomp;
-            } else if (IN_PLACE && ycomp.isTemporary()) {
-                add(y, x, y, rsize);
-                ycomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return ycomp;
-            } else {
-                double[] res = new double[rsize];
-                add(res, x, y, rsize);
-                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
-            }
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            add(x, y, res, size * 2);
         }
-        private static void add(double[] res, double[] x, double c, double d, int rsize) {
+
+        private static void add(double[] x, double c, double d, double[] res, int rsize) {
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -1253,21 +1295,12 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
-            int rsize = size * 2;
-            double[] x = xcomp.getContent();
-            if (IN_PLACE && xcomp.isTemporary()) {
-                add(x, x, c, d, rsize);
-                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return xcomp;
-            } else {
-                double[] res = new double[rsize];
-                add(res, x, c, d, rsize);
-                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
-            }
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
+            add(x, c, d, res, size * 2);
         }
+
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1283,7 +1316,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a + y;
@@ -1298,7 +1331,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = x + b;
@@ -1313,7 +1346,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             int y = yfrom;
             boolean overflown = false;
             for (int i = 0; i < size; i++) {
@@ -1370,12 +1403,10 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             int rsize = size * 2;
-            double[] res = new double[rsize];
-            double[] x = xcomp.getContent();
-            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -1390,13 +1421,11 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
             int rsize = size * 2;
-            double[] res = new double[rsize];
-            double[] x = xcomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -1409,10 +1438,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1427,7 +1456,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a - y;
@@ -1441,7 +1470,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = x - b;
@@ -1455,7 +1484,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override
@@ -1476,53 +1505,6 @@ public class Arithmetic extends BaseR {
         return Math.copySign(Double.isInfinite(d) ? 1 : 0, d);
     }
 
-    public static void cmult(double a, double b, double c, double d, double[] res, int offset) {
-        // LICENSE: transcribed code from GCC, which is licensed under GPL
-        // libgcc2
-
-        double ac = a * c;
-        double bd = b * d;
-        double bc = b * c;
-        double ad = a * d;
-
-        double real = ac - bd;
-        double imag = bc + ad;
-
-        if (Double.isNaN(real) && Double.isNaN(imag)) {
-            boolean recalc = false;
-            double ra = a;
-            double rb = b;
-            double rc = c;
-            double rd = d;
-            if (Double.isInfinite(ra) || Double.isInfinite(rb)) {
-                ra = convertInf(ra);
-                rb = convertInf(rb);
-                rc = convertNaN(rc);
-                rd = convertNaN(rd);
-                recalc = true;
-            }
-            if (Double.isInfinite(rc) || Double.isInfinite(rd)) {
-                rc = convertInf(rc);
-                rd = convertInf(rd);
-                ra = convertNaN(ra);
-                rb = convertNaN(rb);
-                recalc = true;
-            }
-            if (!recalc && (Double.isInfinite(ac) || Double.isInfinite(bd) || Double.isInfinite(ad) || Double.isInfinite(bc))) {
-                ra = convertNaN(ra);
-                rb = convertNaN(rb);
-                rc = convertNaN(rc);
-                rd = convertNaN(rd);
-                recalc = true;
-            }
-            if (recalc) {
-                real = Double.POSITIVE_INFINITY * (ra * rc - rb * rd);
-                imag = Double.POSITIVE_INFINITY * (ra * rd + rb * rc);
-            }
-        }
-        res[ offset ] = real;
-        res[ offset + 1 ] = imag;
-    }
 
     public static final class Mult extends ValueArithmetic { // FIXME: will be slow for complex numbers (same calculations for real and imaginary parts)
 
@@ -1530,12 +1512,12 @@ public class Arithmetic extends BaseR {
 
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            Arithmetic.cmult(a, b, c, d, opTMP, 0);
+            cmult(a, b, c, d, opTMP, 0);
             return opTMP[0];
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
-            Arithmetic.cmult(a, b, c, d, opTMP, 0);
+            cmult(a, b, c, d, opTMP, 0);
             return opTMP[1];
         }
         @Override
@@ -1555,7 +1537,8 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
         }
-        private static void cmult(double[] res, double[] x, double[] y, int rsize) {
+
+        private static void cmult(double[] x, double[] y, double[] res, int rsize) {
 
             if (x == y) {
                 int j = 1;
@@ -1579,52 +1562,84 @@ public class Arithmetic extends BaseR {
                 double c = y[i];
                 double d = y[j];
                 if (!RComplexUtils.arithEitherIsNA(a, b) && !RComplexUtils.arithEitherIsNA(c, d)) {
-                    Arithmetic.cmult(a, b, c, d, res, i);
+                    cmult(a, b, c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
                 }
             }
         }
-        @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
-            int rsize = size * 2;
-            double[] x = xcomp.getContent();
-            double[] y = ycomp.getContent();
-            if (IN_PLACE && xcomp.isTemporary()) {
-                cmult(x, x, y, rsize);
-                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return xcomp;
-            } else if (IN_PLACE && ycomp.isTemporary()) {
-                cmult(y, x, y, rsize);
-                ycomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return ycomp;
-            } else {
-                double[] res = new double[rsize];
-                cmult(res, x, y, rsize);
-                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
+
+        private static void cmult(double a, double b, double c, double d, double[] res, int offset) {
+            // LICENSE: transcribed code from GCC, which is licensed under GPL
+            // libgcc2
+
+            double ac = a * c;
+            double bd = b * d;
+            double bc = b * c;
+            double ad = a * d;
+
+            double real = ac - bd;
+            double imag = bc + ad;
+
+            if (Double.isNaN(real) && Double.isNaN(imag)) {
+                boolean recalc = false;
+                double ra = a;
+                double rb = b;
+                double rc = c;
+                double rd = d;
+                if (Double.isInfinite(ra) || Double.isInfinite(rb)) {
+                    ra = convertInf(ra);
+                    rb = convertInf(rb);
+                    rc = convertNaN(rc);
+                    rd = convertNaN(rd);
+                    recalc = true;
+                }
+                if (Double.isInfinite(rc) || Double.isInfinite(rd)) {
+                    rc = convertInf(rc);
+                    rd = convertInf(rd);
+                    ra = convertNaN(ra);
+                    rb = convertNaN(rb);
+                    recalc = true;
+                }
+                if (!recalc && (Double.isInfinite(ac) || Double.isInfinite(bd) || Double.isInfinite(ad) || Double.isInfinite(bc))) {
+                    ra = convertNaN(ra);
+                    rb = convertNaN(rb);
+                    rc = convertNaN(rc);
+                    rd = convertNaN(rd);
+                    recalc = true;
+                }
+                if (recalc) {
+                    real = Double.POSITIVE_INFINITY * (ra * rc - rb * rd);
+                    imag = Double.POSITIVE_INFINITY * (ra * rd + rb * rc);
+                }
             }
+            res[ offset ] = real;
+            res[ offset + 1 ] = imag;
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            cmult(x, y, res, 2 * size);
+        }
+
+        @Override
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
             int rsize = size * 2;
-            double[] res = new double[rsize];
-            double[] x = xcomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
                 double b = x[j];
                 if (!RComplexUtils.arithEitherIsNA(a, b)) {
-                    Arithmetic.cmult(x[i], x[j], c, d, res, i);
+                    cmult(x[i], x[j], c, d, res, i);
                 } else {
                     res[i] = RDouble.NA;
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1639,7 +1654,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a * y;
@@ -1653,7 +1668,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = x * b;
@@ -1667,7 +1682,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override
@@ -1765,7 +1780,7 @@ public class Arithmetic extends BaseR {
             while (kk > 0) {
                 if ((kk & 1) != 0) {
                     // "z = z * X"
-                    cmult(z[offset], z[offset + 1], x[0], x[1], z, offset);
+                    Mult.cmult(z[offset], z[offset + 1], x[0], x[1], z, offset);
                     if (kk == 1) {
                         break;
                     }
@@ -1886,25 +1901,22 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             Utils.nyi("unreachable");
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
-            double[] x = xcomp.getContent();
-            double[] y = ycomp.getContent();
-            double[] z = new double[x.length];
-            for (int i = 0; i < x.length; i += 2) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            int rsize = 2 * size;
+            for (int i = 0; i < rsize; i += 2) {
                 double xr = x[i];
                 double xi = x[i + 1];
                 double yr = y[i];
                 double yi = y[i + 1];
                 if (!RComplex.RComplexUtils.arithEitherIsNA(xr,  xi) && !RComplex.RComplexUtils.arithEitherIsNA(yr, yi)) {
-                    cpow(x[i], x[i + 1], y[i], y[i + 1], z, i);
+                    cpow(xr, xi, yr, yi, res, i);
                 } else {
-                    z[i] = RDouble.NA;
-                    z[i + 1] = RDouble.NA;
+                    res[i] = RDouble.NA;
+                    res[i + 1] = RDouble.NA;
                 }
             }
-            RComplex res = RComplex.RComplexFactory.getFor(z, dimensions, names);
-            return res;
         }
 
         public static void cpow2(double a, double b, double[] res, int offset) {
@@ -1940,7 +1952,7 @@ public class Arithmetic extends BaseR {
             res[ offset + 1 ] = imag;
         }
 
-        private static void cpow(double[] res, double[] x, double yr, double yi) {
+        private static void cpow(double[] x, double yr, double yi, double[] res) {
             if (yr == 2 && yi == 0) {
                 for (int i = 0; i < x.length; i += 2) {
                     double xr = x[i];
@@ -1968,21 +1980,12 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double yr, double yi, int size, int[] dimensions, Names names, Attributes attributes) {
-            double[] x = xcomp.getContent();
-            if (IN_PLACE && xcomp.isTemporary()) {
-                cpow(x, x, yr, yi);
-                xcomp.setNames(names).setDimensions(dimensions).setAttributes(attributes);
-                return xcomp;
-            } else {
-                double[] res = new double[x.length];
-                cpow(res, x, yr, yi);
-                return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
-            }
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
+            cpow(x, c, d, res);
         }
 
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             if (!RContext.hasGNUR()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -2001,7 +2004,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             if (!RContext.hasGNUR()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -2019,7 +2022,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = pow(x, b);
@@ -2034,7 +2037,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
 
@@ -2125,12 +2128,10 @@ public class Arithmetic extends BaseR {
         public void emitOverflowWarning(ASTNode ast) {
             Utils.nyi("unreachable");
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             int rsize = size * 2;
-            double[] res = new double[rsize];
-            double[] x = xcomp.getContent();
-            double[] y = ycomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -2144,13 +2145,11 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
             int rsize = size * 2;
-            double[] res = new double[rsize];
-            double[] x = xcomp.getContent();
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
                 double a = x[i];
@@ -2162,10 +2161,10 @@ public class Arithmetic extends BaseR {
                     res[j] = RDouble.NA;
                 }
             }
-            return RComplex.RComplexFactory.getFor(res, dimensions, names, attributes);
         }
+
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -2180,7 +2179,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = a / y;
@@ -2194,7 +2193,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = x / b;
@@ -2209,7 +2208,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override
@@ -2253,15 +2252,15 @@ public class Arithmetic extends BaseR {
             // no warning
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -2276,7 +2275,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double c = op(ast, a, y);
@@ -2290,7 +2289,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = op(ast, x, b);
@@ -2304,7 +2303,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override
@@ -2358,15 +2357,15 @@ public class Arithmetic extends BaseR {
             // no warning
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, ComplexImpl ycomp, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public RComplex op(ASTNode ast, ComplexImpl xcomp, double c, double d, int size, int[] dimensions, Names names, Attributes attributes) {
+        public void opComplexScalar(ASTNode ast, double[] x, double c, double d, double[] res, int size) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
-        public void op(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+        public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             if (!RContext.hasGNUR()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -2388,7 +2387,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double[] x, double y, double[] res, int size) {
+        public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
 
             for (int i = 0; i < size; i++) {
                 double a = x[i];
@@ -2403,7 +2402,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void op(ASTNode ast, double x, double[] y, double[] res, int size) {
+        public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
                 double c = fmod(ast, x, b);
@@ -2417,7 +2416,7 @@ public class Arithmetic extends BaseR {
             }
         }
         @Override
-        public void opASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
+        public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
         }
         @Override
@@ -2458,13 +2457,13 @@ public class Arithmetic extends BaseR {
                 if (asize > 1) {
                     int bsize = b.size();
                     if (asize == bsize) {
-                        return arit.op(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
+                        return arit.opComplexImplEqualSize(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
                     }
                     if (bsize == 1) {
                         double c = b.getReal(0);
                         double d = b.getImag(0);
                         if (!RComplexUtils.arithEitherIsNA(c, d)) {
-                            return arit.op(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
+                            return arit.opComplexImplScalar(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
                         }
                         // NOTE: NA case falls back, could be added here
                     }
@@ -2660,20 +2659,20 @@ public class Arithmetic extends BaseR {
         if (na == nb) {
             if (arit == POW && na > 1) {
                 // FIXME: this is a hack.. POW is so expensive though that this is likely to pay off
-                return arit.op(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
+                return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
             }
             if (a instanceof DoubleImpl && b instanceof DoubleImpl && (a.isTemporary() || b.isTemporary())) {
                 // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
-                return arit.op(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
+                return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
             }
             res = new DoubleView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (nb == 1 && na > 0) {
             if (arit == POW && na > 1) {
-                return arit.op(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
+                return arit.opDoubleImplScalar(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
             }
             if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
                 // FIXME: re-visit the condition, like above
-                return arit.op(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
+                return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
             }
             res = new DoubleView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (na == 1 && nb > 0) {
@@ -3005,7 +3004,7 @@ public class Arithmetic extends BaseR {
             @Override
             public RDouble materializeInto(DoubleImpl res) {
                 if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-                    arit.op(ast, ((DoubleImpl) a).getContent(), ((DoubleImpl) b).getContent(), res.getContent(), n);
+                    arit.opDoubleEqualSize(ast, ((DoubleImpl) a).getContent(), ((DoubleImpl) b).getContent(), res.getContent(), n);
                     return res;
                 } else {
                     return super.materializeInto(res);
@@ -3015,7 +3014,7 @@ public class Arithmetic extends BaseR {
             @Override
             public RDouble materialize() {
                 if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-                    return arit.op(ast, (DoubleImpl) a, (DoubleImpl) b, n, dimensions, names, attributes);
+                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, n, dimensions, names, attributes);
                 } else {
                     return super.materialize();
                 }
@@ -3176,7 +3175,7 @@ public class Arithmetic extends BaseR {
                 }
 
                 if (a instanceof ScalarDoubleImpl && b instanceof DoubleImpl) {
-                    return arit.op(ast, ((ScalarDoubleImpl) a).getDouble(), (DoubleImpl) b, n, dimensions, names, attributes);
+                    return arit.opScalarDoubleImpl(ast, ((ScalarDoubleImpl) a).getDouble(), (DoubleImpl) b, n, dimensions, names, attributes);
                 } else {
                     return super.materialize();
                 }
@@ -4288,7 +4287,7 @@ public class Arithmetic extends BaseR {
             @Override
             public RInt materialize() {
                 if (a instanceof IntImpl) {
-                    return arit.opASized(ast, (IntImpl) a, bfrom, bto, bstep, n, dimensions, names, attributes);
+                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, bfrom, bto, bstep, n, dimensions, names, attributes);
                 } else {
                     return super.materialize();
                 }
@@ -4324,7 +4323,7 @@ public class Arithmetic extends BaseR {
             @Override
             public RInt materialize() {
                 if (a instanceof IntImpl) {
-                    return arit.opASized(ast, (IntImpl) a, 1, nb, 1, n, dimensions, names, attributes);
+                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, 1, nb, 1, n, dimensions, names, attributes);
                 } else {
                     return super.materialize();
                 }
