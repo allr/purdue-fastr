@@ -1,6 +1,7 @@
 package r.nodes.exec;
 
 
+import java.lang.ref.*;
 import java.util.*;
 
 import r.*;
@@ -37,6 +38,7 @@ public class Arithmetic extends BaseR {
     final ValueArithmetic arit;
 
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
+    private static final boolean SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION = true;
     private static final boolean EAGER = false;
     private static final boolean LIMIT_VIEW_DEPTH = true && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
     private static final int MAX_VIEW_DEPTH = 5;
@@ -3049,6 +3051,25 @@ public class Arithmetic extends BaseR {
         return res;
     }
 
+
+
+//    private static WeakReference doubleMaterializeBuffer;
+//
+//    private static double[] getDoubleBuffer(int size) { // FIXME: for single-threaded use only
+//        if (doubleMaterializeBuffer != null) {
+//            Object b = doubleMaterializeBuffer.get();
+//            if (b != null) {
+//                double[] ba = (double[]) b;
+//                if (ba.length >= size) {
+//                    return ba;
+//                }
+//            }
+//        }
+//        double[] ba = new double[size];
+//        doubleMaterializeBuffer = new WeakReference<>(ba);
+//        return ba;
+//    }
+
     abstract static class DoubleView extends View.RDoubleView implements RDouble {
         final int n;
         final int[] dimensions;
@@ -3059,7 +3080,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        protected int depth;  // total views involved
 
         public DoubleView(int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.dimensions = dimensions;
@@ -3278,12 +3299,20 @@ public class Arithmetic extends BaseR {
                         arit.opDoubleEqualSize(ast, a.getContent(), resContent, resContent, n);
                         return;
                     }
-                } else if (a instanceof DoubleView && b instanceof DoubleImpl) {
-                    ((DoubleView) a).materializeInto(resContent);
-                    arit.opDoubleEqualSize(ast, resContent, b.getContent(), resContent, n);
-                    return;
+                } else if (a instanceof DoubleView) {
+                    if (b instanceof DoubleImpl) {
+                        ((DoubleView) a).materializeInto(resContent);
+                        arit.opDoubleEqualSize(ast, resContent, b.getContent(), resContent, n);
+                        return;
+                    }
+                    if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION && b instanceof DoubleView) {
+                        // use a tight loop for at least one child
+                        ((DoubleView) a).materializeInto(resContent);
+                        EqualSize myClone = new EqualSize(RDouble.RDoubleFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
+                        myClone.materializeIntoOnTheFly(resContent);
+                        return;
+                    }
                 }
-                // FIXME: should create an extra buffer?
                 super.materializeInto(resContent);
             }
 
