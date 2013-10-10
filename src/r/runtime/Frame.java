@@ -689,9 +689,8 @@ public abstract class Frame {
     }
 
     private void writeView(int slot, View view, Object oldValue) {
-        RAny v = view.materializeOnAssignment(oldValue);
+        RAny v = view.materializeOnAssignmentRef(oldValue); // does ref
         set(slot, v);
-        v.ref(); // always must ref
     }
 
     public void writeAtCondRef(int slot, RAny value) {

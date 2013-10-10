@@ -3011,17 +3011,19 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RDouble materializeOnAssignment(Object oldValue) {
+        public RDouble materializeOnAssignmentRef(Object oldValue) {
 
+            // FIXME: although a bit error prone perhaps we could also  mark the oldValue as temporary and then call the normal
+            // materialize
             DoubleImpl res;
             if (a == oldValue && a instanceof DoubleImpl && !a.isShared() && a.size() == n) {
                 res = (DoubleImpl) a;
             } else if (b == oldValue && b instanceof DoubleImpl && !b.isShared() && b.size() == n) {
                 res = (DoubleImpl) b;
             } else {
-                return materialize();
+                return super.materializeOnAssignmentRef(oldValue);
             }
-            return materializeInto(res);
+            return materializeInto(res); // no ref
         }
 
         static final class Generic extends DoubleView implements RDouble {
@@ -3128,7 +3130,7 @@ public class Arithmetic extends BaseR {
                 if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
                     arit.opDoubleEqualSize(ast, ((DoubleImpl) a).getContent(), ((DoubleImpl) b).getContent(), res.getContent(), n);
                     return res;
-                } else {
+                } else { // FIXME: ?? or should work recursively ??
                     return super.materializeInto(res);
                 }
             }
@@ -3162,7 +3164,16 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public RDouble materialize() {
+                if (a instanceof DoubleImpl) {
+                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), n, dimensions, names, attributes);
+                } else {
+                    return super.materialize();
+                }
+            }
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
@@ -3296,8 +3307,8 @@ public class Arithmetic extends BaseR {
                     }
                 }
 
-                if (a instanceof ScalarDoubleImpl && b instanceof DoubleImpl) {
-                    return arit.opScalarDoubleImpl(ast, ((ScalarDoubleImpl) a).getDouble(), (DoubleImpl) b, n, dimensions, names, attributes);
+                if (b instanceof DoubleImpl) {
+                    return arit.opScalarDoubleImpl(ast, a.getDouble(0), (DoubleImpl) b, n, dimensions, names, attributes);
                 } else {
                     return super.materialize();
                 }

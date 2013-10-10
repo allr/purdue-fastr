@@ -112,8 +112,10 @@ public abstract class View extends ArrayImpl implements RArray {
     }
 
     // this method in subclasses can re-use the storage for the oldValue, if not shared
-    public RArray materializeOnAssignment(Object oldValue) {
-        return materialize();
+    public RArray materializeOnAssignmentRef(Object oldValue) {
+        RArray res = materialize();
+        res.ref();
+        return res;
     }
 
     public abstract static class ParametricView extends View { // just a marker for views that are worth materializing
@@ -129,6 +131,13 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RRaw materialize() {
             return RRawFactory.copy(this);
+        }
+
+        @Override
+        public RRaw materializeOnAssignmentRef(Object oldValue) {
+            RRaw res = materialize();
+            res.ref();
+            return res;
         }
 
         @Override
@@ -283,6 +292,13 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RLogical materializeOnAssignmentRef(Object oldValue) {
+            RLogical res = materialize();
+            res.ref();
+            return res;
+        }
+
+        @Override
         public RRaw asRaw() {
             return TracingView.ViewTrace.trace(new RLogical.RRawView(this));
         }
@@ -432,6 +448,13 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RInt materialize() {
             return RIntFactory.copy(this);
+        }
+
+        @Override
+        public RInt materializeOnAssignmentRef(Object oldValue) {
+            RInt res = materialize();
+            res.ref();
+            return res;
         }
 
         @Override
@@ -657,6 +680,13 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RDouble materializeOnAssignmentRef(Object oldValue) {
+            RDouble res = materialize();
+            res.ref();
+            return res;
+        }
+
+        @Override
         public double[] getContent() {
             return materialize().getContent();
         }
@@ -819,6 +849,13 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public RComplex materializeOnAssignmentRef(Object oldValue) {
+            RComplex res = materialize();
+            res.ref();
+            return res;
+        }
+
+        @Override
         public double[] getContent() {
             return materialize().getContent();
         }
@@ -903,6 +940,13 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RString materialize() {
             return RString.RStringFactory.copy(this);
+        }
+
+        @Override
+        public RString materializeOnAssignmentRef(Object oldValue) {
+            RString res = materialize();
+            res.ref();
+            return res;
         }
 
         @Override
@@ -1063,6 +1107,13 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         @Override
+        public ListImpl materializeOnAssignmentRef(Object oldValue) {
+            ListImpl res = materialize();
+            res.ref();
+            return res;
+        }
+
+        @Override
         public RRaw asRaw() {
             Utils.nyi();
             return null;
@@ -1208,6 +1259,12 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public RInt materialize() {
             return RIntFactory.copy(this);
+        }
+
+        @Override
+        public RInt materializeOnAssignmentRef(Object oldValue) {
+            Utils.nyi("unreachable");
+            return null;
         }
 
         @Override
