@@ -643,21 +643,37 @@ public abstract class Frame {
         return false;
     }
 
+    private static void writeViewToTopLevel(RSymbol sym, View view, Object oldValue) {
+        RAny v = view.materializeOnAssignmentRef(oldValue); // does ref
+        sym.setValue(v);
+    }
+
     public static void writeToTopLevelCondRef(RSymbol sym, RAny value) {
         Object oldValue = sym.getValueNoForce();
         if (oldValue != value) {
-            sym.setValue(value);
-            value.ref();
+            if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
+                writeViewToTopLevel(sym, (View) value, oldValue); // does ref
+            } else {
+                sym.setValue(value);
+                value.ref();
+            }
         }
     }
 
     public static void writeToTopLevelNoRef(RSymbol symbol, Object value) {
+        if (MATERIALIZE_ON_ASSIGNMENT) {
+            assert Utils.check(!(value instanceof View.ParametricView));
+        }
         symbol.setValue(value);
     }
 
     public static void writeToTopLevelRef(RSymbol sym, RAny value) {
-        sym.setValue(value);
-        value.ref();
+        if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
+            writeViewToTopLevel(sym, (View) value, sym.getValue()); // does ref
+        } else {
+            sym.setValue(value);
+            value.ref();
+        }
     }
 
     public void writeToExtension(RSymbol sym, RAny value) {
@@ -706,11 +722,10 @@ public abstract class Frame {
     }
 
     public void writeAtNoRef(int slot, Object value) {
-        if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
-            writeView(slot, (View) value, get(slot));
-        } else {
-            set(slot, value);
+        if (MATERIALIZE_ON_ASSIGNMENT) {
+            assert Utils.check(!(value instanceof View.ParametricView));
         }
+        set(slot, value);
     }
 
     public void writeAtRef(int slot, Object value) {
