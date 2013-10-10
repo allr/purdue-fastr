@@ -144,6 +144,11 @@ final class Round extends CallFactory {
             round(x, c, res);
         }
         @Override
+        public void opScalarComplex(ASTNode ast, double a, double b, double[] y, double[] res, int size) {
+            Utils.nyi();
+        }
+
+        @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
