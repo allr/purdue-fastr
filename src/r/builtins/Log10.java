@@ -4,7 +4,7 @@ import r.nodes.ast.*;
 
 /**
  * "log10"
- * 
+ *
  * <pre>
  * x -- a numeric or complex vector.
  * </pre>
@@ -20,6 +20,12 @@ final class Log10 extends MathBase {
 
     @Override double op(ASTNode ast, double value) {
         return Math.log10(value);
+    }
+
+    @Override void op(ASTNode ast, double[] x, double[] res) {
+        for (int i = 0; i < x.length; i++) {
+            res[i] = Math.log10(x[i]);
+        }
     }
 
 }

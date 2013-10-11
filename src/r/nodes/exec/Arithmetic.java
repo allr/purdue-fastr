@@ -1,7 +1,6 @@
 package r.nodes.exec;
 
 
-import java.lang.ref.*;
 import java.util.*;
 
 import r.*;
@@ -37,7 +36,6 @@ public class Arithmetic extends BaseR {
     @Child RNode right;
     final ValueArithmetic arit;
 
-    private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
     private static final boolean SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION = true;
     private static final boolean EAGER = false;
     private static final boolean LIMIT_VIEW_DEPTH = true && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
@@ -2845,8 +2843,8 @@ public class Arithmetic extends BaseR {
                 x = ((RDoubleTracingView) a).orig;
             }
         }
-        if (x instanceof DoubleViewForDoubleDouble) {
-            return ((DoubleViewForDoubleDouble) x).depth();
+        if (x instanceof DoubleView) {
+            return ((DoubleView) x).depth();
         } else {
             return 0;
         }
@@ -3116,33 +3114,9 @@ public class Arithmetic extends BaseR {
             return depth;
         }
 
-        @Override
-        public RDouble materialize() {
-            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
-                double[] content = new double[n];
-                materializeInto(content);
-                return RDouble.RDoubleFactory.getFor(content, dimensions, names, attributes);
-            } else {
-                return super.materialize();
-            }
-        }
-
-        // FIXME: this is probably a general thing for double views (note - unlike the on-the-fly version)
-        public void materializeInto(double[] res) {
-            for (int i = 0; i < n; i++) {
-                res[i] = getDouble(i);
-            }
-        }
-
-        // TODO: implement more efficient versions of this
+        // TODO: implement more efficient versions of materializeIntoOnTheFly
         //   note that one can change to DoubleImpl, and then use .dependsOn to rule out a dependency, and hence fall back
         //   to tight loops
-        public void materializeIntoOnTheFly(double[] res) {
-            // the base class implementation of materializeInto is also on-the-fly, but the subclasses overwrite res
-            for (int i = 0; i < n; i++) {
-                res[i] = getDouble(i);
-            }
-        }
     }
 
     // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
@@ -3294,20 +3268,20 @@ public class Arithmetic extends BaseR {
                         arit.opDoubleEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
                         return;
                     }
-                    if (b instanceof DoubleView) {
-                        ((DoubleView) b).materializeInto(resContent);
+                    if (b instanceof RDoubleView) {
+                        ((RDoubleView) b).materializeInto(resContent);
                         arit.opDoubleEqualSize(ast, a.getContent(), resContent, resContent, n);
                         return;
                     }
-                } else if (a instanceof DoubleView) {
+                } else if (a instanceof RDoubleView) {
                     if (b instanceof DoubleImpl) {
-                        ((DoubleView) a).materializeInto(resContent);
+                        ((RDoubleView) a).materializeInto(resContent);
                         arit.opDoubleEqualSize(ast, resContent, b.getContent(), resContent, n);
                         return;
                     }
-                    if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION && b instanceof DoubleView) {
+                    if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION && b instanceof RDoubleView) {
                         // use a tight loop for at least one child
-                        ((DoubleView) a).materializeInto(resContent);
+                        ((RDoubleView) a).materializeInto(resContent);
                         EqualSize myClone = new EqualSize(RDouble.RDoubleFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
                         myClone.materializeIntoOnTheFly(resContent);
                         return;
@@ -3369,8 +3343,8 @@ public class Arithmetic extends BaseR {
             public void materializeInto(double[] resContent) {
                 if (a instanceof DoubleImpl) {
                     arit.opDoubleScalar(ast, a.getContent(), bdbl, resContent, n);
-                } else if (a instanceof DoubleView) {
-                    ((DoubleView) a).materializeInto(resContent);
+                } else if (a instanceof RDoubleView) {
+                    ((RDoubleView) a).materializeInto(resContent);
                     arit.opDoubleScalar(ast, resContent, bdbl, resContent, n);
                 } else  {
                     super.materializeInto(resContent);
@@ -3464,8 +3438,8 @@ public class Arithmetic extends BaseR {
             public void materializeInto(double[] resContent) {
                 if (b instanceof DoubleImpl) {
                     arit.opScalarDouble(ast, adbl, b.getContent(), resContent, n);
-                } else if (b instanceof DoubleView) {
-                    ((DoubleView) b).materializeInto(resContent);
+                } else if (b instanceof RDoubleView) {
+                    ((RDoubleView) b).materializeInto(resContent);
                     arit.opScalarDouble(ast, adbl, resContent, resContent, n);
                 } else  {
                     super.materializeInto(resContent);
@@ -3747,8 +3721,8 @@ public class Arithmetic extends BaseR {
                     arit.opDoubleIntEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
                     return;
                 }
-                if (a instanceof DoubleView && b instanceof IntImpl) {
-                    ((DoubleView) a).materializeInto(resContent);
+                if (a instanceof RDoubleView && b instanceof IntImpl) {
+                    ((RDoubleView) a).materializeInto(resContent);
                     arit.opDoubleIntEqualSize(ast, resContent, b.getContent(), resContent, n);
                     return;
                 }

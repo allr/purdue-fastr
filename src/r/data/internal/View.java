@@ -10,6 +10,8 @@ import r.nodes.exec.*;
 
 public abstract class View extends ArrayImpl implements RArray {
 
+    private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
+
     @Override
     public RArray set(int i, Object val) {
         return materialize().set(i, val);
@@ -676,7 +678,29 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RDouble materialize() {
-            return RDouble.RDoubleFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                double[] content = new double[n];
+                materializeInto(content);
+                return RDouble.RDoubleFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RDouble.RDoubleFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(double[] res) {
+//            System.err.println("Default materialization of view " + this + " size " + size());
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getDouble(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(double[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getDouble(i);
+            }
         }
 
         @Override

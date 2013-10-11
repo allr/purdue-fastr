@@ -8,6 +8,7 @@ import r.nodes.exec.*;
 import r.runtime.*;
 
 // TODO: complex numbers
+// TODO: nan produced warnings and checks (note - only some of the operations implemented by subclasses can produce an NaN)
 abstract class MathBase extends CallFactory {
 
     MathBase(String name) {
@@ -15,6 +16,7 @@ abstract class MathBase extends CallFactory {
     }
 
     abstract double op(ASTNode ast, double value);
+    abstract void op(ASTNode ast, double[] x, double[] res);
 
     RDouble calc(final ASTNode ast, final RDouble value) {
         final int size = value.size();
@@ -28,6 +30,17 @@ abstract class MathBase extends CallFactory {
 
                 @Override public double getDouble(int i) {
                     return op(ast, value.getDouble(i));
+                }
+                @Override
+                public void materializeInto(double[] resContent) {
+                    if (orig instanceof DoubleImpl) {
+                        op(ast, orig.getContent(), resContent);
+                    } else if (orig instanceof RDoubleView) {
+                        ((RDoubleView) orig).materializeInto(resContent);
+                        op(ast, resContent, resContent);
+                    } else  {
+                        super.materializeInto(resContent);
+                    }
                 }
             });
         }

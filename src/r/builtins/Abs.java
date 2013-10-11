@@ -28,6 +28,11 @@ public class Abs extends CallFactory {
         return RDouble.RDoubleUtils.arithIsNA(d) ? RDouble.NA : Math.abs(d);
     }
 
+    public static void abs(double[] x, double[] res) {
+        for (int i = 0; i < x.length; i++) {
+            res[i] = abs(x[i]);
+        }
+    }
     public static int abs(int v) {
         return (v < 0) ? -v : v; // NOTE: this also works with NA, NA will remain NA
     }
@@ -42,6 +47,18 @@ public class Abs extends CallFactory {
 
             @Override public double getDouble(int i) {
                 return abs(orig.getDouble(i));
+            }
+
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (orig instanceof DoubleImpl) {
+                    abs(orig.getContent(), resContent);
+                } else if (orig instanceof RDoubleView) {
+                    ((RDoubleView) orig).materializeInto(resContent);
+                    abs(resContent, resContent);
+                } else  {
+                    super.materializeInto(resContent);
+                }
             }
         });
     }
