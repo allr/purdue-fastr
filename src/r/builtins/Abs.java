@@ -33,6 +33,7 @@ public class Abs extends CallFactory {
             res[i] = abs(x[i]);
         }
     }
+
     public static int abs(int v) {
         return (v < 0) ? -v : v; // NOTE: this also works with NA, NA will remain NA
     }
@@ -58,6 +59,15 @@ public class Abs extends CallFactory {
                     abs(resContent, resContent);
                 } else  {
                     super.materializeInto(resContent);
+                }
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (orig instanceof DoubleImpl) {
+                    abs(orig.getContent(), resContent);
+                } else  {
+                    super.materializeIntoOnTheFly(resContent);
                 }
             }
         });

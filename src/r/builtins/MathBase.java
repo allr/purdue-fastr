@@ -42,6 +42,14 @@ abstract class MathBase extends CallFactory {
                         super.materializeInto(resContent);
                     }
                 }
+                @Override
+                public void materializeIntoOnTheFly(double[] resContent) {
+                    if (orig instanceof DoubleImpl) {
+                        op(ast, orig.getContent(), resContent);
+                    } else  {
+                        super.materializeIntoOnTheFly(resContent);
+                    }
+                }
             });
         }
         return RDouble.EMPTY;

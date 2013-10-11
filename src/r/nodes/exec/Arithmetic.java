@@ -2858,8 +2858,8 @@ public class Arithmetic extends BaseR {
                 x = ((RIntTracingView) a).orig;
             }
         }
-        if (x instanceof IntView) {
-            return ((IntView) x).depth();
+        if (x instanceof IntViewForIntInt) {
+            return ((IntViewForIntInt) x).depth();
         } else {
             return 0;
         }
@@ -2902,7 +2902,7 @@ public class Arithmetic extends BaseR {
                 // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
                 return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
             }
-            res = new DoubleViewForDoubleDouble.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+            res = new DoubleViewForDoubleDouble.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
         } else if (nb == 1 && na > 0) {
             if (arit == POW && na > 1) {
                 return arit.opDoubleImplScalar(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
@@ -3243,9 +3243,9 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSize extends DoubleViewForDoubleDouble implements RDouble {
+        static final class EqualSizeVectorVector extends DoubleViewForDoubleDouble implements RDouble {
 
-            public EqualSize(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            public EqualSizeVectorVector(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
@@ -3282,7 +3282,7 @@ public class Arithmetic extends BaseR {
                     if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION && b instanceof RDoubleView) {
                         // use a tight loop for at least one child
                         ((RDoubleView) a).materializeInto(resContent);
-                        EqualSize myClone = new EqualSize(RDouble.RDoubleFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
+                        EqualSizeVectorVector myClone = new EqualSizeVectorVector(RDouble.RDoubleFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
                         myClone.materializeIntoOnTheFly(resContent);
                         return;
                     }
@@ -3290,23 +3290,14 @@ public class Arithmetic extends BaseR {
                 super.materializeInto(resContent);
             }
 
-//            @Override
-//            public void materializeIntoOnTheFly(double[] resContent) {
-//                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-//                    arit.opDoubleEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
-//                } else {
-//                    super.materializeInto(resContent);
-//                }
-//            }
-
-//            @Override
-//            public RDouble materialize() {
-//                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
-//                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, n, dimensions, names, attributes);
-//                } else {
-//                    return super.materialize();
-//                }
-//            }
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (a instanceof DoubleImpl && b instanceof DoubleImpl) {
+                    arit.opDoubleEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                } else {
+                    super.materializeIntoOnTheFly(resContent);
+                }
+            }
         }
 
         static final class VectorScalar extends DoubleViewForDoubleDouble implements RDouble {
@@ -3350,6 +3341,15 @@ public class Arithmetic extends BaseR {
                     super.materializeInto(resContent);
                 }
             }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (a instanceof DoubleImpl) {
+                    arit.opDoubleScalar(ast, a.getContent(), bdbl, resContent, n);
+                } else  {
+                    super.materializeIntoOnTheFly(resContent);
+                }
+            }
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
@@ -3387,9 +3387,9 @@ public class Arithmetic extends BaseR {
                 if (false) { // hack to test if synthesis could help for b25-prog2 (perfres)
                     if (a instanceof ScalarDoubleImpl && b instanceof RInt.RDoubleView) {
                         RInt bint = ((RInt.RDoubleView) b).asInt(); // hack to get the original view
-                        if (bint instanceof IntView.VectorSequenceASized) {
+                        if (bint instanceof IntViewForIntInt.VectorSequenceASized) {
                             // 1 / (t(b) + 0:(a-1))
-                            IntView.VectorSequenceASized bview = (IntView.VectorSequenceASized) bint;
+                            IntViewForIntInt.VectorSequenceASized bview = (IntViewForIntInt.VectorSequenceASized) bint;
                             double avalue = ((ScalarDoubleImpl) a).getDouble();
                             int[] ba = bview.a.getContent();
                             RIntSequence bbs = (RIntSequence) bview.b;
@@ -3443,6 +3443,15 @@ public class Arithmetic extends BaseR {
                     arit.opScalarDouble(ast, adbl, resContent, resContent, n);
                 } else  {
                     super.materializeInto(resContent);
+                }
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (b instanceof DoubleImpl) {
+                    arit.opScalarDouble(ast, adbl, b.getContent(), resContent, n);
+                } else  {
+                    super.materializeIntoOnTheFly(resContent);
                 }
             }
 
@@ -3717,18 +3726,39 @@ public class Arithmetic extends BaseR {
 
             @Override
             public void materializeInto(double[] resContent) {
-                if (a instanceof DoubleImpl && b instanceof IntImpl) {
-                    arit.opDoubleIntEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
-                    return;
+                if (a instanceof DoubleImpl) {
+                    if (b instanceof IntImpl) {
+                        arit.opDoubleIntEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                        return;
+                    }
+                    // FIXME: perhaps an int view should be able to materialize itself into a double?
                 }
-                if (a instanceof RDoubleView && b instanceof IntImpl) {
-                    ((RDoubleView) a).materializeInto(resContent);
-                    arit.opDoubleIntEqualSize(ast, resContent, b.getContent(), resContent, n);
-                    return;
+                if (a instanceof RDoubleView) {
+                    if (b instanceof IntImpl) {
+                        ((RDoubleView) a).materializeInto(resContent);
+                        arit.opDoubleIntEqualSize(ast, resContent, b.getContent(), resContent, n);
+                        return;
+                    }
+                    if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION) {
+                        // use a tight loop for at least one child
+                        ((RDoubleView) a).materializeInto(resContent);
+                        EqualSizeVectorVector myClone = new EqualSizeVectorVector(RDouble.RDoubleFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
+                        myClone.materializeIntoOnTheFly(resContent);
+                        return;
+                    }
                 }
                 // TODO: handle int view
                 // FIXME: should create an extra buffer?
                 super.materializeInto(resContent);
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (a instanceof DoubleImpl && b instanceof IntImpl) {
+                    arit.opDoubleIntEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                } else {
+                    super.materializeIntoOnTheFly(resContent);
+                }
             }
 
         }
@@ -4229,45 +4259,45 @@ public class Arithmetic extends BaseR {
 
         if (na == nb) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new IntView.EqualSizeIntSimpleRange(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.EqualSizeIntSimpleRange(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSimpleRange.isInstance(a)) {
-                res = new IntView.EqualSizeSimpleRangeInt(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.EqualSizeSimpleRangeInt(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new IntView.EqualSizeIntSequence(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.EqualSizeIntSequence(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new IntView.EqualSizeSequenceInt(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.EqualSizeSequenceInt(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
-                res = new IntView.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (nb == 1 && na > 0) {
             if (RIntSimpleRange.isInstance(a)) {
-                res = new IntView.SimpleRangeScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.SimpleRangeScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (RIntSequence.isInstance(a)) {
-                res = new IntView.SequenceScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.SequenceScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else {
-                res = new IntView.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+                res = new IntViewForIntInt.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             }
         } else if (na == 1 && nb > 0) {
             if (RIntSimpleRange.isInstance(b)) {
-                res = new IntView.ScalarSimpleRange(a, b, dim, names, attributes, nb, depth, arit, ast);
+                res = new IntViewForIntInt.ScalarSimpleRange(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else if (RIntSequence.isInstance(b)) {
-                res = new IntView.ScalarSequence(a, b, dim, names, attributes, nb, depth, arit, ast);
+                res = new IntViewForIntInt.ScalarSequence(a, b, dim, names, attributes, nb, depth, arit, ast);
             } else {
-                res = new IntView.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
+                res = new IntViewForIntInt.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
             }
         } else {
             int n = resultSize(ast, na, nb);
             if (RIntSimpleRange.isInstance(b)) {
                 if (na == n) {
-                    res = new IntView.VectorSimpleRangeASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.VectorSimpleRangeASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.VectorSimpleRangeBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.VectorSimpleRangeBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSimpleRange.isInstance(a)) {
                 if (na == n) {
-                    res = new IntView.SimpleRangeVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.SimpleRangeVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.SimpleRangeVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.SimpleRangeVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(b)) {
                 // HACK HACK just to test if this would help in one benchmark
@@ -4281,21 +4311,21 @@ public class Arithmetic extends BaseR {
 //                }
 
                 if (na == n) {
-                    res = new IntView.VectorSequenceASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.VectorSequenceASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.VectorSequenceBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.VectorSequenceBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else if (RIntSequence.isInstance(a)) {
                 if (na == n) {
-                    res = new IntView.SequenceVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.SequenceVectorASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.SequenceVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.SequenceVectorBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             } else {
                 if (n == na) {
-                    res = new IntView.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
                 } else {
-                    res = new IntView.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                    res = new IntViewForIntInt.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
                 }
             }
         }
@@ -4307,23 +4337,20 @@ public class Arithmetic extends BaseR {
     }
 
     abstract static class IntView extends View.RIntView implements RInt {
-        final RInt a;
-        final RInt b;
         final int n;
         final int[] dimensions;
         final Names names;
         final Attributes attributes;
-        boolean overflown = false;
 
         final ValueArithmetic arit;
         final ASTNode ast;
 
-        // limiting view depth
-        private int depth;  // total views involved
+        boolean overflown;
 
-        public IntView(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
-            this.a = a;
-            this.b = b;
+        // limiting view depth
+        protected int depth;  // total views involved
+
+        public IntView(int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.dimensions = dimensions;
             this.names = names;
             this.attributes = attributes;
@@ -4339,6 +4366,40 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public final int[] dimensions() {
+            return dimensions;
+        }
+
+        @Override
+        public final Names names() {
+            return names;
+        }
+
+        @Override
+        public final Attributes attributes() {
+            return attributes;
+        }
+
+        public final int depth() {
+            return depth;
+        }
+
+        // TODO: implement more efficient versions of materializeIntoOnTheFly
+        //   note that one can change to DoubleImpl, and then use .dependsOn to rule out a dependency, and hence fall back
+        //   to tight loops
+    }
+
+    abstract static class IntViewForIntInt extends IntView implements RInt {
+        final RInt a;
+        final RInt b;
+
+        public IntViewForIntInt(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            super(dimensions, names, attributes, n, depth, arit, ast);
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
         public boolean isSharedReal() {
             return a.isShared() || b.isShared();
         }
@@ -4350,30 +4411,11 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public int[] dimensions() {
-            return dimensions;
-        }
-
-        @Override
-        public Names names() {
-            return names;
-        }
-
-        @Override
-        public Attributes attributes() {
-            return attributes;
-        }
-
-        @Override
         public boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
-        public final int depth() {
-            return depth;
-        }
-
-        static final class Generic extends IntView implements RInt {
+        static final class Generic extends IntViewForIntInt implements RInt {
             final int na;
             final int nb;
 
@@ -4412,7 +4454,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class GenericASized extends IntView implements RInt {
+        static final class GenericASized extends IntViewForIntInt implements RInt {
             final int nb;
 
             public GenericASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4439,7 +4481,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class GenericBSized extends IntView implements RInt {
+        static final class GenericBSized extends IntViewForIntInt implements RInt {
             final int na;
 
             public GenericBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4466,7 +4508,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorSequence extends IntView implements RInt {
+        static final class VectorSequence extends IntViewForIntInt implements RInt {
             final int na;
             final int nb;
             final int bfrom;
@@ -4509,7 +4551,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorSequenceASized extends IntView implements RInt {
+        static final class VectorSequenceASized extends IntViewForIntInt implements RInt {
             final int nb;
             final int bfrom;
             final int bstep;
@@ -4552,7 +4594,7 @@ public class Arithmetic extends BaseR {
 //            }
         }
 
-        static final class VectorSimpleRangeASized extends IntView implements RInt {
+        static final class VectorSimpleRangeASized extends IntViewForIntInt implements RInt {
             final int nb;
 
             public VectorSimpleRangeASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4588,7 +4630,7 @@ public class Arithmetic extends BaseR {
 //            }
         }
 
-        static final class VectorSequenceBSized extends IntView implements RInt {
+        static final class VectorSequenceBSized extends IntViewForIntInt implements RInt {
             final int na;
             final int bfrom;
             final int bstep;
@@ -4620,7 +4662,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorSimpleRangeBSized extends IntView implements RInt {
+        static final class VectorSimpleRangeBSized extends IntViewForIntInt implements RInt {
             final int na;
 
             public VectorSimpleRangeBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4647,7 +4689,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class SequenceVector extends IntView implements RInt {
+        static final class SequenceVector extends IntViewForIntInt implements RInt {
             final int na;
             final int nb;
             final int afrom;
@@ -4690,7 +4732,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class SequenceVectorASized extends IntView implements RInt {
+        static final class SequenceVectorASized extends IntViewForIntInt implements RInt {
             final int nb;
             final int afrom;
             final int astep;
@@ -4722,7 +4764,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class SimpleRangeVectorASized extends IntView implements RInt {
+        static final class SimpleRangeVectorASized extends IntViewForIntInt implements RInt {
             final int nb;
 
             public SimpleRangeVectorASized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4749,7 +4791,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class SequenceVectorBSized extends IntView implements RInt {
+        static final class SequenceVectorBSized extends IntViewForIntInt implements RInt {
             final int na;
             final int afrom;
             final int astep;
@@ -4781,7 +4823,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class SimpleRangeVectorBSized extends IntView implements RInt {
+        static final class SimpleRangeVectorBSized extends IntViewForIntInt implements RInt {
             final int na;
 
             public SimpleRangeVectorBSized(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4808,7 +4850,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class EqualSize extends IntView implements RInt {
+        static final class EqualSize extends IntViewForIntInt implements RInt {
 
             public EqualSize(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
@@ -4832,7 +4874,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSizeIntSequence extends IntView implements RInt {
+        static final class EqualSizeIntSequence extends IntViewForIntInt implements RInt {
 
             final int bfrom;
             final int bstep;
@@ -4862,7 +4904,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSizeIntSimpleRange extends IntView implements RInt {
+        static final class EqualSizeIntSimpleRange extends IntViewForIntInt implements RInt {
 
 
             public EqualSizeIntSimpleRange(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
@@ -4887,7 +4929,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSizeSequenceInt extends IntView implements RInt {
+        static final class EqualSizeSequenceInt extends IntViewForIntInt implements RInt {
 
             final int afrom;
             final int astep;
@@ -4917,7 +4959,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class EqualSizeSimpleRangeInt extends IntView implements RInt {
+        static final class EqualSizeSimpleRangeInt extends IntViewForIntInt implements RInt {
 
             public EqualSizeSimpleRangeInt(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
@@ -4941,7 +4983,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class VectorScalar extends IntView implements RInt {
+        static final class VectorScalar extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int bint;
@@ -4969,7 +5011,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class SequenceScalar extends IntView implements RInt {
+        static final class SequenceScalar extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int bint;
@@ -5002,7 +5044,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class SimpleRangeScalar extends IntView implements RInt {
+        static final class SimpleRangeScalar extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int bint;
@@ -5030,7 +5072,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class ScalarVector extends IntView implements RInt {
+        static final class ScalarVector extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int aint;
@@ -5058,7 +5100,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class ScalarSequence extends IntView implements RInt {
+        static final class ScalarSequence extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int aint;
@@ -5091,7 +5133,7 @@ public class Arithmetic extends BaseR {
              }
         }
 
-        static final class ScalarSimpleRange extends IntView implements RInt {
+        static final class ScalarSimpleRange extends IntViewForIntInt implements RInt {
 
             final boolean arithIsNA;
             final int aint;

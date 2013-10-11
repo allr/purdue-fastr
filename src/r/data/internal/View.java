@@ -11,6 +11,7 @@ import r.nodes.exec.*;
 public abstract class View extends ArrayImpl implements RArray {
 
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
+    private static final boolean DEBUG_DEFAULT_MATERIALIZATION = false;
 
     @Override
     public RArray set(int i, Object val) {
@@ -449,7 +450,31 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RInt materialize() {
-            return RIntFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                int[] content = new int[n];
+                materializeInto(content);
+                return RInt.RIntFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RInt.RIntFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(int[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of int view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getInt(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(int[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getInt(i);
+            }
         }
 
         @Override
@@ -689,7 +714,9 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
         public void materializeInto(double[] res) {
-//            System.err.println("Default materialization of view " + this + " size " + size());
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of double view " + this + " size " + size());
+            }
             int n = size();
             for (int i = 0; i < n; i++) {
                 res[i] = getDouble(i);

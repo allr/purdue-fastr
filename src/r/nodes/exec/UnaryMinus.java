@@ -2,6 +2,7 @@ package r.nodes.exec;
 
 import r.data.*;
 import r.data.internal.*;
+import r.data.internal.View.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.runtime.*;
@@ -251,12 +252,39 @@ public abstract class UnaryMinus extends BaseR {
 
                     @Override
                     public int getInt(int i) {
-                        int v = ivalue.getInt(i);
+                        int v = orig.getInt(i);
                         return -v; // NOTE: this also works for NA
+                    }
+
+                    @Override
+                    public void materializeInto(int[] resContent) {
+                        if (orig instanceof IntImpl) {
+                            uminus(orig.getContent(), resContent);
+                        } else if (orig instanceof RIntView) {
+                            ((RIntView) orig).materializeInto(resContent);
+                            uminus(resContent, resContent);
+                        } else  {
+                            super.materializeInto(resContent);
+                        }
+                    }
+
+                    @Override
+                    public void materializeIntoOnTheFly(int[] resContent) {
+                        if (orig instanceof IntImpl) {
+                            uminus(orig.getContent(), resContent);
+                        } else  {
+                            super.materializeInto(resContent);
+                        }
                     }
                 });
             }
             throw RError.getInvalidArgTypeUnary(ast);
+        }
+    }
+
+    public static void uminus(int[] x, int[] res) {
+        for (int i = 0; i < x.length; i++) {
+            res[i] = -x[i];  // NOTE: this also works for NA
         }
     }
 }

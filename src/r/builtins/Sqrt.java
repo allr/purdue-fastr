@@ -62,6 +62,15 @@ final class Sqrt extends CallFactory {
                             super.materializeInto(resContent);
                         }
                     }
+
+                    @Override
+                    public void materializeIntoOnTheFly(double[] resContent) {
+                        if (orig instanceof DoubleImpl) {
+                            sqrt(orig.getContent(), resContent, ast);
+                        } else  {
+                            super.materializeIntoOnTheFly(resContent);
+                        }
+                    }
                 });
             }
         };

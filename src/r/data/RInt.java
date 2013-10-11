@@ -416,16 +416,16 @@ public interface RInt extends RNumber {
     //   but can be out of bounds ==> NA's are returned in that case
     public static class RIntSubset extends View.RIntView implements RInt {
 
-        final RInt value;
-        final int vsize;
+        final RInt base;
+        final int bsize;
         final RInt index;
         final int isize;
 
-        public RIntSubset(RInt value, RInt index) {
-            this.value = value;
+        public RIntSubset(RInt base, RInt index) {
+            this.base = base;
             this.index = index;
             this.isize = index.size();
-            this.vsize = value.size();
+            this.bsize = base.size();
         }
 
         @Override
@@ -437,27 +437,66 @@ public interface RInt extends RNumber {
         public int getInt(int i) {
             int j = index.getInt(i);
             assert Utils.check(j > 0);
-            if (j > vsize) {
+            if (j > bsize) {
                 return RInt.NA;
             } else {
-                return value.getInt(j - 1);
+                return base.getInt(j - 1);
             }
         }
 
         @Override
         public boolean isSharedReal() {
-            return value.isShared() || index.isShared();
+            return base.isShared() || index.isShared();
         }
 
         @Override
         public void ref() {
-            value.ref();
+            base.ref();
             index.ref();
         }
 
         @Override
         public boolean dependsOn(RAny v) {
-            return value.dependsOn(v) || index.dependsOn(v);
+            return base.dependsOn(v) || index.dependsOn(v);
+        }
+
+        private void subset(int[] baseArr, int[] indexArr, int[] res) {
+            int n = isize;
+            for (int i = 0; i < n; i++) {
+                int j = indexArr[i];
+                if (j > bsize) {
+                    res[i] = RInt.NA;
+                } else {
+                    res[i] = baseArr[j - 1];
+                }
+            }
+        }
+
+        @Override
+        public void materializeInto(int[] resContent) {
+            if (base instanceof IntImpl) {
+                if (index instanceof IntImpl) {
+                    subset(base.getContent(), index.getContent(), resContent);
+                    return;
+                }
+                if (index instanceof RIntView) {
+                    ((RIntView) index).materializeInto(resContent);
+                    subset(base.getContent(), resContent, resContent);
+                    return;
+                }
+            }
+            // note: indeed cannot use resContent to materialize the base, because of arbitrary read pattern to it
+            //       (also the base can be longer than the index)
+            super.materializeInto(resContent);
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(int[] resContent) {
+            if (base instanceof IntImpl && index instanceof IntImpl) {
+                subset(base.getContent(), index.getContent(), resContent);
+            } else {
+                super.materializeIntoOnTheFly(resContent);
+            }
         }
     }
 }
