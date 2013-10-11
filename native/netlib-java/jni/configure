@@ -58,8 +58,22 @@ elif [ "$OS" = "linux" ] ; then
 	FFLAGS="$CFLAGS"
 	LAPACK_INCLUDES=""
 	FORTRAN_LIBS="-lgfortran"
-	BLAS_LIBS="-lblas"
-	LAPACK_LIBS="-llapack"
+	
+	if [ -n "$MKLROOT" ] ; then
+	  echo
+	  echo "Configuring for MKL ($MKLROOT)"
+	  echo
+	  CPPFLAGS="$CPPFLAGS -I${MKLROOT}/include"
+	  LDFLAGS="$LDFLAGS -L${MKLROOT}/lib/intel64"
+	  BLAS_LIBS="-lmkl_rt -liomp5 -ldl -lpthread -lm"
+  	  LAPACK_LIBS=
+	else 
+	  echo
+	  echo "Configuring for system BLAS, LAPACK (Atlas by default)"
+	  echo
+	  BLAS_LIBS="-lblas"
+	  LAPACK_LIBS="-llapack"
+        fi
 else
 	echo "OS not supported"
 	exit 1
