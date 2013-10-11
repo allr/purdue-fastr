@@ -126,6 +126,8 @@ public class Console {
                 System.err.println("Using LAPACK: " + LAPACK.getInstance().getClass().getName());
                 System.err.println("Using BLAS: " + BLAS.getInstance().getClass().getName());
                 System.err.println("Using GNUR: " + (RContext.hasGNUR() ? "yes" : "not available"));
+                System.err.println("Using System libraries (C/M): " + (RContext.hasSystemLibs() ? "yes" : "not available"));
+                System.err.println("Using MKL: " + (RContext.hasMKL() ? "yes" : "not available"));
                 if (inputFile == null) {
                     // NOTE the JLine2 console does not work from within Eclipse
                     // Add -Djline.terminal=jline.UnsupportedTerminal to your eclipse run configuration

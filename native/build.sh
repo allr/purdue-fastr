@@ -23,6 +23,25 @@ gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno
   -Wl,-soname=libgnurglue.so -static-libgcc \
   -shared -o libsystemlibsglue.so r_ext_SystemLibs.o \
   -lRmath -lR -lc
+  
+if [ -n "$MKLROOT" ] ; then  
+  echo "Building MKL glue: yes" >&2 
+  
+
+  gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses \
+    -I $JDK/include/ -I $JDK/include/linux/ -I $MKLROOT/include  -I. \
+    -c r_ext_MKL.c
+    
+  gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
+    -L${MKLROOT}/lib/intel64 \
+    -Wl,-soname=libmklglue.so -static-libgcc \
+    -shared -o libmklglue.so r_ext_MKL.o \
+    -lmkl_rt -liomp5 -ldl -lpthread -lm
+    
+else
+  echo "Not building MKL glue as MKL is not available." >&2
+fi
+  
 
 # Note the linking above
 #   libRmath is before libR

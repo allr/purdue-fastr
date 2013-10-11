@@ -34,7 +34,7 @@ public interface RDouble extends RNumber {
     double sum(boolean narm);
 
     public class RDoubleUtils {
-        private static final boolean ARITH_NA_CHECKS = false;
+        public static final boolean ARITH_NA_CHECKS = false;
         // should have explicit checks with floating point arithmetics to avoid NAs turning into NaNs?
         // NOTE: GNU-R does not have these checks
 

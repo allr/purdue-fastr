@@ -8,6 +8,7 @@ import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
 import r.data.RComplex.RComplexUtils;
+import r.data.RDouble.RDoubleUtils;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
 import r.data.internal.IntImpl.RIntSimpleRange;
@@ -1311,6 +1312,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vzAdd(size, x, y, res);
+                return;
+            }
             add(x, y, res, size * 2);
         }
 
@@ -1357,6 +1362,11 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vdAdd(size, x, y, res);
+                return;
+            }
+
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1476,6 +1486,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vzSub(size, x, y, res);
+                return;
+            }
             int rsize = size * 2;
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
@@ -1529,6 +1543,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vdSub(size, x, y, res);
+                return;
+            }
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -1720,6 +1738,10 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vzMul(size, x, y, res);
+                return;
+            }
             cmult(x, y, res, 2 * size);
         }
 
@@ -1757,6 +1779,14 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                if (x == y) {
+                    MKL.vdSqr(size, x, res);
+                } else {
+                    MKL.vdMul(size, x, y, res);
+                }
+                return;
+            }
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];
@@ -2034,6 +2064,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) { // FIXME: check it has the same semantics as GNU-R
+                MKL.vzPow(size, x, y, res);
+                return;
+            }
             int rsize = 2 * size;
             for (int i = 0; i < rsize; i += 2) {
                 double xr = x[i];
@@ -2135,6 +2169,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vdPow(size, x, y, res);
+                return;
+            }
             if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -2154,6 +2192,10 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vdPowx(size, x, y, res);
+                return;
+            }
             if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
@@ -2294,6 +2336,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opComplexEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vzDiv(size, x, y, res);
+                return;
+            }
             int rsize = size * 2;
             int j = 1;
             for (int i = 0; i < rsize; i++, i++, j++, j++) {
@@ -2344,6 +2390,10 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
+            if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+                MKL.vdDiv(size, x, y, res);
+                return;
+            }
             for (int i = 0; i < size; i++) {
                 double a = x[i];
                 double b = y[i];

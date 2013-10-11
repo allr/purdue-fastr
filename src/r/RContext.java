@@ -7,7 +7,6 @@ import org.antlr.runtime.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
-import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.nodes.tools.*;
@@ -20,6 +19,7 @@ public class RContext {
 
     public static final String GNUR_LIBRARY_NAME = "gnurglue";
     public static final String SYSTEM_LIBS_LIBRARY_NAME = "systemlibsglue";
+    public static final String MKL_LIBRARY_NAME = "mklglue";
 
     private static boolean debuggingFormat = false;
     private static ManageError errorManager = new ManageError(System.err);
@@ -152,6 +152,19 @@ public class RContext {
             }
         }
         return hasSystemLibs == 1;
+    }
+
+    private static int hasMKL = -1;
+    public static boolean hasMKL() {
+        if (hasMKL == -1) {
+            try {
+                System.loadLibrary(MKL_LIBRARY_NAME);
+                hasMKL = 1;
+            } catch (Throwable t) {
+                hasMKL = 0;
+            }
+        }
+        return hasMKL == 1;
     }
 
     public static ASTNode parseFile(ANTLRStringStream inputStream) {

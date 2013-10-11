@@ -2,9 +2,11 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
+import r.data.RDouble.*;
 import r.data.internal.*;
 import r.data.internal.View.*;
 import r.errors.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
@@ -37,7 +39,7 @@ final class Sqrt extends CallFactory {
                     typedArg = (RDouble) arg;
                 } else if (arg instanceof RInt || arg instanceof RLogical) {
                     typedArg = arg.asDouble();
-                } else {
+                } else { // TODO: complex numbers
                     throw RError.getNonNumericMath(ast);
                 }
                 if (typedArg.size() == 1) {
@@ -90,6 +92,11 @@ final class Sqrt extends CallFactory {
 
     // FIXME: could also optimize for the case that the operation does produce NaNs (although that is not so common)
     public static void sqrt(double[] x, double[] res, ASTNode ast) {
+        int size = x.length;
+        if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+            MKL.vdSqrt(size, x, res);
+            return;
+        }
         for (int i = 0; i < x.length; i++) {
             res[i] = sqrt(x[i], ast);
         }

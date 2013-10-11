@@ -2,7 +2,9 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
+import r.data.RDouble.*;
 import r.data.internal.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
@@ -29,8 +31,25 @@ public class Abs extends CallFactory {
     }
 
     public static void abs(double[] x, double[] res) {
-        for (int i = 0; i < x.length; i++) {
+        int size = x.length;
+        if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+            MKL.vdAbs(size, x, res);
+            return;
+        }
+        for (int i = 0; i < size; i++) {
             res[i] = abs(x[i]);
+        }
+    }
+
+    public static void absComplex(double[] x, double[] res) {
+        int size = x.length / 2;
+        if (!RDoubleUtils.ARITH_NA_CHECKS && RContext.hasMKL() && MKL.use(size)) {
+            MKL.vzAbs(size, x, res);
+            return;
+        }
+        int j = 0;
+        for (int i = 0; i < size; i++, j++, j++) {
+            res[i] = abs(x[j], x[j+1]);
         }
     }
 
@@ -87,6 +106,24 @@ public class Abs extends CallFactory {
         return TracingView.ViewTrace.trace(new View.RDoubleProxy<RComplex>(orig) {
             @Override public double getDouble(int i) {
                 return abs(orig.getReal(i), orig.getImag(i));
+            }
+
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (orig instanceof ComplexImpl) {
+                    absComplex(orig.getContent(), resContent);
+                } else  { // TODO: complex views
+                    super.materializeInto(resContent);
+                }
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (orig instanceof ComplexImpl) {
+                    absComplex(orig.getContent(), resContent);
+                } else  { // TODO: complex views
+                    super.materializeInto(resContent);
+                }
             }
         });
     }
