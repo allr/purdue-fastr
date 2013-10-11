@@ -4,7 +4,7 @@ import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.RError;
-import r.gnur.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;
@@ -33,8 +33,8 @@ final class Exp extends CallFactory {
                             double d = orig.getDouble(i);
                             if (RDouble.RDoubleUtils.isNAorNaN(d)) { return RDouble.NA; }
                             double res;
-                            if (RContext.hasGNUR()) {
-                                res = GNUR.exp(d);
+                            if (RContext.hasSystemLibs()) {
+                                res = SystemLibs.exp(d);
                             } else {
                                 res = Math.exp(d);
                             }

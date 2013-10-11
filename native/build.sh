@@ -5,15 +5,23 @@
 #
 # (not for BLAS/LAPACK, see netlib-java for that)
 
+#FIXME: a makefile?
+
 JDK=$JAVA_HOME
 
 gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses \
   -I $JDK/include/ -I $JDK/include/linux/ -I /usr/share/R/include -I. \
-  -c r_gnur_GNUR.c
+  -c r_ext_GNUR.c r_ext_SystemLibs.c
   
 gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
   -Wl,-soname=libgnurglue.so -static-libgcc \
-  -shared -o libgnurglue.so r_gnur_GNUR.o \
+  -shared -o libgnurglue.so r_ext_GNUR.o \
+  -lRmath -lR -lc
+
+# FIXME: are is the R library needed here?
+gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
+  -Wl,-soname=libgnurglue.so -static-libgcc \
+  -shared -o libsystemlibsglue.so r_ext_SystemLibs.o \
   -lRmath -lR -lc
 
 # Note the linking above

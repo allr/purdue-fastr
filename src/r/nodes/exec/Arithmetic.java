@@ -13,7 +13,7 @@ import r.data.internal.IntImpl.RIntSequence;
 import r.data.internal.IntImpl.RIntSimpleRange;
 import r.data.internal.TracingView.*;
 import r.errors.*;
-import r.gnur.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.runtime.*;
 
@@ -2135,7 +2135,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
+            if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
                     double b = y[i];
@@ -2149,12 +2149,12 @@ public class Arithmetic extends BaseR {
                     }
                 }
             } else {
-                GNUR.pow(x, y, res, size);
+                SystemLibs.pow(x, y, res, size);
             }
         }
         @Override
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
+            if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
                     double c = pow(a, y);
@@ -2167,7 +2167,7 @@ public class Arithmetic extends BaseR {
                     }
                 }
             } else {
-                GNUR.pow(x, y, res, size);
+                SystemLibs.pow(x, y, res, size);
             }
         }
         @Override
@@ -2216,10 +2216,10 @@ public class Arithmetic extends BaseR {
     }
 
     public static double pow(double a, double b) {
-        if (!RContext.hasGNUR()) {
+        if (!RContext.hasSystemLibs()) {
             return Math.pow(a, b);
         } else {
-            return GNUR.pow(a, b);
+            return SystemLibs.pow(a, b);
         }
     }
 
@@ -2580,7 +2580,7 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void opDoubleEqualSize(ASTNode ast, double[] x, double[] y, double[] res, int size) {
-            if (!RContext.hasGNUR()) {
+            if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
                     double b = y[i];
@@ -2594,7 +2594,7 @@ public class Arithmetic extends BaseR {
                     }
                 }
             } else { // FIXME: check if it won't be better to use the Java version for short vectors (branch above)
-                boolean warn = GNUR.fmod(x, y, res, size);
+                boolean warn = SystemLibs.fmod(x, y, res, size);
                 if (warn) {
                     RContext.warning(ast, RError.ACCURACY_MODULUS); // FIXME: will only appear once per vector
                 }

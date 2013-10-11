@@ -5,7 +5,7 @@
 #include <Rmath.h>
 #include <R_ext/Applic.h>
 
-#include "r_gnur_GNUR.h"
+#include "r_ext_GNUR.h"
 
 // FIXME: the code could be simplified (performance optimized) for the case when
 // the underlying generator is a known sane one, e.g. does not return NaNs or values
@@ -17,7 +17,7 @@
 
 // nmath =================================================================================================
 
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_set_1seed
+JNIEXPORT void JNICALL Java_r_ext_GNUR_set_1seed
   (JNIEnv *jenv, jclass jcls, jintArray kindArg) {
  
   int *kind = (*jenv)->GetPrimitiveArrayCritical(jenv, kindArg, 0);
@@ -28,7 +28,7 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_set_1seed
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, kindArg, kind, 0);
 }
 
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_get_1seed
+JNIEXPORT void JNICALL Java_r_ext_GNUR_get_1seed
   (JNIEnv *jenv, jclass jcls, jintArray kindArg) {
   
   int *kind = (*jenv)->GetPrimitiveArrayCritical(jenv, kindArg, 0);
@@ -39,13 +39,13 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_get_1seed
 }  
 
 
-JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_rnorm__DD
+JNIEXPORT jdouble JNICALL Java_r_ext_GNUR_rnorm__DD
   (JNIEnv *jenv, jclass jcls, jdouble mu, jdouble sigma) {
 
   return rnorm(mu, sigma);
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DIDD
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rnorm___3DIDD
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdouble mu, jdouble sigma) {
   
   int i;
@@ -63,7 +63,7 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DIDD
   return naProduced ? JNI_TRUE : JNI_FALSE;
 }  
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormNonChecking
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rnormNonChecking
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdouble mu, jdouble sigma) {
   
   int i;
@@ -80,7 +80,7 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormNonChecking
   return naProduced ? JNI_TRUE : JNI_FALSE;
 }  
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnormStd
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rnormStd
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
 
   int i;
@@ -132,13 +132,13 @@ jboolean randomTwoArg
 }
 
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rnorm___3DI_3DI_3DI
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rnorm___3DI_3DI_3DI
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray muArg, jint muLength, jdoubleArray sigmaArg, jint sigmaLength) {
   
   return randomTwoArg(jenv, jcls, rnorm, resArg, n, muArg, muLength, sigmaArg, sigmaLength);
 }
   
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_runifStd
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
 
   int i;
@@ -160,25 +160,25 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runifStd
   
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_runif   
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_runif   
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray minArg, jint minLength, jdoubleArray maxArg, jint maxLength) {
 
   return randomTwoArg(jenv, jcls, runif, resArg, n, minArg, minLength, maxArg, maxLength);
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rgamma
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rgamma
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray shapeArg, jint shapeLength, jdoubleArray scaleArg, jint scaleLength) {
 
   return randomTwoArg(jenv, jcls, rgamma, resArg, n, shapeArg, shapeLength, scaleArg, scaleLength);
 }
   
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rbinom
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rbinom
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray sizeArg, jint sizeLength, jdoubleArray probArg, jint probLength) {
   
   return randomTwoArg(jenv, jcls, rbinom, resArg, n, sizeArg, sizeLength, probArg, probLength);
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnormStd
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rlnormStd
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
 
   int i;
@@ -196,13 +196,13 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnormStd
 
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rlnorm
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rlnorm
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray meanlogArg, jint meanlogLength, jdoubleArray sdlogArg, jint sdlogLength) {
   
   return randomTwoArg(jenv, jcls, rlnorm, resArg, n, meanlogArg, meanlogLength, sdlogArg, sdlogLength);  
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchyStd
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rcauchyStd
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n) {
   
   int i;
@@ -220,7 +220,7 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchyStd
   
 }
 
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchy
+JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rcauchy
   (JNIEnv *jenv, jclass jcls, jdoubleArray resArg, jint n, jdoubleArray locationArg, jint locationLength, jdoubleArray scaleArg, jint scaleLength) {
   
  return randomTwoArg(jenv, jcls, rcauchy, resArg, n, locationArg, locationLength, scaleArg, scaleLength); 
@@ -229,7 +229,7 @@ JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_rcauchy
 
 // appl =================================================================================================
 
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_fft_1factor
+JNIEXPORT void JNICALL Java_r_ext_GNUR_fft_1factor
   (JNIEnv *jenv, jclass jcls, jint n, jintArray maxfArg, jintArray maxpArg) {
 
   int *maxf = (*jenv)->GetPrimitiveArrayCritical(jenv, maxfArg, 0);
@@ -241,7 +241,7 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_fft_1factor
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, maxpArg, maxp, 0);  
 }
 
-JNIEXPORT jint JNICALL Java_r_gnur_GNUR_fft_1work
+JNIEXPORT jint JNICALL Java_r_ext_GNUR_fft_1work
   (JNIEnv *jenv, jclass jcls, jdoubleArray abArg, jint nseg, jint n, jint nspn, jint isn, jdoubleArray workArg, jintArray iworkArg) {
 
   double *ab = (*jenv)->GetPrimitiveArrayCritical(jenv, abArg, 0);
@@ -257,7 +257,7 @@ JNIEXPORT jint JNICALL Java_r_gnur_GNUR_fft_1work
   return res;
 }
 
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
+JNIEXPORT void JNICALL Java_r_ext_GNUR_dqrdc2
   (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jint ldx, jint n, jint p, jdouble tol, jintArray kArg, jdoubleArray qrauxArg, jintArray jpvtArg, jdoubleArray workArg) {
  
    double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
@@ -276,7 +276,7 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrdc2
    (*jenv)->ReleasePrimitiveArrayCritical(jenv, workArg, work, 0);
 }
 
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
+JNIEXPORT void JNICALL Java_r_ext_GNUR_dqrcf
   (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jint n, jint k, jdoubleArray qrauxArg, jdoubleArray yArg, jint ny, jdoubleArray bArg, jintArray infoArg) {
   
   double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
@@ -295,96 +295,3 @@ JNIEXPORT void JNICALL Java_r_gnur_GNUR_dqrcf
   (*jenv)->ReleasePrimitiveArrayCritical(jenv, infoArg, info, 0);
 }
 
-// libc/libm =================================================================================================
-
-JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_pow__DD
-  (JNIEnv *jenv, jclass jcls, jdouble a, jdouble b) {
-  
-  return pow(a,b);
-}
-    
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3D_3D_3DI
-  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdoubleArray yArg, jdoubleArray resArg, jint size) {
-  
-  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
-  double *y = (*jenv)->GetPrimitiveArrayCritical(jenv, yArg, 0);
-  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
-  int i;
-   
-  for (i = 0; i < size; i++) {
-    double a = x[i];
-    double b = y[i];
-    double d = pow(a, b);
-    if (ISNAN(d)) {
-      if (ISNA(a) || ISNA(b)) {
-        d = NA_REAL;
-      }
-    }
-    res[i] = d;
-  }
-   
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, yArg, y, 0);
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
-}
-
-JNIEXPORT void JNICALL Java_r_gnur_GNUR_pow___3DD_3DI
-  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdouble y, jdoubleArray resArg, jint size) {
-  
-  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
-  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
-  int i;
-
-  for (i = 0; i < size; i++) {
-     double a = x[i];
-     double d = pow(a, y);
-     if (ISNAN(d)) {
-       if (ISNA(a) || ISNA(y)) {
-         d = NA_REAL;
-       }
-     }
-     res[i] = d;
-   }
-   
-   (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
-   (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
-}
-
-JNIEXPORT jboolean JNICALL Java_r_gnur_GNUR_fmod
-  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdoubleArray yArg, jdoubleArray resArg, jint size) {
-  
-  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
-  double *y = (*jenv)->GetPrimitiveArrayCritical(jenv, yArg, 0);
-  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
-  int i;
-  int lostAccuracy = 0;
-
-  for (i = 0; i < size; i++) {
-    double a = x[i];
-    double b = y[i];
-
-    if (b == 0) {  // LICENSE: transcribed from GNU-R, which is licensed under GPL
-      res[i] = R_NaN;
-    } else {
-      double q = a / b;
-      double tmp = a - floor(q) * b;
-      if ((fabs(q) > 1/DBL_EPSILON ) && R_FINITE(q)) {   // R_AccuracyInfo.eps
-        lostAccuracy = 1;
-      }
-      res[i] = tmp - floor(tmp/b) * b;  
-    }    
-  }
-   
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, yArg, y, 0);
-  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);  
-  
-  return lostAccuracy ? JNI_TRUE : JNI_FALSE;
-}
-
-JNIEXPORT jdouble JNICALL Java_r_gnur_GNUR_exp
-  (JNIEnv *jenv, jclass jcls, jdouble x) {
-  
-  return exp(x);
-}
-  

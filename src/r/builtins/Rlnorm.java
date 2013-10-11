@@ -4,7 +4,7 @@ import r.*;
 import r.builtins.internal.Random;
 import r.data.*;
 import r.errors.*;
-import r.gnur.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.runtime.*;

@@ -1,10 +1,12 @@
-package r.gnur;
+package r.ext;
+
+import r.*;
 
 
 public class GNUR {
+
     // LICENSE: The methods interface with third party libraries through glue code, which is often trivial. The called native functions often
     // have exactly the same signature.
-
 
     // nmath
     // LICENSE: The methods call to GNU R's math library. GNU R is licensed under GPL.
@@ -40,18 +42,9 @@ public class GNUR {
     public static native void dqrdc2(double[] x, int ldx, int n, int p, double tol, int[] k, double[] qraux, int[] jpvt, double[] work);
     public static native void dqrcf(double[] x, int n, int k, double[] qraux, double[] y, int ny, double[] b, int[] info);
 
-    // libc/libm
-    // LICENSE: The methods call to the C library / system's POSIX math library.
-    public static native double pow(double x, double y);
-    public static native void pow(double[] x, double[] y, double[] res, int size);
-    public static native void pow(double[] x, double y, double[] res, int size);
-
-    public static native boolean fmod(double[] x, double[] y, double[] res, int size);
-
-    public static native double exp(double x);
 
     static {
-        System.loadLibrary("gnurglue");
+        System.loadLibrary(RContext.GNUR_LIBRARY_NAME);
     }
 
 }

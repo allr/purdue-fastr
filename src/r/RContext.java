@@ -7,6 +7,7 @@ import org.antlr.runtime.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
+import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.nodes.tools.*;
@@ -16,6 +17,10 @@ import r.runtime.*;
 public class RContext {
 
     public static final boolean DEBUG = Utils.getProperty("RConsole.debug.gui", false);
+
+    public static final String GNUR_LIBRARY_NAME = "gnurglue";
+    public static final String SYSTEM_LIBS_LIBRARY_NAME = "systemlibsglue";
+
     private static boolean debuggingFormat = false;
     private static ManageError errorManager = new ManageError(System.err);
     private static BuildExecutableTree executableTreeBuilder = new BuildExecutableTree();
@@ -123,18 +128,30 @@ public class RContext {
         return i >= 0 && i < NCONNECTIONS ? connections[i] : null;
     }
 
-    // note: GNUR currently means not only the GNU-R library, but also some other native code, under licenses compatible with GPL
     private static int hasGNUR = -1;
     public static boolean hasGNUR() {
         if (hasGNUR == -1) {
             try {
-                System.loadLibrary("gnurglue");
+                System.loadLibrary(GNUR_LIBRARY_NAME);
                 hasGNUR = 1;
             } catch (Throwable t) {
                 hasGNUR = 0;
             }
         }
         return hasGNUR == 1;
+    }
+
+    private static int hasSystemLibs = -1;
+    public static boolean hasSystemLibs() {
+        if (hasSystemLibs == -1) {
+            try {
+                System.loadLibrary(SYSTEM_LIBS_LIBRARY_NAME);
+                hasSystemLibs = 1;
+            } catch (Throwable t) {
+                hasSystemLibs = 0;
+            }
+        }
+        return hasSystemLibs == 1;
     }
 
     public static ASTNode parseFile(ANTLRStringStream inputStream) {

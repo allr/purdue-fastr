@@ -4,7 +4,7 @@ import r.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
-import r.gnur.*;
+import r.ext.*;
 import r.nodes.ast.*;
 
 public final class Random {
