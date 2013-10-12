@@ -19,11 +19,11 @@ echo "Print enter to continue..."
 read DUMMY  
 
 
-export JAVA_HOME=/opt/jdk7
+#export JAVA_HOME=/opt/jdk7
 
 ant generate
 ant compile
-ant package
+ant -Djavadoc.additionalparam="-Xdoclint:none"  package
 cd jni
 bash ./configure
 make
