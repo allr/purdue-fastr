@@ -1113,6 +1113,12 @@ public class Arithmetic extends BaseR {
         }
     }
 
+    public static class IntStatus {
+        boolean overflown;
+    }
+
+    private static final IntStatus intStatus = new IntStatus();
+
     public abstract static class ValueArithmetic {
         public abstract double opReal(ASTNode ast, double a, double b, double c, double d); // (a + bi)  op  (c + di)
         public abstract double opImag(ASTNode ast, double a, double b, double c, double d);
@@ -1136,6 +1142,12 @@ public class Arithmetic extends BaseR {
         }
         public final double opCheckingNA(ASTNode ast, double a, double b) {
             if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
+                return RDouble.NA;
+            }
+            return op(ast, a, b);
+        }
+        public final double opCheckingNA(ASTNode ast, double a, int b) {
+            if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
                 return RDouble.NA;
             }
             return op(ast, a, b);
@@ -1242,6 +1254,24 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        public RDouble opDoubleImplScalarIntCheckingNA(ASTNode ast, DoubleImpl xdbl, int y, int size, int[] dimensions, Names names, Attributes attributes) {
+            if (y == RInt.NA) {
+                // FIXME could re-use the array
+                return RDouble.RDoubleFactory.getNAArray(size, dimensions, names, attributes);
+            } else {
+                return opDoubleImplScalar(ast, xdbl, y, size, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opScalarIntDoubleImplCheckingNA(ASTNode ast, int x, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            if (x == RInt.NA) {
+                // FIXME could re-use the array
+                return RDouble.RDoubleFactory.getNAArray(size, dimensions, names, attributes);
+            } else {
+                return opDoubleImplScalar(ast, ydbl, x, size, dimensions, names, attributes);
+            }
+        }
+
         public RDouble opScalarDoubleImpl(ASTNode ast, double x, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] y = ydbl.getContent();
             if (ydbl.isTemporary()) {
@@ -1293,8 +1323,11 @@ public class Arithmetic extends BaseR {
         }
 
         public abstract void opDoubleIntEqualSize(ASTNode ast, double[] x, int[] y, double[] res, int size);
+        public abstract void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size);
+        public abstract void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize);
+        public abstract void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize);
 
-        public RDouble opDoubleIntImplEqualSize(ASTNode ast, DoubleImpl xdbl, IntImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+        public RDouble opDoubleImplIntImplEqualSize(ASTNode ast, DoubleImpl xdbl, IntImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
             double[] x = xdbl.getContent();
             int[] y = ydbl.getContent();
             if (xdbl.isTemporary()) {
@@ -1304,6 +1337,102 @@ public class Arithmetic extends BaseR {
             } else {
                 double[] res = new double[size];
                 opDoubleIntEqualSize(ast, x, y, res, size);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opScalarDoubleIntImpl(ASTNode ast, double x, IntImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            int[] y = ydbl.getContent();
+            double[] res = new double[size];
+            opScalarDoubleInt(ast, x, y, res, size);
+            return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+        }
+
+        public RDouble opScalarDoubleIntImplCheckingNA(ASTNode ast, double x, IntImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+
+            if (RDouble.RDoubleUtils.arithIsNA(x)) {
+                // FIXME could re-use the array, but arithIsNA should be non-checking anyway
+                return RDouble.RDoubleFactory.getNAArray(size, dimensions, names, attributes);
+            } else {
+                return opScalarDoubleIntImpl(ast, x, ydbl, size, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opDoubleImplIntImplASized(ASTNode ast, DoubleImpl xdbl, IntImpl ydbl, int size, int bsize, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xdbl.getContent();
+            int[] y = ydbl.getContent();
+            if (xdbl.isTemporary()) {
+                opDoubleIntASized(ast, x, y, x, size, bsize);
+                xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return xdbl;
+            } else {
+                double[] res = new double[size];
+                opDoubleIntASized(ast, x, y, res, size, bsize);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opDoubleImplIntImplBSized(ASTNode ast, DoubleImpl xdbl, IntImpl ydbl, int size, int bsize, int[] dimensions, Names names, Attributes attributes) {
+            double[] x = xdbl.getContent();
+            int[] y = ydbl.getContent();
+            double[] res = new double[size];
+            opDoubleIntBSized(ast, x, y, res, size, bsize);
+            return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+        }
+
+        public abstract void opIntDoubleEqualSize(ASTNode ast, int[] x, double[] y, double[] res, int size);
+        public abstract void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size);
+        public abstract void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize);
+        public abstract void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize);
+
+        public RDouble opIntImplDoubleImplEqualSize(ASTNode ast, IntImpl xdbl, DoubleImpl ydbl, int size, int[] dimensions, Names names, Attributes attributes) {
+            int[] x = xdbl.getContent();
+            double[] y = ydbl.getContent();
+            if (ydbl.isTemporary()) {
+                opIntDoubleEqualSize(ast, x, y, y, size);
+                xdbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return ydbl;
+            } else {
+                double[] res = new double[size];
+                opIntDoubleEqualSize(ast, x, y, res, size);
+                return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opIntImplScalarDouble(ASTNode ast, IntImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
+            int[] x = xdbl.getContent();
+            double[] res = new double[size];
+            opIntScalarDouble(ast, x, y, res, size);
+            return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+        }
+
+        public RDouble opIntImplScalarDoubleCheckingNA(ASTNode ast, IntImpl xdbl, double y, int size, int[] dimensions, Names names, Attributes attributes) {
+            if (RDouble.RDoubleUtils.arithIsNA(y)) {
+                // FIXME could re-use the array, but arithIsNA should be non-checking anyway
+                return RDouble.RDoubleFactory.getNAArray(size, dimensions, names, attributes);
+            } else {
+                return opIntImplScalarDouble(ast, xdbl, y, size, dimensions, names, attributes);
+            }
+        }
+
+        public RDouble opIntImplDoubleImplASized(ASTNode ast, IntImpl xdbl, DoubleImpl ydbl, int size, int bsize, int[] dimensions, Names names, Attributes attributes) {
+            int[] x = xdbl.getContent();
+            double[] y = ydbl.getContent();
+            double[] res = new double[size];
+            opIntDoubleASized(ast, x, y, res, size, bsize);
+            return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
+        }
+
+        public RDouble opIntImplDoubleImplBSized(ASTNode ast, IntImpl xdbl, DoubleImpl ydbl, int size, int asize, int[] dimensions, Names names, Attributes attributes) {
+            int[] x = xdbl.getContent();
+            double[] y = ydbl.getContent();
+            if (ydbl.isTemporary()) {
+                opIntDoubleBSized(ast, x, y, y, size, asize);
+                ydbl.setNames(names).setDimensions(dimensions).setAttributes(attributes);
+                return ydbl;
+            } else {
+                double[] res = new double[size];
+                opIntDoubleBSized(ast, x, y, res, size, asize);
                 return RDouble.RDoubleFactory.getFor(res, dimensions, names, attributes);
             }
         }
@@ -1455,13 +1584,10 @@ public class Arithmetic extends BaseR {
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = a + y;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = a + y;
                 }
             }
         }
@@ -1470,13 +1596,10 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = x + b;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = x + b;
                 }
             }
         }
@@ -1533,6 +1656,122 @@ public class Arithmetic extends BaseR {
                     res[i] = RDouble.NA;
                 } else {
                     res[i] = a + b;
+                }
+            }
+        }
+
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = x + b;
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+            }
+        }
+
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + y;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a + b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
                 }
             }
         }
@@ -1676,13 +1915,10 @@ public class Arithmetic extends BaseR {
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = a - y;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = a - y;
                 }
             }
         }
@@ -1690,17 +1926,13 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = x - b;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = x - b;
                 }
             }
         }
-
         @Override
         public void opDoubleASized(ASTNode ast, double[] x, double[] y, double[] res, int size, int bsize) {
             int j = 0;
@@ -1753,6 +1985,122 @@ public class Arithmetic extends BaseR {
                     res[i] = RDouble.NA;
                 } else {
                     res[i] = a - b;
+                }
+            }
+        }
+
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = x - b;
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+            }
+        }
+
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - y;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a - b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
                 }
             }
         }
@@ -1959,13 +2307,10 @@ public class Arithmetic extends BaseR {
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = a * y;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = a * y;
                 }
             }
         }
@@ -1973,13 +2318,10 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = x * b;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = x * b;
                 }
             }
         }
@@ -2033,6 +2375,115 @@ public class Arithmetic extends BaseR {
                     res[i] = RDouble.NA;
                 } else {
                     res[i] = a * b;
+                }
+            }
+        }
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = x * b;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
+                }
+            }
+        }
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * y;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a * b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
                 }
             }
         }
@@ -2394,13 +2845,10 @@ public class Arithmetic extends BaseR {
             if (!RContext.hasSystemLibs()) {
                 for (int i = 0; i < size; i++) {
                     double a = x[i];
-                    double c = pow(a, y);
-                    if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                        if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                            res[i] = RDouble.NA;
-                        }
+                    if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                        res[i] = RDouble.NA;
                     } else {
-                        res[i] = c;
+                        res[i] = pow(a, y);
                     }
                 }
             } else {
@@ -2411,17 +2859,13 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = pow(x, b);
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = pow(x, b);
                 }
             }
         }
-
         @Override
         public void opDoubleASized(ASTNode ast, double[] x, double[] y, double[] res, int size, int bsize) {
             int j = 0;
@@ -2478,6 +2922,116 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(x, b);
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+            }
+        }
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, y);
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = pow(a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
         @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
@@ -2648,13 +3202,10 @@ public class Arithmetic extends BaseR {
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = a / y;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = a / y;
                 }
             }
         }
@@ -2662,13 +3213,10 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = x / b;
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = x / b;
                 }
             }
         }
@@ -2722,6 +3270,115 @@ public class Arithmetic extends BaseR {
                     res[i] = RDouble.NA;
                 } else {
                     res[i] = a / b;
+                }
+            }
+        }
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = x / b;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+            }
+        }
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / y;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = a / b;
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
                 }
             }
         }
@@ -2800,13 +3457,10 @@ public class Arithmetic extends BaseR {
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = op(ast, a, y);
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = op(ast, a, y);
                 }
             }
         }
@@ -2814,13 +3468,10 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = op(ast, x, b);
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = op(ast, x,  b);
                 }
             }
         }
@@ -2878,6 +3529,115 @@ public class Arithmetic extends BaseR {
             }
         }
 
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, x, b);
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+            }
+        }
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, y);
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = op(ast, a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
         @Override
         public void opIntImplSequenceASized(ASTNode ast, int[] x, int yfrom, int yto, int ystep, int[] res, int size) {
             Utils.nyi();
@@ -2968,16 +3728,12 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void opDoubleScalar(ASTNode ast, double[] x, double y, double[] res, int size) {
-
             for (int i = 0; i < size; i++) {
                 double a = x[i];
-                double c = fmod(ast, a, y);
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(y)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(a)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = fmod(ast, a,  y);
                 }
             }
         }
@@ -2985,13 +3741,10 @@ public class Arithmetic extends BaseR {
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
             for (int i = 0; i < size; i++) {
                 double b = y[i];
-                double c = fmod(ast, x, b);
-                if (RDouble.RDoubleUtils.arithIsNA(c)) {
-                    if (RDouble.RDoubleUtils.arithIsNA(x) || RDouble.RDoubleUtils.arithIsNA(b)) {
-                        res[i] = RDouble.NA;
-                    }
+                if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
                 } else {
-                    res[i] = c;
+                    res[i] = fmod(ast, x, b);
                 }
             }
         }
@@ -3045,6 +3798,122 @@ public class Arithmetic extends BaseR {
                     res[i] = RDouble.NA;
                 } else {
                     res[i] = fmod(ast, a, b);
+                }
+            }
+        }
+
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int b = y[i];
+
+                if (b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, x, b);
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[i];
+                int b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                double a = x[j];
+                int b = y[i];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int [] x, double[] y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+            }
+        }
+
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            for (int i = 0; i < size; i++) {
+                int a = x[i];
+
+                if (a == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, y);
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[i];
+                double b = y[j];
+
+                if (RDouble.RDoubleUtils.arithIsNA(a) || b == RInt.NA) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+                j++;
+                if (j == bsize) {
+                    j = 0;
+                }
+            }
+        }
+
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
+            int j = 0;
+            for(int i = 0; i < size; i++) {
+                int a = x[j];
+                double b = y[i];
+
+                if (a == RInt.NA || RDouble.RDoubleUtils.arithIsNA(b)) {
+                    res[i] = RDouble.NA;
+                } else {
+                    res[i] = fmod(ast, a, b);
+                }
+                j++;
+                if (j == asize) {
+                    j = 0;
                 }
             }
         }
@@ -3152,7 +4021,7 @@ public class Arithmetic extends BaseR {
                 res = new DoubleViewForDoubleDouble.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (nb == 1 && na > 0) {
                 if (arit == POW && na > 1) {
-                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
+                    return arit.opDoubleImplScalarCheckingNA(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
                 }
                 if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
                     // FIXME: re-visit the condition, like above
@@ -3412,9 +4281,7 @@ public class Arithmetic extends BaseR {
 
             if (na == nb) {
                 if (na > 1) {
-                    DoubleImpl adbl = (DoubleImpl) a.materialize();
-                    DoubleImpl bdbl = (DoubleImpl) b.materialize();
-                    return arit.opDoubleImplEqualSize(ast, adbl, bdbl, na, dim, names, attributes);
+                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
                 } else {
                     // scalars
                     return RDouble.RDoubleFactory.getScalar(arit.opCheckingNA(ast, a.getDouble(0), b.getDouble(0)), dim, names, attributes);
@@ -3422,7 +4289,7 @@ public class Arithmetic extends BaseR {
             } else if (nb == 1) {
                 return arit.opDoubleImplScalarCheckingNA(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
             } else if (na == 1) {
-                return arit.opScalarDoubleImpl(ast, a.getDouble(0), (DoubleImpl) b.materialize(), nb, dim, names, attributes);
+                return arit.opScalarDoubleImplCheckingNA(ast, a.getDouble(0), (DoubleImpl) b.materialize(), nb, dim, names, attributes);
             } else {
                 int n = resultSize(ast, na, nb);
                 if (n == na) {
@@ -3433,12 +4300,62 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        @Override public RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) {
-            return LAZY_VECTOR.doubleBinary(a, b, arit, ast);
+        @Override
+        public RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) {
+            int[] dim = resultDimensions(ast, a, b);
+            Names names = resultNames(ast, a, b);
+            Attributes attributes = resultAttributes(ast, a, b);
+            int na = a.size();
+            int nb = b.size();
+
+            if (na == nb) {
+                if (na > 1) {
+                    return arit.opDoubleImplIntImplEqualSize(ast, (DoubleImpl) a.materialize(), (IntImpl) b.materialize(), na, dim, names, attributes);
+                } else {
+                    // scalars
+                    return RDouble.RDoubleFactory.getScalar(arit.opCheckingNA(ast, a.getDouble(0), b.getInt(0)), dim, names, attributes);
+                }
+            } else if (nb == 1) {
+                return arit.opDoubleImplScalarIntCheckingNA(ast, (DoubleImpl) a.materialize(), b.getInt(0), na, dim, names, attributes);
+            } else if (na == 1) {
+                return arit.opScalarDoubleIntImplCheckingNA(ast, a.getDouble(0), (IntImpl) b.materialize(), nb, dim, names, attributes);
+            } else {
+                int n = resultSize(ast, na, nb);
+                if (n == na) {
+                    return arit.opDoubleImplIntImplASized(ast, (DoubleImpl) a.materialize(), (IntImpl) b.materialize(), n, nb, dim, names, attributes);
+                } else {
+                    return arit.opDoubleImplIntImplBSized(ast, (DoubleImpl) a.materialize(), (IntImpl) b.materialize(), n, na, dim, names, attributes);
+                }
+            }
         }
 
-        @Override public RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) {
-            return LAZY_VECTOR.doubleBinary(a, b, arit, ast);
+        @Override
+        public RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) {
+            int[] dim = resultDimensions(ast, a, b);
+            Names names = resultNames(ast, a, b);
+            Attributes attributes = resultAttributes(ast, a, b);
+            int na = a.size();
+            int nb = b.size();
+
+            if (na == nb) {
+                if (na > 1) {
+                    return arit.opIntImplDoubleImplEqualSize(ast, (IntImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
+                } else {
+                    // scalars
+                    return RDouble.RDoubleFactory.getScalar(arit.opCheckingNA(ast, a.getInt(0), b.getDouble(0)), dim, names, attributes);
+                }
+            } else if (nb == 1) {
+                return arit.opIntImplScalarDoubleCheckingNA(ast, (IntImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
+            } else if (na == 1) {
+                return arit.opScalarIntDoubleImplCheckingNA(ast, a.getInt(0), (DoubleImpl) b.materialize(), nb, dim, names, attributes);
+            } else {
+                int n = resultSize(ast, na, nb);
+                if (n == na) {
+                    return arit.opIntImplDoubleImplASized(ast, (IntImpl) a.materialize(), (DoubleImpl) b.materialize(), n, nb, dim, names, attributes);
+                } else {
+                    return arit.opIntImplDoubleImplBSized(ast, (IntImpl) a.materialize(), (DoubleImpl) b.materialize(), n, na, dim, names, attributes);
+                }
+            }
         }
 
         @Override

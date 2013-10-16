@@ -2,11 +2,6 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
-import r.data.RAny.Attributes;
-import r.data.RArray.Names;
-import r.data.RComplex.*;
-import r.data.internal.*;
-import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.nodes.exec.Constant;
@@ -220,6 +215,41 @@ final class Round extends CallFactory {
 
         @Override
         public void opDoubleBSized(ASTNode ast, double[] x, double[] y, double[] res, int size, int asize) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opScalarDoubleInt(ASTNode ast, double x, int[] y, double[] res, int size) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opDoubleIntASized(ASTNode ast, double[] x, int[] y, double[] res, int size, int bsize) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opDoubleIntBSized(ASTNode ast, double[] x, int[] y, double[] res, int size, int asize) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opIntDoubleEqualSize(ASTNode ast, int[] x, double[] y, double[] res, int size) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opIntScalarDouble(ASTNode ast, int[] x, double y, double[] res, int size) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opIntDoubleASized(ASTNode ast, int[] x, double[] y, double[] res, int size, int bsize) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opIntDoubleBSized(ASTNode ast, int[] x, double[] y, double[] res, int size, int asize) {
             Utils.nyi();
         }
     }
