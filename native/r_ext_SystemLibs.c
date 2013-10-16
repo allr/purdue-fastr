@@ -65,6 +65,28 @@ JNIEXPORT void JNICALL Java_r_ext_SystemLibs_pow___3DD_3DI
    (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
 }
 
+JNIEXPORT void JNICALL Java_r_ext_SystemLibs_pow__D_3D_3DI
+  (JNIEnv *jenv, jclass jcls, jdouble x, jdoubleArray yArg, jdoubleArray resArg, jint size) {
+  
+  double *y = (*jenv)->GetPrimitiveArrayCritical(jenv, yArg, 0);
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  int i;
+
+  for (i = 0; i < size; i++) {
+     double b = y[i];
+     double d = pow(x, b);
+     if (ISNAN(d)) {
+       if (ISNA(x) || ISNA(b)) {
+         d = NA_REAL;
+       }
+     }
+     res[i] = d;
+   }
+   
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, yArg, y, 0);
+   (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+}
+
 JNIEXPORT jboolean JNICALL Java_r_ext_SystemLibs_fmod
   (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdoubleArray yArg, jdoubleArray resArg, jint size) {
   

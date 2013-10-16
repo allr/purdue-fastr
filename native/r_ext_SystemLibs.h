@@ -33,6 +33,14 @@ JNIEXPORT void JNICALL Java_r_ext_SystemLibs_pow___3DD_3DI
 
 /*
  * Class:     r_ext_SystemLibs
+ * Method:    pow
+ * Signature: (D[D[DI)V
+ */
+JNIEXPORT void JNICALL Java_r_ext_SystemLibs_pow__D_3D_3DI
+  (JNIEnv *, jclass, jdouble, jdoubleArray, jdoubleArray, jint);
+
+/*
+ * Class:     r_ext_SystemLibs
  * Method:    fmod
  * Signature: ([D[D[DI)Z
  */

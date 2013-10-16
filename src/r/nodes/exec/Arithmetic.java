@@ -2857,13 +2857,17 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public void opScalarDouble(ASTNode ast, double x, double[] y, double[] res, int size) {
-            for (int i = 0; i < size; i++) {
-                double b = y[i];
-                if (RDouble.RDoubleUtils.arithIsNA(b)) {
-                    res[i] = RDouble.NA;
-                } else {
-                    res[i] = pow(x, b);
+            if (!RContext.hasSystemLibs()) {
+                for (int i = 0; i < size; i++) {
+                    double b = y[i];
+                    if (RDouble.RDoubleUtils.arithIsNA(b)) {
+                        res[i] = RDouble.NA;
+                    } else {
+                        res[i] = pow(x, b);
+                    }
                 }
+            } else {
+                SystemLibs.pow(x, y, res, size);
             }
         }
         @Override
