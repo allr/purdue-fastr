@@ -7,6 +7,7 @@ import r.errors.RError;
 import r.ext.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
+import r.nodes.exec.Arithmetic.*;
 import r.runtime.*;
 
 /**
@@ -45,7 +46,8 @@ final class Exp extends CallFactory {
                         }
                     });
                 } else if (arg instanceof RComplex) {
-                    return Arithmetic.complexBinary(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
+                    VectorArithmetic vectorArit = Arithmetic.chooseVectorArithmetic(RComplex.BOXED_E, arg, Arithmetic.POW);
+                    return vectorArit.complexBinary(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
                 } else {
                     throw RError.getNonNumericMath(ast);
                 }

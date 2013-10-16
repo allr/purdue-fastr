@@ -174,12 +174,15 @@ public interface RDouble extends RNumber {
             return getNAArray(size, null);
         }
         public static RDouble getNAArray(int size, int[] dimensions) {
-            if (size == 1 && dimensions == null) {
+            return getNAArray(size, dimensions, null, null);
+        }
+        public static RDouble getNAArray(int size, int[] dimensions, Names names, Attributes attributes) {
+            if (size == 1 && dimensions == null && names == null && attributes == null) {
                 return BOXED_NA;
             }
             double[] content = new double[size];
             Arrays.fill(content, NA);
-            return new DoubleImpl(content, dimensions, null, null, false);
+            return new DoubleImpl(content, dimensions, names, attributes, false);
         }
         public static DoubleImpl getMatrixFor(double[] values, int m, int n) {
             return new DoubleImpl(values, new int[] {m, n}, null, null, false);

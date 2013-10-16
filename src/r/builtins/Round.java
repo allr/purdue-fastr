@@ -212,6 +212,16 @@ final class Round extends CallFactory {
         public boolean returnsDouble() {
             return true;
         }
+
+        @Override
+        public void opDoubleASized(ASTNode ast, double[] x, double[] y, double[] res, int size, int bsize) {
+            Utils.nyi();
+        }
+
+        @Override
+        public void opDoubleBSized(ASTNode ast, double[] x, double[] y, double[] res, int size, int asize) {
+            Utils.nyi();
+        }
     }
 
     public static final ValueArithmetic ROUND_JAVA = new RoundJava();
