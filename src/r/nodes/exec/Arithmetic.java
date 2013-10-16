@@ -406,7 +406,7 @@ public class Arithmetic extends BaseR {
                     if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
                         RComplex lcmp = ((RAny)lexpr).asComplex();
                         RComplex rcmp = ((RAny)rexpr).asComplex();
-                        return ComplexView.create(lcmp, rcmp, arit, ast);
+                        return complexBinary(lcmp, rcmp, arit, ast);
                     }
                     if (returnsDouble) {
                         RDouble ldbl = ((RAny)lexpr).asDouble();
@@ -952,7 +952,7 @@ public class Arithmetic extends BaseR {
                      // TODO: re-visit this, the error semantics with non-numeric types is very likely wrong
                         if (leftComplex || rexpr instanceof RComplex) {
                             RComplex rcmp = ((RAny) rexpr).asComplex();
-                            return ComplexView.create(lcmp, rcmp, arit, ast);
+                            return complexBinary(lcmp, rcmp, arit, ast);
                         }
                         if (returnsDouble) {
                             return doubleBinary(ldbl, ((RAny) rexpr).asDouble(), arit, ast);
@@ -997,7 +997,7 @@ public class Arithmetic extends BaseR {
                      // TODO: re-visit this, the error semantics with non-numeric types is very likely wrong
                         if (rightComplex || lexpr instanceof RComplex) {
                             RComplex lcmp = ((RAny) lexpr).asComplex();
-                            return ComplexView.create(lcmp, rcmp, arit, ast);
+                            return complexBinary(lcmp, rcmp, arit, ast);
                         }
                         if (returnsDouble) {
                             return doubleBinary(((RAny) lexpr).asDouble(), rdbl, arit, ast);
@@ -2711,6 +2711,49 @@ public class Arithmetic extends BaseR {
     public static final IntegerDiv INTEGER_DIV = new IntegerDiv();
     public static final Mod MOD = new Mod();
 
+    public static RComplex complexBinary(RComplex a, RComplex b, ValueArithmetic arit, ASTNode ast) {
+        if (EAGER_COMPLEX) {
+            int asize = a.size();
+            if (asize > 1) {
+                int bsize = b.size();
+                if (asize == bsize) {
+                    return arit.opComplexImplEqualSize(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
+                }
+                if (bsize == 1) {
+                    double c = b.getReal(0);
+                    double d = b.getImag(0);
+                    if (!RComplexUtils.arithEitherIsNA(c, d)) {
+                        return arit.opComplexImplScalar(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
+                    }
+                    // NOTE: NA case falls back, could be added here
+                }
+            } else if (asize == 1) {
+                int bsize = b.size();
+                if (bsize > 1) {
+                    double ar = a.getReal(0);
+                    double ai = a.getImag(0);
+                    if (!RComplexUtils.arithEitherIsNA(ar, ai)) {
+                        return arit.opScalarComplexImpl(ast, ar, ai, (ComplexImpl) b.materialize(), bsize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
+                    }
+                }
+            }
+        }
+        int depth = 0;
+        if (LIMIT_VIEW_DEPTH) {
+            depth = complexViewDepth(a) + complexViewDepth(b) + 1;
+        }
+        int[] dim = resultDimensions(ast, a, b);
+        Names names = resultNames(ast, a, b);
+        Attributes attributes = resultAttributes(ast, a, b);
+        if (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl) {
+            return new ComplexView(a, b, dim, names, attributes, depth, arit, ast).materialize();
+        }
+        RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
+        if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+            return RComplex.RComplexFactory.copy(res);
+        }
+        return res;
+    }
 
     public static class ComplexView extends View.RComplexView implements RComplex {
         final RComplex a;
@@ -2728,50 +2771,6 @@ public class Arithmetic extends BaseR {
 
         // limiting view depth
         private int depth;  // total views involved
-
-        public static RComplex create(RComplex a, RComplex b, ValueArithmetic arit, ASTNode ast) {
-            if (EAGER_COMPLEX) {
-                int asize = a.size();
-                if (asize > 1) {
-                    int bsize = b.size();
-                    if (asize == bsize) {
-                        return arit.opComplexImplEqualSize(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                    }
-                    if (bsize == 1) {
-                        double c = b.getReal(0);
-                        double d = b.getImag(0);
-                        if (!RComplexUtils.arithEitherIsNA(c, d)) {
-                            return arit.opComplexImplScalar(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                        }
-                        // NOTE: NA case falls back, could be added here
-                    }
-                } else if (asize == 1) {
-                    int bsize = b.size();
-                    if (bsize > 1) {
-                        double ar = a.getReal(0);
-                        double ai = a.getImag(0);
-                        if (!RComplexUtils.arithEitherIsNA(ar, ai)) {
-                            return arit.opScalarComplexImpl(ast, ar, ai, (ComplexImpl) b.materialize(), bsize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                        }
-                    }
-                }
-            }
-            int depth = 0;
-            if (LIMIT_VIEW_DEPTH) {
-                depth = complexViewDepth(a) + complexViewDepth(b) + 1;
-            }
-            int[] dim = resultDimensions(ast, a, b);
-            Names names = resultNames(ast, a, b);
-            Attributes attributes = resultAttributes(ast, a, b);
-            if (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl) {
-                return new ComplexView(a, b, dim, names, attributes, depth, arit, ast).materialize();
-            }
-            RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
-                return RComplexFactory.copy(res);
-            }
-            return res;
-        }
 
         public ComplexView(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int depth, ValueArithmetic arit, ASTNode ast) {
             this.a = a;

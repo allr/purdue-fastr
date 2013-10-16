@@ -45,7 +45,7 @@ final class Exp extends CallFactory {
                         }
                     });
                 } else if (arg instanceof RComplex) {
-                    return Arithmetic.ComplexView.create(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
+                    return Arithmetic.complexBinary(RComplex.BOXED_E, (RComplex) arg, Arithmetic.POW, ast);
                 } else {
                     throw RError.getNonNumericMath(ast);
                 }
