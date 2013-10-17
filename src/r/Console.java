@@ -116,6 +116,7 @@ public class Console {
         try {
             Option.processCommandLine(args, options); // TODO store this in a more appropriate place
             // (needed for commandArgs())
+            VM.resetJavaLibraryPath(); // FIXME this is a stupid hack for HotSpot to ensure that java.library.path has been reloaded
         } catch (Exception e1) {
             return;
         }

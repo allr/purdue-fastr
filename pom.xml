@@ -39,11 +39,8 @@
 			<artifactId>netlib-java</artifactId>
 			<version>0.9.3</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>com.sun.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>3.0.5</version>
-		</dependency>  -->
+		<!-- <dependency> <groupId>com.sun.jna</groupId> <artifactId>jna</artifactId> 
+			<version>3.0.5</version> </dependency> -->
 	</dependencies>
 
 	<build>
@@ -66,10 +63,11 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.16</version>
 				<configuration>
-					<argLine>-Duser.language=en -Djava.library.path=${basedir}/native</argLine>
+					<argLine>-Duser.language=en -Djava.library.path=${basedir}/native:${basedir}native/netlib-java/jni</argLine>
 					<!--ensure vm is loaded with the good locales -->
 					<systemPropertyVariables>
 						<allr.prefix>${project.build.outputDirectory}</allr.prefix>
+						<java.library.path>${basedir}/native:${basedir}native/netlib-java/jni</java.library.path>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
@@ -94,6 +92,12 @@
 				<version>1.2.1</version>
 				<configuration>
 					<mainClass>r.Console</mainClass>
+					<systemProperties>
+						<systemProperty>
+							<key>java.library.path</key>
+							<value>${basedir}/native:${basedir}native/netlib-java/jni</value>
+						</systemProperty>
+					</systemProperties>
 				</configuration>
 			</plugin>
 			<plugin>
