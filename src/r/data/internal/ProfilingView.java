@@ -76,6 +76,8 @@ public interface ProfilingView {
             RArray res;
             if (orig instanceof RDouble) {
                 res = new RDoubleProfilingView((RDouble) orig, profile);
+            } else if (orig instanceof RInt) {
+                res = new RIntProfilingView((RInt) orig, profile);
             } else {
                 res = orig;
             }
@@ -86,6 +88,9 @@ public interface ProfilingView {
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&
                     internalSumCount == 0 && externalSumCount == 0;
 
+            if (size == 0) {
+                return false;
+            }
             if (unused) {
                 return true; // although indeed it may just be used later..
             }
@@ -107,6 +112,7 @@ public interface ProfilingView {
                 System.err.println("should be lazy?: size=" + size + " G/M/S external " + externalGetCount + "/" + externalMaterializeCount + "/" + externalSumCount +
                         "  internal " + internalGetCount + "/" + internalMaterializeCount + "/" + internalSumCount);
                 System.err.println("should be lazy heuristic advice: " + res + " (profiling view " + this + ")");
+                Thread.dumpStack();
             }
             return res;
         }
@@ -181,6 +187,67 @@ public interface ProfilingView {
             }
         }
 
+    }
+
+    public static class RIntProfilingView extends View.RIntProxy<RInt> implements RInt, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RIntProfilingView(RInt orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        @Override
+        public int getInt(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getInt(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RInt materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(int[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof RIntView) {
+                    ((RIntView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    double[] content = ((DoubleImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(int[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((RIntView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        // sum not implemented yet in RInt
     }
 
 }

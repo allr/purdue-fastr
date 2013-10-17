@@ -4315,7 +4315,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RComplex complexBinary(RComplex a, RComplex b, ValueArithmetic arit, ASTNode ast) {
-            return LAZY_VECTOR.complexBinary(a, b, arit, ast);
+            return LAZY_VECTOR.complexBinary(a, b, arit, ast).materialize();
         }
 
         @Override
@@ -4348,7 +4348,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) {
+        public RDouble doubleBinary(RDouble a, RInt b, ValueArithmetic arit, ASTNode ast) { // TODO: int sequences
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
@@ -4377,7 +4377,7 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
-        public RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) {
+        public RDouble doubleBinary(RInt a, RDouble b, ValueArithmetic arit, ASTNode ast) { // TODO: int sequences
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
@@ -4407,7 +4407,7 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RInt intBinary(RInt a, RInt b, ValueArithmetic arit, ASTNode ast) {
-            return LAZY_VECTOR.intBinary(a, b, arit, ast);
+            return LAZY_VECTOR.intBinary(a, b, arit, ast).materialize();
         }
 
     }
