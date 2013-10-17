@@ -12,6 +12,7 @@ import r.data.RDouble.RDoubleUtils;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;
 import r.data.internal.IntImpl.RIntSimpleRange;
+import r.data.internal.ProfilingView.ViewProfile;
 import r.data.internal.TracingView.*;
 import r.errors.*;
 import r.ext.*;
@@ -300,8 +301,10 @@ public class Arithmetic extends BaseR {
             }
 
             // vectors
-            final VectorArithmetic vectorArit = chooseVectorArithmetic(leftTemplate, rightTemplate, arit);
+            return createProfiling(ast, left, right, arit);
+        }
 
+        public static Specialized createSpecializedVector(RAny leftTemplate, RAny rightTemplate, final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit, final VectorArithmetic vectorArit) {
             if (leftTemplate instanceof RDouble && rightTemplate instanceof RDouble) {
                 Calculator c = new Calculator() {
                     @Override
@@ -412,47 +415,72 @@ public class Arithmetic extends BaseR {
             return null;
         }
 
+        public static RArray genericCalc(Object lexpr, Object rexpr, ValueArithmetic arit, boolean returnsDouble, VectorArithmetic vectorArit, ASTNode ast) {
+            // TODO: re-visit this, the error semantics with non-numeric types is very likely wrong
+            if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
+                RComplex lcmp = ((RAny)lexpr).asComplex();
+                RComplex rcmp = ((RAny)rexpr).asComplex();
+                return vectorArit.complexBinary(lcmp, rcmp, arit, ast);
+            }
+            if (returnsDouble) {
+                RDouble ldbl = ((RAny)lexpr).asDouble();
+                RDouble rdbl = ((RAny)rexpr).asDouble();
+                return vectorArit.doubleBinary(ldbl, rdbl, arit, ast);
+            }
+            if (lexpr instanceof RDouble) {
+                RDouble ldbl = (RDouble) lexpr;
+                if (rexpr instanceof RDouble) {
+                    return vectorArit.doubleBinary(ldbl, (RDouble) rexpr, arit, ast);
+                } else if (rexpr instanceof RInt) {
+                    return vectorArit.doubleBinary(ldbl, (RInt) rexpr, arit, ast);
+                } else {
+                    return vectorArit.doubleBinary(ldbl, ((RAny) rexpr).asDouble(), arit, ast);
+                }
+            }
+            if (rexpr instanceof RDouble) {
+                RDouble rdbl = (RDouble) rexpr;
+                if (lexpr instanceof RInt) {
+                    return vectorArit.doubleBinary((RInt) lexpr, rdbl, arit, ast);
+                } else {
+                    return vectorArit.doubleBinary(((RAny) lexpr).asDouble(), rdbl, arit, ast);
+                }
+            }
+            if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
+                RInt lint = ((RAny) lexpr).asInt();
+                RInt rint = ((RAny) rexpr).asInt();
+                return vectorArit.intBinary(lint, rint, arit, ast);
+            }
+            throw RError.getNonNumericBinary(ast);
+        }
+
+        public static Specialized createProfiling(final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit) {
+
+            Calculator c;
+            final boolean returnsDouble = returnsDouble(arit);
+            c = new Calculator() {
+                ViewProfile profile;
+
+                @Override
+                public Object calc(Object lexpr, Object rexpr) throws SpecializationException {
+                    if (profile == null) {
+                        profile = new ViewProfile();
+                        RArray res = genericCalc(lexpr, rexpr, arit, returnsDouble, LAZY_VECTOR, ast);
+                        return ProfilingView.ViewProfile.profile(res, profile);
+                    } else {
+                        throw new SpecializationException(chooseVectorArithmetic(profile));
+                    }
+                }
+            };
+            return new Specialized(ast, left, right, arit, LAZY_VECTOR, c, "profiling Generic, Generic>");
+        }
+
         public static Specialized createGeneric(final ASTNode ast, RNode left, RNode right, final ValueArithmetic arit, final VectorArithmetic vectorArit) {
             Calculator c;
             final boolean returnsDouble = returnsDouble(arit);
             c = new Calculator() {
                 @Override
                 public Object calc(Object lexpr, Object rexpr) {
-                    // TODO: re-visit this, the error semantics with non-numeric types is very likely wrong
-                    if (lexpr instanceof RComplex || rexpr instanceof RComplex) {
-                        RComplex lcmp = ((RAny)lexpr).asComplex();
-                        RComplex rcmp = ((RAny)rexpr).asComplex();
-                        return vectorArit.complexBinary(lcmp, rcmp, arit, ast);
-                    }
-                    if (returnsDouble) {
-                        RDouble ldbl = ((RAny)lexpr).asDouble();
-                        RDouble rdbl = ((RAny)rexpr).asDouble();
-                        return vectorArit.doubleBinary(ldbl, rdbl, arit, ast);
-                    }
-                    if (lexpr instanceof RDouble) {
-                        RDouble ldbl = (RDouble) lexpr;
-                        if (rexpr instanceof RDouble) {
-                            return vectorArit.doubleBinary(ldbl, (RDouble) rexpr, arit, ast);
-                        } else if (rexpr instanceof RInt) {
-                            return vectorArit.doubleBinary(ldbl, (RInt) rexpr, arit, ast);
-                        } else {
-                            return vectorArit.doubleBinary(ldbl, ((RAny) rexpr).asDouble(), arit, ast);
-                        }
-                    }
-                    if (rexpr instanceof RDouble) {
-                        RDouble rdbl = (RDouble) rexpr;
-                        if (lexpr instanceof RInt) {
-                            return vectorArit.doubleBinary((RInt) lexpr, rdbl, arit, ast);
-                        } else {
-                            return vectorArit.doubleBinary(((RAny) lexpr).asDouble(), rdbl, arit, ast);
-                        }
-                    }
-                    if (lexpr instanceof RInt || rexpr instanceof RInt || lexpr instanceof RLogical || rexpr instanceof RLogical) { // FIXME: this check should be simpler
-                        RInt lint = ((RAny) lexpr).asInt();
-                        RInt rint = ((RAny) rexpr).asInt();
-                        return vectorArit.intBinary(lint, rint, arit, ast);
-                    }
-                    throw RError.getNonNumericBinary(ast);
+                    return genericCalc(lexpr, rexpr, arit, returnsDouble, vectorArit, ast);
                 }
             };
             return new Specialized(ast, left, right, arit, vectorArit, c, "<Generic, Generic>");
@@ -463,7 +491,15 @@ public class Arithmetic extends BaseR {
             try {
                 return calc.calc(lexpr, rexpr);
             } catch (SpecializationException e) {
-                FailedSpecialization f = (FailedSpecialization) e.getResult();
+                Object r = e.getResult();
+                if (r instanceof VectorArithmetic) {
+                    // result of profiling - the previous node must have been a profiling node
+                    Specialized sn = createSpecializedVector((RAny)lexpr, (RAny) rexpr, ast, left, right, arit, (VectorArithmetic) r);
+                    replace(sn, "install SpecializedVector from Specialized-Profiling");
+                    return sn.execute(lexpr, rexpr);
+                }
+
+                FailedSpecialization f = (FailedSpecialization) r;
                 if (f == FailedSpecialization.FIXED_TYPE) {
                     Specialized sn = createSpecializedMultiType((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
                     if (sn != null) {
@@ -471,7 +507,14 @@ public class Arithmetic extends BaseR {
                         return sn.execute(lexpr, rexpr);
                     }
                 }
-                Specialized gn = createGeneric(ast, left, right, arit, chooseVectorArithmetic(lexpr, rexpr, arit));
+
+                if (vectorArit == null) {
+                    Specialized sn = createProfiling(ast, left, right, arit);
+                    replace(sn, "install Profiling from Specialized-?");
+                    return sn.execute(lexpr, rexpr);
+                }
+
+                Specialized gn = createGeneric(ast, left, right, arit, vectorArit);
                 replace(gn, "install Specialized<Generic, Generic> from Specialized");
                 return gn.execute(lexpr, rexpr);
             }
@@ -4383,6 +4426,15 @@ public class Arithmetic extends BaseR {
             }
         }
         return LAZY_VECTOR; // default
+    }
+
+    public static VectorArithmetic chooseVectorArithmetic(ViewProfile profile) {
+
+        if (profile.shouldBeLazy()) {
+            return LAZY_VECTOR;
+        } else {
+            return EAGER_VECTOR;
+        }
     }
 
 

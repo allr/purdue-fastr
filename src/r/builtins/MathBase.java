@@ -129,7 +129,7 @@ abstract class MathBase extends CallFactory {
                 }
             };
             replace(newNode);
-            return createView(ast, currentValue, currentValue.size());
+            return calcEager(ast, currentValue);
         }
 
     }

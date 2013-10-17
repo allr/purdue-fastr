@@ -2,7 +2,6 @@ package r.nodes.exec;
 
 import r.data.*;
 import r.data.internal.*;
-import r.data.internal.View.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.runtime.*;

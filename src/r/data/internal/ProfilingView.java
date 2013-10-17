@@ -4,6 +4,8 @@ import r.data.*;
 
 public interface ProfilingView {
 
+    public static final boolean DEBUG_PROFILING = false;
+
     public static class ViewProfile {
             // static info
         int size;
@@ -21,6 +23,9 @@ public interface ProfilingView {
         public void onNewView(RArray child) {
             depth = 0; // TODO
             size = child.size();
+            if (DEBUG_PROFILING) {
+                System.err.println("creating profiling view " + this + " for " + child);
+            }
         }
 
         private static boolean internal = false;
@@ -77,9 +82,7 @@ public interface ProfilingView {
             return (T) res;
         }
 
-        public boolean shouldBeLazy() {
-//            System.err.println("should be lazy?: size=" + size + " externalMaterializeCount=" + externalMaterializeCount + " externalGetCount=" + externalGetCount);
-
+        private boolean shouldBeLazyReal() {
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&
                     internalSumCount == 0 && externalSumCount == 0;
 
@@ -96,6 +99,16 @@ public interface ProfilingView {
                 return false;
             }
             return true;
+        }
+
+        public boolean shouldBeLazy() {
+            boolean res = shouldBeLazyReal();
+            if (DEBUG_PROFILING) {
+                System.err.println("should be lazy?: size=" + size + " G/M/S external " + externalGetCount + "/" + externalMaterializeCount + "/" + externalSumCount +
+                        "  internal " + internalGetCount + "/" + internalMaterializeCount + "/" + internalSumCount);
+                System.err.println("should be lazy heuristic advice: " + res + " (profiling view " + this + ")");
+            }
+            return res;
         }
 
     }
@@ -134,7 +147,15 @@ public interface ProfilingView {
         public void materializeInto(double[] res) {
             boolean internal = profile.enterMaterialize();
             try {
-                ((RDoubleView) orig).materializeInto(res);
+                if (orig instanceof RDoubleView) {
+                    ((RDoubleView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    double[] content = ((DoubleImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
             } finally {
                 profile.leave(internal);
             }

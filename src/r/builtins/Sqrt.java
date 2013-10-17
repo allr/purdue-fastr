@@ -3,13 +3,9 @@ package r.builtins;
 import r.*;
 import r.data.*;
 import r.data.RDouble.*;
-import r.data.internal.*;
-import r.data.internal.View.*;
 import r.errors.*;
 import r.ext.*;
 import r.nodes.ast.*;
-import r.nodes.exec.*;
-import r.runtime.*;
 
 /**
  * "sqrt"
