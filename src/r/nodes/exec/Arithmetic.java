@@ -46,7 +46,7 @@ public class Arithmetic extends BaseR {
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
-    private static final boolean EAGER_COMPLEX = false;
+    private static final boolean EAGER_COMPLEX = true;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, VectorArithmetic vectorArit) {
         super(ast);
