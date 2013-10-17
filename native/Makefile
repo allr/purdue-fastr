@@ -1,4 +1,4 @@
-OS=$(shell uname -s)
+OS=$(shell uname -s | tr '[:upper:]' '[:lower:]')
 include Makefile.$(OS)
 
 TARGETS=libgnurglue.so libsystemlibsglue.so
