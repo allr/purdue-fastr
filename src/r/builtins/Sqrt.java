@@ -19,63 +19,24 @@ import r.runtime.*;
  * </pre>
  */
 // FIXME: scalar optimizations
-// FIXME: use math base?
-// FIXME: NaNs produce warning should be issued only once for a vector
-final class Sqrt extends CallFactory {
+// FIXME: NaNs produce warning should be issued only once for a vector (and should fix this in MathBase)
 
-    static final CallFactory _ = new Sqrt("sqrt", new String[]{"x"}, new String[]{"x"});
+final class Sqrt extends MathBase {
 
-    private Sqrt(String name, String[] params, String[] required) {
-        super(name, params, required);
+    static final CallFactory _ = new Sqrt("sqrt");
+
+    private Sqrt(String name) {
+        super(name);
     }
 
-    @Override public RNode create(ASTNode call, RSymbol[] names, RNode[] exprs) {
-        check(call, names, exprs);
-        return new Builtin.Builtin1(call, names, exprs) {
+    @Override
+    double op(ASTNode ast, double value) {
+        return sqrt(value, ast);
+    }
 
-            @Override public RAny doBuiltIn(Frame frame, RAny arg) {
-                RDouble typedArg;
-                if (arg instanceof RDouble) {
-                    typedArg = (RDouble) arg;
-                } else if (arg instanceof RInt || arg instanceof RLogical) {
-                    typedArg = arg.asDouble();
-                } else { // TODO: complex numbers
-                    throw RError.getNonNumericMath(ast);
-                }
-                if (typedArg.size() == 1) {
-                    double d = typedArg.getDouble(0);
-                    return RDouble.RDoubleFactory.getScalar(sqrt(d, ast));
-                }
-                return TracingView.ViewTrace.trace(new View.RDoubleProxy<RDouble>(typedArg) {
-                    @Override
-                    public double getDouble(int i) {
-                        double d = orig.getDouble(i);
-                        return sqrt(d, ast);
-                    }
-
-                    @Override
-                    public void materializeInto(double[] resContent) {
-                        if (orig instanceof DoubleImpl) {
-                            sqrt(orig.getContent(), resContent, ast);
-                        } else if (orig instanceof RDoubleView) {
-                            ((RDoubleView) orig).materializeInto(resContent);
-                            sqrt(resContent, resContent, ast);
-                        } else  {
-                            super.materializeInto(resContent);
-                        }
-                    }
-
-                    @Override
-                    public void materializeIntoOnTheFly(double[] resContent) {
-                        if (orig instanceof DoubleImpl) {
-                            sqrt(orig.getContent(), resContent, ast);
-                        } else  {
-                            super.materializeIntoOnTheFly(resContent);
-                        }
-                    }
-                });
-            }
-        };
+    @Override
+    void op(ASTNode ast, double[] x, double[] res) {
+        sqrt(x, res, ast);
     }
 
     public static double sqrt(double d, ASTNode ast) {

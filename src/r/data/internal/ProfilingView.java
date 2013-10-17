@@ -78,7 +78,7 @@ public interface ProfilingView {
         }
 
         public boolean shouldBeLazy() {
-            System.err.println("should be lazy?: size=" + size + " externalMaterializeCount=" + externalMaterializeCount + " externalGetCount=" + externalGetCount);
+//            System.err.println("should be lazy?: size=" + size + " externalMaterializeCount=" + externalMaterializeCount + " externalGetCount=" + externalGetCount);
 
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&
                     internalSumCount == 0 && externalSumCount == 0;
