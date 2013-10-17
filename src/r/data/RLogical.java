@@ -246,7 +246,17 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
         @Override
         public double getImag(int i) {
-            return 0;
+            int ll = orig.getLogical(i);
+            if (ll == RLogical.NA) {
+                return RDouble.NA;
+            } else {
+                return 0;
+            }
+        }
+
+        @Override
+        public Complex getComplex(int i) {
+            return Convert.logical2complex(orig.getLogical(i));
         }
     }
 

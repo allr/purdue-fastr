@@ -186,6 +186,16 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
         return imag;
     }
 
+    public Complex getComplex() { // FIXME: perhaps Complex should just be ScalarComplexImpl
+        return new Complex(real, imag);
+    }
+
+    @Override
+    public Complex getComplex(int i) {
+        assert Utils.check(i == 0);
+        return getComplex();
+    }
+
     @Override
     public RComplex subset(final RInt index) {
         final int size = index.size();
@@ -218,6 +228,16 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
                     return RDouble.NA;
                 } else {
                     return ivalue;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                int j = index.getInt(i);
+                if (j > 1) {
+                    return RComplex.COMPLEX_BOXED_NA;
+                } else {
+                    return new Complex(rvalue, ivalue); // FIXME: or pre-allocate?
                 }
             }
 

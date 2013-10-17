@@ -7,6 +7,7 @@ import r.*;
 import r.data.*;
 import r.data.RAny.Attributes;
 import r.data.RArray.Names;
+import r.data.RComplex.Complex;
 import r.data.RComplex.RComplexUtils;
 import r.data.RDouble.RDoubleUtils;
 import r.data.internal.*;
@@ -45,7 +46,7 @@ public class Arithmetic extends BaseR {
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
-    private static final boolean EAGER_COMPLEX = true;
+    private static final boolean EAGER_COMPLEX = false;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, VectorArithmetic vectorArit) {
         super(ast);
@@ -1165,6 +1166,7 @@ public class Arithmetic extends BaseR {
     public abstract static class ValueArithmetic {
         public abstract double opReal(ASTNode ast, double a, double b, double c, double d); // (a + bi)  op  (c + di)
         public abstract double opImag(ASTNode ast, double a, double b, double c, double d);
+        public abstract Complex opComplex(ASTNode ast, double a, double b, double c, double d);
 
         public abstract double op(ASTNode ast, double a, double b);
         public abstract int op(ASTNode ast, int a, int b);
@@ -1506,6 +1508,10 @@ public class Arithmetic extends BaseR {
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
             return b + d;
+        }
+        @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            return new Complex(a + c, b + d);
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -1860,6 +1866,10 @@ public class Arithmetic extends BaseR {
             return b - d;
         }
         @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            return new Complex(a - c, b - d);
+        }
+        @Override
         public double op(ASTNode ast, double a, double b) {
             return a - b;
         }
@@ -2184,6 +2194,11 @@ public class Arithmetic extends BaseR {
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
             cmult(a, b, c, d, opTMP, 0);
             return opTMP[1];
+        }
+        @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            cmult(a, b, c, d, opTMP, 0);
+            return new Complex(opTMP[0], opTMP[1]);
         }
         @Override
         public double op(ASTNode ast, double a, double b) {
@@ -2688,7 +2703,11 @@ public class Arithmetic extends BaseR {
             cpow(a, b, c, d, opTMP, 0); // FIXME: remember last values? would a boxed version be faster?
             return opTMP[1];
         }
-
+        @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            cpow(a, b, c, d, opTMP, 0); // FIXME: remember last values? would a boxed version be faster?
+            return new Complex(opTMP[0], opTMP[1]);
+        }
         @Override
         public double op(ASTNode ast, double a, double b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
@@ -3159,6 +3178,11 @@ public class Arithmetic extends BaseR {
             return opTMP[1];
         }
         @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            cdiv(a, b, c, d, opTMP, 0);
+            return new Complex(opTMP[0], opTMP[1]);
+        }
+        @Override
         public double op(ASTNode ast, double a, double b) {
             return a / b; // FIXME: check that the R rules correspond to Java
         }
@@ -3449,6 +3473,10 @@ public class Arithmetic extends BaseR {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
         public double op(ASTNode ast, double a, double b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             double q = a / b;
@@ -3716,6 +3744,10 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
+            throw RError.getUnimplementedComplex(ast);
+        }
+        @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
             throw RError.getUnimplementedComplex(ast);
         }
         @Override
@@ -4038,7 +4070,7 @@ public class Arithmetic extends BaseR {
             }
             RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
             if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
-                return RComplex.RComplexFactory.copy(res);
+                return res.materialize();
             }
             return res;
         }
@@ -4532,6 +4564,31 @@ public class Arithmetic extends BaseR {
                 return arit.opImag(ast, areal, aimag, breal, bimag);
             } else {
                 return RDouble.NA;
+            }
+        }
+
+        @Override
+        public Complex getComplex(int i) {
+            int ai;
+            int bi;
+            if (i >= na) {
+                ai = i % na;
+                bi = i;
+            } else if (i >= nb) {
+                bi = i % nb;
+                ai = i;
+            } else {
+                ai = i;
+                bi = i;
+            }
+            double areal = a.getReal(ai);
+            double aimag = a.getImag(ai);
+            double breal = b.getReal(bi);
+            double bimag = b.getImag(bi);
+            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                return arit.opComplex(ast, areal, aimag, breal, bimag);
+            } else {
+                return RComplex.COMPLEX_BOXED_NA;
             }
         }
 

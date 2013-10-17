@@ -278,7 +278,17 @@ public interface RInt extends RNumber {
 
         @Override
         public double getImag(int i) {
-            return 0;
+            int v = orig.getInt(i);
+            if (v == RInt.NA) {
+                return RDouble.NA;
+            } else {
+                return 0;
+            }
+        }
+
+        @Override
+        public Complex getComplex(int i) {
+            return Convert.int2complex(orig.getInt(i));
         }
     }
 

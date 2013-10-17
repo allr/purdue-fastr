@@ -365,6 +365,11 @@ public interface RDouble extends RNumber {
                 return 0;
             }
         }
+
+        @Override
+        public Complex getComplex(int i) {
+            return Convert.double2complex(orig.getDouble(i));
+        }
     }
 
     public static class RIntView extends View.RIntProxy<RDouble> implements RInt {

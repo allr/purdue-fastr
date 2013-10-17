@@ -2,6 +2,7 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
+import r.data.RComplex.Complex;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 import r.nodes.exec.Constant;
@@ -104,12 +105,17 @@ final class Round extends CallFactory {
 
         @Override
         public double opReal(ASTNode ast, double a, double b, double c, double d) {
-            return round(a,c);
+            return round(a, c);
         }
 
         @Override
         public double opImag(ASTNode ast, double a, double b, double c, double d) {
             return round(b, c);
+        }
+
+        @Override
+        public Complex opComplex(ASTNode ast, double a, double b, double c, double d) {
+            return new Complex(round(a, c), round(b, c));
         }
 
         @Override

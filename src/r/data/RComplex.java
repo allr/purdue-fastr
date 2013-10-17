@@ -22,6 +22,7 @@ public interface RComplex extends RArray {
     RComplex set(int i, double real, double imag);
     double getReal(int i);
     double getImag(int i);
+    Complex getComplex(int i);
     RComplex materialize();
     double[] getContent();
 
@@ -56,6 +57,10 @@ public interface RComplex extends RArray {
         @Override
         public int hashCode() {
             return (int) real;
+        }
+
+        public boolean isNAorNaN() {
+            return RComplexUtils.eitherIsNAorNaN(real, imag);
         }
     }
 
@@ -327,6 +332,18 @@ public interface RComplex extends RArray {
         }
 
         @Override
+        public Complex getComplex(int i) {
+            assert Utils.check(i < size, "bounds check");
+            assert Utils.check(i >= 0, "bounds check");
+
+            if (i < excludeIndex) {
+                return orig.getComplex(i);
+            } else {
+                return orig.getComplex(i + 1);
+            }
+        }
+
+        @Override
         public boolean isSharedReal() {
             return orig.isShared();
         }
@@ -382,6 +399,17 @@ public interface RComplex extends RArray {
                 return RDouble.NA;
             } else {
                 return value.getImag(j - 1);
+            }
+        }
+
+        @Override
+        public Complex getComplex(int i) {
+            int j = index.getInt(i);
+            assert Utils.check(j > 0);
+            if (j > vsize) {
+                return RComplex.COMPLEX_BOXED_NA;
+            } else {
+                return value.getComplex(j - 1);
             }
         }
 

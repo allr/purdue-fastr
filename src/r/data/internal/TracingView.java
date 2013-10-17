@@ -744,6 +744,12 @@ public interface TracingView {
         }
 
         @Override
+        public Complex getComplex(int i) {
+            trace.get(i);
+            return orig.getComplex(i);
+        }
+
+        @Override
         public RComplex materialize() {
             trace.materialize();
             return orig.materialize();

@@ -231,6 +231,10 @@ public class Convert {
         return RDouble.NA;
     }
 
+    public static Complex double2complex(double d) {
+        return  RDouble.RDoubleUtils.isNAorNaN(d) ? RComplex.COMPLEX_BOXED_NA : new Complex(d, 0);
+    }
+
     public static int complex2int(double real, double imag) {
         return complex2int(real, imag, null);
     }
@@ -251,6 +255,10 @@ public class Convert {
         return RInt.NA;
     }
 
+    public static Complex int2complex(int i) {
+        return  i == RInt.NA ? RComplex.COMPLEX_BOXED_NA : new Complex(i, 0);
+    }
+
     public static int complex2logical(double real, double imag) {
         if (!RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
             boolean v = (real != 0 || imag != 0);
@@ -258,6 +266,10 @@ public class Convert {
         } else {
             return RLogical.NA;
         }
+    }
+
+    public static Complex logical2complex(int l) {
+        return  l == RLogical.NA ? RComplex.COMPLEX_BOXED_NA : new Complex(l, 0);
     }
 
     public static byte complex2raw(double real, double imag) {
@@ -288,6 +300,10 @@ public class Convert {
             warn.outOfRange = true;
         }
         return RRaw.ZERO;
+    }
+
+    public static Complex raw2complex(byte r) {
+        return new Complex(r, 0);
     }
 
     public static int double2int(double d) {

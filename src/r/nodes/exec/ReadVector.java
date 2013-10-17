@@ -801,6 +801,12 @@ public abstract class ReadVector extends BaseR {
                 return orig.getImag(from + i * step - 1);
             }
 
+            @Override public Complex getComplex(int i) {
+                assert Utils.check(i < size, "bounds check");
+                assert Utils.check(i >= 0, "bounds check");
+                return orig.getComplex(from + i * step - 1);
+            }
+
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
@@ -1032,6 +1038,11 @@ public abstract class ReadVector extends BaseR {
             @Override public double getImag(int i) {
                 assert Utils.check(i < to, "bounds check");
                 return orig.getImag(i);
+            }
+
+            @Override public Complex getComplex(int i) {
+                assert Utils.check(i < to, "bounds check");
+                return orig.getComplex(i);
             }
 
             @Override public int[] dimensions() { // drop dimensions

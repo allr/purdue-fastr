@@ -56,8 +56,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         size = c.size();
         content = new double[2 * size];
         for (int i = 0; i < size; i++) {
-            content[2 * i] = c.getReal(i);
-            content[2 * i + 1] = c.getImag(i);
+            Complex cmp = c.getComplex(i);
+            content[2 * i] = cmp.realValue();
+            content[2 * i + 1] = cmp.imagValue();
+//            content[2 * i] = c.getReal(i);
+//            content[2 * i + 1] = c.getImag(i);
         }
         if (!valuesOnly) {
             dimensions = c.dimensions();
@@ -85,6 +88,11 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public Object get(int i) {
+        return new Complex(getReal(i), getImag(i));
+    }
+
+    @Override
+    public Complex getComplex(int i) {
         return new Complex(getReal(i), getImag(i));
     }
 

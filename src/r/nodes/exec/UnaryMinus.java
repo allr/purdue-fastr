@@ -228,6 +228,15 @@ public abstract class UnaryMinus extends BaseR {
                             return d;
                         }
                     }
+
+                    @Override
+                    public Complex getComplex(int i) {
+                        Complex c = cvalue.getComplex(i);
+                        double real = c.realValue();
+                        double imag = c.imagValue();
+                        return new Complex(RDouble.RDoubleUtils.isNAorNaN(real) ? real : -real,
+                                RDouble.RDoubleUtils.isNAorNaN(imag) ? imag : -imag);
+                    }
                 });
             }
             if (value instanceof RDouble) {

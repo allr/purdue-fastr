@@ -367,6 +367,10 @@ class Rep extends CallFactory {
                     return orig.getImag(i % origSize);
                 }
 
+                @Override public Complex getComplex(int i) {
+                    return orig.getComplex(i % origSize);
+                }
+
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }

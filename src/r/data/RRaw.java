@@ -169,6 +169,11 @@ public interface RRaw extends RArray {
         public double getImag(int i) {
             return 0;
         }
+
+        @Override
+        public Complex getComplex(int i) {
+            return Convert.raw2complex(orig.getRaw(i));
+        }
     }
 
     public static class RDoubleView extends View.RDoubleProxy<RRaw> implements RDouble {
