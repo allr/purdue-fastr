@@ -1,0 +1,2 @@
+LDFLAGS+=-dynamiclib -undefined suppress -flat_namespace
+LIB_EXT=dylib

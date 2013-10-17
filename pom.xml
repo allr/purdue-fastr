@@ -39,6 +39,11 @@
 			<artifactId>netlib-java</artifactId>
 			<version>0.9.3</version>
 		</dependency>
+		<!-- <dependency>
+			<groupId>com.sun.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>3.0.5</version>
+		</dependency>  -->
 	</dependencies>
 
 	<build>
@@ -61,8 +66,8 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.16</version>
 				<configuration>
-					<argLine>-Duser.language=en</argLine><!--ensure vm is loaded with the 
-						good locales -->
+					<argLine>-Duser.language=en -Djava.library.path=${basedir}/native</argLine>
+					<!--ensure vm is loaded with the good locales -->
 					<systemPropertyVariables>
 						<allr.prefix>${project.build.outputDirectory}</allr.prefix>
 					</systemPropertyVariables>

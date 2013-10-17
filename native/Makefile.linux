@@ -1,0 +1,3 @@
+LDFLAGS=-Wl,soname=$@ -static-libgcc 
+R_PATH ?= /usr/share/R
+LIB_EXT=so
