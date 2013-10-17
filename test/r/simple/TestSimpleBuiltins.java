@@ -1009,6 +1009,7 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ f<-function(i) { if(i<=1) 1 else i*Recall(i-1) } ; g <- f ; f <- sum ; g(10) }", "3628800.0");
         assertEval("{ f<-function(i) { if (i==1) { 1 } else if (i==2) { 1 } else { Recall(i-1) + Recall(i-2) } } ; f(10) }", "55.0");
         assertEvalError("{ Recall(10) }", "'Recall' called from outside a closure");
+        assertEval("{ z <- 1 ; f <- function(i, x) { if (i == 0) { x } else { Recall(i - 1, z <<- z + 1) } } ; f(10, 100) ; z }", "2.0");
     }
 
     @Test

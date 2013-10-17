@@ -19,13 +19,13 @@ final class Recall extends CallFactory {
         return new Uninitialized(call, names, exprs);
     }
 
-    // FIXME: could probably make this faster by subclassing AbstractCall directly
-    public static class Uninitialized extends Builtin {
+    public static class Uninitialized extends AbstractCall {
         public Uninitialized(ASTNode orig, RSymbol[] argNames, RNode[] argExprs) {
             super(orig, argNames, argExprs);
         }
 
-        @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
+        @Override
+        public final Object execute(Frame frame) {
             try {
                 throw new SpecializationException(null);
             } catch (SpecializationException e) {
@@ -38,14 +38,14 @@ final class Recall extends CallFactory {
                 }
                 Fixed fn = new Fixed(ast, argNames, argExprs, function);
                 replace(fn, "install Fixed from Recall.Uninitialized");
-                return fn.doBuiltIn(frame, params);
+                return fn.execute(frame);
             }
         }
     }
 
     // NOTE: this will only work when the Recall is NOT within eval/language object; for eval/language object will need another implementation
     // FIXME: could probably make this faster by subclassing AbstractCall directly
-    public static class Fixed extends Builtin {
+    public static class Fixed extends AbstractCall {
         final RFunction function;
         final DotsInfo functionDotsInfo = new DotsInfo();
         final int[] argPositions;
@@ -60,11 +60,12 @@ final class Recall extends CallFactory {
             dotsIndex = function.dotsIndex();
         }
 
-        @Override public final RAny doBuiltIn(Frame frame, RAny[] params) {
+        @Override
+        public final Object execute(Frame frame) {
             // TODO: can we do something smarter here?
             Frame newFrame = function.createFrame(frame);
             placeArgs(frame, newFrame, argPositions, functionDotsInfo, dotsIndex);
-            return (RAny) function.call(newFrame);
+            return function.call(newFrame);
         }
     }
 
