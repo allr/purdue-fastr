@@ -7,7 +7,7 @@ import r.data.internal.*;
 
 public abstract class Frame {
 
-    public static final boolean MATERIALIZE_ON_ASSIGNMENT = true;
+    public static final boolean MATERIALIZE_ON_ASSIGNMENT = false;
 
     Object returnValue;  // for top-level frames, used to store REnvironment
     boolean isDirty; // FIXME: move down? empty frames can't be dirty

@@ -632,7 +632,7 @@ public interface TracingView {
             }
         }
 
-        public static <T extends RArray> T trace(RArray orig) { // FIXME: verify this has no overhead when tracing is disabled
+        public static <T extends RArray> T trace(RArray orig) {
             if (VIEW_TRACING) {
                 RArray res;
                 if (orig instanceof RList) {

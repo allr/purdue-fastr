@@ -11,7 +11,7 @@ import r.runtime.*;
 
 public abstract class AbstractCall extends BaseR {
 
-    public static final boolean MATERIALIZE_FUNCTION_ARGUMENTS = true;
+    public static final boolean MATERIALIZE_FUNCTION_ARGUMENTS = false;
 
     protected final RSymbol[] argNames;
     @Children protected final RNode[] argExprs;
