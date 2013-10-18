@@ -59,8 +59,6 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
             Complex cmp = c.getComplex(i);
             content[2 * i] = cmp.realValue();
             content[2 * i + 1] = cmp.imagValue();
-//            content[2 * i] = c.getReal(i);
-//            content[2 * i + 1] = c.getImag(i);
         }
         if (!valuesOnly) {
             dimensions = c.dimensions();

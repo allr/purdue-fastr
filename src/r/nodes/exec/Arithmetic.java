@@ -61,7 +61,6 @@ public class Arithmetic extends BaseR {
     }
 
     public static boolean returnsDouble(ValueArithmetic arit) {
-//        return (arit == POW || arit == DIV);
         return arit.returnsDouble();
     }
 
@@ -4494,7 +4493,7 @@ public class Arithmetic extends BaseR {
         final ASTNode ast;
 
         // limiting view depth
-        private int depth;  // total views involved
+        protected int depth;  // total views involved
 
         public ComplexView(int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.ast = ast;
@@ -4806,6 +4805,44 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (a instanceof ComplexImpl) {
+                    if (b instanceof ComplexImpl) {
+                        arit.opComplexEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                        return;
+                    }
+                    if (b instanceof RComplexView) {
+                        ((RComplexView) b).materializeInto(resContent);
+                        arit.opComplexEqualSize(ast, a.getContent(), resContent, resContent, n);
+                        return;
+                    }
+                } else if (a instanceof RComplexView) {
+                    if (b instanceof ComplexImpl) {
+                        ((RComplexView) a).materializeInto(resContent);
+                        arit.opComplexEqualSize(ast, resContent, b.getContent(), resContent, n);
+                        return;
+                    }
+                    if (SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION && b instanceof RComplexView) {
+                        // use a tight loop for at least one child
+                        ((RComplexView) a).materializeInto(resContent);
+                        EqualSize myClone = new EqualSize(RComplex.RComplexFactory.getFor(resContent), b, dimensions, names, attributes, n, depth, arit, ast);
+                        myClone.materializeIntoOnTheFly(resContent);
+                        return;
+                    }
+                }
+                super.materializeInto(resContent);
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (a instanceof ComplexImpl && b instanceof ComplexImpl) {
+                    arit.opComplexEqualSize(ast, a.getContent(), b.getContent(), resContent, n);
+                } else {
+                    super.materializeIntoOnTheFly(resContent);
+                }
+            }
+
         }
 
         static final class VectorScalar extends ComplexViewForComplexComplex implements RComplex {
@@ -4854,6 +4891,27 @@ public class Arithmetic extends BaseR {
                     return RComplex.COMPLEX_BOXED_NA;
                 }
             }
+
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (a instanceof ComplexImpl) {
+                    arit.opComplexScalar(ast, a.getContent(), breal, bimag, resContent, n);
+                } else if (a instanceof RComplexView) {
+                    ((RComplexView) a).materializeInto(resContent);
+                    arit.opComplexScalar(ast, resContent, breal, bimag, resContent, n);
+                } else  {
+                    super.materializeInto(resContent);
+                }
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (a instanceof ComplexImpl) {
+                    arit.opComplexScalar(ast, a.getContent(), breal, bimag, resContent, n);
+                } else  {
+                    super.materializeIntoOnTheFly(resContent);
+                }
+            }
         }
 
         static final class ScalarVector extends ComplexViewForComplexComplex implements RComplex {
@@ -4900,6 +4958,27 @@ public class Arithmetic extends BaseR {
                     return arit.opComplex(ast, areal, aimag, breal, bimag);
                 } else {
                     return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+
+            @Override
+            public void materializeInto(double[] resContent) {
+                if (b instanceof ComplexImpl) {
+                    arit.opScalarComplex(ast, areal, aimag, b.getContent(), resContent, n);
+                } else if (b instanceof RComplexView) {
+                    ((RComplexView) b).materializeInto(resContent);
+                    arit.opScalarComplex(ast, areal, aimag, resContent, resContent, n);
+                } else  {
+                    super.materializeInto(resContent);
+                }
+            }
+
+            @Override
+            public void materializeIntoOnTheFly(double[] resContent) {
+                if (b instanceof ComplexImpl) {
+                    arit.opScalarComplex(ast, areal, aimag, b.getContent(), resContent, n);
+                } else  {
+                    super.materializeIntoOnTheFly(resContent);
                 }
             }
 
@@ -5053,7 +5132,6 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RDouble materializeOnAssignmentRef(Object oldValue) {
-            // TODO: this optimization does not work with over-writing materializeInto
             DoubleImpl res;
             if (a == oldValue && a instanceof DoubleImpl && !a.isShared() && a.size() == n) {
                 res = (DoubleImpl) a;

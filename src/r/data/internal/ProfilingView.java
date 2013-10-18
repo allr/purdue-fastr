@@ -80,6 +80,8 @@ public interface ProfilingView {
                 res = new RDoubleProfilingView((RDouble) orig, profile);
             } else if (orig instanceof RInt) {
                 res = new RIntProfilingView((RInt) orig, profile);
+//            } else if (orig instanceof RComplex) {
+//                res = new RComplexProfilingView((RComplex) orig, profile);
             } else {
                 res = orig;
             }
@@ -88,7 +90,9 @@ public interface ProfilingView {
 
         private boolean shouldBeLazyReal() {
             if (!created) {
-                System.err.println("MISSED VIEW in PROFILING profilingView" + this);
+                if (DEBUG_PROFILING) {
+                    System.err.println("MISSED VIEW in PROFILING (profilingView " + this + ")");
+                }
                 return false;
             }
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&

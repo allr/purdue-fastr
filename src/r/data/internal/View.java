@@ -896,8 +896,35 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RComplex materialize() {
-            return RComplex.RComplexFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                double[] content = new double[2 * n];
+                materializeInto(content);
+                return RComplex.RComplexFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RComplex.RComplexFactory.copy(this);
+            }
         }
+
+        public void materializeInto(double[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of complex view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                Complex c = getComplex(i);
+                res[i * 2] = c.realValue();
+                res[i * 2 + 1] = c.imagValue();
+            }
+        }
+
+        public void materializeIntoOnTheFly(double[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                Complex c = getComplex(i);
+                res[i * 2] = c.realValue();
+                res[i * 2 + 1] = c.imagValue();
+            }        }
 
         @Override
         public RComplex materializeOnAssignmentRef(Object oldValue) {
