@@ -88,12 +88,12 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
 
     @Override
     public Object get(int i) {
-        return new Complex(getReal(i), getImag(i));
+        return new Complex(content[2 * i], content[2 * i + 1]);
     }
 
     @Override
     public Complex getComplex(int i) {
-        return new Complex(getReal(i), getImag(i));
+        return new Complex(content[2 * i], content[2 * i + 1]);
     }
 
     @Override

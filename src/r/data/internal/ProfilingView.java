@@ -10,6 +10,7 @@ public interface ProfilingView {
             // static info
         int size;
         int depth;
+        boolean created;
 
             // profiled info
         int externalGetCount;
@@ -23,6 +24,7 @@ public interface ProfilingView {
         public void onNewView(RArray child) {
             depth = 0; // TODO
             size = child.size();
+            created = true;
             if (DEBUG_PROFILING) {
                 System.err.println("creating profiling view " + this + " for " + child);
             }
@@ -85,6 +87,10 @@ public interface ProfilingView {
         }
 
         private boolean shouldBeLazyReal() {
+            if (!created) {
+                System.err.println("MISSED VIEW in PROFILING profilingView" + this);
+                return false;
+            }
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&
                     internalSumCount == 0 && externalSumCount == 0;
 

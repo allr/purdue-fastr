@@ -2,6 +2,7 @@ package r.builtins;
 
 import r.*;
 import r.data.*;
+import r.data.RComplex.*;
 import r.data.RDouble.*;
 import r.data.internal.*;
 import r.ext.*;
@@ -105,7 +106,8 @@ public class Abs extends CallFactory {
 
         return TracingView.ViewTrace.trace(new View.RDoubleProxy<RComplex>(orig) {
             @Override public double getDouble(int i) {
-                return abs(orig.getReal(i), orig.getImag(i));
+                Complex cmp = orig.getComplex(i);
+                return abs(cmp.realValue(), cmp.imagValue());
             }
 
             @Override

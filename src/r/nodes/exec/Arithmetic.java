@@ -46,7 +46,7 @@ public class Arithmetic extends BaseR {
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
-    private static final boolean EAGER_COMPLEX = true;
+    private static final boolean EAGER_COMPLEX = false;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, VectorArithmetic vectorArit) {
         super(ast);
@@ -4065,11 +4065,26 @@ public class Arithmetic extends BaseR {
             int[] dim = resultDimensions(ast, a, b);
             Names names = resultNames(ast, a, b);
             Attributes attributes = resultAttributes(ast, a, b);
-            if (a instanceof ScalarComplexImpl && b instanceof ScalarComplexImpl) {
-                return new ComplexView(a, b, dim, names, attributes, depth, arit, ast).materialize();
+            int na = a.size();
+            int nb = b.size();
+            RComplex res;
+
+            if (na == nb) {
+                res = new ComplexViewForComplexComplex.EqualSize(a, b, dim, names, attributes, na, depth, arit, ast);
+            } else if (nb == 1 && na > 0) {
+                res = new ComplexViewForComplexComplex.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
+            } else if (na == 1 && nb > 0) {
+                res = new ComplexViewForComplexComplex.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);
+            } else {
+                int n = resultSize(ast, na, nb);
+                if (n == na) {
+                    res = new ComplexViewForComplexComplex.GenericASized(a, b, dim, names, attributes, n, depth, arit, ast);
+                } else {
+                    res = new ComplexViewForComplexComplex.GenericBSized(a, b, dim, names, attributes, n, depth, arit, ast);
+                }
             }
-            RComplex res = TracingView.ViewTrace.trace(new ComplexView(a, b, dim, names, attributes, depth, arit, ast));
-            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH))) {
+            res = TracingView.ViewTrace.trace(res);
+            if (EAGER || (LIMIT_VIEW_DEPTH && (depth > MAX_VIEW_DEPTH)) || (na == 1 && nb == 1)) {
                 return res.materialize();
             }
             return res;
@@ -4469,17 +4484,11 @@ public class Arithmetic extends BaseR {
         }
     }
 
-
-    public static class ComplexView extends View.RComplexView implements RComplex {
-        final RComplex a;
-        final RComplex b;
-        final int na;
-        final int nb;
+    public abstract static class ComplexView extends View.RComplexView implements RComplex {
         final int n;
         final int[] dimensions;
         final Names names;
         final Attributes attributes;
-        boolean overflown = false;
 
         final ValueArithmetic arit;
         final ASTNode ast;
@@ -4487,120 +4496,19 @@ public class Arithmetic extends BaseR {
         // limiting view depth
         private int depth;  // total views involved
 
-        public ComplexView(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int depth, ValueArithmetic arit, ASTNode ast) {
-            this.a = a;
-            this.b = b;
-            na = a.size();
-            nb = b.size();
+        public ComplexView(int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             this.ast = ast;
             this.arit = arit;
             this.dimensions = dimensions;
             this.names = names;
             this.attributes = attributes;
+            this.n = n;
             this.depth = depth;
-
-            if (na > nb) {
-                n = na;
-                if ((n / nb) * nb != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            } else {
-                n = nb;
-                if ((n / na) * na != n) {
-                    RContext.warning(ast, RError.LENGTH_NOT_MULTI);
-                }
-            }
         }
 
         @Override
         public int size() {
             return n;
-        }
-
-        @Override
-        public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
-            int ai;
-            int bi;
-            if (i >= na) {
-                ai = i % na;
-                bi = i;
-            } else if (i >= nb) {
-                bi = i % nb;
-                ai = i;
-            } else {
-                ai = i;
-                bi = i;
-            }
-            double areal = a.getReal(ai);
-            double aimag = a.getImag(ai);
-            double breal = b.getReal(bi);
-            double bimag = b.getImag(bi);
-            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
-                return arit.opReal(ast, areal, aimag, breal, bimag);
-            } else {
-                return RDouble.NA;
-            }
-        }
-
-        @Override
-        public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
-            int ai;
-            int bi;
-            if (i >= na) {
-                ai = i % na;
-                bi = i;
-            } else if (i >= nb) {
-                bi = i % nb;
-                ai = i;
-            } else {
-                ai = i;
-                bi = i;
-            }
-            double areal = a.getReal(ai);
-            double aimag = a.getImag(ai);
-            double breal = b.getReal(bi);
-            double bimag = b.getImag(bi);
-            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
-                return arit.opImag(ast, areal, aimag, breal, bimag);
-            } else {
-                return RDouble.NA;
-            }
-        }
-
-        @Override
-        public Complex getComplex(int i) {
-            int ai;
-            int bi;
-            if (i >= na) {
-                ai = i % na;
-                bi = i;
-            } else if (i >= nb) {
-                bi = i % nb;
-                ai = i;
-            } else {
-                ai = i;
-                bi = i;
-            }
-            double areal = a.getReal(ai);
-            double aimag = a.getImag(ai);
-            double breal = b.getReal(bi);
-            double bimag = b.getImag(bi);
-            if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
-                return arit.opComplex(ast, areal, aimag, breal, bimag);
-            } else {
-                return RComplex.COMPLEX_BOXED_NA;
-            }
-        }
-
-        @Override
-        public boolean isSharedReal() {
-            return a.isShared() || b.isShared();
-        }
-
-        @Override
-        public void ref() {
-            a.ref();
-            b.ref();
         }
 
         @Override
@@ -4618,9 +4526,383 @@ public class Arithmetic extends BaseR {
             return attributes;
         }
 
+    }
+
+
+    public abstract static class ComplexViewForComplexComplex extends ComplexView implements RComplex {
+        final RComplex a;
+        final RComplex b;
+
+
+        public ComplexViewForComplexComplex(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+            super(dimensions, names, attributes, n, depth, arit, ast);
+            this.a = a;
+            this.b = b;
+        }
+
+
+        @Override
+        public boolean isSharedReal() {
+            return a.isShared() || b.isShared();
+        }
+
+        @Override
+        public void ref() {
+            a.ref();
+            b.ref();
+        }
+
         @Override
         public boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
+        }
+
+        static final class Generic extends ComplexViewForComplexComplex implements RComplex {
+            final int na;
+            final int nb;
+
+            public Generic(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                na = a.size();
+                nb = b.size();
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai;
+                int bi;
+                if (i >= na) {
+                    ai = i % na;
+                    bi = i;
+                } else if (i >= nb) {
+                    bi = i % nb;
+                    ai = i;
+                } else {
+                    ai = i;
+                    bi = i;
+                }
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai;
+                int bi;
+                if (i >= na) {
+                    ai = i % na;
+                    bi = i;
+                } else if (i >= nb) {
+                    bi = i % nb;
+                    ai = i;
+                } else {
+                    ai = i;
+                    bi = i;
+                }
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                int ai;
+                int bi;
+                if (i >= na) {
+                    ai = i % na;
+                    bi = i;
+                } else if (i >= nb) {
+                    bi = i % nb;
+                    ai = i;
+                } else {
+                    ai = i;
+                    bi = i;
+                }
+                Complex acmp = a.getComplex(ai);
+                Complex bcmp = b.getComplex(bi);
+                double areal = acmp.realValue();
+                double aimag = acmp.imagValue();
+                double breal = bcmp.realValue();
+                double bimag = bcmp.imagValue();
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+        }
+
+        static final class GenericASized extends ComplexViewForComplexComplex implements RComplex {
+            final int nb;
+
+            public GenericASized(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(n == a.size());
+                nb = b.size();
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai = i;
+                int bi = i % nb;
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai = i;
+                int bi = i % nb;
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                int ai = i;
+                int bi = i % nb;
+                Complex acmp = a.getComplex(ai);
+                Complex bcmp = b.getComplex(bi);
+                double areal = acmp.realValue();
+                double aimag = acmp.imagValue();
+                double breal = bcmp.realValue();
+                double bimag = bcmp.imagValue();
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+        }
+
+        static final class GenericBSized extends ComplexViewForComplexComplex implements RComplex {
+            final int na;
+
+            public GenericBSized(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                assert Utils.check(n == b.size());
+                na = a.size();
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai = i % na;
+                int bi = i;
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                int ai = i % na;
+                int bi = i;
+                double areal = a.getReal(ai);
+                double aimag = a.getImag(ai);
+                double breal = b.getReal(bi);
+                double bimag = b.getImag(bi);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                int ai = i % na;
+                int bi = i;
+                Complex acmp = a.getComplex(ai);
+                Complex bcmp = b.getComplex(bi);
+                double areal = acmp.realValue();
+                double aimag = acmp.imagValue();
+                double breal = bcmp.realValue();
+                double bimag = bcmp.imagValue();
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+        }
+
+        static final class EqualSize extends ComplexViewForComplexComplex implements RComplex {
+
+            public EqualSize(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double areal = a.getReal(i);
+                double aimag = a.getImag(i);
+                double breal = b.getReal(i);
+                double bimag = b.getImag(i);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double areal = a.getReal(i);
+                double aimag = a.getImag(i);
+                double breal = b.getReal(i);
+                double bimag = b.getImag(i);
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                Complex acmp = a.getComplex(i);
+                Complex bcmp = b.getComplex(i);
+                double areal = acmp.realValue();
+                double aimag = acmp.imagValue();
+                double breal = bcmp.realValue();
+                double bimag = bcmp.imagValue();
+                if (!RComplexUtils.arithEitherIsNA(areal, aimag) && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+
+        }
+
+        static final class VectorScalar extends ComplexViewForComplexComplex implements RComplex {
+
+            final boolean arithIsNA;
+            final double breal;
+            final double bimag;
+
+            public VectorScalar(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                breal = b.getReal(0);
+                bimag = b.getImag(0);
+                arithIsNA = RComplex.RComplexUtils.eitherIsNA(breal, bimag);
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double areal = a.getReal(i);
+                double aimag = a.getImag(i);
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(areal, aimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double areal = a.getReal(i);
+                double aimag = a.getImag(i);
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(areal, aimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                Complex acmp = a.getComplex(i);
+                double areal = acmp.realValue();
+                double aimag = acmp.imagValue();
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(areal, aimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+        }
+
+        static final class ScalarVector extends ComplexViewForComplexComplex implements RComplex {
+
+            final boolean arithIsNA;
+            final double areal;
+            final double aimag;
+
+            public ScalarVector(RComplex a, RComplex b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
+                super(a, b, dimensions, names, attributes, n, depth, arit, ast);
+                areal = a.getReal(0);
+                aimag = a.getImag(0);
+                arithIsNA = RComplex.RComplexUtils.eitherIsNA(areal, aimag);
+            }
+
+            @Override
+            public double getReal(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double breal = b.getReal(i);
+                double bimag = b.getImag(i);
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opReal(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public double getImag(int i) { // FIXME: this is very slow (real and imag getters repeat the same computation)
+                double breal = b.getReal(i);
+                double bimag = b.getImag(i);
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opImag(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RDouble.NA;
+                }
+            }
+
+            @Override
+            public Complex getComplex(int i) {
+                Complex bcmp = b.getComplex(i);
+                double breal = bcmp.realValue();
+                double bimag = bcmp.imagValue();
+                if (!arithIsNA && !RComplexUtils.arithEitherIsNA(breal, bimag)) {
+                    return arit.opComplex(ast, areal, aimag, breal, bimag);
+                } else {
+                    return RComplex.COMPLEX_BOXED_NA;
+                }
+            }
+
         }
     }
 
@@ -4647,8 +4929,8 @@ public class Arithmetic extends BaseR {
                 x = ((RIntTracingView) a).orig;
             }
         }
-        if (x instanceof IntViewForIntInt) {
-            return ((IntViewForIntInt) x).depth();
+        if (x instanceof IntView) {
+            return ((IntView) x).depth();
         } else {
             return 0;
         }
@@ -4942,15 +5224,6 @@ public class Arithmetic extends BaseR {
                     return arit.op(ast, adbl, bdbl);
                 }
             }
-
-//            @Override
-//            public RDouble materialize() {
-//                if (a instanceof DoubleImpl) {
-//                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), n, dimensions, names, attributes);
-//                } else {
-//                    return super.materialize();
-//                }
-//            }
 
             @Override
             public void materializeInto(double[] resContent) {
@@ -6111,15 +6384,6 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
-
-//            @Override
-//            public RInt materialize() {
-//                if (a instanceof IntImpl) {
-//                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, bfrom, bto, bstep, n, dimensions, names, attributes);
-//                } else {
-//                    return super.materialize();
-//                }
-//            }
         }
 
         static final class VectorSimpleRangeASized extends IntViewForIntInt implements RInt {
@@ -6147,15 +6411,6 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
-
-//            @Override
-//            public RInt materialize() {
-//                if (a instanceof IntImpl) {
-//                    return arit.opIntImplSequenceASized(ast, (IntImpl) a, 1, nb, 1, n, dimensions, names, attributes);
-//                } else {
-//                    return super.materialize();
-//                }
-//            }
         }
 
         static final class VectorSequenceBSized extends IntViewForIntInt implements RInt {
