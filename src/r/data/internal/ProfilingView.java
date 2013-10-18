@@ -80,8 +80,8 @@ public interface ProfilingView {
                 res = new RDoubleProfilingView((RDouble) orig, profile);
             } else if (orig instanceof RInt) {
                 res = new RIntProfilingView((RInt) orig, profile);
-//            } else if (orig instanceof RComplex) {
-//                res = new RComplexProfilingView((RComplex) orig, profile);
+            } else if (orig instanceof RComplex) {
+                res = new RComplexProfilingView((RComplex) orig, profile);
             } else {
                 res = orig;
             }
@@ -122,11 +122,90 @@ public interface ProfilingView {
                 System.err.println("should be lazy?: size=" + size + " G/M/S external " + externalGetCount + "/" + externalMaterializeCount + "/" + externalSumCount +
                         "  internal " + internalGetCount + "/" + internalMaterializeCount + "/" + internalSumCount);
                 System.err.println("should be lazy heuristic advice: " + res + " (profiling view " + this + ")");
-                Thread.dumpStack();
             }
             return res;
         }
 
+    }
+
+    public static class RComplexProfilingView extends View.RComplexProxy<RComplex> implements RComplex, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RComplexProfilingView(RComplex orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        // note that each of getReal, getImag and getComplex counts as one "get", and the size is the number of complex elements
+        // so views accessed using getReal and getImag will be more likely materialized that views accessed using getComplex,
+        // which is desirable
+        @Override
+        public double getReal(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getReal(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public double getImag(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getImag(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public Complex getComplex(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getComplex(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RComplex materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(double[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof RComplexView) {
+                    ((RComplexView) orig).materializeInto(res);
+                } else {
+                    double[] content = ((ComplexImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(double[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((RComplexView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+        // sum not yet implemented by RComplex
     }
 
     public static class RDoubleProfilingView extends View.RDoubleProxy<RDouble> implements RDouble, ProfilingView {

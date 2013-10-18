@@ -4,6 +4,8 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
+import r.data.RAny.*;
+import r.data.RArray.*;
 import r.data.internal.*;
 
 public interface RComplex extends RArray {
@@ -26,7 +28,7 @@ public interface RComplex extends RArray {
     RComplex materialize();
     double[] getContent();
 
-    public final class Complex {
+    public final class Complex { // FIXME: perhaps this should be the same as ScalarComplexImpl
         public static final Complex NA = new Complex(RDouble.NA, RDouble.NA);
 
         private final double real;
@@ -140,11 +142,11 @@ public interface RComplex extends RArray {
         public static ScalarComplexImpl getScalar(Complex value) {
             return new ScalarComplexImpl(value.realValue(), value.imagValue());
         }
-        public static RComplex getScalar(double real, double imag, int[] dimensions) {
-            if (dimensions == null) {
+        public static RComplex getScalar(double real, double imag, int[] dimensions, Names names, Attributes attributes) {
+            if (dimensions == null && names == null && attributes == null) {
                 return new ScalarComplexImpl(real, imag);
             } else {
-                return getFor(new double[] {real, imag}, dimensions, null);
+                return getFor(new double[] {real, imag}, dimensions, names, attributes);
             }
         }
         public static RComplex getArray(double... values) {
@@ -184,12 +186,15 @@ public interface RComplex extends RArray {
             return getNAArray(size, null);
         }
         public static RComplex getNAArray(int size, int[] dimensions) {
+            return getNAArray(size, dimensions, null, null);
+        }
+        public static RComplex getNAArray(int size, int[] dimensions, Names names, Attributes attributes) {
             if (size == 1 && dimensions == null) {
                 return BOXED_NA;
             }
             double[] content = new double[2 * size];
             Arrays.fill(content, RDouble.NA);
-            return new ComplexImpl(content, dimensions, null, null, false);
+            return new ComplexImpl(content, dimensions, names, attributes, false);
         }
         public static ComplexImpl getMatrixFor(double[] values, int m, int n) {
             return new ComplexImpl(values, new int[] {m, n}, null, null, false);
