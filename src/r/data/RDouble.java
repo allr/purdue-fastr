@@ -4,6 +4,7 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
+import r.data.RComplex.*;
 import r.data.internal.*;
 
 public interface RDouble extends RNumber {
@@ -368,6 +369,21 @@ public interface RDouble extends RNumber {
                 return RDouble.NA;
             } else {
                 return 0;
+            }
+        }
+
+        @Override
+        public void materializeInto(double[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                double d = orig.getDouble(i);
+                if (!RDoubleUtils.isNAorNaN(d)) {
+                    res[i * 2] = d;
+                    res[i * 2 + 1] = 0;
+                } else {
+                    res[i * 2] = RDouble.NA;
+                    res[i * 2 + 1] = RDouble.NA;
+                }
             }
         }
 
