@@ -115,6 +115,11 @@ public abstract class Not extends BaseR {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
+
+                    @Override
+                    public void accept(ValueVisitor v) {
+                        v.visit(this);
+                    }
                 });
             }
             if (value instanceof RRaw) {
@@ -133,6 +138,12 @@ public abstract class Not extends BaseR {
                         return null; // drop attributes
                         // FIXME: the RLogicalProxy mark the attributes shared unnecessarily
                     }
+
+                    @Override
+                    public void accept(ValueVisitor v) {
+                        v.visit(this);
+                    }
+
                 });
             }
             if (value instanceof RArray) {

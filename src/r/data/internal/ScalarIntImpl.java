@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarIntImpl extends ArrayImpl implements RInt {
+public final class ScalarIntImpl extends ScalarArrayImpl implements RInt {
 
     int value;
 
@@ -213,11 +213,26 @@ public final class ScalarIntImpl extends ArrayImpl implements RInt {
                 return index.dependsOn(v);
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         });
     }
 
     @Override
     public String typeOf() {
         return RInt.TYPE_STRING;
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

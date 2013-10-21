@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public class ScalarStringImpl extends ArrayImpl implements RString {
+public class ScalarStringImpl extends ScalarArrayImpl implements RString {
 
     String value;
 
@@ -212,11 +212,26 @@ public class ScalarStringImpl extends ArrayImpl implements RString {
                 return index.dependsOn(v);
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         });
     }
 
     @Override
     public String typeOf() {
         return RString.TYPE_STRING;
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

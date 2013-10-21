@@ -203,4 +203,9 @@ public class RawImpl extends NonScalarArrayImpl implements RRaw {
         return new RawImpl(content, null, names, null, false);
     }
 
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
+
 }

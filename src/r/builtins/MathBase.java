@@ -59,6 +59,10 @@ abstract class MathBase extends CallFactory {
                     super.materializeIntoOnTheFly(resContent);
                 }
             }
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         });
     }
 

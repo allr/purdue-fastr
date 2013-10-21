@@ -292,6 +292,11 @@ final class Outer extends CallFactory {
             @Override public Attributes attributes() {
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         });
     }
 
@@ -377,6 +382,11 @@ final class Outer extends CallFactory {
 
             @Override public Attributes attributes() {
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         });
     }

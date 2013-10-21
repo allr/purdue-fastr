@@ -687,6 +687,11 @@ public interface TracingView {
             return orig.materialize();
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
     }
 
     public static class RStringTracingView extends View.RStringProxy<RString> implements RString, TracingView {
@@ -713,6 +718,11 @@ public interface TracingView {
         public RString materialize() {
             trace.materialize();
             return orig.materialize();
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
 
     }
@@ -755,6 +765,11 @@ public interface TracingView {
             return orig.materialize();
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
     }
 
     public static class RDoubleTracingView extends View.RDoubleProxy<RDouble> implements RDouble, TracingView {
@@ -789,6 +804,11 @@ public interface TracingView {
             return orig.sum(narm);
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
     }
 
     public static class RIntTracingView extends View.RIntProxy<RInt> implements RInt, TracingView {
@@ -815,6 +835,11 @@ public interface TracingView {
         public RInt materialize() {
             trace.materialize();
             return orig.materialize();
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
 
     }
@@ -845,6 +870,11 @@ public interface TracingView {
             return orig.materialize();
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
     }
 
     public static class RRawTracingView extends View.RRawProxy<RRaw> implements RRaw, TracingView {
@@ -871,6 +901,11 @@ public interface TracingView {
         public RRaw materialize() {
             trace.materialize();
             return orig.materialize();
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
 
     }

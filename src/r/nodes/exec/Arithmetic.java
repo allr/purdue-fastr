@@ -4892,6 +4892,12 @@ public class Arithmetic extends BaseR {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
+        @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
+        }
+
         static final class Generic extends ComplexViewForComplexComplex implements RComplex {
             final int na;
             final int nb;
@@ -4978,6 +4984,11 @@ public class Arithmetic extends BaseR {
                     return RComplex.COMPLEX_BOXED_NA;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericASized extends ComplexViewForComplexComplex implements RComplex {
@@ -5035,6 +5046,11 @@ public class Arithmetic extends BaseR {
                     return RComplex.COMPLEX_BOXED_NA;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericBSized extends ComplexViewForComplexComplex implements RComplex {
@@ -5091,6 +5107,11 @@ public class Arithmetic extends BaseR {
                 } else {
                     return RComplex.COMPLEX_BOXED_NA;
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -5179,6 +5200,11 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         }
 
         static final class VectorScalar extends ComplexViewForComplexComplex implements RComplex {
@@ -5248,6 +5274,11 @@ public class Arithmetic extends BaseR {
                     super.materializeIntoOnTheFly(resContent);
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarVector extends ComplexViewForComplexComplex implements RComplex {
@@ -5316,6 +5347,11 @@ public class Arithmetic extends BaseR {
                 } else  {
                     super.materializeIntoOnTheFly(resContent);
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
 
         }
@@ -5467,6 +5503,12 @@ public class Arithmetic extends BaseR {
         }
 
         @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
+        }
+
+        @Override
         public RDouble materializeOnAssignmentRef(Object oldValue) {
             DoubleImpl res;
             if (a == oldValue && a instanceof DoubleImpl && !a.isShared() && a.size() == n) {
@@ -5513,6 +5555,11 @@ public class Arithmetic extends BaseR {
                     return arit.op(ast, adbl, bdbl);
                 }
              }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericASized extends DoubleViewForDoubleDouble implements RDouble {
@@ -5535,7 +5582,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericBSized extends DoubleViewForDoubleDouble implements RDouble {
@@ -5558,7 +5610,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeVectorVector extends DoubleViewForDoubleDouble implements RDouble {
@@ -5616,6 +5673,11 @@ public class Arithmetic extends BaseR {
                     super.materializeIntoOnTheFly(resContent);
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorScalar extends DoubleViewForDoubleDouble implements RDouble {
@@ -5658,6 +5720,11 @@ public class Arithmetic extends BaseR {
                 } else  {
                     super.materializeIntoOnTheFly(resContent);
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -5819,6 +5886,11 @@ public class Arithmetic extends BaseR {
 //                    return super.materialize();
 //                }
 //            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
     }
@@ -5849,6 +5921,12 @@ public class Arithmetic extends BaseR {
         @Override
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
         }
 
         static final class VectorSequence extends DoubleViewForDoubleInt implements RDouble {
@@ -5887,7 +5965,11 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bint);
                 }
-             }
+            }
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSequenceASized extends DoubleViewForDoubleInt implements RDouble {
@@ -5915,7 +5997,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bint);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSimpleRangeASized extends DoubleViewForDoubleInt implements RDouble {
@@ -5963,6 +6050,11 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         }
 
         static final class VectorSequenceBSized extends DoubleViewForDoubleInt implements RDouble {
@@ -5990,7 +6082,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bint);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSimpleRangeBSized extends DoubleViewForDoubleInt implements RDouble {
@@ -6013,7 +6110,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, i + 1);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeVectorVector extends DoubleViewForDoubleInt implements RDouble {
@@ -6070,6 +6172,11 @@ public class Arithmetic extends BaseR {
                 }
             }
 
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         }
 
         static final class EqualSizeVectorSequence extends DoubleViewForDoubleInt implements RDouble {
@@ -6093,7 +6200,12 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, bint);
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeVectorSimpleRange extends DoubleViewForDoubleInt implements RDouble {
@@ -6111,7 +6223,12 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, adbl, i + 1);
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarSequence extends DoubleViewForDoubleInt implements RDouble {
@@ -6138,7 +6255,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, bint);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarSimpleRange extends DoubleViewForDoubleInt implements RDouble {
@@ -6160,7 +6282,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, adbl, i + 1);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
     }
 
@@ -6189,6 +6316,12 @@ public class Arithmetic extends BaseR {
         @Override
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
         }
 
         static final class SequenceVector extends DoubleViewForIntDouble implements RDouble {
@@ -6228,7 +6361,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, aint, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SequenceVectorASized extends DoubleViewForIntDouble implements RDouble {
@@ -6257,7 +6395,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, aint, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeVectorASized extends DoubleViewForIntDouble implements RDouble {
@@ -6281,7 +6424,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, i + 1, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SequenceVectorBSized extends DoubleViewForIntDouble implements RDouble {
@@ -6310,7 +6458,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, aint, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeVectorBSized extends DoubleViewForIntDouble implements RDouble {
@@ -6334,7 +6487,12 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, ai + 1, bdbl);
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeVectorVector extends DoubleViewForIntDouble implements RDouble {
@@ -6353,7 +6511,12 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, aint, bdbl);
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeSequenceVector extends DoubleViewForIntDouble implements RDouble {
@@ -6377,7 +6540,12 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, aint, bdbl);
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeSimpleRangeVector extends DoubleViewForIntDouble implements RDouble {
@@ -6396,7 +6564,12 @@ public class Arithmetic extends BaseR {
                     return RDouble.NA;
                 }
                 return arit.op(ast, i + 1, bdbl);
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
@@ -6418,6 +6591,11 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, aint, bdbl);
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -6446,6 +6624,11 @@ public class Arithmetic extends BaseR {
                     return arit.op(ast, aint, bdbl);
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeScalar extends DoubleViewForIntDouble implements RDouble {
@@ -6467,6 +6650,11 @@ public class Arithmetic extends BaseR {
                 } else {
                     return arit.op(ast, i + 1, bdbl);
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
     }
@@ -6630,6 +6818,12 @@ public class Arithmetic extends BaseR {
             return a.dependsOn(value) || b.dependsOn(value);
         }
 
+        @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
+        }
+
         static final class Generic extends IntViewForIntInt implements RInt {
             final int na;
             final int nb;
@@ -6667,6 +6861,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericASized extends IntViewForIntInt implements RInt {
@@ -6694,6 +6893,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class GenericBSized extends IntViewForIntInt implements RInt {
@@ -6720,6 +6924,11 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -6764,6 +6973,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSequenceASized extends IntViewForIntInt implements RInt {
@@ -6798,6 +7012,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSimpleRangeASized extends IntViewForIntInt implements RInt {
@@ -6824,6 +7043,11 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -6857,6 +7081,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorSimpleRangeBSized extends IntViewForIntInt implements RInt {
@@ -6883,6 +7112,11 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -6927,6 +7161,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SequenceVectorASized extends IntViewForIntInt implements RInt {
@@ -6959,6 +7198,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeVectorASized extends IntViewForIntInt implements RInt {
@@ -6985,6 +7229,11 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -7018,6 +7267,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeVectorBSized extends IntViewForIntInt implements RInt {
@@ -7045,6 +7299,11 @@ public class Arithmetic extends BaseR {
                     return res;
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSize extends IntViewForIntInt implements RInt {
@@ -7068,7 +7327,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeIntSequence extends IntViewForIntInt implements RInt {
@@ -7098,7 +7362,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeIntSimpleRange extends IntViewForIntInt implements RInt {
@@ -7123,7 +7392,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeSequenceInt extends IntViewForIntInt implements RInt {
@@ -7153,7 +7427,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class EqualSizeSimpleRangeInt extends IntViewForIntInt implements RInt {
@@ -7177,7 +7456,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class VectorScalar extends IntViewForIntInt implements RInt {
@@ -7205,7 +7489,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SequenceScalar extends IntViewForIntInt implements RInt {
@@ -7238,7 +7527,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class SimpleRangeScalar extends IntViewForIntInt implements RInt {
@@ -7266,7 +7560,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarVector extends IntViewForIntInt implements RInt {
@@ -7294,7 +7593,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarSequence extends IntViewForIntInt implements RInt {
@@ -7327,7 +7631,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static final class ScalarSimpleRange extends IntViewForIntInt implements RInt {
@@ -7355,7 +7664,12 @@ public class Arithmetic extends BaseR {
                     }
                     return res;
                 }
-             }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
     }

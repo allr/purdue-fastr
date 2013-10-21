@@ -1,5 +1,6 @@
 package r.data;
 
+import r.data.internal.*;
 import r.data.internal.View.RListProxy;
 
 import java.util.HashMap;
@@ -233,6 +234,11 @@ public interface RArray extends RAny {
         @Override
         public RAny getRAny(int i) {
             return orig.boxedGet(i);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 }

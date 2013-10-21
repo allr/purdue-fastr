@@ -274,4 +274,9 @@ public class ListImpl extends NonScalarArrayImpl implements RList {
     public ListImpl materialize() {
         return this;
     }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

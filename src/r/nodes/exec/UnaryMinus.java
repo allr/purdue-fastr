@@ -237,6 +237,11 @@ public abstract class UnaryMinus extends BaseR {
                         return new Complex(RDouble.RDoubleUtils.isNAorNaN(real) ? real : -real,
                                 RDouble.RDoubleUtils.isNAorNaN(imag) ? imag : -imag);
                     }
+
+                    @Override
+                    public void accept(ValueVisitor v) {
+                        v.visit(this);
+                    }
                 });
             }
             if (value instanceof RDouble) {
@@ -251,6 +256,11 @@ public abstract class UnaryMinus extends BaseR {
                         } else {
                             return -d;
                         }
+                    }
+
+                    @Override
+                    public void accept(ValueVisitor v) {
+                        v.visit(this);
                     }
                 });
             }
@@ -283,6 +293,11 @@ public abstract class UnaryMinus extends BaseR {
                         } else  {
                             super.materializeInto(resContent);
                         }
+                    }
+
+                    @Override
+                    public void accept(ValueVisitor v) {
+                        v.visit(this);
                     }
                 });
             }

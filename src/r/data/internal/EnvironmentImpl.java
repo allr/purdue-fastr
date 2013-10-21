@@ -425,4 +425,13 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return false;
     }
 
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
+
 }

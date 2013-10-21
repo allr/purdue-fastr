@@ -235,4 +235,9 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
         return new ComplexImpl(content, null, names, null, false);
     }
 
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
+
  }

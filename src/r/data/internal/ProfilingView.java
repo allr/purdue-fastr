@@ -21,12 +21,27 @@ public interface ProfilingView {
         int internalMaterializeCount;
         int internalSumCount;
 
-        public void onNewView(RArray child) {
+        int maxRecursiveUseCount;
+
+        public void onNewView(RArray realView) {
             depth = 0; // TODO
-            size = child.size();
+            size = realView.size();
             created = true;
             if (DEBUG_PROFILING) {
-                System.err.println("creating profiling view " + this + " for " + child);
+                System.err.println("creating profiling view " + this + " for " + realView);
+            }
+        }
+
+        public void onAssignment(RArray realView, Object oldValue) {
+            if (oldValue == null) {
+                return;
+            }
+            if (!(oldValue instanceof RArray)) {
+                return; // e.g. it can be a promise or a closure, etc
+            }
+            int count = FindValueInView.countOccurrences(realView, oldValue);
+            if (count > maxRecursiveUseCount) {
+                maxRecursiveUseCount = count;
             }
         }
 
@@ -95,6 +110,9 @@ public interface ProfilingView {
                 }
                 return false;
             }
+            if (maxRecursiveUseCount > 0) {
+                return false;
+            }
             boolean unused = internalGetCount == 0 && externalGetCount == 0 && internalMaterializeCount == 0 && externalMaterializeCount == 0 &&
                     internalSumCount == 0 && externalSumCount == 0;
 
@@ -120,7 +138,8 @@ public interface ProfilingView {
             boolean res = shouldBeLazyReal();
             if (DEBUG_PROFILING) {
                 System.err.println("should be lazy?: size=" + size + " G/M/S external " + externalGetCount + "/" + externalMaterializeCount + "/" + externalSumCount +
-                        "  internal " + internalGetCount + "/" + internalMaterializeCount + "/" + internalSumCount);
+                        "  internal " + internalGetCount + "/" + internalMaterializeCount + "/" + internalSumCount +
+                        " maxRecursiveUseCount " + maxRecursiveUseCount);
                 System.err.println("should be lazy heuristic advice: " + res + " (profiling view " + this + ")");
             }
             return res;
@@ -205,6 +224,17 @@ public interface ProfilingView {
                 profile.leave(internal);
             }
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
         // sum not yet implemented by RComplex
     }
 
@@ -276,6 +306,16 @@ public interface ProfilingView {
             }
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
     }
 
     public static class RIntProfilingView extends View.RIntProxy<RInt> implements RInt, ProfilingView {
@@ -334,6 +374,16 @@ public interface ProfilingView {
             } finally {
                 profile.leave(internal);
             }
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
         }
 
         // sum not implemented yet in RInt

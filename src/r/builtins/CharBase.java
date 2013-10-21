@@ -28,6 +28,11 @@ abstract class CharBase extends CallFactory {
                 @Override public String getString(int i) {
                     return op(ast, value.getString(i));
                 }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
+                }
             });
         }
     }

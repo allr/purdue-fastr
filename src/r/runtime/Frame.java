@@ -651,6 +651,9 @@ public abstract class Frame {
     public static void writeToTopLevelCondRef(RSymbol sym, RAny value) {
         Object oldValue = sym.getValueNoForce();
         if (oldValue != value) {
+            if (View.ON_ASSIGNMENT_LISTENERS &&  value instanceof View) {
+                ((View) value).onAssignment(oldValue);
+            }
             if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
                 writeViewToTopLevel(sym, (View) value, oldValue); // does ref
             } else {
@@ -664,10 +667,14 @@ public abstract class Frame {
         if (MATERIALIZE_ON_ASSIGNMENT) {
             assert Utils.check(!(value instanceof View.ParametricView));
         }
+        // not calling view listeners
         symbol.setValue(value);
     }
 
     public static void writeToTopLevelRef(RSymbol sym, RAny value) {
+        if (View.ON_ASSIGNMENT_LISTENERS &&  value instanceof View) {
+            ((View) value).onAssignment(sym.getValue());
+        }
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
             writeViewToTopLevel(sym, (View) value, sym.getValue()); // does ref
         } else {
@@ -712,6 +719,9 @@ public abstract class Frame {
     public void writeAtCondRef(int slot, RAny value) {
         Object oldContent = get(slot);
         if (value != oldContent) {
+            if (View.ON_ASSIGNMENT_LISTENERS &&  value instanceof View) {
+                ((View) value).onAssignment(oldContent);
+            }
             if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
                 writeView(slot, (View) value, oldContent);
             } else {
@@ -725,10 +735,14 @@ public abstract class Frame {
         if (MATERIALIZE_ON_ASSIGNMENT) {
             assert Utils.check(!(value instanceof View.ParametricView));
         }
+        // NOTE: not calling view listeners
         set(slot, value);
     }
 
     public void writeAtRef(int slot, Object value) {
+        if (View.ON_ASSIGNMENT_LISTENERS &&  value instanceof View) {
+            ((View) value).onAssignment(get(slot));
+        }
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
             writeView(slot, (View) value, get(slot));
         } else {
@@ -738,6 +752,9 @@ public abstract class Frame {
     }
 
     public void writeAtRef(int slot, RAny value) {
+        if (View.ON_ASSIGNMENT_LISTENERS &&  value instanceof View) {
+            ((View) value).onAssignment(get(slot));
+        }
         if (MATERIALIZE_ON_ASSIGNMENT && value instanceof View.ParametricView) {
             writeView(slot, (View) value, get(slot));
         } else {

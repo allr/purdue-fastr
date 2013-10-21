@@ -682,6 +682,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RLogicalView extends View.RLogicalProxy<RLogical> implements RLogical {
@@ -710,6 +715,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -740,6 +750,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RDoubleView extends View.RDoubleProxy<RDouble> implements RDouble {
@@ -768,6 +783,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -810,6 +830,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RStringView extends View.RStringProxy<RString> implements RString {
@@ -839,6 +864,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RListView extends View.RListProxy<RList> implements RList {
@@ -867,6 +897,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
     }
@@ -950,6 +985,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RLogicalView extends View.RLogicalProxy<RLogical> implements RLogical {
@@ -971,6 +1011,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -994,6 +1039,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RDoubleView extends View.RDoubleProxy<RDouble> implements RDouble {
@@ -1015,6 +1065,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
 
@@ -1048,6 +1103,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RStringView extends View.RStringProxy<RString> implements RString {
@@ -1070,6 +1130,11 @@ public abstract class ReadVector extends BaseR {
             @Override public int[] dimensions() { // drop dimensions
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         }
 
         static class RListView extends View.RListProxy<RList> implements RList {
@@ -1091,6 +1156,11 @@ public abstract class ReadVector extends BaseR {
 
             @Override public int[] dimensions() { // drop dimensions
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         }
     }
@@ -1629,6 +1699,17 @@ public abstract class ReadVector extends BaseR {
                 return result;
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+                base.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         }
 
         public static class RDoubleSubset extends View.RDoubleView implements RDouble {
@@ -1689,6 +1770,17 @@ public abstract class ReadVector extends BaseR {
                     result = (RDouble) executeStringVector(index, base);
                 }
                 return result;
+            }
+
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+                base.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
 
         }

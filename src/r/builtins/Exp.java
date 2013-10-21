@@ -44,6 +44,11 @@ final class Exp extends CallFactory {
                             }
                             return res;
                         }
+
+                        @Override
+                        public void accept(ValueVisitor v) {
+                            v.visit(this);
+                        }
                     });
                 } else if (arg instanceof RComplex) {
                     VectorArithmetic vectorArit = Arithmetic.chooseVectorArithmetic(RComplex.BOXED_E, arg, Arithmetic.POW);

@@ -11,6 +11,8 @@ import r.nodes.exec.*;
 public abstract class View extends ArrayImpl implements RArray {
 
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
+    public static final boolean ON_ASSIGNMENT_LISTENERS = true;
+
     private static final boolean DEBUG_DEFAULT_MATERIALIZATION = false;
 
     @Override
@@ -119,6 +121,9 @@ public abstract class View extends ArrayImpl implements RArray {
         RArray res = materialize();
         res.ref();
         return res;
+    }
+
+    public void onAssignment(Object oldValue) {
     }
 
     public abstract static class ParametricView extends View { // just a marker for views that are worth materializing
@@ -281,6 +286,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
     }
 
     public abstract static class RLogicalView extends ParametricView implements RLogical {
@@ -439,6 +449,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
         }
     }
 
@@ -622,6 +637,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
         }
     }
 
@@ -816,6 +836,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
     }
 
     public abstract static class RComplexView extends ParametricView implements RComplex {
@@ -1007,6 +1032,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
     }
 
     public abstract static class RStringView extends ParametricView implements RString {
@@ -1171,6 +1201,11 @@ public abstract class View extends ArrayImpl implements RArray {
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
     }
 
     public abstract static class RListView extends ParametricView implements RList {
@@ -1324,6 +1359,11 @@ public abstract class View extends ArrayImpl implements RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
         }
     }
 

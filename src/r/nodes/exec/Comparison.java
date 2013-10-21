@@ -492,6 +492,13 @@ public class Comparison extends BaseR {
         public final boolean dependsOn(RAny value) {
             return a.dependsOn(value) || b.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            a.accept(v);
+            b.accept(v);
+        }
+
     }
 
     static class LazyComparison extends NonScalarComparison {
@@ -526,6 +533,11 @@ public class Comparison extends BaseR {
                                     } else {
                                         return RDouble.RDoubleUtils.isNAorNaN(aval) ? RLogical.NA : RLogical.FALSE;
                                     }
+                                }
+
+                                @Override
+                                public void accept(ValueVisitor v) {
+                                    v.visit(this);
                                 }
                             });
                         }

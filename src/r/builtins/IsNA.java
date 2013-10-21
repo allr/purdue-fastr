@@ -41,6 +41,11 @@ final class IsNA extends CallFactory {
                 @Override public int getLogical(int i) {
                     return a.isNAorNaN(i) ? RLogical.TRUE : RLogical.FALSE;
                 }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
+                }
             }); }
             return RLogical.EMPTY; // asize == 0
 

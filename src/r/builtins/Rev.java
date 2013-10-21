@@ -40,6 +40,11 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         });
     }
 
@@ -52,6 +57,11 @@ class Rev extends CallFactory {
 
             @Override public Attributes attributes() { // drop attributes
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         });
     }
@@ -67,6 +77,11 @@ class Rev extends CallFactory {
             @Override public Attributes attributes() { // drop attributes
                 return null;
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         });
     }
 
@@ -80,6 +95,11 @@ class Rev extends CallFactory {
 
             @Override public Attributes attributes() { // drop attributes
                 return null;
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         });
     }

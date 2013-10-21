@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
+public final class ScalarLogicalImpl extends ScalarArrayImpl implements RLogical {
 
     int value;
 
@@ -208,11 +208,26 @@ public final class ScalarLogicalImpl extends ArrayImpl implements RLogical {
                 return index.dependsOn(v);
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         });
     }
 
     @Override
     public String typeOf() {
         return RLogical.TYPE_STRING;
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

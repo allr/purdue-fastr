@@ -2,6 +2,7 @@ package r.data;
 
 import r.*;
 import r.Convert.*;
+import r.data.internal.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 
@@ -229,5 +230,14 @@ public final class RNull implements RArray {
     @Override
     public boolean dependsOn(RAny value) {
         return false;
+    }
+
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

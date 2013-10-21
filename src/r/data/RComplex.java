@@ -281,6 +281,11 @@ public interface RComplex extends RArray {
         public String getString(int i) {
             return Convert.complex2string(orig.getReal(i), orig.getImag(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RLogicalView extends View.RLogicalProxy<RComplex> implements RLogical {
@@ -292,6 +297,11 @@ public interface RComplex extends RArray {
         @Override
         public int getLogical(int i) {
             return Convert.complex2logical(orig.getReal(i), orig.getImag(i));
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -361,6 +371,16 @@ public interface RComplex extends RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -432,6 +452,17 @@ public interface RComplex extends RArray {
         @Override
         public boolean dependsOn(RAny v) {
             return value.dependsOn(v) || index.dependsOn(v);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            index.accept(v);
+            value.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 

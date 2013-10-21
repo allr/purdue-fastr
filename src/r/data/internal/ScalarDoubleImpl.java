@@ -5,7 +5,7 @@ import r.Convert.ConversionStatus;
 import r.data.*;
 
 
-public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
+public final class ScalarDoubleImpl extends ScalarArrayImpl implements RDouble {
 
     double value;
 
@@ -221,6 +221,16 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
                 return index.dependsOn(v);
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         });
     }
 
@@ -236,5 +246,10 @@ public final class ScalarDoubleImpl extends ArrayImpl implements RDouble {
         } else {
             return value;
         }
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

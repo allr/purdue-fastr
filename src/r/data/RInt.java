@@ -222,6 +222,11 @@ public interface RInt extends RNumber {
             int v = orig.getInt(i);
             return Convert.int2string(v);
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RComplexView extends View.RComplexProxy<RInt> implements RComplex {
@@ -290,6 +295,11 @@ public interface RInt extends RNumber {
         public Complex getComplex(int i) {
             return Convert.int2complex(orig.getInt(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RDoubleView extends View.RDoubleProxy<RInt> implements RDouble {
@@ -349,6 +359,11 @@ public interface RInt extends RNumber {
             int v = orig.getInt(i);
             return Convert.int2double(v);
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RLogicalView extends View.RLogicalProxy<RInt> implements RLogical {
@@ -362,6 +377,11 @@ public interface RInt extends RNumber {
             int v = orig.getInt(i);
             return Convert.int2logical(v);
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RRawView extends View.RRawProxy<RInt> implements RRaw {
@@ -374,6 +394,11 @@ public interface RInt extends RNumber {
         public byte getRaw(int i) {
             int v = orig.getInt(i);
             return Convert.int2raw(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -419,6 +444,16 @@ public interface RInt extends RNumber {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -508,5 +543,18 @@ public interface RInt extends RNumber {
                 super.materializeIntoOnTheFly(resContent);
             }
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            index.accept(v);
+            base.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
+
+
 }

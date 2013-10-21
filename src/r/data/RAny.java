@@ -4,6 +4,7 @@ import java.util.*;
 
 import r.Convert.ConversionStatus;
 import r.*;
+import r.data.internal.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 
@@ -61,6 +62,9 @@ public interface RAny {
     boolean isShared(); // FIXME: at some point will probably need do distinguish between 0, 1, and 2
     boolean isTemporary();
     boolean dependsOn(RAny value);
+
+    void accept(ValueVisitor v);
+    void visit_all(ValueVisitor v);
 
     <T extends RNode> T callNodeFactory(OperationFactory<T> factory);
 

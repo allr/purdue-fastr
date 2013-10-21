@@ -334,4 +334,13 @@ public final class RSymbol extends BaseObject implements RAny {
     public boolean builtinIsOverridden() {
         return value != null || version != 0;
     }
+
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

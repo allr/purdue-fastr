@@ -234,4 +234,8 @@ public abstract class NonScalarArrayImpl extends ArrayImpl implements RArray {
         }
         return str.toString();
     }
+
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
 }

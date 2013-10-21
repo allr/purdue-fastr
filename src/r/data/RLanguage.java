@@ -133,4 +133,13 @@ public class RLanguage extends BaseObject implements RAny {
         return false;
     }
 
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
+
 }

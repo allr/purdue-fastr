@@ -288,6 +288,15 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             return false;
         }
 
+        @Override
+        public void visit_all(ValueVisitor v) {
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
         public static int sequenceSize(int from, int to, int step) {
             int absstep = (step > 0) ? step : -step;
             if (from <= to) {
@@ -368,6 +377,15 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         }
 
         @Override
+        public void visit_all(ValueVisitor v) {
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
         public RInt materialize() {
             int[] content = new int[to];
             for (int i = 0; i < to; i++) {
@@ -390,5 +408,10 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
     @Override
     public IntImpl doStripKeepNames() {
         return new IntImpl(content, null, names, null, false);
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

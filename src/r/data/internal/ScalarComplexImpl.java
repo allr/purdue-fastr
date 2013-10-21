@@ -4,7 +4,7 @@ import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
 
-public class ScalarComplexImpl extends ArrayImpl implements RComplex {
+public class ScalarComplexImpl extends ScalarArrayImpl implements RComplex {
     double real;
     double imag;
 
@@ -261,11 +261,26 @@ public class ScalarComplexImpl extends ArrayImpl implements RComplex {
                 return index.dependsOn(v);
             }
 
+            @Override
+            public void visit_all(ValueVisitor v) {
+                index.accept(v);
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
+
         });
     }
 
     @Override
     public String typeOf() {
         return RComplex.TYPE_STRING;
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
     }
 }

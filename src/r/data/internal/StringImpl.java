@@ -225,4 +225,9 @@ public class StringImpl extends NonScalarArrayImpl implements RString {
     public StringImpl doStripKeepNames() {
         return new StringImpl(content, null, names, null, false);
     }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

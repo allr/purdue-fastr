@@ -27,6 +27,11 @@ public class Re extends CallFactory {
                             return orig.getReal(i);
                         }
 
+                        @Override
+                        public void accept(ValueVisitor v) {
+                            v.visit(this);
+                        }
+
                     });
                 } else if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
                     return arg.asDouble();

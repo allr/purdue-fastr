@@ -90,6 +90,11 @@ public class Abs extends CallFactory {
                     super.materializeIntoOnTheFly(resContent);
                 }
             }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
+            }
         });
     }
 
@@ -98,6 +103,11 @@ public class Abs extends CallFactory {
         return TracingView.ViewTrace.trace(new View.RIntProxy<RInt>(orig) {
             @Override public int getInt(int i) {
                 return abs(orig.getInt(i));
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         });
     }
@@ -126,6 +136,11 @@ public class Abs extends CallFactory {
                 } else  { // TODO: complex views
                     super.materializeInto(resContent);
                 }
+            }
+
+            @Override
+            public void accept(ValueVisitor v) {
+                v.visit(this);
             }
         });
     }

@@ -27,6 +27,11 @@ final class Im extends CallFactory {
                             return orig.getImag(i);
                         }
 
+                        @Override
+                        public void accept(ValueVisitor v) {
+                            v.visit(this);
+                        }
+
                     });
                 } else if (arg instanceof RDouble || arg instanceof RInt || arg instanceof RLogical) {
                     RArray arr = (RArray) arg;

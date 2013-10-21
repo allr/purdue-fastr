@@ -111,6 +111,11 @@ public interface RRaw extends RArray {
             byte v = orig.getRaw(i);
             return Convert.raw2string(v);
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RComplexView extends View.RComplexProxy<RRaw> implements RComplex {
@@ -174,6 +179,11 @@ public interface RRaw extends RArray {
         public Complex getComplex(int i) {
             return Convert.raw2complex(orig.getRaw(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RDoubleView extends View.RDoubleProxy<RRaw> implements RDouble {
@@ -225,6 +235,11 @@ public interface RRaw extends RArray {
         public double getDouble(int i) {
             byte v = orig.getRaw(i);
             return Convert.raw2double(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -278,6 +293,11 @@ public interface RRaw extends RArray {
         public int getInt(int i) {
             return Convert.raw2int(orig.getRaw(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RLogicalView extends View.RLogicalProxy<RRaw> implements RLogical {
@@ -289,6 +309,11 @@ public interface RRaw extends RArray {
         @Override
         public int getLogical(int i) {
             return Convert.raw2logical(orig.getRaw(i));
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -339,6 +364,17 @@ public interface RRaw extends RArray {
         public boolean dependsOn(RAny v) {
             return value.dependsOn(v) || index.dependsOn(v);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            index.accept(v);
+            value.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RRawExclusion extends View.RRawView implements RRaw {
@@ -383,6 +419,16 @@ public interface RRaw extends RArray {
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 }

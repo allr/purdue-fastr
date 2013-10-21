@@ -159,4 +159,13 @@ public class ClosureImpl extends BaseObject implements RClosure {
     public boolean dependsOn(RAny value) {
         return false;
     }
+
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

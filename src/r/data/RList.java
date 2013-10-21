@@ -120,6 +120,16 @@ public interface RList extends RArray {
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
         }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     // indexes must all be positive
@@ -168,6 +178,17 @@ public interface RList extends RArray {
         @Override
         public boolean dependsOn(RAny v) {
             return value.dependsOn(v) || index.dependsOn(v);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            index.accept(v);
+            value.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 }

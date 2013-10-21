@@ -190,6 +190,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             return Convert.logical2string(v);
         }
 
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
     }
 
     public static class RComplexView extends View.RComplexProxy<RLogical> implements RComplex {
@@ -258,6 +263,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public Complex getComplex(int i) {
             return Convert.logical2complex(orig.getLogical(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RDoubleView extends View.RDoubleProxy<RLogical> implements RDouble {
@@ -311,6 +321,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
             int ll = orig.getLogical(i);
             return Convert.logical2double(ll);
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RIntView extends View.RIntProxy<RLogical> implements RInt {
@@ -363,6 +378,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public int getInt(int i) {
             return Convert.logical2int(orig.getLogical(i));
         }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
     }
 
     public static class RRawView extends View.RRawProxy<RLogical> implements RRaw {
@@ -375,6 +395,11 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         public byte getRaw(int i) {
             int ll = orig.getLogical(i);
             return Convert.logical2raw(ll);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -420,6 +445,16 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public boolean dependsOn(RAny value) {
             return orig.dependsOn(value);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            orig.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 
@@ -469,6 +504,17 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
         @Override
         public boolean dependsOn(RAny v) {
             return value.dependsOn(v) || index.dependsOn(v);
+        }
+
+        @Override
+        public void visit_all(ValueVisitor v) {
+            index.accept(v);
+            value.accept(v);
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
         }
     }
 }

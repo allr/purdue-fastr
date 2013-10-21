@@ -209,4 +209,9 @@ public class LogicalImpl extends NonScalarArrayImpl implements RLogical {
     public LogicalImpl doStripKeepNames() {
         return new LogicalImpl(content, null, names, null, false);
     }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

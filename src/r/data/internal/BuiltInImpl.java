@@ -126,4 +126,13 @@ public class BuiltInImpl implements RBuiltIn {
     @Override public String toString() {
         return "BuiltInImpl[" + callFactory + "]";
     }
+
+    @Override
+    public void visit_all(ValueVisitor v) {
+    }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }

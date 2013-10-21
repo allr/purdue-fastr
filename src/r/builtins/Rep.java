@@ -257,6 +257,11 @@ class Rep extends CallFactory {
                     return null;
                 }
 
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
+                }
+
             });
         } else {
             return RRawFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -283,6 +288,11 @@ class Rep extends CallFactory {
 
                 @Override public Attributes attributes() { // drop attributes
                     return null;
+                }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
                 }
             });
         } else {
@@ -311,6 +321,11 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
+                }
             });
         } else {
             return RIntFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -337,6 +352,11 @@ class Rep extends CallFactory {
 
                 @Override public Attributes attributes() { // drop attributes
                     return null;
+                }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
                 }
 
             });
@@ -374,6 +394,11 @@ class Rep extends CallFactory {
                 @Override public Attributes attributes() { // drop attributes
                     return null;
                 }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
+                }
             });
         } else {
             return RComplexFactory.getFor(repValues(orig, origSize, size), null, repNames(names, origSize, size));
@@ -400,6 +425,11 @@ class Rep extends CallFactory {
 
                 @Override public Attributes attributes() { // drop attributes
                     return null;
+                }
+
+                @Override
+                public void accept(ValueVisitor v) {
+                    v.visit(this);
                 }
             });
         } else {

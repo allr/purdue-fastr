@@ -207,4 +207,9 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
     public double sum(boolean narm) {
         return RDouble.RDoubleUtils.sum(this, narm);
     }
+
+    @Override
+    public void accept(ValueVisitor v) {
+        v.visit(this);
+    }
 }
