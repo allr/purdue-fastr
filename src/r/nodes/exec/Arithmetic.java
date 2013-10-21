@@ -46,7 +46,6 @@ public class Arithmetic extends BaseR {
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
-    private static final boolean EAGER_COMPLEX = false;
 
     public Arithmetic(ASTNode ast, RNode left, RNode right, ValueArithmetic arit, VectorArithmetic vectorArit) {
         super(ast);
@@ -4337,32 +4336,6 @@ public class Arithmetic extends BaseR {
 
         @Override
         public RComplex complexBinary(RComplex a, RComplex b, ValueArithmetic arit, ASTNode ast) {
-            if (EAGER_COMPLEX) {
-                int asize = a.size();
-                if (asize > 1) {
-                    int bsize = b.size();
-                    if (asize == bsize) {
-                        return arit.opComplexImplEqualSize(ast, (ComplexImpl) a.materialize(), (ComplexImpl) b.materialize(), asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                    }
-                    if (bsize == 1) {
-                        double c = b.getReal(0);
-                        double d = b.getImag(0);
-                        if (!RComplexUtils.arithEitherIsNA(c, d)) {
-                            return arit.opComplexImplScalar(ast, (ComplexImpl) a.materialize(), c, d, asize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                        }
-                        // NOTE: NA case falls back, could be added here
-                    }
-                } else if (asize == 1) {
-                    int bsize = b.size();
-                    if (bsize > 1) {
-                        double ar = a.getReal(0);
-                        double ai = a.getImag(0);
-                        if (!RComplexUtils.arithEitherIsNA(ar, ai)) {
-                            return arit.opScalarComplexImpl(ast, ar, ai, (ComplexImpl) b.materialize(), bsize, resultDimensions(ast, a, b), resultNames(ast, a, b), resultAttributes(ast, a, b));
-                        }
-                    }
-                }
-            }
             int depth = 0;
             if (LIMIT_VIEW_DEPTH) {
                 depth = complexViewDepth(a) + complexViewDepth(b) + 1;
@@ -4409,23 +4382,23 @@ public class Arithmetic extends BaseR {
             RDouble res;
 
             if (na == nb) {
-                if (arit == POW && na > 1) {
-                    // FIXME: this is a hack.. POW is so expensive though that this is likely to pay off
-                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
-                }
-                if (a instanceof DoubleImpl && b instanceof DoubleImpl && (a.isTemporary() || b.isTemporary())) {
-                    // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
-                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
-                }
+//                if (arit == POW && na > 1) {
+//                    // FIXME: this is a hack.. POW is so expensive though that this is likely to pay off
+//                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a.materialize(), (DoubleImpl) b.materialize(), na, dim, names, attributes);
+//                }
+//                if (a instanceof DoubleImpl && b instanceof DoubleImpl && (a.isTemporary() || b.isTemporary())) {
+//                    // FIXME: do this only for Pow? sometimes? the check may be costly for short vectors
+//                    return arit.opDoubleImplEqualSize(ast, (DoubleImpl) a, (DoubleImpl) b, na, dim, names, attributes);
+//                }
                 res = new DoubleViewForDoubleDouble.EqualSizeVectorVector(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (nb == 1 && na > 0) {
-                if (arit == POW && na > 1) {
-                    return arit.opDoubleImplScalarCheckingNA(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
-                }
-                if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
-                    // FIXME: re-visit the condition, like above
-                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
-                }
+//                if (arit == POW && na > 1) {
+//                    return arit.opDoubleImplScalarCheckingNA(ast, (DoubleImpl) a.materialize(), b.getDouble(0), na, dim, names, attributes);
+//                }
+//                if (na > 1 && a instanceof DoubleImpl && a.isTemporary()) {
+//                    // FIXME: re-visit the condition, like above
+//                    return arit.opDoubleImplScalar(ast, (DoubleImpl) a, b.getDouble(0), na, dim, names, attributes);
+//                }
                 res = new DoubleViewForDoubleDouble.VectorScalar(a, b, dim, names, attributes, na, depth, arit, ast);
             } else if (na == 1 && nb > 0) {
                 res = new DoubleViewForDoubleDouble.ScalarVector(a, b, dim, names, attributes, nb, depth, arit, ast);

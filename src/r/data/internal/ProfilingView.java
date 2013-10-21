@@ -97,6 +97,10 @@ public interface ProfilingView {
                 res = new RIntProfilingView((RInt) orig, profile);
             } else if (orig instanceof RComplex) {
                 res = new RComplexProfilingView((RComplex) orig, profile);
+            } else if (orig instanceof RLogical) {
+                res = new RLogicalProfilingView((RLogical) orig, profile);
+            } else if (orig instanceof RString) {
+                res = new RStringProfilingView((RString) orig, profile);
             } else {
                 res = orig;
             }
@@ -145,6 +149,77 @@ public interface ProfilingView {
             return res;
         }
 
+    }
+
+    public static class RStringProfilingView extends View.RStringProxy<RString> implements RString, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RStringProfilingView(RString orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        @Override
+        public String getString(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getString(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RString materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(String[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof RStringView) {
+                    ((RStringView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    String[] content = ((StringImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(String[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((RStringView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
+        // sum not implemented yet in RLogical
     }
 
     public static class RComplexProfilingView extends View.RComplexProxy<RComplex> implements RComplex, ProfilingView {
@@ -358,7 +433,7 @@ public interface ProfilingView {
                     // FIXME: this case is needed because materializeInto could have been called because
                     //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
                     //   proxy views is visible via instanceof)
-                    double[] content = ((DoubleImpl) orig).getContent();
+                    int[] content = ((IntImpl) orig).getContent();
                     System.arraycopy(content, 0, res, 0, content.length);
                 }
             } finally {
@@ -387,6 +462,77 @@ public interface ProfilingView {
         }
 
         // sum not implemented yet in RInt
+    }
+
+    public static class RLogicalProfilingView extends View.RLogicalProxy<RLogical> implements RLogical, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RLogicalProfilingView(RLogical orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        @Override
+        public int getLogical(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getLogical(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RLogical materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(int[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof RLogicalView) {
+                    ((RLogicalView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    int[] content = ((LogicalImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(int[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((RLogicalView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
+        // sum not implemented yet in RLogical
     }
 
 }

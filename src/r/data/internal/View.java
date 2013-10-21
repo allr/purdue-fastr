@@ -301,7 +301,31 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RLogical materialize() {
-            return RLogicalFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                int[] content = new int[n];
+                materializeInto(content);
+                return RLogical.RLogicalFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RLogical.RLogicalFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(int[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of logical view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getLogical(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(int[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getLogical(i);
+            }
         }
 
         @Override
@@ -1047,7 +1071,31 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RString materialize() {
-            return RString.RStringFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                String[] content = new String[n];
+                materializeInto(content);
+                return RString.RStringFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RString.RStringFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(String[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of string view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getString(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(String[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getString(i);
+            }
         }
 
         @Override
