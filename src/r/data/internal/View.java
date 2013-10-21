@@ -837,6 +837,9 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public double sum(boolean narm) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default sum of double view " + this + " size " + size());
+            }
             return RDouble.RDoubleUtils.sum(this, narm);
         }
     }
@@ -1035,6 +1038,14 @@ public abstract class View extends ArrayImpl implements RArray {
         public RComplex doStripKeepNames() {
             return RComplex.RComplexFactory.stripKeepNames(this);
         }
+
+        @Override
+        public Complex sum(boolean narm) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default sum of complex view " + this + " size " + size());
+            }
+            return RComplex.RComplexUtils.sum(this, narm);
+        }
     }
 
     // FIXME: copy-paste of RRawProxy as Java does not have multiple inheritance
@@ -1085,6 +1096,7 @@ public abstract class View extends ArrayImpl implements RArray {
         public void visit_all(ValueVisitor v) {
             orig.accept(v);
         }
+
     }
 
     public abstract static class RStringView extends ParametricView implements RString {

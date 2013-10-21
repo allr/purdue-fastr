@@ -28,6 +28,8 @@ public interface RComplex extends RArray {
     RComplex materialize();
     double[] getContent();
 
+    public Complex sum(boolean narm);
+
     public final class Complex { // FIXME: perhaps this should be the same as ScalarComplexImpl
         public static final Complex NA = new Complex(RDouble.NA, RDouble.NA);
 
@@ -132,6 +134,24 @@ public interface RComplex extends RArray {
             } else {
                 return ((ComplexImpl) c.materialize()).getContent();
             }
+        }
+        public static Complex sum(RComplex v, boolean narm) {
+            int size = v.size();
+            double rreal = 0;
+            double rimag = 0;
+            for (int i = 0; i < size; i++) {
+                Complex comp = v.getComplex(i);
+                double real = comp.realValue();
+                double imag = comp.imagValue();
+                if (narm) {
+                    if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                        continue;
+                    }
+                }
+                rreal += real;
+                rimag += imag;
+            }
+            return new Complex(rreal, rimag);
         }
     }
 

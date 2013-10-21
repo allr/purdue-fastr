@@ -205,7 +205,18 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
 
     @Override
     public double sum(boolean narm) {
-        return RDouble.RDoubleUtils.sum(this, narm);
+        double res = 0;
+        int size = content.length;
+        for (int i = 0; i < size; i++) {
+            double d = content[i];
+            if (narm) {
+                if (RDouble.RDoubleUtils.isNAorNaN(d)) {
+                    continue;
+                }
+            }
+            res += d;
+        }
+        return res;
     }
 
     @Override

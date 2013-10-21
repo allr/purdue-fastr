@@ -280,6 +280,15 @@ public class ScalarComplexImpl extends ScalarArrayImpl implements RComplex {
     }
 
     @Override
+    public Complex sum(boolean narm) {
+        if (narm && RComplex.RComplexUtils.eitherIsNA(real, imag)) {
+            return new Complex(0, 0);
+        } else {
+            return new Complex(real, imag);
+        }
+    }
+
+    @Override
     public void accept(ValueVisitor v) {
         v.visit(this);
     }

@@ -3,6 +3,7 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
+import r.data.RComplex.*;
 
 
 public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
@@ -238,6 +239,24 @@ public class ComplexImpl extends NonScalarArrayImpl implements RComplex {
     @Override
     public void accept(ValueVisitor v) {
         v.visit(this);
+    }
+
+    @Override
+    public Complex sum(boolean narm) {
+        double rreal = 0;
+        double rimag = 0;
+        for (int i = 0; i < size; i++) {
+            double real = content[2 * i];
+            double imag = content[2 * i + 1];
+            if (narm) {
+                if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
+                    continue;
+                }
+            }
+            rreal += real;
+            rimag += imag;
+        }
+        return new Complex(rreal, rimag);
     }
 
  }

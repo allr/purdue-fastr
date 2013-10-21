@@ -1,6 +1,7 @@
 package r.builtins;
 
 import r.data.*;
+import r.data.RComplex.*;
 import r.errors.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
@@ -27,25 +28,6 @@ final class Sum extends CallFactory {
 
     Sum(String name, String[] params, String[] required) {
         super(name, params, required);
-    }
-
-    public static void sum(RComplex v, boolean narm, double[] res) {
-        int size = v.size();
-        double rreal = 0;
-        double rimag = 0;
-        for (int i = 0; i < size; i++) {
-            double real = v.getReal(i);  // FIXME: this will be very slow for complex arithmetic views
-            double imag = v.getImag(i);
-            if (narm) {
-                if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
-                    continue;
-                }
-            }
-            rreal += real;
-            rimag += imag;
-        }
-        res[0] = rreal;
-        res[1] = rimag;
     }
 
     public static double sum(RInt v, boolean narm) {
@@ -166,7 +148,6 @@ final class Sum extends CallFactory {
                 }
 
                 if (hasComplex) {
-                    double[] tmp = new double[2];
                     double rreal = 0;
                     double rimag = 0;
                     for (int i = 0; i < args.length; i++) {
@@ -177,9 +158,9 @@ final class Sum extends CallFactory {
                         if (v instanceof RNull) {
                             continue;
                         }
-                        sum(v.asComplex(), naRM, tmp);
-                        double real = tmp[0];
-                        double imag = tmp[1];
+                        Complex cmp = v.asComplex().sum(naRM);
+                        double real = cmp.realValue();
+                        double imag = cmp.imagValue();
                         if (RComplex.RComplexUtils.eitherIsNAorNaN(real, imag)) {
                             // FIXME: this is to retain NA vs NaN distinction, but indeed would have overhead in common case
                             rreal = real;
