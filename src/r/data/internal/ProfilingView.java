@@ -101,6 +101,10 @@ public interface ProfilingView {
                 res = new RLogicalProfilingView((RLogical) orig, profile);
             } else if (orig instanceof RString) {
                 res = new RStringProfilingView((RString) orig, profile);
+            } else if (orig instanceof RRaw) {
+                res = new RRawProfilingView((RRaw) orig, profile);
+            } else if (orig instanceof RList) {
+                res = new RListProfilingView((RList) orig, profile);
             } else {
                 res = orig;
             }
@@ -149,6 +153,77 @@ public interface ProfilingView {
             return res;
         }
 
+    }
+
+    public static class RListProfilingView extends View.RListProxy<RList> implements RList, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RListProfilingView(RList orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        @Override
+        public RAny getRAny(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getRAny(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RList materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(RAny[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof View.RListView) {
+                    ((View.RListView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    RAny[] content = ((ListImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(RAny[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((View.RListView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
+        // sum not implemented yet in RRaw
     }
 
     public static class RStringProfilingView extends View.RStringProxy<RString> implements RString, ProfilingView {
@@ -533,6 +608,77 @@ public interface ProfilingView {
         }
 
         // sum not implemented yet in RLogical
+    }
+
+    public static class RRawProfilingView extends View.RRawProxy<RRaw> implements RRaw, ProfilingView {
+
+        private ViewProfile profile;
+
+        public RRawProfilingView(RRaw orig, ViewProfile profile) {
+            super(orig);
+            this.profile = profile;
+            profile.onNewView(orig);
+        }
+
+        @Override
+        public byte getRaw(int i) {
+            boolean internal = profile.enterGet();
+            try {
+                return orig.getRaw(i);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public RRaw materialize() {
+            boolean internal = profile.enterMaterialize();
+            try {
+                return orig.materialize();
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeInto(byte[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                if (orig instanceof RRawView) {
+                    ((RRawView) orig).materializeInto(res);
+                } else {
+                    // FIXME: this case is needed because materializeInto could have been called because
+                    //   "this" is a view (profiling view), if it were known to be a doubleimpl (inserting
+                    //   proxy views is visible via instanceof)
+                    byte[] content = ((RawImpl) orig).getContent();
+                    System.arraycopy(content, 0, res, 0, content.length);
+                }
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void materializeIntoOnTheFly(byte[] res) {
+            boolean internal = profile.enterMaterialize();
+            try {
+                ((RRawView) orig).materializeIntoOnTheFly(res);
+            } finally {
+                profile.leave(internal);
+            }
+        }
+
+        @Override
+        public void accept(ValueVisitor v) {
+            v.visit(this);
+        }
+
+        @Override
+        public void onAssignment(Object oldValue) {
+            profile.onAssignment(orig, oldValue);
+        }
+
+        // sum not implemented yet in RRaw
     }
 
 }

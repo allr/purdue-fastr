@@ -17,7 +17,8 @@ public interface RList extends RArray {
     RAny getRAny(int i);
     RAny getRAnyRef(int i);
     RArray set(int i, RAny val);
-    ListImpl materialize();
+    RList materialize();
+    public RAny[] getContent();
 
     public class RListFactory {
         public static ListImpl getScalar(RAny value) {

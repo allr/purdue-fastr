@@ -682,7 +682,7 @@ public interface TracingView {
         }
 
         @Override
-        public ListImpl materialize() {
+        public RList materialize() {
             trace.materialize();
             return orig.materialize();
         }

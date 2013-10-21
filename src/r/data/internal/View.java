@@ -138,7 +138,31 @@ public abstract class View extends ArrayImpl implements RArray {
 
         @Override
         public RRaw materialize() {
-            return RRawFactory.copy(this);
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                byte[] content = new byte[n];
+                materializeInto(content);
+                return RRaw.RRawFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RRaw.RRawFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(byte[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of raw view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getRaw(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(byte[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getRaw(i);
+            }
         }
 
         @Override
@@ -1263,15 +1287,44 @@ public abstract class View extends ArrayImpl implements RArray {
          }
 
         @Override
-        public ListImpl materialize() {
-            return RList.RListFactory.copy(this);
+        public RList materialize() {
+            int n = size();
+            if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
+                RAny[] content = new RAny[n];
+                materializeInto(content);
+                return RList.RListFactory.getFor(content, dimensions(), names(), attributes());
+            } else {
+                return RList.RListFactory.copy(this);
+            }
+        }
+
+        public void materializeInto(RAny[] res) {
+            if (DEBUG_DEFAULT_MATERIALIZATION) {
+                System.err.println("Default materialization of list view " + this + " size " + size());
+            }
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getRAny(i);
+            }
+        }
+
+        public void materializeIntoOnTheFly(RAny[] res) {
+            int n = size();
+            for (int i = 0; i < n; i++) {
+                res[i] = getRAny(i);
+            }
         }
 
         @Override
-        public ListImpl materializeOnAssignmentRef(Object oldValue) {
-            ListImpl res = materialize();
+        public RList materializeOnAssignmentRef(Object oldValue) {
+            RList res = materialize();
             res.ref();
             return res;
+        }
+
+        @Override
+        public RAny[] getContent() {
+            return materialize().getContent();
         }
 
         @Override
