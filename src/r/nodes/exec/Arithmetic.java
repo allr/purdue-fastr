@@ -20,18 +20,8 @@ import r.ext.*;
 import r.nodes.ast.*;
 import r.runtime.*;
 
-// FIXME: the design may not be good for complex numbers (too much common computation for real, imaginary parts)
-
 // FIXME: the complex arithmetic differs for scalars/non-scalars (NA semantics - which part is NA), though
 // this should not be visible to the end-user
-
-// TODO: the complex arithmetics (here and in some math functions, which are builtins), is not IEEE 754 compliant
-// GNU-R depends on the C99 compiler to implement the low-level operations correctly.
-// Note that getting the Infs and NaNs right in complex arithmetics is far from trivial. See e.g. libgcc, divdc3, muldc3
-
-// TODO: perhaps could be smarter about the arithIsNA checks with doubles; one can rely on that if (with most math operations), if there is
-// na NA on input, there will be a double NaN on output (either NA or R'NaN). So instead of checking both inputs of a binary operation for NA,
-// one could just check the result for NaN, and only in the positive case check the operands for NA...
 
 public class Arithmetic extends BaseR {
 
@@ -42,7 +32,7 @@ public class Arithmetic extends BaseR {
 
     private static final boolean SINGLE_CHILD_TIGHT_LOOP_MATERIALIZATION = true;
     private static final boolean EAGER = false;
-    private static final boolean LIMIT_VIEW_DEPTH = true && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
+    private static final boolean LIMIT_VIEW_DEPTH = false && !(Frame.MATERIALIZE_ON_ASSIGNMENT && AbstractCall.MATERIALIZE_FUNCTION_ARGUMENTS);
     private static final int MAX_VIEW_DEPTH = 5;
 
     private static final boolean DEBUG_AR = false;
