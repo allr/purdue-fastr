@@ -142,6 +142,11 @@ public class SimpleTestBase extends TestBase {
         String output = out.toString();
         String errorOutput = err.toString();
 
+        // convert line endings to their linux versions for other systems compatibility
+        result = result.replace("\r\n", "\n");
+        output = output.replace("\r\n", "\n");
+        errorOutput = errorOutput.replace("\r\n", "\n");
+
         if (VERBOSE) {
             System.out.println("---------------------\n");
             System.out.println("TEST INPUT:\n"+ input);
