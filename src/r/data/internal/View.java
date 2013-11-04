@@ -769,8 +769,11 @@ public abstract class View extends ArrayImpl implements RArray {
             return asString();
         }
 
+        /** FUSION -- materialization point for RDouble returning views.
+         */
         @Override
         public RDouble materialize() {
+            System.out.println("#VD#");
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
                 double[] content = new double[n];
