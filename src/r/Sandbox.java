@@ -1,6 +1,9 @@
 package r;
 
+import org.antlr.runtime.ANTLRStringStream;
+import r.data.RAny;
 import r.fusion.*;
+import r.nodes.ast.ASTNode;
 
 /**
  * Created with IntelliJ IDEA. User: Peta Date: 11/4/13 Time: 4:12 PM To change this template use File | Settings | File
@@ -54,22 +57,20 @@ public class Sandbox {
 
 
     public static void fusion() {
-        String signature = "B+VDE_VDB*VDE_VDB-VDA_VI_SI";
-        FusionBuilder fb = new FusionBuilder(signature);
-        System.out.println(fb);
-        System.out.println(fb.buildMaterializeMethod());
+        String signature = "BaVDE_VDBmVDA_VDBsVDA_VI_SI";
+        Fusion.Prototype p = FusionBuilder.build(signature);
 
     }
 
     public static void main(String[] args) {
-        fusion();
-        /*
+        //fusion();
+
         System.out.println("Executing sandbox...");
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(code));
         if (tree != null) {
             RAny result = RContext.eval(tree);
             //System.out.println(result.pretty());
-        } */
+        }
 
     }
 }

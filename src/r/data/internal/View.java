@@ -3,6 +3,7 @@ package r.data.internal;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.*;
+import r.fusion.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
 
@@ -101,22 +102,23 @@ public abstract class View extends ArrayImpl implements RArray {
         visitor.visit(this);
     }
 
+    /** FUSION Materialize method bypassing fusion.
+     */
+    public RArray materialize_() {
+        assert (false) : "This method should be overriden in the classes that use fusion.";
+        return null;
+    }
+
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
     public static final boolean ON_ASSIGNMENT_LISTENERS = true;
 
     private static final boolean DEBUG_DEFAULT_MATERIALIZATION = false;
 
+    /** FUSION returns the signature of the view, or null if the view is not supported.
+     */
     public String signature() {
-        // TODO FIXME This should call the signature visitor to obtain the signature once the code is nice
-        return "";
+        return SignatureBuilder.build(this);
     }
-
-
-
-
-
-
-
 
     @Override
     public RArray set(int i, Object val) {
@@ -967,12 +969,13 @@ public abstract class View extends ArrayImpl implements RArray {
          */
         @Override
         public RDouble materialize() {
-           /* String signature = SignatureBuilder.signature(this);
-            if (signature.equals("EVV+EVV+DEVV*DDEVV*DD")) {
-                FOP.reinitialize(this);
-                return FOP.compute();
-            } */
-            //System.out.println("#VD#" + SignatureBuilder.signature(this));
+            if (Fusion.ENABLED)
+                return (RDouble) Fusion.materialize(this);
+            else
+                return materialize_();
+        }
+
+        public RDouble materialize_() {
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
                 double[] content = new double[n];

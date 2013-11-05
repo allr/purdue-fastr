@@ -8,11 +8,11 @@ public abstract class Node {
     public static final char BINARY = 'B';
     public static final char UNARY = 'U';
     public static final char INPUT = '_';
-    public static final char ADD = '+';
-    public static final char SUB = '-';
-    public static final char MUL = '*';
-    public static final char DIV = '/';
-    public static final char MOD = '%';
+    public static final char ADD = 'a';
+    public static final char SUB = 's';
+    public static final char MUL = 'm';
+    public static final char DIV = 'd';
+    public static final char MOD = 'n';
     public static final char SIZEA = 'A';
     public static final char SIZEB = 'B';
     public static final char EQUALSIZE = 'E';
@@ -39,7 +39,7 @@ public abstract class Node {
 
     public abstract void setSizeSameAsResult();
 
-    public abstract String build(ComputationCodeBuilder cb);
+    public abstract String build(MaterializeCodeBuilder cb);
 
     // input node ----------------------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ public abstract class Node {
             sizeSameAsResult = true;
         }
 
-        @Override public String build(ComputationCodeBuilder cb) {
+        @Override public String build(MaterializeCodeBuilder cb) {
             return cb.buildInput(this);
         }
     }
@@ -126,7 +126,7 @@ public abstract class Node {
             }
         }
 
-        @Override public String build(ComputationCodeBuilder cb) {
+        @Override public String build(MaterializeCodeBuilder cb) {
             return cb.buildBinary(this);
         }
     }
@@ -157,7 +157,7 @@ public abstract class Node {
             operand.setSizeSameAsResult();
         }
 
-        @Override public String build(ComputationCodeBuilder cb) {
+        @Override public String build(MaterializeCodeBuilder cb) {
             return cb.buildUnary(this);
         }
     }

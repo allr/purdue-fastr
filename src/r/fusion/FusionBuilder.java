@@ -1,5 +1,7 @@
 package r.fusion;
 
+import javassist.*;
+
 import java.util.Vector;
 
 /** Builds the fused operator from given view signature.
@@ -18,22 +20,24 @@ import java.util.Vector;
  */
 public class FusionBuilder {
 
-    /** Error to be thrown when unsupported view state is found.
-     *
-     * When this error is thrown from the build process, there should be no further attempts on building the fused
-     * operator for a view with such signature.
-     */
-    public class InvalidSignatureError extends Error {
-        final int idx;
-        public InvalidSignatureError(String message) {
-            super(message);
-            idx = -1;
-        }
+    public static Fusion.Prototype build(String signature) {
+        try {
+            FusionBuilder fb = new FusionBuilder(signature);
+            if (Fusion.DEBUG)
+                System.out.println(fb);
+            Class fopClass = fb.createFusedOperatorClass();
 
-        public InvalidSignatureError(String message, int idx) {
-            super(message);
-            this.idx = idx;
 
+            Fusion.Prototype fop = (Fusion.Prototype) fopClass.newInstance();
+
+
+            return fop;
+        } catch (InvalidSignatureError | InstantiationException | IllegalAccessException e) {
+            if (Fusion.DEBUG) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
@@ -44,22 +48,141 @@ public class FusionBuilder {
     final String signature;
     /** Index of input that is the same size as the result.
      */
-    private int resultSize;
+    int resultSize;
+
+    static final ClassPool pool;
+
+    static final CtClass prototype;
+
+    static {
+        pool = ClassPool.getDefault();
+        CtClass p = null;
+        CtClass f = null;
+        try {
+            p = pool.get("r.fusion.Fusion$Prototype");
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+            System.err.println("Unable to initialize fusion runtime. Exitting.");
+            System.exit(-1);
+        }
+        prototype = p;
+    }
+
+
+    /** Adds the input fields to the fused operator.
+     *
+     * Each input (numbered input0...n) is either a primitive type, or an array if the input is vector.
+     *
+     * TODO the full R datatypes should be stored as well to have a place from which the attributes should be taken.
+     */
+    private void addInputFields(CtClass fop) throws CannotCompileException, NotFoundException {
+        for (Node.Input i : inputs) {
+            CtField f;
+            switch (i.type) {
+                case Node.DOUBLE:
+                    f = new CtField(pool.get("double" + (i.size == Node.VECTOR ? "[]" : "")), "input" + i.index, fop);
+                    break;
+                case Node.INT:
+                    f = new CtField(pool.get("int" + (i.size == Node.VECTOR ? "[]" : "")), "input" + i.index, fop);
+                    break;
+                default:
+                    throw new InvalidSignatureError("Input type " + i.type + " not supported");
+            }
+            assert (f != null);
+            fop.addField(f);
+        }
+    }
+
+    /** Adds the free() method to the fused operator.
+     *
+     * The free method simply sets all array inputs to null so that they can be garbage collected if they are not
+     * referenced anywhere else.
+     *
+     * TODO this should also delete the full R types once they are added (see TODO in addInputFields())
+     */
+    private void addFreeMethod(CtClass fop) throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("public void free() {\n");
+        for (Node.Input i : vectorInputs)
+            sb.append("    input" + i.index + " = null; \n");
+        sb.append("}");
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+    }
+
+    private void addVisitorMethods(CtClass fop) throws CannotCompileException, NotFoundException {
+        StringBuilder sbd = new StringBuilder();
+        sbd.append("public void visitLeaf(r.data.RDouble element) {\n");
+        sbd.append("    switch (idx) {\n");
+        StringBuilder sbi = new StringBuilder();
+        sbi.append("public void visitLeaf(r.data.RInt element) {\n");
+        sbi.append("    switch (idx) {\n");
+        for (Node.Input i : inputs) {
+            switch (i.type) {
+                case Node.DOUBLE:
+                    sbd.append("        case " + i.index + ":\n");
+                    if (i.size == Node.VECTOR)
+                        sbd.append("            input"+i.index+" = element.getContent();\n");
+                    else
+                        sbd.append("            input"+i.index+" = element.getDouble(0); assert_ (element.size() == 1);\n");
+                    break;
+                case Node.INT:
+                    sbi.append("        case " + i.index + ":\n");
+                    if (i.size == Node.VECTOR)
+                        sbi.append("            input"+i.index+" = element.getContent();\n");
+                    else
+                        sbi.append("            input"+i.index+" = element.getInt(0); assert_ (element.size() == 1);\n");
+                    break;
+                case Node.COMPLEX:
+                    // TODO add complex numbers too
+                    throw new InvalidSignatureError("Complex input types not supported");
+                default:
+                    throw new InvalidSignatureError("Input type " + i.type + " not supported");
+            }
+        }
+        sbd.append("        default:\n            assert_ (false);\n");
+        sbi.append("        default:\n            assert_ (false);\n");
+        sbd.append("    }\n    ++idx;\n}");
+        sbi.append("    }\n    ++idx;\n}");
+        fop.addMethod(CtNewMethod.make(sbd.toString(), fop));
+        fop.addMethod(CtNewMethod.make(sbi.toString(), fop));
+    }
+
+    private void addMaterializeMethod(CtClass fop) throws CannotCompileException {
+        String src = MaterializeCodeBuilder.emit(this);
+        fop.addMethod(CtNewMethod.make(src, fop));
+    }
+
+
+    private Class createFusedOperatorClass() {
+        try {
+            CtClass fop = pool.makeClass(signature);
+            fop.setSuperclass(prototype);
+            addInputFields(fop);
+            addVisitorMethods(fop);
+            addFreeMethod(fop);
+            addMaterializeMethod(fop);
+            return fop.toClass();
+        } catch (CannotCompileException e) {
+            if (Fusion.DEBUG)
+                e.printStackTrace();
+            throw new InvalidSignatureError("Javassist CannotCompileException raised");
+        } catch (NotFoundException e) {
+            if (Fusion.DEBUG)
+                e.printStackTrace();
+            throw new InvalidSignatureError("Javassist NotFound raised");
+        }
+    }
 
 
 
-    public FusionBuilder(String signature) {
+
+
+    private FusionBuilder(String signature) {
         this.signature = signature;
         ast = SignatureParser.parse(this);
         resultSize = ast.calculateResultSize();
         ast.setSizeSameAsResult();
     }
-
-
-    // view ast nodes ----------------------------------------------------------------------------------------------
-
-
-    // view ast parsing --------------------------------------------------------------------------------------------
 
 
     /** Debug display method that shows the FusedBuilder's internal structures.
@@ -78,135 +201,11 @@ public class FusionBuilder {
     }
 
 
-    /** Builds the materialize method.
-     *
-     * The materialize method has always the same structure. First the result primitive vector is created. Then the
-     * loop header starts looping over indices from 0 to the length of the result vector. For any inputs that do not
-     * have the length of the result, their own indices are created.
-     *
-     * Inside the loop elements of all non scalar inputs are read into their designated variables. The computation
-     * then commences followed by the NA checks on the result.
-     *
-     * The loop footer increments all non-result indices and performs the wrap around if applicable. Finally RArray
-     * is created out of the result array and is returned.
-     *
-     * TODO Attributes should be handled here.
-     */
     public String buildMaterializeMethod() {
         StringBuilder sb = new StringBuilder();
-        sb.append("@Override public RArray materialize_() {\n");
-        buildResultDefinition(sb);
-        buildLoopHeader(sb);
-        ComputationCodeBuilder cb = new ComputationCodeBuilder(this);
-        sb.append(cb.emit());
-
-        buildNACheck(sb);
-        sb.append("        result[i] = t0;\n");
-        buildLoopFooter(sb);
-        sb.append("}\n");
         return sb.toString();
     }
 
 
-    /** Creates the code for the result definition.
-     *
-     * Result can be double, integer, or complex vector.
-     *
-     * TODO ? other result types
-     */
-    private void buildResultDefinition(StringBuilder sb) {
-        if (ast.size != Node.VECTOR)
-            throw new InvalidSignatureError("Result of the view must be a vector. Scalars are not supported.");
-        switch (ast.type) {
-            case Node.DOUBLE:
-                sb.append("    double[] result = new double[input" + resultSize + ".length];\n");
-                break;
-            case Node.INT:
-                sb.append("    int[] result = new int[input" + resultSize + ".length];\n");
-                break;
-            case Node.COMPLEX:
-                // TODO complex results
-                throw new InvalidSignatureError("Complex type is not supported yet");
-            default:
-                throw new InvalidSignatureError("Result type of the view not supported (Double, Integer, Complex)");
-        }
-    }
-
-    private void buildLoopHeader(StringBuilder sb) {
-        // generate indices for inputs that are not of the same size as the result
-        for (Node.Input i : inputs) {
-            if (i.sizeSameAsResult || i.size == Node.SCALAR)
-                continue;
-            sb.append("    int idx" + i.index + " = 0;\n");
-        }
-        // generate the loop header itself
-        sb.append("    for (int i = 0; i < result.length; ++i) {\n");
-        // load all the indices
-        for (Node.Input i : vectorInputs) {
-            switch (i.type) {
-                case Node.DOUBLE:
-                    sb.append("        double in"+i.index+" = input"+i.index+"["+ (i.sizeSameAsResult ? "i" : "idx"+i.index) + "];\n");
-                    break;
-                case Node.INT:
-                    sb.append("        int in"+i.index+" = input"+i.index+"["+ (i.sizeSameAsResult ? "i" : "idx"+i.index) + "];\n");
-                    break;
-                default:
-                    throw new InvalidSignatureError("Type " + i.type + " is not supported yet");
-            }
-        }
-    }
-
-    private void buildLoopFooter(StringBuilder sb) {
-        //
-        for (Node.Input i : inputs) {
-            if (i.sizeSameAsResult || i.size == Node.SCALAR)
-                continue;
-            sb.append("        ++idx" + i.index + ";\n");
-            sb.append("        if (idx" + i.index + " == input" + i.index +".length)\n");
-            sb.append("            idx" + i.index + " = 0;\n");
-        }
-        sb.append("    }\n");
-    }
-
-    private String buildNACheck(char type, String src) {
-        switch (type) {
-            case Node.DOUBLE:
-                return "RDouble.RDoubleUtils.arithIsNA(" + src + ")";
-            case Node.INT:
-                return "(" + src + " == RInt.NA)";
-            case Node.LOGICAL:
-                return "(" + src + " == RLogical.NA)";
-            default:
-                throw new InvalidSignatureError("Type " + type + " is not supported yet");
-        }
-    }
-
-    String rType(char type) {
-        switch (type) {
-            case Node.DOUBLE:
-                return "RDouble";
-            case Node.INT:
-                return "RInt";
-            case Node.LOGICAL:
-                return "RLogical";
-            default:
-                throw new InvalidSignatureError("Type " + type + " is not supported yet");
-        }
-    }
-
-    private void buildNACheck(StringBuilder sb) {
-        assert (vectorInputs.size() > 0);
-        Node.Input input = vectorInputs.get(0);
-        sb.append("        if ("+buildNACheck(ast.type, "t0")+" && (\n               "+buildNACheck(input.type, "in" + input.index));
-        for (int i = 1; i < vectorInputs.size(); ++i) {
-            input = vectorInputs.get(i);
-            sb.append("\n            || "+buildNACheck(input.type, "in"+input.index));
-        }
-        sb.append(")\n");
-        sb.append("            res = " + rType(ast.type) + ".NA;\n");
-    }
-
-
-    // ComputationCodeBuilder --------------------------------------------------------------------------------------
 
 }

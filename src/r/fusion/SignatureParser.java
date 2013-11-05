@@ -29,7 +29,7 @@ public class SignatureParser {
             case Node.UNARY:
                 return parseUnary();
             default:
-                throw fb.new InvalidSignatureError("Invalid character", idx);
+                throw new InvalidSignatureError("Invalid character", idx);
         }
     }
 
@@ -38,7 +38,7 @@ public class SignatureParser {
     private char parseSize() {
         char r = fb.signature.charAt(idx);
         if ((r != Node.VECTOR) && (r != Node.SCALAR))
-            throw fb.new InvalidSignatureError("Invalid size", idx);
+            throw new InvalidSignatureError("Invalid size", idx);
         ++idx;
         return r;
     }
@@ -51,7 +51,7 @@ public class SignatureParser {
     private char parseResultSize() {
         char r = fb.signature.charAt(idx);
         if ((r != Node.EQUALSIZE) && (r != Node.SIZEA) && (r != Node.SIZEB) && (r != Node.SCALAR))
-            throw fb.new InvalidSignatureError("Invalid result size", idx);
+            throw new InvalidSignatureError("Invalid result size", idx);
         ++idx;
         return r;
     }
@@ -64,7 +64,7 @@ public class SignatureParser {
     private char parseType() {
         char r = fb.signature.charAt(idx);
         if ((r != Node.DOUBLE) && (r != Node.INT) && (r != Node.LOGICAL) && (r != Node.COMPLEX))
-            throw fb.new InvalidSignatureError("Invalid type character", idx);
+            throw new InvalidSignatureError("Invalid type character", idx);
         ++idx;
         return r;
     }
@@ -74,7 +74,7 @@ public class SignatureParser {
     private char parseBinaryOperator() {
         char r = fb.signature.charAt(idx);
         if ((r != Node.ADD) && (r != Node.SUB) && (r != Node.MUL) && (r != Node.DIV) && (r != Node.MOD))
-            throw fb.new InvalidSignatureError("Invalid binary operator type", idx);
+            throw new InvalidSignatureError("Invalid binary operator type", idx);
         ++idx;
         return r;
     }
@@ -84,7 +84,7 @@ public class SignatureParser {
     private char parseUnaryOperator() {
         char r = fb.signature.charAt(idx);
         if ((r != Node.SUB))
-            throw fb.new InvalidSignatureError("Invalid unary operator type", idx);
+            throw new InvalidSignatureError("Invalid unary operator type", idx);
         ++idx;
         return r;
     }
