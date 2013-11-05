@@ -10,6 +10,97 @@ import r.nodes.exec.*;
 
 public abstract class View extends ArrayImpl implements RArray {
 
+    /** FUSION View hierarchy visitor prototype.
+     *
+     * Groups the view classes into hierarchy where children call their parent handlers by default which allows easier
+     * overriding for the desired purpose.
+     */
+    public static class Visitor {
+
+        /** Dispatch method for RAny values.
+         *
+         * If the value is a view, the type dispatch of View subclasses is used to find the proper handler, typechecks
+         * are performed otherwise to distinguish between the leaf handlers.
+         */
+        public final void visit_(RAny element) {
+            if (element instanceof View)
+                ((View) element).visit(this);
+            else if (element instanceof RDouble)
+                visitLeaf( (RDouble) element);
+            else if (element instanceof RInt)
+                visitLeaf( (RInt) element);
+            else if (element instanceof RComplex)
+                visitLeaf( (RComplex) element);
+            else if (element instanceof RLogical)
+                visitLeaf( (RLogical) element);
+            else if (element instanceof RRaw)
+                visitLeaf( (RRaw) element);
+            else if (element instanceof RString)
+                visitLeaf( (RString) element);
+            else
+                visitLeaf(element);
+        }
+
+        /** Base leaf handler.
+         *
+         * Leaves have separate hierarchies from views and profiling views. This is the base handler for all types of
+         * leaves, unless the specific handlers below are overriden.
+         */
+        public void visitLeaf(RAny element) { }
+
+        public void visitLeaf(RDouble element) { visitLeaf((RAny) element); }
+        public void visitLeaf(RInt element) { visitLeaf((RAny) element); }
+        public void visitLeaf(RComplex element) { visitLeaf((RAny) element); }
+        public void visitLeaf(RLogical element) { visitLeaf((RAny) element); }
+        public void visitLeaf(RRaw element) { visitLeaf((RAny) element); }
+        public void visitLeaf(RString element) { visitLeaf((RAny) element); }
+
+
+        /** Base view handler.
+         *
+         * Unless the specialized handlers below are overriden, this method will be called for all views that are not
+         * profiling views which have their own hierarchy.
+         */
+        public void visit(View view) { }
+
+        public void visit(Arithmetic.DoubleViewForDoubleDouble view) { visit( (View) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericBSized view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleDouble.EqualSizeVectorVector view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleDouble.VectorScalar view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleDouble.ScalarVector view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
+
+        public void visit(Arithmetic.DoubleViewForDoubleInt view) { visit( (View) view); }
+        public void visit(Arithmetic.DoubleViewForDoubleInt.EqualSizeVectorVector view) { visit( (Arithmetic.DoubleViewForDoubleInt) view); }
+
+        public void visit(Arithmetic.DoubleViewForIntDouble view) { visit( (View) view); }
+        public void visit(Arithmetic.DoubleViewForIntDouble.EqualSizeVectorVector view) { visit( (Arithmetic.DoubleViewForIntDouble) view); }
+        public void visit(Arithmetic.DoubleViewForIntDouble.VectorScalar view) { visit( (Arithmetic.DoubleViewForIntDouble) view); }
+
+        public void visit(Arithmetic.IntViewForIntInt view) { visit( (View) view); }
+        public void visit(Arithmetic.IntViewForIntInt.EqualSize view) { visit( (Arithmetic.IntViewForIntInt) view); }
+
+        /** Profiling views are in separate hierarchy.
+         *
+         * Default behavior for profiling view is to continue with the original structure.
+         */
+        public void visitProfiling(ProfilingView view) { }
+
+        public void visitProfiling(ProfilingView.RDoubleProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RIntProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RComplexProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RLogicalProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RListProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RRawProfilingView view) { visitProfiling( (ProfilingView) view); }
+        public void visitProfiling(ProfilingView.RStringProfilingView view) { visitProfiling( (ProfilingView) view); }
+    }
+
+    /** FUSION Generic case visitor method for any view.
+     */
+    public void visit(Visitor visitor) {
+        visitor.visit(this);
+    }
+
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
     public static final boolean ON_ASSIGNMENT_LISTENERS = true;
 
@@ -20,150 +111,12 @@ public abstract class View extends ArrayImpl implements RArray {
         return "";
     }
 
-    public static class Visitor {
-
-        public void visit(View view) {
-
-        }
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleDouble view) { visit(view); }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForIntDouble view) { visit(view); }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleInt view) { visit(view); }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
-
-        public void visitIntBinOpVV(Arithmetic.IntViewForIntInt view) { visit(view); }
-        public void visitIntBinOpEVV(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
-        public void visitIntBinOpVS(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
-        public void visitIntBinOpSV(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
 
 
 
 
 
-        public void visitProfilingView(ProfilingView view) {  }
 
-        public void visitDoubleLeaf(RDouble leaf) { }
-
-        public void visitIntLeaf(RInt leaf) { }
-    }
-
-    public static class SignatureBuilder extends Visitor {
-        StringBuilder sb = new StringBuilder();
-        public void visit(View view) {
-            sb = null;
-            System.out.println("Unknown view class "+ view.getClass().getCanonicalName());
-        }
-
-        private void appendBinOp(String prefix, Arithmetic.ValueArithmetic arit) {
-            if (sb == null)
-                return;
-            sb.append(prefix);
-            if (arit == Arithmetic.ADD)
-                sb.append("+");
-            else if (arit == Arithmetic.SUB)
-                sb.append("-");
-            else if (arit == Arithmetic.MULT)
-                sb.append("*");
-            else if (arit == Arithmetic.DIV)
-                sb.append("/");
-            else
-                sb = null;
-        }
-
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleDouble view) {
-            appendBinOp("VV", view.arit);
-        }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleDouble view) {
-            appendBinOp("EVV", view.arit);
-        }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleDouble view) {
-            appendBinOp("VS", view.arit);
-        }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleDouble view) {
-            appendBinOp("SV", view.arit);
-        }
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleInt view) {
-            appendBinOp("VV", view.arit);
-        }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleInt view) {
-            appendBinOp("EVV", view.arit);
-        }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleInt view) {
-            appendBinOp("VS", view.arit);
-        }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleInt view) {
-            appendBinOp("SV", view.arit);
-        }
-
-        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForIntDouble view) {
-            appendBinOp("VV", view.arit);
-        }
-        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForIntDouble view) {
-            appendBinOp("EVV", view.arit);
-        }
-        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForIntDouble view) {
-            appendBinOp("VS", view.arit);
-        }
-        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForIntDouble view) {
-            appendBinOp("SV", view.arit);
-        }
-
-        public void visitIntBinOpVV(Arithmetic.IntViewForIntInt view) {
-            appendBinOp("VV", view.arit);
-        }
-        public void visitIntBinOpEVV(Arithmetic.IntViewForIntInt view) {
-            appendBinOp("EVV", view.arit);
-        }
-        public void visitIntBinOpVS(Arithmetic.IntViewForIntInt view) {
-            appendBinOp("VS", view.arit);
-        }
-        public void visitIntBinOpSV(Arithmetic.IntViewForIntInt view) {
-            appendBinOp("SV", view.arit);
-        }
-
-
-
-
-
-        public void visitDoubleLeaf(RDouble leaf) {
-            if (sb != null)
-                sb.append("D");
-        }
-
-        public void visitIntLeaf(RInt leaf) {
-            if (sb != null)
-                sb.append("I");
-        }
-
-        public String signature() {
-            return sb == null ? "" : sb.toString();
-        }
-
-        public static String signature(View view) {
-            SignatureBuilder sb = new SignatureBuilder();
-            view.visit(sb);
-            return sb.signature();
-        }
-    }
-
-
-
-
-    public void visit(Visitor visitor) {
-        visitor.visit(this);
-    }
 
     @Override
     public RArray set(int i, Object val) {
@@ -919,6 +872,7 @@ public abstract class View extends ArrayImpl implements RArray {
             return asString();
         }
 
+        /*
         // signature EVV+EVV+DEVV*DDEVV*DD =    d + (d * d) + ( d * d)
         public static class FusionOp {
 
@@ -1006,18 +960,18 @@ public abstract class View extends ArrayImpl implements RArray {
         }
 
 
-        static FusionOp FOP = new FusionOp();
+        static FusionOp FOP = new FusionOp(); */
 
 
         /** FUSION -- materialization point for RDouble returning views.
          */
         @Override
         public RDouble materialize() {
-            String signature = SignatureBuilder.signature(this);
+           /* String signature = SignatureBuilder.signature(this);
             if (signature.equals("EVV+EVV+DEVV*DDEVV*DD")) {
                 FOP.reinitialize(this);
                 return FOP.compute();
-            }
+            } */
             //System.out.println("#VD#" + SignatureBuilder.signature(this));
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {

@@ -165,6 +165,15 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
+        }
+
         @Override
         public RAny getRAny(int i) {
             boolean internal = profile.enterGet();
@@ -236,6 +245,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
+        }
+
+
         @Override
         public String getString(int i) {
             boolean internal = profile.enterGet();
@@ -305,6 +324,15 @@ public interface ProfilingView {
             super(orig);
             this.profile = profile;
             profile.onNewView(orig);
+        }
+
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
         }
 
         // note that each of getReal, getImag and getComplex counts as one "get", and the size is the number of complex elements
@@ -398,6 +426,15 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
+        }
+
         @Override
         public double getDouble(int i) {
             boolean internal = profile.enterGet();
@@ -406,15 +443,6 @@ public interface ProfilingView {
             } finally {
                 profile.leave(internal);
             }
-        }
-
-        @Override
-        public void visit(View.Visitor visitor) {
-            visitor.visitProfilingView(this);
-            if (orig instanceof View)
-                ((View) orig).visit(visitor);
-            else
-                visitor.visitDoubleLeaf(orig);
         }
 
         @Override
@@ -487,13 +515,13 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        @Override
-        public void visit(View.Visitor visitor) {
-            visitor.visitProfilingView(this);
-            if (orig instanceof View)
-                ((View) orig).visit(visitor);
-            else
-                visitor.visitIntLeaf(orig);
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
         }
 
         @Override
@@ -567,6 +595,15 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
+        }
+
         @Override
         public int getLogical(int i) {
             boolean internal = profile.enterGet();
@@ -636,6 +673,15 @@ public interface ProfilingView {
             super(orig);
             this.profile = profile;
             profile.onNewView(orig);
+        }
+
+        /** Calls the respective method in the visitor (type dispatched).
+         *
+         * Continues to call the visitor on the profiled original (view or data).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visitProfiling(this);
+            visitor.visit_(orig);
         }
 
         @Override

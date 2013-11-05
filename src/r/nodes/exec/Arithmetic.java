@@ -5451,20 +5451,26 @@ public class Arithmetic extends BaseR {
         }
 
 
-        protected void visitNodes(View.Visitor visitor) {
+        /** FUSION Dispatches the visitor to the operand nodes.
+         *
+         * Distinguishes between data leaves and views for which the visitor dispatch is used.
+         */
+        protected final void visitNodes(View.Visitor visitor) {
             if (a instanceof View)
                 ((View) a).visit(visitor);
             else
-                visitor.visitDoubleLeaf(a);
+                visitor.visitLeaf(a);
             if (b instanceof View)
                 ((View) b).visit(visitor);
             else
-                visitor.visitDoubleLeaf(b);
+                visitor.visitLeaf(b);
         }
 
+        /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+         */
         @Override
         public void visit(View.Visitor visitor) {
-            visitor.visitDoubleBinOpVV(this);
+            visitor.visit(this);
             visitNodes(visitor);
         }
 
@@ -5544,13 +5550,21 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class GenericASized extends DoubleViewForDoubleDouble implements RDouble {
+        public static final class GenericASized extends DoubleViewForDoubleDouble implements RDouble {
             final int nb;
 
             public GenericASized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 assert Utils.check(a.size() == n);
                 nb = b.size();
+            }
+
+            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+             */
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visit(this);
+                visitNodes(visitor);
             }
 
             @Override
@@ -5572,13 +5586,21 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class GenericBSized extends DoubleViewForDoubleDouble implements RDouble {
+        public static final class GenericBSized extends DoubleViewForDoubleDouble implements RDouble {
             final int na;
 
             public GenericBSized(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 na = a.size();
                 assert Utils.check(b.size() == n);
+            }
+
+            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+             */
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visit(this);
+                visitNodes(visitor);
             }
 
             @Override
@@ -5600,18 +5622,19 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class EqualSizeVectorVector extends DoubleViewForDoubleDouble implements RDouble {
+        public static final class EqualSizeVectorVector extends DoubleViewForDoubleDouble implements RDouble {
 
             public EqualSizeVectorVector(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
+            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+             */
             @Override
             public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpEVV(this);
+                visitor.visit(this);
                 visitNodes(visitor);
             }
-
 
             @Override
             public double getDouble(int i) {
@@ -5669,7 +5692,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorScalar extends DoubleViewForDoubleDouble implements RDouble {
+        public static final class VectorScalar extends DoubleViewForDoubleDouble implements RDouble {
 
             final boolean arithIsNA;
             final double bdbl;
@@ -5680,9 +5703,11 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
+            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+             */
             @Override
             public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpVS(this);
+                visitor.visit(this);
                 visitNodes(visitor);
             }
 
@@ -5724,7 +5749,7 @@ public class Arithmetic extends BaseR {
         }
 
         // FIXME: this should be specialized much more in the call stack (building names, dimensions, attributes, calling ref, depends on, ...)
-        static final class ScalarVector extends DoubleViewForDoubleDouble implements RDouble {
+        public static final class ScalarVector extends DoubleViewForDoubleDouble implements RDouble {
 
             final boolean arithIsNA;
             final double adbl;
@@ -5735,9 +5760,11 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
             }
 
+            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+             */
             @Override
             public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpSV(this);
+                visitor.visit(this);
                 visitNodes(visitor);
             }
 
@@ -5914,11 +5941,18 @@ public class Arithmetic extends BaseR {
             if (a instanceof View)
                 ((View) a).visit(visitor);
             else
-                visitor.visitDoubleLeaf(a);
+                visitor.visitLeaf(a);
             if (b instanceof View)
                 ((View) b).visit(visitor);
             else
-                visitor.visitDoubleLeaf(a);
+                visitor.visitLeaf(b);
+        }
+
+        /** FUSION Visits the type-dispatched view and its children.
+         */
+        @Override public void visit(Visitor visitor) {
+            visitor.visit(this);
+            visitNodes(visitor);
         }
 
 
@@ -5944,7 +5978,7 @@ public class Arithmetic extends BaseR {
             b.accept(v);
         }
 
-        static final class VectorSequence extends DoubleViewForDoubleInt implements RDouble {
+/*        static final class VectorSequence extends DoubleViewForDoubleInt implements RDouble {
             final int na;
             final int nb;
             final int bfrom;
@@ -5985,7 +6019,7 @@ public class Arithmetic extends BaseR {
             public void accept(ValueVisitor v) {
                 v.visit(this);
             }
-        }
+        } */
 
         static final class VectorSequenceASized extends DoubleViewForDoubleInt implements RDouble {
             final int nb;
@@ -6133,18 +6167,18 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class EqualSizeVectorVector extends DoubleViewForDoubleInt implements RDouble {
+        public static final class EqualSizeVectorVector extends DoubleViewForDoubleInt implements RDouble {
 
             public EqualSizeVectorVector(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            @Override
-            public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpEVV(this);
+            /** FUSION Visits the type-dispatched view and its children.
+             */
+            @Override public void visit(Visitor visitor) {
+                visitor.visit(this);
                 visitNodes(visitor);
             }
-
 
             @Override
             public double getDouble(int i) {
@@ -6324,26 +6358,25 @@ public class Arithmetic extends BaseR {
             this.b = b;
         }
 
+        /** FUSION Dispatches the visitor to the children of the view.
+         */
         protected void visitNodes(View.Visitor visitor) {
             if (a instanceof View)
                 ((View) a).visit(visitor);
             else
-                visitor.visitIntLeaf(a);
+                visitor.visitLeaf(a);
             if (b instanceof View)
                 ((View) b).visit(visitor);
             else
-                visitor.visitDoubleLeaf(b);
+                visitor.visitLeaf(b);
         }
 
-     /** FUSION -- I am only using the EVV and VS modes here to make it simpler not having to deal with the ranges
-      * and sequences.
-      */
-/*        @Override
-        public void visit(View.Visitor visitor) {
-            visitor.visitDoubleBinOpVV(this);
+        /** FUSION Visits the type-dispatched view and its children.
+         */
+        @Override public void visit(Visitor visitor) {
+            visitor.visit(this);
             visitNodes(visitor);
-        } */
-
+        }
 
         @Override
         public final boolean isSharedReal() {
@@ -6367,7 +6400,7 @@ public class Arithmetic extends BaseR {
             b.accept(v);
         }
 
-        static final class SequenceVector extends DoubleViewForIntDouble implements RDouble {
+/*        static final class SequenceVector extends DoubleViewForIntDouble implements RDouble {
             final int na;
             final int nb;
             final int afrom;
@@ -6410,7 +6443,7 @@ public class Arithmetic extends BaseR {
             public void accept(ValueVisitor v) {
                 v.visit(this);
             }
-        }
+        } */
 
         static final class SequenceVectorASized extends DoubleViewForIntDouble implements RDouble {
             final int nb;
@@ -6538,16 +6571,16 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class EqualSizeVectorVector extends DoubleViewForIntDouble implements RDouble {
+        public static final class EqualSizeVectorVector extends DoubleViewForIntDouble implements RDouble {
 
             public EqualSizeVectorVector(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-
-            @Override
-            public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpEVV(this);
+            /** FUSION Visits the type-dispatched view and its children.
+             */
+            @Override public void visit(Visitor visitor) {
+                visitor.visit(this);
                 visitNodes(visitor);
             }
 
@@ -6622,7 +6655,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
+        public static final class VectorScalar extends DoubleViewForIntDouble implements RDouble {
 
             final boolean arithIsNA;
             final double bdbl;
@@ -6633,9 +6666,10 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
-            @Override
-            public void visit(View.Visitor visitor) {
-                visitor.visitDoubleBinOpVS(this);
+            /** FUSION Visits the type-dispatched view and its children.
+             */
+            @Override public void visit(Visitor visitor) {
+                visitor.visit(this);
                 visitNodes(visitor);
             }
 
@@ -6859,16 +6893,26 @@ public class Arithmetic extends BaseR {
             this.b = b;
         }
 
+        /** FUSION Visits the children of the view.
+         */
         protected void visitNodes(View.Visitor visitor) {
             if (a instanceof View)
                 ((View) a).visit(visitor);
             else
-                visitor.visitIntLeaf(a);
+                visitor.visitLeaf(a);
             if (b instanceof View)
                 ((View) b).visit(visitor);
             else
-                visitor.visitIntLeaf(a);
+                visitor.visitLeaf(b);
         }
+
+        /** FUSION Visits the type-dispatched view and its children.
+         */
+        @Override public void visit(Visitor visitor) {
+            visitor.visit(this);
+            visitNodes(visitor);
+        }
+
 
         @Override
         public boolean isSharedReal() {
@@ -7000,7 +7044,7 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class VectorSequence extends IntViewForIntInt implements RInt {
+/*        static final class VectorSequence extends IntViewForIntInt implements RInt {
             final int na;
             final int nb;
             final int bfrom;
@@ -7046,7 +7090,7 @@ public class Arithmetic extends BaseR {
             public void accept(ValueVisitor v) {
                 v.visit(this);
             }
-        }
+        } */
 
         static final class VectorSequenceASized extends IntViewForIntInt implements RInt {
             final int nb;
@@ -7374,15 +7418,16 @@ public class Arithmetic extends BaseR {
             }
         }
 
-        static final class EqualSize extends IntViewForIntInt implements RInt {
+        public static final class EqualSize extends IntViewForIntInt implements RInt {
 
             public EqualSize(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            @Override
-            public void visit(View.Visitor visitor) {
-                visitor.visitIntBinOpEVV(this);
+            /** FUSION Visits the type-dispatched view and its children.
+             */
+            @Override public void visit(Visitor visitor) {
+                visitor.visit(this);
                 visitNodes(visitor);
             }
 
