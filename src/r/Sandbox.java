@@ -1,8 +1,6 @@
 package r;
 
-import org.antlr.runtime.ANTLRStringStream;
-import r.data.RAny;
-import r.nodes.ast.ASTNode;
+import r.fusion.*;
 
 /**
  * Created with IntelliJ IDEA. User: Peta Date: 11/4/13 Time: 4:12 PM To change this template use File | Settings | File
@@ -57,7 +55,7 @@ public class Sandbox {
 
     public static void fusion() {
         String signature = "B+VDE_VDB*VDE_VDB-VDA_VI_SI";
-        Fusion.FusionBuilder fb = new Fusion.FusionBuilder(signature);
+        FusionBuilder fb = new FusionBuilder(signature);
         System.out.println(fb);
         System.out.println(fb.buildMaterializeMethod());
 
