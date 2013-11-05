@@ -1713,6 +1713,7 @@ public class Arithmetic extends BaseR {
                     if (RDouble.RDoubleUtils.arithIsNA(a) || RDouble.RDoubleUtils.arithIsNA(b)) {
                         res[i] = RDouble.NA;
                     }
+                    // FIXME There is no read of the result if result is NA but none of the arguments are
                 } else {
                     res[i] = c;
                 }
@@ -5392,7 +5393,7 @@ public class Arithmetic extends BaseR {
         final Names names;
         final Attributes attributes;
 
-        final ValueArithmetic arit;
+        public final ValueArithmetic arit;
         final ASTNode ast;
 
         // limiting view depth
@@ -5439,7 +5440,7 @@ public class Arithmetic extends BaseR {
 
     // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
     // int and double combinations; unfortunately, that leads to slower execution
-    abstract static class DoubleViewForDoubleDouble extends DoubleView implements RDouble {
+    public abstract static class DoubleViewForDoubleDouble extends DoubleView implements RDouble {
         final RDouble a;
         final RDouble b;
 
@@ -5447,6 +5448,24 @@ public class Arithmetic extends BaseR {
             super(dimensions, names, attributes, n, depth, arit, ast);
             this.a = a;
             this.b = b;
+        }
+
+
+        protected void visitNodes(View.Visitor visitor) {
+            if (a instanceof View)
+                ((View) a).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(a);
+            if (b instanceof View)
+                ((View) b).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(b);
+        }
+
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visitDoubleBinOpVV(this);
+            visitNodes(visitor);
         }
 
         @Override
@@ -5588,6 +5607,13 @@ public class Arithmetic extends BaseR {
             }
 
             @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpEVV(this);
+                visitNodes(visitor);
+            }
+
+
+            @Override
             public double getDouble(int i) {
 
                 double adbl = a.getDouble(i);
@@ -5655,6 +5681,12 @@ public class Arithmetic extends BaseR {
             }
 
             @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpVS(this);
+                visitNodes(visitor);
+            }
+
+            @Override
             public double getDouble(int i) {
                 double adbl = a.getDouble(i);
                 if (arithIsNA || RDouble.RDoubleUtils.arithIsNA(adbl)) {
@@ -5701,6 +5733,12 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
                 adbl = a.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
+            }
+
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpSV(this);
+                visitNodes(visitor);
             }
 
             @Override
@@ -5860,7 +5898,7 @@ public class Arithmetic extends BaseR {
 
 
     // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
-    abstract static class DoubleViewForDoubleInt extends DoubleView implements RDouble {
+    public abstract static class DoubleViewForDoubleInt extends DoubleView implements RDouble {
         final RDouble a;
         final RInt b;
 
@@ -5869,6 +5907,20 @@ public class Arithmetic extends BaseR {
             this.a = a;
             this.b = b;
         }
+
+        /** FUSION Not dealing with the general case to make the matters simpler.
+         */
+        protected void visitNodes(View.Visitor visitor) {
+            if (a instanceof View)
+                ((View) a).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(a);
+            if (b instanceof View)
+                ((View) b).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(a);
+        }
+
 
         @Override
         public final boolean isSharedReal() {
@@ -6088,6 +6140,13 @@ public class Arithmetic extends BaseR {
             }
 
             @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpEVV(this);
+                visitNodes(visitor);
+            }
+
+
+            @Override
             public double getDouble(int i) {
 
                 double adbl = a.getDouble(i);
@@ -6255,7 +6314,7 @@ public class Arithmetic extends BaseR {
     }
 
  // note: the base class is a copy-paste of Arithmetic.DoubleView, but templates make it slower
-    abstract static class DoubleViewForIntDouble extends DoubleView implements RDouble {
+    public abstract static class DoubleViewForIntDouble extends DoubleView implements RDouble {
         final RInt a;
         final RDouble b;
 
@@ -6264,6 +6323,27 @@ public class Arithmetic extends BaseR {
             this.a = a;
             this.b = b;
         }
+
+        protected void visitNodes(View.Visitor visitor) {
+            if (a instanceof View)
+                ((View) a).visit(visitor);
+            else
+                visitor.visitIntLeaf(a);
+            if (b instanceof View)
+                ((View) b).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(b);
+        }
+
+     /** FUSION -- I am only using the EVV and VS modes here to make it simpler not having to deal with the ranges
+      * and sequences.
+      */
+/*        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visitDoubleBinOpVV(this);
+            visitNodes(visitor);
+        } */
+
 
         @Override
         public final boolean isSharedReal() {
@@ -6464,6 +6544,13 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
+
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpEVV(this);
+                visitNodes(visitor);
+            }
+
             @Override
             public double getDouble(int i) {
 
@@ -6545,6 +6632,13 @@ public class Arithmetic extends BaseR {
                 bdbl = b.getDouble(0);
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
+
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitDoubleBinOpVS(this);
+                visitNodes(visitor);
+            }
+
 
             @Override
             public double getDouble(int i) {
@@ -6708,7 +6802,7 @@ public class Arithmetic extends BaseR {
         final Names names;
         final Attributes attributes;
 
-        final ValueArithmetic arit;
+        public final ValueArithmetic arit;
         final ASTNode ast;
 
         boolean overflown;
@@ -6755,7 +6849,7 @@ public class Arithmetic extends BaseR {
         //   to tight loops
     }
 
-    abstract static class IntViewForIntInt extends IntView implements RInt {
+    public abstract static class IntViewForIntInt extends IntView implements RInt {
         final RInt a;
         final RInt b;
 
@@ -6763,6 +6857,17 @@ public class Arithmetic extends BaseR {
             super(dimensions, names, attributes, n, depth, arit, ast);
             this.a = a;
             this.b = b;
+        }
+
+        protected void visitNodes(View.Visitor visitor) {
+            if (a instanceof View)
+                ((View) a).visit(visitor);
+            else
+                visitor.visitIntLeaf(a);
+            if (b instanceof View)
+                ((View) b).visit(visitor);
+            else
+                visitor.visitIntLeaf(a);
         }
 
         @Override
@@ -7274,6 +7379,13 @@ public class Arithmetic extends BaseR {
             public EqualSize(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
+
+            @Override
+            public void visit(View.Visitor visitor) {
+                visitor.visitIntBinOpEVV(this);
+                visitNodes(visitor);
+            }
+
 
             @Override
             public int getInt(int i) {

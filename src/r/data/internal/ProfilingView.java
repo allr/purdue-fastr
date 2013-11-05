@@ -409,6 +409,15 @@ public interface ProfilingView {
         }
 
         @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visitProfilingView(this);
+            if (orig instanceof View)
+                ((View) orig).visit(visitor);
+            else
+                visitor.visitDoubleLeaf(orig);
+        }
+
+        @Override
         public RDouble materialize() {
             boolean internal = profile.enterMaterialize();
             try {
@@ -476,6 +485,15 @@ public interface ProfilingView {
             super(orig);
             this.profile = profile;
             profile.onNewView(orig);
+        }
+
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visitProfilingView(this);
+            if (orig instanceof View)
+                ((View) orig).visit(visitor);
+            else
+                visitor.visitIntLeaf(orig);
         }
 
         @Override

@@ -15,6 +15,156 @@ public abstract class View extends ArrayImpl implements RArray {
 
     private static final boolean DEBUG_DEFAULT_MATERIALIZATION = false;
 
+    public String signature() {
+        // TODO FIXME This should call the signature visitor to obtain the signature once the code is nice
+        return "";
+    }
+
+    public static class Visitor {
+
+        public void visit(View view) {
+
+        }
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleDouble view) { visit(view); }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleDouble view) { visitDoubleBinOpVV(view); }
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForIntDouble view) { visit(view); }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForIntDouble view) { visitDoubleBinOpVV(view); }
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleInt view) { visit(view); }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleInt view) { visitDoubleBinOpVV(view); }
+
+        public void visitIntBinOpVV(Arithmetic.IntViewForIntInt view) { visit(view); }
+        public void visitIntBinOpEVV(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
+        public void visitIntBinOpVS(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
+        public void visitIntBinOpSV(Arithmetic.IntViewForIntInt view) { visitIntBinOpVV(view); }
+
+
+
+
+
+        public void visitProfilingView(ProfilingView view) {  }
+
+        public void visitDoubleLeaf(RDouble leaf) { }
+
+        public void visitIntLeaf(RInt leaf) { }
+    }
+
+    public static class SignatureBuilder extends Visitor {
+        StringBuilder sb = new StringBuilder();
+        public void visit(View view) {
+            sb = null;
+            System.out.println("Unknown view class "+ view.getClass().getCanonicalName());
+        }
+
+        private void appendBinOp(String prefix, Arithmetic.ValueArithmetic arit) {
+            if (sb == null)
+                return;
+            sb.append(prefix);
+            if (arit == Arithmetic.ADD)
+                sb.append("+");
+            else if (arit == Arithmetic.SUB)
+                sb.append("-");
+            else if (arit == Arithmetic.MULT)
+                sb.append("*");
+            else if (arit == Arithmetic.DIV)
+                sb.append("/");
+            else
+                sb = null;
+        }
+
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleDouble view) {
+            appendBinOp("VV", view.arit);
+        }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleDouble view) {
+            appendBinOp("EVV", view.arit);
+        }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleDouble view) {
+            appendBinOp("VS", view.arit);
+        }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleDouble view) {
+            appendBinOp("SV", view.arit);
+        }
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForDoubleInt view) {
+            appendBinOp("VV", view.arit);
+        }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForDoubleInt view) {
+            appendBinOp("EVV", view.arit);
+        }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForDoubleInt view) {
+            appendBinOp("VS", view.arit);
+        }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForDoubleInt view) {
+            appendBinOp("SV", view.arit);
+        }
+
+        public void visitDoubleBinOpVV(Arithmetic.DoubleViewForIntDouble view) {
+            appendBinOp("VV", view.arit);
+        }
+        public void visitDoubleBinOpEVV(Arithmetic.DoubleViewForIntDouble view) {
+            appendBinOp("EVV", view.arit);
+        }
+        public void visitDoubleBinOpVS(Arithmetic.DoubleViewForIntDouble view) {
+            appendBinOp("VS", view.arit);
+        }
+        public void visitDoubleBinOpSV(Arithmetic.DoubleViewForIntDouble view) {
+            appendBinOp("SV", view.arit);
+        }
+
+        public void visitIntBinOpVV(Arithmetic.IntViewForIntInt view) {
+            appendBinOp("VV", view.arit);
+        }
+        public void visitIntBinOpEVV(Arithmetic.IntViewForIntInt view) {
+            appendBinOp("EVV", view.arit);
+        }
+        public void visitIntBinOpVS(Arithmetic.IntViewForIntInt view) {
+            appendBinOp("VS", view.arit);
+        }
+        public void visitIntBinOpSV(Arithmetic.IntViewForIntInt view) {
+            appendBinOp("SV", view.arit);
+        }
+
+
+
+
+
+        public void visitDoubleLeaf(RDouble leaf) {
+            if (sb != null)
+                sb.append("D");
+        }
+
+        public void visitIntLeaf(RInt leaf) {
+            if (sb != null)
+                sb.append("I");
+        }
+
+        public String signature() {
+            return sb == null ? "" : sb.toString();
+        }
+
+        public static String signature(View view) {
+            SignatureBuilder sb = new SignatureBuilder();
+            view.visit(sb);
+            return sb.signature();
+        }
+    }
+
+
+
+
+    public void visit(Visitor visitor) {
+        visitor.visit(this);
+    }
+
     @Override
     public RArray set(int i, Object val) {
         return materialize().set(i, val);
@@ -769,11 +919,106 @@ public abstract class View extends ArrayImpl implements RArray {
             return asString();
         }
 
+        // signature EVV+EVV+DEVV*DDEVV*DD =    d + (d * d) + ( d * d)
+        public static class FusionOp {
+
+            public class Filler extends View.Visitor {
+                int idx = 0;
+
+                @Override
+                public void visitDoubleLeaf(RDouble leaf) {
+                    switch (idx) {
+                        case 0:
+                            op1 = leaf.getContent();
+                            break;
+                        case 1:
+                            op2 = leaf.getContent();
+                            break;
+                        case 2:
+                            op3 = leaf.getContent();
+                            break;
+                        case 3:
+                            op4 = leaf.getContent();
+                            break;
+                        case 4:
+                            op5 = leaf.getContent();
+                            break;
+                        default:
+                            assert(false);
+                    }
+                    ++idx;
+                }
+
+            }
+
+            public double[] op1;
+            public double[] op2;
+            public double[] op3;
+            public double[] op4;
+            public double[] op5;
+
+            public final Filler f = new Filler();
+
+            public void reinitialize(View view) {
+                f.idx = 0;
+                view.visit(f);
+            }
+
+            public void free() {
+                op1 = null;
+                op2 = null;
+                op3 = null;
+                op4 = null;
+                op5 = null;
+            }
+
+            public RDouble compute() {
+                double[] result = new double[op1.length];
+                for (int i = op1.length - 1; i >=0 ; --i) {
+                    double a = op1[i];
+                    double b = op2[i];
+                    double c = op3[i];
+                    double d = b; //op4[i];
+                    double e = c; //op5[i];
+
+                    double d1 = b * c;
+                    //double d2 = d * e;
+                    double d3 = d1 + d1;
+                    double dd = a + d3;
+
+//                    double d = op1[i] + op2[i] * op3[i] + op4[i] * op5[i];
+                    // now the NA check
+                    if (RDoubleUtils.arithIsNA(dd) && (
+                            RDoubleUtils.arithIsNA(a) ||
+                            RDoubleUtils.arithIsNA(b) ||
+                            RDoubleUtils.arithIsNA(c) ||
+                            RDoubleUtils.arithIsNA(d) ||
+                            RDoubleUtils.arithIsNA(e)
+                            ))
+                        result[i] = RDouble.NA;
+                    else
+                        result[i] = dd;
+                }
+                free();
+                // TODO this should deal with attributes too
+                return RDoubleFactory.getFor(result);
+            }
+        }
+
+
+        static FusionOp FOP = new FusionOp();
+
+
         /** FUSION -- materialization point for RDouble returning views.
          */
         @Override
         public RDouble materialize() {
-            System.out.println("#VD#");
+            String signature = SignatureBuilder.signature(this);
+            if (signature.equals("EVV+EVV+DEVV*DDEVV*DD")) {
+                FOP.reinitialize(this);
+                return FOP.compute();
+            }
+            //System.out.println("#VD#" + SignatureBuilder.signature(this));
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
                 double[] content = new double[n];
