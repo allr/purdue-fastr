@@ -97,6 +97,8 @@ public class MaterializeCodeBuilder {
 
     // TODO complete the operations for the different types and operators
 
+
+
     public final void add(Node.Binary node, String result, String left, String right) {
         if ((node.left.type == Node.DOUBLE || node.left.type == Node.INT) && (node.right.type == Node.DOUBLE || node.right.type == Node.INT)) {
             sb.append(result + " = " + left + " + " + right + ";\n");
@@ -230,20 +232,6 @@ public class MaterializeCodeBuilder {
         sb.append("    }\n");
     }
 
-    // TODO NA checks are different -- see the notes
-    private String buildNACheck(char type, String src) {
-        switch (type) {
-            case Node.DOUBLE:
-                return "r.data.RDouble.RDoubleUtils.arithIsNA(" + src + ")";
-            case Node.INT:
-                return "(" + src + " == r.data.RInt.NA)";
-            case Node.LOGICAL:
-                return "(" + src + " == r.data.RLogical.NA)";
-            default:
-                throw new InvalidSignatureError("Type " + type + " is not supported yet");
-        }
-    }
-
     String rType(char type) {
         switch (type) {
             case Node.DOUBLE:
@@ -259,13 +247,13 @@ public class MaterializeCodeBuilder {
 
     private void buildNACheck() {
         assert (fb.vectorInputs.size() > 0);
-        Node.Input input = fb.vectorInputs.get(0);
-        sb.append("        if ("+buildNACheck(fb.ast.type, "t0")+" && (\n               "+buildNACheck(input.type, "in" + input.index));
-        for (int i = 1; i < fb.vectorInputs.size(); ++i) {
-            input = fb.vectorInputs.get(i);
-            sb.append("\n            || "+buildNACheck(input.type, "in"+input.index));
+        sb.append("        boolean isNA = false;\n");
+        for (Node.Input i : fb.inputs) {
+            if (i.type != Node.INT)
+                continue;
+            sb.append("        isNA = isNA || (" + (i.size == Node.VECTOR ? "in" : "input") + i.index + " == r.data.RInt.NA);\n");
         }
-        sb.append("))\n");
+        sb.append("        if (isNA)\n");
         sb.append("            t0 = " + rType(fb.ast.type) + ".NA;\n");
     }
 

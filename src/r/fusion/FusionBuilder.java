@@ -149,6 +149,7 @@ public class FusionBuilder {
 
     private void addMaterializeMethod(CtClass fop) throws CannotCompileException {
         String src = MaterializeCodeBuilder.emit(this);
+        System.out.println(src);
         fop.addMethod(CtNewMethod.make(src, fop));
     }
 

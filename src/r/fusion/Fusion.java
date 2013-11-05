@@ -11,7 +11,7 @@ public class Fusion {
 
     public static final boolean DEBUG = false;
 
-    public static final boolean ENABLED = false;
+    public static final boolean ENABLED = true;
 
     /** Prototype class for all fusion operators.
      *
