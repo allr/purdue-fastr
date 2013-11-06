@@ -141,16 +141,18 @@ public abstract class View extends ArrayImpl implements RArray {
         return null;
     }
 
+    /** FUSION Returns the AST associated with the view.
+     *
+     * Returns null if no ast is present in the view. Supported for double, int and complex views.
+     */
+    public ASTNode ast() {
+        return null;
+    }
+
     private static final boolean TIGHT_LOOP_MATERIALIZATION = true;
     public static final boolean ON_ASSIGNMENT_LISTENERS = true;
 
     private static final boolean DEBUG_DEFAULT_MATERIALIZATION = false;
-
-    /** FUSION returns the signature of the view, or null if the view is not supported.
-     */
-    public String signature() {
-        return SignatureBuilder.build(this);
-    }
 
     @Override
     public RArray set(int i, Object val) {

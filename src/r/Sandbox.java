@@ -165,10 +165,10 @@ public class Sandbox {
     public static void main(String[] args) {
 
         System.out.println("Executing sandbox...");
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream("{ c(2,3) + c(1L,NA) }"));
         if (tree != null) {
             RAny result = RContext.eval(tree);
-            //System.out.println(result.pretty());
+            System.out.println(result.pretty());
         }
 
     }

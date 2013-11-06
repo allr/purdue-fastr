@@ -1966,6 +1966,12 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
+            return sub(a, b);
+        }
+
+        /** FUSION Sub for integers.
+         */
+        public static int sub(int a, int b) {
             // LICENSE: transcribed code from GNU R, which is licensed under GPL
             int r = a - b;
             if ((a < 0 == b < 0) || (a < 0 == r < 0)) {
@@ -1974,6 +1980,7 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
+
         @Override
         public void emitOverflowWarning(ASTNode ast) {
             RContext.warning(ast, RError.INTEGER_OVERFLOW);
@@ -2344,6 +2351,12 @@ public class Arithmetic extends BaseR {
         }
         @Override
         public int op(ASTNode ast, int a, int b) {
+            return mult(a, b);
+        }
+
+        /** FUSION integer multiplication.
+         */
+        public static int mult(int a, int b) {
             long l = (long) a * (long) b;
             if (!(l < Integer.MIN_VALUE || l > Integer.MAX_VALUE)) {
                 return (int) l;
@@ -4054,6 +4067,25 @@ public class Arithmetic extends BaseR {
                 return RInt.NA;
             }
         }
+
+        /** FUSION Mod operator for the fused code.
+         *
+         * TODO this does not work well atm because I do not have mechanism to keep asts in the fused operator and the
+         * fmod method may throw a warning.
+         */
+        public static int mod(int a, int b) {
+            // LICENSE: transcribed code from GNU R, which is licensed under GPL
+            if (b != 0) {
+                if (a >= 0 && b > 0) {
+                    return a % b;
+                } else {
+                    assert (false);
+                    //return (int) fmod(ast, a, b);
+                }
+            }
+            return RInt.NA;
+        }
+
         @Override
         public void emitOverflowWarning(ASTNode ast) {
             // no warning
@@ -4805,6 +4837,13 @@ public class Arithmetic extends BaseR {
             this.depth = depth;
         }
 
+        /** FUSION Returns the ast for the view.
+         */
+        @Override
+        public final ASTNode ast() {
+            return ast;
+        }
+
         @Override
         public int size() {
             return n;
@@ -5407,6 +5446,13 @@ public class Arithmetic extends BaseR {
             this.depth = depth;
             this.arit = arit;
             this.ast = ast;
+        }
+
+        /** FUSION Returns the ast for the view.
+         */
+        @Override
+        public final ASTNode ast() {
+            return ast;
         }
 
         @Override
@@ -6804,6 +6850,13 @@ public class Arithmetic extends BaseR {
             this.ast = ast;
         }
 
+        /** FUSION Returns the ast for the view.
+         */
+        @Override
+        public final ASTNode ast() {
+            return ast;
+        }
+
         @Override
         public final int size() {
             return n;
@@ -7729,6 +7782,39 @@ public class Arithmetic extends BaseR {
 
     }
 
+    /** FUSION Calculates the dimensions of result.
+     *
+     * The normal method cannot be used as it relies on the presence of the values which are not available for the fused
+     * versions.
+     *
+     * TODO I am keeping the old version too as it might be a bit faster since it does not have to call all the getters
+     * for sizes, etc. but it might actually be just ok to join the two methods as they essentially do the same.
+     */
+    public static int[] resultDimensions(ASTNode ast, int[] dima, int asize, int[] dimb, int bsize) {
+        if (dima == null) {
+            if ((dimb != null) && (asize > bsize))
+                throw RError.getDimsDontMatchLength(ast, bsize, asize);
+            return dimb;
+        }
+        if (dimb == null) {
+            if ((dima != null) && (bsize > asize))
+                throw RError.getDimsDontMatchLength(ast, asize, bsize);
+            return dima;
+        }
+
+        int alen = dima.length;
+        int blen = dimb.length;
+        if (alen == 2 && blen == 2 && dima[0] == dimb[0] && dima[1] == dimb[1])
+            return dima;
+        if (alen == blen) {
+            for (int i = 0; i < alen; i++)
+                if (dima[i] != dimb[i])
+                    throw RError.getNonConformableArrays(ast);
+            return dima;
+        }
+        throw RError.getNonConformableArrays(ast);
+    }
+
     public static int[] resultDimensions(ASTNode ast, RArray a, RArray b) {
         int[] dima = a.dimensions();
         int[] dimb = b.dimensions();
@@ -7770,6 +7856,25 @@ public class Arithmetic extends BaseR {
         throw RError.getNonConformableArrays(ast);
     }
 
+    /** FUSION Calculates the names of the result.
+     *
+     * The normal method cannot be used as it relies on the presence of the values which are not available for the fused
+     * versions.
+     *
+     * TODO I am keeping the old version too as it might be a bit faster since it does not have to call all the getters
+     * for sizes, etc. but it might actually be just ok to join the two methods as they essentially do the same.
+     */
+    public static Names resultNames(ASTNode ast, Names na, int asize, Names nb, int bsize) {
+        if (nb == null)
+            return na;
+        if (na == null)
+            return nb;
+        if (bsize > asize)
+            return nb;
+        else
+            return na;
+    }
+
     public static Names resultNames(@SuppressWarnings("unused") ASTNode ast, RArray a, RArray b) {
         Names na = a.names();
         Names nb = b.names();
@@ -7787,6 +7892,38 @@ public class Arithmetic extends BaseR {
         } else {
             return na;
         }
+    }
+
+    /** FUSION Calculates the attributes of the result.
+     *
+     * The normal method cannot be used as it relies on the presence of the values which are not available for the fused
+     * versions.
+     *
+     * TODO I am keeping the old version too as it might be a bit faster since it does not have to call all the getters
+     * for sizes, etc. but it might actually be just ok to join the two methods as they essentially do the same.
+     */
+    // note: increments reference count on attributes
+    public static Attributes resultAttributes(ASTNode ast, Attributes aa, int asize, Attributes ba, int bsize) {
+        if (ba == null && aa == null)
+            return null;
+        if (asize > bsize)
+            return Attributes.markShared(aa);
+        if (bsize > asize)
+            return Attributes.markShared(ba);
+        // asize == bsize
+        if (ba == null)
+            return Attributes.markShared(aa);
+        if (aa == null)
+            return Attributes.markShared(ba);
+        // both aa != null and ba != null
+        Attributes res = ba.copy();
+        Map<RSymbol, RAny> amap = aa.map();
+        for (Map.Entry<RSymbol, RAny> ae : amap.entrySet()) {
+            RAny value = ae.getValue();
+            value.ref();
+            res.put(ae.getKey(), value);
+        }
+        return res;
     }
 
     // note: increments reference count on attributes

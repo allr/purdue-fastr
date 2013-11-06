@@ -3,6 +3,7 @@ package r.fusion;
 import javassist.*;
 import r.data.*;
 import r.data.internal.View;
+import r.nodes.ast.ASTNode;
 import r.nodes.exec.Arithmetic;
 
 import java.util.*;
@@ -17,9 +18,7 @@ public class FusedOperator extends View.Visitor {
     private static final FusedOperator instance = new FusedOperator();
 
     public static FusedOperator.Prototype build(View view, int hash) {
-        // TODO add try-catch for unsupported
-        instance.build_(view, hash);
-        return null;
+        return instance.build_(view, hash);
     }
 
     // FusedOperator.Prototype -----------------------------------------------------------------------------------------
@@ -43,6 +42,21 @@ public class FusedOperator extends View.Visitor {
          * can be identified.
          */
         protected int nodeClassesIndex = 0;
+
+        /** Input index used when binding the view inputs on the fields of the fused operator.
+         */
+        protected int inputIdx = 0;
+
+
+        protected int resultSize;
+
+        protected int[] resultDimensions;
+
+        protected RArray.Names resultNames;
+
+        protected RArray.Attributes resultAttributes;
+
+
 
         /** Checks next class in the array of inner node classes.
          *
@@ -76,6 +90,13 @@ public class FusedOperator extends View.Visitor {
             throw new NotSupported();
         }
 
+        protected final void propagateAttributes(ASTNode ast, int leftSize, int[] leftDimensions, RArray.Names leftNames, RAny.Attributes leftAttributes) {
+            resultDimensions = Arithmetic.resultDimensions(ast, leftDimensions, leftSize, resultDimensions, resultSize);
+            resultNames = Arithmetic.resultNames(ast, leftNames, leftSize, resultNames, resultSize);
+            resultAttributes = Arithmetic.resultAttributes(ast, leftAttributes, leftSize, resultAttributes, resultSize);
+            resultSize = Arithmetic.resultSize(ast, leftSize, resultSize);
+        }
+
         /** The visitor methods for understood operators.
          *
          * Each of such classes perform first the class checks to make sure the view signature is the same and then
@@ -88,7 +109,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -96,7 +122,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -104,7 +135,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -112,7 +148,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -120,7 +161,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -128,7 +174,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitDouble_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitInt_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -136,7 +187,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitInt_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -144,7 +200,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitInt_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitDouble_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         @Override
@@ -152,7 +213,12 @@ public class FusedOperator extends View.Visitor {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
             visitInt_(view.a);
+            int leftSize = resultSize;
+            int[] leftDimensions = resultDimensions;
+            RArray.Names leftNames = resultNames;
+            RAny.Attributes leftAttributes = resultAttributes;
             visitInt_(view.b);
+            propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
         /** Binds the fused operator to given view.
@@ -164,16 +230,25 @@ public class FusedOperator extends View.Visitor {
          * TODO calculate dimensions attributes and names
          */
         public void bind(View view) {
-            nodeClassesIndex = 0;
             view.visit(this);
+            if (nodeClassesIndex != nodeClasses.length)
+                throw new NotSupported();
         }
 
         /** Frees the fused operator from the previously bound inputs.
          *
          * This method should be overriden to set all inputs of the fused operator to null so that they can be garbage
          * collected if no-one holds their references.
+         *
+         * Overriden methods should always call the super method too.
          */
         public void free() {
+            nodeClassesIndex = 0;
+            inputIdx = 0;
+            resultSize = 0;
+            resultAttributes = null;
+            resultDimensions = null;
+            resultNames = null;
         }
 
         /** Binds the fusion operator to the given view, computes and returns the result and calls the free() method to
@@ -201,6 +276,9 @@ public class FusedOperator extends View.Visitor {
     /** String builder used to emit the code of the actual computation.
      */
     StringBuilder code = new StringBuilder();
+    /* Next free temporary variable for the computation.
+     */
+    int freeTemp = 0;
 
     Vector<Class> nodeClasses = new Vector<>();
 
@@ -236,11 +314,40 @@ public class FusedOperator extends View.Visitor {
 
     ResultSizePropagator rsp = new ResultSizePropagator();
 
+    /** Index of the input whose size the result has.
+     *
+     * This variable propagates through the tree linearly and must be captured by the branch points. At the end of the
+     * execution it will hold the index of the input that determines the size of the materialized result.
+     */
     int resultSize = 0;
+    /** Variable in which the result is stored.
+     *
+     * This vaariable propagates through the tree linearly and must be captured by the branch points. At the end of the
+     * execution it will hold the variable in which the result will be stored.
+     */
+    String resultVar;
+    /** Type of the result.
+     *
+     * Determined by the view nodes and updates as the tree is visited. At the end, the type of the result will be
+     * stored in the variable.
+     */
+    int resultType = 0;
+
+
+
 
     final ClassPool pool = ClassPool.getDefault();
 
     final CtClass prototype;
+
+    final CtClass[] ctConstructorArgs;
+
+    final Class[] constructorArgs;
+
+    final CtClass[] ctConstructorExceptions = new CtClass[0];
+
+    final Object[][] constructorArgsValues = new Object[1][];
+
 
     CtClass fop;
 
@@ -250,8 +357,10 @@ public class FusedOperator extends View.Visitor {
 
     private FusedOperator() {
         CtClass p = null;
+        CtClass cc = null;
         try {
             p = pool.get("r.fusion.FusedOperator$Prototype");
+            cc = pool.get("java.lang.Class[]");
         } catch (NotFoundException e) {
             if (Fusion.DEBUG)
                 e.printStackTrace();
@@ -259,6 +368,9 @@ public class FusedOperator extends View.Visitor {
             System.exit(-1);
         }
         prototype = p;
+        ctConstructorArgs = new CtClass[] { cc };
+        constructorArgs = new Class[1];
+        constructorArgs[0] = constructorArgs.getClass();
     }
 
 
@@ -282,6 +394,8 @@ public class FusedOperator extends View.Visitor {
             sb.append("\n");
         }
         sb.append("Result size: input "+resultSize+"\n");
+        sb.append("Computation code:\n");
+        sb.append(code.toString());
 
         return sb.toString();
     }
@@ -300,8 +414,17 @@ public class FusedOperator extends View.Visitor {
             fop.setSuperclass(prototype);
             // add the fields for the inputs
             addFields();
-
-            System.out.println(this);
+            // add the methods
+            addInputBindingMethods();
+            addFreeMethod();
+            addConstructor();
+            addMaterializeMethod();
+            // create the class and instantiate it
+            Class fopClass = fop.toClass();
+            constructorArgsValues[0] = new Class[nodeClasses.size()];
+            constructorArgsValues[0] = nodeClasses.toArray(constructorArgsValues[0]);
+            Prototype result = (Prototype) fopClass.getConstructor(constructorArgs).newInstance(constructorArgsValues);
+            return result;
         } catch (CannotCompileException e) {
             if (Fusion.DEBUG)
                 e.printStackTrace();
@@ -310,7 +433,6 @@ public class FusedOperator extends View.Visitor {
                 e.printStackTrace();
                 System.err.println("Unexpected error reported while building ");
             }
-
         } finally {
             // cleanup at the end to allow GC
             code.delete(0, code.length());
@@ -323,6 +445,8 @@ public class FusedOperator extends View.Visitor {
         return NO_FUSION;
     }
 
+
+
     private void addFields() throws NotFoundException, CannotCompileException {
         for (Input i: inputs) {
             if (i.type == Fusion.DOUBLE) {
@@ -333,7 +457,142 @@ public class FusedOperator extends View.Visitor {
                 assert (false);
             }
         }
+    }
 
+    private void addInputBindingMethods() throws CannotCompileException {
+        StringBuilder sbd = new StringBuilder();
+        StringBuilder sbi = new StringBuilder();
+        sbd.append("public void visitLeaf(r.data.RDouble data) {\n");
+        sbd.append("    resultSize = data.size();\n");
+        sbd.append("    resultDimensions = data.dimensions();\n");
+        sbd.append("    resultNames = data.names();\n");
+        sbd.append("    resultAttributes = data.attributes();\n");
+        sbd.append("    switch (inputIdx++) {\n");
+        sbi.append("public void visitLeaf(r.data.RInt data) {\n");
+        sbi.append("    resultSize = data.size();\n");
+        sbi.append("    resultDimensions = data.dimensions();\n");
+        sbi.append("    resultNames = data.names();\n");
+        sbi.append("    resultAttributes = data.attributes();\n");
+        sbi.append("    switch (inputIdx++) {\n");
+        for (Input i : inputs) {
+            switch (i.type) {
+                case Fusion.DOUBLE:
+                    sbd.append("        case " + i.index + ":\n");
+                    sbd.append("            " + i.inputName() + " = data." + (i.isVector ? "getContent()" : "getDouble(0)") + ";\n");
+                    sbd.append("            break;\n");
+                    break;
+                case Fusion.INT:
+                    sbi.append("        case " + i.index + ":\n");
+                    sbi.append("            " + i.inputName() + " = data." + (i.isVector ? "getContent()" : "getInt(0)") + ";\n");
+                    sbd.append("            break;\n");
+                    break;
+                default:
+                    assert (false);
+            }
+        }
+        sbd.append("        default:\n");
+        sbd.append("            System.out.println(inputIdx - 1);");
+        sbd.append("            throw new r.fusion.NotSupported();\n");
+        sbd.append("    }\n");
+        sbd.append("}\n");
+        sbi.append("        default:\n");
+        sbi.append("            throw new r.fusion.NotSupported();\n");
+        sbi.append("    }\n");
+        sbi.append("}\n");
+//        System.out.println(sbd.toString());
+        fop.addMethod(CtNewMethod.make(sbd.toString(), fop));
+        fop.addMethod(CtNewMethod.make(sbi.toString(), fop));
+    }
+
+    private void addFreeMethod() throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("public void free() {\n");
+        sb.append("    super.free();\n");
+        for (Input i : inputs)
+            if (i.isVector)
+                sb.append("    " + i.inputName() + " = null;\n");
+        sb.append("}\n");
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+    }
+
+    private void addConstructor() throws CannotCompileException {
+        fop.addConstructor(CtNewConstructor.make(ctConstructorArgs, ctConstructorExceptions, "{ this.nodeClasses = $1; }", fop));
+    }
+
+    private void addMaterializeMethod() throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("public r.data.RArray materialize_() {\n");
+        // create the result array
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("    double[] result = new double[input" + resultSize + ".length];\n");
+                break;
+            case Fusion.INT:
+                sb.append("    int[] result = new int[input"+resultSize+".length];\n");
+                break;
+            default:
+                assert (false);
+        }
+        // create indices for different size vectors inputs
+        for (Input i : inputs)
+            if (i.isVector && !i.isSameSizeAsResult)
+                sb.append("    int i" + i.index + " = 0;\n");
+        // main loop header
+        sb.append("    for (int i = 0; i < result.length; ++i) {\n");
+        // loading the input elements
+        for (Input i : inputs)
+            if (i.isVector)
+                switch (i.type) {
+                    case Fusion.DOUBLE:
+                        sb.append("        double in" + i.index + " = input" + i.index + "[i" + (i.isSameSizeAsResult ? "" : i.index ) + "];\n");
+                        break;
+                    case Fusion.INT:
+                        sb.append("        int in" + i.index + " = input" + i.index + "[i" + (i.isSameSizeAsResult ? "" : i.index ) + "];\n");
+                        break;
+                    default:
+                        assert (false);
+                }
+        // initialize the boolean for NA checks
+        sb.append("        boolean isNA = false;\n");
+        // add the code of the computation
+        sb.append(code.toString());
+        // NA check
+        sb.append("        if (isNA)\n");
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("            " + resultVar + " = r.data.RDouble.NA;\n");
+                break;
+            case Fusion.INT:
+                sb.append("            " + resultVar + " = r.data.RInt.NA;\n");
+                break;
+            default:
+                assert (false);
+        }
+        // store the computed value
+        sb.append("        result[i] = " + resultVar + ";\n");
+        // increment the non-same size input indices
+        for (Input i : inputs)
+            if (i.isVector && !i.isSameSizeAsResult) {
+                sb.append("        if (++i" + i.index + " == input" + i.index + ".length)\n");
+                sb.append("            i" + i.index + " = 0;\n");
+            }
+        // end of the loop and create the result
+        sb.append("    }\n");
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("    return r.data.RDouble.RDoubleFactory.getFor(result, resultDimensions, resultNames, resultAttributes);\n");
+                break;
+            case Fusion.INT:
+                sb.append("    return r.data.RInt.RDoubleFactory.getFor(result, resultDimensions, resultNames, resultAttributes);\n");
+                break;
+            default:
+                assert (false);
+        }
+        // end of method
+        sb.append("}\n");
+        // create and add the method
+        System.out.println(sb.toString());
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
     }
 
 
@@ -343,6 +602,64 @@ public class FusedOperator extends View.Visitor {
      */
     private void checkClass(Class clazz) {
         nodeClasses.add(clazz);
+    }
+
+    /** Returns the next free temporary variable name.
+     */
+    private String freeTemp() {
+        String result = "t"+freeTemp;
+        ++freeTemp;
+        return result;
+    }
+
+    // code emit methods -----------------------------------------------------------------------------------------------
+
+    private void binaryDDtoD(String left, String right, Arithmetic.ValueArithmetic arit) {
+        resultVar = freeTemp();
+        resultType = Fusion.DOUBLE;
+        code.append("        double "+resultVar+";\n");
+        if (arit == Arithmetic.ADD)
+            code.append("        " + resultVar + " = " + left + " + " + right + ";\n");
+        else if (arit == Arithmetic.SUB)
+            code.append("        " + resultVar + " = " + left + " - " + right + ";\n");
+        else if (arit == Arithmetic.MULT)
+            code.append("        " + resultVar + " = " + left + " * " + right + ";\n");
+        else if (arit == Arithmetic.DIV)
+            code.append("        " + resultVar + " = " + left + " / " + right + ";\n");
+        else if (arit == Arithmetic.MOD)
+            code.append("        " + resultVar + " = " + left + " % " + right + ";\n");
+        else
+            throw new NotSupported();
+    }
+
+    private void binaryDItoD(String left, String right, Arithmetic.ValueArithmetic arit) {
+        code.append("        isNA |= (" + right + " == r.data.RInt.NA);\n");
+        binaryDDtoD(left, right, arit);
+    }
+
+    private void binaryIDtoD(String left, String right, Arithmetic.ValueArithmetic arit) {
+        resultVar = freeTemp();
+        resultType = Fusion.DOUBLE;
+        code.append("        isNA |= (" + left + " == r.data.RInt.NA);\n");
+        binaryDDtoD(left, right, arit);
+    }
+
+    private void binaryIItoI(String left, String right, Arithmetic.ValueArithmetic arit) {
+        resultVar = freeTemp();
+        resultType = Fusion.INT;
+        code.append("        isNA |= (" + left + " == r.data.RInt.NA);\n");
+        code.append("        isNA |= (" + right + " == r.data.RInt.NA);\n");
+        //  i/i -> i is meaningless
+        if (arit == Arithmetic.ADD)
+            code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Add.add(" + left + ", " + right + ");\n");
+        else if (arit == Arithmetic.SUB)
+            code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Sub.sub(" + left + ", " + right + ");\n");
+        else if (arit == Arithmetic.MULT)
+            code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mult.mult(" + left + ", " + right + ");\n");
+        else if (arit == Arithmetic.MOD)
+            code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mod.mod(" + left + ", " + right + ");\n");
+        else
+            throw new NotSupported();
     }
 
     // node visitor implementation -------------------------------------------------------------------------------------
@@ -368,6 +685,8 @@ public class FusedOperator extends View.Visitor {
         Input i = new Input(data, inputs.size(), Fusion.DOUBLE, data.size() != 1);
         inputs.add(i);
         inputIndices.put(data, i);
+        resultVar = i.inputElementName();
+        resultType = Fusion.DOUBLE;
     }
 
     @Override
@@ -376,6 +695,8 @@ public class FusedOperator extends View.Visitor {
         Input i = new Input(data, inputs.size(), Fusion.INT, data.size() != 1);
         inputs.add(i);
         inputIndices.put(data, i);
+        resultVar = i.inputElementName();
+        resultType = Fusion.INT;
     }
 
     @Override
@@ -390,7 +711,9 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
         int rs = resultSize; // backup result size because it will be overriden by b
+        String left = resultVar;
         visitDouble_(view.b);
+        binaryDDtoD(left, resultVar, view.arit);
         resultSize = rs;
     }
 
@@ -399,15 +722,20 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
+        String left = resultVar;
         visitDouble_(view.b); // result size will stay that of b
+        binaryDDtoD(left, resultVar, view.arit);
     }
 
     @Override
     public void visit(Arithmetic.DoubleViewForDoubleDouble.EqualSizeVectorVector view) {
+        String t = freeTemp();
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
+        String left = resultVar;
         visitDouble_(view.b); // both sizes are the same, we are happy with the second
+        binaryDDtoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -416,8 +744,10 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
         int rs = resultSize; // backup the result size of the vector
+        String left = resultVar;
         visitDouble_(view.b);
         resultSize = rs;
+        binaryDDtoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -425,7 +755,9 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
+        String left = resultVar;
         visitDouble_(view.b); // the result size of the vector will be returned
+        binaryDDtoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -433,7 +765,9 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitDouble_(view.a);
+        String left = resultVar;
         visitInt_(view.b); // equally sized operators, the second is ok
+        binaryDItoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -441,7 +775,9 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitInt_(view.a);
+        String left = resultVar;
         visitDouble_(view.b); // equally sized operators, the second is ok
+        binaryIDtoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -450,8 +786,10 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.arit.getClass());
         visitInt_(view.a);
         int rs = resultSize; // backup the result size from the vector operand
+        String left = resultVar;
         visitDouble_(view.b);
         resultSize = rs;
+        binaryIDtoD(left, resultVar, view.arit);
     }
 
     @Override
@@ -459,9 +797,10 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
         visitInt_(view.a);
+        String left = resultVar;
         visitInt_(view.b); // equal sizes, both are good
+        binaryIItoI(left, resultVar, view.arit);
     }
-
 
     // ResultSizePropagator --------------------------------------------------------------------------------------------
 
@@ -553,6 +892,7 @@ public class FusedOperator extends View.Visitor {
 
         @Override
         public void free() {
+            super.free();
             view = null;
         }
 
