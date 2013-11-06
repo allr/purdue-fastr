@@ -42,6 +42,38 @@ public abstract class View extends ArrayImpl implements RArray {
                 visitLeaf(element);
         }
 
+        /** Dispatch method for RDouble values.
+         *
+         * Either dispatches as view using the visit method, or as a double leaf.
+         */
+        public final void visitDouble_(RDouble element) {
+            if (element instanceof View)
+                ((View) element).visit(this);
+            else
+                visitLeaf(element);
+        }
+
+        /** Dispatch method for RInt values.
+         *
+         * Either dispatches as view using the visit method, or as a int leaf.
+         */
+        public final void visitInt_(RInt element) {
+            if (element instanceof View)
+                ((View) element).visit(this);
+            else
+                visitLeaf(element);
+        }
+        /** Dispatch method for RComplex values.
+         *
+         * Either dispatches as view using the visit method, or as a complex leaf.
+         */
+        public final void visitComplex_(RComplex element) {
+            if (element instanceof View)
+                ((View) element).visit(this);
+            else
+                visitLeaf(element);
+        }
+
         /** Base leaf handler.
          *
          * Leaves have separate hierarchies from views and profiling views. This is the base handler for all types of
@@ -85,7 +117,7 @@ public abstract class View extends ArrayImpl implements RArray {
          *
          * Default behavior for profiling view is to continue with the original structure.
          */
-        public void visitProfiling(ProfilingView view) { }
+        public void visitProfiling(ProfilingView view) { visit_(view.original()); }
 
         public void visitProfiling(ProfilingView.RDoubleProfilingView view) { visitProfiling( (ProfilingView) view); }
         public void visitProfiling(ProfilingView.RIntProfilingView view) { visitProfiling( (ProfilingView) view); }

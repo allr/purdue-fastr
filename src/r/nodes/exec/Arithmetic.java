@@ -5441,8 +5441,8 @@ public class Arithmetic extends BaseR {
     // NOTE: it is tempting to template this class by the type of a and type of b, re-using for
     // int and double combinations; unfortunately, that leads to slower execution
     public abstract static class DoubleViewForDoubleDouble extends DoubleView implements RDouble {
-        final RDouble a;
-        final RDouble b;
+        public final RDouble a;
+        public final RDouble b;
 
         public DoubleViewForDoubleDouble(RDouble a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             super(dimensions, names, attributes, n, depth, arit, ast);
@@ -5451,27 +5451,11 @@ public class Arithmetic extends BaseR {
         }
 
 
-        /** FUSION Dispatches the visitor to the operand nodes.
-         *
-         * Distinguishes between data leaves and views for which the visitor dispatch is used.
-         */
-        protected final void visitNodes(View.Visitor visitor) {
-            if (a instanceof View)
-                ((View) a).visit(visitor);
-            else
-                visitor.visitLeaf(a);
-            if (b instanceof View)
-                ((View) b).visit(visitor);
-            else
-                visitor.visitLeaf(b);
-        }
-
-        /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+        /** FUSION Calls the visitor on the current view (type-dispatch).
          */
         @Override
         public void visit(View.Visitor visitor) {
             visitor.visit(this);
-            visitNodes(visitor);
         }
 
         @Override
@@ -5559,12 +5543,11 @@ public class Arithmetic extends BaseR {
                 nb = b.size();
             }
 
-            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+            /** FUSION Calls the visitor on the current view (type-dispatch).
              */
             @Override
             public void visit(View.Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -5595,12 +5578,11 @@ public class Arithmetic extends BaseR {
                 assert Utils.check(b.size() == n);
             }
 
-            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+            /** FUSION Calls the visitor on the current view (type-dispatch).
              */
             @Override
             public void visit(View.Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -5628,12 +5610,11 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+            /** FUSION Calls the visitor on the current view (type-dispatch).
              */
             @Override
             public void visit(View.Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -5703,12 +5684,11 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
-            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+            /** FUSION Calls the visitor on the current view (type-dispatch).
              */
             @Override
             public void visit(View.Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -5760,12 +5740,11 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(adbl);
             }
 
-            /** FUSION Calls the visitor on the current view (type-dispatch) and on its children.
+            /** FUSION Calls the visitor on the current view (type-dispatch).
              */
             @Override
             public void visit(View.Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -5926,8 +5905,8 @@ public class Arithmetic extends BaseR {
 
     // note: the base class is a copy-paste of ArithmeticDoubleView, but templates make it slower
     public abstract static class DoubleViewForDoubleInt extends DoubleView implements RDouble {
-        final RDouble a;
-        final RInt b;
+        public final RDouble a;
+        public final RInt b;
 
         public DoubleViewForDoubleInt(RDouble a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             super(dimensions, names, attributes, n, depth, arit, ast);
@@ -5935,24 +5914,11 @@ public class Arithmetic extends BaseR {
             this.b = b;
         }
 
-        /** FUSION Not dealing with the general case to make the matters simpler.
-         */
-        protected void visitNodes(View.Visitor visitor) {
-            if (a instanceof View)
-                ((View) a).visit(visitor);
-            else
-                visitor.visitLeaf(a);
-            if (b instanceof View)
-                ((View) b).visit(visitor);
-            else
-                visitor.visitLeaf(b);
-        }
 
-        /** FUSION Visits the type-dispatched view and its children.
+        /** FUSION Visits the type-dispatched view.
          */
         @Override public void visit(Visitor visitor) {
             visitor.visit(this);
-            visitNodes(visitor);
         }
 
 
@@ -6173,11 +6139,10 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            /** FUSION Visits the type-dispatched view and its children.
+            /** FUSION Visits the type-dispatched view.
              */
             @Override public void visit(Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -6349,8 +6314,8 @@ public class Arithmetic extends BaseR {
 
  // note: the base class is a copy-paste of Arithmetic.DoubleView, but templates make it slower
     public abstract static class DoubleViewForIntDouble extends DoubleView implements RDouble {
-        final RInt a;
-        final RDouble b;
+        public final RInt a;
+        public final RDouble b;
 
         public DoubleViewForIntDouble(RInt a, RDouble b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             super(dimensions, names, attributes, n, depth, arit, ast);
@@ -6358,24 +6323,11 @@ public class Arithmetic extends BaseR {
             this.b = b;
         }
 
-        /** FUSION Dispatches the visitor to the children of the view.
-         */
-        protected void visitNodes(View.Visitor visitor) {
-            if (a instanceof View)
-                ((View) a).visit(visitor);
-            else
-                visitor.visitLeaf(a);
-            if (b instanceof View)
-                ((View) b).visit(visitor);
-            else
-                visitor.visitLeaf(b);
-        }
 
-        /** FUSION Visits the type-dispatched view and its children.
+        /** FUSION Visits the type-dispatched view.
          */
         @Override public void visit(Visitor visitor) {
             visitor.visit(this);
-            visitNodes(visitor);
         }
 
         @Override
@@ -6577,11 +6529,10 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            /** FUSION Visits the type-dispatched view and its children.
+            /** FUSION Visits the type-dispatched view.
              */
             @Override public void visit(Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
             @Override
@@ -6666,11 +6617,10 @@ public class Arithmetic extends BaseR {
                 arithIsNA = RDouble.RDoubleUtils.arithIsNA(bdbl);
             }
 
-            /** FUSION Visits the type-dispatched view and its children.
+            /** FUSION Visits the type-dispatched view.
              */
             @Override public void visit(Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
 
@@ -6884,8 +6834,8 @@ public class Arithmetic extends BaseR {
     }
 
     public abstract static class IntViewForIntInt extends IntView implements RInt {
-        final RInt a;
-        final RInt b;
+        public final RInt a;
+        public final RInt b;
 
         public IntViewForIntInt(RInt a, RInt b, int[] dimensions, Names names, Attributes attributes, int n, int depth, ValueArithmetic arit, ASTNode ast) {
             super(dimensions, names, attributes, n, depth, arit, ast);
@@ -6893,24 +6843,10 @@ public class Arithmetic extends BaseR {
             this.b = b;
         }
 
-        /** FUSION Visits the children of the view.
-         */
-        protected void visitNodes(View.Visitor visitor) {
-            if (a instanceof View)
-                ((View) a).visit(visitor);
-            else
-                visitor.visitLeaf(a);
-            if (b instanceof View)
-                ((View) b).visit(visitor);
-            else
-                visitor.visitLeaf(b);
-        }
-
-        /** FUSION Visits the type-dispatched view and its children.
+        /** FUSION Visits the type-dispatched view.
          */
         @Override public void visit(Visitor visitor) {
             visitor.visit(this);
-            visitNodes(visitor);
         }
 
 
@@ -7424,11 +7360,10 @@ public class Arithmetic extends BaseR {
                 super(a, b, dimensions, names, attributes, n, depth, arit, ast);
             }
 
-            /** FUSION Visits the type-dispatched view and its children.
+            /** FUSION Visits the type-dispatched view.
              */
             @Override public void visit(Visitor visitor) {
                 visitor.visit(this);
-                visitNodes(visitor);
             }
 
 

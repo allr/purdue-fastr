@@ -6,6 +6,10 @@ public interface ProfilingView {
 
     public static final boolean DEBUG_PROFILING = false;
 
+    /** FUSION Returns the original data or view that is being profiled by the profiling view.
+     */
+    public abstract RAny original();
+
     public static class ViewProfile {
             // static info
         int size;
@@ -165,13 +169,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         @Override
@@ -245,15 +252,17 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
         }
 
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
+        }
 
         @Override
         public String getString(int i) {
@@ -326,13 +335,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         // note that each of getReal, getImag and getComplex counts as one "get", and the size is the number of complex elements
@@ -426,13 +438,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         @Override
@@ -515,13 +530,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         @Override
@@ -595,13 +613,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         @Override
@@ -675,13 +696,16 @@ public interface ProfilingView {
             profile.onNewView(orig);
         }
 
-        /** Calls the respective method in the visitor (type dispatched).
-         *
-         * Continues to call the visitor on the profiled original (view or data).
+        /** FUSION Calls the respective method in the visitor (type dispatched).
          */
         @Override public void visit(View.Visitor visitor) {
             visitor.visitProfiling(this);
-            visitor.visit_(orig);
+        }
+
+        /** FUSION returns the original data or view being profiled.
+         */
+        @Override public RAny original() {
+            return orig;
         }
 
         @Override

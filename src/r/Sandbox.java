@@ -134,14 +134,14 @@ public class Sandbox {
 
     static String simpleCode = "f <- function() {\n" +
             "  time = proc.time()[[3]]\n" +
-            "  for (i in 1:10000) a = a + b * c + b * d - b * d\n" +
+            "  for (i in 1:10000) a = a - b * c + b * d - b * d\n" +
             "  proc.time()[[3]] - time\n" +
             "}\n" +
             "\n" +
-            "a = rep(1, 10000)\n" +
+            "a = rep(1, 1000)\n" +
             "b = rep(1, 10000)\n" +
             "c = rep(1, 10000)\n" +
-            "d = rep(1, 10000)\n" +
+            "d = 4; #rep(1, 1000)\n" +
             "f()\n" +
             "time = 0\n" +
             "for (i in 1:10) time = time + f()\n" +
@@ -160,18 +160,12 @@ public class Sandbox {
 
 
 
-    public static void fusion() {
-        String signature = "BaVDE_VDBmVDA_VDBsVDA_VI_SI";
-        Fusion.Prototype p = FusionBuilder.build(signature);
-
-    }
 
 
     public static void main(String[] args) {
-        //fusion();
 
         System.out.println("Executing sandbox...");
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(nbody2));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode));
         if (tree != null) {
             RAny result = RContext.eval(tree);
             //System.out.println(result.pretty());
