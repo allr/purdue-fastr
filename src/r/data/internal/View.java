@@ -27,17 +27,17 @@ public abstract class View extends ArrayImpl implements RArray {
             if (element instanceof View)
                 ((View) element).visit(this);
             else if (element instanceof RDouble)
-                visitLeaf( (RDouble) element);
+                visitDoubleLeaf( (RDouble) element);
             else if (element instanceof RInt)
-                visitLeaf( (RInt) element);
+                visitIntLeaf( (RInt) element);
             else if (element instanceof RComplex)
-                visitLeaf( (RComplex) element);
+                visitComplexLeaf( (RComplex) element);
             else if (element instanceof RLogical)
-                visitLeaf( (RLogical) element);
+                visitLogicalLeaf( (RLogical) element);
             else if (element instanceof RRaw)
-                visitLeaf( (RRaw) element);
+                visitRawLeaf( (RRaw) element);
             else if (element instanceof RString)
-                visitLeaf( (RString) element);
+                visitStringLeaf( (RString) element);
             else
                 visitLeaf(element);
         }
@@ -50,7 +50,7 @@ public abstract class View extends ArrayImpl implements RArray {
             if (element instanceof View)
                 ((View) element).visit(this);
             else
-                visitLeaf(element);
+                visitDoubleLeaf(element);
         }
 
         /** Dispatch method for RInt values.
@@ -61,7 +61,7 @@ public abstract class View extends ArrayImpl implements RArray {
             if (element instanceof View)
                 ((View) element).visit(this);
             else
-                visitLeaf(element);
+                visitIntLeaf(element);
         }
         /** Dispatch method for RComplex values.
          *
@@ -71,7 +71,7 @@ public abstract class View extends ArrayImpl implements RArray {
             if (element instanceof View)
                 ((View) element).visit(this);
             else
-                visitLeaf(element);
+                visitComplexLeaf(element);
         }
 
         /** Base leaf handler.
@@ -81,12 +81,12 @@ public abstract class View extends ArrayImpl implements RArray {
          */
         public void visitLeaf(RAny element) { }
 
-        public void visitLeaf(RDouble element) { visitLeaf((RAny) element); }
-        public void visitLeaf(RInt element) { visitLeaf((RAny) element); }
-        public void visitLeaf(RComplex element) { visitLeaf((RAny) element); }
-        public void visitLeaf(RLogical element) { visitLeaf((RAny) element); }
-        public void visitLeaf(RRaw element) { visitLeaf((RAny) element); }
-        public void visitLeaf(RString element) { visitLeaf((RAny) element); }
+        public void visitDoubleLeaf(RDouble element) { visitLeaf((RAny) element); }
+        public void visitIntLeaf(RInt element) { visitLeaf((RAny) element); }
+        public void visitComplexLeaf(RComplex element) { visitLeaf((RAny) element); }
+        public void visitLogicalLeaf(RLogical element) { visitLeaf((RAny) element); }
+        public void visitRawLeaf(RRaw element) { visitLeaf((RAny) element); }
+        public void visitStringLeaf(RString element) { visitLeaf((RAny) element); }
 
 
         /** Base view handler.

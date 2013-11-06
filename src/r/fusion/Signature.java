@@ -62,21 +62,21 @@ public class Signature extends View.Visitor {
 
 
     @Override
-    public void visitLeaf(RDouble element) {
+    public void visitDoubleLeaf(RDouble element) {
         sb.append("double");
         if (element.size() != 1)
             sb.append("[]");
     }
 
     @Override
-    public void visitLeaf(RInt element) {
+    public void visitIntLeaf(RInt element) {
         sb.append("int");
         if (element.size() != 1)
             sb.append("[]");
     }
 
     @Override
-    public void visitLeaf(RComplex element) {
+    public void visitComplexLeaf(RComplex element) {
         sb.append("complex");
         if (element.size() != 1)
             sb.append("[]");

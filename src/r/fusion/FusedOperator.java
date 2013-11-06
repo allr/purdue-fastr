@@ -462,13 +462,13 @@ public class FusedOperator extends View.Visitor {
     private void addInputBindingMethods() throws CannotCompileException {
         StringBuilder sbd = new StringBuilder();
         StringBuilder sbi = new StringBuilder();
-        sbd.append("public void visitLeaf(r.data.RDouble data) {\n");
+        sbd.append("public void visitDoubleLeaf(r.data.RDouble data) {\n");
         sbd.append("    resultSize = data.size();\n");
         sbd.append("    resultDimensions = data.dimensions();\n");
         sbd.append("    resultNames = data.names();\n");
         sbd.append("    resultAttributes = data.attributes();\n");
         sbd.append("    switch (inputIdx++) {\n");
-        sbi.append("public void visitLeaf(r.data.RInt data) {\n");
+        sbi.append("public void visitIntLeaf(r.data.RInt data) {\n");
         sbi.append("    resultSize = data.size();\n");
         sbi.append("    resultDimensions = data.dimensions();\n");
         sbi.append("    resultNames = data.names();\n");
@@ -484,14 +484,13 @@ public class FusedOperator extends View.Visitor {
                 case Fusion.INT:
                     sbi.append("        case " + i.index + ":\n");
                     sbi.append("            " + i.inputName() + " = data." + (i.isVector ? "getContent()" : "getInt(0)") + ";\n");
-                    sbd.append("            break;\n");
+                    sbi.append("            break;\n");
                     break;
                 default:
                     assert (false);
             }
         }
         sbd.append("        default:\n");
-        sbd.append("            System.out.println(inputIdx - 1);");
         sbd.append("            throw new r.fusion.NotSupported();\n");
         sbd.append("    }\n");
         sbd.append("}\n");
@@ -591,7 +590,7 @@ public class FusedOperator extends View.Visitor {
         // end of method
         sb.append("}\n");
         // create and add the method
-        System.out.println(sb.toString());
+        // System.out.println(sb.toString());
         fop.addMethod(CtNewMethod.make(sb.toString(), fop));
     }
 
@@ -649,6 +648,7 @@ public class FusedOperator extends View.Visitor {
         resultType = Fusion.INT;
         code.append("        isNA |= (" + left + " == r.data.RInt.NA);\n");
         code.append("        isNA |= (" + right + " == r.data.RInt.NA);\n");
+        code.append("        int "+resultVar+";\n");
         //  i/i -> i is meaningless
         if (arit == Arithmetic.ADD)
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Add.add(" + left + ", " + right + ");\n");
@@ -680,7 +680,7 @@ public class FusedOperator extends View.Visitor {
 
 
     @Override
-    public void visitLeaf(RDouble data) {
+    public void visitDoubleLeaf(RDouble data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.DOUBLE, data.size() != 1);
         inputs.add(i);
@@ -690,7 +690,7 @@ public class FusedOperator extends View.Visitor {
     }
 
     @Override
-    public void visitLeaf(RInt data) {
+    public void visitIntLeaf(RInt data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.INT, data.size() != 1);
         inputs.add(i);
@@ -700,7 +700,7 @@ public class FusedOperator extends View.Visitor {
     }
 
     @Override
-    public void visitLeaf(RComplex data) {
+    public void visitComplexLeaf(RComplex data) {
         // TODO support complex numbers
         throw new NotSupported();
     }
