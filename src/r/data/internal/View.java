@@ -650,8 +650,19 @@ public abstract class View extends ArrayImpl implements RArray {
             return getInt(i);
          }
 
+
+        /** FUSION -- materialization point for RInt returning views.
+         */
         @Override
         public RInt materialize() {
+            if (Fusion.ENABLED)
+                return (RInt) Fusion.materialize(this);
+            else
+                return materialize_();
+        }
+
+        @Override
+        public RInt materialize_() {
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {
                 int[] content = new int[n];
@@ -907,97 +918,6 @@ public abstract class View extends ArrayImpl implements RArray {
         public RString asString(ConversionStatus warn) {
             return asString();
         }
-
-        /*
-        // signature EVV+EVV+DEVV*DDEVV*DD =    d + (d * d) + ( d * d)
-        public static class FusionOp {
-
-            public class Filler extends View.Visitor {
-                int idx = 0;
-
-                @Override
-                public void visitDoubleLeaf(RDouble leaf) {
-                    switch (idx) {
-                        case 0:
-                            op1 = leaf.getContent();
-                            break;
-                        case 1:
-                            op2 = leaf.getContent();
-                            break;
-                        case 2:
-                            op3 = leaf.getContent();
-                            break;
-                        case 3:
-                            op4 = leaf.getContent();
-                            break;
-                        case 4:
-                            op5 = leaf.getContent();
-                            break;
-                        default:
-                            assert(false);
-                    }
-                    ++idx;
-                }
-
-            }
-
-            public double[] op1;
-            public double[] op2;
-            public double[] op3;
-            public double[] op4;
-            public double[] op5;
-
-            public final Filler f = new Filler();
-
-            public void reinitialize(View view) {
-                f.idx = 0;
-                view.visit(f);
-            }
-
-            public void free() {
-                op1 = null;
-                op2 = null;
-                op3 = null;
-                op4 = null;
-                op5 = null;
-            }
-
-            public RDouble compute() {
-                double[] result = new double[op1.length];
-                for (int i = op1.length - 1; i >=0 ; --i) {
-                    double a = op1[i];
-                    double b = op2[i];
-                    double c = op3[i];
-                    double d = b; //op4[i];
-                    double e = c; //op5[i];
-
-                    double d1 = b * c;
-                    //double d2 = d * e;
-                    double d3 = d1 + d1;
-                    double dd = a + d3;
-
-//                    double d = op1[i] + op2[i] * op3[i] + op4[i] * op5[i];
-                    // now the NA check
-                    if (RDoubleUtils.arithIsNA(dd) && (
-                            RDoubleUtils.arithIsNA(a) ||
-                            RDoubleUtils.arithIsNA(b) ||
-                            RDoubleUtils.arithIsNA(c) ||
-                            RDoubleUtils.arithIsNA(d) ||
-                            RDoubleUtils.arithIsNA(e)
-                            ))
-                        result[i] = RDouble.NA;
-                    else
-                        result[i] = dd;
-                }
-                free();
-                // TODO this should deal with attributes too
-                return RDoubleFactory.getFor(result);
-            }
-        }
-
-
-        static FusionOp FOP = new FusionOp(); */
-
 
         /** FUSION -- materialization point for RDouble returning views.
          */
