@@ -14,121 +14,43 @@ import java.util.Vector;
 public class Sandbox {
 
 
-    static String fannkuchRedux = "#! fastaredux\n" +
-            "#!#g size = (2L # 5L # 10L # 20L # 50L # 100L)\n" +
-            "#!g size = (500000L)\n" +
-            "#!g measurements = (10L)\n" +
-            "# ------------------------------------------------------------------\n" +
-            "# The Computer Language Shootout\n" +
-            "# http://shootout.alioth.debian.org/\n" +
-            "#\n" +
-            "# Contributed by Leo Osvald\n" +
-            "# ------------------------------------------------------------------\n" +
-            "width = 60L\n" +
-            "lookup_size = 4096L\n" +
-            "lookup_scale = as.double(lookup_size - 1L)\n" +
-            "\n" +
-            "alu = paste(\n" +
-            "    \"GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\",\n" +
-            "    \"GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\",\n" +
-            "    \"CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\",\n" +
-            "    \"ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\",\n" +
-            "    \"GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\",\n" +
-            "    \"AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\",\n" +
-            "    \"AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA\",\n" +
-            "    sep=\"\", collapse=\"\")\n" +
-            "\n" +
-            "iub = matrix(c(\n" +
-            "    c(0.27, 'a'),\n" +
-            "    c(0.12, 'c'),\n" +
-            "    c(0.12, 'g'),\n" +
-            "    c(0.27, 't'),\n" +
-            "    c(0.02, 'B'),\n" +
-            "    c(0.02, 'D'),\n" +
-            "    c(0.02, 'H'),\n" +
-            "    c(0.02, 'K'),\n" +
-            "    c(0.02, 'M'),\n" +
-            "    c(0.02, 'N'),\n" +
-            "    c(0.02, 'R'),\n" +
-            "    c(0.02, 'S'),\n" +
-            "    c(0.02, 'V'),\n" +
-            "    c(0.02, 'W'),\n" +
-            "    c(0.02, 'Y')\n" +
-            "), 2)\n" +
-            "\n" +
-            "homosapiens = matrix(c(\n" +
-            "    c(0.3029549426680, 'a'),\n" +
-            "    c(0.1979883004921, 'c'),\n" +
-            "    c(0.1975473066391, 'g'),\n" +
-            "    c(0.3015094502008, 't')\n" +
-            "), 2)\n" +
-            "\n" +
-            "random <- 42L\n" +
-            "random_next_lookup <- function() {\n" +
-            "    random <<- (random * 3877L + 29573L) %% 139968L\n" +
-            "    return(random * (lookup_scale / 139968))  # TODO\n" +
-            "}\n" +
-            "\n" +
-            "repeat_fasta <- function(s, count) {\n" +
-            "    chars = strsplit(s, split=\"\")[[1]]\n" +
-            "    len = nchar(s)\n" +
-            "    s2 = c(chars, chars[1:width])\n" +
-            "    pos <- 1L\n" +
-            "    while (count) {\n" +
-            "\tline = min(width, count)\n" +
-            "        next_pos <- pos + line\n" +
-            "        s2[pos:(next_pos - 1)]\n" +
-            "        pos <- next_pos\n" +
-            "        if (pos > len) pos <- pos - len\n" +
-            "\tcount <- count - line\n" +
-            "    }\n" +
-            "}\n" +
-            "\n" +
-            "random_fasta <- function(genelist, count) {\n" +
-            "    n = ncol(genelist)\n" +
-            "    lookup <- integer(lookup_size)\n" +
-            "    cprob_lookup <- cumsum(genelist[1, ]) * lookup_scale\n" +
-            "    cprob_lookup[[n]] <- lookup_size - 1\n" +
-            "\n" +
-            "    j <- 1L\n" +
-            "    for (i in 1:lookup_size) {\n" +
-            "        while (cprob_lookup[[j]] + 1L < i)\n" +
-            "            j <- j + 1L\n" +
-            "        lookup[[i]] <- j\n" +
-            "    }\n" +
-            "\n" +
-            "    while (count) {\n" +
-            "\tline <- min(width, count)\n" +
-            "        \n" +
-            "        rs <- double(line)\n" +
-            "        for (i in 1:line)\n" +
-            "          rs[[i]] <- random_next_lookup()\n" +
-            "\n" +
-            "        inds <- lookup[rs + 1L]\n" +
-            "        missed <- which(cprob_lookup[inds] < rs)\n" +
-            "        if (length(missed))\n" +
-            "            repeat {\n" +
-            "                inds[missed] <- inds[missed] + 1L\n" +
-            "                missed <- which(cprob_lookup[inds] < rs)\n" +
-            "                if (!length(missed))\n" +
-            "                    break\n" +
-            "            }\n" +
-            "\n" +
-            "        paste(genelist[2, inds], collapse=\"\", sep=\"\")\n" +
-            "\tcount <- count - line\n" +
-            "    }\n" +
-            "\n" +
-            "}\n" +
-            "\n" +
-            "fastaredux <- function(args) {\n" +
+    static String spectralnorm = "spectralnorm <- function(args) {\n" +
             "    time = proc.time()[[3]]\n" +
-            "    n = if (length(args)) as.integer(args[[1]]) else 1000L\n" +
-            "    #cat(\">ONE Homo sapiens alu\\n\")\n" +
-            "    repeat_fasta(alu, 2 * n)\n" +
-            "    #cat(\">TWO IUB ambiguity codes\\n\")\n" +
-            "    random_fasta(iub, 3L * n)\n" +
-            "    #cat(\">THREE Homo sapiens frequency\\n\")\n" +
-            "    random_fasta(homosapiens, 5L * n)\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 100L\n" +
+            "    options(digits=10)\n" +
+            "\n" +
+            "    eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)\n" +
+            "    eval_A_times_u <- function(u) {\n" +
+            "        ret <- double(n)\n" +
+            "        for (i in 0:n1) {\n" +
+            "            eval_A_col <- double(n)\n" +
+            "            for (j in 0:n1)\n" +
+            "\t    eval_A_col[[j + 1]] <- eval_A(i, j)\n" +
+            "            ret[[i + 1]] <- u %*% eval_A_col\n" +
+            "        }\n" +
+            "        return(ret)\n" +
+            "    }\n" +
+            "    eval_At_times_u <- function(u) {\n" +
+            "        ret <- double(n)\n" +
+            "        for (i in 0:n1) {\n" +
+            "            eval_At_col <- double(n)\n" +
+            "            for (j in 0:n1)\n" +
+            "\t    eval_At_col[[j + 1]] <- eval_A(j, i)\n" +
+            "            ret[[i + 1]] <- u %*% eval_At_col\n" +
+            "        }\n" +
+            "        return(ret)\n" +
+            "    }\n" +
+            "    eval_AtA_times_u <- function(u) eval_At_times_u(eval_A_times_u(u))\n" +
+            "\n" +
+            "    n1 <- n - 1\n" +
+            "    u <- rep(1, n)\n" +
+            "    v <- rep(0, n)\n" +
+            "    for (itr in seq(10)) {\n" +
+            "        v <- eval_AtA_times_u(u)\n" +
+            "        u <- eval_AtA_times_u(v)\n" +
+            "    }\n" +
+            "\n" +
+            "    cat(sqrt(sum(u * v) / sum(v * v)), \"\\n\")\n" +
             "    proc.time()[[3]] - time\n" +
             "}\n";
 
@@ -161,9 +83,9 @@ public class Sandbox {
 
 
     public static void debugRun() {
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(fannkuchRedux));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm));
         RAny result = RContext.eval(tree);
-        tree = RContext.parseFile(new ANTLRStringStream("fastaredux(500000L)"));
+        tree = RContext.parseFile(new ANTLRStringStream("spectralnorm(500L)"));
         System.out.print("Warmup");
         for (int i = 0; i < 2; ++i) {
             RContext.eval(tree);
