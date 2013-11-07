@@ -461,9 +461,9 @@ public interface RInt extends RNumber {
     //   but can be out of bounds ==> NA's are returned in that case
     public static class RIntSubset extends View.RIntView implements RInt {
 
-        final RInt base;
+        public final RInt base;
         final int bsize;
-        final RInt index;
+        public final RInt index;
         final int isize;
 
         public RIntSubset(RInt base, RInt index) {
@@ -471,6 +471,13 @@ public interface RInt extends RNumber {
             this.index = index;
             this.isize = index.size();
             this.bsize = base.size();
+        }
+
+        /** FUSION View.Visitor dispatch.
+         */
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visit(this);
         }
 
         @Override

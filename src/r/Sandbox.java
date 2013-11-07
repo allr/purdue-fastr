@@ -194,8 +194,8 @@ public class Sandbox {
 
     public static void main(String[] args) {
         System.out.println("Executing sandbox...");
-        //debugRun();
-        testRun();
+        debugRun();
+        //testRun();
 
     }
 }

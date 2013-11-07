@@ -94,6 +94,12 @@ public class Hash extends View.Visitor {
         visitDouble_(view.orig);
     }
 
+    public void visit(RInt.RIntSubset view) {
+        addHash(Fusion.SUBSET + Fusion.INT + Fusion.INT);
+        visitInt_(view.base);
+        visitInt_(view.index);
+    }
+
     @Override
     public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
         addHash(Fusion.BINARY + operatorToInt(view.arit) + Fusion.VECTOR + Fusion.DOUBLE + Fusion.A + Fusion.VECTOR + Fusion.VECTOR);

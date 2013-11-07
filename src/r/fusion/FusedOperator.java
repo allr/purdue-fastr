@@ -110,6 +110,14 @@ public class FusedOperator extends View.Visitor {
         }
 
         @Override
+        public void visit(RInt.RIntSubset view) {
+            checkClass(view.getClass());
+            visitInt_(view.base);
+            visitInt_(view.index);
+            // TODO deal with names attributes and dimnames
+        }
+
+        @Override
         public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
@@ -335,7 +343,7 @@ public class FusedOperator extends View.Visitor {
             indexVariable = "i"+index;
         }
 
-        public final void subsetIndexed(String varName) {
+        public final void setSubsetIndexed(String varName) {
             increment = Increment.SUBSET;
             indexVariable = varName;
         }
@@ -384,6 +392,8 @@ public class FusedOperator extends View.Visitor {
     /** True if the visited inputs are of the same size as the result.
      */
     boolean isResultSize = true;
+
+    String subsetIndex = null;
 
 
 
@@ -627,10 +637,9 @@ public class FusedOperator extends View.Visitor {
         // end of method
         sb.append("}\n");
         // create and add the method
-        System.out.println(this);
-        System.out.println(sb.toString());
-        System.exit(-1);
         fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+        //System.out.println(this);
+        //System.out.println(sb.toString());
     }
 
 
@@ -734,7 +743,9 @@ public class FusedOperator extends View.Visitor {
     public void visitDoubleLeaf(RDouble data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.DOUBLE, data.size() != 1);
-        if (isResultSize)
+        if (subsetIndex != null)
+            i.setSubsetIndexed(subsetIndex);
+        else if (isResultSize)
             resultSize = i.index;
         else
             i.setCustomIndexed();
@@ -749,7 +760,9 @@ public class FusedOperator extends View.Visitor {
     public void visitIntLeaf(RInt data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.INT, data.size() != 1);
-        if (isResultSize)
+        if (subsetIndex != null)
+            i.setSubsetIndexed(subsetIndex);
+        else if (isResultSize)
             resultSize = i.index;
         else
             i.setCustomIndexed();
@@ -771,6 +784,18 @@ public class FusedOperator extends View.Visitor {
         checkClass(view.getClass());
         visitDouble_(view.orig);
         conversionToInt(resultVar, resultType);
+    }
+
+    @Override
+    public void visit(RInt.RIntSubset view) {
+        checkClass(view.getClass());
+        visitInt_(view.index);
+        int rs = resultSize;
+        String oldSubsetIndex = subsetIndex;
+        subsetIndex = resultVar;
+        visitInt_(view.base);
+        resultSize = rs;
+        // TODO deal with attributes, names, etc.
     }
 
     @Override

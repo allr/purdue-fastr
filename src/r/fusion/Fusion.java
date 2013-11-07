@@ -36,6 +36,7 @@ public class Fusion {
     static final int INPUT =        1825547246;
     static final int BINARY =      -958270914;
     static final int CONVERSION =  -1803245152;
+    static final int SUBSET =      -1649474957;
 
     /** HashMap containing created fusion operators and their respective view signatures.
      */
