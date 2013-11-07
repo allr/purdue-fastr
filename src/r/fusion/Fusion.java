@@ -15,7 +15,7 @@ public class Fusion {
 
     public static final boolean ENABLED = true;
 
-    public static final boolean ENABLE_STATISTICS = true;
+    public static final boolean ENABLE_STATISTICS = false;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
@@ -42,7 +42,7 @@ public class Fusion {
      */
     static final HashMap<Integer, FusedOperator.Prototype> operators = new HashMap<>();
 
-    static int materialized = 0;
+/*    static int materialized = 0;
 
     static int hashFailed = 0;
 
@@ -50,7 +50,7 @@ public class Fusion {
 
     static int compilationFailed = 0;
 
-    static int reused = 0;
+    static int reused = 0; */
 
 
     /** Materializes the given view.
@@ -66,25 +66,24 @@ public class Fusion {
      * @return Materialized contents of the view.
      */
     public static RArray materialize(View view) {
-        if (ENABLE_STATISTICS)
-            ++materialized;
-//        if (view.)
+//        if (ENABLE_STATISTICS)
+//            ++materialized;
         int hash = Hash.view(view);
         if (hash == 0) {
-            if (ENABLE_STATISTICS)
-                ++hashFailed;
+//            if (ENABLE_STATISTICS)
+//                ++hashFailed;
             return view.materialize_();
         }
         FusedOperator.Prototype fusedOperator = operators.get(hash);
         if (fusedOperator == null) {
-            if (ENABLE_STATISTICS)
-                ++compiled;
+//            if (ENABLE_STATISTICS)
+//                ++compiled;
             fusedOperator = FusedOperator.build(view, hash);
             operators.put(hash, fusedOperator);
-            if (ENABLE_STATISTICS && fusedOperator == FusedOperator.NO_FUSION)
-                ++compilationFailed;
+//            if (ENABLE_STATISTICS && fusedOperator == FusedOperator.NO_FUSION)
+//                ++compilationFailed;
         } else if (ENABLE_STATISTICS) {
-            ++reused;
+//            ++reused;
         }
         return fusedOperator.materialize(view);
     }
@@ -92,11 +91,11 @@ public class Fusion {
     public static String statistics() {
         if (ENABLE_STATISTICS) {
             StringBuilder sb = new StringBuilder();
-            sb.append("Total materialized:             "+materialized+"\n");
+/*            sb.append("Total materialized:             "+materialized+"\n");
             sb.append("Hash failed (not supported):    "+hashFailed+"\n");
             sb.append("Compiled (including attempts):  "+compiled+"\n");
             sb.append("Compilation failed:             "+compilationFailed+"\n");
-            sb.append("Reused:                         "+reused+"\n");
+            sb.append("Reused:                         "+reused+"\n"); */
             return sb.toString();
         } else {
             return "FUSION STATISTICS DISABLED - Enable by setting Fusion.ENABLE_STATISTICS to true.\n";
@@ -104,10 +103,10 @@ public class Fusion {
     }
 
     public static void clearStatistics() {
-        materialized = 0;
+/*        materialized = 0;
         hashFailed = 0;
         compiled = 0;
         compilationFailed = 0;
-        reused = 0;
+        reused = 0; */
     }
 }
