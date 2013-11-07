@@ -6,6 +6,14 @@ import r.data.*;
 
 
 public abstract class ArrayImpl extends BaseObject implements RArray {
+
+    /** FUSION eager as integer conversion. Defaults to the normal one.
+     */
+    @Override
+    public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
     @Override
     public RArray subset(RAny keys) {
         if (keys instanceof RInt) {

@@ -49,6 +49,14 @@ public class BuiltInImpl implements RBuiltIn {
         throw Utils.nyi();
     }
 
+    /** FUSION eager conversion defaults to asInt().
+     */
+    @Override
+    public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
+
     @Override public RDouble asDouble() {
         throw Utils.nyi();
     }

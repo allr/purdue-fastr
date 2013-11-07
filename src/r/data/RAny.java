@@ -44,6 +44,7 @@ public interface RAny {
     RRaw asRaw();
     RLogical asLogical();
     RInt asInt();
+    RInt asInt_eagerIfAvailable();
     RDouble asDouble();
     RComplex asComplex();
     RString asString();

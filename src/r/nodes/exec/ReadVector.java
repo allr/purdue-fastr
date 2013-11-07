@@ -1290,7 +1290,13 @@ public abstract class ReadVector extends BaseR {
                 if (index instanceof RInt) {
                     iindex = (RInt) index;
                 } else if (index instanceof RDouble) {
-                    iindex = index.asInt();
+                    /** FUSION dirty workaround to make this eager if possible. The method is not implemented in all
+                     * RAny subclasses, therefore it is ifAvailable only.
+                     *
+                     * Because the executeIntVector called at the end materializes the view if created here, eager makes
+                     * sense.
+                     */
+                    iindex = index.asInt_eagerIfAvailable();
                 } else {
                     throw new SpecializationException(Failure.NOT_INT_OR_DOUBLE_INDEX);
                 }

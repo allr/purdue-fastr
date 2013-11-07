@@ -64,6 +64,12 @@ public class RLanguage extends BaseObject implements RAny {
         return null;
     }
 
+    /** FUSION eager conversion default to asInt().
+     */
+    @Override public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
     @Override public RDouble asDouble() {
         // TODO Auto-generated method stub
         return null;

@@ -59,6 +59,14 @@ public class EnvironmentImpl extends BaseObject implements REnvironment {
         return null;
     }
 
+    /** FUSION eager conversion defaults to asInt().
+     */
+    @Override
+    public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
+
     @Override
     public RDouble asDouble() {
         Utils.nyi();

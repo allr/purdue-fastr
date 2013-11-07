@@ -44,6 +44,13 @@ public class ClosureImpl extends BaseObject implements RClosure {
         return null;
     }
 
+    /** FUSION eager conversion defaults to asInt().
+     */
+    @Override
+    public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
     @Override
     public RDouble asDouble() {
         Utils.nyi();

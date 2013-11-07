@@ -148,6 +148,16 @@ public class DoubleImpl extends NonScalarArrayImpl implements RDouble {
         return TracingView.ViewTrace.trace(new RDouble.RIntView(this));
     }
 
+    /** FUSION eager conversion to int.
+     */
+    @Override
+    public RInt asInt_eagerIfAvailable() {
+        int[] result = new int[content.length];
+        for (int i = 0; i < result.length; i++)
+            result[i] = Convert.double2int(content[i]);
+        return RInt.RIntFactory.getFor(result, dimensions(), names(), attributes());
+    }
+
     @Override
     public RInt asInt(ConversionStatus warn) {
         return RDouble.RDoubleUtils.double2int(this, warn);

@@ -166,6 +166,12 @@ public final class RSymbol extends BaseObject implements RAny {
         return null;
     }
 
+    /** FUSION Eager conversion defaults to default one.
+     */
+    @Override public RInt asInt_eagerIfAvailable() {
+        return asInt();
+    }
+
     @Override public RDouble asDouble() {
         Utils.nyi();
         return null;

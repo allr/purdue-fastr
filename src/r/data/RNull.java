@@ -76,6 +76,11 @@ public final class RNull implements RArray {
     }
 
     @Override
+    public RInt asInt_eagerIfAvailable() {
+        return RInt.EMPTY;
+    }
+
+    @Override
     public RDouble asDouble() {
         return RDouble.EMPTY;
     }
