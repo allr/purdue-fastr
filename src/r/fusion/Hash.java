@@ -75,17 +75,23 @@ public class Hash extends View.Visitor {
 
     @Override
     public void visitDoubleLeaf(RDouble element) {
-        addHash(Fusion.INPUT + Fusion.DOUBLE);
+       addHash(Fusion.INPUT + Fusion.DOUBLE);
     }
 
     @Override
     public void visitIntLeaf(RInt element) {
-        addHash(Fusion.INPUT + Fusion.INT);
+       addHash(Fusion.INPUT + Fusion.INT);
     }
 
     @Override
     public void visitComplexLeaf(RComplex element) {
         addHash(Fusion.INPUT + Fusion.COMPLEX);
+    }
+
+    @Override
+    public void visit(RDouble.RIntView view) {
+        addHash(Fusion.CONVERSION + Fusion.INT);
+        visitDouble_(view.orig);
     }
 
     @Override

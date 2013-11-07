@@ -413,6 +413,13 @@ public interface RDouble extends RNumber {
         public void accept(ValueVisitor v) {
             v.visit(this);
         }
+
+        /** FUSION Visitor type dispatch.
+         */
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visit(this);
+        }
     }
 
     public static class RLogicalView extends View.RLogicalProxy<RDouble> implements RLogical {

@@ -14,76 +14,123 @@ import java.util.Vector;
 public class Sandbox {
 
 
-    static String fannkuchRedux = "fannkuch <- function(n) {\n" +
-            "    time = proc.time()[[3]]\n" +
-            "    one_two = c(1, 2)\n" +
-            "    two_one = c(2, 1)\n" +
-            "    two_three = c(2, 3)\n" +
-            "    three_two = c(3, 2)\n" +
-            "    if (n > 3L)\n" +
-            "        rxrange = 3:(n - 1)\n" +
-            "    else\n" +
-            "        rxrange = integer(0)\n" +
+    static String fannkuchRedux = "#! fastaredux\n" +
+            "#!#g size = (2L # 5L # 10L # 20L # 50L # 100L)\n" +
+            "#!g size = (500000L)\n" +
+            "#!g measurements = (10L)\n" +
+            "# ------------------------------------------------------------------\n" +
+            "# The Computer Language Shootout\n" +
+            "# http://shootout.alioth.debian.org/\n" +
+            "#\n" +
+            "# Contributed by Leo Osvald\n" +
+            "# ------------------------------------------------------------------\n" +
+            "width = 60L\n" +
+            "lookup_size = 4096L\n" +
+            "lookup_scale = as.double(lookup_size - 1L)\n" +
             "\n" +
-            "    max_flip_count <- 0L\n" +
-            "    perm_sign <- TRUE\n" +
-            "    checksum <- 0L\n" +
-            "    perm1 <- 1:n\n" +
-            "    count <- 0:(n - 1L)\n" +
-            "    while (TRUE) {\n" +
-            "        if (k <- perm1[[1L]]) {\n" +
-            "            perm <- perm1\n" +
-            "            flip_count <- 1L\n" +
-            "            while ((kk <- perm[[k]]) > 1L) {\n" +
-            "                k_range = 1:k\n" +
-            "                perm[k_range] <- rev.default(perm[k_range])\n" +
-            "                flip_count <- flip_count + 1L\n" +
-            "                k <- kk\n" +
-            "                kk <- perm[[kk]]\n" +
-            "            }\n" +
-            "            max_flip_count <- max(max_flip_count, flip_count)\n" +
-            "            checksum <- checksum + if (perm_sign) flip_count else -flip_count\n" +
-            "        }\n" +
+            "alu = paste(\n" +
+            "    \"GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\",\n" +
+            "    \"GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\",\n" +
+            "    \"CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\",\n" +
+            "    \"ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\",\n" +
+            "    \"GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\",\n" +
+            "    \"AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\",\n" +
+            "    \"AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA\",\n" +
+            "    sep=\"\", collapse=\"\")\n" +
             "\n" +
-            "        # Use incremental change to generate another permutation\n" +
-            "        if (perm_sign) {\n" +
-            "            perm1[one_two] <- perm1[two_one]\n" +
-            "            perm_sign = FALSE\n" +
-            "        } else {\n" +
-            "            perm1[two_three] <- perm1[three_two]\n" +
-            "            perm_sign = TRUE\n" +
-            "            was_break <- FALSE\n" +
-            "            for (r in rxrange) {\n" +
-            "                if (count[[r]]) {\n" +
-            "                    was_break <- TRUE\n" +
-            "                    break\n" +
-            "                }\n" +
-            "                count[[r]] <- r - 1L\n" +
-            "                perm0 <- perm1[[1L]]\n" +
-            "                perm1[1:r] <- perm1[2:(r + 1L)]\n" +
-            "                perm1[[r + 1L]] <- perm0\n" +
-            "            }\n" +
-            "            if (!was_break) {\n" +
-            "                r <- n\n" +
-            "                if (!count[[r]]) {\n" +
-            "                    #cat(checksum, \"\\n\", sep=\"\")\n" +
-            "                    return(proc.time()[[3]] - time)\n" +
-            "                }\n" +
-            "            }\n" +
-            "            count[[r]] <- count[[r]] - 1L\n" +
-            "        }\n" +
+            "iub = matrix(c(\n" +
+            "    c(0.27, 'a'),\n" +
+            "    c(0.12, 'c'),\n" +
+            "    c(0.12, 'g'),\n" +
+            "    c(0.27, 't'),\n" +
+            "    c(0.02, 'B'),\n" +
+            "    c(0.02, 'D'),\n" +
+            "    c(0.02, 'H'),\n" +
+            "    c(0.02, 'K'),\n" +
+            "    c(0.02, 'M'),\n" +
+            "    c(0.02, 'N'),\n" +
+            "    c(0.02, 'R'),\n" +
+            "    c(0.02, 'S'),\n" +
+            "    c(0.02, 'V'),\n" +
+            "    c(0.02, 'W'),\n" +
+            "    c(0.02, 'Y')\n" +
+            "), 2)\n" +
+            "\n" +
+            "homosapiens = matrix(c(\n" +
+            "    c(0.3029549426680, 'a'),\n" +
+            "    c(0.1979883004921, 'c'),\n" +
+            "    c(0.1975473066391, 'g'),\n" +
+            "    c(0.3015094502008, 't')\n" +
+            "), 2)\n" +
+            "\n" +
+            "random <- 42L\n" +
+            "random_next_lookup <- function() {\n" +
+            "    random <<- (random * 3877L + 29573L) %% 139968L\n" +
+            "    return(random * (lookup_scale / 139968))  # TODO\n" +
+            "}\n" +
+            "\n" +
+            "repeat_fasta <- function(s, count) {\n" +
+            "    chars = strsplit(s, split=\"\")[[1]]\n" +
+            "    len = nchar(s)\n" +
+            "    s2 = c(chars, chars[1:width])\n" +
+            "    pos <- 1L\n" +
+            "    while (count) {\n" +
+            "\tline = min(width, count)\n" +
+            "        next_pos <- pos + line\n" +
+            "        s2[pos:(next_pos - 1)]\n" +
+            "        pos <- next_pos\n" +
+            "        if (pos > len) pos <- pos - len\n" +
+            "\tcount <- count - line\n" +
             "    }\n" +
+            "}\n" +
+            "\n" +
+            "random_fasta <- function(genelist, count) {\n" +
+            "    n = ncol(genelist)\n" +
+            "    lookup <- integer(lookup_size)\n" +
+            "    cprob_lookup <- cumsum(genelist[1, ]) * lookup_scale\n" +
+            "    cprob_lookup[[n]] <- lookup_size - 1\n" +
+            "\n" +
+            "    j <- 1L\n" +
+            "    for (i in 1:lookup_size) {\n" +
+            "        while (cprob_lookup[[j]] + 1L < i)\n" +
+            "            j <- j + 1L\n" +
+            "        lookup[[i]] <- j\n" +
+            "    }\n" +
+            "\n" +
+            "    while (count) {\n" +
+            "\tline <- min(width, count)\n" +
+            "        \n" +
+            "        rs <- double(line)\n" +
+            "        for (i in 1:line)\n" +
+            "          rs[[i]] <- random_next_lookup()\n" +
+            "\n" +
+            "        inds <- lookup[rs + 1L]\n" +
+            "        missed <- which(cprob_lookup[inds] < rs)\n" +
+            "        if (length(missed))\n" +
+            "            repeat {\n" +
+            "                inds[missed] <- inds[missed] + 1L\n" +
+            "                missed <- which(cprob_lookup[inds] < rs)\n" +
+            "                if (!length(missed))\n" +
+            "                    break\n" +
+            "            }\n" +
+            "\n" +
+            "        paste(genelist[2, inds], collapse=\"\", sep=\"\")\n" +
+            "\tcount <- count - line\n" +
+            "    }\n" +
+            "\n" +
+            "}\n" +
+            "\n" +
+            "fastaredux <- function(args) {\n" +
+            "    time = proc.time()[[3]]\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 1000L\n" +
+            "    #cat(\">ONE Homo sapiens alu\\n\")\n" +
+            "    repeat_fasta(alu, 2 * n)\n" +
+            "    #cat(\">TWO IUB ambiguity codes\\n\")\n" +
+            "    random_fasta(iub, 3L * n)\n" +
+            "    #cat(\">THREE Homo sapiens frequency\\n\")\n" +
+            "    random_fasta(homosapiens, 5L * n)\n" +
             "    proc.time()[[3]] - time\n" +
-            "}\n" +
-            "\n";
-/*            "fannkuch(9)\n" +
-            "fannkuch(9)\n" +
-            "measurementTime <- 0\n" +
-            "for (i in 1:10) {\n" +
-            "    measurementTime <- measurementTime + fannkuch(9)\n" +
-            "    cat(\".\")\n" +
-            "}\n" +
-            "cat(\"__TIMER__\",measurementTime / 10,\"tmr\\n\")\n"; */
+            "}\n";
 
     static String simpleCode = "f <- function() {\n" +
             "  time = proc.time()[[3]]\n" +
@@ -120,7 +167,7 @@ public class Sandbox {
         System.out.println("Executing sandbox...");
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(fannkuchRedux));
         RAny result = RContext.eval(tree);
-        tree = RContext.parseFile(new ANTLRStringStream("fannkuch(9)"));
+        tree = RContext.parseFile(new ANTLRStringStream("fastaredux(500000L)"));
         System.out.print("Warmup");
         for (int i = 0; i < 2; ++i) {
             RContext.eval(tree);

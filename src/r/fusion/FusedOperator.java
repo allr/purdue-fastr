@@ -101,9 +101,14 @@ public class FusedOperator extends View.Visitor {
          *
          * Each of such classes perform first the class checks to make sure the view signature is the same and then
          * visits its children so that the whole view is visited.
-         *
-         * TODO compute result attributes, dimensions and names
          */
+        @Override
+        public void visit(RDouble.RIntView view) {
+            checkClass(view.getClass());
+            visitDouble_(view.orig);
+            // no need to propagate anything, the size and everything else stays
+        }
+
         @Override
         public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
             checkClass(view.getClass());
@@ -662,6 +667,19 @@ public class FusedOperator extends View.Visitor {
             throw new NotSupported();
     }
 
+    private void conversionToInt(String source, int type) {
+        resultVar = freeTemp();
+        resultType = Fusion.INT;
+        code.append("        int "+resultVar+";\n");
+        switch (type) {
+            case Fusion.DOUBLE:
+                code.append("        " + resultVar + "Convert.double2Int(" + source + ");\n");
+                break;
+            default:
+                throw new NotSupported();
+        }
+    }
+
     // node visitor implementation -------------------------------------------------------------------------------------
 
     /** Throws NotSupported exception for any input type that is not handled separately below.
@@ -677,7 +695,6 @@ public class FusedOperator extends View.Visitor {
     public void visit(View view) {
         throw new NotSupported();
     }
-
 
     @Override
     public void visitDoubleLeaf(RDouble data) {
@@ -703,6 +720,13 @@ public class FusedOperator extends View.Visitor {
     public void visitComplexLeaf(RComplex data) {
         // TODO support complex numbers
         throw new NotSupported();
+    }
+
+    @Override
+    public void visit(RDouble.RIntView view) {
+        checkClass(view.getClass());
+        visitDouble_(view.orig);
+        conversionToInt(resultVar, resultType);
     }
 
     @Override
@@ -823,6 +847,11 @@ public class FusedOperator extends View.Visitor {
                 if (i.data == value)
                     i.isSameSizeAsResult = true;
             }
+        }
+
+        @Override
+        public void visit(RDouble.RIntView view) {
+            visitDouble_(view.orig);
         }
 
         @Override

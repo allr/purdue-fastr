@@ -15,27 +15,27 @@ public class Fusion {
 
     public static final boolean ENABLED = true;
 
-    public static final boolean ENABLE_STATISTICS = false;
+    public static final boolean ENABLE_STATISTICS = true;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
      */
-    static final int SCALAR = -1753807778;
-    static final int VECTOR = -661390690;
-    static final int DOUBLE =  1858103944;
-    static final int INT =    -1860336380;
-    static final int COMPLEX = 630400415;
-    static final int ADD =     393835468;
-    static final int SUB =     1744231241;
-    static final int MUL =    -1486659162;
-    static final int DIV =     2108082263;
-    static final int MOD =    -604326540;
-    static final int EQUAL =  -513021938;
-    static final int A =       64259293;
-    static final int B =       1000853063;
-    static final int INPUT =   1825547246;
-    static final int BINARY = -958270914;
-    static final int UNARY =  -1803245152;
+    static final int SCALAR =      -1753807778;
+    static final int VECTOR =      -661390690;
+    static final int DOUBLE =       1858103944;
+    static final int INT =         -1860336380;
+    static final int COMPLEX =      630400415;
+    static final int ADD =          393835468;
+    static final int SUB =          1744231241;
+    static final int MUL =         -1486659162;
+    static final int DIV =          2108082263;
+    static final int MOD =         -604326540;
+    static final int EQUAL =       -513021938;
+    static final int A =            64259293;
+    static final int B =            1000853063;
+    static final int INPUT =        1825547246;
+    static final int BINARY =      -958270914;
+    static final int CONVERSION =  -1803245152;
 
     /** HashMap containing created fusion operators and their respective view signatures.
      */

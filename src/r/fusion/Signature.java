@@ -83,6 +83,13 @@ public class Signature extends View.Visitor {
     }
 
     @Override
+    public void visit(RDouble.RIntView view) {
+        sb.append("(C int ");
+        visitDouble_(view.orig);
+        sb.append(")");
+    }
+
+    @Override
     public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
         sb.append("(A ");
         visitDouble_(view.a);

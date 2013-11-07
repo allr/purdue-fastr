@@ -96,6 +96,8 @@ public abstract class View extends ArrayImpl implements RArray {
          */
         public void visit(View view) { }
 
+        public void visit(RDouble.RIntView view) { visit( (View) view); }
+
         public void visit(Arithmetic.DoubleViewForDoubleDouble view) { visit( (View) view); }
         public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
         public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericBSized view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
