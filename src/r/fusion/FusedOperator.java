@@ -292,17 +292,22 @@ public class FusedOperator extends View.Visitor {
     /** Simple class capturing all information about the input.
      */
     private static class Input {
+        public static enum Increment {
+            DEFAULT,
+            CUSTOM_INDEX,
+            SUBSET,
+        }
         public final RAny data;
         public final int index;
         public final int type;
         public final boolean isVector;
-        public boolean isSameSizeAsResult;
+        public String indexVariable = "i";
+        public Increment increment = Increment.DEFAULT;
         public Input(RAny data, int index, int type, boolean isVector) {
             this.data = data;
             this.index = index;
             this.type = type;
             this.isVector = isVector;
-            isSameSizeAsResult = false;
         }
 
         public final String inputName() {
@@ -312,12 +317,50 @@ public class FusedOperator extends View.Visitor {
         public final String inputElementName() {
             return "in"+index;
         }
+
+        public final String elementType() {
+            switch (type) {
+                case Fusion.DOUBLE:
+                    return "double";
+                case Fusion.INT:
+                    return "int";
+                default:
+                    assert (false);
+            }
+            return null;
+        }
+
+        public final void setCustomIndexed() {
+            increment = Increment.CUSTOM_INDEX;
+            indexVariable = "i"+index;
+        }
+
+        public final void subsetIndexed(String varName) {
+            increment = Increment.SUBSET;
+            indexVariable = varName;
+        }
+
+        public final void addElementRead(StringBuilder code) {
+            // TODO this will be more complex when we deal with complex numbers:)
+            if (isVector) {
+                code.append("        " + elementType() + " "+ inputElementName() + " = ");
+                switch (increment) {
+                    case DEFAULT:
+                    case CUSTOM_INDEX:
+                        code.append(inputName() + "[" + indexVariable + "];\n");
+                        break;
+                    case SUBSET:
+                        code.append(inputName() + "[" + indexVariable + " % " + inputName() + ".length];\n");
+                        break;
+                    default:
+                        assert (false);
+                }
+            }
+        }
     }
 
     HashMap<RAny, Input> inputIndices = new HashMap<>();
     Vector<Input> inputs = new Vector<>();
-
-    ResultSizePropagator rsp = new ResultSizePropagator();
 
     /** Index of the input whose size the result has.
      *
@@ -337,6 +380,10 @@ public class FusedOperator extends View.Visitor {
      * stored in the variable.
      */
     int resultType = 0;
+
+    /** True if the visited inputs are of the same size as the result.
+     */
+    boolean isResultSize = true;
 
 
 
@@ -394,8 +441,8 @@ public class FusedOperator extends View.Visitor {
                 sb.append("complex ");
             else
                 sb.append("ERROR   ");
-            if (i.isSameSizeAsResult)
-                sb.append("(result size)");
+            sb.append(i.increment);
+            sb.append(" " + i.indexVariable);
             sb.append("\n");
         }
         sb.append("Result size: input "+resultSize+"\n");
@@ -412,8 +459,6 @@ public class FusedOperator extends View.Visitor {
             // walk the view, capture inputs and generate the code for the materialization loop and generate the list of
             // checked classes when the view will later be bound
             view.visit(this);
-            // propagate the result size to all inputs so that we know which one is result sized and whose have to be wrapped
-            rsp.propagate(view);
             // create the the CtClass for the fused operator, convert hash to class name
             fop = pool.makeClass("FOP_"+String.valueOf(hash).replaceAll("-","m"));
             fop.setSuperclass(prototype);
@@ -539,23 +584,10 @@ public class FusedOperator extends View.Visitor {
         }
         // create indices for different size vectors inputs
         for (Input i : inputs)
-            if (i.isVector && !i.isSameSizeAsResult)
+            if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
                 sb.append("    int i" + i.index + " = 0;\n");
         // main loop header
         sb.append("    for (int i = 0; i < result.length; ++i) {\n");
-        // loading the input elements
-        for (Input i : inputs)
-            if (i.isVector)
-                switch (i.type) {
-                    case Fusion.DOUBLE:
-                        sb.append("        double in" + i.index + " = input" + i.index + "[i" + (i.isSameSizeAsResult ? "" : i.index ) + "];\n");
-                        break;
-                    case Fusion.INT:
-                        sb.append("        int in" + i.index + " = input" + i.index + "[i" + (i.isSameSizeAsResult ? "" : i.index ) + "];\n");
-                        break;
-                    default:
-                        assert (false);
-                }
         // initialize the boolean for NA checks
         sb.append("        boolean isNA = false;\n");
         // add the code of the computation
@@ -576,7 +608,7 @@ public class FusedOperator extends View.Visitor {
         sb.append("        result[i] = " + resultVar + ";\n");
         // increment the non-same size input indices
         for (Input i : inputs)
-            if (i.isVector && !i.isSameSizeAsResult) {
+            if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX) {
                 sb.append("        if (++i" + i.index + " == input" + i.index + ".length)\n");
                 sb.append("            i" + i.index + " = 0;\n");
             }
@@ -595,7 +627,9 @@ public class FusedOperator extends View.Visitor {
         // end of method
         sb.append("}\n");
         // create and add the method
-        // System.out.println(sb.toString());
+        System.out.println(this);
+        System.out.println(sb.toString());
+        System.exit(-1);
         fop.addMethod(CtNewMethod.make(sb.toString(), fop));
     }
 
@@ -700,20 +734,30 @@ public class FusedOperator extends View.Visitor {
     public void visitDoubleLeaf(RDouble data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.DOUBLE, data.size() != 1);
+        if (isResultSize)
+            resultSize = i.index;
+        else
+            i.setCustomIndexed();
         inputs.add(i);
         inputIndices.put(data, i);
         resultVar = i.inputElementName();
         resultType = Fusion.DOUBLE;
+        i.addElementRead(code);
     }
 
     @Override
     public void visitIntLeaf(RInt data) {
         resultSize = inputs.size(); // set the result size to the input, will be adjusted by operators
         Input i = new Input(data, inputs.size(), Fusion.INT, data.size() != 1);
+        if (isResultSize)
+            resultSize = i.index;
+        else
+            i.setCustomIndexed();
         inputs.add(i);
         inputIndices.put(data, i);
         resultVar = i.inputElementName();
         resultType = Fusion.INT;
+        i.addElementRead(code);
     }
 
     @Override
@@ -736,6 +780,7 @@ public class FusedOperator extends View.Visitor {
         visitDouble_(view.a);
         int rs = resultSize; // backup result size because it will be overriden by b
         String left = resultVar;
+        isResultSize = false; // right subtree is not the same size as the result
         visitDouble_(view.b);
         binaryDDtoD(left, resultVar, view.arit);
         resultSize = rs;
@@ -745,8 +790,11 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericBSized view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
+        isResultSize = false;
         visitDouble_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b); // result size will stay that of b
         binaryDDtoD(left, resultVar, view.arit);
     }
@@ -756,8 +804,10 @@ public class FusedOperator extends View.Visitor {
         String t = freeTemp();
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitDouble_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b); // both sizes are the same, we are happy with the second
         binaryDDtoD(left, resultVar, view.arit);
     }
@@ -766,9 +816,11 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForDoubleDouble.VectorScalar view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitDouble_(view.a);
         int rs = resultSize; // backup the result size of the vector
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b);
         resultSize = rs;
         binaryDDtoD(left, resultVar, view.arit);
@@ -778,8 +830,10 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForDoubleDouble.ScalarVector view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitDouble_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b); // the result size of the vector will be returned
         binaryDDtoD(left, resultVar, view.arit);
     }
@@ -788,8 +842,10 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForDoubleInt.EqualSizeVectorVector view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitDouble_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitInt_(view.b); // equally sized operators, the second is ok
         binaryDItoD(left, resultVar, view.arit);
     }
@@ -798,8 +854,10 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForIntDouble.EqualSizeVectorVector view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitInt_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b); // equally sized operators, the second is ok
         binaryIDtoD(left, resultVar, view.arit);
     }
@@ -808,9 +866,11 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.DoubleViewForIntDouble.VectorScalar view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitInt_(view.a);
         int rs = resultSize; // backup the result size from the vector operand
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitDouble_(view.b);
         resultSize = rs;
         binaryIDtoD(left, resultVar, view.arit);
@@ -820,88 +880,12 @@ public class FusedOperator extends View.Visitor {
     public void visit(Arithmetic.IntViewForIntInt.EqualSize view) {
         checkClass(view.getClass());
         checkClass(view.arit.getClass());
+        boolean old_isResultSize = isResultSize;
         visitInt_(view.a);
         String left = resultVar;
+        isResultSize = old_isResultSize;
         visitInt_(view.b); // equal sizes, both are good
         binaryIItoI(left, resultVar, view.arit);
-    }
-
-    // ResultSizePropagator --------------------------------------------------------------------------------------------
-
-    /** Propagates the size of the result to all inputs which have the same size.
-     *
-     * A very simple visitor which only visits subtrees that have the same size as the result of the view. When a leaf
-     * is visited, it is marked as being the same size as the result.
-     */
-    class ResultSizePropagator extends View.Visitor {
-
-        public void propagate(View view) {
-            view.visit(this);
-        }
-
-        @Override
-        public void visitLeaf(RAny value) {
-            // TODO this is not terribly efficient, but deals with repeating inputs. If we ever build the AST for view,
-            // it will go away
-            for (Input i : inputs) {
-                if (i.data == value)
-                    i.isSameSizeAsResult = true;
-            }
-        }
-
-        @Override
-        public void visit(RDouble.RIntView view) {
-            visitDouble_(view.orig);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
-            visitDouble_(view.a);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericBSized view) {
-            visitDouble_(view.b);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleDouble.EqualSizeVectorVector view) {
-            visitDouble_(view.a);
-            visitDouble_(view.b);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleDouble.VectorScalar view) {
-            visitDouble_(view.a);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleDouble.ScalarVector view) {
-            visitDouble_(view.b);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForDoubleInt.EqualSizeVectorVector view) {
-            visitDouble_(view.a);
-            visitInt_(view.b);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForIntDouble.EqualSizeVectorVector view) {
-            visitInt_(view.a);
-            visitDouble_(view.b);
-        }
-
-        @Override
-        public void visit(Arithmetic.DoubleViewForIntDouble.VectorScalar view) {
-            visitInt_(view.a);
-        }
-
-        @Override
-        public void visit(Arithmetic.IntViewForIntInt.EqualSize view) {
-            visitInt_(view.a);
-            visitInt_(view.b);
-        }
     }
 
     // NoFusion --------------------------------------------------------------------------------------------------------

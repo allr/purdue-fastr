@@ -138,8 +138,8 @@ public class Sandbox {
             "  proc.time()[[3]] - time\n" +
             "}\n" +
             "\n" +
-            "a = rep(1, 1000)\n" +
-            "b = rep(1, 10000)\n" +
+            "a = rep(1, 10000)\n" +
+            "b = rep(1, 1000)\n" +
             "c = rep(1, 10000)\n" +
             "d = 4; #rep(1, 1000)\n" +
             "f()\n" +
@@ -160,11 +160,7 @@ public class Sandbox {
 
 
 
-
-
-    public static void main(String[] args) {
-
-        System.out.println("Executing sandbox...");
+    public static void debugRun() {
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(fannkuchRedux));
         RAny result = RContext.eval(tree);
         tree = RContext.parseFile(new ANTLRStringStream("fastaredux(500000L)"));
@@ -186,6 +182,20 @@ public class Sandbox {
             Fusion.clearStatistics();
         }
         System.out.println("\n\nAverage time: " + (ttime / 10) +" [ms]");
+    }
+
+    public static void testRun() {
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode));
+        RAny result = RContext.eval(tree);
+
+    }
+
+
+
+    public static void main(String[] args) {
+        System.out.println("Executing sandbox...");
+        //debugRun();
+        testRun();
 
     }
 }
