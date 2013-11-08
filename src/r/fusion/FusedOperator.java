@@ -57,6 +57,11 @@ public class FusedOperator extends View.Visitor {
 
         protected RArray.Attributes resultAttributes;
 
+        /** If the fused operator is bound to a certain view, the view is also hold in this variable so that if the
+         * view gets rebound to another view the binding can be removed.
+         */
+        protected View boundView = null;
+
 
 
         /** Checks next class in the array of inner node classes.
@@ -250,6 +255,11 @@ public class FusedOperator extends View.Visitor {
             propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
+        private void unbind() {
+            if (boundView != null)
+                boundView.unbind();
+        }
+
         /** Binds the fused operator to given view.
          *
          * The view is walked and checked that it is the same as the one for which the fused operator was created by
@@ -259,9 +269,17 @@ public class FusedOperator extends View.Visitor {
          * TODO calculate dimensions attributes and names
          */
         public void bind(View view) {
-            view.visit(this);
-            if (nodeClassesIndex != nodeClasses.length)
-                throw new NotSupported();
+            try {
+                unbind();
+                boundView = view;
+                view.visit(this);
+                if (nodeClassesIndex != nodeClasses.length)
+                    throw new NotSupported();
+            } catch (Error e) {
+                free();
+                throw e;
+            }
+
         }
 
         /** Frees the fused operator from the previously bound inputs.
@@ -272,6 +290,7 @@ public class FusedOperator extends View.Visitor {
          * Overriden methods should always call the super method too.
          */
         public void free() {
+            unbind();
             nodeClassesIndex = 0;
             inputIdx = 0;
             resultSize = 0;
@@ -299,6 +318,10 @@ public class FusedOperator extends View.Visitor {
          * @return Materialzed view.
          */
         public abstract RArray materialize_();
+
+        public abstract int getInt(int index);
+
+        public abstract double getDouble(int index);
     }
 
     // main build method and structures --------------------------------------------------------------------------------
@@ -553,6 +576,9 @@ public class FusedOperator extends View.Visitor {
             addAstFixup();
             addFreeMethod();
             addConstructor();
+            addGetElementMethod();
+            addGetIntMethod();
+            addGetDoubleMethod();
             addMaterializeMethod();
             // create the class and instantiate it
             Class fopClass = fop.toClass();
@@ -692,6 +718,67 @@ public class FusedOperator extends View.Visitor {
         fop.addConstructor(CtNewConstructor.make(ctConstructorArgs, ctConstructorExceptions, "{ this.nodeClasses = $1; }", fop));
     }
 
+    private void addGetElementMethod() throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("private ");
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("double getElementDouble(int i");
+                break;
+            case Fusion.INT:
+                sb.append("int getElementInt(int i");
+                break;
+            default:
+                assert (false);
+        }
+        for (Input i : inputs)
+            if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                sb.append(", int i"+i.index);
+        sb.append(") {\n");
+        sb.append(code.toString());
+        sb.append("    return "+resultVar+";\n");
+        sb.append("}\n");
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+    }
+
+    private void addGetIntMethod() throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        if (resultType == Fusion.INT) {
+            sb.append("public int getInt(int index) {\n");
+            for (Input i : inputs)
+                if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                    sb.append("    int i"+i.index+" = i % input"+i.index+".length;\n");
+            sb.append("    return getElementInt(index");
+            for (Input i : inputs)
+                if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                    sb.append(", i"+i.index);
+            sb.append(");\n");
+            sb.append("}\n");
+        } else {
+            sb.append("public int getInt(int index) { throw new r.fusion.NotSupported(); }");
+        }
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+    }
+
+    private void addGetDoubleMethod() throws CannotCompileException {
+        StringBuilder sb = new StringBuilder();
+        if (resultType == Fusion.INT) {
+            sb.append("public double getDouble(int index) {\n");
+            for (Input i : inputs)
+                if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                    sb.append("    int i"+i.index+" = i % input"+i.index+".length;\n");
+            sb.append("    return getElementDouble(index");
+            for (Input i : inputs)
+                if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                    sb.append(", i"+i.index);
+            sb.append(");\n");
+            sb.append("}\n");
+        } else {
+            sb.append("public double getDouble(int index) { throw new r.fusion.NotSupported(); }");
+        }
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
+    }
+
     private void addMaterializeMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
         sb.append("public r.data.RArray materialize_() {\n");
@@ -714,22 +801,37 @@ public class FusedOperator extends View.Visitor {
         sb.append("    for (int i = 0; i < result.length; ++i) {\n");
         // initialize the boolean for NA checks
         sb.append("        boolean isNA = false;\n");
+        // call the internal get method for the given indices
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("double res = getElementDouble(i");
+                break;
+            case Fusion.INT:
+                sb.append("int res = getElementInt(i");
+                break;
+            default:
+                assert (false);
+        }
+        for (Input i : inputs)
+            if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
+                sb.append(", i"+i.index);
+        sb.append(");\n");
         // add the code of the computation
         sb.append(code.toString());
         // NA check
         sb.append("        if (isNA)\n");
         switch (resultType) {
             case Fusion.DOUBLE:
-                sb.append("            " + resultVar + " = r.data.RDouble.NA;\n");
+                sb.append("            res  = r.data.RDouble.NA;\n");
                 break;
             case Fusion.INT:
-                sb.append("            " + resultVar + " = r.data.RInt.NA;\n");
+                sb.append("            res = r.data.RInt.NA;\n");
                 break;
             default:
                 assert (false);
         }
         // store the computed value
-        sb.append("        result[i] = " + resultVar + ";\n");
+        sb.append("        result[i] = res;\n");
         // increment the non-same size input indices
         for (Input i : inputs)
             if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX) {
@@ -1111,22 +1213,31 @@ public class FusedOperator extends View.Visitor {
      * uses the view directly.
      */
     static class NoFusion extends Prototype {
-        View view;
 
         @Override
         public void bind(View view) {
-            this.view = view;
+            this.boundView = view;
         }
 
         @Override
         public void free() {
             super.free();
-            view = null;
+            boundView = null;
         }
 
         @Override
         public RArray materialize_() {
-            return view.materialize_();
+            return boundView.materialize_();
+        }
+
+        @Override
+        public int getInt(int index) {
+            return ((View.RIntView) boundView).getInt_(index);
+        }
+
+        @Override
+        public double getDouble(int index) {
+            return ((View.RDoubleView) boundView).getDouble_(index);
         }
     }
 

@@ -148,6 +148,22 @@ public abstract class View extends ArrayImpl implements RArray {
         return null;
     }
 
+    private FusedOperator.Prototype boundFusedOperator = null;
+
+    public final void bind(FusedOperator.Prototype fusedOperator) {
+        assert (boundFusedOperator == null);
+        boundFusedOperator = fusedOperator;
+    }
+
+    public final void unbind() {
+        boundFusedOperator = null;
+    }
+
+    public final FusedOperator.Prototype boundFusedOperator() {
+        return boundFusedOperator;
+    }
+
+
     /** FUSION Returns the AST associated with the view.
      *
      * Returns null if no ast is present in the view. Supported for double, int and complex views.

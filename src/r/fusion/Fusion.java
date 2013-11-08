@@ -78,6 +78,33 @@ public class Fusion {
                 ++hashFailed;
             return view.materialize_();
         }
+        FusedOperator.Prototype fusedOperator = getOrCompileFusedOperator(view, hash);
+        RArray result = fusedOperator.materialize(view);
+//        if (VERIFY)
+//            verify(result, view);
+        return result;
+    }
+
+    public static int getInt(View view, int index) {
+        if (ENABLE_STATISTICS)
+            ++materialized;
+        FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
+        if (fusedOperator == null) {
+            int hash = Hash.view(view);
+            if (hash == 0) {
+                if (ENABLE_STATISTICS)
+                    ++hashFailed;
+                return ((View.RIntView) view).getInt(index);
+            }
+            fusedOperator = getOrCompileFusedOperator(view, hash);
+            fusedOperator.bind(view);
+
+        }
+        int result = fusedOperator.getInt(index);
+        return result;
+    }
+
+    public static FusedOperator.Prototype getOrCompileFusedOperator(View view, int hash) {
         FusedOperator.Prototype fusedOperator = operators.get(hash);
         if (fusedOperator == null) {
             if (ENABLE_STATISTICS)
@@ -89,10 +116,7 @@ public class Fusion {
         } else if (ENABLE_STATISTICS) {
             ++reused;
         }
-        RArray result = fusedOperator.materialize(view);
-//        if (VERIFY)
-//            verify(result, view);
-        return result;
+        return fusedOperator;
     }
 
     public static void verify(RArray result, View view) {
