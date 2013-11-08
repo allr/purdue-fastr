@@ -109,7 +109,7 @@ final class Aperm extends CallFactory {
         /**
          * Using given permutation, permutes source and stores the result in dest.
          */
-        protected static final void perm(int[] source, int[] dest, int[] perm) {
+        protected static void perm(int[] source, int[] dest, int[] perm) {
             for (int i = 0; i < perm.length; ++i) {
                 dest[i] = source[perm[i]];
             }
@@ -119,7 +119,7 @@ final class Aperm extends CallFactory {
          * Increments the given index using the dimensions provided. The least significant value is the one on the left
          * (index 0). Does not check for overflow.
          */
-        protected static final void increment(int[] idx, int[] dim) {
+        protected static void increment(int[] idx, int[] dim) {
             int i = 0;
             while (i < idx.length) {
                 ++idx[i];
@@ -135,7 +135,7 @@ final class Aperm extends CallFactory {
          * Given the curent index and precomputed multipliers of the respective index positions calculates the offset to
          * a vector from the index into dimensions.
          */
-        protected static final int offset(int[] idx, int[] mults) {
+        protected static int offset(int[] idx, int[] mults) {
             int result = 0;
             for (int i = 0; i < idx.length; ++i) {
                 result += idx[i] * mults[i];
@@ -146,7 +146,7 @@ final class Aperm extends CallFactory {
         /**
          * Calculates the dimension multipliers that are used later in the offset method.
          */
-        protected static final int[] createDimMults(int[] dim) {
+        protected static int[] createDimMults(int[] dim) {
             int[] result = new int[dim.length];
             result[0] = 1;
             for (int i = 1; i < result.length; ++i) {
@@ -158,7 +158,7 @@ final class Aperm extends CallFactory {
         /**
          * Calculates the resized dimensions for the aperm builtin.
          */
-        protected static final int[] calculateResizedDimension(int[] aryDim, int[] perm) {
+        protected static int[] calculateResizedDimension(int[] aryDim, int[] perm) {
             int[] result = new int[aryDim.length];
             for (int i = 0; i < perm.length; ++i) {
                 result[i] = aryDim[perm[i]];

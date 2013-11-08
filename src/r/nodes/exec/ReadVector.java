@@ -1659,10 +1659,12 @@ public abstract class ReadVector extends BaseR {
                 assert Utils.check(baseNames != null);
             }
 
+            @Override
             public int size() {
                 return index.size();
             }
 
+            @Override
             public String getString(int i) {
                 if (result != null) {  // using the cache
                     return result.getString(i);
@@ -1732,10 +1734,12 @@ public abstract class ReadVector extends BaseR {
                 assert Utils.check(baseNames != null);
             }
 
+            @Override
             public int size() {
                 return index.size();
             }
 
+            @Override
             public double getDouble(int i) {
                 if (result != null) {  // using the cache
                     return result.getDouble(i);

@@ -25,6 +25,7 @@ public interface RComplex extends RArray {
     double getReal(int i);
     double getImag(int i);
     Complex getComplex(int i);
+    @Override
     RComplex materialize();
     double[] getContent();
 
@@ -298,6 +299,7 @@ public interface RComplex extends RArray {
             return orig;
         }
 
+        @Override
         public String getString(int i) {
             return Convert.complex2string(orig.getReal(i), orig.getImag(i));
         }

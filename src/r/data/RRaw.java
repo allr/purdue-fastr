@@ -18,6 +18,7 @@ public interface RRaw extends RArray {
 
     byte getRaw(int il);
     RRaw set(int i, byte val);
+    @Override
     RRaw materialize();
 
     public class RRawFactory {
@@ -232,6 +233,7 @@ public interface RRaw extends RArray {
             return orig;
         }
 
+        @Override
         public double getDouble(int i) {
             byte v = orig.getRaw(i);
             return Convert.raw2double(v);

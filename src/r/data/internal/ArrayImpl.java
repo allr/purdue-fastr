@@ -210,6 +210,7 @@ public abstract class ArrayImpl extends BaseObject implements RArray {
         return headers.append("\n").append(values).toString();
     }
 
+    @Override
     public RAny boxedNamedGet(int i) { // FIXME: this includes unnecessary allocation (in boxedGet) later re-done in setNames
         RAny res = boxedGet(i);
         Names names = names();

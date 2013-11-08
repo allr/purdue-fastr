@@ -18,6 +18,7 @@ public interface RString extends RArray {
 
     String getString(int i);
     RString set(int i, String val);
+    @Override
     RString materialize();
 
     public class RStringUtils {

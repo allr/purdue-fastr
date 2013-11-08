@@ -21,6 +21,7 @@ public class FindValueInView implements ValueVisitor {
         return find.getCount();
     }
 
+    @Override
     public void visit(RAny value) {
         if (lookFor == value) {
             count++;

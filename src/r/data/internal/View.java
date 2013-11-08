@@ -936,6 +936,7 @@ public abstract class View extends ArrayImpl implements RArray {
                 return materialize_();
         }
 
+        @Override
         public RDouble materialize_() {
             int n = size();
             if (TIGHT_LOOP_MATERIALIZATION && n > 1) {

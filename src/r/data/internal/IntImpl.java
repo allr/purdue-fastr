@@ -226,7 +226,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
         }
 
 
-        public static final boolean isInstance(Object o) {
+        public static boolean isInstance(Object o) {
             if (TracingView.VIEW_TRACING) {
                 Object x = o;
                 if (o instanceof RIntTracingView) {
@@ -335,7 +335,7 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             this.to = to;
         }
 
-        public static final boolean isInstance(Object o) {
+        public static boolean isInstance(Object o) {
             if (TracingView.VIEW_TRACING) {
                 Object x = o;
                 if (o instanceof RIntTracingView) {

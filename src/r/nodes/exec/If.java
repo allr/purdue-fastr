@@ -241,6 +241,7 @@ public class If extends BaseR {
                 final RNode lreturnCallArg = returnCall;
                 final ASTNode lreturnCallAST = returnCall.getAST().getParent().getParent();
                 SymbolChangeListener listener = new SymbolChangeListener() {
+                    @Override
                     public boolean onChange(RSymbol symbol) {
                         RNode oldNode = lreturnCallArg;
                         while(oldNode.getNewNode() != null) {

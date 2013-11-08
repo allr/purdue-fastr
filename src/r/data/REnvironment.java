@@ -113,22 +113,27 @@ public interface REnvironment extends RAny {
             return -1;
         }
 
+        @Override
         public FrameDescriptor frameDescriptor() {
             return NoSlotsFrame.NO_SLOTS_DESCRIPTOR;
         }
 
+        @Override
         public Object call(Frame frame) {
             return null;
         }
 
+        @Override
         public Frame createFrame(Frame callerFrame) {
             return null;
         }
 
+        @Override
         public boolean hasLocalSlot(RSymbol sym) {
             return false;
         }
 
+        @Override
         public Object callNoDefaults(Frame frame) {
             return null;
         }

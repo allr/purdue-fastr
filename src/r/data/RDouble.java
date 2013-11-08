@@ -29,6 +29,7 @@ public interface RDouble extends RNumber {
 
     RDouble set(int i, double val);
     double getDouble(int i);
+    @Override
     RDouble materialize();
     double[] getContent();
 

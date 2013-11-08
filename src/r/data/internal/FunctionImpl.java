@@ -291,6 +291,7 @@ public class FunctionImpl extends BaseR implements RFunction {
         return super.replaceChild(oldNode, newNode);
     }
 
+    @Override
     public Frame createFrame(Frame enclosingFrame) {
         switch(nlocals()) {
             case 1:

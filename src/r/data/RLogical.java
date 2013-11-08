@@ -23,6 +23,7 @@ public interface RLogical extends RArray { // FIXME: should extend Number instea
 
     int getLogical(int il);
     RLogical set(int i, int val);
+    @Override
     RLogical materialize();
 
     public class RLogicalUtils {

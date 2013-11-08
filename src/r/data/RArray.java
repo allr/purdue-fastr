@@ -45,8 +45,10 @@ public interface RArray extends RAny {
 
     RArray setNames(Names names);
 
+    @Override
     RArray setAttributes(Attributes attributes);
 
+    @Override
     RArray stripAttributes();
 
     RArray stripAttributesKeepNames();

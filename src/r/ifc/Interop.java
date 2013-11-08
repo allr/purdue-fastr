@@ -17,18 +17,22 @@ public class Interop {
 
     public static void initialize() {
         register(new Invokable() {
+            @Override
             public String name() {
                 return "jan";
             }
 
+            @Override
             public String[] parameters() {
                 return new String[]{"foo"};
             }
 
+            @Override
             public String[] requiredParameters() {
                 return new String[0];
             }
 
+            @Override
             public RAny invoke(ArgumentInfo ai, RAny[] args) {
                 String res = "jan ";
                 int ix = ai.position("foo");

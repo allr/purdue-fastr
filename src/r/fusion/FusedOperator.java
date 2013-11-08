@@ -558,7 +558,7 @@ public class FusedOperator extends View.Visitor {
             Class fopClass = fop.toClass();
             constructorArgsValues[0] = new Class[nodeClasses.size()];
             constructorArgsValues[0] = nodeClasses.toArray(constructorArgsValues[0]);
-            Prototype result = (Prototype) fopClass.getConstructor(constructorArgs).newInstance(constructorArgsValues);
+            Prototype result = (Prototype) fopClass.getConstructor(constructorArgs).newInstance((Object[])constructorArgsValues);
             return result;
         } catch (CannotCompileException e) {
             if (Fusion.DEBUG)
