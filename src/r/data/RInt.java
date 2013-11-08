@@ -5,6 +5,7 @@ import java.util.*;
 import r.*;
 import r.Convert.ConversionStatus;
 import r.data.internal.*;
+import r.fusion.Fusion;
 
 public interface RInt extends RNumber {
     int NA = Integer.MIN_VALUE;
@@ -362,8 +363,18 @@ public interface RInt extends RNumber {
             return orig.asRaw(warn);
         }
 
+        /** FUSION getDouble method for fused operators.
+         */
         @Override
-        public double getDouble(int i) {
+        public double getDouble(int index) {
+            if (Fusion.ENABLED)
+                return Fusion.getDouble(this, index);
+            else
+                return getDouble_(index);
+        }
+
+        @Override
+        public double getDouble_(int i) {
             int v = orig.getInt(i);
             return Convert.int2double(v);
         }
@@ -493,8 +504,18 @@ public interface RInt extends RNumber {
             return isize;
         }
 
+        /** FUSION entry point for fused getInt() accesses.
+         */
         @Override
         public int getInt(int i) {
+            if (Fusion.ENABLED)
+                return Fusion.getInt(this, i);
+            else
+                return getInt_(i);
+        }
+
+        @Override
+        public int getInt_(int i) {
             int j = index.getInt(i);
             assert Utils.check(j > 0);
             if (j > bsize) {

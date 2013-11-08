@@ -6,6 +6,7 @@ import r.*;
 import r.Convert.*;
 import r.data.RComplex.*;
 import r.data.internal.*;
+import r.fusion.Fusion;
 
 public interface RDouble extends RNumber {
 
@@ -405,8 +406,19 @@ public interface RDouble extends RNumber {
             super(orig);
         }
 
+        /** FUSION getInt method for fused operators.
+         */
         @Override
-        public int getInt(int i) {
+        public int getInt(int index) {
+            if (Fusion.ENABLED)
+                return Fusion.getInt(this, index);
+            else
+                return getInt_(index);
+        }
+
+
+        @Override
+        public int getInt_(int i) {
             return Convert.double2int(orig.getDouble(i));
         }
 

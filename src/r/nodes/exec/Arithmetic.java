@@ -17,6 +17,7 @@ import r.data.internal.ProfilingView.ViewProfile;
 import r.data.internal.TracingView.*;
 import r.errors.*;
 import r.ext.*;
+import r.fusion.Fusion;
 import r.nodes.ast.*;
 import r.runtime.*;
 
@@ -5596,8 +5597,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
 
                 int bi = i % nb;
                 double adbl = a.getDouble(i);
@@ -5631,8 +5642,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
 
                 int ai = i % na;
                 double adbl = a.getDouble(ai);
@@ -5663,8 +5684,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
 
                 double adbl = a.getDouble(i);
                 double bdbl = b.getDouble(i);
@@ -5737,8 +5768,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
                 double adbl = a.getDouble(i);
                 if (arithIsNA || RDouble.RDoubleUtils.arithIsNA(adbl)) {
                     return RDouble.NA;
@@ -5793,8 +5834,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
                 double bdbl = b.getDouble(i);
                 if (arithIsNA || RDouble.RDoubleUtils.arithIsNA(bdbl)) {
                     return RDouble.NA;
@@ -6191,8 +6242,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
 
                 double adbl = a.getDouble(i);
                 int bint = b.getInt(i);
@@ -6581,8 +6642,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
             @Override
-            public double getDouble(int i) {
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
+
+            @Override
+            public double getDouble_(int i) {
 
                 int aint = a.getInt(i);
                 double bdbl = b.getDouble(i);
@@ -6669,9 +6740,18 @@ public class Arithmetic extends BaseR {
                 visitor.visit(this);
             }
 
+            /** FUSION getDouble method for fused operators.
+             */
+            @Override
+            public double getDouble(int index) {
+                if (Fusion.ENABLED)
+                    return Fusion.getDouble(this, index);
+                else
+                    return getDouble_(index);
+            }
 
             @Override
-            public double getDouble(int i) {
+            public double getDouble_(int i) {
                 double aint = a.getInt(i);
                 if (arithIsNA || aint == RInt.NA) {
                     return RDouble.NA;
@@ -7010,8 +7090,19 @@ public class Arithmetic extends BaseR {
                 assert Utils.check(b.size() == n);
             }
 
+            /** FUSION entry point for fused getInt() accesses.
+             */
             @Override
             public int getInt(int i) {
+                if (Fusion.ENABLED)
+                    return Fusion.getInt(this, i);
+                else
+                    return getInt_(i);
+            }
+
+
+            @Override
+            public int getInt_(int i) {
                 int ai = i % na;
                 int aint = a.getInt(ai);
                 int bint = b.getInt(i);

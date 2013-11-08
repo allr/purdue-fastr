@@ -15,7 +15,7 @@ public class Fusion {
 
     public static final boolean ENABLED = true;
 
-    public static final boolean ENABLE_STATISTICS = false;
+    public static final boolean ENABLE_STATISTICS = true;
 
     public static final boolean VERIFY = false;
 
@@ -94,13 +94,32 @@ public class Fusion {
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
                     ++hashFailed;
-                return ((View.RIntView) view).getInt(index);
+                return view.getInt_(index);
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
             fusedOperator.bind(view);
 
         }
         int result = fusedOperator.getInt(index);
+        return result;
+    }
+
+    public static double getDouble(View view, int index) {
+        if (ENABLE_STATISTICS)
+            ++materialized;
+        FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
+        if (fusedOperator == null) {
+            int hash = Hash.view(view);
+            if (hash == 0) {
+                if (ENABLE_STATISTICS)
+                    ++hashFailed;
+                return view.getDouble_(index);
+            }
+            fusedOperator = getOrCompileFusedOperator(view, hash);
+            fusedOperator.bind(view);
+
+        }
+        double result = fusedOperator.getDouble(index);
         return result;
     }
 

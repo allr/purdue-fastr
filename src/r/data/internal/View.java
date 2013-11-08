@@ -148,6 +148,21 @@ public abstract class View extends ArrayImpl implements RArray {
         return null;
     }
 
+    /** FUSION getInt method bypassing fusion.
+     */
+    public int getInt_(int index) {
+        assert (false) : "This method should be overriden in the classes that use fusion.";
+        return RInt.NA;
+    }
+
+    /** FUSION getDouble method bypassing fusion.
+     */
+    public double getDouble_(int index) {
+        assert (false) : "This method should be overriden in the classes that use fusion.";
+        return RInt.NA;
+    }
+
+
     private FusedOperator.Prototype boundFusedOperator = null;
 
     public final void bind(FusedOperator.Prototype fusedOperator) {
