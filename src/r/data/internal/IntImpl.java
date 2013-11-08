@@ -198,11 +198,11 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
 
     public static class RIntSequence extends View.ConstantIntView implements RInt {
         // note: the sequence can go from large values to smaller values
-        final int from;
-        final int to;
-        final int step;
+        public final int from;
+        public final int to;
+        public final int step;
 
-        final int size;
+        public final int size;
 
         public RIntSequence(int from, int to, int step) {
             this.from = from;
@@ -217,6 +217,14 @@ public class IntImpl extends NonScalarArrayImpl implements RInt {
             }
             assert Utils.check(size > 0);
         }
+
+        /** FUSION type-dispatch to View.Visitor
+         */
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visitIntSequenceLeaf(this);
+        }
+
 
         public static final boolean isInstance(Object o) {
             if (TracingView.VIEW_TRACING) {

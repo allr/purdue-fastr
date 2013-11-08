@@ -11,11 +11,13 @@ import java.util.*;
  */
 public class Fusion {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     public static final boolean ENABLED = true;
 
     public static final boolean ENABLE_STATISTICS = true;
+
+    public static final boolean VERIFY = true;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
@@ -34,9 +36,11 @@ public class Fusion {
     static final int A =            64259293;
     static final int B =            1000853063;
     static final int INPUT =        1825547246;
+    static final int SEQUENCE =    -436454746;
     static final int BINARY =      -958270914;
     static final int CONVERSION =  -1803245152;
     static final int SUBSET =      -1649474957;
+    static final int INT_SEQUENCE = INT + SEQUENCE;
 
     /** HashMap containing created fusion operators and their respective view signatures.
      */
@@ -74,6 +78,8 @@ public class Fusion {
                 ++hashFailed;
             return view.materialize_();
         }
+//        if (hash == 1727136857)
+//            System.out.println("DEBUG");
         FusedOperator.Prototype fusedOperator = operators.get(hash);
         if (fusedOperator == null) {
             if (ENABLE_STATISTICS)
@@ -85,7 +91,16 @@ public class Fusion {
         } else if (ENABLE_STATISTICS) {
             ++reused;
         }
-        return fusedOperator.materialize(view);
+        RArray result = fusedOperator.materialize(view);
+        if (VERIFY) {
+            RArray check = view.materialize_();
+//            if (result.getClass() != check.getClass())
+//                throw new Error("FUSION: different class types");
+            if (result.size() != check.size())
+                throw new Error("FUSION: different result sizes");
+            return check;
+        }
+        return result;
     }
 
     public static String statistics() {
@@ -96,10 +111,12 @@ public class Fusion {
             sb.append("Compiled (including attempts):  "+compiled+"\n");
             sb.append("Compilation failed:             "+compilationFailed+"\n");
             sb.append("Reused:                         "+reused+"\n");
+            sb.append("Cached:                         "+operators.size()+"\n");
             return sb.toString();
         } else {
             return "FUSION STATISTICS DISABLED - Enable by setting Fusion.ENABLE_STATISTICS to true.\n";
         }
+
     }
 
     public static void clearStatistics() {

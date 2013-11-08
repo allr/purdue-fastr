@@ -14,43 +14,30 @@ import java.util.Vector;
 public class Sandbox {
 
 
-    static String spectralnorm = "spectralnorm <- function(args) {\n" +
+    static String mandelbrot = "lim <- 2\n" +
+            "iter <- 50\n" +
+            "\n" +
+            "mandelbrot <- function(args) {\n" +
             "    time = proc.time()[[3]]\n" +
-            "    n = if (length(args)) as.integer(args[[1]]) else 100L\n" +
-            "    options(digits=10)\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 200L\n" +
+            "    n_mod8 = n %% 8L\n" +
+            "    pads <- if (n_mod8) rep.int(0, 8L - n_mod8) else integer(0)\n" +
+            "    p <- rep(as.integer(rep.int(2, 8) ^ (7:0)), length.out=n)\n" +
             "\n" +
-            "    eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)\n" +
-            "    eval_A_times_u <- function(u) {\n" +
-            "        ret <- double(n)\n" +
-            "        for (i in 0:n1) {\n" +
-            "            eval_A_col <- double(n)\n" +
-            "            for (j in 0:n1)\n" +
-            "\t    eval_A_col[[j + 1]] <- eval_A(i, j)\n" +
-            "            ret[[i + 1]] <- u %*% eval_A_col\n" +
+            "    #cat(\"P4\\n\")\n" +
+            "    #cat(n, n, \"\\n\")\n" +
+            "    for (y in 0:(n-1)) {\n" +
+            "        c <- 2 * 0:(n-1) / n - 1.5 + 1i * (2 * y / n - 1)\n" +
+            "        z <- rep(0+0i, n)\n" +
+            "        i <- 0L\n" +
+            "        while (i < iter) {  # faster than for loop\n" +
+            "            z <- z * z + c\n" +
+            "            i <- i + 1L\n" +
             "        }\n" +
-            "        return(ret)\n" +
+            "        bits <- as.integer(abs(z) <= lim)\n" +
+            "        bytes <- as.raw(colSums(matrix(c(bits * p, pads), 8L)))\n" +
+            "#\tcat(bytes,\"\\n\")\n" +
             "    }\n" +
-            "    eval_At_times_u <- function(u) {\n" +
-            "        ret <- double(n)\n" +
-            "        for (i in 0:n1) {\n" +
-            "            eval_At_col <- double(n)\n" +
-            "            for (j in 0:n1)\n" +
-            "\t    eval_At_col[[j + 1]] <- eval_A(j, i)\n" +
-            "            ret[[i + 1]] <- u %*% eval_At_col\n" +
-            "        }\n" +
-            "        return(ret)\n" +
-            "    }\n" +
-            "    eval_AtA_times_u <- function(u) eval_At_times_u(eval_A_times_u(u))\n" +
-            "\n" +
-            "    n1 <- n - 1\n" +
-            "    u <- rep(1, n)\n" +
-            "    v <- rep(0, n)\n" +
-            "    for (itr in seq(10)) {\n" +
-            "        v <- eval_AtA_times_u(u)\n" +
-            "        u <- eval_AtA_times_u(v)\n" +
-            "    }\n" +
-            "\n" +
-            "    cat(sqrt(sum(u * v) / sum(v * v)), \"\\n\")\n" +
             "    proc.time()[[3]] - time\n" +
             "}\n";
 
@@ -83,9 +70,9 @@ public class Sandbox {
 
 
     public static void debugRun() {
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrot));
         RAny result = RContext.eval(tree);
-        tree = RContext.parseFile(new ANTLRStringStream("spectralnorm(500L)"));
+        tree = RContext.parseFile(new ANTLRStringStream("mandelbrot(2000L)"));
         System.out.print("Warmup");
         for (int i = 0; i < 2; ++i) {
             RContext.eval(tree);
@@ -107,8 +94,9 @@ public class Sandbox {
     }
 
     public static void testRun() {
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream("{ c(NA,NA,NA)+c(1L,2L,3L) }"));
         RAny result = RContext.eval(tree);
+        System.out.println(result.pretty());
 
     }
 
@@ -116,8 +104,8 @@ public class Sandbox {
 
     public static void main(String[] args) {
         System.out.println("Executing sandbox...");
-        debugRun();
-        //testRun();
+        //debugRun();
+        testRun();
 
     }
 }

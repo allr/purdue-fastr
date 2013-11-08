@@ -308,6 +308,13 @@ public interface RInt extends RNumber {
             super(orig);
         }
 
+        /** FUSION type dispatched visitor for View.Visitor
+         */
+        @Override
+        public void visit(View.Visitor visitor) {
+            visitor.visit(this);
+        }
+
      // fast debugging format does not support this shortcut, non-debugging format probably would
 //        @Override
 //        public RString asString() {

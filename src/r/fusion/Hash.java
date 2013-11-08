@@ -89,9 +89,20 @@ public class Hash extends View.Visitor {
     }
 
     @Override
+    public void visitIntSequenceLeaf(IntImpl.RIntSequence element) {
+        addHash(Fusion.INPUT + Fusion.INT_SEQUENCE);
+    }
+
+    @Override
     public void visit(RDouble.RIntView view) {
         addHash(Fusion.CONVERSION + Fusion.INT);
         visitDouble_(view.orig);
+    }
+
+    @Override
+    public void visit(RInt.RDoubleView view) {
+        addHash(Fusion.CONVERSION + Fusion.DOUBLE);
+        visitInt_(view.orig);
     }
 
     public void visit(RInt.RIntSubset view) {

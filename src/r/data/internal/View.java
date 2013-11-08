@@ -89,6 +89,8 @@ public abstract class View extends ArrayImpl implements RArray {
         public void visitStringLeaf(RString element) { visitLeaf((RAny) element); }
 
 
+        public void visitIntSequenceLeaf(IntImpl.RIntSequence element) { visitLeaf( (RInt) element); }
+
         /** Base view handler.
          *
          * Unless the specialized handlers below are overriden, this method will be called for all views that are not
@@ -97,6 +99,7 @@ public abstract class View extends ArrayImpl implements RArray {
         public void visit(View view) { }
 
         public void visit(RDouble.RIntView view) { visit( (View) view); }
+        public void visit(RInt.RDoubleView view) { visit( (View) view); }
 
         public void visit(RInt.RIntSubset view) { visit( (View) view); }
 
