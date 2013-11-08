@@ -11,13 +11,13 @@ import java.util.*;
  */
 public class Fusion {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     public static final boolean ENABLED = true;
 
     public static final boolean ENABLE_STATISTICS = true;
 
-    public static final boolean VERIFY = true;
+    public static final boolean VERIFY = false;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
@@ -78,8 +78,6 @@ public class Fusion {
                 ++hashFailed;
             return view.materialize_();
         }
-//        if (hash == 1727136857)
-//            System.out.println("DEBUG");
         FusedOperator.Prototype fusedOperator = operators.get(hash);
         if (fusedOperator == null) {
             if (ENABLE_STATISTICS)
@@ -92,15 +90,32 @@ public class Fusion {
             ++reused;
         }
         RArray result = fusedOperator.materialize(view);
-        if (VERIFY) {
-            RArray check = view.materialize_();
-//            if (result.getClass() != check.getClass())
-//                throw new Error("FUSION: different class types");
-            if (result.size() != check.size())
-                throw new Error("FUSION: different result sizes");
-            return check;
-        }
+        if (VERIFY)
+            verify(result, view);
         return result;
+    }
+
+    public static void verify(RArray result, View view) {
+        RArray check = view.materialize_();
+        if (result.getClass() != check.getClass())
+            throw new Error("FUSION: different class types");
+        if (result.size() != check.size())
+            throw new Error("FUSION: different result sizes");
+        if (result instanceof RDouble) {
+            double[] r = ((RDouble) result).getContent();
+            double[] c = ((RDouble) check).getContent();
+            for (int i = 0; i < r.length; ++i)
+                if ((r[i] != c[i]) && !Double.isNaN(r[i]) && !Double.isNaN(c[i]))
+                    throw new Error("FUSION: elements differ");
+        } else if (result instanceof RInt) {
+            int[] r = ((RInt) result).getContent();
+            int[] c = ((RInt) check).getContent();
+            for (int i = 0; i < r.length; ++i)
+                if (r[i] != c[i])
+                    throw new Error("FUSION: elements differ");
+        } else {
+            throw new Error("FUSION: unverified result type class");
+        }
     }
 
     public static String statistics() {

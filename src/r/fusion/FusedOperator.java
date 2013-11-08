@@ -385,7 +385,7 @@ public class FusedOperator extends View.Visitor {
                                 code.append(inputName() + "[" + indexVariable + "];\n");
                                 break;
                             case SUBSET:
-                                code.append(inputName() + "[" + indexVariable + " % " + inputName() + ".length];\n");
+                                code.append(inputName() + "[(" + indexVariable + " - 1) % " + inputName() + ".length];\n");
                                 break;
                             default:
                                 assert (false);
@@ -397,10 +397,10 @@ public class FusedOperator extends View.Visitor {
                     switch (increment) {
                         case DEFAULT:
                         case CUSTOM_INDEX:
-                            code.append(inputName() + "from * (" + indexVariable + " * "+inputName()+"step);\n");
+                            code.append(inputName() + "from + (" + indexVariable + " * "+inputName()+"step);\n");
                             break;
                         case SUBSET:
-                            code.append(inputName() + "from * ((" + indexVariable + " % " + inputName() + ")* "+inputName()+"step);\n");
+                            code.append(inputName() + "from + (((" + indexVariable + " - 1) % " + inputName() + ")* "+inputName()+"step);\n");
                             break;
                         default:
                             assert (false);
@@ -535,13 +535,11 @@ public class FusedOperator extends View.Visitor {
         } catch (CannotCompileException e) {
             if (Fusion.DEBUG)
                 e.printStackTrace();
-            System.exit(-1);
         } catch (Exception e) {
             if (Fusion.DEBUG) {
                 e.printStackTrace();
                 System.err.println("Unexpected error reported while building ");
             }
-            System.exit(-1);
         } finally {
             // cleanup at the end to allow GC
             code.delete(0, code.length());
