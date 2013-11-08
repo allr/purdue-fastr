@@ -47,6 +47,7 @@ public class FusedOperator extends View.Visitor {
          */
         protected int inputIdx = 0;
 
+        protected int astIdx = 0;
 
         protected int resultSize;
 
@@ -228,10 +229,18 @@ public class FusedOperator extends View.Visitor {
             propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
+        /** This is overriden by the generated code to patch the AST nodes of the views that may emit warnings
+         * correctly.
+         */
+        public void astFixup(ASTNode ast) {
+            // pass
+        }
+
         @Override
         public void visit(Arithmetic.IntViewForIntInt.EqualSize view) {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
+            astFixup(view.ast());
             visitInt_(view.a);
             int leftSize = resultSize;
             int[] leftDimensions = resultDimensions;
@@ -266,6 +275,7 @@ public class FusedOperator extends View.Visitor {
             nodeClassesIndex = 0;
             inputIdx = 0;
             resultSize = 0;
+            astIdx = 0;
             resultAttributes = null;
             resultDimensions = null;
             resultNames = null;
@@ -442,6 +452,12 @@ public class FusedOperator extends View.Visitor {
 
     boolean inputIsVector = true;
 
+    /** Number of AST variables to be created in the fused view.
+     *
+     * These are needed for the proper displaying of the warnings (int overflow,...).
+     */
+    int astVariables = 0;
+
 
 
 
@@ -512,6 +528,17 @@ public class FusedOperator extends View.Visitor {
     private FusedOperator.Prototype build_(View view, int hash) {
         this.hash = hash;
         this.view = view;
+        // cleanup at the end to allow GC
+        code.delete(0, code.length());
+        inputIndices.clear();
+        inputs.clear();
+        nodeClasses.clear();
+        fop = null;
+        view = null;
+        isResultSize = true;
+        subsetIndex = null;
+        inputIsVector = true;
+        astVariables = 0;
         try {
             // walk the view, capture inputs and generate the code for the materialization loop and generate the list of
             // checked classes when the view will later be bound
@@ -523,6 +550,7 @@ public class FusedOperator extends View.Visitor {
             addFields();
             // add the methods
             addInputBindingMethods();
+            addAstFixup();
             addFreeMethod();
             addConstructor();
             addMaterializeMethod();
@@ -540,17 +568,6 @@ public class FusedOperator extends View.Visitor {
                 e.printStackTrace();
                 System.err.println("Unexpected error reported while building ");
             }
-        } finally {
-            // cleanup at the end to allow GC
-            code.delete(0, code.length());
-            inputIndices.clear();
-            inputs.clear();
-            nodeClasses.clear();
-            fop = null;
-            view = null;
-            isResultSize = true;
-            subsetIndex = null;
-            inputIsVector = true;
         }
         return NO_FUSION;
     }
@@ -571,6 +588,25 @@ public class FusedOperator extends View.Visitor {
                 assert (false);
             }
         }
+        CtClass anode = pool.get("r.nodes.ast.ASTNode");
+        for (int i = 0; i < astVariables; ++i)
+            fop.addField(new CtField(anode, "ast"+i, fop));
+    }
+
+    private void addAstFixup() throws CannotCompileException {
+        if (astVariables == 0)
+            return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("public void astFixup(r.nodes.ast.ASTNode ast) {\n");
+        sb.append("    switch (astIdx++) {\n");
+        for (int i = 0; i < astVariables; ++i) {
+            sb.append("        case "+i+":\n");
+            sb.append("            ast"+i+" = ast;\n");
+            sb.append("            break;\n");
+        }
+        sb.append("    }\n");
+        sb.append("}");
+        fop.addMethod(CtNewMethod.make(sb.toString(), fop));
     }
 
     private void addInputBindingMethods() throws CannotCompileException {
@@ -779,20 +815,30 @@ public class FusedOperator extends View.Visitor {
     private void binaryIItoI(String left, String right, Arithmetic.ValueArithmetic arit) {
         resultVar = freeTemp();
         resultType = Fusion.INT;
-        code.append("        isNA |= (" + left + " == r.data.RInt.NA);\n");
-        code.append("        isNA |= (" + right + " == r.data.RInt.NA);\n");
+        code.append("        boolean isNA"+astVariables+" = (" + left + " == r.data.RInt.NA) || (\" + right + \" == r.data.RInt.NA);\n");
         code.append("        int "+resultVar+";\n");
         //  i/i -> i is meaningless
-        if (arit == Arithmetic.ADD)
+        if (arit == Arithmetic.ADD) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Add.add(" + left + ", " + right + ");\n");
-        else if (arit == Arithmetic.SUB)
+            code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
+            code.append("            r.nodes.exec.Arithmetic.ADD.emitOverflowWarning(ast" + astVariables + ");\n");
+        } else if (arit == Arithmetic.SUB) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Sub.sub(" + left + ", " + right + ");\n");
-        else if (arit == Arithmetic.MULT)
+            code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
+            code.append("            r.nodes.exec.Arithmetic.SUB.emitOverflowWarning(ast" + astVariables + ");\n");
+        } else if (arit == Arithmetic.MULT) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mult.mult(" + left + ", " + right + ");\n");
-        else if (arit == Arithmetic.MOD)
+            code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
+            code.append("            r.nodes.exec.Arithmetic.MUL.emitOverflowWarning(ast" + astVariables + ");\n");
+        } else if (arit == Arithmetic.MOD) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mod.mod(" + left + ", " + right + ");\n");
-        else
+            code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
+            code.append("            r.nodes.exec.Arithmetic.MOD.emitOverflowWarning(ast" + astVariables + ");\n");
+        } else {
             throw new NotSupported();
+        }
+        code.append("        isNA |= isNA" + astVariables + ";\n");
+        ++astVariables;
     }
 
     private void conversionToInt(String source, int type) {

@@ -15,7 +15,7 @@ public class Fusion {
 
     public static final boolean ENABLED = true;
 
-    public static final boolean ENABLE_STATISTICS = true;
+    public static final boolean ENABLE_STATISTICS = false;
 
     public static final boolean VERIFY = false;
 
@@ -90,8 +90,8 @@ public class Fusion {
             ++reused;
         }
         RArray result = fusedOperator.materialize(view);
-        if (VERIFY)
-            verify(result, view);
+//        if (VERIFY)
+//            verify(result, view);
         return result;
     }
 
@@ -137,8 +137,8 @@ public class Fusion {
     public static void clearStatistics() {
         materialized = 0;
         hashFailed = 0;
-        compiled = 0;
-        compilationFailed = 0;
+        //compiled = 0;
+        //compilationFailed = 0;
         reused = 0;
     }
 }
