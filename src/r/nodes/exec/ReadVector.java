@@ -2,7 +2,6 @@ package r.nodes.exec;
 
 import r.*;
 import r.data.*;
-import r.data.RAny.*;
 import r.data.RArray.Names;
 import r.data.internal.*;
 import r.data.internal.IntImpl.RIntSequence;

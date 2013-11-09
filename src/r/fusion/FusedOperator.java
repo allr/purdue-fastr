@@ -255,9 +255,10 @@ public class FusedOperator extends View.Visitor {
             propagateAttributes(view.ast(), leftSize, leftDimensions, leftNames, leftAttributes);
         }
 
-        private void unbind() {
+        protected final  void unbind() {
             if (boundView != null)
                 boundView.unbind();
+            boundView = null;
         }
 
         /** Binds the fused operator to given view.
@@ -271,6 +272,7 @@ public class FusedOperator extends View.Visitor {
         public void bind(View view) {
             try {
                 unbind();
+                view.bind(this);
                 boundView = view;
                 view.visit(this);
                 if (nodeClassesIndex != nodeClasses.length)
@@ -747,7 +749,7 @@ public class FusedOperator extends View.Visitor {
             sb.append("public int getInt(int index) {\n");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
-                    sb.append("    int i"+i.index+" = i % input"+i.index+".length;\n");
+                    sb.append("    int i"+i.index+" = index % input"+i.index+".length;\n");
             sb.append("    return getElementInt(index");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
@@ -766,7 +768,7 @@ public class FusedOperator extends View.Visitor {
             sb.append("public double getDouble(int index) {\n");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
-                    sb.append("    int i"+i.index+" = i % input"+i.index+".length;\n");
+                    sb.append("    int i"+i.index+" = index % input"+i.index+".length;\n");
             sb.append("    return getElementDouble(index");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
@@ -1216,14 +1218,15 @@ public class FusedOperator extends View.Visitor {
 
         @Override
         public void bind(View view) {
-            this.boundView = view;
+            unbind();
+            view.bind(this);
+            boundView = view;
         }
 
-        @Override
+/*        @Override
         public void free() {
             super.free();
-            boundView = null;
-        }
+        } */
 
         @Override
         public RArray materialize_() {

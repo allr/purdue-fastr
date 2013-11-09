@@ -17,7 +17,7 @@ public class Fusion {
 
     public static final boolean ENABLE_STATISTICS = true;
 
-    public static final boolean VERIFY = false;
+    public static final boolean VERIFY = true;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
@@ -80,8 +80,8 @@ public class Fusion {
         }
         FusedOperator.Prototype fusedOperator = getOrCompileFusedOperator(view, hash);
         RArray result = fusedOperator.materialize(view);
-//        if (VERIFY)
-//            verify(result, view);
+        if (VERIFY)
+            verify(result, view);
         return result;
     }
 
@@ -94,13 +94,21 @@ public class Fusion {
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
                     ++hashFailed;
+                //view.bind(FusedOperator.NO_FUSION);
+                FusedOperator.NO_FUSION.bind(view);
                 return view.getInt_(index);
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
             fusedOperator.bind(view);
-
+        } else {
+            assert (fusedOperator.boundView == view);
         }
         int result = fusedOperator.getInt(index);
+        if (VERIFY) {
+            int check = view.getInt_(index);
+            if (result != check)
+                throw new Error("FUSION: elements differ");
+        }
         return result;
     }
 
@@ -113,13 +121,21 @@ public class Fusion {
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
                     ++hashFailed;
+                //view.bind(FusedOperator.NO_FUSION);
+                FusedOperator.NO_FUSION.bind(view);
                 return view.getDouble_(index);
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
             fusedOperator.bind(view);
-
+        } else {
+            assert (fusedOperator.boundView == view);
         }
         double result = fusedOperator.getDouble(index);
+        if (VERIFY) {
+            double check = view.getDouble_(index);
+            if ((result != check) && !Double.isNaN(result) && !Double.isNaN(check))
+                throw new Error("FUSION: elements differ");
+        }
         return result;
     }
 
