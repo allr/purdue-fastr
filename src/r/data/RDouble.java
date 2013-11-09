@@ -4,7 +4,6 @@ import java.util.*;
 
 import r.*;
 import r.Convert.*;
-import r.data.RComplex.*;
 import r.data.internal.*;
 import r.fusion.Fusion;
 
@@ -410,7 +409,7 @@ public interface RDouble extends RNumber {
          */
         @Override
         public int getInt(int index) {
-            if (Fusion.ENABLED)
+            if (Fusion.ENABLED_INT)
                 return Fusion.getInt(this, index);
             else
                 return getInt_(index);

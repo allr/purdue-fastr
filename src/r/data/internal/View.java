@@ -692,7 +692,7 @@ public abstract class View extends ArrayImpl implements RArray {
          */
         @Override
         public RInt materialize() {
-            if (Fusion.ENABLED)
+            if (Fusion.ENABLED_MATERIALIZE)
                 return (RInt) Fusion.materialize(this);
             else
                 return materialize_();
@@ -960,7 +960,7 @@ public abstract class View extends ArrayImpl implements RArray {
          */
         @Override
         public RDouble materialize() {
-            if (Fusion.ENABLED)
+            if (Fusion.ENABLED_MATERIALIZE)
                 return (RDouble) Fusion.materialize(this);
             else
                 return materialize_();

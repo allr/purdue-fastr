@@ -13,11 +13,15 @@ public class Fusion {
 
     public static final boolean DEBUG = false;
 
-    public static final boolean ENABLED = true;
+    public static final boolean ENABLED_MATERIALIZE = true;
 
-    public static final boolean ENABLE_STATISTICS = true;
+    public static final boolean ENABLED_INT = true;
 
-    public static final boolean VERIFY = true;
+    public static final boolean ENABLED_DOUBLE = true;
+
+    public static final boolean ENABLE_STATISTICS = false;
+
+    public static final boolean VERIFY = false;
 
     /* The indices of these features are random numbers to give the hashing function broader scope and therefore less
      * chances of collisions. They are used throughout the fusion system to identify them.
@@ -46,27 +50,37 @@ public class Fusion {
      */
     static final HashMap<Integer, FusedOperator.Prototype> operators = new HashMap<>();
 
-    static int materialized = 0;
-
-    static int hashFailed = 0;
-
     static int compiled = 0;
 
     static int compilationFailed = 0;
 
     static int reused = 0;
 
-    static int elementAccess = 0;
+    static int materialize = 0;
 
-    static int bindConflict = 0;
+    static int materialize_hashed = 0;
 
-    static int bindConflict_element = 0;
+    static int materialize_hashFailed = 0;
 
-    static int bindConflict_materialize = 0;
+    static int materialize_rebound = 0;
 
-    static int bindReusedMaterialize = 0;
+    static int getInt = 0;
 
-    static int bindReusedElement = 0;
+    static int getInt_hashed = 0;
+
+    static int getInt_hashFailed = 0;
+
+    static int getInt_rebound = 0;
+
+    static int getDouble = 0;
+
+    static int getDouble_hashed = 0;
+
+    static int getDouble_hashFailed = 0;
+
+    static int getDouble_rebound = 0;
+
+
 
 
 
@@ -85,22 +99,24 @@ public class Fusion {
      */
     public static RArray materialize(View view) {
         if (ENABLE_STATISTICS)
-            ++materialized;
+            ++materialize;
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
+            if (ENABLE_STATISTICS)
+                ++materialize_hashed;
             int hash = Hash.view(view);
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
-                    ++hashFailed;
+                    ++materialize_hashFailed;
+                FusedOperator.NO_FUSION.bind(view); // bind to NO_FUSION if we ever use it again
                 return view.materialize_();
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
         } else {
-            if (ENABLE_STATISTICS)
-                if (fusedOperator.boundView != view)
-                    ++bindConflict_materialize;
-                else
-                    ++bindReusedMaterialize;
+            if (ENABLE_STATISTICS) {
+                if (fusedOperator.boundView != view) // bind happens automatically in materialize call below
+                    ++materialize_rebound;
+            }
         }
         RArray result = fusedOperator.materialize(view);
         if (VERIFY)
@@ -110,22 +126,28 @@ public class Fusion {
 
     public static int getInt(View view, int index) {
         if (ENABLE_STATISTICS)
-            ++elementAccess;
+            ++getInt;
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
+            if (ENABLE_STATISTICS)
+                ++getInt_hashed;
             int hash = Hash.view(view);
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
-                    ++hashFailed;
-                //view.bind(FusedOperator.NO_FUSION);
-                FusedOperator.NO_FUSION.bind(view);
+                    ++getInt_hashFailed;
+                FusedOperator.NO_FUSION.bind(view); // bind to NO_FUSION if we ever use it again
                 return view.getInt_(index);
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
+            if (ENABLE_STATISTICS && fusedOperator.boundView != null)
+                ++getInt_rebound;
             fusedOperator.bind(view);
         } else {
-            if (fusedOperator.boundView != null && fusedOperator.boundView != view)
+            if (fusedOperator.boundView != null && fusedOperator.boundView != view) {
+                if (ENABLE_STATISTICS)
+                    ++getInt_rebound;
                 fusedOperator.bind(view);
+            }
         }
         int result = fusedOperator.getInt(view, index);
         if (VERIFY) {
@@ -138,27 +160,33 @@ public class Fusion {
 
     public static double getDouble(View view, int index) {
         if (ENABLE_STATISTICS)
-            ++elementAccess;
+            ++getDouble;
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
+            if (ENABLE_STATISTICS)
+                ++getDouble_hashed;
             int hash = Hash.view(view);
             if (hash == 0) {
                 if (ENABLE_STATISTICS)
-                    ++hashFailed;
-                //view.bind(FusedOperator.NO_FUSION);
-                FusedOperator.NO_FUSION.bind(view);
+                    ++getDouble_hashFailed;
+                FusedOperator.NO_FUSION.bind(view); // bind to NO_FUSION if we ever use it again
                 return view.getDouble_(index);
             }
             fusedOperator = getOrCompileFusedOperator(view, hash);
+            if (ENABLE_STATISTICS && fusedOperator.boundView != null)
+                ++getDouble_rebound;
             fusedOperator.bind(view);
         } else {
-            if (fusedOperator.boundView != null && fusedOperator.boundView != view)
+            if (fusedOperator.boundView != null && fusedOperator.boundView != view) {
+                if (ENABLE_STATISTICS)
+                    ++getDouble_rebound;
                 fusedOperator.bind(view);
+            }
         }
         double result = fusedOperator.getDouble(view, index);
         if (VERIFY) {
             double check = view.getDouble_(index);
-            if ((result != check) && !Double.isNaN(result) && !Double.isNaN(check))
+            if (result != check && !Double.isNaN(result) && !Double.isNaN(check))
                 throw new Error("FUSION: elements differ");
         }
         return result;
@@ -205,13 +233,25 @@ public class Fusion {
     public static String statistics() {
         if (ENABLE_STATISTICS) {
             StringBuilder sb = new StringBuilder();
-            sb.append("Total materialized:             "+materialized+"\n");
-            sb.append("Hash failed (not supported):    "+hashFailed+"\n");
+            sb.append("Materialized             " + materialize + "\n");
+            sb.append("  hashed                 " + materialize_hashed + "\n");
+            sb.append("  hash failed            " + materialize_hashFailed + "\n");
+            sb.append("  rebound                " + materialize_rebound + "\n");
+            sb.append("\n");
+            sb.append("getInt                   " + getInt + "\n");
+            sb.append("  hashed                 " + getInt_hashed + "\n");
+            sb.append("  hash failed            " + getInt_hashFailed + "\n");
+            sb.append("  rebound                " + getInt_rebound + "\n");
+            sb.append("\n");
+            sb.append("getDouble                " + getDouble + "\n");
+            sb.append("  hashed                 " + getDouble_hashed + "\n");
+            sb.append("  hash failed            " + getDouble_hashFailed + "\n");
+            sb.append("  rebound                " + getDouble_rebound + "\n");
+            sb.append("\n");
             sb.append("Compiled (including attempts):  "+compiled+"\n");
             sb.append("Compilation failed:             "+compilationFailed+"\n");
             sb.append("Reused:                         "+reused+"\n");
             sb.append("Cached:                         "+operators.size()+"\n");
-            sb.append("Element accesses:               "+elementAccess+"\n");
             return sb.toString();
         } else {
             return "FUSION STATISTICS DISABLED - Enable by setting Fusion.ENABLE_STATISTICS to true.\n";
@@ -220,10 +260,18 @@ public class Fusion {
     }
 
     public static void clearStatistics() {
-        materialized = 0;
-        hashFailed = 0;
-        //compiled = 0;
-        //compilationFailed = 0;
+        materialize = 0;
+        materialize_hashed = 0;
+        materialize_hashFailed = 0;
+        materialize_rebound = 0;
+        getInt = 0;
+        getInt_hashed = 0;
+        getInt_hashFailed = 0;
+        getInt_rebound = 0;
+        getDouble = 0;
+        getDouble_hashed = 0;
+        getDouble_hashFailed = 0;
+        getDouble_rebound = 0;
         reused = 0;
     }
 }

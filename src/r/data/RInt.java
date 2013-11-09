@@ -367,7 +367,7 @@ public interface RInt extends RNumber {
          */
         @Override
         public double getDouble(int index) {
-            if (Fusion.ENABLED)
+            if (Fusion.ENABLED_DOUBLE)
                 return Fusion.getDouble(this, index);
             else
                 return getDouble_(index);
@@ -508,7 +508,7 @@ public interface RInt extends RNumber {
          */
         @Override
         public int getInt(int i) {
-            if (Fusion.ENABLED)
+            if (Fusion.ENABLED_INT)
                 return Fusion.getInt(this, i);
             else
                 return getInt_(i);

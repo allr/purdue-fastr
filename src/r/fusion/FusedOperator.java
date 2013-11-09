@@ -257,11 +257,8 @@ public class FusedOperator extends View.Visitor {
 
         protected final  void unbind() {
             // if there is a bound view, rebind it to NO_FUSION to prevent possible conflicts from happening
-            if (boundView != null) {
-                if (Fusion.ENABLE_STATISTICS)
-                    ++Fusion.bindConflict;
+            if (boundView != null)
                 boundView.bind(NO_FUSION);
-            }
             boundView = null;
         }
 
@@ -274,6 +271,10 @@ public class FusedOperator extends View.Visitor {
          * TODO calculate dimensions attributes and names
          */
         public void bind(View view) {
+            nodeClassesIndex = 0;
+            inputIdx = 0;
+            resultSize = 0;
+            astIdx = 0;
             try {
                 unbind();
                 view.bind(this);
@@ -297,10 +298,6 @@ public class FusedOperator extends View.Visitor {
          */
         public void free() {
             unbind();
-            nodeClassesIndex = 0;
-            inputIdx = 0;
-            resultSize = 0;
-            astIdx = 0;
             resultAttributes = null;
             resultDimensions = null;
             resultNames = null;
@@ -563,7 +560,6 @@ public class FusedOperator extends View.Visitor {
         inputs.clear();
         nodeClasses.clear();
         fop = null;
-        view = null;
         isResultSize = true;
         subsetIndex = null;
         inputIsVector = true;
@@ -595,11 +591,11 @@ public class FusedOperator extends View.Visitor {
         } catch (CannotCompileException e) {
             if (Fusion.DEBUG)
                 e.printStackTrace();
+            assert (false);
         } catch (Exception e) {
-            if (Fusion.DEBUG) {
+            if (Fusion.DEBUG)
                 e.printStackTrace();
-                System.err.println("Unexpected error reported while building ");
-            }
+            assert(false);
         }
         return NO_FUSION;
     }
@@ -724,6 +720,24 @@ public class FusedOperator extends View.Visitor {
         fop.addConstructor(CtNewConstructor.make(ctConstructorArgs, ctConstructorExceptions, "{ this.nodeClasses = $1; }", fop));
     }
 
+    private void appendCode(StringBuilder sb) {
+        sb.append("    boolean isNA = false;\n");
+        // add the code of the computation
+        sb.append(code.toString());
+        // NA check
+        sb.append("    if (isNA)\n");
+        switch (resultType) {
+            case Fusion.DOUBLE:
+                sb.append("        " + resultVar + " = r.data.RDouble.NA;\n");
+                break;
+            case Fusion.INT:
+                sb.append("        " + resultVar + " = r.data.RInt.NA;\n");
+                break;
+            default:
+                assert (false);
+        }
+    }
+
     private void addGetElementMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
         sb.append("private ");
@@ -741,9 +755,10 @@ public class FusedOperator extends View.Visitor {
             if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
                 sb.append(", int i"+i.index);
         sb.append(") {\n");
-        sb.append(code.toString());
+        appendCode(sb);
         sb.append("    return "+resultVar+";\n");
         sb.append("}\n");
+        //System.out.println(sb.toString());
         fop.addMethod(CtNewMethod.make(sb.toString(), fop));
     }
 
@@ -768,7 +783,7 @@ public class FusedOperator extends View.Visitor {
 
     private void addGetDoubleMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
-        if (resultType == Fusion.INT) {
+        if (resultType == Fusion.DOUBLE) {
             sb.append("public double getDouble(r.data.internal.View view, int index) {\n");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
@@ -805,15 +820,13 @@ public class FusedOperator extends View.Visitor {
                 sb.append("    int i" + i.index + " = 0;\n");
         // main loop header
         sb.append("    for (int i = 0; i < result.length; ++i) {\n");
-        // initialize the boolean for NA checks
-        sb.append("        boolean isNA = false;\n");
         // call the internal get method for the given indices
         switch (resultType) {
             case Fusion.DOUBLE:
-                sb.append("double res = getElementDouble(i");
+                sb.append("result[i] = getElementDouble(i");
                 break;
             case Fusion.INT:
-                sb.append("int res = getElementInt(i");
+                sb.append("result[i] = getElementInt(i");
                 break;
             default:
                 assert (false);
@@ -822,22 +835,6 @@ public class FusedOperator extends View.Visitor {
             if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
                 sb.append(", i"+i.index);
         sb.append(");\n");
-        // add the code of the computation
-        sb.append(code.toString());
-        // NA check
-        sb.append("        if (isNA)\n");
-        switch (resultType) {
-            case Fusion.DOUBLE:
-                sb.append("            res  = r.data.RDouble.NA;\n");
-                break;
-            case Fusion.INT:
-                sb.append("            res = r.data.RInt.NA;\n");
-                break;
-            default:
-                assert (false);
-        }
-        // store the computed value
-        sb.append("        result[i] = res;\n");
         // increment the non-same size input indices
         for (Input i : inputs)
             if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX) {
@@ -923,7 +920,7 @@ public class FusedOperator extends View.Visitor {
     private void binaryIItoI(String left, String right, Arithmetic.ValueArithmetic arit) {
         resultVar = freeTemp();
         resultType = Fusion.INT;
-        code.append("        boolean isNA"+astVariables+" = (" + left + " == r.data.RInt.NA) || (\" + right + \" == r.data.RInt.NA);\n");
+        code.append("        boolean isNA"+astVariables+" = (" + left + " == r.data.RInt.NA) || (" + right + " == r.data.RInt.NA);\n");
         code.append("        int "+resultVar+";\n");
         //  i/i -> i is meaningless
         if (arit == Arithmetic.ADD) {
@@ -937,7 +934,7 @@ public class FusedOperator extends View.Visitor {
         } else if (arit == Arithmetic.MULT) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mult.mult(" + left + ", " + right + ");\n");
             code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
-            code.append("            r.nodes.exec.Arithmetic.MUL.emitOverflowWarning(ast" + astVariables + ");\n");
+            code.append("            r.nodes.exec.Arithmetic.MULT.emitOverflowWarning(ast" + astVariables + ");\n");
         } else if (arit == Arithmetic.MOD) {
             code.append("        " + resultVar + " = r.nodes.exec.Arithmetic$Mod.mod(" + left + ", " + right + ");\n");
             code.append("        if (!isNA" + astVariables + " && " + resultVar + " == r.data.RInt.NA)\n");
