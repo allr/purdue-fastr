@@ -56,6 +56,20 @@ public class Fusion {
 
     static int reused = 0;
 
+    static int elementAccess = 0;
+
+    static int bindConflict = 0;
+
+    static int bindConflict_element = 0;
+
+    static int bindConflict_materialize = 0;
+
+    static int bindReusedMaterialize = 0;
+
+    static int bindReusedElement = 0;
+
+
+
 
     /** Materializes the given view.
      *
@@ -72,13 +86,22 @@ public class Fusion {
     public static RArray materialize(View view) {
         if (ENABLE_STATISTICS)
             ++materialized;
-        int hash = Hash.view(view);
-        if (hash == 0) {
+        FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
+        if (fusedOperator == null) {
+            int hash = Hash.view(view);
+            if (hash == 0) {
+                if (ENABLE_STATISTICS)
+                    ++hashFailed;
+                return view.materialize_();
+            }
+            fusedOperator = getOrCompileFusedOperator(view, hash);
+        } else {
             if (ENABLE_STATISTICS)
-                ++hashFailed;
-            return view.materialize_();
+                if (fusedOperator.boundView != view)
+                    ++bindConflict_materialize;
+                else
+                    ++bindReusedMaterialize;
         }
-        FusedOperator.Prototype fusedOperator = getOrCompileFusedOperator(view, hash);
         RArray result = fusedOperator.materialize(view);
         if (VERIFY)
             verify(result, view);
@@ -87,7 +110,7 @@ public class Fusion {
 
     public static int getInt(View view, int index) {
         if (ENABLE_STATISTICS)
-            ++materialized;
+            ++elementAccess;
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
             int hash = Hash.view(view);
@@ -101,9 +124,10 @@ public class Fusion {
             fusedOperator = getOrCompileFusedOperator(view, hash);
             fusedOperator.bind(view);
         } else {
-            assert (fusedOperator.boundView == view);
+            if (fusedOperator.boundView != null && fusedOperator.boundView != view)
+                fusedOperator.bind(view);
         }
-        int result = fusedOperator.getInt(index);
+        int result = fusedOperator.getInt(view, index);
         if (VERIFY) {
             int check = view.getInt_(index);
             if (result != check)
@@ -114,7 +138,7 @@ public class Fusion {
 
     public static double getDouble(View view, int index) {
         if (ENABLE_STATISTICS)
-            ++materialized;
+            ++elementAccess;
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
             int hash = Hash.view(view);
@@ -128,9 +152,10 @@ public class Fusion {
             fusedOperator = getOrCompileFusedOperator(view, hash);
             fusedOperator.bind(view);
         } else {
-            assert (fusedOperator.boundView == view);
+            if (fusedOperator.boundView != null && fusedOperator.boundView != view)
+                fusedOperator.bind(view);
         }
-        double result = fusedOperator.getDouble(index);
+        double result = fusedOperator.getDouble(view, index);
         if (VERIFY) {
             double check = view.getDouble_(index);
             if ((result != check) && !Double.isNaN(result) && !Double.isNaN(check))
@@ -186,6 +211,7 @@ public class Fusion {
             sb.append("Compilation failed:             "+compilationFailed+"\n");
             sb.append("Reused:                         "+reused+"\n");
             sb.append("Cached:                         "+operators.size()+"\n");
+            sb.append("Element accesses:               "+elementAccess+"\n");
             return sb.toString();
         } else {
             return "FUSION STATISTICS DISABLED - Enable by setting Fusion.ENABLE_STATISTICS to true.\n";

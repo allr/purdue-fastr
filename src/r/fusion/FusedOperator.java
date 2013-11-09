@@ -256,8 +256,12 @@ public class FusedOperator extends View.Visitor {
         }
 
         protected final  void unbind() {
-            if (boundView != null)
-                boundView.unbind();
+            // if there is a bound view, rebind it to NO_FUSION to prevent possible conflicts from happening
+            if (boundView != null) {
+                if (Fusion.ENABLE_STATISTICS)
+                    ++Fusion.bindConflict;
+                boundView.bind(NO_FUSION);
+            }
             boundView = null;
         }
 
@@ -307,7 +311,7 @@ public class FusedOperator extends View.Visitor {
          */
         public final RArray materialize(View view) {
             bind(view);
-            RArray result = materialize_();
+            RArray result = materialize_(view);
             free();
             return result;
         }
@@ -319,11 +323,11 @@ public class FusedOperator extends View.Visitor {
          *
          * @return Materialzed view.
          */
-        public abstract RArray materialize_();
+        public abstract RArray materialize_(View view);
 
-        public abstract int getInt(int index);
+        public abstract int getInt(View view, int index);
 
-        public abstract double getDouble(int index);
+        public abstract double getDouble(View view, int index);
     }
 
     // main build method and structures --------------------------------------------------------------------------------
@@ -746,7 +750,7 @@ public class FusedOperator extends View.Visitor {
     private void addGetIntMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
         if (resultType == Fusion.INT) {
-            sb.append("public int getInt(int index) {\n");
+            sb.append("public int getInt(r.data.internal.View view, int index) {\n");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
                     sb.append("    int i"+i.index+" = index % input"+i.index+".length;\n");
@@ -765,7 +769,7 @@ public class FusedOperator extends View.Visitor {
     private void addGetDoubleMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
         if (resultType == Fusion.INT) {
-            sb.append("public double getDouble(int index) {\n");
+            sb.append("public double getDouble(r.data.internal.View view, int index) {\n");
             for (Input i : inputs)
                 if (i.isVector && i.increment == Input.Increment.CUSTOM_INDEX)
                     sb.append("    int i"+i.index+" = index % input"+i.index+".length;\n");
@@ -783,7 +787,7 @@ public class FusedOperator extends View.Visitor {
 
     private void addMaterializeMethod() throws CannotCompileException {
         StringBuilder sb = new StringBuilder();
-        sb.append("public r.data.RArray materialize_() {\n");
+        sb.append("public r.data.RArray materialize_(r.data.internal.View view) {\n");
         // create the result array
         switch (resultType) {
             case Fusion.DOUBLE:
@@ -1220,7 +1224,8 @@ public class FusedOperator extends View.Visitor {
         public void bind(View view) {
             unbind();
             view.bind(this);
-            boundView = view;
+            //boundView = null;
+            assert (boundView == null);
         }
 
 /*        @Override
@@ -1229,18 +1234,18 @@ public class FusedOperator extends View.Visitor {
         } */
 
         @Override
-        public RArray materialize_() {
-            return boundView.materialize_();
+        public RArray materialize_(View view) {
+            return view.materialize_();
         }
 
         @Override
-        public int getInt(int index) {
-            return ((View.RIntView) boundView).getInt_(index);
+        public int getInt(View view, int index) {
+            return view.getInt_(index);
         }
 
         @Override
-        public double getDouble(int index) {
-            return ((View.RDoubleView) boundView).getDouble_(index);
+        public double getDouble(View view, int index) {
+            return view.getDouble_(index);
         }
     }
 

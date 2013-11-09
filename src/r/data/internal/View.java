@@ -166,7 +166,6 @@ public abstract class View extends ArrayImpl implements RArray {
     private FusedOperator.Prototype boundFusedOperator = null;
 
     public final void bind(FusedOperator.Prototype fusedOperator) {
-        assert (boundFusedOperator == null);
         boundFusedOperator = fusedOperator;
     }
 
