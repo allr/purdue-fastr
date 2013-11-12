@@ -2,10 +2,12 @@ package r;
 
 import org.antlr.runtime.ANTLRStringStream;
 import r.data.RAny;
-import r.fusion.*;
+import r.fusion.Fusion;
 import r.nodes.ast.ASTNode;
 
 import java.util.Vector;
+
+import static r.shootout.ShootoutTestBase.generateFastaOutput;
 
 /**
  * Created with IntelliJ IDEA. User: Peta Date: 11/4/13 Time: 4:12 PM To change this template use File | Settings | File
@@ -385,6 +387,33 @@ public class Sandbox {
             "    proc.time()[[3]] - time\n" +
             "}\n";
 
+    static String mandelbrotNooutNaive = "lim <- 2\n" +
+            "iter <- 50\n" +
+            "\n" +
+            "mandelbrot_noout_naive <- function(args) {\n" +
+            "    time = proc.time()[[3]]\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 200L\n" +
+            "    n_mod8 = n %% 8L\n" +
+            "    pads <- if (n_mod8) rep.int(0, 8L - n_mod8) else integer(0)\n" +
+            "    p <- rep(as.integer(rep.int(2, 8) ^ (7:0)), length.out=n)\n" +
+            "\n" +
+            "    cat(\"P4\\n\")\n" +
+            "    cat(n, n, \"\\n\")\n" +
+            "    C <- matrix(0, n, n)\n" +
+            "    for (y in 0:(n-1)) {\n" +
+            "        C[, y] <- 2 * 0:(n-1) / n - 1.5 + 1i * (2 * y / n - 1)\n" +
+            "    }\n" +
+            "\n" +
+            "    m <- n\n" +
+            "    Z <- 0                   # initialize Z to zero\n" +
+            "    X <- array(0, c(m,m,20)) # initialize output 3D array\n" +
+            "    for (k in 1:20) {        # loop with 20 iterations\n" +
+            "        Z <- Z^2+C             # the central difference equation\n" +
+            "          X[,,k] <- exp(-abs(Z)) # capture results\n" +
+            "    }\n" +
+            "    proc.time()[[3]] - time\n" +
+            "}\n";
+
     static String nbody = "pi <- 3.141592653589793\n" +
             "solar_mass <- 4 * pi * pi\n" +
             "days_per_year <- 365.24\n" +
@@ -486,6 +515,115 @@ public class Sandbox {
             "    proc.time()[[3]] - time\n" +
             "}\n";
 
+    static String knucleotid_brute2="gen_freq <- function(seq, frame) {\n" +
+            "    frame <- frame - 1L\n" +
+            "    ns <- nchar(seq) - frame\n" +
+            "    n <- 0L\n" +
+            "    cap <- 16L\n" +
+            "    freqs <- integer(cap)\n" +
+            "    for (i in 1:ns) {\n" +
+            "        subseq = substr(seq, i, i + frame)\n" +
+            "        cnt <- attr(freqs, subseq)\n" +
+            "        if (is.null(cnt)) {\n" +
+            "            cnt <- 0L\n" +
+            "            # ensure O(N) resizing (instead of O(N^2))\n" +
+            "            n <- n + 1L\n" +
+            "            freqs[[cap <- if (cap < n) 2L * cap else cap]] <- 0L\n" +
+            "        }\n" +
+            "        attr(freqs, subseq) <- cnt + 1L\n" +
+            "    }\n" +
+            "    return(freqs)\n" +
+            "}\n" +
+            "\n" +
+            "sort_seq <- function(seq, len) {\n" +
+            "    cnt_map <- gen_freq(seq, len)\n" +
+            "    #print(cnt_map)\n" +
+            "    attrs <- attributes(cnt_map)\n" +
+            "    fs <- unlist(attrs, use.names=FALSE)\n" +
+            "    seqs <- toupper(paste(names(attrs)))\n" +
+            "    inds <- order(-fs, seqs)\n" +
+            "    #cat(paste(seqs[inds], fs[inds], collapse=\"\\n\"), \"\\n\")\n" +
+            "    #cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse=\"\\n\", digits=3),\n" +
+            "    cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse=\"\\n\"),\n" +
+            "        \"\\n\")\n" +
+            "}\n" +
+            "\n" +
+            "find_seq <- function(seq, s) {\n" +
+            "    cnt_map <- gen_freq(seq, nchar(s))\n" +
+            "    if (!is.null(cnt <- attr(cnt_map, s)))\n" +
+            "        return(cnt)\n" +
+            "    return(0L)\n" +
+            "}\n" +
+            "\n" +
+            "knucleotide_brute2 <- function(args) {\n" +
+            "    in_filename = args[[1]]\n" +
+            "    f <- file(in_filename, \"r\")\n" +
+            "    while (length(line <- readLines(f, n=1, warn=FALSE))) {\n" +
+            "        first_char <- substr(line, 1L, 1L)\n" +
+            "        if (first_char == '>' || first_char == ';')\n" +
+            "            if (substr(line, 2L, 3L) == 'TH')\n" +
+            "                break\n" +
+            "    }\n" +
+            "\n" +
+            "    n <- 0L\n" +
+            "    cap <- 8L\n" +
+            "    str_buf <- character(cap)\n" +
+            "    while (length(line <- scan(f, what=\"\", nmax=1, quiet=TRUE))) {\n" +
+            "        first_char <- substr(line, 1L, 1L)\n" +
+            "        if (first_char == '>' || first_char == ';')\n" +
+            "            break\n" +
+            "        n <- n + 1L\n" +
+            "\t# ensure O(N) resizing (instead of O(N^2))\n" +
+            "        str_buf[[cap <- if (cap < n) 2L * cap else cap]] <- \"\"\n" +
+            "        str_buf[[n]] <- line\n" +
+            "    }\n" +
+            "    length(str_buf) <- n\n" +
+            "    close(f)\n" +
+            "    seq <- paste(str_buf, collapse=\"\")\n" +
+            "\n" +
+            "    for (frame in 1:2)\n" +
+            "        sort_seq(seq, frame)\n" +
+            "    for (s in c(\"GGT\", \"GGTA\", \"GGTATT\", \"GGTATTTTAATT\", \"GGTATTTTAATTTATAGT\"))\n" +
+            "        cat(find_seq(seq, tolower(s)), sep=\"\\t\", s, \"\\n\")\n" +
+            "}\n" +
+            "\n" +
+            "paste. <- function (..., digits=16, sep=\" \", collapse=NULL) {\n" +
+            "    args <- list(...)\n" +
+            "    if (length(args) == 0)\n" +
+            "        if (length(collapse) == 0) character(0)\n" +
+            "        else \"\"\n" +
+            "    else {\n" +
+            "        for(i in seq(along=args))\n" +
+            "            if(is.numeric(args[[i]])) \n" +
+            "                args[[i]] <- as.character(round(args[[i]], digits))\n" +
+            "            else args[[i]] <- as.character(args[[i]])\n" +
+            "        .Internal(paste(args, sep, collapse))\n" +
+            "    }\n" +
+            "}\n";
+
+    static String spectralnorm_alt2 = "spectralnorm_alt2 <- function(args) {\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 100L\n" +
+            "    options(digits=10)\n" +
+            "\n" +
+            "    n = if (length(args)) as.integer(args[[1]]) else 100L\n" +
+            "\n" +
+            "    eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)\n" +
+            "    eval_A_times_u <- function(u)\n" +
+            "        u %*% outer(seq(n), seq(n), FUN=eval_A)\n" +
+            "    eval_At_times_u <- function(u)\n" +
+            "        u %*% t(outer(seq(n), seq(n), FUN=eval_A))\n" +
+            "    eval_AtA_times_u <- function(u)\n" +
+            "    eval_At_times_u(eval_A_times_u(u))\n" +
+            "\n" +
+            "    u <- rep(1, n)\n" +
+            "    v <- rep(0, n)\n" +
+            "    for (itr in seq(10)) {\n" +
+            "        v <- eval_AtA_times_u(u)\n" +
+            "        u <- eval_AtA_times_u(v)\n" +
+            "    }\n" +
+            "    cat(sqrt(sum(u * v) / sum(v * v)), \"\\n\")\n" +
+            "}\n";
+
     static String simpleCode = "f <- function() {\n" +
             "  time = proc.time()[[3]]\n" +
             "  for (i in 1:10000) a = a - b * c + b * d - b * d\n" +
@@ -503,46 +641,64 @@ public class Sandbox {
             "cat(time)\n";
 
 
-    static void benchmark(String name, String code, String size) {
-        code = code.replaceAll("@size", size);
-        System.out.println(name+"...");
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(code));
-        if (tree != null) {
-            RAny result = RContext.eval(tree);
-        }
-    }
-
-
     // fastaredux(500000L)
     // fannkuch(9L)
     // fasta(600000L)
     // fasta_2(300000L)
     // mandelbrot_noout(2000L)
     // nbody(190000L)
+    // knucleotide_brute2("c:/delete/fasta.txt")
+    // spectralnorm_alt2(1100L)
+    // mandelbrot_noout_naive(1000L)
 
-
-    public static void debugRun() {
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(nbody));
-        RAny result = RContext.eval(tree);
-        tree = RContext.parseFile(new ANTLRStringStream("nbody(190000L)"));
+    public static void benchmark(String code, int iterations, int warmup) {
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(code));
         System.out.print("Warmup");
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < warmup; ++i) {
             RContext.eval(tree);
             System.out.print(".");
         }
         System.out.println("");
         double ttime = 0;
-        for (int i = 0; i < 10; ++i) {
+        double[] times = new double[iterations];
+        double min_time = Double.POSITIVE_INFINITY;
+        double max_time = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < iterations; ++i) {
             long t = System.nanoTime();
             RContext.eval(tree);
             t = System.nanoTime() - t;
             double tt = t / 1000000.0;
             System.out.println("Measured iteration "+i+": "+tt+"[ms]");
             ttime += tt;
-            System.out.println(Fusion.statistics());
-            Fusion.clearStatistics();
+            times[i] = tt;
+            if (tt < min_time)
+                min_time = tt;
+            if (tt > max_time)
+                max_time = tt;
+           // System.out.println(Fusion.statistics());
+           // Fusion.clearStatistics();
         }
-        System.out.println("\n\nAverage time: " + (ttime / 10) +" [ms]");
+        double avg = ttime / iterations;
+        double stddev = 0;
+        for (int i = 0; i < iterations; ++i)
+            stddev += Math.pow(times[i] - avg, 2);
+        stddev = Math.sqrt(stddev / iterations);
+        System.out.println("Iterations: " + iterations);
+        System.out.println("Average:    " + avg);
+        System.out.println("Min:        " + min_time);
+        System.out.println("Max:        " + max_time);
+        System.out.println("Stddev:     " + stddev);
+        System.out.println("OVERALL:    " + (avg - stddev) + " -- " + (avg+stddev));
+    }
+
+
+
+    public static void debugRun() {
+        //String inputFile = "c:\\delete\\fasta.txt";
+        //generateFastaOutput(70000, inputFile);
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
+        RAny result = RContext.eval(tree);
+        benchmark("mandelbrot_noout_naive(1000L)", 100, 2);
     }
 
     public static void testRun() {
