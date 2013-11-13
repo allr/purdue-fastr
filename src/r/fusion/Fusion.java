@@ -13,7 +13,7 @@ public class Fusion {
 
     public static final boolean DEBUG = false;
 
-    public static final boolean ENABLED_MATERIALIZE = false;
+    public static final boolean ENABLED_MATERIALIZE = true;
 
     public static final boolean ENABLED_INT = false;
 

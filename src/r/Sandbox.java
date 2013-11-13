@@ -5,9 +5,9 @@ import r.data.RAny;
 //import r.fusion.Fusion;
 import r.nodes.ast.ASTNode;
 
-import java.util.Vector;
+//import java.util.Vector;
 
-import static r.shootout.ShootoutTestBase.generateFastaOutput;
+//import static r.shootout.ShootoutTestBase.generateFastaOutput;
 
 /**
  * Created with IntelliJ IDEA. User: Peta Date: 11/4/13 Time: 4:12 PM To change this template use File | Settings | File
@@ -683,12 +683,13 @@ public class Sandbox {
         for (int i = 0; i < iterations; ++i)
             stddev += Math.pow(times[i] - avg, 2);
         stddev = Math.sqrt(stddev / iterations);
-        System.out.println("Iterations: " + iterations);
-        System.out.println("Average:    " + avg);
-        System.out.println("Min:        " + min_time);
-        System.out.println("Max:        " + max_time);
-        System.out.println("Stddev:     " + stddev);
-        System.out.println("OVERALL:    " + (avg - stddev) + " -- " + (avg+stddev));
+        System.out.println("Iterations:   " + iterations);
+        System.out.println("Average:      " + avg);
+        System.out.println("Min:          " + min_time);
+        System.out.println("Max:          " + max_time);
+        System.out.println("Stddev:       " + stddev);
+        System.out.println("Stddev (rel): "+ (stddev / avg));
+        System.out.println("OVERALL:      " + (avg - stddev) + " -- " + (avg+stddev));
     }
 
 
@@ -711,7 +712,7 @@ public class Sandbox {
 
 
     public static void main(String[] args) {
-        System.out.println("Executing sandbox...\nFUSION OFF");
+        System.out.println("Executing sandbox...\nFUSION ON");
         debugRun();
         //testRun();
 
