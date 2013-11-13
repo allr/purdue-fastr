@@ -2,7 +2,7 @@ package r;
 
 import org.antlr.runtime.ANTLRStringStream;
 import r.data.RAny;
-import r.fusion.Fusion;
+//import r.fusion.Fusion;
 import r.nodes.ast.ASTNode;
 
 import java.util.Vector;
@@ -675,8 +675,8 @@ public class Sandbox {
                 min_time = tt;
             if (tt > max_time)
                 max_time = tt;
-           // System.out.println(Fusion.statistics());
-           // Fusion.clearStatistics();
+            // System.out.println(Fusion.statistics());
+            // Fusion.clearStatistics();
         }
         double avg = ttime / iterations;
         double stddev = 0;
@@ -698,7 +698,7 @@ public class Sandbox {
         //generateFastaOutput(70000, inputFile);
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
         RAny result = RContext.eval(tree);
-        benchmark("mandelbrot_noout_naive(5100L)", 100, 2);
+        benchmark("mandelbrot_noout_naive(4000L)", 10, 3);
     }
 
     public static void testRun() {
@@ -711,7 +711,7 @@ public class Sandbox {
 
 
     public static void main(String[] args) {
-        System.out.println("Executing sandbox...");
+        System.out.println("Executing sandbox...\nFUSION OFF");
         debugRun();
         //testRun();
 
