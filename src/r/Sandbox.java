@@ -465,28 +465,28 @@ public class Sandbox {
     }
 
     public static void runTests() {
-        String inputFile = "~/fasta6650.txt";
+        String inputFile = "/home/peta/fasta6650.txt";
         ShootoutTestBase.generateFastaOutput(6650, inputFile);
-        inputFile = "~/fasta4860.txt";
+        inputFile = "/home/peta/fasta4860.txt";
         ShootoutTestBase.generateFastaOutput(4860, inputFile);
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
+        RContext.eval(tree);
+        benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3);
+        tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
         RContext.eval(tree);
         benchmark("spectralnorm-alt2", "spectralnorm_alt2(5650L)", 20, 3);
         tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
         RContext.eval(tree);
-        benchmark("knucleotide-brute2","knucleotide_brute2(\"~/fasta6650.txt\")",20,3);
+        benchmark("knucleotide-brute2","knucleotide_brute2(\"/home/peta/fasta6650.txt\")",20,3);
         tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute3));
         RContext.eval(tree);
-        benchmark("knucleotide-brute3","knucleotide_brute3(\"~/fasta4860.txt\")",20,3);
+        benchmark("knucleotide-brute3","knucleotide_brute3(\"/home/peta/fasta4860.txt\")",20,3);
         tree = RContext.parseFile(new ANTLRStringStream(binarytrees2));
         RContext.eval(tree);
         benchmark("binarytrees-2", "binarytrees_2(16L)", 20, 3);
         tree = RContext.parseFile(new ANTLRStringStream(fasta));
         RContext.eval(tree);
         benchmark("fasta", "fasta(1880000L)", 20, 3);
-        tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
-        RContext.eval(tree);
-        benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3);
 
 
     }
