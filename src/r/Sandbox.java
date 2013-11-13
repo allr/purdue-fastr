@@ -397,8 +397,8 @@ public class Sandbox {
             "    pads <- if (n_mod8) rep.int(0, 8L - n_mod8) else integer(0)\n" +
             "    p <- rep(as.integer(rep.int(2, 8) ^ (7:0)), length.out=n)\n" +
             "\n" +
-            "    cat(\"P4\\n\")\n" +
-            "    cat(n, n, \"\\n\")\n" +
+            "    #cat(\"P4\\n\")\n" +
+            "    #cat(n, n, \"\\n\")\n" +
             "    C <- matrix(0, n, n)\n" +
             "    for (y in 0:(n-1)) {\n" +
             "        C[, y] <- 2 * 0:(n-1) / n - 1.5 + 1i * (2 * y / n - 1)\n" +
@@ -698,7 +698,7 @@ public class Sandbox {
         //generateFastaOutput(70000, inputFile);
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
         RAny result = RContext.eval(tree);
-        benchmark("mandelbrot_noout_naive(1000L)", 100, 2);
+        benchmark("mandelbrot_noout_naive(5100L)", 100, 2);
     }
 
     public static void testRun() {
