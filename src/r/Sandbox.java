@@ -469,7 +469,10 @@ public class Sandbox {
         ShootoutTestBase.generateFastaOutput(6650, inputFile);
         inputFile = "~/fasta4860.txt";
         ShootoutTestBase.generateFastaOutput(4860, inputFile);
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
+        RContext.eval(tree);
+        benchmark("spectralnorm-alt2", "spectralnorm_alt2(5650L)", 20, 3);
+        tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
         RContext.eval(tree);
         benchmark("knucleotide-brute2","knucleotide_brute2(\"~/fasta6650.txt\")",20,3);
         tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute3));
@@ -484,9 +487,6 @@ public class Sandbox {
         tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
         RContext.eval(tree);
         benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3);
-        tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
-        RContext.eval(tree);
-        benchmark("spectralnorm-alt2", "spectralnorm_alt2(5650L)", 20, 3);
 
 
     }
