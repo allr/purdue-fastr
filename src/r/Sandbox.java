@@ -409,6 +409,7 @@ public class Sandbox {
         for (int i = 0; i < warmup; ++i) {
             long t = System.nanoTime();
             RContext.eval(tree);
+            t = System.nanoTime() - t;
             double tt = t / 1000000.0;
             System.err.println("warmup iteration " + i + ": " + tt + "[ms]");
         }
@@ -464,9 +465,17 @@ public class Sandbox {
     }
 
     public static void runTests() {
-        //String inputFile = "c:\\delete\\fasta.txt";
-        //ShootoutTestBase.generateFastaOutput(1000, inputFile);
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream(binarytrees2));
+        String inputFile = "~/fasta6650.txt";
+        ShootoutTestBase.generateFastaOutput(6650, inputFile);
+        inputFile = "~/fasta4860.txt";
+        ShootoutTestBase.generateFastaOutput(4860, inputFile);
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
+        RContext.eval(tree);
+        benchmark("knucleotide-brute2","knucleotide_brute2(\"~/fasta6650.txt\")",20,3);
+        tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute3));
+        RContext.eval(tree);
+        benchmark("knucleotide-brute3","knucleotide_brute3(\"~/fasta4860.txt\")",20,3);
+        tree = RContext.parseFile(new ANTLRStringStream(binarytrees2));
         RContext.eval(tree);
         benchmark("binarytrees-2", "binarytrees_2(16L)", 20, 3);
         tree = RContext.parseFile(new ANTLRStringStream(fasta));
@@ -478,12 +487,6 @@ public class Sandbox {
         tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
         RContext.eval(tree);
         benchmark("spectralnorm-alt2", "spectralnorm_alt2(5650L)", 20, 3);
-        //tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
-        //RContext.eval(tree);
-        //benchmark("knucleotide-brute2","knucleotide_brute2(\"c:/delete/fasta.txt\")",20,3);
-        //tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute3));
-        //RContext.eval(tree);
-        //benchmark("knucleotide-brute3","knucleotide_brute3(\"c:/delete/fasta.txt\")",20,3);
 
 
     }
