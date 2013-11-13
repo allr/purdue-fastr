@@ -699,7 +699,7 @@ public class Sandbox {
         //generateFastaOutput(70000, inputFile);
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
         RAny result = RContext.eval(tree);
-        benchmark("mandelbrot_noout_naive(4000L)", 10, 3);
+        benchmark("mandelbrot_noout_naive(5100L)", 10, 3);
     }
 
     public static void testRun() {

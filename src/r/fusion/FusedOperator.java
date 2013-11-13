@@ -297,7 +297,8 @@ public class FusedOperator extends View.Visitor {
          * Overriden methods should always call the super method too.
          */
         public void free() {
-            boundView.bind(null);
+            unbind();
+            //boundView.bind(null);
             resultAttributes = null;
             resultDimensions = null;
             resultNames = null;
