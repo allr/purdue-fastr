@@ -414,13 +414,13 @@ public class Sandbox {
             double tt = t / 1000000.0;
             //System.err.println("warmup iteration " + i + ": " + tt + "[ms]");
         }
-        //Fusion.clearStatistics();
         System.err.println("");
         double ttime = 0;
         double[] times = new double[iterations];
         double min_time = Double.POSITIVE_INFINITY;
         double max_time = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < iterations; ++i) {
+            Fusion.clearStatistics();
             long t = System.nanoTime();
             RContext.eval(tree);
             t = System.nanoTime() - t;
@@ -440,14 +440,14 @@ public class Sandbox {
         for (int i = 0; i < iterations; ++i)
             stddev += Math.pow(times[i] - avg, 2);
         stddev = Math.sqrt(stddev / iterations);
-        /*System.err.println("Iterations:   " + iterations);
+        //System.err.println("Iterations:   " + iterations);
         System.err.println("Average:      " + avg);
-        System.err.println("Min:          " + min_time);
-        System.err.println("Max:          " + max_time);
+        //System.err.println("Min:          " + min_time);
+        //System.err.println("Max:          " + max_time);
         System.err.println("Stddev:       " + stddev);
-        System.err.println("Stddev (rel): " + (stddev / avg)); */
-        System.err.println("OVERALL:      " + (avg - stddev) + " -- " + (avg + stddev));
-        //System.err.println(Fusion.statistics());
+        //System.err.println("Stddev (rel): " + (stddev / avg));
+        //System.err.println("OVERALL:      " + (avg - stddev) + " -- " + (avg + stddev));
+        System.err.println(Fusion.statistics());
     }
 
 
@@ -478,7 +478,7 @@ public class Sandbox {
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
         RContext.eval(tree);
         for (int i : new int[] { 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120}) {
-            benchmark("spectralnorm-alt2:"+i, "spectralnorm_alt2("+i+"L)", 20, 3);
+            benchmark("spectralnorm-alt2:"+i, "spectralnorm_alt2("+i+"L)", 1, 3);
         }
 
 /*        benchmark("spectralnorm-alt2", "spectralnorm_alt2(10L)", 20, 3);

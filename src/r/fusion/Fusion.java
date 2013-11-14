@@ -19,7 +19,7 @@ public class Fusion {
 
     public static final boolean ENABLED_DOUBLE = false;
 
-    public static final boolean ENABLE_STATISTICS = false;
+    public static final boolean ENABLE_STATISTICS = true;
 
     public static final boolean VERIFY = false;
 
