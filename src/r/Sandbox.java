@@ -420,7 +420,7 @@ public class Sandbox {
         double min_time = Double.POSITIVE_INFINITY;
         double max_time = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < iterations; ++i) {
-            Fusion.clearStatistics();
+            //Fusion.clearStatistics();
             long t = System.nanoTime();
             RContext.eval(tree);
             t = System.nanoTime() - t;
@@ -447,7 +447,7 @@ public class Sandbox {
         System.err.println("Stddev:       " + stddev);
         //System.err.println("Stddev (rel): " + (stddev / avg));
         //System.err.println("OVERALL:      " + (avg - stddev) + " -- " + (avg + stddev));
-        System.err.println(Fusion.statistics());
+        //System.err.println(Fusion.statistics());
     }
 
 
