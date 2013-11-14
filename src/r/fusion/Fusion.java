@@ -80,6 +80,8 @@ public class Fusion {
 
     static int getDouble_rebound = 0;
 
+    static double totSize = 0;
+
 
 
 
@@ -98,8 +100,10 @@ public class Fusion {
      * @return Materialized contents of the view.
      */
     public static RArray materialize(View view) {
-        if (ENABLE_STATISTICS)
+        if (ENABLE_STATISTICS) {
             ++materialize;
+            totSize += view.size();
+        }
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {
             if (ENABLE_STATISTICS)
@@ -237,6 +241,8 @@ public class Fusion {
             sb.append("  hashed                 " + materialize_hashed + "\n");
             sb.append("  hash failed            " + materialize_hashFailed + "\n");
             sb.append("  rebound                " + materialize_rebound + "\n");
+            sb.append("  total size:            "+totSize+"\n");
+            sb.append("  average size:          "+totSize / materialize+ "\n");
             sb.append("\n");
             sb.append("getInt                   " + getInt + "\n");
             sb.append("  hashed                 " + getInt_hashed + "\n");
@@ -252,6 +258,7 @@ public class Fusion {
             sb.append("Compilation failed:             "+compilationFailed+"\n");
             sb.append("Reused:                         "+reused+"\n");
             sb.append("Cached:                         "+operators.size()+"\n");
+
             return sb.toString();
         } else {
             return "FUSION STATISTICS DISABLED - Enable by setting Fusion.ENABLE_STATISTICS to true.\n";
@@ -261,6 +268,7 @@ public class Fusion {
 
     public static void clearStatistics() {
         materialize = 0;
+        totSize = 0;
         materialize_hashed = 0;
         materialize_hashFailed = 0;
         materialize_rebound = 0;

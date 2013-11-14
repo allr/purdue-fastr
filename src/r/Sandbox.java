@@ -3,6 +3,7 @@ package r;
 import org.antlr.runtime.ANTLRStringStream;
 import r.data.RAny;
 //import r.fusion.Fusion;
+import r.fusion.Fusion;
 import r.nodes.ast.ASTNode;
 import r.shootout.ShootoutTestBase;
 
@@ -411,8 +412,9 @@ public class Sandbox {
             RContext.eval(tree);
             t = System.nanoTime() - t;
             double tt = t / 1000000.0;
-            System.err.println("warmup iteration " + i + ": " + tt + "[ms]");
+            //System.err.println("warmup iteration " + i + ": " + tt + "[ms]");
         }
+        //Fusion.clearStatistics();
         System.err.println("");
         double ttime = 0;
         double[] times = new double[iterations];
@@ -423,7 +425,7 @@ public class Sandbox {
             RContext.eval(tree);
             t = System.nanoTime() - t;
             double tt = t / 1000000.0;
-            System.err.println("Measured iteration " + i + ": " + tt + "[ms]");
+            //System.err.println("Measured iteration " + i + ": " + tt + "[ms]");
             ttime += tt;
             times[i] = tt;
             if (tt < min_time)
@@ -438,13 +440,14 @@ public class Sandbox {
         for (int i = 0; i < iterations; ++i)
             stddev += Math.pow(times[i] - avg, 2);
         stddev = Math.sqrt(stddev / iterations);
-        System.err.println("Iterations:   " + iterations);
+        /*System.err.println("Iterations:   " + iterations);
         System.err.println("Average:      " + avg);
         System.err.println("Min:          " + min_time);
         System.err.println("Max:          " + max_time);
         System.err.println("Stddev:       " + stddev);
-        System.err.println("Stddev (rel): " + (stddev / avg));
+        System.err.println("Stddev (rel): " + (stddev / avg)); */
         System.err.println("OVERALL:      " + (avg - stddev) + " -- " + (avg + stddev));
+        //System.err.println(Fusion.statistics());
     }
 
 
@@ -466,16 +469,24 @@ public class Sandbox {
 
     public static void runTests() {
         String inputFile = "/home/peta/fasta6650.txt";
-        ShootoutTestBase.generateFastaOutput(6650, inputFile);
+/*        ShootoutTestBase.generateFastaOutput(6650, inputFile);
         inputFile = "/home/peta/fasta4860.txt";
         ShootoutTestBase.generateFastaOutput(4860, inputFile);
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(mandelbrotNooutNaive));
         RContext.eval(tree);
-        benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3);
-        tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
+        benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3); */
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
         RContext.eval(tree);
-        benchmark("spectralnorm-alt2", "spectralnorm_alt2(5650L)", 20, 3);
-        tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
+        for (int i : new int[] { 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120}) {
+            benchmark("spectralnorm-alt2:"+i, "spectralnorm_alt2("+i+"L)", 20, 3);
+        }
+
+/*        benchmark("spectralnorm-alt2", "spectralnorm_alt2(10L)", 20, 3);
+        benchmark("spectralnorm-alt2", "spectralnorm_alt2(50L)", 20, 3);
+        benchmark("spectralnorm-alt2", "spectralnorm_alt2(100L)", 20, 3);
+        benchmark("spectralnorm-alt2", "spectralnorm_alt2(500L)", 20, 3);
+        benchmark("spectralnorm-alt2", "spectralnorm_alt2(1000L)", 20, 3); */
+/*        tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute2));
         RContext.eval(tree);
         benchmark("knucleotide-brute2","knucleotide_brute2(\"/home/peta/fasta6650.txt\")",20,3);
         tree = RContext.parseFile(new ANTLRStringStream(knucleotide_brute3));
@@ -486,7 +497,7 @@ public class Sandbox {
         benchmark("binarytrees-2", "binarytrees_2(16L)", 20, 3);
         tree = RContext.parseFile(new ANTLRStringStream(fasta));
         RContext.eval(tree);
-        benchmark("fasta", "fasta(1880000L)", 20, 3);
+        benchmark("fasta", "fasta(1880000L)", 20, 3); */
 
 
     }
